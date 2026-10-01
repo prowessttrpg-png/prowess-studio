@@ -1,0 +1,38 @@
+{
+  "name": "prowess-studio",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Prowess Platform monorepo — Studio application and shared domain packages.",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "dev": "pnpm --filter @prowess/studio run dev",
+    "start": "pnpm --filter @prowess/studio run start",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "test:unit": "pnpm -r run test:unit",
+    "test:integration": "pnpm -r run test:integration",
+    "test:e2e": "pnpm --filter @prowess/studio run test:e2e",
+    "test:architecture": "node scripts/check-architecture.mjs",
+    "ci": "pnpm run lint && pnpm run test:architecture && pnpm run typecheck && pnpm run test && pnpm run build",
+    "db:generate": "node scripts/with-env.mjs pnpm --filter @prowess/db exec prisma generate",
+    "db:validate": "node scripts/with-env.mjs pnpm --filter @prowess/db exec prisma validate",
+    "db:migrate:dev": "node scripts/with-env.mjs pnpm --filter @prowess/db exec prisma migrate dev",
+    "db:migrate:deploy": "node scripts/with-env.mjs pnpm --filter @prowess/db exec prisma migrate deploy",
+    "db:migrate:status": "node scripts/with-env.mjs pnpm --filter @prowess/db exec prisma migrate status",
+    "predb:reset:test": "pnpm --filter @prowess/db run build",
+    "db:reset:test": "node packages/prowess-db/scripts/reset-test-db.mjs"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "eslint": "9.39.5",
+    "@typescript-eslint/parser": "8.70.1",
+    "@typescript-eslint/eslint-plugin": "8.70.1",
+    "dotenv": "18.0.4"
+  }
+}

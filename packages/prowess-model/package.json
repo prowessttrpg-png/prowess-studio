@@ -1,0 +1,27 @@
+{
+  "name": "@prowess/model",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Framework-independent shared domain types for the Prowess Platform: identifiers, status enums, and relationship types. Owns no UI and no persistence.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src --max-warnings=0",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "pnpm run test:unit",
+    "test:unit": "vitest run",
+    "test:integration": "echo \"@prowess/model: no integration tests in M0\" && exit 0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vitest": "5.0.2"
+  }
+}

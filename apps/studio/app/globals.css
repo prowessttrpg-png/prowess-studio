@@ -1,0 +1,82 @@
+:root {
+  color-scheme: light dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.prowess-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.prowess-shell__nav {
+  width: 220px;
+  flex-shrink: 0;
+  border-right: 1px solid #33333340;
+  padding: 1rem 0.75rem;
+}
+
+.prowess-shell__brand {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 1.5rem;
+}
+
+.prowess-shell__nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.prowess-shell__nav-item a {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.prowess-shell__nav-item[data-active="true"] a {
+  background: #33333322;
+  font-weight: 600;
+}
+
+.prowess-shell__nav-item[data-disabled="true"] a {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.prowess-shell__workspace {
+  flex: 1;
+  padding: 1.5rem 2rem;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .prowess-shell {
+    flex-direction: column;
+  }
+
+  .prowess-shell__nav {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #33333340;
+  }
+
+  .prowess-shell__nav-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
