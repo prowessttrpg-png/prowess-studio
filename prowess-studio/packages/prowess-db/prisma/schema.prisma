@@ -1,8 +1,11 @@
 // Prowess Platform — persistence schema.
 //
-// M0-WO3 scope: migration/connection tooling verification ONLY. No Prowess
-// domain tables (Entity, EntityVersion, Ruleset, Spell, etc.) exist here —
-// those begin in M1 onward, following the conventions documented below.
+// M0-WO3 established migration/connection tooling (SystemMigrationProbe,
+// below). M1-WO1 adds the first real Prowess domain table: Entity — the
+// stable identity layer only (see the Entity model's own doc comment).
+// EntityVersion, EntityAlias, Keyword, EntityRelationship, SourceDocument,
+// Ruleset, and Spell-specific tables all remain out of scope until their
+// own later Work Orders.
 
 generator client {
   // Prisma 7's current generator. "prisma-client-js" (the legacy name) also
@@ -32,10 +35,13 @@ datasource db {
 ///
 /// Exists solely to give M0-WO3 something concrete to migrate, query,
 /// update, delete, and transact against, proving the persistence/migration
-/// foundation works before any real Prowess table exists. Safe to remove
-/// once M1's first real domain model (Entity) takes over that role — do not
-/// build application features against this model, and do not treat it as a
-/// template beyond the three conventions it demonstrates:
+/// foundation works before any real Prowess table existed. Now that
+/// `Entity` (below) is the first real domain table, this model no longer
+/// needs to carry that proving-ground role going forward, but removing it
+/// is a separate, deliberate decision (a DROP migration) left for a future
+/// Work Order rather than bundled into M1-WO1. Do not build application
+/// features against this model, and do not treat it as a template beyond
+/// the three conventions it demonstrates:
 ///   1. UUID primary keys (native Postgres `uuid`, DB-generated)
 ///   2. `created_at` / `updated_at` timestamps stored as `timestamptz`
 ///      (timezone-aware — UTC on the wire — never naive local time)
@@ -49,4 +55,63 @@ model SystemMigrationProbe {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("_system_migration_probe")
+}
+
+/// Controlled Entity type values (PAS-10 M1-WO1 §6).
+///
+/// Deliberately the smallest useful Phase 1 set — kept in exact lockstep
+/// with @prowess/model's ENTITY_TYPES (packages/prowess-model/src/entity-type.ts),
+/// which is the framework-independent source of truth the application
+/// layer validates against. Adding a value here always means adding the
+/// same value there, and vice versa.
+///
+/// Anticipated future additions (NOT implemented merely to fill the enum —
+/// add only when a concrete Work Order needs them): STAT, SKILL, RACE,
+/// WEAPON, ARMOR, MANEUVER, SUMMON, MAGE_ART, PAC, ORGANIZATION, LOCATION,
+/// PERSON, CREATURE, WORLD_CONCEPT.
+enum EntityType {
+  GENERIC_RULE
+  SYSTEM
+  RESOURCE
+  SPELL_EFFECT
+  SPELL_TRAIT
+  TARGETING
+  KEYWORD
+}
+
+/// Entity — the stable identity object used throughout Prowess (PAS-10
+/// M1-WO1). Represents *what a Prowess concept is*, independent of any
+/// particular historical rules/lore version of that concept.
+///
+/// Deliberately minimal by design. Does NOT and must NEVER contain: a
+/// display name, a description, rules text, mechanical values, lore text,
+/// a status, a version number, Spell configuration, or any other balance
+/// data. All of that belongs on `EntityVersion` (M1-WO2), which represents
+/// changing/versioned content *about* a stable Entity — not yet
+/// implemented.
+///
+/// `createdBy` / `archivedBy`-style audit metadata is deliberately absent:
+/// no actor/identity system exists yet in this platform, and inventing a
+/// fake ownership column with no real identity behind it would be worse
+/// than omitting it. That integration point is left explicit (this note)
+/// rather than faked.
+model Entity {
+  /// Opaque, immutable, DB-generated UUID — the actual relational
+  /// identity. Never the canonical key, a name, or an integer sequence.
+  id String @id @default(uuid()) @db.Uuid
+
+  entityType EntityType @map("entity_type")
+
+  /// Stable, unique, machine-readable, namespace-aware identity string
+  /// (e.g. `spell.effect.damage.direct`). Shape-validated centrally by
+  /// @prowess/model's `isValidCanonicalKey` before any value reaches this
+  /// column — the database UNIQUE constraint remains the authoritative
+  /// guard against duplicates either way (see
+  /// packages/prowess-db/src/entity/repository.ts).
+  canonicalKey String @unique @map("canonical_key")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("entities")
 }

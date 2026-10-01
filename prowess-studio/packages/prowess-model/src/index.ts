@@ -17,3 +17,6 @@ export * from "./ids.js";
 export * from "./entity-type.js";
 export * from "./status.js";
 export * from "./relationship-type.js";
+export * from "./canonical-key.js";
+export * from "./entity.js";
+export * from "./errors.js";

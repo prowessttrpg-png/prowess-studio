@@ -244,3 +244,14 @@ the shell's own failing component tests, fixed with a CSS-only,
 `data-mobile-open`-driven approach instead. See
 `docs/architecture/studio-shell.md`'s "Responsive behavior" section for
 the full explanation.
+
+## M1-WO1: Base Entity Model
+
+Full details — what an Entity is/isn't, canonical-key format, EntityType,
+repository/service responsibilities, error vocabulary — live in
+`docs/architecture/entity-model.md`. No new dependencies were introduced.
+`@prowess/db` now has a real (non-workspace-only-in-theory) dependency on
+`@prowess/model` for the first time — the Entity service imports its
+`EntityId`, `EntityType`, `CanonicalKey`, `DomainError`, and
+`ENTITY_ERROR_CODES` — matching the already-approved dependency direction
+(`prowess-model <- prowess-db`), not a new architectural decision.

@@ -26,4 +26,14 @@ describe("@prowess/model — shared model import", () => {
     const id = ProwessModel.EntityId.of("11111111-1111-1111-1111-111111111111");
     expect(id).toBe("11111111-1111-1111-1111-111111111111");
   });
+
+  it("exposes the Entity error vocabulary as a DomainError with a stable code", () => {
+    const error = new ProwessModel.DomainError(
+      ProwessModel.ENTITY_ERROR_CODES.NOT_FOUND,
+      "Entity not found",
+    );
+    expect(error).toBeInstanceOf(Error);
+    expect(error.code).toBe("ENTITY.NOT_FOUND");
+    expect(error.message).toBe("Entity not found");
+  });
 });

@@ -41,16 +41,24 @@ packages/prowess-db/
     migrations/
       migration_lock.toml
       20260930235722_init/
-        migration.sql          — the canonical, reviewed initial migration
+        migration.sql          — M0-WO3's canonical migration
+      20261001045349_add_entity/
+        migration.sql           — M1-WO1's canonical migration (Entity)
   prisma.config.ts              — Prisma 7 CLI config (datasource URL for Migrate)
   src/
     client.ts                   — the centralized PrismaClient singleton (ACTIVE)
     testDatabaseGuard.ts          — safety guard (no Prisma dependency)
-    index.ts                      — package entry point (exports both)
+    entity/                        — Entity repository + service (M1-WO1)
+      repository.ts                  — Prisma queries only (internal, not exported)
+      service.ts                      — validates input, maps errors (public surface)
+      index.ts                         — re-exports the service only
+    index.ts                      — package entry point (exports all of the above)
   generated/                       — prisma generate's output (gitignored, never committed)
   tests/
     unit/testDatabaseGuard.test.ts  — pure guard-logic tests
     integration/                      — real Prisma-based integration tests (ACTIVE)
+      persistence.test.ts                — M0-WO3's generic CRUD/transaction/isolation proofs
+      entity.test.ts                      — M1-WO1's Entity-specific proofs
   scripts/
     reset-test-db.mjs                  — the one vetted entrypoint for db:reset:test
 ```
@@ -218,9 +226,9 @@ active blocker on the project.
 All of the above was confirmed working by the second, post-cleanup GitHub
 Actions run — see the Status line at the top of this document.
 
-## Canonical migration
+## Canonical migrations
 
-**`20260930235722_init`** — the one and only migration in this repository.
+**`20260930235722_init`** — the first migration in this repository.
 Creates exactly one table, `_system_migration_probe` (the internal
 migration-verification model from `schema.prisma`, not a Prowess domain
 table):
@@ -244,6 +252,26 @@ valid**: the post-cleanup GitHub Actions run successfully deployed this
 exact file via `prisma migrate deploy` to both `prowess_studio_dev` and
 `prowess_studio_test`, with `prisma migrate status` reporting it current —
 Prisma accepted it without a drift warning or checksum complaint.
+
+**`20261001045349_add_entity`** (M1-WO1) — adds the first real Prowess
+domain table, `entities`, plus the `EntityType` enum. See
+`docs/architecture/entity-model.md` for the full Entity domain
+documentation. Creates:
+
+- the `EntityType` Postgres enum (`GENERIC_RULE`, `SYSTEM`, `RESOURCE`,
+  `SPELL_EFFECT`, `SPELL_TRAIT`, `TARGETING`, `KEYWORD`)
+- `entities`: `id` (`UUID`, primary key, `DEFAULT gen_random_uuid()`),
+  `entity_type` (`EntityType NOT NULL`), `canonical_key` (`TEXT NOT NULL`,
+  `UNIQUE`), `created_at` / `updated_at` (`TIMESTAMPTZ(6)`, same
+  conventions as above)
+
+No unrelated tables (no `EntityVersion`, `EntityAlias`, `Keyword`,
+`EntityRelationship`, `SourceDocument`, `Ruleset`, or Spell-specific
+tables — all explicitly out of scope for M1-WO1), no destructive
+statements, no new extensions. Same provenance caveat as
+`20260930235722_init` above: reconstructed from the schema using the same
+deterministic Prisma SQL-generation conventions, not yet confirmed by a
+GitHub Actions run as of this Work Order's completion report.
 
 ## Migration commands
 

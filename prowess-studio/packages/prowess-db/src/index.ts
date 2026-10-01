@@ -19,4 +19,6 @@ export {
   UnsafeTestDatabaseResetError,
   type TestDatabaseGuardOptions,
 } from "./testDatabaseGuard.js";
+export { createEntity, getEntityById, findEntityByCanonicalKey } from "./entity/index.js";
+export type { CreateEntityInput } from "./entity/index.js";
 export type { PrismaClient } from "../generated/prisma/client.js";
