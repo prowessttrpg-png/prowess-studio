@@ -1,0 +1,177 @@
+# Prowess Studio CI — the permanent Phase 1 quality gate.
+#
+# Runs automatically on every push to main and every pull request, plus
+# on-demand via workflow_dispatch. This supersedes the temporary M0-WO3
+# verification workflow (now removed — see docs/architecture/database.md
+# and docs/architecture/ci.md for why): every check that workflow performed
+# is covered here, plus architecture-boundary enforcement, Playwright e2e,
+# and a dedicated production-build step, none of which that workflow had.
+name: Prowess Studio CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: {}
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    # Postgres 16 as a disposable service container, scoped to this one job
+    # run. Not production credentials, not a shared database — isolated,
+    # disposable, created fresh every run (see "Create dev and test
+    # databases" below).
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # No `version:` input — reads the "packageManager" field from the
+      # repo's own root package.json, so the pinned pnpm version lives in
+      # exactly one place.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      # Distinct from the service container's own --health-cmd (which only
+      # gates when the service is considered "started", not when the job's
+      # own steps run) — guarantees Postgres genuinely accepts connections
+      # before any step relies on it.
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          for i in $(seq 1 30); do
+            if pg_isready -h localhost -p 5432 -U postgres > /dev/null 2>&1; then
+              echo "PostgreSQL is accepting connections."
+              exit 0
+            fi
+            echo "Waiting for PostgreSQL... (attempt $i/30)"
+            sleep 2
+          done
+          echo "::error::PostgreSQL did not become ready in time."
+          exit 1
+
+      # Two isolated, disposable databases — matching the names
+      # apps/studio/.env.development / .env.test already commit to (M0-WO2)
+      # — created fresh every run, never persisted, never production.
+      - name: Create dev and test databases
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d postgres -c "CREATE DATABASE prowess_studio_dev;"
+          psql -h localhost -U postgres -d postgres -c "CREATE DATABASE prowess_studio_test;"
+
+      # Frozen lockfile: fails loudly if package.json and pnpm-lock.yaml
+      # have drifted, rather than silently re-resolving dependencies.
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma schema validation
+        run: pnpm run db:validate
+
+      - name: Prisma Client generation
+        run: pnpm run db:generate
+
+      - name: Deploy migrations (development database)
+        env:
+          NODE_ENV: development
+        run: pnpm run db:migrate:deploy
+
+      - name: Deploy migrations (test database)
+        env:
+          NODE_ENV: test
+        run: pnpm run db:migrate:deploy
+
+      # Workspace packages must be built before anything can resolve their
+      # compiled type declarations (each package's package.json "types"
+      # field points at its own dist/ output), and before lint/typecheck/
+      # test can import @prowess/model or @prowess/ui. apps/studio itself
+      # is deliberately NOT built here — that's its own dedicated step
+      # later, which needs application config env vars this step doesn't
+      # have.
+      - name: Build workspace packages
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Architecture boundary checks
+        run: pnpm run test:architecture
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      # Split into named, separately-reported layers (packages / database /
+      # UI) rather than one big "pnpm test" step, so a failure's layer is
+      # immediately obvious from the Actions UI without opening logs.
+      - name: Unit tests (packages)
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/db" --filter "@prowess/test-fixtures" run test:unit
+
+      - name: Database integration tests
+        run: pnpm --filter "@prowess/db" run test:integration
+
+      - name: UI/component tests (apps/studio)
+        run: pnpm --filter "@prowess/studio" run test:unit
+
+      # Re-confirms the destructive-reset safety guard on every CI run, not
+      # just at M0-WO3 setup time — this resets prowess_studio_test, the
+      # disposable CI-only database created above, never a developer's own
+      # database.
+      - name: Guarded reset of the test database
+        run: pnpm run db:reset:test
+
+      - name: Verify safety guard refuses a non-test target
+        run: |
+          set +e
+          DATABASE_URL="postgresql://postgres:postgres@localhost:5432/prowess_studio_dev" pnpm run db:reset:test
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "::error::db:reset:test unexpectedly succeeded against the development database — the safety guard failed to refuse it."
+            exit 1
+          fi
+          echo "Safety guard correctly refused (exit code $status), as expected."
+
+      # Installs the actual browser binary + OS dependencies — this is the
+      # step the original Claude sandbox could never perform (blocked
+      # network egress to cdn.playwright.dev). GitHub Actions has normal
+      # internet access, so this resolves that M0-WO1 limitation for real.
+      - name: Install Playwright browsers
+        run: pnpm --filter "@prowess/studio" exec playwright install --with-deps chromium
+
+      # Explicit, standalone production-build step — gives fast, clearly-
+      # attributed failure if the build breaks, rather than only
+      # discovering it buried inside Playwright's own webServer startup.
+      - name: Build (production)
+        env:
+          APP_URL: http://127.0.0.1:3100
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+          LOG_LEVEL: warn
+          DEVELOPMENT_MODE: "false"
+        run: pnpm build
+
+      # Playwright's own webServer re-runs `pnpm run build` (see
+      # apps/studio/playwright.config.ts) before starting the app — fast
+      # and harmless given the build above already primed everything; this
+      # is what actually boots the production server and exercises /,
+      # /compendium, /developer end-to-end.
+      - name: End-to-end tests (Playwright)
+        run: pnpm run test:e2e

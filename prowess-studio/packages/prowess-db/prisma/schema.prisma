@@ -1,0 +1,52 @@
+// Prowess Platform — persistence schema.
+//
+// M0-WO3 scope: migration/connection tooling verification ONLY. No Prowess
+// domain tables (Entity, EntityVersion, Ruleset, Spell, etc.) exist here —
+// those begin in M1 onward, following the conventions documented below.
+
+generator client {
+  // Prisma 7's current generator. "prisma-client-js" (the legacy name) also
+  // works, but "prisma-client" is what Prisma's own v7 docs now lead with,
+  // and — per that same documentation — EITHER name requires a driver
+  // adapter for all databases in v7; there is no generator setting that
+  // exempts you from this. See src/client.ts and
+  // docs/architecture/database.md's "Prisma 7 requires a driver adapter"
+  // note for why @prisma/adapter-pg + pg are real (non-dev) dependencies
+  // of this package now, not just a sandbox-verification tool.
+  provider = "prisma-client"
+  // Required in Prisma 7 — it no longer defaults to node_modules. Resolved
+  // relative to this schema file, landing at packages/prowess-db/generated/
+  // prisma/ (gitignored — generated code is never committed, same as
+  // dist/).
+  output = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  // No `url` here — Prisma 7 removed this (see prisma.config.ts alongside
+  // this file, and docs/architecture/database.md's "Prisma 7 config-file
+  // migration" note for why).
+}
+
+/// INTERNAL ONLY — not part of the Prowess domain model.
+///
+/// Exists solely to give M0-WO3 something concrete to migrate, query,
+/// update, delete, and transact against, proving the persistence/migration
+/// foundation works before any real Prowess table exists. Safe to remove
+/// once M1's first real domain model (Entity) takes over that role — do not
+/// build application features against this model, and do not treat it as a
+/// template beyond the three conventions it demonstrates:
+///   1. UUID primary keys (native Postgres `uuid`, DB-generated)
+///   2. `created_at` / `updated_at` timestamps stored as `timestamptz`
+///      (timezone-aware — UTC on the wire — never naive local time)
+///   3. snake_case column/table names via @map/@@map, matching standard
+///      PostgreSQL convention, while Prisma Client still exposes camelCase
+///      field names in TypeScript
+model SystemMigrationProbe {
+  id        String   @id @default(uuid()) @db.Uuid
+  label     String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("_system_migration_probe")
+}
