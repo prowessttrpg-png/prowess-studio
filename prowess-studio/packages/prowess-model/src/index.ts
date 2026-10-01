@@ -20,3 +20,5 @@ export * from "./relationship-type.js";
 export * from "./canonical-key.js";
 export * from "./entity.js";
 export * from "./errors.js";
+export * from "./change-type.js";
+export * from "./entity-version.js";

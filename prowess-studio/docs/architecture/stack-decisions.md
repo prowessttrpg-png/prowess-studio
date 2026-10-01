@@ -255,3 +255,19 @@ repository/service responsibilities, error vocabulary — live in
 `EntityId`, `EntityType`, `CanonicalKey`, `DomainError`, and
 `ENTITY_ERROR_CODES` — matching the already-approved dependency direction
 (`prowess-model <- prowess-db`), not a new architectural decision.
+
+## M1-WO2: Entity Version Model
+
+Full details — revision numbering/allocation, concurrency strategy, status
+field scope, structured_data purpose, parent lineage, snapshot behavior,
+and the EntityVersion error vocabulary — live in
+`docs/architecture/entity-version-model.md`. No new dependencies were
+introduced. The revision-allocation concurrency strategy (bounded retry on
+a Postgres unique-constraint race, max 5 attempts) was chosen deliberately
+over heavyweight distributed-lock infrastructure, per the Work Order's own
+explicit guidance, and is exercised by a dedicated integration test — but
+that test, like every other `@prowess/db` integration test in this
+project, could not actually be executed in this sandbox (missing generated
+Prisma client); it is reasoned-through and locally type/lint-clean, not
+locally run. See the completion report's "Local Verification" and
+"Sandbox Limitations" sections for the precise boundary.

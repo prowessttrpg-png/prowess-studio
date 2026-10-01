@@ -37,3 +37,42 @@ export const ENTITY_ERROR_CODES = {
 } as const;
 
 export type EntityErrorCode = (typeof ENTITY_ERROR_CODES)[keyof typeof ENTITY_ERROR_CODES];
+
+/**
+ * EntityVersion-specific error codes (PAS-10 M1-WO2 §16–19).
+ *
+ * Deliberate choice, documented per M1-WO2's instruction to pick one
+ * approach consistently: **missing-parent-Entity reuses
+ * `ENTITY_ERROR_CODES.NOT_FOUND` rather than minting a parallel
+ * `ENTITY_VERSION.ENTITY_NOT_FOUND` code.** Attempting to create a Version
+ * for an Entity that doesn't exist is exactly the same condition
+ * `ENTITY.NOT_FOUND` already names — an Entity lookup by id found nothing
+ * — so reusing it avoids two codes for one condition. A genuinely
+ * EntityVersion-specific "not found" (looking up a Version, not an Entity)
+ * gets its own code below.
+ */
+export const ENTITY_VERSION_ERROR_CODES = {
+  /** Explicit lookup of an EntityVersion by id found nothing. */
+  NOT_FOUND: "ENTITY_VERSION.NOT_FOUND",
+  /** The (entityId, revisionNumber) pair is already in use. */
+  REVISION_CONFLICT: "ENTITY_VERSION.REVISION_CONFLICT",
+  /**
+   * `parentVersionId` doesn't exist, belongs to a different Entity, or
+   * (defensively) would make a Version its own parent.
+   */
+  INVALID_PARENT: "ENTITY_VERSION.INVALID_PARENT",
+  /**
+   * Basic input validation failed — e.g. an empty/missing `displayName`,
+   * or an explicitly-supplied `status`/`changeType` that isn't one of the
+   * controlled values. Not explicitly named in PAS-10 M1-WO2's error-code
+   * list (which only named NOT_FOUND/REVISION_CONFLICT/INVALID_PARENT) —
+   * added here for consistency with Entity's own INVALID_TYPE/
+   * INVALID_CANONICAL_KEY pattern (validate at the service boundary,
+   * before anything reaches Prisma) rather than leaving basic input
+   * validation unclassified or throwing a plain, uncoded error.
+   */
+  INVALID_INPUT: "ENTITY_VERSION.INVALID_INPUT",
+} as const;
+
+export type EntityVersionErrorCode =
+  (typeof ENTITY_VERSION_ERROR_CODES)[keyof typeof ENTITY_VERSION_ERROR_CODES];

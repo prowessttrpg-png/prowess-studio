@@ -86,9 +86,8 @@ enum EntityType {
 /// Deliberately minimal by design. Does NOT and must NEVER contain: a
 /// display name, a description, rules text, mechanical values, lore text,
 /// a status, a version number, Spell configuration, or any other balance
-/// data. All of that belongs on `EntityVersion` (M1-WO2), which represents
-/// changing/versioned content *about* a stable Entity — not yet
-/// implemented.
+/// data. All of that belongs on `EntityVersion` (M1-WO2, below), which
+/// represents changing/versioned content *about* a stable Entity.
 ///
 /// `createdBy` / `archivedBy`-style audit metadata is deliberately absent:
 /// no actor/identity system exists yet in this platform, and inventing a
@@ -113,5 +112,117 @@ model Entity {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
+  /// Inverse side of EntityVersion's required relation (M1-WO2). No
+  /// `onDelete: Cascade` here — deleting an Entity that has Versions is
+  /// restricted at the database level (see EntityVersion.entity below),
+  /// not casually destroyed.
+  versions EntityVersion[]
+
   @@map("entities")
+}
+
+/// Controlled EntityVersion lifecycle statuses (PAS-10 M1-WO2 §7). M1-WO2
+/// establishes this field and its controlled values only — no
+/// lifecycle-transition or immutability rules yet (M1-WO3 — e.g. that a
+/// `CANON` row can never be edited in place). Kept in exact lockstep with
+/// @prowess/model's ENTITY_VERSION_STATUSES
+/// (packages/prowess-model/src/status.ts), already defined since M0-WO1.
+enum EntityVersionStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  PLAYTEST
+  CANON
+  DEPRECATED
+  SUPERSEDED
+  ARCHIVED
+}
+
+/// Controlled change-metadata classification for EntityVersion (PAS-10
+/// M1-WO2 §12). The already-defined PAS-08 architectural change-governance
+/// values, reused directly rather than inventing a parallel vocabulary —
+/// kept in exact lockstep with @prowess/model's CHANGE_TYPES
+/// (packages/prowess-model/src/change-type.ts). The full PAS-08
+/// ChangeSet/Canon governance system itself is NOT implemented here; this
+/// is only a nullable classification field.
+enum ChangeType {
+  EDITORIAL
+  CLARIFICATION
+  PRESENTATION
+  MECHANICAL_PATCH
+  MECHANICAL_CHANGE
+  BREAKING_CHANGE
+  CONTENT_ADDITION
+  REMOVAL
+  RENAME
+  RESTRUCTURE
+}
+
+/// EntityVersion — the historical/versioned representation of a stable
+/// Entity identity (PAS-10 M1-WO2). See @prowess/model's EntityVersion
+/// type (packages/prowess-model/src/entity-version.ts) for the full
+/// conceptual documentation; this model's shape mirrors it exactly.
+///
+/// No `updatedAt` column — deliberately, unlike `Entity`. Every persisted
+/// EntityVersion is meant to be a self-contained, immutable snapshot (the
+/// "snapshot principle": creating revision 2 must never alter revision 1).
+/// M1-WO2 implements no operation that mutates an existing row's content,
+/// so there is nothing for `updatedAt` to track yet. If M1-WO3 ever adds a
+/// narrow, deliberate mutation path, `updatedAt` should be added
+/// explicitly at that point — not speculatively now.
+///
+/// Lifecycle/immutability enforcement (e.g. that a `CANON` row can never
+/// be edited) is explicitly NOT implemented here — M1-WO3's job.
+model EntityVersion {
+  id String @id @default(uuid()) @db.Uuid
+
+  entityId String @map("entity_id") @db.Uuid
+  entity   Entity @relation(fields: [entityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  /// Positive, human-readable sequence number — unique per Entity (see the
+  /// @@unique below), never the identity. Allocated automatically by
+  /// @prowess/db's service layer (max existing + 1); never caller-supplied.
+  revisionNumber Int @map("revision_number")
+
+  /// M1-WO2 establishes this field and its controlled values only — no
+  /// lifecycle-transition or immutability rules yet (M1-WO3).
+  status EntityVersionStatus @default(DRAFT)
+
+  /// Human-facing name for THIS Version — lives here, not on Entity,
+  /// because terminology may change historically while the Entity
+  /// underneath stays the same.
+  displayName String @map("display_name")
+
+  shortDescription String? @map("short_description")
+  rulesText        String? @map("rules_text")
+
+  /// Variable structured content future subsystem-specific schemas will
+  /// validate (e.g. base_mp, damage_parameters) — not implemented yet.
+  /// Defaults to an empty JSON object rather than being nullable: every
+  /// EntityVersion conceptually "has" structured data (even if empty for
+  /// now), so a present-but-empty `{}` is a cleaner default than a
+  /// three-state null/empty/populated field for consumers to handle. Must
+  /// never become a substitute for relational architecture — Entity
+  /// relationships, Keywords, Sources, Rulesets, and aliases all get
+  /// dedicated relational models later, never a home in this column.
+  structuredData Json @default("{}") @map("structured_data")
+
+  /// Same-Entity lineage only — enforced at the @prowess/db service
+  /// boundary (packages/prowess-db/src/entity-version/service.ts), since a
+  /// simple foreign key alone cannot express "must belong to the same
+  /// entity_id as the referencing row." `onDelete: Restrict` so a Version
+  /// with children can't be silently orphaned either.
+  parentVersionId String?         @map("parent_version_id") @db.Uuid
+  parentVersion   EntityVersion?  @relation("EntityVersionLineage", fields: [parentVersionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  childVersions   EntityVersion[] @relation("EntityVersionLineage")
+
+  /// Lightweight, optional classification — not the full PAS-08
+  /// ChangeSet/Canon governance system.
+  changeType    ChangeType? @map("change_type")
+  changeSummary String?     @map("change_summary")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([entityId, revisionNumber])
+  @@map("entity_versions")
 }

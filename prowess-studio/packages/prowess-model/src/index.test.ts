@@ -36,4 +36,17 @@ describe("@prowess/model — shared model import", () => {
     expect(error.code).toBe("ENTITY.NOT_FOUND");
     expect(error.message).toBe("Entity not found");
   });
+
+  it("exposes the EntityVersion error vocabulary, reusing ENTITY.NOT_FOUND for a missing parent Entity", () => {
+    expect(ProwessModel.ENTITY_VERSION_ERROR_CODES.NOT_FOUND).toBe("ENTITY_VERSION.NOT_FOUND");
+    expect(ProwessModel.ENTITY_VERSION_ERROR_CODES.REVISION_CONFLICT).toBe(
+      "ENTITY_VERSION.REVISION_CONFLICT",
+    );
+    expect(ProwessModel.ENTITY_VERSION_ERROR_CODES.INVALID_PARENT).toBe(
+      "ENTITY_VERSION.INVALID_PARENT",
+    );
+    // Deliberately reused, not a parallel "ENTITY_VERSION.ENTITY_NOT_FOUND" —
+    // see errors.ts's doc comment.
+    expect(ProwessModel.ENTITY_ERROR_CODES.NOT_FOUND).toBe("ENTITY.NOT_FOUND");
+  });
 });
