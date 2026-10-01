@@ -72,6 +72,24 @@ export const ENTITY_VERSION_ERROR_CODES = {
    * validation unclassified or throwing a plain, uncoded error.
    */
   INVALID_INPUT: "ENTITY_VERSION.INVALID_INPUT",
+  /**
+   * An attempted content mutation targets a Version whose current status
+   * does not permit it. Phase 1 policy: only `DRAFT` content is mutable
+   * (PAS-10 M1-WO3 §1) — every other status throws this.
+   */
+  IMMUTABLE: "ENTITY_VERSION.IMMUTABLE",
+  /**
+   * The requested status transition isn't represented in the lifecycle
+   * graph (`@prowess/model`'s `ENTITY_VERSION_TRANSITIONS`) — either
+   * because it was never a valid transition from the status the caller
+   * checked against, OR because the status changed concurrently between
+   * that check and the atomic conditional update actually committing
+   * (PAS-10 M1-WO3 §13). Deliberately reused for both cases rather than
+   * minting a parallel "transition conflict" code — from the caller's
+   * perspective both mean the same thing: the transition they asked for
+   * is not valid for the Version's actual current status.
+   */
+  INVALID_STATUS_TRANSITION: "ENTITY_VERSION.INVALID_STATUS_TRANSITION",
 } as const;
 
 export type EntityVersionErrorCode =

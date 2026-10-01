@@ -46,6 +46,8 @@ packages/prowess-db/
         migration.sql           — M1-WO1's canonical migration (Entity)
       20261001212804_add_entity_version/
         migration.sql            — M1-WO2's canonical migration (EntityVersion)
+      20261001215241_add_entity_version_updated_at/
+        migration.sql             — M1-WO3's canonical migration (updated_at)
   prisma.config.ts              — Prisma 7 CLI config (datasource URL for Migrate)
   src/
     client.ts                   — the centralized PrismaClient singleton (ACTIVE)
@@ -54,11 +56,13 @@ packages/prowess-db/
       repository.ts                  — Prisma queries only (internal, not exported)
       service.ts                      — validates input, maps errors (public surface)
       index.ts                         — re-exports the service only
-    entity-version/                 — EntityVersion repository + service (M1-WO2)
-      repository.ts                     — Prisma queries + bounded-retry revision
-                                        allocation (internal, not exported)
-      service.ts                         — validates input, parent lineage, maps
-                                        errors (public surface)
+    entity-version/                 — EntityVersion repository + service
+                                        (M1-WO2 create/retrieve; M1-WO3 lifecycle/mutation)
+      repository.ts                     — Prisma queries, bounded-retry revision
+                                        allocation, and the two atomic conditional
+                                        UPDATE primitives (internal, not exported)
+      service.ts                         — validates input, parent lineage, lifecycle
+                                        transitions, maps errors (public surface)
       index.ts                            — re-exports the service only
     index.ts                      — package entry point (exports all of the above)
   generated/                       — prisma generate's output (gitignored, never committed)
@@ -69,6 +73,9 @@ packages/prowess-db/
       entity.test.ts                      — M1-WO1's Entity-specific proofs
       entity-version.test.ts               — M1-WO2's EntityVersion-specific proofs
                                           (incl. the concurrency test)
+      entity-version-lifecycle.test.ts      — M1-WO3's lifecycle/mutation proofs
+                                          (incl. the race-safety test and the
+                                          no-escape-hatch export-surface guard)
   scripts/
     reset-test-db.mjs                  — the one vetted entrypoint for db:reset:test
 ```
@@ -312,6 +319,20 @@ migrations: reconstructed from the schema using the same deterministic
 Prisma SQL-generation conventions already confirmed correct twice before,
 not yet independently confirmed by a GitHub Actions run for this specific
 file as of this Work Order's completion report.
+
+**`20261001215241_add_entity_version_updated_at`** (M1-WO3) — adds
+`entity_versions.updated_at` only. See
+`docs/architecture/entity-version-lifecycle.md` for the full lifecycle and
+mutation-policy documentation this column supports. A single
+`ALTER TABLE ... ADD COLUMN "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT
+CURRENT_TIMESTAMP` — the default exists only to backfill any pre-existing
+rows at migration time; every write through `@prowess/db`'s services sets
+this explicitly via Prisma's `@updatedAt`. No other schema change, no new
+tables, no destructive statements. Same provenance caveat as the three
+earlier migrations: reconstructed from the schema using the same
+deterministic conventions, not yet independently confirmed by a GitHub
+Actions run for this specific file as of this Work Order's completion
+report.
 
 ## Migration commands
 

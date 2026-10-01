@@ -30,6 +30,7 @@ function toDomainEntityVersion(row: PrismaEntityVersionRow): EntityVersion {
     changeType: row.changeType as ChangeType | null,
     changeSummary: row.changeSummary,
     createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
   };
 }
 
@@ -191,4 +192,82 @@ export function isRevisionUniqueConstraintViolation(error: unknown): boolean {
     (target as string[]).includes("entity_id") &&
     (target as string[]).includes("revision_number")
   );
+}
+
+/**
+ * Allowlisted content fields a DRAFT EntityVersion may have updated — the
+ * persistence-layer mirror of `@prowess/model`'s
+ * `UpdateDraftEntityVersionInput`. Deliberately NOT a generic Prisma
+ * update payload type: every field this package's identity/lineage rules
+ * require to stay fixed (`id`, `entityId`, `revisionNumber`, `createdAt`,
+ * `parentVersionId`, `status`) has no place in this type.
+ */
+export interface DraftContentPatch {
+  displayName?: string;
+  shortDescription?: string | null;
+  rulesText?: string | null;
+  structuredData?: unknown;
+  changeType?: ChangeType | null;
+  changeSummary?: string | null;
+}
+
+/**
+ * Atomically updates a DRAFT EntityVersion's content (PAS-10 M1-WO3 §7):
+ * a single conditional `UPDATE ... WHERE id = ? AND status = 'DRAFT'`, so
+ * there is no window between "check status" and "write" for a concurrent
+ * status transition to race through. Returns the updated row, or `null`
+ * if zero rows were affected — meaning either the id doesn't exist, or the
+ * Version's status is no longer `DRAFT`. The service layer
+ * (`./service.ts`'s `updateDraftEntityVersion`) re-reads to tell those two
+ * cases apart and map each to the correct domain error.
+ */
+export async function updateDraftEntityVersionContentAtomic(
+  id: string,
+  patch: DraftContentPatch,
+): Promise<EntityVersion | null> {
+  const result = await prisma.entityVersion.updateMany({
+    where: { id, status: "DRAFT" },
+    data: {
+      ...(patch.displayName !== undefined && { displayName: patch.displayName }),
+      ...(patch.shortDescription !== undefined && { shortDescription: patch.shortDescription }),
+      ...(patch.rulesText !== undefined && { rulesText: patch.rulesText }),
+      ...(patch.structuredData !== undefined && {
+        structuredData: patch.structuredData as Prisma.InputJsonValue,
+      }),
+      ...(patch.changeType !== undefined && { changeType: patch.changeType }),
+      ...(patch.changeSummary !== undefined && { changeSummary: patch.changeSummary }),
+    },
+  });
+
+  if (result.count === 0) {
+    return null;
+  }
+  return selectEntityVersionById(id);
+}
+
+/**
+ * Atomically transitions status (PAS-10 M1-WO3 §13): a single conditional
+ * `UPDATE ... WHERE id = ? AND status = ?` naming BOTH the row and the
+ * exact status the caller validated the transition against, so a
+ * concurrent status change between the service's read and this write
+ * cannot be silently overwritten — the conditional simply fails to match
+ * if the status moved. Returns the updated row, or `null` if zero rows
+ * were affected (id doesn't exist, or `fromStatus` no longer matches the
+ * current status). The service layer maps `null` to
+ * `ENTITY_VERSION.INVALID_STATUS_TRANSITION`.
+ */
+export async function transitionEntityVersionStatusAtomic(
+  id: string,
+  fromStatus: EntityVersionStatus,
+  toStatus: EntityVersionStatus,
+): Promise<EntityVersion | null> {
+  const result = await prisma.entityVersion.updateMany({
+    where: { id, status: fromStatus },
+    data: { status: toStatus },
+  });
+
+  if (result.count === 0) {
+    return null;
+  }
+  return selectEntityVersionById(id);
 }

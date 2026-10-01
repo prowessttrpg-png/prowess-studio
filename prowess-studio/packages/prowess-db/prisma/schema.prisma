@@ -159,20 +159,22 @@ enum ChangeType {
 }
 
 /// EntityVersion — the historical/versioned representation of a stable
-/// Entity identity (PAS-10 M1-WO2). See @prowess/model's EntityVersion
-/// type (packages/prowess-model/src/entity-version.ts) for the full
-/// conceptual documentation; this model's shape mirrors it exactly.
+/// Entity identity (PAS-10 M1-WO2, lifecycle/mutation rules added
+/// M1-WO3). See @prowess/model's EntityVersion type
+/// (packages/prowess-model/src/entity-version.ts) and
+/// docs/architecture/entity-version-lifecycle.md for the full conceptual
+/// documentation; this model's shape mirrors it exactly.
 ///
-/// No `updatedAt` column — deliberately, unlike `Entity`. Every persisted
-/// EntityVersion is meant to be a self-contained, immutable snapshot (the
-/// "snapshot principle": creating revision 2 must never alter revision 1).
-/// M1-WO2 implements no operation that mutates an existing row's content,
-/// so there is nothing for `updatedAt` to track yet. If M1-WO3 ever adds a
-/// narrow, deliberate mutation path, `updatedAt` should be added
-/// explicitly at that point — not speculatively now.
-///
-/// Lifecycle/immutability enforcement (e.g. that a `CANON` row can never
-/// be edited) is explicitly NOT implemented here — M1-WO3's job.
+/// Historical independence and mutability are different concepts: every
+/// EntityVersion is independent from every other revision of the same
+/// Entity (creating revision 2 never alters revision 1's content) — but
+/// that does NOT mean every EntityVersion row is immutable the instant
+/// it's created. A `DRAFT` Version is a mutable working revision; once it
+/// leaves `DRAFT`, its authored content becomes protected according to the
+/// lifecycle rules in @prowess/model's `entity-version-lifecycle.ts`. See
+/// `updatedAt` below — M1-WO2 omitted it specifically because this
+/// mutation policy hadn't been established yet; M1-WO3 adds it now that it
+/// has.
 model EntityVersion {
   id String @id @default(uuid()) @db.Uuid
 
@@ -182,15 +184,22 @@ model EntityVersion {
   /// Positive, human-readable sequence number — unique per Entity (see the
   /// @@unique below), never the identity. Allocated automatically by
   /// @prowess/db's service layer (max existing + 1); never caller-supplied.
+  /// Immutable after creation, even while DRAFT.
   revisionNumber Int @map("revision_number")
 
-  /// M1-WO2 establishes this field and its controlled values only — no
-  /// lifecycle-transition or immutability rules yet (M1-WO3).
+  /// Phase 1 lifecycle status (PAS-10 M1-WO3). Changed only through
+  /// @prowess/db's dedicated `transitionEntityVersionStatus` — never as a
+  /// side effect of a content update (see M1-WO3 §14, "status vs content
+  /// mutation are separate operations"). Reaching `CANON` means only that
+  /// this Version has reached the CANON lifecycle state — it does NOT mean
+  /// this Version is globally "the active Prowess rule." Which exact
+  /// EntityVersion is authoritative within a Ruleset is a question later
+  /// M2 Ruleset Manifests answer, never a field here.
   status EntityVersionStatus @default(DRAFT)
 
   /// Human-facing name for THIS Version — lives here, not on Entity,
   /// because terminology may change historically while the Entity
-  /// underneath stays the same.
+  /// underneath stays the same. Mutable only while `status` is `DRAFT`.
   displayName String @map("display_name")
 
   shortDescription String? @map("short_description")
@@ -211,17 +220,30 @@ model EntityVersion {
   /// boundary (packages/prowess-db/src/entity-version/service.ts), since a
   /// simple foreign key alone cannot express "must belong to the same
   /// entity_id as the referencing row." `onDelete: Restrict` so a Version
-  /// with children can't be silently orphaned either.
+  /// with children can't be silently orphaned either. Immutable after
+  /// creation (M1-WO3 §4) — not editable even while the child is DRAFT;
+  /// draft editing must never rewrite historical ancestry. A protected
+  /// (non-DRAFT) Version remains perfectly valid as a parent — see
+  /// docs/architecture/entity-version-lifecycle.md's "Child Version from
+  /// Protected Version" section.
   parentVersionId String?         @map("parent_version_id") @db.Uuid
   parentVersion   EntityVersion?  @relation("EntityVersionLineage", fields: [parentVersionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   childVersions   EntityVersion[] @relation("EntityVersionLineage")
 
   /// Lightweight, optional classification — not the full PAS-08
-  /// ChangeSet/Canon governance system.
+  /// ChangeSet/Canon governance system. Mutable only while `status` is `DRAFT`.
   changeType    ChangeType? @map("change_type")
   changeSummary String?     @map("change_summary")
 
+  /// Immutable after creation — identity/provenance, not authored content.
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  /// Added in M1-WO3, once the mutation policy existed to give it meaning.
+  /// Updates only when DRAFT content actually changes (via
+  /// `updateDraftEntityVersion`) — never implies that a protected,
+  /// non-DRAFT Version can be mutated; a protected Version's `updatedAt`
+  /// simply stops changing once it leaves DRAFT.
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@unique([entityId, revisionNumber])
   @@map("entity_versions")

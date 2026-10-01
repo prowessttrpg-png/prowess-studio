@@ -9,4 +9,6 @@ export {
   getEntityVersion,
   listEntityVersions,
   getLatestEntityVersion,
+  updateDraftEntityVersion,
+  transitionEntityVersionStatus,
 } from "./service.js";

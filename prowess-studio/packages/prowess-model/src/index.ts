@@ -22,3 +22,4 @@ export * from "./entity.js";
 export * from "./errors.js";
 export * from "./change-type.js";
 export * from "./entity-version.js";
+export * from "./entity-version-lifecycle.js";

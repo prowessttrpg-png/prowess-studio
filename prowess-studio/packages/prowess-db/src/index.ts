@@ -26,5 +26,7 @@ export {
   getEntityVersion,
   listEntityVersions,
   getLatestEntityVersion,
+  updateDraftEntityVersion,
+  transitionEntityVersionStatus,
 } from "./entity-version/index.js";
 export type { PrismaClient } from "../generated/prisma/client.js";

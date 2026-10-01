@@ -1,9 +1,10 @@
 # EntityVersion — the versioned content layer (M1-WO2)
 
-**Status: implemented, not yet verified by GitHub Actions** — same sandbox
-limitation as M1-WO1 (see `docs/architecture/database.md`'s historical
-blocker note). Local verification covered everything that doesn't require
-the generated Prisma client — see this Work Order's completion report.
+**Status: APPROVED.** Confirmed via a successful permanent Prowess Studio
+CI run. **Mutation/lifecycle rules were added in M1-WO3** — see
+`docs/architecture/entity-version-lifecycle.md` for that layer, and the
+"Historical independence vs. mutability" section below for a correction to
+this document's original M1-WO2 phrasing.
 
 ## Entity vs. EntityVersion
 
@@ -61,16 +62,15 @@ overwhelming majority of real races. If all 5 attempts are exhausted
 `ENTITY_VERSION.REVISION_CONFLICT` — the database constraint remains the
 final authority either way.
 
-**Not yet executed** — like every other `@prowess/db` integration test in
-this project, this test cannot run in this sandbox (it imports the
-generated Prisma client, which this sandbox cannot produce — see "Sandbox
-limitations" in the completion report). A dedicated integration test is
-written (`tests/integration/entity-version.test.ts`'s concurrency case)
-that fires several concurrent `createEntityVersion` calls for one Entity
-and asserts all of them succeed with distinct, gapless revision numbers
-and that the Entity ends up with exactly that many persisted rows — no
-duplicate, no silently lost write. The GitHub Actions run this Work
-Order's completion report requests is what will actually confirm this.
+**Confirmed by the approved M1-WO2 GitHub Actions run** (this sandbox
+still cannot execute `@prowess/db`'s integration tests itself — see
+"Sandbox limitations" in the M1-WO2 completion report; the actual
+confirmation came from CI, not from this document's authoring process). A
+dedicated integration test (`tests/integration/entity-version.test.ts`'s
+concurrency case) fires several concurrent `createEntityVersion` calls for
+one Entity and asserts all of them succeed with distinct, gapless revision
+numbers and that the Entity ends up with exactly that many persisted rows
+— no duplicate, no silently lost write. CI confirmed exactly this outcome.
 
 ## Status field
 
@@ -140,16 +140,28 @@ allows setting `parentVersionId` after the fact.
 
 No branching/merge-version UI exists or is implied by this field yet.
 
-## Snapshot behavior
+## Historical independence vs. mutability (corrected in M1-WO3)
 
-Each persisted `EntityVersion` is a self-contained, immutable snapshot.
-Creating revision 2 never alters revision 1 — there is no operation
-anywhere in `@prowess/db` that mutates an existing `EntityVersion` row's
-content. This is why the Prisma model has no `updatedAt` column, unlike
-`Entity`: nothing exists yet to update. A dedicated integration test
-(written, not yet executed — see "Sandbox limitations" above) creates two
+Every `EntityVersion` is historically independent from other revisions:
+creating revision 2 never alters revision 1's content. This was true since
+M1-WO2 and remains true. **A dedicated integration test** creates two
 revisions with different `structuredData`, then re-fetches both and
 asserts revision 1's value is unchanged by revision 2's creation.
+
+This is a *different claim* from "every EntityVersion row is immutable the
+instant it's created" — M1-WO2's original phrasing here ("each persisted
+EntityVersion is a self-contained, immutable snapshot") conflated the two
+and has been corrected. The precise rule, established in M1-WO3: **DRAFT
+Versions are mutable working revisions. Once a Version leaves DRAFT,
+authored content is protected according to the lifecycle rules.** See
+`docs/architecture/entity-version-lifecycle.md` for the full M1-WO3
+mutation policy, lifecycle graph, and why these two concepts — historical
+independence (always true, every revision) and mutability (true only for
+DRAFT) — need to stay distinct in anyone's mental model of this system.
+
+`updatedAt` was added in M1-WO3, once this mutation policy existed to give
+it meaning — M1-WO2 deliberately omitted it for exactly that reason (there
+was nothing yet for it to track).
 
 ## EntityVersion error codes
 

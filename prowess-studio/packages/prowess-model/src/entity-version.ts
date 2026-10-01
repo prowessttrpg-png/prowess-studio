@@ -4,7 +4,7 @@ import type { EntityVersionStatus } from "./status.js";
 
 /**
  * EntityVersion — the historical/versioned representation of a stable
- * Entity identity (PAS-10 M1-WO2).
+ * Entity identity (PAS-10 M1-WO2; lifecycle/mutation rules added M1-WO3).
  *
  * ```
  * Entity (canonical_key: test.rule.versioned)
@@ -17,15 +17,28 @@ import type { EntityVersionStatus } from "./status.js";
  * lives here, never on `Entity` (see `./entity.js`'s own doc comment for
  * the reverse half of this rule).
  *
- * **Snapshot principle:** each persisted EntityVersion is a self-contained
- * snapshot. Creating revision 2 never alters revision 1 — there is no
- * operation anywhere in this package that mutates an existing
- * EntityVersion row's content (see M1-WO2's docs for why `updatedAt` is
- * deliberately absent from this type, unlike `Entity`).
+ * **Historical independence vs. mutability — two different concepts, easy
+ * to conflate:** every EntityVersion is historically independent from
+ * every other revision of the same Entity (creating revision 2 never
+ * alters revision 1's content — this is permanent and was already true in
+ * M1-WO2). That is NOT the same claim as "every EntityVersion row is
+ * immutable the instant it's created." A `DRAFT` Version is a mutable
+ * working revision — see `@prowess/db`'s `updateDraftEntityVersion`. Once
+ * a Version leaves `DRAFT`, its authored content is protected according to
+ * the lifecycle rules (`./entity-version-lifecycle.ts`'s
+ * `canMutateEntityVersionContent`) — attempting to edit it throws
+ * `ENTITY_VERSION.IMMUTABLE`. M1-WO2's earlier phrasing here ("each
+ * persisted EntityVersion is a self-contained, immutable snapshot") was
+ * imprecise for exactly this reason and has been corrected.
  *
- * **Not yet enforced (M1-WO3):** lifecycle/immutability rules — e.g. that
- * a `CANON` or `PLAYTEST` version cannot be edited in place. M1-WO2 only
- * establishes the `status` field and its controlled values.
+ * **Lifecycle status vs. Ruleset Canon authority — also not the same
+ * thing:** reaching `status: "CANON"` means only that this Version has
+ * reached the CANON lifecycle state. It does NOT mean this Version is
+ * globally "the active Prowess rule." Which exact EntityVersion is
+ * authoritative within a given Ruleset is a question later M2 Ruleset
+ * Manifests answer — never a field on EntityVersion itself (no
+ * `isCurrent`/`isActiveRule`/`currentVersionId` exists or should ever be
+ * added here).
  */
 export interface EntityVersion {
   id: EntityVersionId;
@@ -52,6 +65,14 @@ export interface EntityVersion {
   changeType: ChangeType | null;
   changeSummary: string | null;
   createdAt: Date;
+  /**
+   * Added in M1-WO3, once the mutation policy existed to give it meaning
+   * (M1-WO2 deliberately omitted it — see this type's own doc comment
+   * history, and docs/architecture/entity-version-lifecycle.md). Updates
+   * only when DRAFT content actually changes via `updateDraftEntityVersion`
+   * — never implies a protected, non-DRAFT Version can be mutated.
+   */
+  updatedAt: Date;
 }
 
 /**
@@ -80,4 +101,24 @@ export interface CreateEntityVersionInput {
  */
 export function isValidDisplayName(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
+}
+
+/**
+ * Explicit DTO for updating a DRAFT EntityVersion's authored content
+ * (PAS-10 M1-WO3 §5–6). Deliberately an allowlist, not a generic Prisma
+ * update payload — only these fields are ever mutable, and only while the
+ * Version's status is `DRAFT`. Every field the identity/lineage layer
+ * requires to stay fixed (`id`, `entityId`, `revisionNumber`, `createdAt`,
+ * `parentVersionId`, and `status` itself — see
+ * `transitionEntityVersionStatus` for the separate, dedicated status
+ * operation) has no place in this type at all, not merely a runtime check
+ * against it.
+ */
+export interface UpdateDraftEntityVersionInput {
+  displayName?: string;
+  shortDescription?: string | null;
+  rulesText?: string | null;
+  structuredData?: unknown;
+  changeType?: ChangeType | null;
+  changeSummary?: string | null;
 }

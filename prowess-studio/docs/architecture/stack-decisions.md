@@ -271,3 +271,16 @@ project, could not actually be executed in this sandbox (missing generated
 Prisma client); it is reasoned-through and locally type/lint-clean, not
 locally run. See the completion report's "Local Verification" and
 "Sandbox Limitations" sections for the precise boundary.
+
+## M1-WO3: Entity Status & Immutability Rules
+
+Full details — the lifecycle graph, mutation policy, always-immutable
+fields, the atomic conditional-update strategy, error codes, and the
+CANON-vs-Ruleset-authority distinction — live in
+`docs/architecture/entity-version-lifecycle.md`. No new dependencies were
+introduced. A documentation correction from M1-WO2 is also recorded here:
+`entity-version-model.md`'s original "each persisted EntityVersion is a
+self-contained, immutable snapshot" phrasing conflated historical
+independence (always true) with mutability (true only for DRAFT) — fixed
+in both the markdown doc and the `@prowess/model` source's own doc
+comment, per this Work Order's explicit instruction.

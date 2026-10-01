@@ -4,8 +4,11 @@ import {
   isChangeType,
   isEntityVersionStatus,
   isValidDisplayName,
+  isValidEntityVersionTransition,
   type CreateEntityVersionInput,
   type EntityVersion,
+  type EntityVersionStatus,
+  type UpdateDraftEntityVersionInput,
 } from "@prowess/model";
 import { getEntityById } from "../entity/service.js";
 import {
@@ -14,17 +17,23 @@ import {
   selectEntityVersionById,
   selectEntityVersionsByEntityId,
   selectLatestEntityVersion,
+  transitionEntityVersionStatusAtomic,
+  updateDraftEntityVersionContentAtomic,
 } from "./repository.js";
 
 /**
  * EntityVersion service — the application/domain boundary for EntityVersion
- * operations (PAS-10 M1-WO2 §15), mirroring the Entity service's layering:
+ * operations (PAS-10 M1-WO2 §15, lifecycle/mutation operations added
+ * M1-WO3), mirroring the Entity service's layering:
  *
  *   domain (callers) -> this service -> repository.ts (Prisma only) -> Prisma / PostgreSQL
  *
- * Four operations only. Deliberately no update/delete here — M1-WO2's job
- * is creating and retrieving historical snapshots; M1-WO3 owns whatever
- * narrow lifecycle/mutation rules come later (see PAS-10 M1-WO2 §20).
+ * Six operations total. Status changes and content updates are
+ * intentionally separate operations (`transitionEntityVersionStatus` vs.
+ * `updateDraftEntityVersion`) — there is no single generic
+ * `updateEntityVersion(...)` that accepts both, by design (PAS-10 M1-WO3
+ * §14): a unified update endpoint would be exactly the kind of escape
+ * hatch future Canon/permission logic could be bypassed through.
  */
 
 /**
@@ -149,4 +158,132 @@ async function assertValidParentVersion(entityId: string, parentVersionId: strin
   // function returns and insertion happens. Recorded here so the guard
   // isn't forgotten if a future mutation path (M1-WO3) ever allows
   // changing parentVersionId after creation.
+}
+
+/**
+ * Updates a DRAFT EntityVersion's authored content (PAS-10 M1-WO3 §5–7).
+ *
+ * Only the fields in `UpdateDraftEntityVersionInput` are ever accepted —
+ * there is no path from this function to a generic Prisma update payload.
+ * `id`, `entityId`, `revisionNumber`, `createdAt`, `parentVersionId`, and
+ * `status` are never touched here, even if somehow present on a caller's
+ * object, because the type itself has no such fields.
+ *
+ * Race-safe by construction: the actual persistence call
+ * (`updateDraftEntityVersionContentAtomic`) is a single conditional
+ * `UPDATE ... WHERE id = ? AND status = 'DRAFT'`, so there is no
+ * check-then-write window for a concurrent status transition to slip
+ * through. If zero rows are affected, this function re-reads to tell
+ * "doesn't exist" (`ENTITY_VERSION.NOT_FOUND`) apart from "exists but is
+ * no longer DRAFT" (`ENTITY_VERSION.IMMUTABLE`) — never an opaque
+ * zero-rows-affected result.
+ */
+export async function updateDraftEntityVersion(
+  versionId: string,
+  patch: UpdateDraftEntityVersionInput,
+): Promise<EntityVersion> {
+  if (patch.displayName !== undefined && !isValidDisplayName(patch.displayName)) {
+    throw new DomainError(
+      ENTITY_VERSION_ERROR_CODES.INVALID_INPUT,
+      "displayName must not be empty",
+    );
+  }
+  if (patch.changeType != null && !isChangeType(patch.changeType)) {
+    throw new DomainError(
+      ENTITY_VERSION_ERROR_CODES.INVALID_INPUT,
+      `Not a recognized ChangeType: ${JSON.stringify(patch.changeType)}`,
+    );
+  }
+
+  const hasAnyField =
+    patch.displayName !== undefined ||
+    patch.shortDescription !== undefined ||
+    patch.rulesText !== undefined ||
+    patch.structuredData !== undefined ||
+    patch.changeType !== undefined ||
+    patch.changeSummary !== undefined;
+  if (!hasAnyField) {
+    throw new DomainError(
+      ENTITY_VERSION_ERROR_CODES.INVALID_INPUT,
+      "At least one field must be supplied to update",
+    );
+  }
+
+  const updated = await updateDraftEntityVersionContentAtomic(versionId, patch);
+
+  if (!updated) {
+    const existing = await selectEntityVersionById(versionId);
+    if (!existing) {
+      throw new DomainError(
+        ENTITY_VERSION_ERROR_CODES.NOT_FOUND,
+        `EntityVersion not found: ${versionId}`,
+      );
+    }
+    throw new DomainError(
+      ENTITY_VERSION_ERROR_CODES.IMMUTABLE,
+      `EntityVersion ${versionId} is not DRAFT (current status: ${existing.status}) and its content cannot be edited`,
+    );
+  }
+
+  return updated;
+}
+
+/**
+ * Transitions an EntityVersion's lifecycle status (PAS-10 M1-WO3 §9–13).
+ *
+ * Validates the transition against `@prowess/model`'s one authoritative
+ * `ENTITY_VERSION_TRANSITIONS` graph before attempting any write — an
+ * unrepresented transition (e.g. `DRAFT -> CANON`) throws
+ * `ENTITY_VERSION.INVALID_STATUS_TRANSITION` immediately, without
+ * touching the database.
+ *
+ * Race-safe: the actual persistence call
+ * (`transitionEntityVersionStatusAtomic`) is a single conditional
+ * `UPDATE ... WHERE id = ? AND status = ?`, naming both the row and the
+ * exact status this function just validated against. If the status
+ * changed concurrently between that validation and this write committing,
+ * the conditional affects zero rows — mapped to the same
+ * `ENTITY_VERSION.INVALID_STATUS_TRANSITION` code (the transition this
+ * caller validated is no longer applicable to the Version's actual
+ * current status), rather than silently forcing the requested status or
+ * leaking an ambiguous zero-rows result.
+ */
+export async function transitionEntityVersionStatus(
+  versionId: string,
+  targetStatus: string,
+): Promise<EntityVersion> {
+  if (!isEntityVersionStatus(targetStatus)) {
+    throw new DomainError(
+      ENTITY_VERSION_ERROR_CODES.INVALID_INPUT,
+      `Not a recognized EntityVersionStatus: ${JSON.stringify(targetStatus)}`,
+    );
+  }
+
+  const current = await getEntityVersion(versionId);
+
+  if (!isValidEntityVersionTransition(current.status, targetStatus)) {
+    throw new DomainError(
+      ENTITY_VERSION_ERROR_CODES.INVALID_STATUS_TRANSITION,
+      `Cannot transition EntityVersion ${versionId} from ${current.status} to ${targetStatus}`,
+    );
+  }
+
+  const updated = await transitionEntityVersionStatusAtomic(
+    versionId,
+    current.status as EntityVersionStatus,
+    targetStatus,
+  );
+
+  if (!updated) {
+    // Lost a race: status changed between our read above and this write
+    // committing. Re-validating against the NEW current status is
+    // unnecessary — whatever it is now, the transition this caller
+    // validated against `current.status` is no longer the applicable one.
+    throw new DomainError(
+      ENTITY_VERSION_ERROR_CODES.INVALID_STATUS_TRANSITION,
+      `EntityVersion ${versionId}'s status changed concurrently; the requested transition from ${current.status} is no longer valid`,
+    );
+  }
+
+  return updated;
 }
