@@ -123,3 +123,45 @@ export const ENTITY_ALIAS_ERROR_CODES = {
 
 export type EntityAliasErrorCode =
   (typeof ENTITY_ALIAS_ERROR_CODES)[keyof typeof ENTITY_ALIAS_ERROR_CODES];
+
+/** KeywordCategory-specific error codes (PAS-10 M1-WO5 §13). */
+export const KEYWORD_CATEGORY_ERROR_CODES = {
+  NOT_FOUND: "KEYWORD_CATEGORY.NOT_FOUND",
+  CANONICAL_KEY_CONFLICT: "KEYWORD_CATEGORY.CANONICAL_KEY_CONFLICT",
+  INVALID_INPUT: "KEYWORD_CATEGORY.INVALID_INPUT",
+} as const;
+
+export type KeywordCategoryErrorCode =
+  (typeof KEYWORD_CATEGORY_ERROR_CODES)[keyof typeof KEYWORD_CATEGORY_ERROR_CODES];
+
+/** KeywordDefinition-specific error codes (PAS-10 M1-WO5 §13). */
+export const KEYWORD_ERROR_CODES = {
+  NOT_FOUND: "KEYWORD.NOT_FOUND",
+  CANONICAL_KEY_CONFLICT: "KEYWORD.CANONICAL_KEY_CONFLICT",
+  INVALID_INPUT: "KEYWORD.INVALID_INPUT",
+} as const;
+
+export type KeywordErrorCode = (typeof KEYWORD_ERROR_CODES)[keyof typeof KEYWORD_ERROR_CODES];
+
+/**
+ * Keyword-assignment-specific error codes (PAS-10 M1-WO5 §13).
+ *
+ * Missing-target errors are deliberately NOT duplicated here: a missing
+ * Entity reuses `ENTITY_ERROR_CODES.NOT_FOUND` and a missing EntityVersion
+ * reuses `ENTITY_VERSION_ERROR_CODES.NOT_FOUND` (both already established
+ * conventions from M1-WO1/M1-WO2), and a missing KeywordDefinition reuses
+ * `KEYWORD_ERROR_CODES.NOT_FOUND` above — each is exactly the condition
+ * that code already names. The version-protected case also reuses
+ * `ENTITY_VERSION_ERROR_CODES.IMMUTABLE` (M1-WO3) rather than a parallel
+ * code, per PAS-10 M1-WO5 §19/§30's explicit instruction to use "the same
+ * lifecycle semantics established in M1-WO3."
+ */
+export const KEYWORD_ASSIGNMENT_ERROR_CODES = {
+  /** The same Keyword is already assigned at this target/level. */
+  DUPLICATE: "KEYWORD_ASSIGNMENT.DUPLICATE",
+  /** The supplied source type isn't a recognized `KeywordAssignmentSource`. */
+  INVALID_SOURCE: "KEYWORD_ASSIGNMENT.INVALID_SOURCE",
+} as const;
+
+export type KeywordAssignmentErrorCode =
+  (typeof KEYWORD_ASSIGNMENT_ERROR_CODES)[keyof typeof KEYWORD_ASSIGNMENT_ERROR_CODES];

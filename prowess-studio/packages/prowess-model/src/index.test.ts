@@ -49,4 +49,23 @@ describe("@prowess/model — shared model import", () => {
     // see errors.ts's doc comment.
     expect(ProwessModel.ENTITY_ERROR_CODES.NOT_FOUND).toBe("ENTITY.NOT_FOUND");
   });
+
+  it("exposes the Keyword/KeywordCategory/KeywordAssignment error vocabularies", () => {
+    expect(ProwessModel.KEYWORD_CATEGORY_ERROR_CODES.NOT_FOUND).toBe(
+      "KEYWORD_CATEGORY.NOT_FOUND",
+    );
+    expect(ProwessModel.KEYWORD_CATEGORY_ERROR_CODES.CANONICAL_KEY_CONFLICT).toBe(
+      "KEYWORD_CATEGORY.CANONICAL_KEY_CONFLICT",
+    );
+    expect(ProwessModel.KEYWORD_ERROR_CODES.NOT_FOUND).toBe("KEYWORD.NOT_FOUND");
+    expect(ProwessModel.KEYWORD_ERROR_CODES.CANONICAL_KEY_CONFLICT).toBe(
+      "KEYWORD.CANONICAL_KEY_CONFLICT",
+    );
+    expect(ProwessModel.KEYWORD_ASSIGNMENT_ERROR_CODES.DUPLICATE).toBe(
+      "KEYWORD_ASSIGNMENT.DUPLICATE",
+    );
+    expect(ProwessModel.KEYWORD_ASSIGNMENT_ERROR_CODES.INVALID_SOURCE).toBe(
+      "KEYWORD_ASSIGNMENT.INVALID_SOURCE",
+    );
+  });
 });

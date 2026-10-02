@@ -16,7 +16,15 @@ import type { EntityVersion as PrismaEntityVersionRow } from "../../generated/pr
  * `@prowess/db`'s own `index.ts`) — see `./service.ts`.
  */
 
-function toDomainEntityVersion(row: PrismaEntityVersionRow): EntityVersion {
+/**
+ * Exported (unlike most of this module's internals) so other repositories
+ * within this package — `../entity-version-keyword/repository.ts`'s
+ * reverse-lookup query — can reuse the exact same row mapping rather than
+ * duplicating it. Still not re-exported from `@prowess/db`'s own
+ * `index.ts`; same same-package-only convenience as `entity/
+ * repository.ts`'s `toDomainEntity`.
+ */
+export function toDomainEntityVersion(row: PrismaEntityVersionRow): EntityVersion {
   return {
     id: EntityVersionId.of(row.id),
     entityId: EntityId.of(row.entityId),

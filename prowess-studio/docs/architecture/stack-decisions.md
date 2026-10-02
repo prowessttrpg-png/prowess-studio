@@ -311,3 +311,22 @@ of the normalization sequence, schema, duplicate/context architecture, or
 service surface changed. See `entity-alias-model.md`'s "Normalization"
 section for the full explanation, including the classic Turkish-locale
 `"I"` -> `"ı"` example this fix avoids.
+
+## M1-WO5: Keyword Foundation
+
+Full details -- the core "no implicit mechanics" rule, KeywordCategory/
+KeywordDefinition, why two explicit relational assignment models instead
+of one polymorphic target_type+target_id table, assignment source types,
+the Version-lifecycle interaction (and its atomic SELECT...FOR UPDATE
+guard across two tables), reverse lookup, and the full error vocabulary --
+live in docs/architecture/keyword-model.md. No new dependencies were
+introduced. The M0-WO1 placeholder `KeywordId` branded type was renamed to
+`KeywordDefinitionId` (matching this Work Order's exact spec'd naming) and
+a new `KeywordCategoryId` was added alongside it -- confirmed unused
+anywhere before renaming. `toDomainEntityVersion` was promoted from a
+private helper to an exported (but still package-internal) function in
+entity-version/repository.ts, following the exact same reuse pattern
+already established for `toDomainEntity` (M1-WO4) and
+`toDomainKeywordDefinition` (this Work Order) -- each reused by the
+reverse-lookup join queries in entity-keyword/ and
+entity-version-keyword/.

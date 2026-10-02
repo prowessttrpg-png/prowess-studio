@@ -50,6 +50,8 @@ packages/prowess-db/
         migration.sql             — M1-WO3's canonical migration (updated_at)
       20261002022400_add_entity_alias/
         migration.sql              — M1-WO4's canonical migration (EntityAlias)
+      20261002025218_add_keyword_foundation/
+        migration.sql               — M1-WO5's canonical migration (Keyword foundation)
   prisma.config.ts              — Prisma 7 CLI config (datasource URL for Migrate)
   src/
     client.ts                   — the centralized PrismaClient singleton (ACTIVE)
@@ -70,6 +72,12 @@ packages/prowess-db/
                                         (internal, not exported)
       service.ts                         — validates/normalizes input, maps errors
                                         (public surface)
+    keyword-category/                — KeywordCategory repository + service (M1-WO5)
+    keyword-definition/               — KeywordDefinition repository + service (M1-WO5)
+    entity-keyword/                    — Entity-level Keyword assignment (M1-WO5,
+                                        no lifecycle guard)
+    entity-version-keyword/             — Version-level Keyword assignment (M1-WO5,
+                                        atomic SELECT...FOR UPDATE DRAFT guard)
       index.ts                            — re-exports the service only
     index.ts                      — package entry point (exports all of the above)
   generated/                       — prisma generate's output (gitignored, never committed)
@@ -85,6 +93,13 @@ packages/prowess-db/
                                           no-escape-hatch export-surface guard)
       entity-alias.test.ts                   — M1-WO4's alias proofs (incl. the
                                           historical-terminology use case)
+      keyword-definition.test.ts              — M1-WO5's Category/Definition proofs
+      entity-keyword.test.ts                   — M1-WO5's entity-level assignment
+                                          proofs
+      entity-version-keyword.test.ts            — M1-WO5's version-level assignment
+                                          proofs (lifecycle guard, historical
+                                          independence, reverse lookup, no-implicit-
+                                          mechanics)
   scripts/
     reset-test-db.mjs                  — the one vetted entrypoint for db:reset:test
 ```
@@ -366,6 +381,36 @@ infrastructure. Same provenance caveat as the three earlier migrations:
 reconstructed from the schema using the same deterministic conventions,
 not yet independently confirmed by a GitHub Actions run for this specific
 file as of this Work Order's completion report.
+
+**`20261002025218_add_keyword_foundation`** (M1-WO5) — adds
+`keyword_categories`, `keyword_definitions`, `entity_keywords`, and
+`entity_version_keywords`, plus the `KeywordAssignmentSource` enum. See
+`docs/architecture/keyword-model.md` for the full Keyword domain
+documentation. Creates:
+
+- the `KeywordAssignmentSource` enum (`AUTHORED`, `INHERITED`, `CALCULATED`)
+- `keyword_categories`: `id` (UUID PK), `canonical_key` (unique), `name`,
+  `description` (nullable), `created_at`
+- `keyword_definitions`: `id` (UUID PK), `canonical_key` (unique), `name`,
+  `category_id` (nullable FK to `keyword_categories.id`, `ON DELETE
+  RESTRICT`), `description` (nullable), `deprecated` (`BOOLEAN DEFAULT
+  false`), `created_at`
+- `entity_keywords`: **composite primary key** `(entity_id, keyword_id)` —
+  no separate `id` column; FKs to `entities.id` and
+  `keyword_definitions.id` (both `ON DELETE RESTRICT`), `source_type`,
+  `created_at`
+- `entity_version_keywords`: same composite-PK shape, FKs to
+  `entity_versions.id` and `keyword_definitions.id` (both `ON DELETE
+  RESTRICT`), `source_type`, `created_at`
+- Indexes: `category_id` on `keyword_definitions`, `keyword_id` on both
+  assignment tables (reverse-lookup support)
+
+No unrelated tables (no `EntityRelationship`, `SourceDocument`, `Ruleset`,
+Canon, or Spell-specific tables), no destructive statements, no full-text
+search infrastructure. Same provenance caveat as the four earlier
+migrations: reconstructed from the schema using the same deterministic
+conventions, not yet independently confirmed by a GitHub Actions run for
+this specific file as of this Work Order's completion report.
 
 ## Migration commands
 

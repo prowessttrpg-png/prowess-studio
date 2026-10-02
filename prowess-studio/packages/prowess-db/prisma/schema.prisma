@@ -123,6 +123,11 @@ model Entity {
   /// see EntityAlias.entity below.
   aliases EntityAlias[]
 
+  /// Inverse side of EntityKeyword's required relation (M1-WO5) — stable-
+  /// identity-level Keyword assignments. Same restrictive-deletion
+  /// posture as `versions`/`aliases` above.
+  keywordAssignments EntityKeyword[]
+
   @@map("entities")
 }
 
@@ -235,6 +240,12 @@ model EntityVersion {
   parentVersion   EntityVersion?  @relation("EntityVersionLineage", fields: [parentVersionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   childVersions   EntityVersion[] @relation("EntityVersionLineage")
 
+  /// Inverse side of EntityVersionKeyword's required relation (M1-WO5) —
+  /// Version-level Keyword assignments. Authored assignment/removal is
+  /// DRAFT-only, atomically guarded against this row's own `status` — see
+  /// packages/prowess-db/src/entity-version-keyword/repository.ts.
+  keywordAssignments EntityVersionKeyword[]
+
   /// Lightweight, optional classification — not the full PAS-08
   /// ChangeSet/Canon governance system. Mutable only while `status` is `DRAFT`.
   changeType    ChangeType? @map("change_type")
@@ -311,4 +322,157 @@ model EntityAlias {
   /// full-text/fuzzy search index; M1-WO4 is exact-match only.
   @@index([normalizedAlias], map: "entity_aliases_normalized_alias_idx")
   @@map("entity_aliases")
+}
+
+/// Controlled source classification for a Keyword assignment (PAS-10
+/// M1-WO5 §7). AUTHORED is the only value this Work Order's services ever
+/// produce — INHERITED and CALCULATED establish architecture for later
+/// systems (keeping a dedicated column instead of retrofitting one later)
+/// but nothing here automatically creates either kind of row.
+enum KeywordAssignmentSource {
+  AUTHORED
+  INHERITED
+  CALCULATED
+}
+
+/// KeywordCategory — an organizational grouping for KeywordDefinitions
+/// (PAS-10 M1-WO5 §2). Purely organizational; carries no mechanical
+/// meaning. See @prowess/model's KeywordCategory type
+/// (packages/prowess-model/src/keyword-category.ts) and
+/// docs/architecture/keyword-model.md for full documentation.
+///
+/// No `updatedAt` — M1-WO5 exposes no update operation for
+/// KeywordCategory at all (create/get/find-by-key only), so there is
+/// nothing yet for it to track. Same reasoning as EntityVersion's
+/// originally-omitted `updatedAt` in M1-WO2.
+model KeywordCategory {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Reuses the exact same CanonicalKey grammar/validation as Entity and
+  /// every other canonical key in this platform — no parallel key format.
+  canonicalKey String @unique @map("canonical_key")
+
+  name        String
+  description String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  keywords KeywordDefinition[]
+
+  @@map("keyword_categories")
+}
+
+/// KeywordDefinition — the reusable Keyword concept itself (PAS-10 M1-WO5
+/// §1, §3–4). A Keyword means ONLY "this object is tagged with this
+/// defined concept" — it does NOT implicitly add damage, change MP/AP,
+/// trigger a Trait, grant resistance, change targeting, or invoke any
+/// other mechanical behavior. No Keyword may acquire unstated mechanical
+/// behavior as a side effect of this Work Order; mechanical systems may
+/// explicitly query Keywords later. See @prowess/model's KeywordDefinition
+/// type and docs/architecture/keyword-model.md for full documentation.
+///
+/// Distinct from `EntityType.KEYWORD` (M1-WO1) — no `Entity` row is
+/// automatically created for a KeywordDefinition here. This model's `id`
+/// is the one clear source of Keyword identity for now.
+///
+/// No `updatedAt` — same reasoning as KeywordCategory above.
+model KeywordDefinition {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Reuses CanonicalKey validation — not a Keyword-specific duplicate
+  /// validator.
+  canonicalKey String @unique @map("canonical_key")
+
+  name String
+
+  /// Zero or one Category — a Keyword may exist uncategorized, to keep
+  /// authoring flexible. `onDelete: Restrict`: deleting a Category that
+  /// still has Keywords referencing it is rejected outright rather than
+  /// cascading or silently nulling every Keyword's category — a Category
+  /// in active use is not something an ordinary delete should be able to
+  /// quietly unravel.
+  categoryId String?          @map("category_id") @db.Uuid
+  category   KeywordCategory? @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  description String?
+
+  /// Descriptive metadata ONLY (PAS-10 M1-WO5 §33) — defaults to `false`.
+  /// No deprecation mechanics exist in this Work Order: setting this
+  /// `true` does not delete, hide, or block assignment of this Keyword.
+  /// Governance comes later.
+  deprecated Boolean @default(false)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  entityAssignments        EntityKeyword[]
+  entityVersionAssignments EntityVersionKeyword[]
+
+  @@index([categoryId], map: "keyword_definitions_category_id_idx")
+  @@map("keyword_definitions")
+}
+
+/// EntityKeyword — a stable-identity-level Keyword assignment (PAS-10
+/// M1-WO5 §5–6, §21). "This Keyword describes the stable identity itself"
+/// — e.g. a creature classification, an organization type. Does NOT
+/// depend on, or interact with, any EntityVersion's lifecycle status.
+///
+/// Composite primary key `(entityId, keywordId)` — deliberately no
+/// separate synthetic `id` column. The natural key both identifies the
+/// assignment AND enforces "a target must not contain the same Keyword
+/// twice" as a single database constraint (PAS-10 M1-WO5 §8), rather than
+/// a separate uniqueness check layered on top of an otherwise-meaningless
+/// id.
+///
+/// Relational by design: a real foreign key to `Entity`, not a
+/// `target_type` + `target_id` polymorphic column — see
+/// `EntityVersionKeyword` below and docs/architecture/keyword-model.md for
+/// why this repo prefers two explicit assignment models over one
+/// polymorphic one.
+model EntityKeyword {
+  entityId String @map("entity_id") @db.Uuid
+  entity   Entity @relation(fields: [entityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  keywordId String            @map("keyword_id") @db.Uuid
+  keyword   KeywordDefinition @relation(fields: [keywordId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  sourceType KeywordAssignmentSource @map("source_type")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([entityId, keywordId], name: "entityId_keywordId")
+  @@index([keywordId], map: "entity_keywords_keyword_id_idx")
+  @@map("entity_keywords")
+}
+
+/// EntityVersionKeyword — a specific-historical-revision Keyword
+/// assignment (PAS-10 M1-WO5 §5–6, §19–20). "This Keyword applies to this
+/// specific historical/versioned representation" — e.g. Fire, Ongoing,
+/// Zone, Sustained. The preferred home for any Keyword describing
+/// mechanics that might change by revision.
+///
+/// Same composite-primary-key reasoning as `EntityKeyword` above.
+///
+/// **Lifecycle interaction is enforced in application code, not by this
+/// table's own constraints** — authored assignment/removal requires the
+/// referenced EntityVersion to be `DRAFT`, checked atomically (a
+/// `SELECT ... FOR UPDATE` on the EntityVersion row inside the same
+/// transaction as the insert/delete here) by
+/// packages/prowess-db/src/entity-version-keyword/repository.ts. A
+/// protected (non-DRAFT) Version's Keyword assignments cannot be changed
+/// through the supported service boundary, matching M1-WO3's content-
+/// mutation rule exactly.
+model EntityVersionKeyword {
+  entityVersionId String        @map("entity_version_id") @db.Uuid
+  entityVersion   EntityVersion @relation(fields: [entityVersionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  keywordId String            @map("keyword_id") @db.Uuid
+  keyword   KeywordDefinition @relation(fields: [keywordId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  sourceType KeywordAssignmentSource @map("source_type")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([entityVersionId, keywordId], name: "entityVersionId_keywordId")
+  @@index([keywordId], map: "entity_version_keywords_keyword_id_idx")
+  @@map("entity_version_keywords")
 }

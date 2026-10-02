@@ -24,3 +24,7 @@ export * from "./change-type.js";
 export * from "./entity-version.js";
 export * from "./entity-version-lifecycle.js";
 export * from "./entity-alias.js";
+export * from "./keyword-assignment-source.js";
+export * from "./keyword-category.js";
+export * from "./keyword-definition.js";
+export * from "./keyword-assignment.js";
