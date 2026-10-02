@@ -299,3 +299,15 @@ repository.ts`'s alias-to-Entity join query could reuse the exact same row
 mapping rather than duplicating it -- a small, deliberate exception to
 "repository internals stay fully private," scoped to same-package reuse
 only.
+
+### M1-WO4 patch: locale-independent alias normalization
+
+`normalizeEntityAlias` originally used `.toLocaleLowerCase()` with no
+explicit locale, which is host-default-locale-dependent and therefore
+non-deterministic across developer machines, CI, and deployments for a
+value that gets persisted as a database lookup/uniqueness key. Fixed to
+`.toLowerCase()` (locale-independent Unicode lowercasing). No other part
+of the normalization sequence, schema, duplicate/context architecture, or
+service surface changed. See `entity-alias-model.md`'s "Normalization"
+section for the full explanation, including the classic Turkish-locale
+`"I"` -> `"ı"` example this fix avoids.

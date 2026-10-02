@@ -73,8 +73,22 @@ contexts:
    terminology, not just real-world languages.
 2. Trim leading/trailing whitespace.
 3. Collapse any run of internal whitespace to a single space.
-4. Lowercase via `.toLocaleLowerCase()` (better Unicode case-folding than
-   `.toLowerCase()` for non-Latin scripts).
+4. Lowercase via `.toLowerCase()` — **deliberately locale-independent**
+   Unicode lowercasing, not `.toLocaleLowerCase()`. **Alias lookup
+   normalization uses locale-independent Unicode lowercase conversion
+   because the normalized value is a persistent database key and must be
+   reproducible across environments** — every developer machine, CI
+   runner, and deployment target must normalize the same input to the
+   exact same `normalized_alias`/`normalized_context`, regardless of that
+   host's configured locale. `.toLocaleLowerCase()` with no explicit
+   locale argument uses the JS runtime's *default* locale, which can
+   differ by host; the canonical example is Turkish, where
+   `"I".toLocaleLowerCase("tr-TR")` produces `"ı"` (dotless i, U+0131)
+   rather than the ASCII `"i"` every other locale produces. A value
+   normalized on a Turkish-locale host could then silently fail to match
+   — or silently collide differently with — the same alias normalized
+   elsewhere. `.toLowerCase()` always applies the same locale-independent
+   Unicode default case mapping, everywhere, with no such risk.
 
 Example: `"  Direct   Damage "` → `"direct damage"`.
 

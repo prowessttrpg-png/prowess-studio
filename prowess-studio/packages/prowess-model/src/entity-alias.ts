@@ -82,8 +82,22 @@ export const MAX_ENTITY_ALIAS_LENGTH = 200;
  *      terminology, not just real-world languages.
  *   2. Trim leading/trailing whitespace.
  *   3. Collapse any run of internal whitespace to a single space.
- *   4. Lowercase via `.toLocaleLowerCase()` (better Unicode case-folding
- *      behavior than `.toLowerCase()` for non-Latin scripts).
+ *   4. Lowercase via `.toLowerCase()` — deliberately locale-INDEPENDENT
+ *      Unicode lowercasing, not `.toLocaleLowerCase()`. The result of this
+ *      function is persisted as a database lookup/uniqueness key
+ *      (`normalized_alias` / `normalized_context`), so it must be
+ *      reproducible across every developer machine, CI runner, and
+ *      deployment target regardless of that host's configured locale.
+ *      `.toLocaleLowerCase()` with no explicit locale argument uses the
+ *      JS runtime's *default* locale, which can differ by host — the
+ *      classic example is Turkish: `"I".toLocaleLowerCase("tr-TR")`
+ *      produces `"ı"` (dotless i, U+0131), not the ASCII `"i"` every other
+ *      locale would produce. A value normalized on a Turkish-locale host
+ *      could then fail to match the same alias normalized on an
+ *      English-locale host — exactly the kind of environment-dependent
+ *      bug a persisted matching key must never have.
+ *      `.toLowerCase()` always applies the same locale-independent
+ *      Unicode default case mapping, everywhere.
  *
  * No transliteration, no accent stripping, no ASCII restriction — Unicode
  * aliases are fully supported, per M1-WO4 §6.
@@ -91,7 +105,7 @@ export const MAX_ENTITY_ALIAS_LENGTH = 200;
  * Example: `"  Direct   Damage "` -> `"direct damage"`.
  */
 export function normalizeEntityAlias(value: string): string {
-  return value.normalize("NFC").trim().replace(/\s+/g, " ").toLocaleLowerCase();
+  return value.normalize("NFC").trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 /**

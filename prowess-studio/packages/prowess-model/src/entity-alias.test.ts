@@ -26,6 +26,28 @@ describe("normalizeEntityAlias", () => {
     expect(normalizeEntityAlias("Evocation")).toBe("evocation");
   });
 
+  it("lowercases using locale-INDEPENDENT Unicode casing, not the host's default locale", () => {
+    // normalizeEntityAlias's output is a persisted database lookup/
+    // uniqueness key, so it must be identical regardless of which locale
+    // the host JS runtime happens to default to. The classic example:
+    // Turkish locale lowercases "I" to "ı" (dotless i, U+0131) instead of
+    // the ASCII "i" every other locale produces — if normalizeEntityAlias
+    // ever used `.toLocaleLowerCase()` with no explicit locale, the same
+    // alias text could normalize differently on a Turkish-locale host than
+    // on any other host, silently breaking lookup/duplicate-detection
+    // across environments. This asserts our actual (locale-independent)
+    // output, AND explicitly contrasts it against the known Turkish-locale
+    // result to prove the two genuinely differ — i.e. that this isn't an
+    // accidental non-difference on whatever locale this test happens to
+    // run under.
+    expect(normalizeEntityAlias("I")).toBe("i");
+    expect(normalizeEntityAlias("DIRECT DAMAGE")).toBe("direct damage");
+
+    const turkishLocaleResult = "I".toLocaleLowerCase("tr-TR");
+    expect(turkishLocaleResult).not.toBe(normalizeEntityAlias("I"));
+    expect(turkishLocaleResult).toBe("ı");
+  });
+
   it("preserves Unicode characters rather than stripping or transliterating them", () => {
     // Accented Latin.
     expect(normalizeEntityAlias("Ménage")).toBe("ménage");
