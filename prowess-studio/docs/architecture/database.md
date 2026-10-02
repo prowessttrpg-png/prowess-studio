@@ -54,6 +54,8 @@ packages/prowess-db/
         migration.sql               — M1-WO5's canonical migration (Keyword foundation)
       20261002225710_add_entity_relationship/
         migration.sql                — M1-WO6's canonical migration (EntityRelationship)
+      20261002231523_add_source_provenance/
+        migration.sql                 — M1-WO7's canonical migration (Source provenance)
   prisma.config.ts              — Prisma 7 CLI config (datasource URL for Migrate)
   src/
     client.ts                   — the centralized PrismaClient singleton (ACTIVE)
@@ -82,6 +84,9 @@ packages/prowess-db/
                                         atomic SELECT...FOR UPDATE DRAFT guard)
     entity-relationship/                 — EntityRelationship repository + service
                                         (M1-WO6, stable-identity-level only)
+    source-document/                      — SourceDocument repository + service (M1-WO7)
+    source-reference/                      — SourceReference repository + service
+                                        (M1-WO7, lifecycle-independent of DRAFT/CANON)
       index.ts                            — re-exports the service only
     index.ts                      — package entry point (exports all of the above)
   generated/                       — prisma generate's output (gitignored, never committed)
@@ -107,6 +112,11 @@ packages/prowess-db/
       entity-relationship.test.ts                — M1-WO6's relationship proofs (incl.
                                           no-implicit-mechanics, version independence,
                                           and the FK delete-protection test)
+      source-provenance.test.ts                   — M1-WO7's SourceDocument/
+                                          SourceReference proofs (incl. protected-
+                                          Version attachment, no-implicit-mechanics,
+                                          version independence, and FK delete
+                                          protection)
   scripts/
     reset-test-db.mjs                  — the one vetted entrypoint for db:reset:test
 ```
@@ -448,6 +458,38 @@ Same provenance caveat as the five earlier migrations: reconstructed from
 the schema using the same deterministic conventions, not yet independently
 confirmed by a GitHub Actions run for this specific file as of this Work
 Order's completion report.
+
+**`20261002231523_add_source_provenance`** (M1-WO7) — adds
+`source_documents` and `source_references`, plus the `SourceDocumentType`
+and `SourceAuthorityStatus` enums. See
+`docs/architecture/source-provenance-model.md` for the full source
+provenance domain documentation. Creates:
+
+- the `SourceDocumentType` enum (`DOCUMENT`, `WEB`, `OTHER`)
+- the `SourceAuthorityStatus` enum (`GOVERNING`, `CURRENT_PRIMARY`,
+  `CURRENT_SUPPLEMENTAL`, `PLAYTEST_REFERENCE`, `HISTORICAL`,
+  `SUPERSEDED`, `REFERENCE_ONLY`, `UNRESOLVED`) — matching PAS-08's Canon
+  Manager vocabulary exactly, descriptive metadata only in this migration
+- `source_documents`: `id` (UUID PK), `title` (`TEXT NOT NULL`),
+  `source_type` (NOT NULL), `version_label` / `authority_status` /
+  `file_reference` / `notes` (all nullable), `created_at`
+- `source_references`: `id` (UUID PK), `source_document_id` /
+  `entity_version_id` (both `UUID NOT NULL`, FKs with `ON DELETE
+  RESTRICT`), `section_label` / `page_reference` (`TEXT`, nullable —
+  `page_reference` deliberately text, not integer) / `source_excerpt_note`
+  (nullable), `created_at`
+- Plain indexes on `source_document_id` and `entity_version_id` for
+  reverse lookup in both directions
+
+No unrelated tables (no `SourceSection`, `SourceBlock`, `ImportBatch`,
+`ExtractionCandidate`, `Ruleset`, or Canon tables), no destructive
+statements, no search infrastructure, no duplicate-prevention constraint
+on `source_references` (deliberate — see
+source-provenance-model.md's "No duplicate-prevention constraint"
+section). Same provenance caveat as the six earlier migrations:
+reconstructed from the schema using the same deterministic conventions,
+not yet independently confirmed by a GitHub Actions run for this specific
+file as of this Work Order's completion report.
 
 ## Migration commands
 

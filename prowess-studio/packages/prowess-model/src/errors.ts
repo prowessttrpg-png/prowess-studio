@@ -191,3 +191,29 @@ export const RELATIONSHIP_ERROR_CODES = {
 
 export type RelationshipErrorCode =
   (typeof RELATIONSHIP_ERROR_CODES)[keyof typeof RELATIONSHIP_ERROR_CODES];
+
+/** SourceDocument-specific error codes (PAS-10 M1-WO7 §20). */
+export const SOURCE_DOCUMENT_ERROR_CODES = {
+  NOT_FOUND: "SOURCE_DOCUMENT.NOT_FOUND",
+  INVALID_INPUT: "SOURCE_DOCUMENT.INVALID_INPUT",
+} as const;
+
+export type SourceDocumentErrorCode =
+  (typeof SOURCE_DOCUMENT_ERROR_CODES)[keyof typeof SOURCE_DOCUMENT_ERROR_CODES];
+
+/**
+ * SourceReference-specific error codes (PAS-10 M1-WO7 §21).
+ *
+ * A missing parent EntityVersion deliberately reuses
+ * `ENTITY_VERSION_ERROR_CODES.NOT_FOUND` rather than a redundant
+ * `SOURCE_REFERENCE.INVALID_VERSION` — the same already-established reuse
+ * pattern from M1-WO2 onward. A missing parent SourceDocument uses
+ * `SOURCE_DOCUMENT_ERROR_CODES.NOT_FOUND` for the same reason.
+ */
+export const SOURCE_REFERENCE_ERROR_CODES = {
+  NOT_FOUND: "SOURCE_REFERENCE.NOT_FOUND",
+  INVALID_INPUT: "SOURCE_REFERENCE.INVALID_INPUT",
+} as const;
+
+export type SourceReferenceErrorCode =
+  (typeof SOURCE_REFERENCE_ERROR_CODES)[keyof typeof SOURCE_REFERENCE_ERROR_CODES];

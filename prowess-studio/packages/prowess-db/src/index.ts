@@ -72,4 +72,16 @@ export {
   removeEntityRelationship,
 } from "./entity-relationship/index.js";
 export type { RelationshipWithCounterpart } from "./entity-relationship/index.js";
+export {
+  createSourceDocument,
+  getSourceDocument,
+  listSourceDocuments,
+} from "./source-document/index.js";
+export {
+  createSourceReference,
+  getSourceReference,
+  listSourceReferencesForVersion,
+  listSourceReferencesForDocument,
+  removeSourceReference,
+} from "./source-reference/index.js";
 export type { PrismaClient } from "../generated/prisma/client.js";

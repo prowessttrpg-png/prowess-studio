@@ -30,3 +30,7 @@ export * from "./keyword-definition.js";
 export * from "./keyword-assignment.js";
 export * from "./json.js";
 export * from "./entity-relationship.js";
+export * from "./source-document-type.js";
+export * from "./source-authority-status.js";
+export * from "./source-document.js";
+export * from "./source-reference.js";

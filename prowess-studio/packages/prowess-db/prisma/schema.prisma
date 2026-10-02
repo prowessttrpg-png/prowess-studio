@@ -255,6 +255,13 @@ model EntityVersion {
   /// packages/prowess-db/src/entity-version-keyword/repository.ts.
   keywordAssignments EntityVersionKeyword[]
 
+  /// Inverse side of SourceReference's required relation (M1-WO7) —
+  /// provenance records for where this specific Version's content
+  /// originated. Not gated by this Version's own `status` — see
+  /// SourceReference's doc comment below for why attaching provenance to
+  /// a protected Version is allowed and is not authored content mutation.
+  sourceReferences SourceReference[]
+
   /// Lightweight, optional classification — not the full PAS-08
   /// ChangeSet/Canon governance system. Mutable only while `status` is `DRAFT`.
   changeType    ChangeType? @map("change_type")
@@ -568,4 +575,138 @@ model EntityRelationship {
   @@index([sourceEntityId], map: "entity_relationships_source_entity_id_idx")
   @@index([targetEntityId], map: "entity_relationships_target_entity_id_idx")
   @@map("entity_relationships")
+}
+
+/// Controlled SourceDocument type classification (PAS-10 M1-WO7 §3).
+/// Deliberately broad — NOT coupled to file extensions/formats; file
+/// format parsing belongs to a later M3 Work Order. Descriptive metadata
+/// only — creates no authority or import behavior. Kept in exact lockstep
+/// with @prowess/model's SOURCE_DOCUMENT_TYPES
+/// (packages/prowess-model/src/source-document-type.ts).
+enum SourceDocumentType {
+  DOCUMENT
+  WEB
+  OTHER
+}
+
+/// Controlled SourceDocument authority classification (PAS-10 M1-WO7 §4),
+/// matching the PAS-08 Canon Manager's established vocabulary exactly —
+/// not an independently-invented parallel one. Kept in exact lockstep with
+/// @prowess/model's SOURCE_AUTHORITY_STATUSES
+/// (packages/prowess-model/src/source-authority-status.ts).
+///
+/// **Descriptive metadata ONLY in M1-WO7.** Setting this does NOT
+/// determine Canon, choose a current rule, override a Ruleset, or
+/// automatically supersede another document. Nothing in this package reads
+/// this field to make any decision — actual source-authority governance
+/// belongs to PAS-08/M2's Canon Manager, which does not exist yet.
+enum SourceAuthorityStatus {
+  GOVERNING
+  CURRENT_PRIMARY
+  CURRENT_SUPPLEMENTAL
+  PLAYTEST_REFERENCE
+  HISTORICAL
+  SUPERSEDED
+  REFERENCE_ONLY
+  UNRESOLVED
+}
+
+/// SourceDocument — a provenance record for where Prowess content
+/// originated (PAS-10 M1-WO7). See @prowess/model's SourceDocument type
+/// (packages/prowess-model/src/source-document.ts) and
+/// docs/architecture/source-provenance-model.md for full conceptual
+/// documentation.
+///
+/// `title` is human-facing display metadata — never relational identity;
+/// there is no canonical-key system for Sources in this Work Order.
+/// `fileReference` is an opaque external locator (a Project file id, a
+/// document URI, a connector id, a storage key) — no storage provider is
+/// assumed, and nothing in this package opens, reads, or parses whatever
+/// it references.
+///
+/// No `updatedAt` — same reasoning as KeywordCategory/KeywordDefinition
+/// (M1-WO5): no update operation exists for SourceDocument in this Work
+/// Order, so there is nothing yet for it to track.
+model SourceDocument {
+  id String @id @default(uuid()) @db.Uuid
+
+  title      String
+  sourceType SourceDocumentType @map("source_type")
+
+  versionLabel String? @map("version_label")
+
+  /// Descriptive only — see this model's own doc comment above and
+  /// SourceAuthorityStatus's doc comment for the full "no implicit
+  /// governance" explanation.
+  authorityStatus SourceAuthorityStatus? @map("authority_status")
+
+  fileReference String? @map("file_reference")
+  notes         String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  references SourceReference[]
+
+  @@map("source_documents")
+}
+
+/// SourceReference — a link from a specific EntityVersion to the
+/// SourceDocument it was derived from (PAS-10 M1-WO7). See
+/// @prowess/model's SourceReference type
+/// (packages/prowess-model/src/source-reference.ts) for full conceptual
+/// documentation.
+///
+/// **Attaches to EntityVersion, not stable Entity — deliberately.**
+/// Different revisions of the same Entity may derive from different
+/// sources; creating a new Version never automatically copies the
+/// previous Version's SourceReferences (PAS-10 M1-WO7 §10 — no hidden
+/// writes).
+///
+/// **Not gated by DRAFT/CANON lifecycle status.** Attaching a
+/// SourceReference to a protected (non-DRAFT) EntityVersion is allowed and
+/// does NOT mutate that Version's `rulesText`, `structuredData`,
+/// `displayName`, `status`, or `revisionNumber` — this is separately-
+/// managed provenance/audit metadata, not authored mechanical content, so
+/// M1-WO3's content-mutation lifecycle rule is deliberately NOT extended
+/// to cover it. Later Canon/import governance may impose stricter controls
+/// over provenance changes; this Work Order does not anticipate that
+/// policy by guessing at it now.
+///
+/// Both foreign keys use `onDelete: Restrict` — provenance history is
+/// never silently lost to an ordinary delete on either side.
+///
+/// No duplicate-prevention constraint: multiple references from the same
+/// EntityVersion to the same SourceDocument may legitimately point to
+/// different sections/pages (PAS-10 M1-WO7 §24) — a fragile composite
+/// uniqueness rule across nullable locator fields would eliminate
+/// superficially-similar-but-legitimately-distinct rows. A future
+/// SourceBlock/field-level provenance model can implement more precise
+/// identity if that turns out to be needed.
+model SourceReference {
+  id String @id @default(uuid()) @db.Uuid
+
+  sourceDocumentId String         @map("source_document_id") @db.Uuid
+  sourceDocument   SourceDocument @relation(fields: [sourceDocumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  entityVersionId String        @map("entity_version_id") @db.Uuid
+  entityVersion   EntityVersion @relation(fields: [entityVersionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  /// Free text, e.g. "Spell AP Cost", "Direct Damage", "Character Creation".
+  sectionLabel String? @map("section_label")
+
+  /// TEXT, not an integer — deliberately, so values like "14", "14-16",
+  /// "iv", or "Appendix A" are all representable. No page-number
+  /// arithmetic is ever performed on this column.
+  pageReference String? @map("page_reference")
+
+  /// A short editorial/provenance annotation — NOT the full source text.
+  /// This is not a document-copying system; full raw-source preservation
+  /// belongs to a later M3 Work Order.
+  sourceExcerptNote String? @map("source_excerpt_note")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([sourceDocumentId], map: "source_references_source_document_id_idx")
+  @@index([entityVersionId], map: "source_references_entity_version_id_idx")
+  @@map("source_references")
 }

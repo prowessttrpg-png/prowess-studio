@@ -83,4 +83,17 @@ describe("@prowess/model — shared model import", () => {
       "RELATIONSHIP.SELF_REFERENCE",
     );
   });
+
+  it("exposes the SourceDocument and SourceReference error vocabularies", () => {
+    expect(ProwessModel.SOURCE_DOCUMENT_ERROR_CODES.NOT_FOUND).toBe("SOURCE_DOCUMENT.NOT_FOUND");
+    expect(ProwessModel.SOURCE_DOCUMENT_ERROR_CODES.INVALID_INPUT).toBe(
+      "SOURCE_DOCUMENT.INVALID_INPUT",
+    );
+    expect(ProwessModel.SOURCE_REFERENCE_ERROR_CODES.NOT_FOUND).toBe(
+      "SOURCE_REFERENCE.NOT_FOUND",
+    );
+    expect(ProwessModel.SOURCE_REFERENCE_ERROR_CODES.INVALID_INPUT).toBe(
+      "SOURCE_REFERENCE.INVALID_INPUT",
+    );
+  });
 });

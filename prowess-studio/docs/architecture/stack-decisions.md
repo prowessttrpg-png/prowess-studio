@@ -349,3 +349,20 @@ required no changes at all. A new small `JsonValue`/`JsonObject` type was
 added to @prowess/model (no shared JSON-compatible type existed yet) for
 relationship metadata, reusable by any future domain type with the same
 need.
+
+## M1-WO7: Source Reference Foundation
+
+Full details -- why SourceReferences attach to EntityVersion rather than
+stable Entity, no automatic propagation between revisions, the
+descriptive-only authority vocabulary (matching PAS-08's Canon Manager
+spec exactly), file_reference's provider-agnostic design, the deliberate
+lack of a duplicate-prevention constraint on source_references, and why
+provenance attachment is NOT gated by DRAFT/CANON lifecycle status -- live
+in docs/architecture/source-provenance-model.md. No new dependencies were
+introduced. SourceDocumentId and SourceReferenceId already existed with
+the exact names this Work Order needed (an M0-WO1 placeholder that, unlike
+KeywordId/RelationshipId in M1-WO5/WO6, required no renaming). The
+SourceAuthorityStatus vocabulary was sourced directly from the existing
+PAS-08 Canon Manager specification already present in this project's
+reference documents, not independently invented, confirmed by searching
+for it before writing any code.
