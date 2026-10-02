@@ -14,7 +14,14 @@ import type { Entity as PrismaEntityRow } from "../../generated/prisma/client.js
  * (it is not re-exported from the package's own `index.ts`).
  */
 
-function toDomainEntity(row: PrismaEntityRow): Entity {
+/**
+ * Exported (unlike most of this module's internals) so other repositories
+ * within this package — currently `../entity-alias/repository.ts`'s
+ * alias-to-Entity join query — can reuse the exact same row mapping rather
+ * than duplicating it. Still not re-exported from `@prowess/db`'s own
+ * `index.ts`; this stays an internal, same-package convenience only.
+ */
+export function toDomainEntity(row: PrismaEntityRow): Entity {
   return {
     id: EntityId.of(row.id),
     entityType: row.entityType as EntityType,

@@ -29,4 +29,11 @@ export {
   updateDraftEntityVersion,
   transitionEntityVersionStatus,
 } from "./entity-version/index.js";
+export {
+  createEntityAlias,
+  listEntityAliases,
+  findEntitiesByAlias,
+  removeEntityAlias,
+} from "./entity-alias/index.js";
+export type { AliasEntityMatch } from "./entity-alias/index.js";
 export type { PrismaClient } from "../generated/prisma/client.js";

@@ -23,3 +23,4 @@ export * from "./errors.js";
 export * from "./change-type.js";
 export * from "./entity-version.js";
 export * from "./entity-version-lifecycle.js";
+export * from "./entity-alias.js";

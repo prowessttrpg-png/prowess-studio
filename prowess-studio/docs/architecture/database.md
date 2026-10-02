@@ -48,6 +48,8 @@ packages/prowess-db/
         migration.sql            — M1-WO2's canonical migration (EntityVersion)
       20261001215241_add_entity_version_updated_at/
         migration.sql             — M1-WO3's canonical migration (updated_at)
+      20261002022400_add_entity_alias/
+        migration.sql              — M1-WO4's canonical migration (EntityAlias)
   prisma.config.ts              — Prisma 7 CLI config (datasource URL for Migrate)
   src/
     client.ts                   — the centralized PrismaClient singleton (ACTIVE)
@@ -63,6 +65,11 @@ packages/prowess-db/
                                         UPDATE primitives (internal, not exported)
       service.ts                         — validates input, parent lineage, lifecycle
                                         transitions, maps errors (public surface)
+    entity-alias/                    — EntityAlias repository + service (M1-WO4)
+      repository.ts                     — Prisma queries, the alias-to-Entity join
+                                        (internal, not exported)
+      service.ts                         — validates/normalizes input, maps errors
+                                        (public surface)
       index.ts                            — re-exports the service only
     index.ts                      — package entry point (exports all of the above)
   generated/                       — prisma generate's output (gitignored, never committed)
@@ -76,6 +83,8 @@ packages/prowess-db/
       entity-version-lifecycle.test.ts      — M1-WO3's lifecycle/mutation proofs
                                           (incl. the race-safety test and the
                                           no-escape-hatch export-surface guard)
+      entity-alias.test.ts                   — M1-WO4's alias proofs (incl. the
+                                          historical-terminology use case)
   scripts/
     reset-test-db.mjs                  — the one vetted entrypoint for db:reset:test
 ```
@@ -333,6 +342,30 @@ earlier migrations: reconstructed from the schema using the same
 deterministic conventions, not yet independently confirmed by a GitHub
 Actions run for this specific file as of this Work Order's completion
 report.
+
+**`20261002022400_add_entity_alias`** (M1-WO4) — adds `entity_aliases`
+only. See `docs/architecture/entity-alias-model.md` for the full alias
+domain documentation. Creates:
+
+- `entity_aliases`: `id` (`UUID`, PK), `entity_id` (`UUID NOT NULL`, FK to
+  `entities.id` with `ON DELETE RESTRICT`), `alias` (`TEXT NOT NULL`,
+  authored form), `normalized_alias` (`TEXT NOT NULL`, lookup form,
+  indexed), `context` (nullable `TEXT`, authored), `normalized_context`
+  (`TEXT NOT NULL DEFAULT ''`, the deliberate NOT-NULL sentinel strategy
+  that avoids PostgreSQL's NULL-is-distinct-from-NULL uniqueness pitfall —
+  see entity-alias-model.md), `created_at` (`TIMESTAMPTZ(6)`)
+- A unique index on `(entity_id, normalized_alias, normalized_context)`
+  (explicit `map` name chosen by hand — the auto-generated Prisma name for
+  this three-column constraint would exceed PostgreSQL's 63-character
+  identifier limit)
+- A plain index on `normalized_alias` for exact-match lookup
+
+No unrelated tables (no `Keyword`, `EntityRelationship`, `SourceDocument`,
+`Ruleset`, or Canon tables), no destructive statements, no search-engine
+infrastructure. Same provenance caveat as the three earlier migrations:
+reconstructed from the schema using the same deterministic conventions,
+not yet independently confirmed by a GitHub Actions run for this specific
+file as of this Work Order's completion report.
 
 ## Migration commands
 

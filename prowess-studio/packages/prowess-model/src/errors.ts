@@ -94,3 +94,32 @@ export const ENTITY_VERSION_ERROR_CODES = {
 
 export type EntityVersionErrorCode =
   (typeof ENTITY_VERSION_ERROR_CODES)[keyof typeof ENTITY_VERSION_ERROR_CODES];
+
+/**
+ * EntityAlias-specific error codes (PAS-10 M1-WO4 §14–16).
+ *
+ * **Missing parent Entity reuses `ENTITY_ERROR_CODES.NOT_FOUND`**, not a
+ * parallel `ENTITY_ALIAS.ENTITY_NOT_FOUND` — the same reasoning as
+ * `EntityVersion`'s reuse above: attempting to create an alias for an
+ * Entity that doesn't exist is exactly the Entity-lookup-found-nothing
+ * condition `ENTITY.NOT_FOUND` already names.
+ */
+export const ENTITY_ALIAS_ERROR_CODES = {
+  /** Explicit lookup/deletion of an EntityAlias by id found nothing. */
+  NOT_FOUND: "ENTITY_ALIAS.NOT_FOUND",
+  /** The same (entityId, normalizedAlias, normalizedContext) already exists. */
+  DUPLICATE: "ENTITY_ALIAS.DUPLICATE",
+  /**
+   * Basic input validation failed — e.g. an alias that's empty/
+   * whitespace-only after normalization, or longer than
+   * `MAX_ENTITY_ALIAS_LENGTH`. Not explicitly named in PAS-10 M1-WO4's
+   * error-code list (which only named NOT_FOUND/DUPLICATE) — added for
+   * consistency with Entity's and EntityVersion's own INVALID_* pattern
+   * (validate at the service boundary, before anything reaches Prisma)
+   * rather than leaving basic input validation uncoded.
+   */
+  INVALID_INPUT: "ENTITY_ALIAS.INVALID_INPUT",
+} as const;
+
+export type EntityAliasErrorCode =
+  (typeof ENTITY_ALIAS_ERROR_CODES)[keyof typeof ENTITY_ALIAS_ERROR_CODES];

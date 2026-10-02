@@ -21,6 +21,9 @@ export type EntityId = Brand<string, "EntityId">;
 /** UUID identifying a specific historical EntityVersion (see M1-WO2). */
 export type EntityVersionId = Brand<string, "EntityVersionId">;
 
+/** UUID identifying an EntityAlias (see M1-WO4). */
+export type EntityAliasId = Brand<string, "EntityAliasId">;
+
 /** UUID identifying a KeywordDefinition (see M1-WO5). */
 export type KeywordId = Brand<string, "KeywordId">;
 
@@ -40,6 +43,9 @@ function asBrand<T extends string, B extends string>(value: T): Brand<T, B> {
 export const EntityId = { of: (value: string) => asBrand<string, "EntityId">(value) };
 export const EntityVersionId = {
   of: (value: string) => asBrand<string, "EntityVersionId">(value),
+};
+export const EntityAliasId = {
+  of: (value: string) => asBrand<string, "EntityAliasId">(value),
 };
 export const KeywordId = { of: (value: string) => asBrand<string, "KeywordId">(value) };
 export const RelationshipId = {

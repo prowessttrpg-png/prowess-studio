@@ -118,6 +118,11 @@ model Entity {
   /// not casually destroyed.
   versions EntityVersion[]
 
+  /// Inverse side of EntityAlias's required relation (M1-WO4). Same
+  /// restrictive-deletion posture as `versions` above, for consistency —
+  /// see EntityAlias.entity below.
+  aliases EntityAlias[]
+
   @@map("entities")
 }
 
@@ -247,4 +252,63 @@ model EntityVersion {
 
   @@unique([entityId, revisionNumber])
   @@map("entity_versions")
+}
+
+/// EntityAlias — alternate human-readable lookup/discovery metadata for a
+/// stable Entity (PAS-10 M1-WO4). See @prowess/model's EntityAlias type
+/// (packages/prowess-model/src/entity-alias.ts) and
+/// docs/architecture/entity-alias-model.md for the full conceptual
+/// documentation.
+///
+/// Aliases are NOT a replacement for Entity identity, the canonical key,
+/// or EntityVersion.displayName — see the @prowess/model doc comment for
+/// why all three answer different questions. No "is_primary" concept
+/// exists here, deliberately: the human-facing current/historical name
+/// belongs to EntityVersion.displayName, not to a flag on an alias row.
+///
+/// Deletion is supported (unlike EntityVersion) — aliases are discovery
+/// metadata, not historical rule snapshots, so removing one loses nothing
+/// that M0/M1's history-preservation principle is protecting.
+model EntityAlias {
+  id String @id @default(uuid()) @db.Uuid
+
+  entityId String @map("entity_id") @db.Uuid
+  entity   Entity @relation(fields: [entityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  /// Authored, exactly as typed — casing/spacing preserved. Never destroyed.
+  alias String
+
+  /// `normalizeEntityAlias(alias)` — the lookup/matching form (PAS-10
+  /// M1-WO4 §5). Indexed below for exact-match lookup.
+  normalizedAlias String @map("normalized_alias")
+
+  /// Authored context exactly as given (e.g. "Affinity", "Organization"),
+  /// or `null` if none was supplied. Display/authoring value only — see
+  /// `normalizedContext` below for the value actually used in the
+  /// uniqueness constraint and lookup matching.
+  context String?
+
+  /// Deliberate normalized-context-key strategy (PAS-10 M1-WO4 §9): a
+  /// NOT NULL column, defaulting to `""` when no context is supplied,
+  /// computed as `normalizeEntityAlias(context ?? "")`. This exists
+  /// specifically to avoid a real PostgreSQL pitfall — a UNIQUE constraint
+  /// treats NULL as distinct from every other NULL, so two rows with the
+  /// same (entityId, normalizedAlias) and BOTH a NULL context would NOT
+  /// violate a naive `@@unique([entityId, normalizedAlias, context])`,
+  /// silently defeating the duplicate-prevention requirement for the
+  /// common no-context case. Using a NOT NULL sentinel instead makes the
+  /// constraint behave correctly for every case, context-qualified or not.
+  normalizedContext String @default("") @map("normalized_context")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  /// Prevents a normalized duplicate for the same Entity + context (PAS-10
+  /// M1-WO4 §8) — deliberately NOT a global unique constraint on
+  /// `normalizedAlias` alone, since different Entities may legitimately
+  /// share the same alias (e.g. two different "Ward" effects).
+  @@unique([entityId, normalizedAlias, normalizedContext], map: "entity_aliases_entity_alias_context_key")
+  /// Supports exact-match alias lookup (PAS-10 M1-WO4 §22) — not a
+  /// full-text/fuzzy search index; M1-WO4 is exact-match only.
+  @@index([normalizedAlias], map: "entity_aliases_normalized_alias_idx")
+  @@map("entity_aliases")
 }

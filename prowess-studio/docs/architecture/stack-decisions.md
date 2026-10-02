@@ -284,3 +284,18 @@ self-contained, immutable snapshot" phrasing conflated historical
 independence (always true) with mutability (true only for DRAFT) — fixed
 in both the markdown doc and the `@prowess/model` source's own doc
 comment, per this Work Order's explicit instruction.
+
+## M1-WO4: Entity Aliases & Canonical Keys
+
+Full details -- normalization strategy (NFC not NFKC, and why), the
+deliberate normalized-context-key schema strategy that avoids PostgreSQL's
+NULL-is-distinct-from-NULL uniqueness pitfall, duplicate/ambiguity policy,
+and the error vocabulary -- live in
+`docs/architecture/entity-alias-model.md`. No new dependencies were
+introduced. `toDomainEntity` was promoted from a private helper to an
+exported (but still package-internal, not part of `@prowess/db`'s public
+`index.ts`) function in `entity/repository.ts`, so `entity-alias/
+repository.ts`'s alias-to-Entity join query could reuse the exact same row
+mapping rather than duplicating it -- a small, deliberate exception to
+"repository internals stay fully private," scoped to same-package reuse
+only.
