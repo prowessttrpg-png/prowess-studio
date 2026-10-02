@@ -128,6 +128,15 @@ model Entity {
   /// posture as `versions`/`aliases` above.
   keywordAssignments EntityKeyword[]
 
+  /// Inverse sides of EntityRelationship's two required relations (M1-WO6)
+  /// — this Entity as the stated SOURCE, and as the stated TARGET, of a
+  /// directed relationship. Two separate relation names are required
+  /// because EntityRelationship has two distinct foreign keys to this same
+  /// model. Same restrictive-deletion posture as every other inverse
+  /// relation on this model.
+  outgoingRelationships EntityRelationship[] @relation("EntityRelationshipSource")
+  incomingRelationships EntityRelationship[] @relation("EntityRelationshipTarget")
+
   @@map("entities")
 }
 
@@ -475,4 +484,88 @@ model EntityVersionKeyword {
   @@id([entityVersionId, keywordId], name: "entityVersionId_keywordId")
   @@index([keywordId], map: "entity_version_keywords_keyword_id_idx")
   @@map("entity_version_keywords")
+}
+
+/// Controlled EntityRelationship type values (PAS-10 M1-WO6 §3). The
+/// existing framework-independent vocabulary from M0-WO1
+/// (packages/prowess-model/src/relationship-type.ts) already contained
+/// exactly the Phase 1 set this Work Order requires — reused verbatim,
+/// not duplicated or parallel-invented. Kept in exact lockstep with that
+/// file; a test in @prowess/model's relationship-type.test.ts and this
+/// Work Order's own unit tests guard against the two drifting apart.
+enum RelationshipType {
+  REQUIRES
+  MODIFIES
+  USES
+  COMPATIBLE_WITH
+  INCOMPATIBLE_WITH
+  PART_OF
+  BELONGS_TO
+  SEE_ALSO
+}
+
+/// EntityRelationship — a stable, directed, structural relationship
+/// between two Entity identities (PAS-10 M1-WO6). See @prowess/model's
+/// EntityRelationship type (packages/prowess-model/src/entity-relationship.ts)
+/// and docs/architecture/entity-relationship-model.md for full conceptual
+/// documentation.
+///
+/// **Entity-level scope only** — this does NOT model relationships between
+/// specific EntityVersions. Version-sensitive or calculation-bearing
+/// relationships belong to dedicated version-scoped models,
+/// RequirementDefinition, typed subsystem joins, or Ruleset-specific
+/// structures in later Work Orders — never forced into this generic table.
+///
+/// **No unstated mechanics**, same principle as KeywordDefinition: stating
+/// a relationship (even one typed `MODIFIES`) never modifies MP/AP,
+/// changes damage, grants a Trait, satisfies a Requirement, determines
+/// targeting, alters Character statistics, or activates a rule. This is
+/// pure structural/editorial metadata.
+///
+/// **Directional, stored once.** `sourceEntityId REQUIRES targetEntityId`
+/// is one row. Creating it never automatically creates the reverse
+/// direction or an inverse-named relationship — see this Work Order's
+/// dedicated regression test. The opposite direction (if deliberately
+/// authored) is a distinct, independently-stored row.
+///
+/// Self-relationships (`sourceEntityId === targetEntityId`) are rejected
+/// at the @prowess/db service boundary (PAS-10 M1-WO6 §8) — NOT via a
+/// database CHECK constraint. This is a deliberate choice: Prisma's schema
+/// language has no first-class CHECK-constraint attribute, and hand-adding
+/// one directly to a migration's raw SQL (bypassing schema.prisma) risks
+/// confusing Prisma's own drift detection on a *future* migration, for a
+/// validation this project's established pattern already handles cleanly
+/// at the application layer (the same place canonical-key format,
+/// display-name non-emptiness, etc. are all validated before anything
+/// reaches Prisma).
+model EntityRelationship {
+  id String @id @default(uuid()) @db.Uuid
+
+  sourceEntityId String @map("source_entity_id") @db.Uuid
+  sourceEntity   Entity @relation("EntityRelationshipSource", fields: [sourceEntityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  targetEntityId String @map("target_entity_id") @db.Uuid
+  targetEntity   Entity @relation("EntityRelationshipTarget", fields: [targetEntityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  relationshipType RelationshipType @map("relationship_type")
+
+  /// Lightweight, non-authoritative structured context — editorial
+  /// qualifiers, notes, future display information. Defaults to an empty
+  /// object (same default-not-nullable reasoning as EntityVersion's
+  /// structuredData in M1-WO2). MUST NEVER encode actual Prowess rule
+  /// calculations (e.g. an `mp_discount` or `damage_bonus` that some
+  /// mechanical system then reads and acts on) — calculation-bearing
+  /// structures receive dedicated typed models in a later Work Order.
+  metadata Json @default("{}")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  /// Prevents an exact duplicate — same source, same target, same type.
+  /// Different types between the same pair, and the opposite direction,
+  /// are both explicitly allowed (PAS-10 M1-WO6 §9) since neither matches
+  /// this triple.
+  @@unique([sourceEntityId, targetEntityId, relationshipType], map: "entity_relationships_source_target_type_key")
+  @@index([sourceEntityId], map: "entity_relationships_source_entity_id_idx")
+  @@index([targetEntityId], map: "entity_relationships_target_entity_id_idx")
+  @@map("entity_relationships")
 }

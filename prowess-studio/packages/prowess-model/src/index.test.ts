@@ -68,4 +68,19 @@ describe("@prowess/model — shared model import", () => {
       "KEYWORD_ASSIGNMENT.INVALID_SOURCE",
     );
   });
+
+  it("exposes the complete EntityRelationship error vocabulary", () => {
+    expect(ProwessModel.RELATIONSHIP_ERROR_CODES.NOT_FOUND).toBe("RELATIONSHIP.NOT_FOUND");
+    expect(ProwessModel.RELATIONSHIP_ERROR_CODES.INVALID_SOURCE).toBe(
+      "RELATIONSHIP.INVALID_SOURCE",
+    );
+    expect(ProwessModel.RELATIONSHIP_ERROR_CODES.INVALID_TARGET).toBe(
+      "RELATIONSHIP.INVALID_TARGET",
+    );
+    expect(ProwessModel.RELATIONSHIP_ERROR_CODES.DUPLICATE).toBe("RELATIONSHIP.DUPLICATE");
+    expect(ProwessModel.RELATIONSHIP_ERROR_CODES.INVALID_TYPE).toBe("RELATIONSHIP.INVALID_TYPE");
+    expect(ProwessModel.RELATIONSHIP_ERROR_CODES.SELF_REFERENCE).toBe(
+      "RELATIONSHIP.SELF_REFERENCE",
+    );
+  });
 });

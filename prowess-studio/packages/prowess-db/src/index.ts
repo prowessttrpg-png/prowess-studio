@@ -64,4 +64,12 @@ export type {
   EntityVersionKeywordAssignment,
   EntityVersionKeywordMatch,
 } from "./entity-version-keyword/index.js";
+export {
+  createEntityRelationship,
+  getEntityRelationship,
+  getOutgoingRelationships,
+  getIncomingRelationships,
+  removeEntityRelationship,
+} from "./entity-relationship/index.js";
+export type { RelationshipWithCounterpart } from "./entity-relationship/index.js";
 export type { PrismaClient } from "../generated/prisma/client.js";

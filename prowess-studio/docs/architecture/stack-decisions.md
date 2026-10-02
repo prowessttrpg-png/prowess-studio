@@ -330,3 +330,22 @@ already established for `toDomainEntity` (M1-WO4) and
 `toDomainKeywordDefinition` (this Work Order) -- each reused by the
 reverse-lookup join queries in entity-keyword/ and
 entity-version-keyword/.
+
+## M1-WO6: Entity Relationships
+
+Full details -- the stable-identity-only scope and why version-specific
+relationships are deferred, the no-unstated-mechanics principle, directed
+single-row storage with no automatic inverse, duplicate/self-reference
+policy, metadata's non-authoritative-for-mechanics rule, and why typed
+subsystem joins will exist separately later -- live in
+docs/architecture/entity-relationship-model.md. No new dependencies were
+introduced. M0-WO1's placeholder `RelationshipId` was renamed to
+`EntityRelationshipId` (matching this Work Order's exact spec'd naming),
+following the same pattern already used for `KeywordId` ->
+`KeywordDefinitionId` in M1-WO5 -- confirmed unused anywhere before
+renaming. The existing `RelationshipType` enum from M0-WO1 already
+contained exactly the Phase 1 vocabulary this Work Order needed and
+required no changes at all. A new small `JsonValue`/`JsonObject` type was
+added to @prowess/model (no shared JSON-compatible type existed yet) for
+relationship metadata, reusable by any future domain type with the same
+need.

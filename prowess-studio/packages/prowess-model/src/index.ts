@@ -28,3 +28,5 @@ export * from "./keyword-assignment-source.js";
 export * from "./keyword-category.js";
 export * from "./keyword-definition.js";
 export * from "./keyword-assignment.js";
+export * from "./json.js";
+export * from "./entity-relationship.js";

@@ -31,7 +31,8 @@ export type KeywordCategoryId = Brand<string, "KeywordCategoryId">;
 export type KeywordDefinitionId = Brand<string, "KeywordDefinitionId">;
 
 /** UUID identifying an EntityRelationship (see M1-WO6). */
-export type RelationshipId = Brand<string, "RelationshipId">;
+/** UUID identifying an EntityRelationship (see M1-WO6). */
+export type EntityRelationshipId = Brand<string, "EntityRelationshipId">;
 
 /** UUID identifying a SourceDocument (see M1-WO7). */
 export type SourceDocumentId = Brand<string, "SourceDocumentId">;
@@ -56,8 +57,8 @@ export const KeywordCategoryId = {
 export const KeywordDefinitionId = {
   of: (value: string) => asBrand<string, "KeywordDefinitionId">(value),
 };
-export const RelationshipId = {
-  of: (value: string) => asBrand<string, "RelationshipId">(value),
+export const EntityRelationshipId = {
+  of: (value: string) => asBrand<string, "EntityRelationshipId">(value),
 };
 export const SourceDocumentId = {
   of: (value: string) => asBrand<string, "SourceDocumentId">(value),

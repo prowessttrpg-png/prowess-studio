@@ -52,6 +52,8 @@ packages/prowess-db/
         migration.sql              — M1-WO4's canonical migration (EntityAlias)
       20261002025218_add_keyword_foundation/
         migration.sql               — M1-WO5's canonical migration (Keyword foundation)
+      20261002225710_add_entity_relationship/
+        migration.sql                — M1-WO6's canonical migration (EntityRelationship)
   prisma.config.ts              — Prisma 7 CLI config (datasource URL for Migrate)
   src/
     client.ts                   — the centralized PrismaClient singleton (ACTIVE)
@@ -78,6 +80,8 @@ packages/prowess-db/
                                         no lifecycle guard)
     entity-version-keyword/             — Version-level Keyword assignment (M1-WO5,
                                         atomic SELECT...FOR UPDATE DRAFT guard)
+    entity-relationship/                 — EntityRelationship repository + service
+                                        (M1-WO6, stable-identity-level only)
       index.ts                            — re-exports the service only
     index.ts                      — package entry point (exports all of the above)
   generated/                       — prisma generate's output (gitignored, never committed)
@@ -100,6 +104,9 @@ packages/prowess-db/
                                           proofs (lifecycle guard, historical
                                           independence, reverse lookup, no-implicit-
                                           mechanics)
+      entity-relationship.test.ts                — M1-WO6's relationship proofs (incl.
+                                          no-implicit-mechanics, version independence,
+                                          and the FK delete-protection test)
   scripts/
     reset-test-db.mjs                  — the one vetted entrypoint for db:reset:test
 ```
@@ -411,6 +418,36 @@ search infrastructure. Same provenance caveat as the four earlier
 migrations: reconstructed from the schema using the same deterministic
 conventions, not yet independently confirmed by a GitHub Actions run for
 this specific file as of this Work Order's completion report.
+
+**`20261002225710_add_entity_relationship`** (M1-WO6) — adds
+`entity_relationships` and the `RelationshipType` enum. See
+`docs/architecture/entity-relationship-model.md` for the full Entity
+Relationship domain documentation. Creates:
+
+- the `RelationshipType` enum (`REQUIRES`, `MODIFIES`, `USES`,
+  `COMPATIBLE_WITH`, `INCOMPATIBLE_WITH`, `PART_OF`, `BELONGS_TO`,
+  `SEE_ALSO`) — reused verbatim from the framework-independent vocabulary
+  M0-WO1 already established, not a parallel enum
+- `entity_relationships`: `id` (UUID PK), `source_entity_id` / `target_entity_id`
+  (both `UUID NOT NULL`, FKs to `entities.id` with `ON DELETE RESTRICT`),
+  `relationship_type` (`RelationshipType NOT NULL`), `metadata` (`JSONB
+  NOT NULL DEFAULT '{}'`), `created_at`
+- A unique index on `(source_entity_id, target_entity_id,
+  relationship_type)` — prevents an exact duplicate while explicitly
+  allowing multiple types between the same pair and the opposite direction
+- Plain indexes on `source_entity_id` and `target_entity_id` separately
+  (the composite unique index alone doesn't serve a target-only reverse
+  lookup efficiently, since `target_entity_id` isn't its leading column)
+
+No unrelated tables (no `SourceDocument`, `Ruleset`, Canon, or
+`RequirementDefinition` tables), no destructive statements, no graph-
+database infrastructure — PostgreSQL remains the relationship store for
+Phase 1. No database `CHECK` constraint for the self-reference rule
+(deliberate — see entity-relationship-model.md's "Self-reference policy").
+Same provenance caveat as the five earlier migrations: reconstructed from
+the schema using the same deterministic conventions, not yet independently
+confirmed by a GitHub Actions run for this specific file as of this Work
+Order's completion report.
 
 ## Migration commands
 

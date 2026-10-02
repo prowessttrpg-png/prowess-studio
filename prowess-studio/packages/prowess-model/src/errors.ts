@@ -165,3 +165,29 @@ export const KEYWORD_ASSIGNMENT_ERROR_CODES = {
 
 export type KeywordAssignmentErrorCode =
   (typeof KEYWORD_ASSIGNMENT_ERROR_CODES)[keyof typeof KEYWORD_ASSIGNMENT_ERROR_CODES];
+
+/**
+ * EntityRelationship-specific error codes (PAS-10 M1-WO6 §14–19).
+ *
+ * Missing-source and missing-target are deliberately two distinct codes,
+ * not collapsed into one generic "not found" — a caller should know which
+ * side of the relationship is invalid without having to inspect the
+ * relationship's own fields to figure it out.
+ */
+export const RELATIONSHIP_ERROR_CODES = {
+  /** Explicit lookup/removal of an EntityRelationship by id found nothing. */
+  NOT_FOUND: "RELATIONSHIP.NOT_FOUND",
+  /** The source Entity doesn't exist. */
+  INVALID_SOURCE: "RELATIONSHIP.INVALID_SOURCE",
+  /** The target Entity doesn't exist. */
+  INVALID_TARGET: "RELATIONSHIP.INVALID_TARGET",
+  /** The exact (source, target, relationshipType) triple already exists. */
+  DUPLICATE: "RELATIONSHIP.DUPLICATE",
+  /** The supplied relationshipType isn't a recognized `RelationshipType`. */
+  INVALID_TYPE: "RELATIONSHIP.INVALID_TYPE",
+  /** `sourceEntityId === targetEntityId` — rejected, not persisted. */
+  SELF_REFERENCE: "RELATIONSHIP.SELF_REFERENCE",
+} as const;
+
+export type RelationshipErrorCode =
+  (typeof RELATIONSHIP_ERROR_CODES)[keyof typeof RELATIONSHIP_ERROR_CODES];
