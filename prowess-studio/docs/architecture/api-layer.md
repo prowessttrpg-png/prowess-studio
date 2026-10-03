@@ -96,12 +96,45 @@ serialized JSON of every tested error response for exactly these leaks.
 Centralized in `apps/studio/src/api/errors.ts`'s `DOMAIN_ERROR_STATUS_MAP`
 — the only place this decision is made.
 
+**Known DomainErrors have explicit HTTP mappings. Unknown/unmapped server
+errors fail closed as generic HTTP 500 responses rather than being
+misclassified as client errors.** This is enforced at compile time, not
+just by convention: `DOMAIN_ERROR_STATUS_MAP` is written as `satisfies
+Record<KnownDomainErrorCode, number>`, where `KnownDomainErrorCode` is a
+union built directly from `@prowess/model`'s own `*_ERROR_CODES` constants
+(never a hand-typed string literal list that could drift). Adding a new
+code to any `*_ERROR_CODES` object in `@prowess/model` without adding a
+matching entry here is a TypeScript compile error — the type checker
+requires a deliberately-chosen status for every known code, rather than
+relying on a reviewer to remember. `tests/unit/api-helpers.test.ts` adds a
+runtime-level version of the same guarantee, iterating every currently-
+known code and asserting each has a real numeric mapping.
+
+At runtime, `statusForDomainErrorCode(code)` returns `undefined` — not a
+default status — for any code with no entry. `toErrorResponse` treats that
+`undefined` as a fail-closed signal: it returns a generic `500
+INTERNAL.UNEXPECTED_ERROR` ("An unexpected server error occurred."),
+**never** the original unmapped code, and never falls back to 400. An
+unmapped code reaching this path represents an application contract/
+configuration omission (a new `DomainError` code shipped without a
+deliberately chosen HTTP status) — it is a server-side gap, not bad client
+input, and must never be misclassified as one. The same generic 500 shape
+is used for a genuinely unexpected non-`DomainError`/non-`ApiError`
+failure (a raw bug, a Prisma error that somehow escaped a service's own
+mapping, a null dereference, ...) — both paths are logged server-side only
+(`console.error`), and neither ever includes the original code, message,
+Prisma shape, stack trace, or an internal file path in the response body.
+
 | Status | Meaning | Example codes |
 | --- | --- | --- |
 | 404 | Explicit resource not found (named by the request's own URL) | `ENTITY.NOT_FOUND`, `ENTITY_VERSION.NOT_FOUND`, `SOURCE_DOCUMENT.NOT_FOUND`, ... |
 | 409 | Conflict with current state / duplicate | `ENTITY.CANONICAL_KEY_CONFLICT`, `ENTITY_VERSION.REVISION_CONFLICT`, `ENTITY_VERSION.IMMUTABLE`, `ENTITY_VERSION.INVALID_STATUS_TRANSITION`, `KEYWORD_ASSIGNMENT.DUPLICATE`, `RELATIONSHIP.DUPLICATE`, ... |
 | 400 | Invalid input / invalid reference within a request body | `ENTITY.INVALID_TYPE`, `RELATIONSHIP.INVALID_SOURCE`, `RELATIONSHIP.INVALID_TARGET`, `RELATIONSHIP.SELF_REFERENCE`, `API.INVALID_UUID`, `API.INVALID_QUERY`, ... |
-| 500 | Unexpected unhandled server failure | anything not a `DomainError` or `ApiError` |
+| 500 | Unexpected unhandled server failure, OR a known-but-unmapped `DomainError` code (fail-closed, never 400) | anything not a `DomainError` or `ApiError`; any `DomainError` code absent from `DOMAIN_ERROR_STATUS_MAP` |
+
+None of the documented mappings below changed from their original M1-WO8
+values — this patch only changes what happens for a code that ISN'T in
+this table.
 
 Two deliberate choices worth calling out explicitly:
 

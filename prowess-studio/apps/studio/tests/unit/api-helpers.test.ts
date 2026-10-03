@@ -1,4 +1,15 @@
-import { DomainError } from "@prowess/model";
+import {
+  DomainError,
+  ENTITY_ALIAS_ERROR_CODES,
+  ENTITY_ERROR_CODES,
+  ENTITY_VERSION_ERROR_CODES,
+  KEYWORD_ASSIGNMENT_ERROR_CODES,
+  KEYWORD_CATEGORY_ERROR_CODES,
+  KEYWORD_ERROR_CODES,
+  RELATIONSHIP_ERROR_CODES,
+  SOURCE_DOCUMENT_ERROR_CODES,
+  SOURCE_REFERENCE_ERROR_CODES,
+} from "@prowess/model";
 import { describe, expect, it } from "vitest";
 import {
   ApiError,
@@ -15,6 +26,25 @@ import {
   toErrorResponse,
 } from "../../src/api/index";
 import { parseJsonBody, requireObjectBody } from "../../src/api/request";
+
+/**
+ * Every currently-controlled DomainError code, flattened from the real
+ * `*_ERROR_CODES` objects — not a hand-typed list that could drift from
+ * the actual vocabulary. This is the runtime companion to
+ * `errors.ts`'s compile-time `satisfies Record<KnownDomainErrorCode,
+ * number>` exhaustiveness check (M1-WO8 patch).
+ */
+const ALL_KNOWN_DOMAIN_ERROR_CODES = [
+  ...Object.values(ENTITY_ERROR_CODES),
+  ...Object.values(ENTITY_VERSION_ERROR_CODES),
+  ...Object.values(ENTITY_ALIAS_ERROR_CODES),
+  ...Object.values(KEYWORD_CATEGORY_ERROR_CODES),
+  ...Object.values(KEYWORD_ERROR_CODES),
+  ...Object.values(KEYWORD_ASSIGNMENT_ERROR_CODES),
+  ...Object.values(RELATIONSHIP_ERROR_CODES),
+  ...Object.values(SOURCE_DOCUMENT_ERROR_CODES),
+  ...Object.values(SOURCE_REFERENCE_ERROR_CODES),
+];
 
 describe("statusForDomainErrorCode", () => {
   it.each([
@@ -37,12 +67,20 @@ describe("statusForDomainErrorCode", () => {
     ["RELATIONSHIP.INVALID_TARGET", 400],
     ["RELATIONSHIP.SELF_REFERENCE", 400],
     ["SOURCE_DOCUMENT.INVALID_INPUT", 400],
-  ])("maps %s to %d", (code, expectedStatus) => {
+  ])("maps %s to %d (documented mapping unchanged by the patch)", (code, expectedStatus) => {
     expect(statusForDomainErrorCode(code)).toBe(expectedStatus);
   });
 
-  it("defaults an unmapped code to 400 rather than throwing", () => {
-    expect(statusForDomainErrorCode("SOME_FUTURE.UNMAPPED_CODE")).toBe(400);
+  it("every currently-controlled DomainError code has an explicit numeric mapping", () => {
+    expect(ALL_KNOWN_DOMAIN_ERROR_CODES.length).toBeGreaterThan(0);
+    for (const code of ALL_KNOWN_DOMAIN_ERROR_CODES) {
+      const status = statusForDomainErrorCode(code);
+      expect(status, `expected an explicit mapping for ${code}`).toBeTypeOf("number");
+    }
+  });
+
+  it("returns undefined (not 400) for an unmapped/unknown code — callers must fail closed to 500", () => {
+    expect(statusForDomainErrorCode("SOME_FUTURE.UNMAPPED_CODE")).toBeUndefined();
   });
 });
 
@@ -73,13 +111,53 @@ describe("toErrorResponse", () => {
     });
   });
 
-  it("translates an unknown error into an opaque 500 with no internal details leaked", async () => {
+  it("translates an unknown (non-DomainError, non-ApiError) error into a generic opaque 500", async () => {
     const response = toErrorResponse(new Error("some raw internal failure with a stack trace"));
     expect(response.status).toBe(500);
     const body = await response.json();
-    expect(body.code).toBe("INTERNAL.UNEXPECTED_ERROR");
-    expect(body.message).not.toContain("stack trace");
+    expect(body).toEqual({
+      code: "INTERNAL.UNEXPECTED_ERROR",
+      message: "An unexpected server error occurred.",
+      field: null,
+      details: null,
+    });
     expect(JSON.stringify(body)).not.toContain("some raw internal failure");
+  });
+
+  it("an artificially unknown DomainError code fails closed to 500, NOT 400 — the M1-WO8 patch's core fix", async () => {
+    const response = toErrorResponse(
+      new DomainError(
+        "SOME_FUTURE.UNMAPPED_CODE",
+        "a brand-new error code nobody has assigned an HTTP status to yet",
+      ),
+    );
+    expect(response.status).toBe(500);
+    const body = await response.json();
+    expect(body).toEqual({
+      code: "INTERNAL.UNEXPECTED_ERROR",
+      message: "An unexpected server error occurred.",
+      field: null,
+      details: null,
+    });
+  });
+
+  it("neither 500 path ever leaks the original code, message, or any internal detail", async () => {
+    const fromUnmappedDomainError = await toErrorResponse(
+      new DomainError("SOME_FUTURE.UNMAPPED_CODE", "sensitive internal detail: user table row 42"),
+    ).json();
+    const fromRawError = await toErrorResponse(
+      new Error("sensitive internal detail: /home/app/secrets.env"),
+    ).json();
+
+    for (const body of [fromUnmappedDomainError, fromRawError]) {
+      const raw = JSON.stringify(body);
+      expect(raw).not.toContain("SOME_FUTURE.UNMAPPED_CODE");
+      expect(raw).not.toContain("sensitive internal detail");
+      expect(raw).not.toMatch(/P2\d{3}/); // no raw Prisma error codes
+      expect(raw.toLowerCase()).not.toContain("prisma");
+      expect(raw.toLowerCase()).not.toContain("/home");
+      expect(raw.toLowerCase()).not.toContain(".ts:");
+    }
   });
 });
 

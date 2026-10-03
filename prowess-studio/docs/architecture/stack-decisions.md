@@ -387,3 +387,21 @@ backend logic this Work Order required, deliberately avoiding Prisma's
 distinct+orderBy interaction (unverifiable without a working generated
 client) in favor of a plain, fully-inspectable JS reduction for latest-
 revision resolution.
+
+### M1-WO8 patch: exhaustive, fail-closed DomainError-to-HTTP mapping
+
+The centralized DomainError->HTTP status map originally defaulted an
+unmapped future error code to 400, which conflated "the client sent bad
+input" with "the server shipped a new error code without choosing its
+HTTP status" -- the latter is an application contract omission, not client
+error. Fixed: the map is now built with `satisfies
+Record<KnownDomainErrorCode, number>`, where `KnownDomainErrorCode` is
+derived directly from @prowess/model's own `*_ERROR_CODES` constants, so
+adding a new domain error code without adding a matching HTTP-status entry
+is now a TypeScript compile error. At runtime, any code that still
+reaches the boundary unmapped (should be unreachable given the compile-time
+check, but defended anyway) fails closed to a generic 500
+`INTERNAL.UNEXPECTED_ERROR`, never a 400 and never exposing the original
+code. No endpoint, pagination, filter, service behavior, schema, or route
+structure changed. See `docs/architecture/api-layer.md`'s "HTTP status
+mapping" section for the full explanation.
