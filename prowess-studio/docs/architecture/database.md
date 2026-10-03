@@ -87,6 +87,8 @@ packages/prowess-db/
     source-document/                      — SourceDocument repository + service (M1-WO7)
     source-reference/                      — SourceReference repository + service
                                         (M1-WO7, lifecycle-independent of DRAFT/CANON)
+    entity-query/                          — paginated/filtered Entity list query (M1-WO8,
+                                        backs GET /api/entities; see docs/architecture/api-layer.md)
       index.ts                            — re-exports the service only
     index.ts                      — package entry point (exports all of the above)
   generated/                       — prisma generate's output (gitignored, never committed)

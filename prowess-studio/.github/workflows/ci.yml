@@ -131,6 +131,18 @@ jobs:
       - name: UI/component tests (apps/studio)
         run: pnpm --filter "@prowess/studio" run test:unit
 
+      # M1-WO8: API route-handler tests, calling each Next.js route
+      # handler directly as a function (no running server needed) against
+      # the real prowess_studio_test database — same safety-guard
+      # infrastructure as @prowess/db's own integration tests above. Only
+      # needs @prowess/db already built (done above) and the test database
+      # already migrated (also done above); does not depend on apps/studio's
+      # own production build, which happens later.
+      - name: API integration tests (apps/studio)
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+        run: pnpm --filter "@prowess/studio" run test:integration
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own

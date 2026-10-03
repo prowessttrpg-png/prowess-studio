@@ -60,3 +60,14 @@ export async function selectKeywordCategoryByCanonicalKey(
   const row = await prisma.keywordCategory.findUnique({ where: { canonicalKey } });
   return row ? toDomainKeywordCategory(row) : null;
 }
+
+/**
+ * Ordered `canonicalKey ASC` — deterministic, same convention as every
+ * other list operation in this package. Added in M1-WO8 specifically to
+ * back `GET /api/keyword-categories` — M1-WO5 had no list operation since
+ * nothing needed one yet.
+ */
+export async function selectKeywordCategories(): Promise<KeywordCategory[]> {
+  const rows = await prisma.keywordCategory.findMany({ orderBy: { canonicalKey: "asc" } });
+  return rows.map(toDomainKeywordCategory);
+}

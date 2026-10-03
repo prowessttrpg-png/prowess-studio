@@ -10,6 +10,7 @@ import {
 import { Prisma } from "../../generated/prisma/client.js";
 import {
   insertKeywordCategory,
+  selectKeywordCategories,
   selectKeywordCategoryByCanonicalKey,
   selectKeywordCategoryById,
 } from "./repository.js";
@@ -94,6 +95,11 @@ export async function findKeywordCategoryByCanonicalKey(
   canonicalKey: string,
 ): Promise<KeywordCategory | null> {
   return selectKeywordCategoryByCanonicalKey(canonicalKey);
+}
+
+/** All KeywordCategories, ordered `canonicalKey ASC`. Added for M1-WO8's `GET /api/keyword-categories`. */
+export async function listKeywordCategories(): Promise<KeywordCategory[]> {
+  return selectKeywordCategories();
 }
 
 function isCanonicalKeyUniqueConstraintViolation(error: unknown): boolean {

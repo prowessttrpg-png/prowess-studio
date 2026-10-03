@@ -26,6 +26,9 @@ importers:
 
   apps/studio:
     dependencies:
+      '@prowess/db':
+        specifier: workspace:*
+        version: link:../../packages/prowess-db
       '@prowess/model':
         specifier: workspace:*
         version: link:../../packages/prowess-model

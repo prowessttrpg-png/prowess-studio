@@ -1,0 +1,221 @@
+import { DomainError } from "@prowess/model";
+import { describe, expect, it } from "vitest";
+import {
+  ApiError,
+  apiSuccess,
+  apiSuccessList,
+  DEFAULT_PAGE,
+  DEFAULT_PAGE_SIZE,
+  isValidUuid,
+  MAX_PAGE_SIZE,
+  parsePaginationParams,
+  parseUuidParam,
+  serializeForApi,
+  statusForDomainErrorCode,
+  toErrorResponse,
+} from "../../src/api/index";
+import { parseJsonBody, requireObjectBody } from "../../src/api/request";
+
+describe("statusForDomainErrorCode", () => {
+  it.each([
+    ["ENTITY.NOT_FOUND", 404],
+    ["ENTITY_VERSION.NOT_FOUND", 404],
+    ["ENTITY_ALIAS.NOT_FOUND", 404],
+    ["KEYWORD.NOT_FOUND", 404],
+    ["RELATIONSHIP.NOT_FOUND", 404],
+    ["SOURCE_DOCUMENT.NOT_FOUND", 404],
+    ["ENTITY.CANONICAL_KEY_CONFLICT", 409],
+    ["ENTITY_VERSION.REVISION_CONFLICT", 409],
+    ["ENTITY_VERSION.IMMUTABLE", 409],
+    ["ENTITY_VERSION.INVALID_STATUS_TRANSITION", 409],
+    ["ENTITY_ALIAS.DUPLICATE", 409],
+    ["KEYWORD_ASSIGNMENT.DUPLICATE", 409],
+    ["RELATIONSHIP.DUPLICATE", 409],
+    ["ENTITY.INVALID_TYPE", 400],
+    ["ENTITY_VERSION.INVALID_INPUT", 400],
+    ["RELATIONSHIP.INVALID_SOURCE", 400],
+    ["RELATIONSHIP.INVALID_TARGET", 400],
+    ["RELATIONSHIP.SELF_REFERENCE", 400],
+    ["SOURCE_DOCUMENT.INVALID_INPUT", 400],
+  ])("maps %s to %d", (code, expectedStatus) => {
+    expect(statusForDomainErrorCode(code)).toBe(expectedStatus);
+  });
+
+  it("defaults an unmapped code to 400 rather than throwing", () => {
+    expect(statusForDomainErrorCode("SOME_FUTURE.UNMAPPED_CODE")).toBe(400);
+  });
+});
+
+describe("toErrorResponse", () => {
+  it("translates a DomainError into the stable error shape at the mapped status", async () => {
+    const response = toErrorResponse(new DomainError("ENTITY.NOT_FOUND", "Entity not found: x"));
+    expect(response.status).toBe(404);
+    const body = await response.json();
+    expect(body).toEqual({
+      code: "ENTITY.NOT_FOUND",
+      message: "Entity not found: x",
+      field: null,
+      details: null,
+    });
+  });
+
+  it("translates an ApiError into the stable error shape at its own status, including field", async () => {
+    const response = toErrorResponse(
+      new ApiError("API.INVALID_UUID", "entityId must be a valid UUID", 400, "entityId"),
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body).toEqual({
+      code: "API.INVALID_UUID",
+      message: "entityId must be a valid UUID",
+      field: "entityId",
+      details: null,
+    });
+  });
+
+  it("translates an unknown error into an opaque 500 with no internal details leaked", async () => {
+    const response = toErrorResponse(new Error("some raw internal failure with a stack trace"));
+    expect(response.status).toBe(500);
+    const body = await response.json();
+    expect(body.code).toBe("INTERNAL.UNEXPECTED_ERROR");
+    expect(body.message).not.toContain("stack trace");
+    expect(JSON.stringify(body)).not.toContain("some raw internal failure");
+  });
+});
+
+describe("UUID validation", () => {
+  it.each([
+    "00000000-0000-4000-8000-000000000000",
+    "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  ])("accepts %s", (value) => {
+    expect(isValidUuid(value)).toBe(true);
+  });
+
+  it.each(["not-a-uuid", "", "12345", "00000000-0000-4000-8000-00000000000"])(
+    "rejects %s",
+    (value) => {
+      expect(isValidUuid(value)).toBe(false);
+    },
+  );
+
+  it("parseUuidParam returns the value unchanged when valid", () => {
+    const id = "3fa85f64-5717-4562-b3fc-2c963f66afa6";
+    expect(parseUuidParam(id, "entityId")).toBe(id);
+  });
+
+  it("parseUuidParam throws a 400 ApiError naming the field when invalid", () => {
+    expect(() => parseUuidParam("not-a-uuid", "entityId")).toThrow(ApiError);
+    try {
+      parseUuidParam("not-a-uuid", "entityId");
+    } catch (error) {
+      expect(error).toBeInstanceOf(ApiError);
+      expect((error as ApiError).status).toBe(400);
+      expect((error as ApiError).field).toBe("entityId");
+    }
+  });
+});
+
+describe("pagination parsing", () => {
+  it("defaults to page=1, pageSize=25 when absent", () => {
+    const result = parsePaginationParams(new URLSearchParams());
+    expect(result).toEqual({ page: DEFAULT_PAGE, pageSize: DEFAULT_PAGE_SIZE });
+  });
+
+  it("parses explicit valid values", () => {
+    const result = parsePaginationParams(new URLSearchParams("page=3&pageSize=10"));
+    expect(result).toEqual({ page: 3, pageSize: 10 });
+  });
+
+  it(`clamps an oversized pageSize down to ${MAX_PAGE_SIZE}`, () => {
+    const result = parsePaginationParams(new URLSearchParams("pageSize=10000"));
+    expect(result.pageSize).toBe(MAX_PAGE_SIZE);
+  });
+
+  it.each(["0", "-1", "abc", "1.5"])("rejects a malformed page value (%s)", (value) => {
+    expect(() => parsePaginationParams(new URLSearchParams(`page=${value}`))).toThrow(ApiError);
+  });
+
+  it.each(["0", "-1", "abc", "1.5"])("rejects a malformed pageSize value (%s)", (value) => {
+    expect(() => parsePaginationParams(new URLSearchParams(`pageSize=${value}`))).toThrow(
+      ApiError,
+    );
+  });
+});
+
+describe("serializeForApi", () => {
+  it("converts a Date to an ISO 8601 string", () => {
+    const date = new Date("2026-01-01T00:00:00.000Z");
+    expect(serializeForApi({ createdAt: date })).toEqual({ createdAt: "2026-01-01T00:00:00.000Z" });
+  });
+
+  it("leaves non-Date fields untouched, including nested JSON objects", () => {
+    const input = {
+      id: "abc-123",
+      structuredData: { value: 10, tags: ["a", "b"] },
+      createdAt: new Date("2026-01-01T00:00:00.000Z"),
+    };
+    expect(serializeForApi(input)).toEqual({
+      id: "abc-123",
+      structuredData: { value: 10, tags: ["a", "b"] },
+      createdAt: "2026-01-01T00:00:00.000Z",
+    });
+  });
+
+  it("recurses into nested objects (e.g. { entity, latestRevision })", () => {
+    const input = {
+      entity: { id: "e1", createdAt: new Date("2026-01-01T00:00:00.000Z") },
+      latestRevision: { id: "v1", createdAt: new Date("2026-02-01T00:00:00.000Z") },
+    };
+    expect(serializeForApi(input)).toEqual({
+      entity: { id: "e1", createdAt: "2026-01-01T00:00:00.000Z" },
+      latestRevision: { id: "v1", createdAt: "2026-02-01T00:00:00.000Z" },
+    });
+  });
+
+  it("handles null and arrays of objects", () => {
+    expect(serializeForApi(null)).toBeNull();
+    expect(
+      serializeForApi([{ createdAt: new Date("2026-01-01T00:00:00.000Z") }]),
+    ).toEqual([{ createdAt: "2026-01-01T00:00:00.000Z" }]);
+  });
+});
+
+describe("apiSuccess / apiSuccessList response shapes", () => {
+  it("wraps a single resource as { data }", async () => {
+    const response = apiSuccess({ id: "abc" }, 201);
+    expect(response.status).toBe(201);
+    expect(await response.json()).toEqual({ data: { id: "abc" } });
+  });
+
+  it("wraps a list as { data, pagination } with totalPages computed", async () => {
+    const response = apiSuccessList([{ id: "a" }, { id: "b" }], 1, 25, 60);
+    const body = await response.json();
+    expect(body.data).toEqual([{ id: "a" }, { id: "b" }]);
+    expect(body.pagination).toEqual({ page: 1, pageSize: 25, total: 60, totalPages: 3 });
+  });
+});
+
+describe("request body parsing", () => {
+  it("parseJsonBody parses a valid JSON body", async () => {
+    const request = new Request("http://localhost/api/test", {
+      method: "POST",
+      body: JSON.stringify({ a: 1 }),
+    });
+    await expect(parseJsonBody(request)).resolves.toEqual({ a: 1 });
+  });
+
+  it("parseJsonBody throws a 400 ApiError for malformed JSON", async () => {
+    const request = new Request("http://localhost/api/test", {
+      method: "POST",
+      body: "{not valid json",
+    });
+    await expect(parseJsonBody(request)).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("requireObjectBody accepts a plain object and rejects arrays/primitives/null", () => {
+    expect(requireObjectBody({ a: 1 })).toEqual({ a: 1 });
+    expect(() => requireObjectBody([1, 2])).toThrow(ApiError);
+    expect(() => requireObjectBody("a string")).toThrow(ApiError);
+    expect(() => requireObjectBody(null)).toThrow(ApiError);
+  });
+});

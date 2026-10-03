@@ -10,12 +10,13 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "pnpm run test:unit",
+    "test": "pnpm run test:unit && pnpm run test:integration",
     "test:unit": "vitest run",
-    "test:integration": "echo \"@prowess/studio: no integration tests until M0-WO3 (database)\" && exit 0",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@prowess/db": "workspace:*",
     "@prowess/model": "workspace:*",
     "@prowess/ui": "workspace:*",
     "dotenv": "18.0.4",

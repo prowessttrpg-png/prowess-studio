@@ -135,6 +135,7 @@ extend). Two things are checked:
 | `@prowess/ui` | React | `@prisma/client`, `@prisma/adapter-pg`, `prisma`, `pg`, `@prowess/db` |
 | `apps/studio` (`app/`) | the packages below it | `@prisma/client`, `@prisma/adapter-pg`, `prisma` directly (must always go through `@prowess/db`) |
 | `apps/studio` (`src/`) | the packages below it | same as `app/` — application-level modules (config, navigation) are held to the same standard |
+| `apps/studio` (`app/api/`) | `@prowess/db`'s bare public import only | same Prisma bans as `app/`, PLUS any *deep* import into `@prowess/db` internals (e.g. `@prowess/db/src/entity/repository.js`) — API route handlers are the final HTTP boundary (M1-WO8) and must use only the public service surface |
 
 **Circular workspace dependencies:** every workspace package's declared
 `@prowess/*` dependencies are walked as a graph; any cycle fails the check
@@ -157,8 +158,13 @@ assumed to work):
 - A deliberate forbidden import in `apps/studio/src/navigation.ts` (added
   during M0-WO5) was likewise caught: exit code 1, exact file/line/specifier
   named.
-- All three were reverted immediately after confirming the failure — no
-  broken test or deliberately-failing check was committed.
+- A deliberate direct `@prisma/client` import, and separately a deliberate
+  deep `@prowess/db/src/client.js` import, were each added to an API route
+  file (M1-WO8) and confirmed caught by the new `apps/studio (app/api/)`
+  rule specifically — the legitimate bare `@prowess/db` import every real
+  route uses was confirmed to cause no false positive.
+- All were reverted immediately after confirming the failure — no broken
+  test or deliberately-failing check was committed.
 
 ## Dependency reproducibility & caching
 

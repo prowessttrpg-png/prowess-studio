@@ -40,6 +40,7 @@ export {
   createKeywordCategory,
   getKeywordCategory,
   findKeywordCategoryByCanonicalKey,
+  listKeywordCategories,
 } from "./keyword-category/index.js";
 export {
   createKeywordDefinition,
@@ -84,4 +85,10 @@ export {
   listSourceReferencesForDocument,
   removeSourceReference,
 } from "./source-reference/index.js";
+export { listEntities } from "./entity-query/index.js";
+export type {
+  EntityListItem,
+  ListEntitiesQuery,
+  ListEntitiesResult,
+} from "./entity-query/index.js";
 export type { PrismaClient } from "../generated/prisma/client.js";

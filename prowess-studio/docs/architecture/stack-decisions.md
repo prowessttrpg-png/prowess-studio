@@ -366,3 +366,24 @@ SourceAuthorityStatus vocabulary was sourced directly from the existing
 PAS-08 Canon Manager specification already present in this project's
 reference documents, not independently invented, confirmed by searching
 for it before writing any code.
+
+## M1-WO8: Entity API
+
+Full details -- the complete HTTP status mapping with its reasoning, pagination/
+filter semantics (including the two stated M1-WO8 scope limitations: Entity-level-
+only keyword filtering, and the status-filter pagination cost tradeoff), the
+latestRevision convention, the no-auth Phase 1 scope, and the architecture
+enforcement extension -- live in docs/architecture/api-layer.md. apps/studio
+gained its first real dependency on @prowess/db. This is the first Work Order
+where that dependency's consequences became directly visible from the
+application side: apps/studio's production build now fails locally (it
+bundles against @prowess/db's stale dist/, frozen since before the Prisma-
+generation blocker existed), confirmed to be a sandbox artifact and not a
+code defect via a temporary, reverted tsconfig.json path override that
+typechecked every route handler's actual @prowess/db calls against real
+source. A new @prowess/db query service, listEntities, was added
+specifically to back GET /api/entities -- the one genuinely new piece of
+backend logic this Work Order required, deliberately avoiding Prisma's
+distinct+orderBy interaction (unverifiable without a working generated
+client) in favor of a plain, fully-inspectable JS reduction for latest-
+revision resolution.
