@@ -1,9 +1,6 @@
 # Continuous Integration — M0-WO4
 
-**Status: workflow written, not yet verified by an actual GitHub Actions
-run.** This document describes `.github/workflows/ci.yml`, the permanent
-Phase 1 quality gate. See "Local verification performed" below for exactly
-what was checked without a live run, and what still needs one.
+**Status: in service.** This workflow has run on every approved Work Order since M0 and is the verification authority for the project. Earlier revisions of this document said it was "not yet verified by an actual GitHub Actions run"; that was true only at M0-WO4 authoring time and has long been resolved.
 
 ## What runs, and when
 
@@ -217,6 +214,8 @@ Work Order.
   output, not just the test assertions, if a run fails unexpectedly.
 
 ## Sandbox limitations (unchanged from M0-WO3)
+
+> **Historical — resolved (M1-WO11 documentation audit).** The limitation described below applied to the authoring sandbox only. Everything it left unverified locally (Prisma generation, migrations, database/API integration tests, the production build, Playwright) has since been exercised by the permanent CI workflow, which passed. The text is kept as the record of why earlier Work Orders reported local verification gaps.
 
 This development sandbox cannot reach `https://binaries.prisma.sh` or
 `cdn.playwright.dev` — both of Prisma's CLI and Playwright's browser

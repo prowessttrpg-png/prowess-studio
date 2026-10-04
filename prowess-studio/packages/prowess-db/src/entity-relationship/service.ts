@@ -6,6 +6,7 @@ import {
   type CreateEntityRelationshipInput,
   type EntityRelationship,
   type RelationshipType,
+  type RelationshipErrorCode,
 } from "@prowess/model";
 import { getEntityById } from "../entity/service.js";
 import {
@@ -138,7 +139,7 @@ export async function removeEntityRelationship(id: string): Promise<void> {
 
 async function assertEntityExists(
   entityId: string,
-  errorCode: string,
+  errorCode: RelationshipErrorCode,
   label: "Source" | "Target",
 ): Promise<void> {
   try {

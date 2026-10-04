@@ -441,3 +441,18 @@ the same document cost one request. M1-WO9's LatestRevisionSection was
 generalized to RevisionSection, and an existing M1-WO9 Playwright heading
 assertion was tightened to `exact: true` since "Latest Revision" is a
 substring of the "Latest Revision Keywords" heading.
+
+## M1-WO11: Integration & Historical Reproducibility Audit Gate
+
+No product feature, schema change, or migration. Added a four-layer audit
+(static / database / API / browser), three named CI gate steps, and an
+informational Prisma drift step. Full record: `docs/audits/m1-completion-audit.md`;
+architecture summary: `docs/architecture/m1-entity-version-core.md`.
+Decisions worth keeping: (1) the drift check is deliberately non-blocking
+because Prisma cannot run in the authoring sandbox and static review found a
+probable real mismatch (migrations declare `DEFAULT gen_random_uuid()`, the
+schema uses client-side `@default(uuid())`) — a schema decision is left to a
+human per the Work Order's stop-and-report rule; (2) a private helper's
+`errorCode: string` was tightened to `RelationshipErrorCode`, and the static
+audit now forbids uncontrolled codes reaching `DomainError`; (3) canonical
+keys cannot contain hyphens, so the audit uses `historical_rule`.

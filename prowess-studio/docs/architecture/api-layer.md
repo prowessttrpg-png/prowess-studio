@@ -1,9 +1,6 @@
 # Entity API Layer (M1-WO8)
 
-**Status: implemented, not yet verified by GitHub Actions** — and, for the
-first time in this project, **not yet verified by a local production build
-either**. See "Sandbox limitations" at the end of this document for why,
-and this Work Order's completion report for the full detail.
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when its Work Order was approved, and the M1 audit gate (`docs/audits/m1-completion-audit.md`) re-checks its invariants. Earlier revisions of this document recorded it as "not yet verified" because the authoring sandbox could not run Prisma or a browser; that limited only *local* verification and is resolved by CI.
 
 ## Layering
 
@@ -306,6 +303,8 @@ same empirical-verification discipline this project has applied to every
 architecture rule since M0-WO4.
 
 ## Sandbox limitations
+
+> **Historical — resolved (M1-WO11 documentation audit).** The limitation described below applied to the authoring sandbox only. Everything it left unverified locally (Prisma generation, migrations, database/API integration tests, the production build, Playwright) has since been exercised by the permanent CI workflow, which passed. The text is kept as the record of why earlier Work Orders reported local verification gaps.
 
 This sandbox still cannot reach `https://binaries.prisma.sh`, so
 `packages/prowess-db/generated/prisma/` does not exist here — the same

@@ -1,7 +1,6 @@
 # Version History UI (M1-WO10)
 
-**Status: implemented, not yet verified by GitHub Actions.** See the Work
-Order's completion report for the exact local-verification boundary.
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when its Work Order was approved, and the M1 audit gate (`docs/audits/m1-completion-audit.md`) re-checks its invariants. Earlier revisions of this document recorded it as "not yet verified" because the authoring sandbox could not run Prisma or a browser; that limited only *local* verification and is resolved by CI.
 
 ## What this is
 

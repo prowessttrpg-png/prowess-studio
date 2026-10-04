@@ -203,10 +203,9 @@ Implemented by:
   inline — this is needed for complete type-checking even though no file
   under `src/` imports from `pg` directly.
 
-**Status: implemented, not yet verified.** This sandbox cannot run `prisma
-generate` to produce `generated/prisma/client.js`, so none of
-`src/client.ts`'s imports can be locally type-checked or built here. The
-next GitHub Actions run is the first real test of this code.
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when its Work Order was approved, and the M1 audit gate (`docs/audits/m1-completion-audit.md`) re-checks its invariants. Earlier revisions of this document recorded it as "not yet verified" because the authoring sandbox could not run Prisma or a browser; that limited only *local* verification and is resolved by CI.
+
+> **Migration provenance — read this first (M1-WO11).** Per-migration notes below describe the SQL as "reconstructed … not yet confirmed by CI." What CI has since *proven*: all eight migrations apply cleanly to an empty database via `prisma migrate deploy`, and the M1 audit asserts the migration ledger (`tests/integration/m1-audit.test.ts`) and that no migration drops anything or cascades a delete. What is **not** proven, and is not claimed: that the SQL is byte-equivalent to what `prisma migrate dev` would generate. Static review found every table's migration declares `DEFAULT gen_random_uuid()` on its `id` while `schema.prisma` uses client-side `@default(uuid())` — see audit finding F-1 in `docs/audits/m1-completion-audit.md`.
 
 ## Also removed in Prisma 7: `--skip-generate` and `--skip-seed` (RESOLVED)
 
@@ -220,6 +219,8 @@ behavior change of substance: this project has no seed script configured.
 
 ## Historical blocker (RESOLVED via GitHub Actions)
 
+> **Historical — resolved (M1-WO11 documentation audit).** The limitation described below applied to the authoring sandbox only. Everything it left unverified locally (Prisma generation, migrations, database/API integration tests, the production build, Playwright) has since been exercised by the permanent CI workflow, which passed. The text is kept as the record of why earlier Work Orders reported local verification gaps.
+
 `prisma generate`, `prisma validate`, and every `prisma migrate *` command
 require a native `schema-engine` binary, downloaded at run time from
 `https://binaries.prisma.sh`. **This host remains blocked in this
@@ -228,6 +229,8 @@ re-confirmed via direct `curl` as recently as the second Gate iteration).
 No workaround was found or attempted (`PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING`
 only gets past the checksum-fetch step, not the actual blocked download;
 `PRISMA_ENGINES_MIRROR` has no alternate target available).
+
+> **Historical — resolved (M1-WO11 documentation audit).** The limitation described below applied to the authoring sandbox only. Everything it left unverified locally (Prisma generation, migrations, database/API integration tests, the production build, Playwright) has since been exercised by the permanent CI workflow, which passed. The text is kept as the record of why earlier Work Orders reported local verification gaps.
 
 **This was never an architecture problem — it was resolved by using a
 different, genuinely Prisma-capable environment**, exactly as intended: the
@@ -330,8 +333,7 @@ No unrelated tables (no `EntityVersion`, `EntityAlias`, `Keyword`,
 tables — all explicitly out of scope for M1-WO1), no destructive
 statements, no new extensions. Same provenance caveat as
 `20260930235722_init` above: reconstructed from the schema using the same
-deterministic Prisma SQL-generation conventions, not yet confirmed by a
-GitHub Actions run as of this Work Order's completion report.
+deterministic Prisma SQL-generation conventions, since confirmed to deploy cleanly by permanent CI (see the migration-provenance note at the top of this section).
 
 **`20261001212804_add_entity_version`** (M1-WO2) — adds `entity_versions`,
 plus the `EntityVersionStatus` and `ChangeType` enums. See
@@ -360,8 +362,7 @@ No unrelated tables (no `EntityAlias`, `Keyword`, `EntityRelationship`,
 statements, no new extensions. Same provenance caveat as the two earlier
 migrations: reconstructed from the schema using the same deterministic
 Prisma SQL-generation conventions already confirmed correct twice before,
-not yet independently confirmed by a GitHub Actions run for this specific
-file as of this Work Order's completion report.
+since confirmed to deploy cleanly by permanent CI (see the migration-provenance note at the top of this section).
 
 **`20261001215241_add_entity_version_updated_at`** (M1-WO3) — adds
 `entity_versions.updated_at` only. See
@@ -373,9 +374,7 @@ rows at migration time; every write through `@prowess/db`'s services sets
 this explicitly via Prisma's `@updatedAt`. No other schema change, no new
 tables, no destructive statements. Same provenance caveat as the three
 earlier migrations: reconstructed from the schema using the same
-deterministic conventions, not yet independently confirmed by a GitHub
-Actions run for this specific file as of this Work Order's completion
-report.
+deterministic conventions, since confirmed to deploy cleanly by permanent CI (see the migration-provenance note at the top of this section).
 
 **`20261002022400_add_entity_alias`** (M1-WO4) — adds `entity_aliases`
 only. See `docs/architecture/entity-alias-model.md` for the full alias
@@ -398,8 +397,7 @@ No unrelated tables (no `Keyword`, `EntityRelationship`, `SourceDocument`,
 `Ruleset`, or Canon tables), no destructive statements, no search-engine
 infrastructure. Same provenance caveat as the three earlier migrations:
 reconstructed from the schema using the same deterministic conventions,
-not yet independently confirmed by a GitHub Actions run for this specific
-file as of this Work Order's completion report.
+since confirmed to deploy cleanly by permanent CI (see the migration-provenance note at the top of this section).
 
 **`20261002025218_add_keyword_foundation`** (M1-WO5) — adds
 `keyword_categories`, `keyword_definitions`, `entity_keywords`, and
@@ -428,8 +426,7 @@ No unrelated tables (no `EntityRelationship`, `SourceDocument`, `Ruleset`,
 Canon, or Spell-specific tables), no destructive statements, no full-text
 search infrastructure. Same provenance caveat as the four earlier
 migrations: reconstructed from the schema using the same deterministic
-conventions, not yet independently confirmed by a GitHub Actions run for
-this specific file as of this Work Order's completion report.
+conventions, since confirmed to deploy cleanly by permanent CI (see the migration-provenance note at the top of this section).
 
 **`20261002225710_add_entity_relationship`** (M1-WO6) — adds
 `entity_relationships` and the `RelationshipType` enum. See
@@ -457,9 +454,7 @@ database infrastructure — PostgreSQL remains the relationship store for
 Phase 1. No database `CHECK` constraint for the self-reference rule
 (deliberate — see entity-relationship-model.md's "Self-reference policy").
 Same provenance caveat as the five earlier migrations: reconstructed from
-the schema using the same deterministic conventions, not yet independently
-confirmed by a GitHub Actions run for this specific file as of this Work
-Order's completion report.
+the schema using the same deterministic conventions, since confirmed to deploy cleanly by permanent CI (see the migration-provenance note at the top of this section).
 
 **`20261002231523_add_source_provenance`** (M1-WO7) — adds
 `source_documents` and `source_references`, plus the `SourceDocumentType`
@@ -490,8 +485,7 @@ on `source_references` (deliberate — see
 source-provenance-model.md's "No duplicate-prevention constraint"
 section). Same provenance caveat as the six earlier migrations:
 reconstructed from the schema using the same deterministic conventions,
-not yet independently confirmed by a GitHub Actions run for this specific
-file as of this Work Order's completion report.
+since confirmed to deploy cleanly by permanent CI (see the migration-provenance note at the top of this section).
 
 ## Migration commands
 

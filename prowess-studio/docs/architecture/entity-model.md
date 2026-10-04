@@ -1,12 +1,6 @@
 # Entity — the stable identity layer (M1-WO1)
 
-**Status: implemented, not yet verified by GitHub Actions** — the Entity
-Prisma model, migration, repository, and service all depend on the
-generated Prisma client, which this development sandbox cannot produce
-(see `docs/architecture/database.md`'s historical blocker note). Local
-verification covered everything that doesn't require it — see
-`docs/architecture/ci.md`-style reporting in this Work Order's completion
-report.
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when its Work Order was approved, and the M1 audit gate (`docs/audits/m1-completion-audit.md`) re-checks its invariants. Earlier revisions of this document recorded it as "not yet verified" because the authoring sandbox could not run Prisma or a browser; that limited only *local* verification and is resolved by CI.
 
 ## What an Entity represents
 

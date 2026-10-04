@@ -1,0 +1,112 @@
+# M1 — Entity & Version Core (architecture summary)
+
+This is the single-page summary of what Milestone M1 built, what it
+guarantees, and — just as important — what it deliberately does **not**
+provide. Detailed designs live in the per-component documents linked below;
+the verification record is `docs/audits/m1-completion-audit.md`.
+
+## The model
+
+```
+Entity                                   (stable identity: id, canonical key, type)
+├── Aliases                              (alternate names → the Entity, never a Version)
+├── Entity Keywords                      (metadata on the stable identity)
+├── Relationships                        (directed, stable-identity ↔ stable-identity)
+└── EntityVersions                       (historical snapshots, Revision 1…N)
+      ├── Version Keywords               (metadata on that one revision)
+      └── SourceReferences               (provenance for that one revision)
+            └── SourceDocument           (where the content came from)
+
+HTTP API  (apps/studio/app/api)          thin adapters over @prowess/db services
+    ↓
+Compendium  (apps/studio/app/compendium) browses via fetch only — never @prowess/db
+    ↓
+Version History                          selection, lineage, comparison — read-only
+```
+
+Package layering (enforced by `scripts/check-architecture.mjs` and the audit's
+dependency-graph test): `@prowess/model` (no dependencies) ← `@prowess/db`
+(Prisma lives only here) ← `apps/studio`; `@prowess/ui` is presentation only.
+
+| Layer | Detail |
+| --- | --- |
+| Entity | `entity-model.md` |
+| EntityVersion + lifecycle/immutability | `entity-version-lifecycle.md` |
+| Aliases | `entity-alias-model.md` |
+| Keywords | `keyword-model.md` |
+| Relationships | `entity-relationship-model.md` |
+| Source provenance | `source-provenance-model.md` |
+| HTTP API and error contract | `api-layer.md` |
+| Compendium | `compendium-ui.md` |
+| Version History | `version-history-ui.md` |
+| Migrations / database | `database.md` |
+
+## Explicit M1 guarantees
+
+1. **Entity identity survives content and terminology change.** Creating,
+   editing, or superseding revisions never creates another Entity or changes
+   its id, canonical key, or type.
+2. **Historical Versions remain independently retrievable.** Revision 1 is
+   returned exactly as authored — content, Keywords, Sources — after any
+   number of later revisions exist or are edited.
+3. **Protected Versions cannot have authored content silently rewritten.**
+   Only `DRAFT` content is mutable; edits and Version-Keyword changes on any
+   other status are rejected with `ENTITY_VERSION.IMMUTABLE`, enforced
+   atomically in the database layer.
+4. **Aliases resolve stable identity.** A normalized alias (case/spacing
+   insensitive) finds the Entity, never a specific Version, and is not
+   duplicated by new revisions.
+5. **Keywords have no implicit mechanics.** Entity-level and Version-level
+   Keywords are separate layers with no inheritance; assigning one changes no
+   authored field.
+6. **Generic relationships have no implicit mechanics.** A relationship is
+   one directed row between stable Entities; no inverse is created; `REQUIRES`
+   / `MODIFIES` / `USES` carry no behavior.
+7. **Source authority has no implicit Canon behavior.** `authority_status`
+   (e.g. `GOVERNING`) is descriptive; it selects no Version, changes no
+   status, and decides nothing.
+8. **Latest Revision is not Current/Canon.** "Latest Revision" means only the
+   highest `revisionNumber`. No schema column, domain type, service, API
+   field, or UI label expresses a global current/active version (asserted
+   statically across all of them).
+9. **Historical provenance is Version-scoped.** A SourceReference belongs to
+   one revision and is never copied to another.
+10. **Lineage is explicit.** `parentVersionId` is the only ancestry; Revision
+    3 may descend from Revision 1. A parent must belong to the same Entity.
+11. **Nothing historical is deleted from under its dependents.** Every
+    foreign key in the schema is `ON DELETE RESTRICT`; no migration drops or
+    cascades.
+12. **Reads never write.** Browsing the Compendium, Version History, and
+    comparison issues only `GET`s and leaves every row (including
+    `updatedAt`) unchanged.
+
+## Explicit M1 non-guarantees
+
+M1 does **not** provide, and nothing built on it may assume:
+
+- **Ruleset-specific current-Version selection** — which revision governs a
+  given Ruleset (M2).
+- **Canon Decisions** — `CANON` is a lifecycle status value only, not a
+  decision or an authority.
+- **SourceAuthority governance** — no behavior follows from authority status.
+- **Import / extraction / conflict resolution** — no source parsing exists.
+- **Field-level provenance** — provenance is per revision, not per field.
+- **A Rules Engine** or any calculation over `structuredData`.
+- **Spell-specific schema**, or any Character content.
+- **Authentication or permissions** — the API and Studio are an internal
+  Phase 1 tool with no caller identity.
+- **A lifecycle event log** — each Version stores its *current* status only;
+  there is no record of when it entered a status.
+- **Authoring UI** — the Compendium is read-only; mutation exists only in
+  the API.
+
+## Documented scope limitations (not defects)
+
+- Entity-list `keyword` filtering matches **Entity-level** assignments only.
+- Entity-list `status` filtering means the **latest revision's** status — a
+  list-view convenience, not Canon resolution.
+- `search` matches aliases and **any** revision's display name; it is a
+  contains-match, not fuzzy or full-text.
+- The status-filter query paginates in application code over a bounded
+  candidate set; fine at Phase 1 scale, revisit if data grows.
+- Comparison is textual only — no semantic or game-balance diff.
