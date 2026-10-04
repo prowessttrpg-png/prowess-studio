@@ -1,7 +1,8 @@
 "use client";
 
-import { use } from "react";
+import { Suspense, use } from "react";
 import { EntityDetailView } from "../../_components/EntityDetailView";
+import { LoadingState } from "../../_components/LoadingState";
 
 /**
  * Entity detail route. All behavior lives in `EntityDetailView` (so it can
@@ -16,5 +17,12 @@ export default function EntityDetailPage({
   params: Promise<{ entityId: string }>;
 }) {
   const { entityId } = use(params);
-  return <EntityDetailView key={entityId} entityId={entityId} />;
+  // EntityDetailView reads the URL via useSearchParams(); keep it inside a
+  // Suspense boundary (required by Next whenever a page could be pre-rendered —
+  // this route is dynamic today, so this is a guard, not a response to a failure).
+  return (
+    <Suspense fallback={<LoadingState label="Loading Entity…" />}>
+      <EntityDetailView key={entityId} entityId={entityId} />
+    </Suspense>
+  );
 }

@@ -297,3 +297,16 @@ They were misattributed, together with the genuinely sandbox-only Prisma errors,
 to "the missing generated client". Two different problems were collapsed into one
 explanation. Lesson: classify build errors individually; never explain a whole
 error list with one cause.
+
+### F-12 — FIXED, production-build bug: `useSearchParams()` without a Suspense boundary
+With imports fixed (F-11), `next build` compiled and type-checked, then failed while
+pre-rendering `/compendium`: a component that reads search params during static
+generation must be inside `<Suspense>`. The list page called `useSearchParams()`
+directly. Fixed by moving the URL-dependent browser into `CompendiumBrowser`,
+wrapped in Suspense by the page (heading kept outside, so it stays in static HTML);
+the detail page got the same wrapper as a guard. Only the production build
+performs static generation, so lint/typecheck/unit/integration tests could not
+see it. `tests/unit/suspense-search-params.test.ts` now encodes the rule.
+**Pattern worth naming:** F-11 and F-12 are both "passes every check except the
+production build" — the build is the only step that exercises Next's bundler and
+static generation, so it must be run (CI is the only place it can be, here).

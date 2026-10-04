@@ -2,7 +2,7 @@
 
 import { EmptyState, Pagination } from "@prowess/ui";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { EntityFilters, type EntityFiltersValue } from "./_components/EntityFilters";
 import { EntityListRow } from "./_components/EntityListRow";
 import { ErrorState } from "./_components/ErrorState";
@@ -43,7 +43,7 @@ function pageFromSearchParams(searchParams: URLSearchParams): number {
  * Every result comes from `GET /api/entities` (M1-WO8); there is no
  * client-side filtering over a pre-fetched dataset (§4, §8).
  */
-export default function CompendiumPage() {
+function CompendiumBrowser() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -150,16 +150,7 @@ export default function CompendiumPage() {
     filters.search || filters.entityType || filters.status || filters.canonicalKey || filters.keyword;
 
   return (
-    <div className="prowess-compendium">
-      <header className="prowess-compendium__header">
-        <h1>Compendium</h1>
-        <p className="prowess-compendium__description">
-          An internal browser for the Prowess Entity system — identities, their latest
-          authored revision, aliases, Keywords, relationships, and source provenance. This
-          is a development tool, not the final published Prowess rulebook.
-        </p>
-      </header>
-
+    <>
       <EntityFilters
         value={{ ...filters, search: searchInput }}
         onChange={(next) => {
@@ -207,6 +198,37 @@ export default function CompendiumPage() {
           )
         ) : null}
       </div>
+    </>
+  );
+}
+
+/**
+ * The Compendium route. `CompendiumBrowser` reads the URL's query string via
+ * `useSearchParams()`, and Next pre-renders this page at build time — a
+ * component that reads search params during pre-rendering MUST sit inside a
+ * `<Suspense>` boundary, or `next build` fails ("useSearchParams() should be
+ * wrapped in a suspense boundary"). Found by the first real CI build; only the
+ * production build does static page generation, so nothing earlier could catch
+ * it (see tests/unit/suspense-search-params.test.ts for the early guard).
+ *
+ * The heading and description stay OUTSIDE the boundary so they are part of the
+ * static HTML; only the URL-dependent browser is deferred to the client.
+ */
+export default function CompendiumPage() {
+  return (
+    <div className="prowess-compendium">
+      <header className="prowess-compendium__header">
+        <h1>Compendium</h1>
+        <p className="prowess-compendium__description">
+          An internal browser for the Prowess Entity system — identities, their latest
+          authored revision, aliases, Keywords, relationships, and source provenance. This
+          is a development tool, not the final published Prowess rulebook.
+        </p>
+      </header>
+
+      <Suspense fallback={<LoadingState label="Loading Entities…" />}>
+        <CompendiumBrowser />
+      </Suspense>
     </div>
   );
 }
