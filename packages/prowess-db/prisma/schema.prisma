@@ -1,8 +1,11 @@
 // Prowess Platform — persistence schema.
 //
-// M0-WO3 scope: migration/connection tooling verification ONLY. No Prowess
-// domain tables (Entity, EntityVersion, Ruleset, Spell, etc.) exist here —
-// those begin in M1 onward, following the conventions documented below.
+// M0-WO3 established migration/connection tooling (SystemMigrationProbe,
+// below). M1-WO1 adds the first real Prowess domain table: Entity — the
+// stable identity layer only (see the Entity model's own doc comment).
+// EntityVersion, EntityAlias, Keyword, EntityRelationship, SourceDocument,
+// Ruleset, and Spell-specific tables all remain out of scope until their
+// own later Work Orders.
 
 generator client {
   // Prisma 7's current generator. "prisma-client-js" (the legacy name) also
@@ -28,14 +31,34 @@ datasource db {
   // migration" note for why).
 }
 
+// ---------------------------------------------------------------------------
+// Id and timestamp defaults — aligned with the approved migrations (M1-WO11, F-1).
+//
+// Every migration-created UUID primary key has `DEFAULT gen_random_uuid()` in
+// PostgreSQL, so the schema declares it as `dbgenerated("gen_random_uuid()")`
+// (PostgreSQL generates the id; Prisma Client omits it from the INSERT and reads
+// the row back). Declaring it as client-side `uuid()` instead made
+// `prisma migrate diff` report the default being dropped on all nine tables.
+// `EntityVersion.updatedAt` likewise has `DEFAULT CURRENT_TIMESTAMP` in its
+// migration, so it carries `@default(now())` alongside `@updatedAt`.
+//
+// A blocking CI step runs `prisma migrate diff --exit-code` against a database
+// built by `migrate deploy`; any disagreement between this file and the
+// migrations fails the build. Do NOT "fix" a future mismatch by editing an
+// approved migration — change this file, or add a new migration.
+// ---------------------------------------------------------------------------
+
 /// INTERNAL ONLY — not part of the Prowess domain model.
 ///
 /// Exists solely to give M0-WO3 something concrete to migrate, query,
 /// update, delete, and transact against, proving the persistence/migration
-/// foundation works before any real Prowess table exists. Safe to remove
-/// once M1's first real domain model (Entity) takes over that role — do not
-/// build application features against this model, and do not treat it as a
-/// template beyond the three conventions it demonstrates:
+/// foundation works before any real Prowess table existed. Now that
+/// `Entity` (below) is the first real domain table, this model no longer
+/// needs to carry that proving-ground role going forward, but removing it
+/// is a separate, deliberate decision (a DROP migration) left for a future
+/// Work Order rather than bundled into M1-WO1. Do not build application
+/// features against this model, and do not treat it as a template beyond
+/// the three conventions it demonstrates:
 ///   1. UUID primary keys (native Postgres `uuid`, DB-generated)
 ///   2. `created_at` / `updated_at` timestamps stored as `timestamptz`
 ///      (timezone-aware — UTC on the wire — never naive local time)
@@ -43,10 +66,664 @@ datasource db {
 ///      PostgreSQL convention, while Prisma Client still exposes camelCase
 ///      field names in TypeScript
 model SystemMigrationProbe {
-  id        String   @id @default(uuid()) @db.Uuid
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   label     String
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("_system_migration_probe")
+}
+
+/// Controlled Entity type values (PAS-10 M1-WO1 §6).
+///
+/// Deliberately the smallest useful Phase 1 set — kept in exact lockstep
+/// with @prowess/model's ENTITY_TYPES (packages/prowess-model/src/entity-type.ts),
+/// which is the framework-independent source of truth the application
+/// layer validates against. Adding a value here always means adding the
+/// same value there, and vice versa.
+///
+/// Anticipated future additions (NOT implemented merely to fill the enum —
+/// add only when a concrete Work Order needs them): STAT, SKILL, RACE,
+/// WEAPON, ARMOR, MANEUVER, SUMMON, MAGE_ART, PAC, ORGANIZATION, LOCATION,
+/// PERSON, CREATURE, WORLD_CONCEPT.
+enum EntityType {
+  GENERIC_RULE
+  SYSTEM
+  RESOURCE
+  SPELL_EFFECT
+  SPELL_TRAIT
+  TARGETING
+  KEYWORD
+}
+
+/// Entity — the stable identity object used throughout Prowess (PAS-10
+/// M1-WO1). Represents *what a Prowess concept is*, independent of any
+/// particular historical rules/lore version of that concept.
+///
+/// Deliberately minimal by design. Does NOT and must NEVER contain: a
+/// display name, a description, rules text, mechanical values, lore text,
+/// a status, a version number, Spell configuration, or any other balance
+/// data. All of that belongs on `EntityVersion` (M1-WO2, below), which
+/// represents changing/versioned content *about* a stable Entity.
+///
+/// `createdBy` / `archivedBy`-style audit metadata is deliberately absent:
+/// no actor/identity system exists yet in this platform, and inventing a
+/// fake ownership column with no real identity behind it would be worse
+/// than omitting it. That integration point is left explicit (this note)
+/// rather than faked.
+model Entity {
+  /// Opaque, immutable, DB-generated UUID — the actual relational
+  /// identity. Never the canonical key, a name, or an integer sequence.
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  entityType EntityType @map("entity_type")
+
+  /// Stable, unique, machine-readable, namespace-aware identity string
+  /// (e.g. `spell.effect.damage.direct`). Shape-validated centrally by
+  /// @prowess/model's `isValidCanonicalKey` before any value reaches this
+  /// column — the database UNIQUE constraint remains the authoritative
+  /// guard against duplicates either way (see
+  /// packages/prowess-db/src/entity/repository.ts).
+  canonicalKey String @unique @map("canonical_key")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  /// Inverse side of EntityVersion's required relation (M1-WO2). No
+  /// `onDelete: Cascade` here — deleting an Entity that has Versions is
+  /// restricted at the database level (see EntityVersion.entity below),
+  /// not casually destroyed.
+  versions EntityVersion[]
+
+  /// Inverse side of EntityAlias's required relation (M1-WO4). Same
+  /// restrictive-deletion posture as `versions` above, for consistency —
+  /// see EntityAlias.entity below.
+  aliases EntityAlias[]
+
+  /// Inverse side of EntityKeyword's required relation (M1-WO5) — stable-
+  /// identity-level Keyword assignments. Same restrictive-deletion
+  /// posture as `versions`/`aliases` above.
+  keywordAssignments EntityKeyword[]
+
+  /// Inverse sides of EntityRelationship's two required relations (M1-WO6)
+  /// — this Entity as the stated SOURCE, and as the stated TARGET, of a
+  /// directed relationship. Two separate relation names are required
+  /// because EntityRelationship has two distinct foreign keys to this same
+  /// model. Same restrictive-deletion posture as every other inverse
+  /// relation on this model.
+  outgoingRelationships EntityRelationship[] @relation("EntityRelationshipSource")
+  incomingRelationships EntityRelationship[] @relation("EntityRelationshipTarget")
+
+  @@map("entities")
+}
+
+/// Controlled EntityVersion lifecycle statuses (PAS-10 M1-WO2 §7). M1-WO2
+/// establishes this field and its controlled values only — no
+/// lifecycle-transition or immutability rules yet (M1-WO3 — e.g. that a
+/// `CANON` row can never be edited in place). Kept in exact lockstep with
+/// @prowess/model's ENTITY_VERSION_STATUSES
+/// (packages/prowess-model/src/status.ts), already defined since M0-WO1.
+enum EntityVersionStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  PLAYTEST
+  CANON
+  DEPRECATED
+  SUPERSEDED
+  ARCHIVED
+}
+
+/// Controlled change-metadata classification for EntityVersion (PAS-10
+/// M1-WO2 §12). The already-defined PAS-08 architectural change-governance
+/// values, reused directly rather than inventing a parallel vocabulary —
+/// kept in exact lockstep with @prowess/model's CHANGE_TYPES
+/// (packages/prowess-model/src/change-type.ts). The full PAS-08
+/// ChangeSet/Canon governance system itself is NOT implemented here; this
+/// is only a nullable classification field.
+enum ChangeType {
+  EDITORIAL
+  CLARIFICATION
+  PRESENTATION
+  MECHANICAL_PATCH
+  MECHANICAL_CHANGE
+  BREAKING_CHANGE
+  CONTENT_ADDITION
+  REMOVAL
+  RENAME
+  RESTRUCTURE
+}
+
+/// EntityVersion — the historical/versioned representation of a stable
+/// Entity identity (PAS-10 M1-WO2, lifecycle/mutation rules added
+/// M1-WO3). See @prowess/model's EntityVersion type
+/// (packages/prowess-model/src/entity-version.ts) and
+/// docs/architecture/entity-version-lifecycle.md for the full conceptual
+/// documentation; this model's shape mirrors it exactly.
+///
+/// Historical independence and mutability are different concepts: every
+/// EntityVersion is independent from every other revision of the same
+/// Entity (creating revision 2 never alters revision 1's content) — but
+/// that does NOT mean every EntityVersion row is immutable the instant
+/// it's created. A `DRAFT` Version is a mutable working revision; once it
+/// leaves `DRAFT`, its authored content becomes protected according to the
+/// lifecycle rules in @prowess/model's `entity-version-lifecycle.ts`. See
+/// `updatedAt` below — M1-WO2 omitted it specifically because this
+/// mutation policy hadn't been established yet; M1-WO3 adds it now that it
+/// has.
+model EntityVersion {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  entityId String @map("entity_id") @db.Uuid
+  entity   Entity @relation(fields: [entityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  /// Positive, human-readable sequence number — unique per Entity (see the
+  /// @@unique below), never the identity. Allocated automatically by
+  /// @prowess/db's service layer (max existing + 1); never caller-supplied.
+  /// Immutable after creation, even while DRAFT.
+  revisionNumber Int @map("revision_number")
+
+  /// Phase 1 lifecycle status (PAS-10 M1-WO3). Changed only through
+  /// @prowess/db's dedicated `transitionEntityVersionStatus` — never as a
+  /// side effect of a content update (see M1-WO3 §14, "status vs content
+  /// mutation are separate operations"). Reaching `CANON` means only that
+  /// this Version has reached the CANON lifecycle state — it does NOT mean
+  /// this Version is globally "the active Prowess rule." Which exact
+  /// EntityVersion is authoritative within a Ruleset is a question later
+  /// M2 Ruleset Manifests answer, never a field here.
+  status EntityVersionStatus @default(DRAFT)
+
+  /// Human-facing name for THIS Version — lives here, not on Entity,
+  /// because terminology may change historically while the Entity
+  /// underneath stays the same. Mutable only while `status` is `DRAFT`.
+  displayName String @map("display_name")
+
+  shortDescription String? @map("short_description")
+  rulesText        String? @map("rules_text")
+
+  /// Variable structured content future subsystem-specific schemas will
+  /// validate (e.g. base_mp, damage_parameters) — not implemented yet.
+  /// Defaults to an empty JSON object rather than being nullable: every
+  /// EntityVersion conceptually "has" structured data (even if empty for
+  /// now), so a present-but-empty `{}` is a cleaner default than a
+  /// three-state null/empty/populated field for consumers to handle. Must
+  /// never become a substitute for relational architecture — Entity
+  /// relationships, Keywords, Sources, Rulesets, and aliases all get
+  /// dedicated relational models later, never a home in this column.
+  structuredData Json @default("{}") @map("structured_data")
+
+  /// Same-Entity lineage only — enforced at the @prowess/db service
+  /// boundary (packages/prowess-db/src/entity-version/service.ts), since a
+  /// simple foreign key alone cannot express "must belong to the same
+  /// entity_id as the referencing row." `onDelete: Restrict` so a Version
+  /// with children can't be silently orphaned either. Immutable after
+  /// creation (M1-WO3 §4) — not editable even while the child is DRAFT;
+  /// draft editing must never rewrite historical ancestry. A protected
+  /// (non-DRAFT) Version remains perfectly valid as a parent — see
+  /// docs/architecture/entity-version-lifecycle.md's "Child Version from
+  /// Protected Version" section.
+  parentVersionId String?         @map("parent_version_id") @db.Uuid
+  parentVersion   EntityVersion?  @relation("EntityVersionLineage", fields: [parentVersionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  childVersions   EntityVersion[] @relation("EntityVersionLineage")
+
+  /// Inverse side of EntityVersionKeyword's required relation (M1-WO5) —
+  /// Version-level Keyword assignments. Authored assignment/removal is
+  /// DRAFT-only, atomically guarded against this row's own `status` — see
+  /// packages/prowess-db/src/entity-version-keyword/repository.ts.
+  keywordAssignments EntityVersionKeyword[]
+
+  /// Inverse side of SourceReference's required relation (M1-WO7) —
+  /// provenance records for where this specific Version's content
+  /// originated. Not gated by this Version's own `status` — see
+  /// SourceReference's doc comment below for why attaching provenance to
+  /// a protected Version is allowed and is not authored content mutation.
+  sourceReferences SourceReference[]
+
+  /// Lightweight, optional classification — not the full PAS-08
+  /// ChangeSet/Canon governance system. Mutable only while `status` is `DRAFT`.
+  changeType    ChangeType? @map("change_type")
+  changeSummary String?     @map("change_summary")
+
+  /// Immutable after creation — identity/provenance, not authored content.
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  /// Added in M1-WO3, once the mutation policy existed to give it meaning.
+  /// Updates only when DRAFT content actually changes (via
+  /// `updateDraftEntityVersion`) — never implies that a protected,
+  /// non-DRAFT Version can be mutated; a protected Version's `updatedAt`
+  /// simply stops changing once it leaves DRAFT.
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([entityId, revisionNumber])
+  @@map("entity_versions")
+}
+
+/// EntityAlias — alternate human-readable lookup/discovery metadata for a
+/// stable Entity (PAS-10 M1-WO4). See @prowess/model's EntityAlias type
+/// (packages/prowess-model/src/entity-alias.ts) and
+/// docs/architecture/entity-alias-model.md for the full conceptual
+/// documentation.
+///
+/// Aliases are NOT a replacement for Entity identity, the canonical key,
+/// or EntityVersion.displayName — see the @prowess/model doc comment for
+/// why all three answer different questions. No "is_primary" concept
+/// exists here, deliberately: the human-facing current/historical name
+/// belongs to EntityVersion.displayName, not to a flag on an alias row.
+///
+/// Deletion is supported (unlike EntityVersion) — aliases are discovery
+/// metadata, not historical rule snapshots, so removing one loses nothing
+/// that M0/M1's history-preservation principle is protecting.
+model EntityAlias {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  entityId String @map("entity_id") @db.Uuid
+  entity   Entity @relation(fields: [entityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  /// Authored, exactly as typed — casing/spacing preserved. Never destroyed.
+  alias String
+
+  /// `normalizeEntityAlias(alias)` — the lookup/matching form (PAS-10
+  /// M1-WO4 §5). Indexed below for exact-match lookup.
+  normalizedAlias String @map("normalized_alias")
+
+  /// Authored context exactly as given (e.g. "Affinity", "Organization"),
+  /// or `null` if none was supplied. Display/authoring value only — see
+  /// `normalizedContext` below for the value actually used in the
+  /// uniqueness constraint and lookup matching.
+  context String?
+
+  /// Deliberate normalized-context-key strategy (PAS-10 M1-WO4 §9): a
+  /// NOT NULL column, defaulting to `""` when no context is supplied,
+  /// computed as `normalizeEntityAlias(context ?? "")`. This exists
+  /// specifically to avoid a real PostgreSQL pitfall — a UNIQUE constraint
+  /// treats NULL as distinct from every other NULL, so two rows with the
+  /// same (entityId, normalizedAlias) and BOTH a NULL context would NOT
+  /// violate a naive `@@unique([entityId, normalizedAlias, context])`,
+  /// silently defeating the duplicate-prevention requirement for the
+  /// common no-context case. Using a NOT NULL sentinel instead makes the
+  /// constraint behave correctly for every case, context-qualified or not.
+  normalizedContext String @default("") @map("normalized_context")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  /// Prevents a normalized duplicate for the same Entity + context (PAS-10
+  /// M1-WO4 §8) — deliberately NOT a global unique constraint on
+  /// `normalizedAlias` alone, since different Entities may legitimately
+  /// share the same alias (e.g. two different "Ward" effects).
+  @@unique([entityId, normalizedAlias, normalizedContext], map: "entity_aliases_entity_alias_context_key")
+  /// Supports exact-match alias lookup (PAS-10 M1-WO4 §22) — not a
+  /// full-text/fuzzy search index; M1-WO4 is exact-match only.
+  @@index([normalizedAlias], map: "entity_aliases_normalized_alias_idx")
+  @@map("entity_aliases")
+}
+
+/// Controlled source classification for a Keyword assignment (PAS-10
+/// M1-WO5 §7). AUTHORED is the only value this Work Order's services ever
+/// produce — INHERITED and CALCULATED establish architecture for later
+/// systems (keeping a dedicated column instead of retrofitting one later)
+/// but nothing here automatically creates either kind of row.
+enum KeywordAssignmentSource {
+  AUTHORED
+  INHERITED
+  CALCULATED
+}
+
+/// KeywordCategory — an organizational grouping for KeywordDefinitions
+/// (PAS-10 M1-WO5 §2). Purely organizational; carries no mechanical
+/// meaning. See @prowess/model's KeywordCategory type
+/// (packages/prowess-model/src/keyword-category.ts) and
+/// docs/architecture/keyword-model.md for full documentation.
+///
+/// No `updatedAt` — M1-WO5 exposes no update operation for
+/// KeywordCategory at all (create/get/find-by-key only), so there is
+/// nothing yet for it to track. Same reasoning as EntityVersion's
+/// originally-omitted `updatedAt` in M1-WO2.
+model KeywordCategory {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  /// Reuses the exact same CanonicalKey grammar/validation as Entity and
+  /// every other canonical key in this platform — no parallel key format.
+  canonicalKey String @unique @map("canonical_key")
+
+  name        String
+  description String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  keywords KeywordDefinition[]
+
+  @@map("keyword_categories")
+}
+
+/// KeywordDefinition — the reusable Keyword concept itself (PAS-10 M1-WO5
+/// §1, §3–4). A Keyword means ONLY "this object is tagged with this
+/// defined concept" — it does NOT implicitly add damage, change MP/AP,
+/// trigger a Trait, grant resistance, change targeting, or invoke any
+/// other mechanical behavior. No Keyword may acquire unstated mechanical
+/// behavior as a side effect of this Work Order; mechanical systems may
+/// explicitly query Keywords later. See @prowess/model's KeywordDefinition
+/// type and docs/architecture/keyword-model.md for full documentation.
+///
+/// Distinct from `EntityType.KEYWORD` (M1-WO1) — no `Entity` row is
+/// automatically created for a KeywordDefinition here. This model's `id`
+/// is the one clear source of Keyword identity for now.
+///
+/// No `updatedAt` — same reasoning as KeywordCategory above.
+model KeywordDefinition {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  /// Reuses CanonicalKey validation — not a Keyword-specific duplicate
+  /// validator.
+  canonicalKey String @unique @map("canonical_key")
+
+  name String
+
+  /// Zero or one Category — a Keyword may exist uncategorized, to keep
+  /// authoring flexible. `onDelete: Restrict`: deleting a Category that
+  /// still has Keywords referencing it is rejected outright rather than
+  /// cascading or silently nulling every Keyword's category — a Category
+  /// in active use is not something an ordinary delete should be able to
+  /// quietly unravel.
+  categoryId String?          @map("category_id") @db.Uuid
+  category   KeywordCategory? @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  description String?
+
+  /// Descriptive metadata ONLY (PAS-10 M1-WO5 §33) — defaults to `false`.
+  /// No deprecation mechanics exist in this Work Order: setting this
+  /// `true` does not delete, hide, or block assignment of this Keyword.
+  /// Governance comes later.
+  deprecated Boolean @default(false)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  entityAssignments        EntityKeyword[]
+  entityVersionAssignments EntityVersionKeyword[]
+
+  @@index([categoryId], map: "keyword_definitions_category_id_idx")
+  @@map("keyword_definitions")
+}
+
+/// EntityKeyword — a stable-identity-level Keyword assignment (PAS-10
+/// M1-WO5 §5–6, §21). "This Keyword describes the stable identity itself"
+/// — e.g. a creature classification, an organization type. Does NOT
+/// depend on, or interact with, any EntityVersion's lifecycle status.
+///
+/// Composite primary key `(entityId, keywordId)` — deliberately no
+/// separate synthetic `id` column. The natural key both identifies the
+/// assignment AND enforces "a target must not contain the same Keyword
+/// twice" as a single database constraint (PAS-10 M1-WO5 §8), rather than
+/// a separate uniqueness check layered on top of an otherwise-meaningless
+/// id.
+///
+/// Relational by design: a real foreign key to `Entity`, not a
+/// `target_type` + `target_id` polymorphic column — see
+/// `EntityVersionKeyword` below and docs/architecture/keyword-model.md for
+/// why this repo prefers two explicit assignment models over one
+/// polymorphic one.
+model EntityKeyword {
+  entityId String @map("entity_id") @db.Uuid
+  entity   Entity @relation(fields: [entityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  keywordId String            @map("keyword_id") @db.Uuid
+  keyword   KeywordDefinition @relation(fields: [keywordId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  sourceType KeywordAssignmentSource @map("source_type")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([entityId, keywordId], name: "entityId_keywordId")
+  @@index([keywordId], map: "entity_keywords_keyword_id_idx")
+  @@map("entity_keywords")
+}
+
+/// EntityVersionKeyword — a specific-historical-revision Keyword
+/// assignment (PAS-10 M1-WO5 §5–6, §19–20). "This Keyword applies to this
+/// specific historical/versioned representation" — e.g. Fire, Ongoing,
+/// Zone, Sustained. The preferred home for any Keyword describing
+/// mechanics that might change by revision.
+///
+/// Same composite-primary-key reasoning as `EntityKeyword` above.
+///
+/// **Lifecycle interaction is enforced in application code, not by this
+/// table's own constraints** — authored assignment/removal requires the
+/// referenced EntityVersion to be `DRAFT`, checked atomically (a
+/// `SELECT ... FOR UPDATE` on the EntityVersion row inside the same
+/// transaction as the insert/delete here) by
+/// packages/prowess-db/src/entity-version-keyword/repository.ts. A
+/// protected (non-DRAFT) Version's Keyword assignments cannot be changed
+/// through the supported service boundary, matching M1-WO3's content-
+/// mutation rule exactly.
+model EntityVersionKeyword {
+  entityVersionId String        @map("entity_version_id") @db.Uuid
+  entityVersion   EntityVersion @relation(fields: [entityVersionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  keywordId String            @map("keyword_id") @db.Uuid
+  keyword   KeywordDefinition @relation(fields: [keywordId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  sourceType KeywordAssignmentSource @map("source_type")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([entityVersionId, keywordId], name: "entityVersionId_keywordId")
+  @@index([keywordId], map: "entity_version_keywords_keyword_id_idx")
+  @@map("entity_version_keywords")
+}
+
+/// Controlled EntityRelationship type values (PAS-10 M1-WO6 §3). The
+/// existing framework-independent vocabulary from M0-WO1
+/// (packages/prowess-model/src/relationship-type.ts) already contained
+/// exactly the Phase 1 set this Work Order requires — reused verbatim,
+/// not duplicated or parallel-invented. Kept in exact lockstep with that
+/// file; a test in @prowess/model's relationship-type.test.ts and this
+/// Work Order's own unit tests guard against the two drifting apart.
+enum RelationshipType {
+  REQUIRES
+  MODIFIES
+  USES
+  COMPATIBLE_WITH
+  INCOMPATIBLE_WITH
+  PART_OF
+  BELONGS_TO
+  SEE_ALSO
+}
+
+/// EntityRelationship — a stable, directed, structural relationship
+/// between two Entity identities (PAS-10 M1-WO6). See @prowess/model's
+/// EntityRelationship type (packages/prowess-model/src/entity-relationship.ts)
+/// and docs/architecture/entity-relationship-model.md for full conceptual
+/// documentation.
+///
+/// **Entity-level scope only** — this does NOT model relationships between
+/// specific EntityVersions. Version-sensitive or calculation-bearing
+/// relationships belong to dedicated version-scoped models,
+/// RequirementDefinition, typed subsystem joins, or Ruleset-specific
+/// structures in later Work Orders — never forced into this generic table.
+///
+/// **No unstated mechanics**, same principle as KeywordDefinition: stating
+/// a relationship (even one typed `MODIFIES`) never modifies MP/AP,
+/// changes damage, grants a Trait, satisfies a Requirement, determines
+/// targeting, alters Character statistics, or activates a rule. This is
+/// pure structural/editorial metadata.
+///
+/// **Directional, stored once.** `sourceEntityId REQUIRES targetEntityId`
+/// is one row. Creating it never automatically creates the reverse
+/// direction or an inverse-named relationship — see this Work Order's
+/// dedicated regression test. The opposite direction (if deliberately
+/// authored) is a distinct, independently-stored row.
+///
+/// Self-relationships (`sourceEntityId === targetEntityId`) are rejected
+/// at the @prowess/db service boundary (PAS-10 M1-WO6 §8) — NOT via a
+/// database CHECK constraint. This is a deliberate choice: Prisma's schema
+/// language has no first-class CHECK-constraint attribute, and hand-adding
+/// one directly to a migration's raw SQL (bypassing schema.prisma) risks
+/// confusing Prisma's own drift detection on a *future* migration, for a
+/// validation this project's established pattern already handles cleanly
+/// at the application layer (the same place canonical-key format,
+/// display-name non-emptiness, etc. are all validated before anything
+/// reaches Prisma).
+model EntityRelationship {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  sourceEntityId String @map("source_entity_id") @db.Uuid
+  sourceEntity   Entity @relation("EntityRelationshipSource", fields: [sourceEntityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  targetEntityId String @map("target_entity_id") @db.Uuid
+  targetEntity   Entity @relation("EntityRelationshipTarget", fields: [targetEntityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  relationshipType RelationshipType @map("relationship_type")
+
+  /// Lightweight, non-authoritative structured context — editorial
+  /// qualifiers, notes, future display information. Defaults to an empty
+  /// object (same default-not-nullable reasoning as EntityVersion's
+  /// structuredData in M1-WO2). MUST NEVER encode actual Prowess rule
+  /// calculations (e.g. an `mp_discount` or `damage_bonus` that some
+  /// mechanical system then reads and acts on) — calculation-bearing
+  /// structures receive dedicated typed models in a later Work Order.
+  metadata Json @default("{}")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  /// Prevents an exact duplicate — same source, same target, same type.
+  /// Different types between the same pair, and the opposite direction,
+  /// are both explicitly allowed (PAS-10 M1-WO6 §9) since neither matches
+  /// this triple.
+  @@unique([sourceEntityId, targetEntityId, relationshipType], map: "entity_relationships_source_target_type_key")
+  @@index([sourceEntityId], map: "entity_relationships_source_entity_id_idx")
+  @@index([targetEntityId], map: "entity_relationships_target_entity_id_idx")
+  @@map("entity_relationships")
+}
+
+/// Controlled SourceDocument type classification (PAS-10 M1-WO7 §3).
+/// Deliberately broad — NOT coupled to file extensions/formats; file
+/// format parsing belongs to a later M3 Work Order. Descriptive metadata
+/// only — creates no authority or import behavior. Kept in exact lockstep
+/// with @prowess/model's SOURCE_DOCUMENT_TYPES
+/// (packages/prowess-model/src/source-document-type.ts).
+enum SourceDocumentType {
+  DOCUMENT
+  WEB
+  OTHER
+}
+
+/// Controlled SourceDocument authority classification (PAS-10 M1-WO7 §4),
+/// matching the PAS-08 Canon Manager's established vocabulary exactly —
+/// not an independently-invented parallel one. Kept in exact lockstep with
+/// @prowess/model's SOURCE_AUTHORITY_STATUSES
+/// (packages/prowess-model/src/source-authority-status.ts).
+///
+/// **Descriptive metadata ONLY in M1-WO7.** Setting this does NOT
+/// determine Canon, choose a current rule, override a Ruleset, or
+/// automatically supersede another document. Nothing in this package reads
+/// this field to make any decision — actual source-authority governance
+/// belongs to PAS-08/M2's Canon Manager, which does not exist yet.
+enum SourceAuthorityStatus {
+  GOVERNING
+  CURRENT_PRIMARY
+  CURRENT_SUPPLEMENTAL
+  PLAYTEST_REFERENCE
+  HISTORICAL
+  SUPERSEDED
+  REFERENCE_ONLY
+  UNRESOLVED
+}
+
+/// SourceDocument — a provenance record for where Prowess content
+/// originated (PAS-10 M1-WO7). See @prowess/model's SourceDocument type
+/// (packages/prowess-model/src/source-document.ts) and
+/// docs/architecture/source-provenance-model.md for full conceptual
+/// documentation.
+///
+/// `title` is human-facing display metadata — never relational identity;
+/// there is no canonical-key system for Sources in this Work Order.
+/// `fileReference` is an opaque external locator (a Project file id, a
+/// document URI, a connector id, a storage key) — no storage provider is
+/// assumed, and nothing in this package opens, reads, or parses whatever
+/// it references.
+///
+/// No `updatedAt` — same reasoning as KeywordCategory/KeywordDefinition
+/// (M1-WO5): no update operation exists for SourceDocument in this Work
+/// Order, so there is nothing yet for it to track.
+model SourceDocument {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  title      String
+  sourceType SourceDocumentType @map("source_type")
+
+  versionLabel String? @map("version_label")
+
+  /// Descriptive only — see this model's own doc comment above and
+  /// SourceAuthorityStatus's doc comment for the full "no implicit
+  /// governance" explanation.
+  authorityStatus SourceAuthorityStatus? @map("authority_status")
+
+  fileReference String? @map("file_reference")
+  notes         String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  references SourceReference[]
+
+  @@map("source_documents")
+}
+
+/// SourceReference — a link from a specific EntityVersion to the
+/// SourceDocument it was derived from (PAS-10 M1-WO7). See
+/// @prowess/model's SourceReference type
+/// (packages/prowess-model/src/source-reference.ts) for full conceptual
+/// documentation.
+///
+/// **Attaches to EntityVersion, not stable Entity — deliberately.**
+/// Different revisions of the same Entity may derive from different
+/// sources; creating a new Version never automatically copies the
+/// previous Version's SourceReferences (PAS-10 M1-WO7 §10 — no hidden
+/// writes).
+///
+/// **Not gated by DRAFT/CANON lifecycle status.** Attaching a
+/// SourceReference to a protected (non-DRAFT) EntityVersion is allowed and
+/// does NOT mutate that Version's `rulesText`, `structuredData`,
+/// `displayName`, `status`, or `revisionNumber` — this is separately-
+/// managed provenance/audit metadata, not authored mechanical content, so
+/// M1-WO3's content-mutation lifecycle rule is deliberately NOT extended
+/// to cover it. Later Canon/import governance may impose stricter controls
+/// over provenance changes; this Work Order does not anticipate that
+/// policy by guessing at it now.
+///
+/// Both foreign keys use `onDelete: Restrict` — provenance history is
+/// never silently lost to an ordinary delete on either side.
+///
+/// No duplicate-prevention constraint: multiple references from the same
+/// EntityVersion to the same SourceDocument may legitimately point to
+/// different sections/pages (PAS-10 M1-WO7 §24) — a fragile composite
+/// uniqueness rule across nullable locator fields would eliminate
+/// superficially-similar-but-legitimately-distinct rows. A future
+/// SourceBlock/field-level provenance model can implement more precise
+/// identity if that turns out to be needed.
+model SourceReference {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  sourceDocumentId String         @map("source_document_id") @db.Uuid
+  sourceDocument   SourceDocument @relation(fields: [sourceDocumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  entityVersionId String        @map("entity_version_id") @db.Uuid
+  entityVersion   EntityVersion @relation(fields: [entityVersionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  /// Free text, e.g. "Spell AP Cost", "Direct Damage", "Character Creation".
+  sectionLabel String? @map("section_label")
+
+  /// TEXT, not an integer — deliberately, so values like "14", "14-16",
+  /// "iv", or "Appendix A" are all representable. No page-number
+  /// arithmetic is ever performed on this column.
+  pageReference String? @map("page_reference")
+
+  /// A short editorial/provenance annotation — NOT the full source text.
+  /// This is not a document-copying system; full raw-source preservation
+  /// belongs to a later M3 Work Order.
+  sourceExcerptNote String? @map("source_excerpt_note")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([sourceDocumentId], map: "source_references_source_document_id_idx")
+  @@index([entityVersionId], map: "source_references_entity_version_id_idx")
+  @@map("source_references")
 }

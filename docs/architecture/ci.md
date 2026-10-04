@@ -1,9 +1,6 @@
 # Continuous Integration — M0-WO4
 
-**Status: workflow written, not yet verified by an actual GitHub Actions
-run.** This document describes `.github/workflows/ci.yml`, the permanent
-Phase 1 quality gate. See "Local verification performed" below for exactly
-what was checked without a live run, and what still needs one.
+**Status: in service.** This workflow has run on every approved Work Order since M0 and is the verification authority for the project. Earlier revisions of this document said it was "not yet verified by an actual GitHub Actions run"; that was true only at M0-WO4 authoring time and has long been resolved.
 
 ## What runs, and when
 
@@ -134,6 +131,9 @@ extend). Two things are checked:
 | `@prowess/db` | Prisma, `@prowess/model` (not yet a real dependency, but permitted) | `react`, `react-dom`, `next`, `@prowess/ui` |
 | `@prowess/ui` | React | `@prisma/client`, `@prisma/adapter-pg`, `prisma`, `pg`, `@prowess/db` |
 | `apps/studio` (`app/`) | the packages below it | `@prisma/client`, `@prisma/adapter-pg`, `prisma` directly (must always go through `@prowess/db`) |
+| `apps/studio` (`src/`) | the packages below it | same as `app/` — application-level modules (config, navigation) are held to the same standard |
+| `apps/studio` (`app/api/`) | `@prowess/db`'s bare public import only | same Prisma bans as `app/`, PLUS any *deep* import into `@prowess/db` internals (e.g. `@prowess/db/src/entity/repository.js`) — API route handlers are the final HTTP boundary (M1-WO8) and must use only the public service surface |
+| `apps/studio` (`app/compendium/`) | the HTTP API only (via `fetch`) | `@prowess/db` entirely — bare or deep — plus the same Prisma bans as everywhere else; the Compendium frontend (M1-WO9) has no legitimate reason to import `@prowess/db` at all |
 
 **Circular workspace dependencies:** every workspace package's declared
 `@prowess/*` dependencies are walked as a graph; any cycle fails the check
@@ -153,7 +153,20 @@ assumed to work):
   file, line, and specifier named.
 - A deliberate circular dependency (`@prowess/model` ⇄ `@prowess/db`) was
   caught: exit code 1, naming the full cycle.
-- Both were reverted immediately after confirming the failure — no broken
+- A deliberate forbidden import in `apps/studio/src/navigation.ts` (added
+  during M0-WO5) was likewise caught: exit code 1, exact file/line/specifier
+  named.
+- A deliberate direct `@prisma/client` import, and separately a deliberate
+  deep `@prowess/db/src/client.js` import, were each added to an API route
+  file (M1-WO8) and confirmed caught by the new `apps/studio (app/api/)`
+  rule specifically — the legitimate bare `@prowess/db` import every real
+  route uses was confirmed to cause no false positive.
+- A deliberate bare `@prowess/db` import (not just a deep one) was added
+  to a Compendium page file (M1-WO9) and confirmed caught by the new
+  `apps/studio (app/compendium/)` rule — unlike `app/api/`, even the bare
+  import is forbidden here, since the Compendium has no legitimate reason
+  to import `@prowess/db` at all.
+- All were reverted immediately after confirming the failure — no broken
   test or deliberately-failing check was committed.
 
 ## Dependency reproducibility & caching
@@ -201,6 +214,8 @@ Work Order.
   output, not just the test assertions, if a run fails unexpectedly.
 
 ## Sandbox limitations (unchanged from M0-WO3)
+
+> **Historical — resolved (M1-WO11 documentation audit).** The limitation described below applied to the authoring sandbox only. Everything it left unverified locally (Prisma generation, migrations, database/API integration tests, the production build, Playwright) has since been exercised by the permanent CI workflow, which passed. The text is kept as the record of why earlier Work Orders reported local verification gaps.
 
 This development sandbox cannot reach `https://binaries.prisma.sh` or
 `cdn.playwright.dev` — both of Prisma's CLI and Playwright's browser

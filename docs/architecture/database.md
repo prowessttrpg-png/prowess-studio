@@ -41,16 +41,84 @@ packages/prowess-db/
     migrations/
       migration_lock.toml
       20260930235722_init/
-        migration.sql          — the canonical, reviewed initial migration
+        migration.sql          — M0-WO3's canonical migration
+      20261001045349_add_entity/
+        migration.sql           — M1-WO1's canonical migration (Entity)
+      20261001212804_add_entity_version/
+        migration.sql            — M1-WO2's canonical migration (EntityVersion)
+      20261001215241_add_entity_version_updated_at/
+        migration.sql             — M1-WO3's canonical migration (updated_at)
+      20261002022400_add_entity_alias/
+        migration.sql              — M1-WO4's canonical migration (EntityAlias)
+      20261002025218_add_keyword_foundation/
+        migration.sql               — M1-WO5's canonical migration (Keyword foundation)
+      20261002225710_add_entity_relationship/
+        migration.sql                — M1-WO6's canonical migration (EntityRelationship)
+      20261002231523_add_source_provenance/
+        migration.sql                 — M1-WO7's canonical migration (Source provenance)
   prisma.config.ts              — Prisma 7 CLI config (datasource URL for Migrate)
   src/
     client.ts                   — the centralized PrismaClient singleton (ACTIVE)
     testDatabaseGuard.ts          — safety guard (no Prisma dependency)
-    index.ts                      — package entry point (exports both)
+    entity/                        — Entity repository + service (M1-WO1)
+      repository.ts                  — Prisma queries only (internal, not exported)
+      service.ts                      — validates input, maps errors (public surface)
+      index.ts                         — re-exports the service only
+    entity-version/                 — EntityVersion repository + service
+                                        (M1-WO2 create/retrieve; M1-WO3 lifecycle/mutation)
+      repository.ts                     — Prisma queries, bounded-retry revision
+                                        allocation, and the two atomic conditional
+                                        UPDATE primitives (internal, not exported)
+      service.ts                         — validates input, parent lineage, lifecycle
+                                        transitions, maps errors (public surface)
+    entity-alias/                    — EntityAlias repository + service (M1-WO4)
+      repository.ts                     — Prisma queries, the alias-to-Entity join
+                                        (internal, not exported)
+      service.ts                         — validates/normalizes input, maps errors
+                                        (public surface)
+    keyword-category/                — KeywordCategory repository + service (M1-WO5)
+    keyword-definition/               — KeywordDefinition repository + service (M1-WO5)
+    entity-keyword/                    — Entity-level Keyword assignment (M1-WO5,
+                                        no lifecycle guard)
+    entity-version-keyword/             — Version-level Keyword assignment (M1-WO5,
+                                        atomic SELECT...FOR UPDATE DRAFT guard)
+    entity-relationship/                 — EntityRelationship repository + service
+                                        (M1-WO6, stable-identity-level only)
+    source-document/                      — SourceDocument repository + service (M1-WO7)
+    source-reference/                      — SourceReference repository + service
+                                        (M1-WO7, lifecycle-independent of DRAFT/CANON)
+    entity-query/                          — paginated/filtered Entity list query (M1-WO8,
+                                        backs GET /api/entities; see docs/architecture/api-layer.md)
+      index.ts                            — re-exports the service only
+    index.ts                      — package entry point (exports all of the above)
   generated/                       — prisma generate's output (gitignored, never committed)
   tests/
     unit/testDatabaseGuard.test.ts  — pure guard-logic tests
     integration/                      — real Prisma-based integration tests (ACTIVE)
+      persistence.test.ts                — M0-WO3's generic CRUD/transaction/isolation proofs
+      entity.test.ts                      — M1-WO1's Entity-specific proofs
+      entity-version.test.ts               — M1-WO2's EntityVersion-specific proofs
+                                          (incl. the concurrency test)
+      entity-version-lifecycle.test.ts      — M1-WO3's lifecycle/mutation proofs
+                                          (incl. the race-safety test and the
+                                          no-escape-hatch export-surface guard)
+      entity-alias.test.ts                   — M1-WO4's alias proofs (incl. the
+                                          historical-terminology use case)
+      keyword-definition.test.ts              — M1-WO5's Category/Definition proofs
+      entity-keyword.test.ts                   — M1-WO5's entity-level assignment
+                                          proofs
+      entity-version-keyword.test.ts            — M1-WO5's version-level assignment
+                                          proofs (lifecycle guard, historical
+                                          independence, reverse lookup, no-implicit-
+                                          mechanics)
+      entity-relationship.test.ts                — M1-WO6's relationship proofs (incl.
+                                          no-implicit-mechanics, version independence,
+                                          and the FK delete-protection test)
+      source-provenance.test.ts                   — M1-WO7's SourceDocument/
+                                          SourceReference proofs (incl. protected-
+                                          Version attachment, no-implicit-mechanics,
+                                          version independence, and FK delete
+                                          protection)
   scripts/
     reset-test-db.mjs                  — the one vetted entrypoint for db:reset:test
 ```
@@ -135,10 +203,16 @@ Implemented by:
   inline — this is needed for complete type-checking even though no file
   under `src/` imports from `pg` directly.
 
-**Status: implemented, not yet verified.** This sandbox cannot run `prisma
-generate` to produce `generated/prisma/client.js`, so none of
-`src/client.ts`'s imports can be locally type-checked or built here. The
-next GitHub Actions run is the first real test of this code.
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when its Work Order was approved, and the M1 audit gate (`docs/audits/m1-completion-audit.md`) re-checks its invariants. Earlier revisions of this document recorded it as "not yet verified" because the authoring sandbox could not run Prisma or a browser; that limited only *local* verification and is resolved by CI.
+
+> **Migration provenance — read this first (M1-WO11, updated).** Per-migration notes below describe the SQL as
+> "reconstructed … not yet confirmed by CI"; that wording is historical. What permanent CI now *proves*: all eight
+> migrations apply to an empty database, **and** Prisma's own drift check (`prisma migrate diff --exit-code`, a
+> blocking gate) finds no differences between the migration-built database and `schema.prisma`. The first real run
+> *did* find drift (audit F-1: `DEFAULT gen_random_uuid()` on nine id columns; F-13: `DEFAULT CURRENT_TIMESTAMP` on
+> `entity_versions.updated_at`). It was resolved by aligning `schema.prisma` to the already-approved migrations —
+> **no new migration, no data migration, no change to any approved migration.** Consequence: ids are generated by
+> PostgreSQL (`@default(dbgenerated("gen_random_uuid()"))`), not by Prisma Client.
 
 ## Also removed in Prisma 7: `--skip-generate` and `--skip-seed` (RESOLVED)
 
@@ -152,6 +226,8 @@ behavior change of substance: this project has no seed script configured.
 
 ## Historical blocker (RESOLVED via GitHub Actions)
 
+> **Historical — resolved (M1-WO11 documentation audit).** The limitation described below applied to the authoring sandbox only. Everything it left unverified locally (Prisma generation, migrations, database/API integration tests, the production build, Playwright) has since been exercised by the permanent CI workflow, which passed. The text is kept as the record of why earlier Work Orders reported local verification gaps.
+
 `prisma generate`, `prisma validate`, and every `prisma migrate *` command
 require a native `schema-engine` binary, downloaded at run time from
 `https://binaries.prisma.sh`. **This host remains blocked in this
@@ -160,6 +236,8 @@ re-confirmed via direct `curl` as recently as the second Gate iteration).
 No workaround was found or attempted (`PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING`
 only gets past the checksum-fetch step, not the actual blocked download;
 `PRISMA_ENGINES_MIRROR` has no alternate target available).
+
+> **Historical — resolved (M1-WO11 documentation audit).** The limitation described below applied to the authoring sandbox only. Everything it left unverified locally (Prisma generation, migrations, database/API integration tests, the production build, Playwright) has since been exercised by the permanent CI workflow, which passed. The text is kept as the record of why earlier Work Orders reported local verification gaps.
 
 **This was never an architecture problem — it was resolved by using a
 different, genuinely Prisma-capable environment**, exactly as intended: the
@@ -218,9 +296,9 @@ active blocker on the project.
 All of the above was confirmed working by the second, post-cleanup GitHub
 Actions run — see the Status line at the top of this document.
 
-## Canonical migration
+## Canonical migrations
 
-**`20260930235722_init`** — the one and only migration in this repository.
+**`20260930235722_init`** — the first migration in this repository.
 Creates exactly one table, `_system_migration_probe` (the internal
 migration-verification model from `schema.prisma`, not a Prowess domain
 table):
@@ -244,6 +322,177 @@ valid**: the post-cleanup GitHub Actions run successfully deployed this
 exact file via `prisma migrate deploy` to both `prowess_studio_dev` and
 `prowess_studio_test`, with `prisma migrate status` reporting it current —
 Prisma accepted it without a drift warning or checksum complaint.
+
+**`20261001045349_add_entity`** (M1-WO1) — adds the first real Prowess
+domain table, `entities`, plus the `EntityType` enum. See
+`docs/architecture/entity-model.md` for the full Entity domain
+documentation. Creates:
+
+- the `EntityType` Postgres enum (`GENERIC_RULE`, `SYSTEM`, `RESOURCE`,
+  `SPELL_EFFECT`, `SPELL_TRAIT`, `TARGETING`, `KEYWORD`)
+- `entities`: `id` (`UUID`, primary key, `DEFAULT gen_random_uuid()`),
+  `entity_type` (`EntityType NOT NULL`), `canonical_key` (`TEXT NOT NULL`,
+  `UNIQUE`), `created_at` / `updated_at` (`TIMESTAMPTZ(6)`, same
+  conventions as above)
+
+No unrelated tables (no `EntityVersion`, `EntityAlias`, `Keyword`,
+`EntityRelationship`, `SourceDocument`, `Ruleset`, or Spell-specific
+tables — all explicitly out of scope for M1-WO1), no destructive
+statements, no new extensions. Same provenance caveat as
+`20260930235722_init` above: reconstructed from the schema using the same
+deterministic Prisma SQL-generation conventions, since confirmed to deploy cleanly by permanent CI (see the migration-provenance note at the top of this section).
+
+**`20261001212804_add_entity_version`** (M1-WO2) — adds `entity_versions`,
+plus the `EntityVersionStatus` and `ChangeType` enums. See
+`docs/architecture/entity-version-model.md` for the full EntityVersion
+domain documentation. Creates:
+
+- the `EntityVersionStatus` enum (`DRAFT`, `IN_REVIEW`, `APPROVED`,
+  `PLAYTEST`, `CANON`, `DEPRECATED`, `SUPERSEDED`, `ARCHIVED`)
+- the `ChangeType` enum (`EDITORIAL`, `CLARIFICATION`, `PRESENTATION`,
+  `MECHANICAL_PATCH`, `MECHANICAL_CHANGE`, `BREAKING_CHANGE`,
+  `CONTENT_ADDITION`, `REMOVAL`, `RENAME`, `RESTRUCTURE`)
+- `entity_versions`: `id` (`UUID`, PK), `entity_id` (`UUID NOT NULL`, FK to
+  `entities.id` with `ON DELETE RESTRICT` — an Entity with Versions cannot
+  be physically deleted), `revision_number` (`INTEGER NOT NULL`, unique
+  together with `entity_id`), `status` (`EntityVersionStatus NOT NULL
+  DEFAULT 'DRAFT'`), `display_name` (`TEXT NOT NULL`), `short_description`
+  / `rules_text` (nullable `TEXT`), `structured_data` (`JSONB NOT NULL
+  DEFAULT '{}'`), `parent_version_id` (nullable `UUID`, self-referencing FK
+  with `ON DELETE RESTRICT`), `change_type` (nullable `ChangeType`),
+  `change_summary` (nullable `TEXT`), `created_at` (`TIMESTAMPTZ(6)`) — no
+  `updated_at` (deliberate — see entity-version-model.md's "Snapshot
+  behavior")
+
+No unrelated tables (no `EntityAlias`, `Keyword`, `EntityRelationship`,
+`SourceDocument`, `Ruleset`, or Spell-specific tables), no destructive
+statements, no new extensions. Same provenance caveat as the two earlier
+migrations: reconstructed from the schema using the same deterministic
+Prisma SQL-generation conventions already confirmed correct twice before,
+since confirmed to deploy cleanly by permanent CI (see the migration-provenance note at the top of this section).
+
+**`20261001215241_add_entity_version_updated_at`** (M1-WO3) — adds
+`entity_versions.updated_at` only. See
+`docs/architecture/entity-version-lifecycle.md` for the full lifecycle and
+mutation-policy documentation this column supports. A single
+`ALTER TABLE ... ADD COLUMN "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT
+CURRENT_TIMESTAMP` — the default exists only to backfill any pre-existing
+rows at migration time; every write through `@prowess/db`'s services sets
+this explicitly via Prisma's `@updatedAt`. No other schema change, no new
+tables, no destructive statements. Same provenance caveat as the three
+earlier migrations: reconstructed from the schema using the same
+deterministic conventions, since confirmed to deploy cleanly by permanent CI (see the migration-provenance note at the top of this section).
+
+**`20261002022400_add_entity_alias`** (M1-WO4) — adds `entity_aliases`
+only. See `docs/architecture/entity-alias-model.md` for the full alias
+domain documentation. Creates:
+
+- `entity_aliases`: `id` (`UUID`, PK), `entity_id` (`UUID NOT NULL`, FK to
+  `entities.id` with `ON DELETE RESTRICT`), `alias` (`TEXT NOT NULL`,
+  authored form), `normalized_alias` (`TEXT NOT NULL`, lookup form,
+  indexed), `context` (nullable `TEXT`, authored), `normalized_context`
+  (`TEXT NOT NULL DEFAULT ''`, the deliberate NOT-NULL sentinel strategy
+  that avoids PostgreSQL's NULL-is-distinct-from-NULL uniqueness pitfall —
+  see entity-alias-model.md), `created_at` (`TIMESTAMPTZ(6)`)
+- A unique index on `(entity_id, normalized_alias, normalized_context)`
+  (explicit `map` name chosen by hand — the auto-generated Prisma name for
+  this three-column constraint would exceed PostgreSQL's 63-character
+  identifier limit)
+- A plain index on `normalized_alias` for exact-match lookup
+
+No unrelated tables (no `Keyword`, `EntityRelationship`, `SourceDocument`,
+`Ruleset`, or Canon tables), no destructive statements, no search-engine
+infrastructure. Same provenance caveat as the three earlier migrations:
+reconstructed from the schema using the same deterministic conventions,
+since confirmed to deploy cleanly by permanent CI (see the migration-provenance note at the top of this section).
+
+**`20261002025218_add_keyword_foundation`** (M1-WO5) — adds
+`keyword_categories`, `keyword_definitions`, `entity_keywords`, and
+`entity_version_keywords`, plus the `KeywordAssignmentSource` enum. See
+`docs/architecture/keyword-model.md` for the full Keyword domain
+documentation. Creates:
+
+- the `KeywordAssignmentSource` enum (`AUTHORED`, `INHERITED`, `CALCULATED`)
+- `keyword_categories`: `id` (UUID PK), `canonical_key` (unique), `name`,
+  `description` (nullable), `created_at`
+- `keyword_definitions`: `id` (UUID PK), `canonical_key` (unique), `name`,
+  `category_id` (nullable FK to `keyword_categories.id`, `ON DELETE
+  RESTRICT`), `description` (nullable), `deprecated` (`BOOLEAN DEFAULT
+  false`), `created_at`
+- `entity_keywords`: **composite primary key** `(entity_id, keyword_id)` —
+  no separate `id` column; FKs to `entities.id` and
+  `keyword_definitions.id` (both `ON DELETE RESTRICT`), `source_type`,
+  `created_at`
+- `entity_version_keywords`: same composite-PK shape, FKs to
+  `entity_versions.id` and `keyword_definitions.id` (both `ON DELETE
+  RESTRICT`), `source_type`, `created_at`
+- Indexes: `category_id` on `keyword_definitions`, `keyword_id` on both
+  assignment tables (reverse-lookup support)
+
+No unrelated tables (no `EntityRelationship`, `SourceDocument`, `Ruleset`,
+Canon, or Spell-specific tables), no destructive statements, no full-text
+search infrastructure. Same provenance caveat as the four earlier
+migrations: reconstructed from the schema using the same deterministic
+conventions, since confirmed to deploy cleanly by permanent CI (see the migration-provenance note at the top of this section).
+
+**`20261002225710_add_entity_relationship`** (M1-WO6) — adds
+`entity_relationships` and the `RelationshipType` enum. See
+`docs/architecture/entity-relationship-model.md` for the full Entity
+Relationship domain documentation. Creates:
+
+- the `RelationshipType` enum (`REQUIRES`, `MODIFIES`, `USES`,
+  `COMPATIBLE_WITH`, `INCOMPATIBLE_WITH`, `PART_OF`, `BELONGS_TO`,
+  `SEE_ALSO`) — reused verbatim from the framework-independent vocabulary
+  M0-WO1 already established, not a parallel enum
+- `entity_relationships`: `id` (UUID PK), `source_entity_id` / `target_entity_id`
+  (both `UUID NOT NULL`, FKs to `entities.id` with `ON DELETE RESTRICT`),
+  `relationship_type` (`RelationshipType NOT NULL`), `metadata` (`JSONB
+  NOT NULL DEFAULT '{}'`), `created_at`
+- A unique index on `(source_entity_id, target_entity_id,
+  relationship_type)` — prevents an exact duplicate while explicitly
+  allowing multiple types between the same pair and the opposite direction
+- Plain indexes on `source_entity_id` and `target_entity_id` separately
+  (the composite unique index alone doesn't serve a target-only reverse
+  lookup efficiently, since `target_entity_id` isn't its leading column)
+
+No unrelated tables (no `SourceDocument`, `Ruleset`, Canon, or
+`RequirementDefinition` tables), no destructive statements, no graph-
+database infrastructure — PostgreSQL remains the relationship store for
+Phase 1. No database `CHECK` constraint for the self-reference rule
+(deliberate — see entity-relationship-model.md's "Self-reference policy").
+Same provenance caveat as the five earlier migrations: reconstructed from
+the schema using the same deterministic conventions, since confirmed to deploy cleanly by permanent CI (see the migration-provenance note at the top of this section).
+
+**`20261002231523_add_source_provenance`** (M1-WO7) — adds
+`source_documents` and `source_references`, plus the `SourceDocumentType`
+and `SourceAuthorityStatus` enums. See
+`docs/architecture/source-provenance-model.md` for the full source
+provenance domain documentation. Creates:
+
+- the `SourceDocumentType` enum (`DOCUMENT`, `WEB`, `OTHER`)
+- the `SourceAuthorityStatus` enum (`GOVERNING`, `CURRENT_PRIMARY`,
+  `CURRENT_SUPPLEMENTAL`, `PLAYTEST_REFERENCE`, `HISTORICAL`,
+  `SUPERSEDED`, `REFERENCE_ONLY`, `UNRESOLVED`) — matching PAS-08's Canon
+  Manager vocabulary exactly, descriptive metadata only in this migration
+- `source_documents`: `id` (UUID PK), `title` (`TEXT NOT NULL`),
+  `source_type` (NOT NULL), `version_label` / `authority_status` /
+  `file_reference` / `notes` (all nullable), `created_at`
+- `source_references`: `id` (UUID PK), `source_document_id` /
+  `entity_version_id` (both `UUID NOT NULL`, FKs with `ON DELETE
+  RESTRICT`), `section_label` / `page_reference` (`TEXT`, nullable —
+  `page_reference` deliberately text, not integer) / `source_excerpt_note`
+  (nullable), `created_at`
+- Plain indexes on `source_document_id` and `entity_version_id` for
+  reverse lookup in both directions
+
+No unrelated tables (no `SourceSection`, `SourceBlock`, `ImportBatch`,
+`ExtractionCandidate`, `Ruleset`, or Canon tables), no destructive
+statements, no search infrastructure, no duplicate-prevention constraint
+on `source_references` (deliberate — see
+source-provenance-model.md's "No duplicate-prevention constraint"
+section). Same provenance caveat as the six earlier migrations:
+reconstructed from the schema using the same deterministic conventions,
+since confirmed to deploy cleanly by permanent CI (see the migration-provenance note at the top of this section).
 
 ## Migration commands
 

@@ -29,12 +29,15 @@ export default defineConfig({
       // deployment platform would inject its own secrets — demonstrating
       // the M0-WO2 config validation path for production without ever
       // committing a production secret.
-      // Reuses prowess_studio_test (not a separate "e2e" database) —
-      // CI only provisions prowess_studio_dev and prowess_studio_test (see
-      // M0-WO2/M0-WO3), and apps/studio doesn't query the database at all
-      // yet, so this is purely for config-shape validation today. Keeping
-      // it aligned with the two real database names avoids a third,
-      // never-actually-created name lingering in the codebase.
+      // Reuses prowess_studio_test (not a separate "e2e" database) — CI
+      // only provisions prowess_studio_dev and prowess_studio_test (see
+      // M0-WO2/M0-WO3). Since M1-WO8/M1-WO9, apps/studio's API routes and
+      // the Compendium UI genuinely do read/write this database — E2E
+      // fixtures are created through the real API during test setup (see
+      // tests/e2e/compendium.spec.ts) and use synthetic
+      // `test.compendium.*`-prefixed canonical keys, never production
+      // data. Keeping this aligned with the two real database names avoids
+      // a third, never-actually-created name lingering in the codebase.
       APP_URL: "http://127.0.0.1:3100",
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/prowess_studio_test",
       LOG_LEVEL: "warn",

@@ -21,11 +21,18 @@ export type EntityId = Brand<string, "EntityId">;
 /** UUID identifying a specific historical EntityVersion (see M1-WO2). */
 export type EntityVersionId = Brand<string, "EntityVersionId">;
 
+/** UUID identifying an EntityAlias (see M1-WO4). */
+export type EntityAliasId = Brand<string, "EntityAliasId">;
+
+/** UUID identifying a KeywordCategory (see M1-WO5). */
+export type KeywordCategoryId = Brand<string, "KeywordCategoryId">;
+
 /** UUID identifying a KeywordDefinition (see M1-WO5). */
-export type KeywordId = Brand<string, "KeywordId">;
+export type KeywordDefinitionId = Brand<string, "KeywordDefinitionId">;
 
 /** UUID identifying an EntityRelationship (see M1-WO6). */
-export type RelationshipId = Brand<string, "RelationshipId">;
+/** UUID identifying an EntityRelationship (see M1-WO6). */
+export type EntityRelationshipId = Brand<string, "EntityRelationshipId">;
 
 /** UUID identifying a SourceDocument (see M1-WO7). */
 export type SourceDocumentId = Brand<string, "SourceDocumentId">;
@@ -41,9 +48,17 @@ export const EntityId = { of: (value: string) => asBrand<string, "EntityId">(val
 export const EntityVersionId = {
   of: (value: string) => asBrand<string, "EntityVersionId">(value),
 };
-export const KeywordId = { of: (value: string) => asBrand<string, "KeywordId">(value) };
-export const RelationshipId = {
-  of: (value: string) => asBrand<string, "RelationshipId">(value),
+export const EntityAliasId = {
+  of: (value: string) => asBrand<string, "EntityAliasId">(value),
+};
+export const KeywordCategoryId = {
+  of: (value: string) => asBrand<string, "KeywordCategoryId">(value),
+};
+export const KeywordDefinitionId = {
+  of: (value: string) => asBrand<string, "KeywordDefinitionId">(value),
+};
+export const EntityRelationshipId = {
+  of: (value: string) => asBrand<string, "EntityRelationshipId">(value),
 };
 export const SourceDocumentId = {
   of: (value: string) => asBrand<string, "SourceDocumentId">(value),

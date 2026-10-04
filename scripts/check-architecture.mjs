@@ -66,6 +66,22 @@ function isForbidden(specifier, forbiddenList) {
   );
 }
 
+// Forbids only a DEEP/sub-path import into a package (e.g.
+// "@prowess/db/src/entity/repository.js") while leaving the bare package
+// specifier itself ("@prowess/db") allowed — used where a package's own
+// public entry point is the approved surface, but reaching past it into
+// its internals is not (PAS-10 M1-WO8 §33).
+function isForbiddenDeepImport(specifier, packageNames) {
+  return packageNames.some((pkg) => specifier.startsWith(`${pkg}/`));
+}
+
+// Substring (not prefix) match — guards against reaching a forbidden
+// target via a relative path (e.g. "../../../packages/prowess-db/generated/prisma/client.js")
+// that wouldn't match a simple startsWith check on the specifier's front.
+function containsForbiddenSubstring(specifier, substrings) {
+  return substrings.some((s) => specifier.includes(s));
+}
+
 // --- Rule 1: import-boundary rules per package --------------------------
 const RULES = [
   {
@@ -102,6 +118,40 @@ const RULES = [
     forbidden: ["@prisma/client", "@prisma/adapter-pg", "prisma"],
     reason: "no route or component may construct a Prisma client directly — always go through @prowess/db",
   },
+  {
+    name: "apps/studio (src/)",
+    srcDir: path.join(ROOT, "apps/studio/src"),
+    forbidden: ["@prisma/client", "@prisma/adapter-pg", "prisma"],
+    reason: "application-level modules (config, navigation, etc.) must not construct a Prisma client directly either — always go through @prowess/db",
+  },
+  {
+    // Stricter than the general "apps/studio (app/)" rule above: API route
+    // handlers are the final HTTP boundary (PAS-10 M1-WO8 §33) and must
+    // use ONLY @prowess/db's public service surface (the bare "@prowess/db"
+    // import) — never Prisma directly, and never a deep/internal
+    // @prowess/db import (e.g. reaching past its index.ts into
+    // "@prowess/db/src/entity/repository.js" or its generated Prisma
+    // output) that would bypass the validation/error-mapping its services
+    // provide.
+    name: "apps/studio (app/api/)",
+    srcDir: path.join(ROOT, "apps/studio/app/api"),
+    forbidden: ["@prisma/client", "@prisma/adapter-pg", "prisma"],
+    forbiddenDeepImportPackages: ["@prowess/db"],
+    forbiddenSubstrings: ["generated/prisma"],
+    reason: "route handlers must use only @prowess/db's public service surface — no direct Prisma, no deep/internal @prowess/db import",
+  },
+  {
+    // The Compendium frontend (PAS-10 M1-WO9 §1, §41) must consume ONLY
+    // the HTTP/API layer (apps/studio/app/compendium/_lib/api-client.ts,
+    // which itself only ever calls `fetch`) — unlike `app/api/`, it has no
+    // legitimate reason to import `@prowess/db` at all, bare or deep, so
+    // the whole package name is forbidden here (not just deep sub-paths).
+    name: "apps/studio (app/compendium/)",
+    srcDir: path.join(ROOT, "apps/studio/app/compendium"),
+    forbidden: ["@prisma/client", "@prisma/adapter-pg", "prisma", "@prowess/db"],
+    forbiddenSubstrings: ["generated/prisma"],
+    reason: "the Compendium frontend must consume only the HTTP API layer — no Prisma, no @prowess/db at all (bare or deep)",
+  },
 ];
 
 const violations = [];
@@ -109,7 +159,15 @@ const violations = [];
 for (const rule of RULES) {
   for (const file of walk(rule.srcDir)) {
     for (const { specifier, line } of findImports(file)) {
-      if (isForbidden(specifier, rule.forbidden)) {
+      const violatesBasic = isForbidden(specifier, rule.forbidden ?? []);
+      const violatesDeepImport =
+        rule.forbiddenDeepImportPackages !== undefined &&
+        isForbiddenDeepImport(specifier, rule.forbiddenDeepImportPackages);
+      const violatesSubstring =
+        rule.forbiddenSubstrings !== undefined &&
+        containsForbiddenSubstring(specifier, rule.forbiddenSubstrings);
+
+      if (violatesBasic || violatesDeepImport || violatesSubstring) {
         violations.push(
           `${rule.name} (${rule.reason}):\n    ${path.relative(ROOT, file)}:${line} imports forbidden "${specifier}"`,
         );
@@ -179,7 +237,7 @@ if (violations.length > 0) {
     console.error(`  - ${v}`);
   }
   console.error(
-    `\n${violations.length} violation(s). See docs/architecture/stack-decisions.md's "Architecture boundary enforcement" section for the rules.\n`,
+    `\n${violations.length} violation(s). See docs/architecture/ci.md's "Architecture boundary rules" section for the rules.\n`,
   );
   process.exit(1);
 }

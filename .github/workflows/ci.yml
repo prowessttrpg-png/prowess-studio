@@ -100,6 +100,47 @@ jobs:
           NODE_ENV: test
         run: pnpm run db:migrate:deploy
 
+      # M1-WO11 §28: schema drift check — a REQUIRED gate. Compares the database
+      # produced by `migrate deploy` (above) against schema.prisma using Prisma's
+      # own non-interactive diff (no shadow database, no `migrate dev`).
+      # Prisma exit codes: 0 = no differences, 2 = differences, 1 = the command
+      # itself failed. ANY non-zero exit fails CI, and the full diff is printed
+      # unfiltered (and repeated in the job summary).
+      #
+      # History: first added non-blocking because it was unverified in the
+      # authoring sandbox. The first real run confirmed drift (UUID id defaults on
+      # nine tables, plus EntityVersion.updated_at) and schema.prisma was then
+      # aligned to the approved migrations — no new migration (audit F-1).
+      #
+      # Prisma is invoked directly rather than via `pnpm --filter ... exec`:
+      # pnpm's recursive runner reports every child failure as exit 1, which made
+      # the earlier version of this step label real drift (exit 2) as "the command
+      # itself failed" (audit F-14).
+      - name: Schema drift check — migrations vs schema.prisma (blocking)
+        working-directory: packages/prowess-db
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+        run: |
+          set +e
+          ./node_modules/.bin/prisma migrate diff \
+            --from-config-datasource --to-schema prisma/schema.prisma --exit-code \
+            2>&1 | tee /tmp/prisma-drift.txt
+          code=${PIPESTATUS[0]}
+          set -e
+          {
+            echo "### Prisma schema drift check (migrations vs schema.prisma)"
+            if [ "$code" -eq 0 ]; then
+              echo "**No differences.** The migration history reconstructs exactly the schema Prisma expects."
+            elif [ "$code" -eq 2 ]; then
+              echo "**DRIFT DETECTED (exit 2)** — the migrations and schema.prisma disagree. Full, unfiltered output:"
+              echo '```'; cat /tmp/prisma-drift.txt; echo '```'
+            else
+              echo "**The diff command failed (exit $code)** — this is not a clean result. Output:"
+              echo '```'; cat /tmp/prisma-drift.txt; echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$code"
+
       # Workspace packages must be built before anything can resolve their
       # compiled type declarations (each package's package.json "types"
       # field points at its own dist/ output), and before lint/typecheck/
@@ -130,6 +171,33 @@ jobs:
 
       - name: UI/component tests (apps/studio)
         run: pnpm --filter "@prowess/studio" run test:unit
+
+      # M1-WO8: API route-handler tests, calling each Next.js route
+      # handler directly as a function (no running server needed) against
+      # the real prowess_studio_test database — same safety-guard
+      # infrastructure as @prowess/db's own integration tests above. Only
+      # needs @prowess/db already built (done above) and the test database
+      # already migrated (also done above); does not depend on apps/studio's
+      # own production build, which happens later.
+      - name: API integration tests (apps/studio)
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+        run: pnpm --filter "@prowess/studio" run test:integration
+
+      # M1-WO11: the M1 audit gate, reported as its own named steps. These
+      # files also run inside the generic suites above (so `pnpm test` covers
+      # them locally); re-running them here gives the milestone a separately
+      # visible pass/fail.
+      - name: M1 audit gate — static invariants (no current-version state, enum parity, errors, migrations, layering)
+        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m1-audit-static.test.ts
+
+      - name: M1 audit gate — database-level suite
+        run: pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/m1-audit.test.ts
+
+      - name: M1 audit gate — API-level reproducibility suite
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+        run: pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m1-audit-api.test.ts
 
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
