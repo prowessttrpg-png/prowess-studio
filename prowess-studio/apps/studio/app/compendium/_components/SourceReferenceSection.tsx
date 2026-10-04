@@ -13,13 +13,19 @@ import type { SourceDocumentDto, SourceReferenceDto } from "../_lib/api-client";
 export function SourceReferenceSection({
   references,
   documents,
+  heading = "Sources for Latest Revision",
+  headingId = "sources-heading",
+  testId = "sources-section",
 }: {
   references: SourceReferenceDto[];
   documents: Map<string, SourceDocumentDto>;
+  heading?: string;
+  headingId?: string;
+  testId?: string;
 }) {
   return (
-    <section aria-labelledby="sources-heading" data-testid="sources-section">
-      <h2 id="sources-heading">Sources for Latest Revision</h2>
+    <section aria-labelledby={headingId} data-testid={testId}>
+      <h2 id={headingId}>{heading}</h2>
       {references.length === 0 ? (
         <EmptyState title="No sources" />
       ) : (

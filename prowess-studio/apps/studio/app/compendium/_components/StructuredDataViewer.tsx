@@ -4,7 +4,15 @@
  * Effect/Spell rendering is attempted. Scrolls internally rather than
  * letting large JSON blow out the page layout.
  */
-export function StructuredDataViewer({ data, emptyLabel }: { data: unknown; emptyLabel: string }) {
+export function StructuredDataViewer({
+  data,
+  emptyLabel,
+  label = "Structured data",
+}: {
+  data: unknown;
+  emptyLabel: string;
+  label?: string;
+}) {
   const isEmptyObject =
     data !== null && typeof data === "object" && !Array.isArray(data) && Object.keys(data).length === 0;
 
@@ -13,7 +21,13 @@ export function StructuredDataViewer({ data, emptyLabel }: { data: unknown; empt
   }
 
   return (
-    <pre className="prowess-structured-data" data-testid="structured-data">
+    <pre
+      className="prowess-structured-data"
+      data-testid="structured-data"
+      role="region"
+      aria-label={label}
+      tabIndex={0}
+    >
       <code>{JSON.stringify(data, null, 2)}</code>
     </pre>
   );

@@ -6,7 +6,7 @@ import { EntityListRow } from "../../app/compendium/_components/EntityListRow";
 import { ErrorState } from "../../app/compendium/_components/ErrorState";
 import { IdentitySection } from "../../app/compendium/_components/IdentitySection";
 import { KeywordSection } from "../../app/compendium/_components/KeywordSection";
-import { LatestRevisionSection } from "../../app/compendium/_components/LatestRevisionSection";
+import { RevisionSection } from "../../app/compendium/_components/RevisionSection";
 import { RelationshipSection } from "../../app/compendium/_components/RelationshipSection";
 import { SourceReferenceSection } from "../../app/compendium/_components/SourceReferenceSection";
 import type {
@@ -187,8 +187,8 @@ describe("Identity vs Latest Revision content separation", () => {
     expect(section.textContent).not.toContain("Direct Damage"); // the Version's displayName
   });
 
-  it("LatestRevisionSection is titled exactly 'Latest Revision' and shows versioned content", () => {
-    render(<LatestRevisionSection version={baseVersion} versionCount={3} />);
+  it("RevisionSection is titled exactly 'Latest Revision' and shows versioned content", () => {
+    render(<RevisionSection version={baseVersion} versionCount={3} isLatest />);
     expect(screen.getByRole("heading", { name: "Latest Revision" })).toBeInTheDocument();
     const section = screen.getByTestId("latest-revision-section");
     expect(within(section).getByText("Direct Damage")).toBeInTheDocument();
@@ -196,8 +196,8 @@ describe("Identity vs Latest Revision content separation", () => {
     expect(section.textContent).not.toMatch(/Current Version|Canon Version|Active Version/);
   });
 
-  it("LatestRevisionSection shows an intentional empty state when there is no Version", () => {
-    render(<LatestRevisionSection version={null} versionCount={0} />);
+  it("RevisionSection shows an intentional empty state when there is no Version", () => {
+    render(<RevisionSection version={null} versionCount={0} isLatest />);
     expect(screen.getByText("No revisions")).toBeInTheDocument();
   });
 });

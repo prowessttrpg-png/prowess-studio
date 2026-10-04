@@ -96,7 +96,7 @@ test.describe("M1-WO9 Compendium Entity Browser", () => {
     await expect(identitySection).toContainText("Spell Effect");
 
     // 9. Confirm "Latest Revision" display — never "Current"/"Canon".
-    await expect(page.getByRole("heading", { name: "Latest Revision" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Latest Revision", exact: true })).toBeVisible();
     const latestRevisionSection = page.getByTestId("latest-revision-section");
     await expect(latestRevisionSection).toContainText("E2E Direct Damage");
     await expect(latestRevisionSection).toContainText(String(version.revisionNumber));

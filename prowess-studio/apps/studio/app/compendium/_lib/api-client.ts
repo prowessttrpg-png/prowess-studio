@@ -284,11 +284,30 @@ export function getSourceDocument(sourceDocumentId: string): Promise<SourceDocum
  * a backend response-shape change was deliberately not made for this
  * (see `docs/architecture/compendium-ui.md`'s "Detail data loading"
  * section for the full reasoning this Work Order documents).
+ *
+ * An optional `cache` (document id -> in-flight/settled request) lets the
+ * caller share lookups ACROSS calls — M1-WO10 uses it so two revisions
+ * citing the same document cost one document request, not two.
  */
 export async function resolveSourceDocuments(
   sourceReferences: SourceReferenceDto[],
+  cache?: Map<string, Promise<SourceDocumentDto>>,
 ): Promise<Map<string, SourceDocumentDto>> {
   const uniqueIds = [...new Set(sourceReferences.map((ref) => ref.sourceDocumentId))];
-  const documents = await Promise.all(uniqueIds.map((id) => getSourceDocument(id)));
+  const documents = await Promise.all(
+    uniqueIds.map((id) => {
+      const cached = cache?.get(id);
+      if (cached) {
+        return cached;
+      }
+      const pending = getSourceDocument(id);
+      if (cache) {
+        cache.set(id, pending);
+        // A failed lookup must not poison the cache for a later retry.
+        pending.catch(() => cache.delete(id));
+      }
+      return pending;
+    }),
+  );
   return new Map(documents.map((doc) => [doc.id, doc]));
 }

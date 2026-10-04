@@ -426,3 +426,18 @@ heavier data-fetching architecture (React Query/SWR) this project doesn't
 otherwise use. pageSize was made URL-configurable on the list page
 specifically so automated tests could exercise pagination without needing
 20+ fixtures, per the Work Order's own explicit allowance for this.
+
+## M1-WO10: Version History UI
+
+Full details -- the `?revision=` URL strategy (and why not `/versions/:id`),
+Latest-vs-Selected terminology, real-`parentVersionId` lineage, the
+stable-vs-version-scoped data split, comparison mode and its limits, the
+deliberate absence of lifecycle-event history -- live in
+docs/architecture/version-history-ui.md. No new dependencies; no backend or
+API change. Revision content is taken from the Entity's Version list (which
+already returns full snapshots) instead of refetching each Version.
+`resolveSourceDocuments` gained an optional shared cache so revisions citing
+the same document cost one request. M1-WO9's LatestRevisionSection was
+generalized to RevisionSection, and an existing M1-WO9 Playwright heading
+assertion was tightened to `exact: true` since "Latest Revision" is a
+substring of the "Latest Revision Keywords" heading.

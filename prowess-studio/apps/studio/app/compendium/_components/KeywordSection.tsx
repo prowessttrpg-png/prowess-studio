@@ -14,14 +14,16 @@ export function KeywordSection({
   headingId,
   assignments,
   emptyLabel,
+  testId = "keyword-section",
 }: {
   heading: string;
   headingId: string;
   assignments: KeywordAssignmentDto[];
   emptyLabel: string;
+  testId?: string;
 }) {
   return (
-    <section aria-labelledby={headingId} data-testid="keyword-section">
+    <section aria-labelledby={headingId} data-testid={testId}>
       <h2 id={headingId}>{heading}</h2>
       {assignments.length === 0 ? (
         <EmptyState title={emptyLabel} />

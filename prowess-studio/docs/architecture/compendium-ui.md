@@ -240,3 +240,13 @@ convenience this UI uses, and it is labeled as exactly that everywhere.
 Which EntityVersion is authoritative within a given Ruleset is a question
 for M2's Ruleset/Canon system, which doesn't exist yet — the Compendium is
 built to not pretend otherwise.
+
+## Update (M1-WO10)
+
+The Entity detail page now includes a full **Version History**, selectable
+and URL-addressable historical revisions, actual parent lineage, a
+comparison mode, and a clear split between Entity-level and revision-scoped
+data. M1-WO9's `LatestRevisionSection` was generalized into
+`RevisionSection` (titled "Latest Revision" when showing the latest, and
+"Selected Revision — Revision N" otherwise); all M1-WO9 behavior is
+preserved. See `version-history-ui.md`.
