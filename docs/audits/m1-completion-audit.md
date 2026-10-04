@@ -1,6 +1,6 @@
 # M1 Completion Audit (PAS-10 M1-WO11)
 
-**Status: NOT YET PASSED — the first real CI run found defects (section 11).** This is *not* a PASS. It becomes
+**Status: NOT YET PASSED — the first real CI run found defects (sections 11–12).** This is *not* a PASS. It becomes
 "M1 APPROVED" only after the permanent GitHub Actions workflow succeeds
 against the audit (see "CI result" at the end).
 
@@ -21,7 +21,7 @@ The audit has four layers, each asserting named invariants:
 | API | `apps/studio/tests/integration/m1-audit-api.test.ts` | PostgreSQL |
 | Browser | `apps/studio/tests/e2e/m1-audit.spec.ts` | built app + PostgreSQL |
 
-Plus a CI drift check (informational, see finding F-1) and three named CI
+Plus a CI drift check (a blocking gate since F-1 was resolved) and three named CI
 steps that re-run the first three layers as a separately-visible gate.
 
 ## 2. What was and was not verified locally
@@ -53,11 +53,7 @@ observed.
   approved chain applied in order with none failed or rolled back, that all
   ten M1 tables exist, and that no column anywhere encodes a current/active
   version.
-- **Schema drift (§28):** a Prisma-native check was added
-  (`migrate diff --from-config-datasource --to-schema … --exit-code`), but
-  deliberately **non-blocking** — see F-1. Deploy-on-empty alone is *not*
-  sufficient confidence here, because static review already shows a
-  mismatch class it cannot detect.
+- **Schema drift (§28):** `prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code` runs against the database built by `migrate deploy` and is a **blocking** CI gate. Its first real run reported drift (F-1, F-13); that was resolved by aligning `schema.prisma` to the approved migrations, and the gate now requires exit code 0 with no differences.
 
 ## 4. Invariant → proof map
 
@@ -127,7 +123,7 @@ the deferred list below.
 
 ## 7. Findings
 
-### F-1 — OPEN, needs a human decision: id defaults differ between migrations and `schema.prisma`
+### F-1 — CONFIRMED by Prisma's drift check; RESOLVED (final CI verification pending): id defaults differ between migrations and `schema.prisma`
 
 *Not fixed, per Work Order §37 (no schema change without stopping to report).*
 
@@ -153,6 +149,30 @@ the deferred list below.
   not prove they match what Prisma would generate; the earlier "reconstructed
   from the schema" caveat in `database.md` was therefore only half-resolved,
   and has been reworded to say exactly that.
+
+### F-1 resolution
+
+**CONFIRMED by GitHub's Prisma drift check** (first real run). Prisma reported that on
+`_system_migration_probe`, `entities`, `entity_aliases`, `entity_relationships`,
+`entity_versions`, `keyword_categories`, `keyword_definitions`, `source_documents` and
+`source_references`, the id's database default `Some(DbGenerated("gen_random_uuid()"))`
+would change to `None`. The prediction made above ("probable real mismatch") was correct.
+
+**Resolution (option A — recommended, then approved).** `schema.prisma` was aligned to
+the already-approved migrations: all nine `@default(uuid())` became
+`@default(dbgenerated("gen_random_uuid()"))`, keeping `@db.Uuid` and all mapping and
+relations. **No new migration. No data migration. No approved migration SQL altered. No
+database default dropped. No migration history rewritten.** The two composite-key
+assignment tables have no id column and are unchanged.
+
+**Behavioral consequence, reviewed.** PostgreSQL now generates these ids; Prisma Client
+omits `id` from the INSERT and reads the row back, so `create()` still returns the
+generated UUID. A code review found nothing that depends on client-side generation: no
+`create()` passes an explicit id, nothing calls `randomUUID`, and the only raw SQL is a
+`SELECT … FOR UPDATE` (revision/lifecycle locking), not an INSERT. The integration suites
+that assert returned UUIDs and revision allocation (entity, version, alias, relationship,
+keyword, source, and the M1 audits) re-run in CI against the aligned schema — that run, not
+this review, is the proof.
 
 ### F-2 — FIXED: `assertEntityExists` accepted an uncontrolled error code
 
@@ -207,7 +227,7 @@ authoring UI.
 
 **Pending.** To be recorded here after the final workflow run. Expected to
 demonstrate: clean PostgreSQL bootstrap; validate/generate/deploy; the
-informational drift step's actual output (F-1); lint; typecheck; unit,
+blocking drift step's result (F-1/F-13: must show no differences); lint; typecheck; unit,
 database, API, and the three named audit-gate steps; production build; and
 the full Playwright suite including the M1 audit flow and the mobile
 regression.
@@ -310,3 +330,32 @@ see it. `tests/unit/suspense-search-params.test.ts` now encodes the rule.
 **Pattern worth naming:** F-11 and F-12 are both "passes every check except the
 production build" — the build is the only step that exercises Next's bundler and
 static generation, so it must be run (CI is the only place it can be, here).
+
+### F-13 — CONFIRMED & RESOLVED: `entity_versions.updated_at` default (additional drift, same check)
+The M1-WO3 migration adds the column `TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP`
+(a NOT NULL column added to a table that might already hold rows needs a default);
+`schema.prisma` had `@updatedAt` with no default, so Prisma reported the default changing
+from `Now` to none. **Resolved** with `@default(now()) @updatedAt`, which preserves
+TIMESTAMPTZ(6), the database default on insert, and Prisma's update-time behavior. The
+other two `@updatedAt` columns (`entities`, `_system_migration_probe`) have **no** default in
+their migrations and correctly stay as they are — changing them would have *introduced*
+drift. The static audit now checks, for every `@updatedAt` field, that the schema has a
+default exactly when the migration does (proven to fail if `Entity.updatedAt` is wrongly given one).
+
+### F-14 — FIXED, CI script defect: real drift reported as "the command itself failed"
+The drift step's summary said "exit 1 — likely a flag/config issue" while the log showed
+Prisma exiting **2** (drift). pnpm's recursive runner reports every failed child as exit 1,
+so the script could not tell the cases apart. Prisma is now invoked directly so its exact
+exit code reaches the script. The step is blocking, prints the diff unfiltered, and repeats
+it in the job summary; `m1-audit-static` asserts it stays blocking.
+
+## 12. Final M1-WO11 drift-resolution patch
+
+Scope: schema alignment only — no new migration, no data change, no new features, no M2.
+The final CI run must show: Prisma validate PASS; Prisma generate PASS; all eight migrations
+deploy from an empty database; **the drift check PASS with no differences, as a blocking
+gate**; the three M1 audit gates PASS; all unit and integration tests PASS; the production
+build PASS; and every Playwright flow (Compendium, Version History, M1 reproducibility,
+mobile) PASS.
+
+**M1 is NOT marked approved by this patch.** Approval depends on that CI run.

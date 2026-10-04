@@ -257,3 +257,124 @@ describe("M1 audit — workspace layering (§29)", () => {
     for (const dep of ui) expect(dep).not.toMatch(/^(@prisma\/|prisma$|pg$|@prowess\/db)/);
   });
 });
+
+describe("M1 audit — schema.prisma agrees with the migrations' defaults (F-1/F-13, confirmed by Prisma's drift check)", () => {
+  const migrationsDir = path.join(ROOT, "packages", "prowess-db", "prisma", "migrations");
+  const sql = readdirSync(migrationsDir)
+    .filter((entry) => statSync(path.join(migrationsDir, entry)).isDirectory())
+    .sort()
+    .map((entry) => readFileSync(path.join(migrationsDir, entry, "migration.sql"), "utf8"))
+    .join("\n");
+
+  interface ModelInfo {
+    name: string;
+    table: string | undefined;
+    body: string;
+  }
+  const models: ModelInfo[] = [...SCHEMA_CODE.matchAll(/^model (\w+) \{([\s\S]*?)^\}/gm)].map((m) => ({
+    name: m[1] as string,
+    body: m[2] as string,
+    table: /@@map\("([^"]+)"\)/.exec(m[2] as string)?.[1],
+  }));
+  const idModels = models.filter((m) => /^\s+id\s+String\s+@id/m.test(m.body));
+  const idLine = (m: ModelInfo) => /^\s+id\s+String\s+@id.*$/m.exec(m.body)?.[0] ?? "";
+
+  /** A column's definition as written in the migrations (CREATE TABLE, or a later ADD COLUMN). */
+  function columnDefinition(table: string, column: string): string | undefined {
+    const create = new RegExp(`CREATE TABLE "${table}" \\(([\\s\\S]*?)\\n\\);`).exec(sql)?.[1];
+    const fromCreate = create ? new RegExp(`"${column}" [^\\n]*`).exec(create)?.[0] : undefined;
+    return fromCreate ?? new RegExp(`ALTER TABLE "${table}" ADD COLUMN "${column}" [^;\\n]*`).exec(sql)?.[0];
+  }
+
+  it("parses the schema's models and the migrations' tables (so the checks below cannot match nothing)", () => {
+    expect(models.length).toBeGreaterThanOrEqual(11);
+    expect(idModels.length).toBeGreaterThanOrEqual(9);
+    expect(sql).toContain('CREATE TABLE "entities"');
+  });
+
+  it("every single-column UUID id is declared dbgenerated(gen_random_uuid()) with @db.Uuid", () => {
+    for (const model of idModels) {
+      expect(idLine(model), model.name).toContain('@default(dbgenerated("gen_random_uuid()"))');
+      expect(idLine(model), model.name).toContain("@db.Uuid");
+    }
+  });
+
+  it("no field anywhere still uses the client-side uuid() default", () => {
+    expect(SCHEMA_CODE).not.toMatch(/@default\(uuid\(\)\)/);
+  });
+
+  it("the tables whose migrations give the id a database default are exactly the tables the schema declares that way", () => {
+    const fromMigrations = [...sql.matchAll(/CREATE TABLE "(\w+)" \(\s*"id" UUID NOT NULL DEFAULT gen_random_uuid\(\)/g)]
+      .map((m) => m[1] as string)
+      .sort();
+    const fromSchema = idModels
+      .filter((m) => /dbgenerated\("gen_random_uuid\(\)"\)/.test(idLine(m)))
+      .map((m) => m.table as string)
+      .sort();
+    expect(fromMigrations.length).toBeGreaterThanOrEqual(9);
+    expect(fromSchema).toEqual(fromMigrations);
+  });
+
+  it("composite-key assignment tables have no id column and were not touched", () => {
+    const composite = models.filter((m) => /@@id\(/.test(m.body)).map((m) => m.name).sort();
+    expect(composite).toEqual(["EntityKeyword", "EntityVersionKeyword"]);
+    for (const model of ["EntityKeyword", "EntityVersionKeyword"]) {
+      expect(models.find((m) => m.name === model)?.body).not.toMatch(/\bgen_random_uuid\b/);
+    }
+  });
+
+  it("for EVERY @updatedAt field, the schema has a default exactly when the migration gives the column one", () => {
+    const updated = models.flatMap((model) =>
+      [...model.body.matchAll(/^\s+(\w+)\s+DateTime\s+(.*@updatedAt.*)$/gm)].map((m) => ({
+        model: model.name,
+        table: model.table as string,
+        column: /@map\("([^"]+)"\)/.exec(m[2] as string)?.[1] as string,
+        schemaHasDefault: /@default\(/.test(m[2] as string),
+      })),
+    );
+    expect(updated.length).toBeGreaterThanOrEqual(3); // SystemMigrationProbe, Entity, EntityVersion
+    for (const field of updated) {
+      const definition = columnDefinition(field.table, field.column);
+      expect(definition, `${field.table}.${field.column} must be defined in a migration`).toBeDefined();
+      expect(field.schemaHasDefault, `${field.model}.updatedAt vs migration: ${definition}`).toBe(/\bDEFAULT\b/.test(definition as string));
+    }
+  });
+
+  it("EntityVersion.updatedAt keeps TIMESTAMPTZ(6), a database DEFAULT now() on insert, AND @updatedAt on update", () => {
+    const entityVersion = models.find((m) => m.name === "EntityVersion") as ModelInfo;
+    const line = /^\s+updatedAt\s+DateTime.*$/m.exec(entityVersion.body)?.[0] ?? "";
+    expect(line).toContain("@default(now())");
+    expect(line).toContain("@updatedAt");
+    expect(line).toContain("@db.Timestamptz(6)");
+    expect(line).toContain('@map("updated_at")');
+    expect(columnDefinition("entity_versions", "updated_at")).toMatch(/TIMESTAMPTZ\(6\) NOT NULL DEFAULT CURRENT_TIMESTAMP/);
+  });
+});
+
+describe("M1 audit — the schema/migration drift check is a required CI gate", () => {
+  const ci = read(".github", "workflows", "ci.yml");
+  const start = ci.indexOf("- name: Schema drift check");
+  const next = ci.indexOf("\n      #", start); // the comment block that begins the next step
+  const step = ci.slice(start, next === -1 ? undefined : next);
+
+  it("exists and runs Prisma's own diff with --exit-code", () => {
+    expect(start).toBeGreaterThan(-1);
+    expect(step).toContain("prisma migrate diff");
+    expect(step).toContain("--exit-code");
+  });
+
+  it("is blocking: no continue-on-error, and the step exits with Prisma's own code", () => {
+    expect(step).not.toMatch(/continue-on-error/);
+    expect(step).toContain('exit "$code"');
+  });
+
+  it("does not hide the diff: output is tee'd to the log and repeated in the summary", () => {
+    expect(step).toContain("tee /tmp/prisma-drift.txt");
+    expect(step).toContain("GITHUB_STEP_SUMMARY");
+  });
+
+  it("calls Prisma directly, not through pnpm's recursive runner (which flattens every failure to exit 1)", () => {
+    expect(step).toContain("./node_modules/.bin/prisma");
+    expect(step).not.toMatch(/pnpm --filter/);
+  });
+});

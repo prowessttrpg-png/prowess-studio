@@ -456,3 +456,17 @@ human per the Work Order's stop-and-report rule; (2) a private helper's
 `errorCode: string` was tightened to `RelationshipErrorCode`, and the static
 audit now forbids uncontrolled codes reaching `DomainError`; (3) canonical
 keys cannot contain hyphens, so the audit uses `historical_rule`.
+
+## M1-WO11 final patch: schema/migration drift resolved (F-1, F-13)
+
+The first real CI run's Prisma drift check **confirmed** F-1 and found one more mismatch (F-13).
+Decision: align `schema.prisma` to the already-approved migrations — the nine UUID ids become
+`@default(dbgenerated("gen_random_uuid()"))`, and `EntityVersion.updatedAt` becomes
+`@default(now()) @updatedAt`. Rejected: a new migration dropping the defaults (adds a migration to a
+milestone meant to add none, and removes a useful safety net for raw inserts) and accepting the drift
+(every future `migrate dev` would generate noise). **No new migration, no data migration, no history
+rewrite.** Consequence recorded: PostgreSQL, not Prisma Client, now generates those ids. The drift
+step is now a **blocking** gate that invokes Prisma directly (pnpm's recursive runner flattens every
+failure to exit 1, which had made the step mislabel drift as "the command failed" — F-14). This
+supersedes the earlier "deliberately non-blocking" decision recorded under M1-WO11. M1 is not yet
+marked approved; that waits on the final CI run.

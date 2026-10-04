@@ -100,43 +100,46 @@ jobs:
           NODE_ENV: test
         run: pnpm run db:migrate:deploy
 
-      # M1-WO11 §28: schema drift check. Compares the database produced by
-      # `migrate deploy` (above) against schema.prisma using Prisma's own
-      # non-interactive diff (no shadow database, no `migrate dev`).
-      # Exit codes: 0 = no drift, 2 = drift, 1 = the command itself failed.
+      # M1-WO11 §28: schema drift check — a REQUIRED gate. Compares the database
+      # produced by `migrate deploy` (above) against schema.prisma using Prisma's
+      # own non-interactive diff (no shadow database, no `migrate dev`).
+      # Prisma exit codes: 0 = no differences, 2 = differences, 1 = the command
+      # itself failed. ANY non-zero exit fails CI, and the full diff is printed
+      # unfiltered (and repeated in the job summary).
       #
-      # DELIBERATELY NON-BLOCKING in this submission (continue-on-error):
-      # the authoring sandbox cannot run Prisma, so these flags are
-      # unverified there, and static inspection predicts a REAL finding —
-      # every migration declares `DEFAULT gen_random_uuid()` on id columns
-      # whereas schema.prisma uses client-side `@default(uuid())`. A failed
-      # step icon + the job summary make the result impossible to miss while
-      # leaving the schema decision (see docs/audits/m1-completion-audit.md,
-      # finding F-1) to a human. Remove `continue-on-error` once resolved.
-      - name: Schema drift check — migrations vs schema.prisma (informational)
-        continue-on-error: true
+      # History: first added non-blocking because it was unverified in the
+      # authoring sandbox. The first real run confirmed drift (UUID id defaults on
+      # nine tables, plus EntityVersion.updated_at) and schema.prisma was then
+      # aligned to the approved migrations — no new migration (audit F-1).
+      #
+      # Prisma is invoked directly rather than via `pnpm --filter ... exec`:
+      # pnpm's recursive runner reports every child failure as exit 1, which made
+      # the earlier version of this step label real drift (exit 2) as "the command
+      # itself failed" (audit F-14).
+      - name: Schema drift check — migrations vs schema.prisma (blocking)
+        working-directory: packages/prowess-db
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
         run: |
           set +e
-          pnpm --filter "@prowess/db" exec prisma migrate diff \
+          ./node_modules/.bin/prisma migrate diff \
             --from-config-datasource --to-schema prisma/schema.prisma --exit-code \
-            > /tmp/prisma-drift.txt 2>&1
-          code=$?
-          cat /tmp/prisma-drift.txt
+            2>&1 | tee /tmp/prisma-drift.txt
+          code=${PIPESTATUS[0]}
+          set -e
           {
             echo "### Prisma schema drift check (migrations vs schema.prisma)"
             if [ "$code" -eq 0 ]; then
-              echo "No drift: the migration history reconstructs the schema Prisma expects."
+              echo "**No differences.** The migration history reconstructs exactly the schema Prisma expects."
             elif [ "$code" -eq 2 ]; then
-              echo "**Drift detected** — see audit finding F-1 (docs/audits/m1-completion-audit.md)."
+              echo "**DRIFT DETECTED (exit 2)** — the migrations and schema.prisma disagree. Full, unfiltered output:"
               echo '```'; cat /tmp/prisma-drift.txt; echo '```'
             else
-              echo "The diff command itself failed (exit $code) — likely a flag/config issue, not drift."
+              echo "**The diff command failed (exit $code)** — this is not a clean result. Output:"
               echo '```'; cat /tmp/prisma-drift.txt; echo '```'
             fi
           } >> "$GITHUB_STEP_SUMMARY"
-          exit $code
+          exit "$code"
 
       # Workspace packages must be built before anything can resolve their
       # compiled type declarations (each package's package.json "types"

@@ -31,6 +31,23 @@ datasource db {
   // migration" note for why).
 }
 
+// ---------------------------------------------------------------------------
+// Id and timestamp defaults — aligned with the approved migrations (M1-WO11, F-1).
+//
+// Every migration-created UUID primary key has `DEFAULT gen_random_uuid()` in
+// PostgreSQL, so the schema declares it as `dbgenerated("gen_random_uuid()")`
+// (PostgreSQL generates the id; Prisma Client omits it from the INSERT and reads
+// the row back). Declaring it as client-side `uuid()` instead made
+// `prisma migrate diff` report the default being dropped on all nine tables.
+// `EntityVersion.updatedAt` likewise has `DEFAULT CURRENT_TIMESTAMP` in its
+// migration, so it carries `@default(now())` alongside `@updatedAt`.
+//
+// A blocking CI step runs `prisma migrate diff --exit-code` against a database
+// built by `migrate deploy`; any disagreement between this file and the
+// migrations fails the build. Do NOT "fix" a future mismatch by editing an
+// approved migration — change this file, or add a new migration.
+// ---------------------------------------------------------------------------
+
 /// INTERNAL ONLY — not part of the Prowess domain model.
 ///
 /// Exists solely to give M0-WO3 something concrete to migrate, query,
@@ -49,7 +66,7 @@ datasource db {
 ///      PostgreSQL convention, while Prisma Client still exposes camelCase
 ///      field names in TypeScript
 model SystemMigrationProbe {
-  id        String   @id @default(uuid()) @db.Uuid
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   label     String
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -97,7 +114,7 @@ enum EntityType {
 model Entity {
   /// Opaque, immutable, DB-generated UUID — the actual relational
   /// identity. Never the canonical key, a name, or an integer sequence.
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   entityType EntityType @map("entity_type")
 
@@ -195,7 +212,7 @@ enum ChangeType {
 /// mutation policy hadn't been established yet; M1-WO3 adds it now that it
 /// has.
 model EntityVersion {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   entityId String @map("entity_id") @db.Uuid
   entity   Entity @relation(fields: [entityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
@@ -275,7 +292,7 @@ model EntityVersion {
   /// `updateDraftEntityVersion`) — never implies that a protected,
   /// non-DRAFT Version can be mutated; a protected Version's `updatedAt`
   /// simply stops changing once it leaves DRAFT.
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@unique([entityId, revisionNumber])
   @@map("entity_versions")
@@ -297,7 +314,7 @@ model EntityVersion {
 /// metadata, not historical rule snapshots, so removing one loses nothing
 /// that M0/M1's history-preservation principle is protecting.
 model EntityAlias {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   entityId String @map("entity_id") @db.Uuid
   entity   Entity @relation(fields: [entityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
@@ -362,7 +379,7 @@ enum KeywordAssignmentSource {
 /// nothing yet for it to track. Same reasoning as EntityVersion's
 /// originally-omitted `updatedAt` in M1-WO2.
 model KeywordCategory {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   /// Reuses the exact same CanonicalKey grammar/validation as Entity and
   /// every other canonical key in this platform — no parallel key format.
@@ -393,7 +410,7 @@ model KeywordCategory {
 ///
 /// No `updatedAt` — same reasoning as KeywordCategory above.
 model KeywordDefinition {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   /// Reuses CanonicalKey validation — not a Keyword-specific duplicate
   /// validator.
@@ -546,7 +563,7 @@ enum RelationshipType {
 /// display-name non-emptiness, etc. are all validated before anything
 /// reaches Prisma).
 model EntityRelationship {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   sourceEntityId String @map("source_entity_id") @db.Uuid
   sourceEntity   Entity @relation("EntityRelationshipSource", fields: [sourceEntityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
@@ -628,7 +645,7 @@ enum SourceAuthorityStatus {
 /// (M1-WO5): no update operation exists for SourceDocument in this Work
 /// Order, so there is nothing yet for it to track.
 model SourceDocument {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   title      String
   sourceType SourceDocumentType @map("source_type")
@@ -683,7 +700,7 @@ model SourceDocument {
 /// SourceBlock/field-level provenance model can implement more precise
 /// identity if that turns out to be needed.
 model SourceReference {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   sourceDocumentId String         @map("source_document_id") @db.Uuid
   sourceDocument   SourceDocument @relation(fields: [sourceDocumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
