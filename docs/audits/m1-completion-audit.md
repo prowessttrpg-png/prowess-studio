@@ -260,3 +260,27 @@ The authoring sandbox could not run Prisma, so two classes of defect were invisi
 to it: type errors that only exist under real generated types (F-5), and runtime
 behavior that differs between Prisma's engine and the driver adapter (F-6). Earlier
 "verified locally" claims were limited accordingly, and CI is the only authority.
+
+### Second CI round (API integration step)
+**Evidence:** 50 of 51 API integration tests passed on the first real run —
+including all 15 tests of the canonical reproducibility scenario
+(`m1-audit-api`), the error-mapping suite, and the Version lifecycle API suite.
+Both remaining problems were defects in test code, not in the product.
+
+### F-9 — FIXED, test defect: incomplete cleanup poisoned later files
+`keyword-api` is the only API file that creates Version-level Keyword rows, and
+none of the seven per-file `afterAll` blocks deleted them. Its own teardown hit a
+foreign-key error and left residue; every later file's prefix-wide cleanup then
+failed too (the files that ran *before* it all passed — which is how the cause
+was pinned). Replaced all seven blocks with one complete, FK-ordered helper
+(`tests/integration/cleanup.ts`). Not a product bug — the schema's `RESTRICT`
+foreign keys did exactly their job.
+
+### F-10 — FIXED, test defect: wrong assumption about search, plus a vacuous test
+The pagination test searched for a canonical key, but `search` matches aliases and
+revision display names only (canonical key is a separate exact filter — by design,
+documented in `api-layer.md`). The `entityType` test passed only because `every()`
+over an empty list is trivially true. Both now assert real, non-empty results.
+**Audit consequence:** one previously "passing" API test proved nothing. Other
+tests using `every`/`some` over API results should be reviewed for the same
+vacuity.

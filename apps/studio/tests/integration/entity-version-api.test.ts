@@ -2,7 +2,7 @@
  * EntityVersion API route handler tests (PAS-10 M1-WO8 §35) — proves the
  * HTTP layer preserves every lifecycle rule established in M1-WO2/M1-WO3.
  */
-import { assertRunningAgainstTestDatabase, prisma } from "@prowess/db";
+import { assertRunningAgainstTestDatabase } from "@prowess/db";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { POST as createEntity } from "../../app/api/entities/route";
 import {
@@ -15,6 +15,7 @@ import {
 } from "../../app/api/entity-versions/[versionId]/route";
 import { POST as transitionStatus } from "../../app/api/entity-versions/[versionId]/status/route";
 import { getRequest, jsonRequest, nextCanonicalKey, routeParams } from "./helpers";
+import { cleanupFixtures } from "./cleanup";
 
 const FIXTURE_PREFIX = "test.api";
 
@@ -34,13 +35,11 @@ describe("EntityVersion API (prowess_studio_test only)", () => {
   });
 
   afterAll(async () => {
-    const entities = await prisma.entity.findMany({
-      where: { canonicalKey: { startsWith: FIXTURE_PREFIX } },
-      select: { id: true },
+    await cleanupFixtures({
+      entityPrefix: FIXTURE_PREFIX,
+      keywordPrefix: FIXTURE_PREFIX,
+      documentTitlePrefix: "Test API ",
     });
-    const ids = entities.map((e) => e.id);
-    await prisma.entityVersion.deleteMany({ where: { entityId: { in: ids } } });
-    await prisma.entity.deleteMany({ where: { canonicalKey: { startsWith: FIXTURE_PREFIX } } });
   });
 
   it("POST .../versions creates a revision without accepting a caller-supplied revisionNumber", async () => {

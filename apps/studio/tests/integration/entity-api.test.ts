@@ -4,11 +4,13 @@
  * `prowess_studio_test` database. See `helpers.ts` for the request-
  * construction helpers.
  */
-import { assertRunningAgainstTestDatabase, prisma } from "@prowess/db";
+import { assertRunningAgainstTestDatabase } from "@prowess/db";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { GET as getEntityDetail } from "../../app/api/entities/[entityId]/route";
 import { GET as listEntities, POST as createEntity } from "../../app/api/entities/route";
+import { POST as createAlias } from "../../app/api/entities/[entityId]/aliases/route";
 import { getRequest, jsonRequest, nextCanonicalKey, routeParams } from "./helpers";
+import { cleanupFixtures } from "./cleanup";
 
 const FIXTURE_PREFIX = "test.api";
 
@@ -18,7 +20,11 @@ describe("Entity API (prowess_studio_test only)", () => {
   });
 
   afterAll(async () => {
-    await prisma.entity.deleteMany({ where: { canonicalKey: { startsWith: FIXTURE_PREFIX } } });
+    await cleanupFixtures({
+      entityPrefix: FIXTURE_PREFIX,
+      keywordPrefix: FIXTURE_PREFIX,
+      documentTitlePrefix: "Test API ",
+    });
   });
 
   it("POST /api/entities creates an Entity and returns 201 with { data }", async () => {
@@ -137,29 +143,50 @@ describe("Entity API (prowess_studio_test only)", () => {
         }),
       );
 
-      const response = await listEntities(
-        getRequest(`http://localhost/api/entities?entityType=KEYWORD&search=${keywordKey}`),
-      );
-      const body = await response.json();
+      // canonicalKey is the exact filter; `search` matches aliases and display
+      // names only, so it must not be used to find an Entity by its key.
+      const hit = await (
+        await listEntities(
+          getRequest(`http://localhost/api/entities?entityType=KEYWORD&canonicalKey=${keywordKey}`),
+        )
+      ).json();
+      expect(hit.data).toHaveLength(1); // non-vacuous: the Entity really is returned
+      expect(hit.data[0].entity.canonicalKey).toBe(keywordKey);
+      expect(hit.data[0].entity.entityType).toBe("KEYWORD");
 
-      expect(body.data.every((item: { entity: { entityType: string } }) => item.entity.entityType === "KEYWORD")).toBe(
-        true,
-      );
+      const wrongType = await (
+        await listEntities(
+          getRequest(`http://localhost/api/entities?entityType=GENERIC_RULE&canonicalKey=${keywordKey}`),
+        )
+      ).json();
+      expect(wrongType.data).toHaveLength(0);
     });
 
     it("respects pagination (page, pageSize) and returns correct totalPages", async () => {
       const base = nextCanonicalKey("list_pagination");
+      // `search` matches aliases and revision display names — NOT canonical keys —
+      // so the fixtures carry an alias containing a unique term.
+      const term = `apipage${Date.now()}`;
       for (let i = 0; i < 3; i += 1) {
-        await createEntity(
-          jsonRequest("http://localhost/api/entities", "POST", {
-            entityType: "GENERIC_RULE",
-            canonicalKey: `${base}.${i}`,
+        const created = await (
+          await createEntity(
+            jsonRequest("http://localhost/api/entities", "POST", {
+              entityType: "GENERIC_RULE",
+              canonicalKey: `${base}.${i}`,
+            }),
+          )
+        ).json();
+        const aliasResponse = await createAlias(
+          jsonRequest(`http://localhost/api/entities/${created.data.id}/aliases`, "POST", {
+            alias: `${term} item ${i}`,
           }),
+          routeParams({ entityId: created.data.id }),
         );
+        expect(aliasResponse.status).toBe(201);
       }
 
       const response = await listEntities(
-        getRequest(`http://localhost/api/entities?search=${base}&page=1&pageSize=2`),
+        getRequest(`http://localhost/api/entities?search=${term}&page=1&pageSize=2`),
       );
       const body = await response.json();
 

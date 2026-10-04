@@ -1,4 +1,4 @@
-import { assertRunningAgainstTestDatabase, prisma } from "@prowess/db";
+import { assertRunningAgainstTestDatabase } from "@prowess/db";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { POST as createEntity } from "../../app/api/entities/route";
 import { POST as createVersion } from "../../app/api/entities/[entityId]/versions/route";
@@ -13,6 +13,7 @@ import {
   POST as assignVersionKeyword,
 } from "../../app/api/entity-versions/[versionId]/keywords/route";
 import { getRequest, jsonRequest, nextCanonicalKey, routeParams } from "./helpers";
+import { cleanupFixtures } from "./cleanup";
 
 const FIXTURE_PREFIX = "test.api";
 
@@ -42,16 +43,10 @@ describe("Keyword API (prowess_studio_test only)", () => {
   });
 
   afterAll(async () => {
-    const entities = await prisma.entity.findMany({
-      where: { canonicalKey: { startsWith: FIXTURE_PREFIX } },
-      select: { id: true },
-    });
-    const ids = entities.map((e) => e.id);
-    await prisma.entityKeyword.deleteMany({ where: { entityId: { in: ids } } });
-    await prisma.entityVersion.deleteMany({ where: { entityId: { in: ids } } });
-    await prisma.entity.deleteMany({ where: { canonicalKey: { startsWith: FIXTURE_PREFIX } } });
-    await prisma.keywordDefinition.deleteMany({
-      where: { canonicalKey: { startsWith: FIXTURE_PREFIX } },
+    await cleanupFixtures({
+      entityPrefix: FIXTURE_PREFIX,
+      keywordPrefix: FIXTURE_PREFIX,
+      documentTitlePrefix: "Test API ",
     });
   });
 

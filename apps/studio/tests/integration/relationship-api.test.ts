@@ -1,9 +1,10 @@
-import { assertRunningAgainstTestDatabase, prisma } from "@prowess/db";
+import { assertRunningAgainstTestDatabase } from "@prowess/db";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { POST as createEntity } from "../../app/api/entities/route";
 import { GET as getRelationships } from "../../app/api/entities/[entityId]/relationships/route";
 import { POST as createRelationship } from "../../app/api/relationships/route";
 import { getRequest, jsonRequest, nextCanonicalKey, routeParams } from "./helpers";
+import { cleanupFixtures } from "./cleanup";
 
 const FIXTURE_PREFIX = "test.api";
 
@@ -23,15 +24,11 @@ describe("EntityRelationship API (prowess_studio_test only)", () => {
   });
 
   afterAll(async () => {
-    const entities = await prisma.entity.findMany({
-      where: { canonicalKey: { startsWith: FIXTURE_PREFIX } },
-      select: { id: true },
+    await cleanupFixtures({
+      entityPrefix: FIXTURE_PREFIX,
+      keywordPrefix: FIXTURE_PREFIX,
+      documentTitlePrefix: "Test API ",
     });
-    const ids = entities.map((e) => e.id);
-    await prisma.entityRelationship.deleteMany({
-      where: { OR: [{ sourceEntityId: { in: ids } }, { targetEntityId: { in: ids } }] },
-    });
-    await prisma.entity.deleteMany({ where: { canonicalKey: { startsWith: FIXTURE_PREFIX } } });
   });
 
   it("creates a relationship and retrieves it on both the outgoing and incoming sides", async () => {

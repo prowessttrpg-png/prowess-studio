@@ -1,4 +1,4 @@
-import { assertRunningAgainstTestDatabase, prisma } from "@prowess/db";
+import { assertRunningAgainstTestDatabase } from "@prowess/db";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { POST as createEntity } from "../../app/api/entities/route";
 import {
@@ -7,6 +7,7 @@ import {
 } from "../../app/api/entities/[entityId]/aliases/route";
 import { GET as searchAliases } from "../../app/api/entity-aliases/search/route";
 import { getRequest, jsonRequest, nextCanonicalKey, routeParams } from "./helpers";
+import { cleanupFixtures } from "./cleanup";
 
 const FIXTURE_PREFIX = "test.api";
 
@@ -26,13 +27,11 @@ describe("EntityAlias API (prowess_studio_test only)", () => {
   });
 
   afterAll(async () => {
-    const entities = await prisma.entity.findMany({
-      where: { canonicalKey: { startsWith: FIXTURE_PREFIX } },
-      select: { id: true },
+    await cleanupFixtures({
+      entityPrefix: FIXTURE_PREFIX,
+      keywordPrefix: FIXTURE_PREFIX,
+      documentTitlePrefix: "Test API ",
     });
-    const ids = entities.map((e) => e.id);
-    await prisma.entityAlias.deleteMany({ where: { entityId: { in: ids } } });
-    await prisma.entity.deleteMany({ where: { canonicalKey: { startsWith: FIXTURE_PREFIX } } });
   });
 
   it("creates and lists aliases for an Entity", async () => {

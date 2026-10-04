@@ -6,7 +6,7 @@
  * apps/studio/tests/unit/api-helpers.test.ts. No raw Prisma code may
  * appear in any response body.
  */
-import { assertRunningAgainstTestDatabase, prisma } from "@prowess/db";
+import { assertRunningAgainstTestDatabase } from "@prowess/db";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { POST as createEntity } from "../../app/api/entities/route";
 import { GET as getEntityDetail } from "../../app/api/entities/[entityId]/route";
@@ -18,6 +18,7 @@ import { POST as createKeyword } from "../../app/api/keywords/route";
 import { POST as assignEntityKeyword } from "../../app/api/entities/[entityId]/keywords/route";
 import { GET as getSourceDocument } from "../../app/api/source-documents/[sourceDocumentId]/route";
 import { getRequest, jsonRequest, nextCanonicalKey, routeParams } from "./helpers";
+import { cleanupFixtures } from "./cleanup";
 
 const FIXTURE_PREFIX = "test.api";
 const NONEXISTENT_ID = "00000000-0000-4000-8000-000000000000";
@@ -51,19 +52,10 @@ describe("HTTP error regression (prowess_studio_test only)", () => {
   });
 
   afterAll(async () => {
-    const entities = await prisma.entity.findMany({
-      where: { canonicalKey: { startsWith: FIXTURE_PREFIX } },
-      select: { id: true },
-    });
-    const ids = entities.map((e) => e.id);
-    await prisma.entityKeyword.deleteMany({ where: { entityId: { in: ids } } });
-    await prisma.entityRelationship.deleteMany({
-      where: { OR: [{ sourceEntityId: { in: ids } }, { targetEntityId: { in: ids } }] },
-    });
-    await prisma.entityVersion.deleteMany({ where: { entityId: { in: ids } } });
-    await prisma.entity.deleteMany({ where: { canonicalKey: { startsWith: FIXTURE_PREFIX } } });
-    await prisma.keywordDefinition.deleteMany({
-      where: { canonicalKey: { startsWith: FIXTURE_PREFIX } },
+    await cleanupFixtures({
+      entityPrefix: FIXTURE_PREFIX,
+      keywordPrefix: FIXTURE_PREFIX,
+      documentTitlePrefix: "Test API ",
     });
   });
 

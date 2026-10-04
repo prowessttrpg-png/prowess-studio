@@ -1,4 +1,4 @@
-import { assertRunningAgainstTestDatabase, prisma } from "@prowess/db";
+import { assertRunningAgainstTestDatabase } from "@prowess/db";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { POST as createEntity } from "../../app/api/entities/route";
 import { POST as createVersion } from "../../app/api/entities/[entityId]/versions/route";
@@ -8,6 +8,7 @@ import {
   POST as attachSource,
 } from "../../app/api/entity-versions/[versionId]/sources/route";
 import { getRequest, jsonRequest, nextCanonicalKey, routeParams } from "./helpers";
+import { cleanupFixtures } from "./cleanup";
 
 const FIXTURE_PREFIX = "test.api";
 
@@ -27,21 +28,11 @@ describe("Source provenance API (prowess_studio_test only)", () => {
   });
 
   afterAll(async () => {
-    const entities = await prisma.entity.findMany({
-      where: { canonicalKey: { startsWith: FIXTURE_PREFIX } },
-      select: { id: true },
+    await cleanupFixtures({
+      entityPrefix: FIXTURE_PREFIX,
+      keywordPrefix: FIXTURE_PREFIX,
+      documentTitlePrefix: "Test API ",
     });
-    const ids = entities.map((e) => e.id);
-    const versions = await prisma.entityVersion.findMany({
-      where: { entityId: { in: ids } },
-      select: { id: true },
-    });
-    await prisma.sourceReference.deleteMany({
-      where: { entityVersionId: { in: versions.map((v) => v.id) } },
-    });
-    await prisma.entityVersion.deleteMany({ where: { entityId: { in: ids } } });
-    await prisma.entity.deleteMany({ where: { canonicalKey: { startsWith: FIXTURE_PREFIX } } });
-    await prisma.sourceDocument.deleteMany({ where: { title: { startsWith: "Test API " } } });
   });
 
   it("creates a SourceDocument, attaches it to a Version, and retrieves the Version's sources", async () => {
