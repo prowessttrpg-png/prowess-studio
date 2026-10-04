@@ -1,4 +1,4 @@
-import { ApiError } from "./errors.js";
+import { ApiError } from "./errors";
 
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_PAGE_SIZE = 25;

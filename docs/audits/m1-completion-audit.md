@@ -284,3 +284,16 @@ over an empty list is trivially true. Both now assert real, non-empty results.
 **Audit consequence:** one previously "passing" API test proved nothing. Other
 tests using `every`/`some` over API results should be reviewed for the same
 vacuity.
+
+### F-11 — FIXED, production-build bug: `.js` import specifiers in `apps/studio/src/api`
+`next build` failed: Turbopack cannot resolve `./errors.js` (and five siblings) to
+the `errors.ts` beside it. Typecheck, lint, and unit tests all accept `.js`
+specifiers, so only the production build could notice. Fixed by making the nine
+relative imports extensionless; `tests/unit/bundler-import-style.test.ts` now fails
+if any bundled app code reintroduces one.
+**Honest note on how this was missed:** the authoring sandbox's own `next build`
+printed these exact errors (`./errors.js`, `./pagination.js`, …) during M1-WO8.
+They were misattributed, together with the genuinely sandbox-only Prisma errors,
+to "the missing generated client". Two different problems were collapsed into one
+explanation. Lesson: classify build errors individually; never explain a whole
+error list with one cause.

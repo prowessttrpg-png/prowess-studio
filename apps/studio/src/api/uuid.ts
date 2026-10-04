@@ -1,4 +1,4 @@
-import { ApiError } from "./errors.js";
+import { ApiError } from "./errors";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

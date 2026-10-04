@@ -1,4 +1,4 @@
-import { ApiError } from "./errors.js";
+import { ApiError } from "./errors";
 
 /**
  * Parses a request body as JSON, throwing a 400 `ApiError` (caught by the
