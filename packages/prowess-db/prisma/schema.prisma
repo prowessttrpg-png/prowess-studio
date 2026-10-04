@@ -727,3 +727,67 @@ model SourceReference {
   @@index([entityVersionId], map: "source_references_entity_version_id_idx")
   @@map("source_references")
 }
+
+/// Governance lifecycle of a Ruleset (PAS-10 M2-WO1 §6). Deliberately its OWN
+/// vocabulary, not EntityVersionStatus — they describe different lifecycles.
+/// Descriptive only: a status never makes an EntityVersion Canon or selects
+/// content. Kept in lockstep with @prowess/model's RULESET_STATUSES
+/// (packages/prowess-model/src/ruleset-status.ts); the static audit enforces it.
+enum RulesetStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  PUBLISHED
+  DEPRECATED
+  ARCHIVED
+}
+
+/// Release channel of a Ruleset (PAS-08 alignment) — classification metadata
+/// only. It does not publish, select EntityVersions, change Canon, or alter any
+/// mechanic. Kept in lockstep with @prowess/model's RULESET_CHANNELS
+/// (packages/prowess-model/src/ruleset-channel.ts).
+enum RulesetChannel {
+  DEVELOPMENT
+  INTERNAL_PLAYTEST
+  CORE_PLAYTEST
+  EXPERIMENTAL
+  STABLE
+  LEGACY
+}
+
+/// Ruleset — the stable identity and governance lifecycle of a named rules
+/// configuration (PAS-10 M2-WO1). See docs/architecture/ruleset-foundation.md.
+///
+/// Holds NO content and references NO Entity or EntityVersion: which
+/// EntityVersion applies under a Ruleset will be pinned explicitly by a future
+/// RulesetManifest (M2-WO2), never derived from latest revision, CANON status,
+/// revision number, or Source authority. There is deliberately no
+/// current/active/latest anything on this table.
+///
+/// `parentRulesetId` is lineage metadata only (future inheritance) and is chosen
+/// at creation; nothing resolves content through it. ON DELETE RESTRICT: a parent
+/// cannot be physically deleted while children exist.
+model Ruleset {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  canonicalKey String @unique @map("canonical_key")
+
+  name        String
+  description String?
+
+  status  RulesetStatus  @default(DRAFT)
+  channel RulesetChannel
+
+  /// A human-facing label ("0.1", "Core Playtest 2026.10"); never parsed as semver.
+  versionLabel String? @map("version_label")
+
+  parentRulesetId String?   @map("parent_ruleset_id") @db.Uuid
+  parent          Ruleset?  @relation("RulesetLineage", fields: [parentRulesetId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  children        Ruleset[] @relation("RulesetLineage")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([parentRulesetId], map: "rulesets_parent_ruleset_id_idx")
+  @@map("rulesets")
+}

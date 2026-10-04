@@ -470,3 +470,17 @@ step is now a **blocking** gate that invokes Prisma directly (pnpm's recursive r
 failure to exit 1, which had made the step mislabel drift as "the command failed" — F-14). This
 supersedes the earlier "deliberately non-blocking" decision recorded under M1-WO11. M1 is not yet
 marked approved; that waits on the final CI run.
+
+## M2-WO1: Ruleset foundation
+
+Identity and lifecycle only; full design in `docs/architecture/ruleset-foundation.md`. Decisions
+worth keeping: (1) a Ruleset holds NO content and references no Entity/EntityVersion — the
+manifest (M2-WO2) will pin versions explicitly, and nothing is ever derived from latest revision,
+CANON, revision number, or Source authority; (2) `RulesetStatus` is its own vocabulary, not
+`EntityVersionStatus` (they overlap on five labels but mean different things); (3) creation is
+always DRAFT — no caller-supplied status; (4) parent lineage is creation-time metadata with no
+update API, but the cycle check is built and tested now so any future parent-changing operation
+inherits it; INVALID_PARENT and PARENT_CYCLE stay distinct for diagnostic value; (5) the Ruleset
+error codes were added to the central compile-time-exhaustive HTTP map even though no route exists
+(verified: leaving them out is a type error); (6) the M1 database conventions were followed exactly
+from the first commit so the blocking drift gate stays green. No new dependency; no HTTP route; no UI.

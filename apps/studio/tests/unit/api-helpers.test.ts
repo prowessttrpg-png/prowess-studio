@@ -9,6 +9,7 @@ import {
   RELATIONSHIP_ERROR_CODES,
   SOURCE_DOCUMENT_ERROR_CODES,
   SOURCE_REFERENCE_ERROR_CODES,
+  RULESET_ERROR_CODES,
 } from "@prowess/model";
 import { describe, expect, it } from "vitest";
 import {
@@ -44,6 +45,7 @@ const ALL_KNOWN_DOMAIN_ERROR_CODES = [
   ...Object.values(RELATIONSHIP_ERROR_CODES),
   ...Object.values(SOURCE_DOCUMENT_ERROR_CODES),
   ...Object.values(SOURCE_REFERENCE_ERROR_CODES),
+  ...Object.values(RULESET_ERROR_CODES),
 ];
 
 describe("statusForDomainErrorCode", () => {
@@ -67,6 +69,11 @@ describe("statusForDomainErrorCode", () => {
     ["RELATIONSHIP.INVALID_TARGET", 400],
     ["RELATIONSHIP.SELF_REFERENCE", 400],
     ["SOURCE_DOCUMENT.INVALID_INPUT", 400],
+    ["RULESET.NOT_FOUND", 404],
+    ["RULESET.CANONICAL_KEY_CONFLICT", 409],
+    ["RULESET.PARENT_CYCLE", 409],
+    ["RULESET.INVALID_INPUT", 400],
+    ["RULESET.INVALID_PARENT", 400],
   ])("maps %s to %d (documented mapping unchanged by the patch)", (code, expectedStatus) => {
     expect(statusForDomainErrorCode(code)).toBe(expectedStatus);
   });

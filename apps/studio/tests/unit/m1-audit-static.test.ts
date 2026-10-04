@@ -32,7 +32,7 @@ const SCHEMA_CODE = stripPrismaComments(SCHEMA);
 
 describe("M1 audit — no global current-version state (§14)", () => {
   const FORBIDDEN =
-    /\b(is_current|isCurrent|current_version_id|currentVersionId|current_version|currentVersion|active_version|activeVersion|active_rule|activeRule|global_current_revision|globalCurrentRevision)\b/;
+    /\b(is_current|isCurrent|current_version_id|currentVersionId|current_version|currentVersion|active_version|activeVersion|active_rule|activeRule|global_current_revision|globalCurrentRevision|currentEntityVersion|current_entity_version|useLatest|use_latest|useLatestVersion|use_latest_version|automaticLatest|automatic_latest|globalCurrentRule|global_current_rule|currentManifestEntry|current_manifest_entry)\b/;
 
   const scanned: Array<[string, string[]]> = [
     ["@prowess/model", walk(path.join(ROOT, "packages", "prowess-model", "src"), isSource)],
@@ -83,6 +83,8 @@ describe("M1 audit — enum parity between Prisma schema and @prowess/model (§1
     RelationshipType: model.RELATIONSHIP_TYPES,
     SourceDocumentType: model.SOURCE_DOCUMENT_TYPES,
     SourceAuthorityStatus: model.SOURCE_AUTHORITY_STATUSES,
+    RulesetStatus: model.RULESET_STATUSES,
+    RulesetChannel: model.RULESET_CHANNELS,
   };
 
   const schemaEnums = new Map<string, string[]>(
@@ -110,7 +112,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
   >;
   const allCodes = vocabularies.flatMap(([, codes]) => Object.values(codes));
 
-  it("exports the nine M1 vocabularies", () => {
+  it("exports the ten vocabularies (nine from M1, plus Ruleset from M2-WO1)", () => {
     expect(vocabularies.map(([name]) => name).sort()).toEqual(
       [
         "ENTITY_ALIAS_ERROR_CODES",
@@ -120,6 +122,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
         "KEYWORD_CATEGORY_ERROR_CODES",
         "KEYWORD_ERROR_CODES",
         "RELATIONSHIP_ERROR_CODES",
+        "RULESET_ERROR_CODES",
         "SOURCE_DOCUMENT_ERROR_CODES",
         "SOURCE_REFERENCE_ERROR_CODES",
       ].sort(),
@@ -173,8 +176,8 @@ describe("M1 audit — migration chain (§26)", () => {
   const dir = path.join(ROOT, "packages", "prowess-db", "prisma", "migrations");
   const names = readdirSync(dir).filter((e) => statSync(path.join(dir, e)).isDirectory());
 
-  it("is exactly the eight approved migrations, in timestamp order", () => {
-    expect(names).toEqual([
+  it("is exactly the eight frozen M1 migrations followed by the deliberately-added M2 ones, in timestamp order", () => {
+    const M1 = [
       "20260930235722_init",
       "20261001045349_add_entity",
       "20261001212804_add_entity_version",
@@ -183,7 +186,11 @@ describe("M1 audit — migration chain (§26)", () => {
       "20261002025218_add_keyword_foundation",
       "20261002225710_add_entity_relationship",
       "20261002231523_add_source_provenance",
-    ]);
+    ];
+    // M2 migrations are appended deliberately: a new one must be added here on purpose.
+    const M2 = ["20261004233000_add_ruleset_foundation"];
+    expect(names.slice(0, M1.length)).toEqual(M1);
+    expect(names).toEqual([...M1, ...M2]);
     expect([...names].sort()).toEqual(names);
     expect(new Set(names.map((n) => n.slice(0, 14))).size).toBe(names.length);
   });

@@ -278,6 +278,8 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     // function, and no raw Prisma update payload type, ever gets added
     // without this test failing first.
     const exportedNames = Object.keys(DbPackage).sort();
+    // M2-WO1 added createRuleset / findRulesetByCanonicalKey / getRuleset / listRulesets
+    // (read + create only — no Ruleset mutation is exposed yet).
     // M1-WO11: this allowlist was frozen at M1-WO3's 13 names and never
     // updated as M1-WO4..WO8 legitimately added more (found by the first real
     // CI run). It is now the reviewed M1 surface. Adding an export still
@@ -293,6 +295,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "createEntityAlias",
         "createEntityRelationship",
         "createEntityVersion",
+        "createRuleset",
         "createKeywordCategory",
         "createKeywordDefinition",
         "createSourceDocument",
@@ -303,6 +306,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "findEntityVersionsByKeyword",
         "findKeywordCategoryByCanonicalKey",
         "findKeywordDefinitionByCanonicalKey",
+        "findRulesetByCanonicalKey",
         "getEntityById",
         "getEntityRelationship",
         "getEntityVersion",
@@ -311,6 +315,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "getKeywordDefinition",
         "getLatestEntityVersion",
         "getOutgoingRelationships",
+        "getRuleset",
         "getSourceDocument",
         "getSourceReference",
         "listEntities",
@@ -320,6 +325,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "listEntityVersions",
         "listKeywordCategories",
         "listKeywordDefinitions",
+        "listRulesets",
         "listSourceDocuments",
         "listSourceReferencesForDocument",
         "listSourceReferencesForVersion",

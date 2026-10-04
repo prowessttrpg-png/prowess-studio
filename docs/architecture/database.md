@@ -88,6 +88,7 @@ packages/prowess-db/
     source-reference/                      — SourceReference repository + service
                                         (M1-WO7, lifecycle-independent of DRAFT/CANON)
     entity-query/                          — paginated/filtered Entity list query (M1-WO8,
+    ruleset/                               — Ruleset repository + service (M2-WO1; create/read only)
                                         backs GET /api/entities; see docs/architecture/api-layer.md)
       index.ts                            — re-exports the service only
     index.ts                      — package entry point (exports all of the above)
@@ -493,6 +494,19 @@ source-provenance-model.md's "No duplicate-prevention constraint"
 section). Same provenance caveat as the six earlier migrations:
 reconstructed from the schema using the same deterministic conventions,
 since confirmed to deploy cleanly by permanent CI (see the migration-provenance note at the top of this section).
+
+**`20261004233000_add_ruleset_foundation`** (M2-WO1) — adds the Ruleset
+identity/lifecycle foundation: the `RulesetStatus` enum (`DRAFT`, `IN_REVIEW`,
+`APPROVED`, `PUBLISHED`, `DEPRECATED`, `ARCHIVED`), the `RulesetChannel` enum
+(`DEVELOPMENT`, `INTERNAL_PLAYTEST`, `CORE_PLAYTEST`, `EXPERIMENTAL`, `STABLE`,
+`LEGACY`), and the `rulesets` table (`id`, `canonical_key`, `name`, `description`,
+`status` default `DRAFT`, `channel`, `version_label`, `parent_ruleset_id`,
+`created_at`, `updated_at`), with a unique `canonical_key`, an index on
+`parent_ruleset_id`, and a self-referencing foreign key that is `ON DELETE RESTRICT`.
+Follows the M1-WO11-aligned conventions exactly (`DEFAULT gen_random_uuid()` id,
+`DEFAULT CURRENT_TIMESTAMP` on `created_at`, no default on `updated_at`), so the
+blocking drift gate stays at zero differences. No manifest tables, no link to any
+Entity or EntityVersion. See `ruleset-foundation.md`.
 
 ## Migration commands
 

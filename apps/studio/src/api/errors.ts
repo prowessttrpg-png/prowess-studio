@@ -7,6 +7,7 @@ import {
   KEYWORD_CATEGORY_ERROR_CODES,
   KEYWORD_ERROR_CODES,
   RELATIONSHIP_ERROR_CODES,
+  RULESET_ERROR_CODES,
   SOURCE_DOCUMENT_ERROR_CODES,
   SOURCE_REFERENCE_ERROR_CODES,
   type EntityAliasErrorCode,
@@ -16,6 +17,7 @@ import {
   type KeywordCategoryErrorCode,
   type KeywordErrorCode,
   type RelationshipErrorCode,
+  type RulesetErrorCode,
   type SourceDocumentErrorCode,
   type SourceReferenceErrorCode,
 } from "@prowess/model";
@@ -75,6 +77,7 @@ type KnownDomainErrorCode =
   | KeywordErrorCode
   | KeywordAssignmentErrorCode
   | RelationshipErrorCode
+  | RulesetErrorCode
   | SourceDocumentErrorCode
   | SourceReferenceErrorCode;
 
@@ -124,6 +127,7 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [RELATIONSHIP_ERROR_CODES.NOT_FOUND]: 404,
   [SOURCE_DOCUMENT_ERROR_CODES.NOT_FOUND]: 404,
   [SOURCE_REFERENCE_ERROR_CODES.NOT_FOUND]: 404,
+  [RULESET_ERROR_CODES.NOT_FOUND]: 404,
 
   // --- 409: conflict with current state / duplicate ---
   [ENTITY_ERROR_CODES.CANONICAL_KEY_CONFLICT]: 409,
@@ -135,6 +139,10 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [KEYWORD_ERROR_CODES.CANONICAL_KEY_CONFLICT]: 409,
   [KEYWORD_ASSIGNMENT_ERROR_CODES.DUPLICATE]: 409,
   [RELATIONSHIP_ERROR_CODES.DUPLICATE]: 409,
+  [RULESET_ERROR_CODES.CANONICAL_KEY_CONFLICT]: 409,
+  // A cycle depends on the lineage that already exists (state), not on the shape of the
+  // request — the same reasoning as INVALID_STATUS_TRANSITION -> 409.
+  [RULESET_ERROR_CODES.PARENT_CYCLE]: 409,
 
   // --- 400: invalid input / invalid reference within a request body ---
   [ENTITY_ERROR_CODES.INVALID_TYPE]: 400,
@@ -151,6 +159,9 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [RELATIONSHIP_ERROR_CODES.SELF_REFERENCE]: 400,
   [SOURCE_DOCUMENT_ERROR_CODES.INVALID_INPUT]: 400,
   [SOURCE_REFERENCE_ERROR_CODES.INVALID_INPUT]: 400,
+  [RULESET_ERROR_CODES.INVALID_INPUT]: 400,
+  // A bad reference inside a request body — the same reasoning as RELATIONSHIP.INVALID_SOURCE -> 400.
+  [RULESET_ERROR_CODES.INVALID_PARENT]: 400,
 } satisfies Record<KnownDomainErrorCode, number>;
 
 /**
