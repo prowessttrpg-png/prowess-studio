@@ -405,3 +405,24 @@ check, but defended anyway) fails closed to a generic 500
 code. No endpoint, pagination, filter, service behavior, schema, or route
 structure changed. See `docs/architecture/api-layer.md`'s "HTTP status
 mapping" section for the full explanation.
+
+## M1-WO9: Entity Browser UI
+
+Full details -- the API-only architecture, search/filter/pagination/URL-
+state semantics, the latestRevision terminology rule, the detail-page
+section-by-section design, the N+1-avoidance decision for SourceDocument
+titles (client-side parallel fetch rather than a backend change), and why
+Ruleset/current-version selection is still absent -- live in
+docs/architecture/compendium-ui.md. No new dependencies were introduced.
+Five new presentational primitives were added to @prowess/ui
+(EntityTypeBadge, VersionStatusBadge, KeywordChip, EmptyState, Pagination)
+-- all text-labeled by construction, never color-only, satisfying the
+accessibility requirement directly rather than as an afterthought. A real,
+caught-and-fixed issue along the way: the newer react-hooks/
+set-state-in-effect lint rule flagged the standard data-fetch-on-mount
+pattern used by both Compendium pages; resolved with narrow, justified
+eslint-disable comments rather than a disproportionate rewrite into a
+heavier data-fetching architecture (React Query/SWR) this project doesn't
+otherwise use. pageSize was made URL-configurable on the list page
+specifically so automated tests could exercise pagination without needing
+20+ fixtures, per the Work Order's own explicit allowance for this.

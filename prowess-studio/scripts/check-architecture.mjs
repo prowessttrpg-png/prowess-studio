@@ -140,6 +140,18 @@ const RULES = [
     forbiddenSubstrings: ["generated/prisma"],
     reason: "route handlers must use only @prowess/db's public service surface — no direct Prisma, no deep/internal @prowess/db import",
   },
+  {
+    // The Compendium frontend (PAS-10 M1-WO9 §1, §41) must consume ONLY
+    // the HTTP/API layer (apps/studio/app/compendium/_lib/api-client.ts,
+    // which itself only ever calls `fetch`) — unlike `app/api/`, it has no
+    // legitimate reason to import `@prowess/db` at all, bare or deep, so
+    // the whole package name is forbidden here (not just deep sub-paths).
+    name: "apps/studio (app/compendium/)",
+    srcDir: path.join(ROOT, "apps/studio/app/compendium"),
+    forbidden: ["@prisma/client", "@prisma/adapter-pg", "prisma", "@prowess/db"],
+    forbiddenSubstrings: ["generated/prisma"],
+    reason: "the Compendium frontend must consume only the HTTP API layer — no Prisma, no @prowess/db at all (bare or deep)",
+  },
 ];
 
 const violations = [];

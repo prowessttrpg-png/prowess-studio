@@ -136,6 +136,7 @@ extend). Two things are checked:
 | `apps/studio` (`app/`) | the packages below it | `@prisma/client`, `@prisma/adapter-pg`, `prisma` directly (must always go through `@prowess/db`) |
 | `apps/studio` (`src/`) | the packages below it | same as `app/` — application-level modules (config, navigation) are held to the same standard |
 | `apps/studio` (`app/api/`) | `@prowess/db`'s bare public import only | same Prisma bans as `app/`, PLUS any *deep* import into `@prowess/db` internals (e.g. `@prowess/db/src/entity/repository.js`) — API route handlers are the final HTTP boundary (M1-WO8) and must use only the public service surface |
+| `apps/studio` (`app/compendium/`) | the HTTP API only (via `fetch`) | `@prowess/db` entirely — bare or deep — plus the same Prisma bans as everywhere else; the Compendium frontend (M1-WO9) has no legitimate reason to import `@prowess/db` at all |
 
 **Circular workspace dependencies:** every workspace package's declared
 `@prowess/*` dependencies are walked as a graph; any cycle fails the check
@@ -163,6 +164,11 @@ assumed to work):
   file (M1-WO8) and confirmed caught by the new `apps/studio (app/api/)`
   rule specifically — the legitimate bare `@prowess/db` import every real
   route uses was confirmed to cause no false positive.
+- A deliberate bare `@prowess/db` import (not just a deep one) was added
+  to a Compendium page file (M1-WO9) and confirmed caught by the new
+  `apps/studio (app/compendium/)` rule — unlike `app/api/`, even the bare
+  import is forbidden here, since the Compendium has no legitimate reason
+  to import `@prowess/db` at all.
 - All were reverted immediately after confirming the failure — no broken
   test or deliberately-failing check was committed.
 
