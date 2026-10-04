@@ -7,8 +7,8 @@ import {
   type Entity,
   type EntityType,
 } from "@prowess/model";
-import { Prisma } from "../../generated/prisma/client.js";
 import { insertEntity, selectEntityByCanonicalKey, selectEntityById } from "./repository.js";
+import { isUniqueViolation } from "../prisma-errors.js";
 
 /**
  * Entity service — the application/domain boundary for Entity operations
@@ -101,14 +101,8 @@ export async function findEntityByCanonicalKey(canonicalKey: string): Promise<En
 }
 
 function isCanonicalKeyUniqueConstraintViolation(error: unknown): boolean {
-  return (
-    error instanceof Prisma.PrismaClientKnownRequestError &&
-    error.code === "P2002" &&
-    // Prisma's P2002 meta.target names the column(s) involved — scope this
-    // check to canonicalKey specifically rather than treating every
-    // possible future unique-constraint violation on this table the same
-    // way.
-    Array.isArray(error.meta?.target) &&
-    (error.meta.target as string[]).includes("canonical_key")
-  );
+  return isUniqueViolation(error, {
+    constraint: "entities_canonical_key_key",
+    fields: ["canonical_key"],
+  });
 }

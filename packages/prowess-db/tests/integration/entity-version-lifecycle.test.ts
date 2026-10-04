@@ -278,22 +278,67 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     // function, and no raw Prisma update payload type, ever gets added
     // without this test failing first.
     const exportedNames = Object.keys(DbPackage).sort();
+    // M1-WO11: this allowlist was frozen at M1-WO3's 13 names and never
+    // updated as M1-WO4..WO8 legitimately added more (found by the first real
+    // CI run). It is now the reviewed M1 surface. Adding an export still
+    // fails this test first, by design — update the list deliberately.
     expect(exportedNames).toEqual(
       [
+        "UnsafeTestDatabaseResetError",
         "assertRunningAgainstTestDatabase",
         "assertSafeToResetTestDatabase",
+        "assignKeywordToEntity",
+        "assignKeywordToEntityVersion",
         "createEntity",
+        "createEntityAlias",
+        "createEntityRelationship",
         "createEntityVersion",
+        "createKeywordCategory",
+        "createKeywordDefinition",
+        "createSourceDocument",
+        "createSourceReference",
+        "findEntitiesByAlias",
+        "findEntitiesByKeyword",
         "findEntityByCanonicalKey",
+        "findEntityVersionsByKeyword",
+        "findKeywordCategoryByCanonicalKey",
+        "findKeywordDefinitionByCanonicalKey",
         "getEntityById",
+        "getEntityRelationship",
         "getEntityVersion",
+        "getIncomingRelationships",
+        "getKeywordCategory",
+        "getKeywordDefinition",
         "getLatestEntityVersion",
+        "getOutgoingRelationships",
+        "getSourceDocument",
+        "getSourceReference",
+        "listEntities",
+        "listEntityAliases",
+        "listEntityKeywords",
+        "listEntityVersionKeywords",
         "listEntityVersions",
+        "listKeywordCategories",
+        "listKeywordDefinitions",
+        "listSourceDocuments",
+        "listSourceReferencesForDocument",
+        "listSourceReferencesForVersion",
         "prisma",
+        "removeEntityAlias",
+        "removeEntityRelationship",
+        "removeKeywordFromEntity",
+        "removeKeywordFromEntityVersion",
+        "removeSourceReference",
         "transitionEntityVersionStatus",
         "updateDraftEntityVersion",
-        "UnsafeTestDatabaseResetError",
       ].sort(),
     );
+
+    // The property this guard exists for, stated directly: the ONLY mutating
+    // "update"/"set"/"delete"-style operation on a Version is the
+    // lifecycle-aware updateDraftEntityVersion (+ status transition). No
+    // generic bypass may appear, whatever else is added to the surface.
+    const mutatorLike = exportedNames.filter((n) => /^(update|set|patch|overwrite|delete|upsert)/i.test(n));
+    expect(mutatorLike).toEqual(["updateDraftEntityVersion"]);
   });
 });

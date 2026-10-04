@@ -6,6 +6,7 @@ import type {
   Entity as PrismaEntityRow,
   EntityAlias as PrismaEntityAliasRow,
 } from "../../generated/prisma/client.js";
+import { isUniqueViolation } from "../prisma-errors.js";
 
 /**
  * EntityAlias repository — the only place in this package that speaks
@@ -130,18 +131,12 @@ export async function deleteEntityAliasById(id: string): Promise<boolean> {
 /**
  * Whether `error` is Postgres's
  * `(entity_id, normalized_alias, normalized_context)` constraint firing —
- * scoped to exactly that constraint (checked via Prisma's `meta.target`),
+ * scoped to exactly that constraint (matched by constraint name, see `../prisma-errors.ts`),
  * not every possible unique-constraint violation on this table.
  */
 export function isAliasUniqueConstraintViolation(error: unknown): boolean {
-  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") {
-    return false;
-  }
-  const target = error.meta?.target;
-  return (
-    Array.isArray(target) &&
-    (target as string[]).includes("entity_id") &&
-    (target as string[]).includes("normalized_alias") &&
-    (target as string[]).includes("normalized_context")
-  );
+  return isUniqueViolation(error, {
+    constraint: "entity_aliases_entity_alias_context_key",
+    fields: ["entity_id", "normalized_alias", "normalized_context"],
+  });
 }

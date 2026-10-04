@@ -8,6 +8,7 @@ import {
 import { prisma } from "../client.js";
 import { Prisma } from "../../generated/prisma/client.js";
 import type { EntityVersion as PrismaEntityVersionRow } from "../../generated/prisma/client.js";
+import { isUniqueViolation } from "../prisma-errors.js";
 
 /**
  * EntityVersion repository — the only place in this package that speaks
@@ -186,20 +187,15 @@ export async function selectLatestEntityVersion(entityId: string): Promise<Entit
 
 /**
  * Whether `error` is Postgres's `UNIQUE(entity_id, revision_number)`
- * constraint firing — scoped to exactly that constraint (checked via
- * Prisma's `meta.target`), not every possible unique-constraint violation
+ * constraint firing — scoped to exactly that constraint (matched by constraint
+ * name, see `../prisma-errors.ts`), not every possible unique-constraint violation
  * on this table.
  */
 export function isRevisionUniqueConstraintViolation(error: unknown): boolean {
-  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") {
-    return false;
-  }
-  const target = error.meta?.target;
-  return (
-    Array.isArray(target) &&
-    (target as string[]).includes("entity_id") &&
-    (target as string[]).includes("revision_number")
-  );
+  return isUniqueViolation(error, {
+    constraint: "entity_versions_entity_id_revision_number_key",
+    fields: ["entity_id", "revision_number"],
+  });
 }
 
 /**

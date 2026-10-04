@@ -13,6 +13,7 @@ import type {
   Entity as PrismaEntityRow,
   EntityRelationship as PrismaEntityRelationshipRow,
 } from "../../generated/prisma/client.js";
+import { isUniqueViolation } from "../prisma-errors.js";
 
 /**
  * EntityRelationship repository — the only place in this package that
@@ -145,19 +146,13 @@ export async function deleteEntityRelationship(id: string): Promise<boolean> {
 /**
  * Whether `error` is Postgres's
  * `(source_entity_id, target_entity_id, relationship_type)` constraint
- * firing — scoped to exactly that constraint (checked via Prisma's
- * `meta.target`), not every possible unique-constraint violation on this
+ * firing — scoped to exactly that constraint (matched by constraint name,
+ * see `../prisma-errors.ts`), not every possible unique-constraint violation on this
  * table.
  */
 export function isRelationshipUniqueConstraintViolation(error: unknown): boolean {
-  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") {
-    return false;
-  }
-  const target = error.meta?.target;
-  return (
-    Array.isArray(target) &&
-    (target as string[]).includes("source_entity_id") &&
-    (target as string[]).includes("target_entity_id") &&
-    (target as string[]).includes("relationship_type")
-  );
+  return isUniqueViolation(error, {
+    constraint: "entity_relationships_source_target_type_key",
+    fields: ["source_entity_id", "target_entity_id", "relationship_type"],
+  });
 }

@@ -7,7 +7,6 @@ import {
   type CreateKeywordDefinitionInput,
   type KeywordDefinition,
 } from "@prowess/model";
-import { Prisma } from "../../generated/prisma/client.js";
 import { getKeywordCategory } from "../keyword-category/service.js";
 import {
   insertKeywordDefinition,
@@ -15,6 +14,7 @@ import {
   selectKeywordDefinitionById,
   selectKeywordDefinitions,
 } from "./repository.js";
+import { isUniqueViolation } from "../prisma-errors.js";
 
 /**
  * KeywordDefinition service — the application/domain boundary for
@@ -108,10 +108,8 @@ export async function listKeywordDefinitions(categoryId?: string): Promise<Keywo
 }
 
 function isCanonicalKeyUniqueConstraintViolation(error: unknown): boolean {
-  return (
-    error instanceof Prisma.PrismaClientKnownRequestError &&
-    error.code === "P2002" &&
-    Array.isArray(error.meta?.target) &&
-    (error.meta.target as string[]).includes("canonical_key")
-  );
+  return isUniqueViolation(error, {
+    constraint: "keyword_definitions_canonical_key_key",
+    fields: ["canonical_key"],
+  });
 }

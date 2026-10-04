@@ -1,6 +1,6 @@
 # M1 Completion Audit (PAS-10 M1-WO11)
 
-**Status: READY FOR FINAL CI GATE.** This is *not* a PASS. It becomes
+**Status: NOT YET PASSED — the first real CI run found defects (section 11).** This is *not* a PASS. It becomes
 "M1 APPROVED" only after the permanent GitHub Actions workflow succeeds
 against the audit (see "CI result" at the end).
 
@@ -211,3 +211,52 @@ informational drift step's actual output (F-1); lint; typecheck; unit,
 database, API, and the three named audit-gate steps; production build; and
 the full Playwright suite including the M1 audit flow and the mobile
 regression.
+
+## 11. First real CI run — what it found
+
+**Context.** Up to this point none of the M0-WO5 → M1-WO11 work had ever run in
+GitHub Actions: the repository's `main` held only the M0-WO1 tree, and the later
+work sat in a nested `prowess-studio/` folder that the workflow never saw
+(see the synchronization record). Earlier statements in this repository's history
+that CI had passed for those Work Orders cannot be reconciled with that and should
+be disregarded; this section is the first genuine CI evidence.
+
+**What passed on the first run:** install, `prisma validate`, `prisma generate`,
+`migrate deploy` on both databases (the eight-migration chain applied to empty
+databases), then — after fix F-5 — build, lint, architecture, typecheck and unit
+tests (the database-integration step is where the run next stopped).
+
+### F-5 — FIXED: build error in `selectEntitiesByIds` (M1-WO8)
+A loose `(row: { id: string })` annotation, added to quiet a sandbox-only type
+cascade, narrowed a `Map` so `toDomainEntity` rejected it under real Prisma types.
+It also called the converter before skipping a missing row. Fixed (patch 1).
+
+### F-6 — FIXED, production bug: duplicates escaped as raw Prisma errors
+Six detectors (Entity, KeywordCategory, KeywordDefinition, EntityAlias,
+EntityRelationship, EntityVersion revision) recognized a unique violation via
+`error.meta.target`. With Prisma 7's driver adapter that field is absent; the error
+names the *constraint* instead. So duplicate canonical keys / aliases / relationships
+/ keywords would have returned HTTP 500 instead of 409, and revision allocation
+never retried under concurrency (7 of the 11 failures). Fixed with one shared,
+duck-typed detector (`src/prisma-errors.ts`) matching by constraint name, with
+17 unit tests whose error shape is copied from the CI log and whose constraint names
+are pinned to the actual migrations.
+
+### F-7 — FIXED, test defect: integration files destroyed each other's data
+Seven files shared the fixture prefix `test.` with prefix-wide cleanup and ran in
+parallel against one database. Integration configs now set `fileParallelism: false`.
+This is the diagnosed cause of the cleanup FK failures and the "Entity not found"
+failure. **It is the probable (not proven) cause of the lifecycle test's "status
+changed concurrently" failure** — if that test still fails once files run
+sequentially, it is a real bug and must be investigated as one.
+
+### F-8 — FIXED, stale guard: public-export allowlist frozen at M1-WO3
+The test asserted exactly 13 exports; 34 were legitimately added later. The list is
+now the reviewed 47, and the test additionally asserts directly that the only
+update/set/delete-style operation exported is `updateDraftEntityVersion`.
+
+### Lessons recorded
+The authoring sandbox could not run Prisma, so two classes of defect were invisible
+to it: type errors that only exist under real generated types (F-5), and runtime
+behavior that differs between Prisma's engine and the driver adapter (F-6). Earlier
+"verified locally" claims were limited accordingly, and CI is the only authority.
