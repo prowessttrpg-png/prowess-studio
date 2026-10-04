@@ -1,0 +1,440 @@
+PROWESS STUDIO — SYNC MANIFEST
+Generated: 2026-10-04T20:03:43Z
+Source working directory: /home/claude/prowess-studio  (authoring sandbox)
+Git SHA: NONE — this workspace has no .git directory, no remote, and no HEAD.
+         It was never a clone of the GitHub repository. Compare by CHECKSUMS below, not by SHA.
+Contents: complete working tree through M1-WO11, files at zip ROOT (no wrapper folder).
+Excluded (mirrors .gitignore): node_modules, dist, generated, .next, out, coverage, .turbo,
+         playwright-report, test-results, *.tsbuildinfo, .env, .env.local, .env.*.local, .env.production
+File count (excluding this manifest): 265
+
+=== PRISMA MIGRATIONS (expected 8) ===
+20260930235722_init
+20261001045349_add_entity
+20261001212804_add_entity_version
+20261001215241_add_entity_version_updated_at
+20261002022400_add_entity_alias
+20261002025218_add_keyword_foundation
+20261002225710_add_entity_relationship
+20261002231523_add_source_provenance
+count: 8
+
+=== MAJOR M1 SOURCE DIRECTORIES ===
+packages/prowess-model/src            (34 entries)
+packages/prowess-db/src/entity-alias/  (3 files)
+packages/prowess-db/src/entity-keyword/  (3 files)
+packages/prowess-db/src/entity-query/  (3 files)
+packages/prowess-db/src/entity-relationship/  (3 files)
+packages/prowess-db/src/entity-version-keyword/  (3 files)
+packages/prowess-db/src/entity-version/  (3 files)
+packages/prowess-db/src/entity/  (3 files)
+packages/prowess-db/src/keyword-category/  (3 files)
+packages/prowess-db/src/keyword-definition/  (3 files)
+packages/prowess-db/src/source-document/  (3 files)
+packages/prowess-db/src/source-reference/  (3 files)
+packages/prowess-db/prisma/schema.prisma
+packages/prowess-ui/src               (12 entries)
+apps/studio/src/api                   (7 files)
+apps/studio/app/api                   (23 route handlers)
+apps/studio/app/compendium            (22 files)
+docs/architecture                     (15 docs)
+docs/audits                           (1 docs)
+
+=== ROUTES ===
+apps/studio/app/api/entities/[entityId]/aliases/route.ts
+apps/studio/app/api/entities/[entityId]/keywords/[keywordId]/route.ts
+apps/studio/app/api/entities/[entityId]/keywords/route.ts
+apps/studio/app/api/entities/[entityId]/relationships/route.ts
+apps/studio/app/api/entities/[entityId]/route.ts
+apps/studio/app/api/entities/[entityId]/versions/route.ts
+apps/studio/app/api/entities/route.ts
+apps/studio/app/api/entity-aliases/[aliasId]/route.ts
+apps/studio/app/api/entity-aliases/search/route.ts
+apps/studio/app/api/entity-versions/[versionId]/keywords/[keywordId]/route.ts
+apps/studio/app/api/entity-versions/[versionId]/keywords/route.ts
+apps/studio/app/api/entity-versions/[versionId]/route.ts
+apps/studio/app/api/entity-versions/[versionId]/sources/route.ts
+apps/studio/app/api/entity-versions/[versionId]/status/route.ts
+apps/studio/app/api/keyword-categories/route.ts
+apps/studio/app/api/keywords/[keywordId]/route.ts
+apps/studio/app/api/keywords/route.ts
+apps/studio/app/api/relationships/[relationshipId]/route.ts
+apps/studio/app/api/relationships/route.ts
+apps/studio/app/api/source-documents/[sourceDocumentId]/references/route.ts
+apps/studio/app/api/source-documents/[sourceDocumentId]/route.ts
+apps/studio/app/api/source-documents/route.ts
+apps/studio/app/api/source-references/[sourceReferenceId]/route.ts
+apps/studio/app/characters/page.tsx
+apps/studio/app/compendium/entities/[entityId]/page.tsx
+apps/studio/app/compendium/page.tsx
+apps/studio/app/developer/page.tsx
+apps/studio/app/gm/page.tsx
+apps/studio/app/page.tsx
+apps/studio/app/publishing/page.tsx
+apps/studio/app/studio/page.tsx
+apps/studio/app/world/page.tsx
+
+=== TEST SUITE FILES ===
+-- unit (packages)
+packages/prowess-db/tests/unit/testDatabaseGuard.test.ts
+packages/prowess-model/src/canonical-key.test.ts
+packages/prowess-model/src/change-type.test.ts
+packages/prowess-model/src/entity-alias.test.ts
+packages/prowess-model/src/entity-relationship.test.ts
+packages/prowess-model/src/entity-version-lifecycle.test.ts
+packages/prowess-model/src/entity-version.test.ts
+packages/prowess-model/src/index.test.ts
+packages/prowess-model/src/keyword-assignment-source.test.ts
+packages/prowess-model/src/keyword-definition.test.ts
+packages/prowess-model/src/relationship-type.test.ts
+packages/prowess-model/src/source-document-type.test.ts
+packages/prowess-model/src/source-document.test.ts
+packages/prowess-ui/src/index.test.tsx
+-- unit (apps/studio)
+apps/studio/tests/unit/api-helpers.test.ts
+apps/studio/tests/unit/app-shell.test.tsx
+apps/studio/tests/unit/compendium-api-client.test.ts
+apps/studio/tests/unit/compendium-components.test.tsx
+apps/studio/tests/unit/compendium-detail-view.test.tsx
+apps/studio/tests/unit/compendium-revision-selection.test.ts
+apps/studio/tests/unit/compendium-source-cache.test.ts
+apps/studio/tests/unit/compendium-terminology.test.ts
+apps/studio/tests/unit/compendium-version-history-components.test.tsx
+apps/studio/tests/unit/config-centralized.test.ts
+apps/studio/tests/unit/config-env-files.test.ts
+apps/studio/tests/unit/config-server-only.test.ts
+apps/studio/tests/unit/config-validate.test.ts
+apps/studio/tests/unit/m1-audit-static.test.ts
+apps/studio/tests/unit/navigation.test.ts
+apps/studio/tests/unit/pages.test.ts
+-- db integration
+packages/prowess-db/tests/integration/entity-alias.test.ts
+packages/prowess-db/tests/integration/entity-keyword.test.ts
+packages/prowess-db/tests/integration/entity-relationship.test.ts
+packages/prowess-db/tests/integration/entity-version-keyword.test.ts
+packages/prowess-db/tests/integration/entity-version-lifecycle.test.ts
+packages/prowess-db/tests/integration/entity-version.test.ts
+packages/prowess-db/tests/integration/entity.test.ts
+packages/prowess-db/tests/integration/keyword-definition.test.ts
+packages/prowess-db/tests/integration/m1-audit.test.ts
+packages/prowess-db/tests/integration/persistence.test.ts
+packages/prowess-db/tests/integration/source-provenance.test.ts
+-- api integration
+apps/studio/tests/integration/entity-alias-api.test.ts
+apps/studio/tests/integration/entity-api.test.ts
+apps/studio/tests/integration/entity-version-api.test.ts
+apps/studio/tests/integration/error-mapping-api.test.ts
+apps/studio/tests/integration/keyword-api.test.ts
+apps/studio/tests/integration/m1-audit-api.test.ts
+apps/studio/tests/integration/relationship-api.test.ts
+apps/studio/tests/integration/source-api.test.ts
+-- e2e (Playwright)
+apps/studio/tests/e2e/boot.spec.ts
+apps/studio/tests/e2e/compendium.spec.ts
+apps/studio/tests/e2e/m1-audit.spec.ts
+apps/studio/tests/e2e/version-history.spec.ts
+declared tests: db-integration=126 api-integration=51 playwright=27
+architecture rules: 7
+
+=== CI STEPS (.github/workflows/ci.yml) ===
+job: ci — 27 steps
+ 1. Checkout
+ 2. Set up pnpm
+ 3. Set up Node.js
+ 4. Wait for PostgreSQL to be ready
+ 5. Create dev and test databases
+ 6. Install dependencies (frozen lockfile)
+ 7. Prisma schema validation
+ 8. Prisma Client generation
+ 9. Deploy migrations (development database)
+10. Deploy migrations (test database)
+11. Schema drift check — migrations vs schema.prisma (informational)
+12. Build workspace packages
+13. Lint
+14. Architecture boundary checks
+15. Typecheck
+16. Unit tests (packages)
+17. Database integration tests
+18. UI/component tests (apps/studio)
+19. API integration tests (apps/studio)
+20. M1 audit gate — static invariants (no current-version state, enum parity, errors, migrations, layering)
+21. M1 audit gate — database-level suite
+22. M1 audit gate — API-level reproducibility suite
+23. Guarded reset of the test database
+24. Verify safety guard refuses a non-test target
+25. Install Playwright browsers
+26. Build (production)
+27. End-to-end tests (Playwright)
+
+=== QUICK FINGERPRINTS (check these first after syncing) ===
+bf89cb15527a4e7113a55633e83187f53e5e2b7c262563a8d3f652cde845ca3c  .github/workflows/ci.yml
+d24fffbb81d1d38e85db303974cc5163634bd3e73db43154d535780592b46788  packages/prowess-db/prisma/schema.prisma
+7bd7a8e7d33ce7098e67396e71589182e2ec02d6177492d21d75e57ea6d71686  scripts/check-architecture.mjs
+e7ad6910aa23e02669136ca4c9b08120da8376683e79eb88347ffd73fb201109  pnpm-lock.yaml
+
+=== FILE CHECKSUMS (sha256, every file in the zip except this manifest) ===
+bf89cb15527a4e7113a55633e83187f53e5e2b7c262563a8d3f652cde845ca3c  .github/workflows/ci.yml
+768d6c50eed23e29a1fe05e2d5d410ace6b0ba4312c9cdd57ce1a6cdbf8dfca9  .gitignore
+31e5fcfb4f99cc9b463b7b7dc92fa6d8296b7daf60f1fbdb1746054a33388dca  .npmrc
+8e0cfab5bdc87fb5e234f4614651350952e18f18c436bb1fdc6239bb3e4f4ee9  README.md
+76d8a114329f3c17369f25935599686361530de17360d59503b3a2349e82e30b  apps/studio/.env.development
+f7b7517737e70cde8d7825c768befa44cd3e23b0939481508c26fc23d387a38f  apps/studio/.env.example
+dce3f31c58514a2bd822a6678ad1bec6497227ca0943ef1079f2371478206bc0  apps/studio/.env.production.example
+6040c7c7213ee6d6fbe878d20021cd8f4a776d44ec5ee44b8765ea9dcbe3ae71  apps/studio/.env.test
+4b9f6dc0206a9e988d02bf6fc592fd25c9f7020147c7ded0fdfb1c933e7d9300  apps/studio/app/api/entities/[entityId]/aliases/route.ts
+8e58037b9b089a3e496bcf98e3ce90d174ac3e14666a8f0d60aeeb202a60fc21  apps/studio/app/api/entities/[entityId]/keywords/[keywordId]/route.ts
+8a99d1a84848fc0818586ae69fe872c9233d20811a75a25ad6ec5959e3bc5032  apps/studio/app/api/entities/[entityId]/keywords/route.ts
+288ebd0b5544b9393584bb8dcfbf1b48d2462109f78822a0b226705828e936a8  apps/studio/app/api/entities/[entityId]/relationships/route.ts
+0861b63fcf7446af2205f4eb4223834c9dfe947cd27e139de7e9a21ea5985932  apps/studio/app/api/entities/[entityId]/route.ts
+1457227b0376f53b7308f2138dfe6e90226eee7d776ce71cb9ea933c794494bb  apps/studio/app/api/entities/[entityId]/versions/route.ts
+85edd5d09b936ae84e67f170bf73c268b9055d0a1fb01f49072a69877a4243b9  apps/studio/app/api/entities/route.ts
+19278064e8afa3e7c801c22b31a95b14816e2fa7c5c6c1a95e90a3edbb1ac36d  apps/studio/app/api/entity-aliases/[aliasId]/route.ts
+21471d3d98126e17542ad1bd79f4bb9bcf7e75d4331ca4f1ca1d08d614baf07a  apps/studio/app/api/entity-aliases/search/route.ts
+df9a18faa5beb8d85e30b297982c87b48b81fc2394200db969c3ef3fa3f14333  apps/studio/app/api/entity-versions/[versionId]/keywords/[keywordId]/route.ts
+a54cb24c4f879ce5293b1e740b43a16ee14dfc8d909d371e25d8c247980a9fa0  apps/studio/app/api/entity-versions/[versionId]/keywords/route.ts
+4609a36d9174c5331e8e58045bfdc7f824114c462bf91e376f453c93b5827139  apps/studio/app/api/entity-versions/[versionId]/route.ts
+ca751122b90735c9d90eb04e891b79f66f2e73c4d1ab66d687f22e1dce9b78f1  apps/studio/app/api/entity-versions/[versionId]/sources/route.ts
+2da0f8abd86d04401a56df57fcfe04f83635d2a95a1e9a3dd137210dfc72bb9a  apps/studio/app/api/entity-versions/[versionId]/status/route.ts
+6b63f79920ce44bb0a942bb82e5bd63fe419311ea5abef080568242d3ce47da1  apps/studio/app/api/keyword-categories/route.ts
+49a5a610622c7fba942086db66da076f57b738ecf13d363b251f07ed670081dc  apps/studio/app/api/keywords/[keywordId]/route.ts
+07b0660f5977871ea5cbfbf94c2e242db855d746656fb2ae65689e83a534a01f  apps/studio/app/api/keywords/route.ts
+6f369363ced0bec182278f677110654067d787d85b8aad7744734bc43ed41cf2  apps/studio/app/api/relationships/[relationshipId]/route.ts
+6061bad920563dd618a1d749863af36bf5b922a5f9dd1a10503255397e025b15  apps/studio/app/api/relationships/route.ts
+7e2e4058ac53eedd1e8a739e287b3482830779361de37078d4b9b74eca2cbafd  apps/studio/app/api/source-documents/[sourceDocumentId]/references/route.ts
+f3ac5e3850c306dddc26a53bcd9b6af77872b04d63c3e0e0607a45e18e7b3698  apps/studio/app/api/source-documents/[sourceDocumentId]/route.ts
+63292d74addb9c7150498cecf27bd5827d332965b67516d27f9e90dcab0d1c1f  apps/studio/app/api/source-documents/route.ts
+2f71939eb27d61c2f065be01252e16cd2ffe280ad9d059801e60386add85e5c5  apps/studio/app/api/source-references/[sourceReferenceId]/route.ts
+3a45994f5914718108b9941ec9de8f3d2303e16e06ef6b7f7718a11162e2c1db  apps/studio/app/characters/page.tsx
+a753846b7bc7eb8c6298c15fbc3f0bb8cea1f5e0dcfd79521ecce60838995e0e  apps/studio/app/compendium/_components/AliasList.tsx
+5d84e65a1d3ce0925d409f731ed7478b922d4ac16aac5b9847d239a5a7caa4df  apps/studio/app/compendium/_components/ComparisonControls.tsx
+b226506933e4d4cbc79db7870604aea9866a1717d13821fe854c5ead983c7f9f  apps/studio/app/compendium/_components/EntityDetailView.tsx
+38b34e9f05b4f063344dc3b7d3435da746602b4a964073630de9d76303dfa19c  apps/studio/app/compendium/_components/EntityFilters.tsx
+510efb4a51a198acff16d89f763948f510ddee912001e14e4c3869ef4831eac2  apps/studio/app/compendium/_components/EntityListRow.tsx
+e8d136f3d5b1dd00e62de494d692e6dd33d86fe671db4c25e324ad9e6a5bcfbf  apps/studio/app/compendium/_components/ErrorState.tsx
+2f4af2d21e52d439562414434f63ee6dd0bfc95b37377420071f782321dd3912  apps/studio/app/compendium/_components/IdentitySection.tsx
+96b0abfb25be5285a0e04c223aee74cd332acdf55929bedc365934390504f839  apps/studio/app/compendium/_components/KeywordSection.tsx
+f9e30c86fc0ede5e97a47df3c37c72ff8890bf1d3f84678946fd4afa9685053a  apps/studio/app/compendium/_components/LoadingState.tsx
+cfce03c3bd8038a0d610159cc217b07bb714a9966c93dbee6179f9db3359700f  apps/studio/app/compendium/_components/RelationshipSection.tsx
+c4fc360b3415486a39a1f71a474ce872b9772901eaa39de7eac144cb8abba64a  apps/studio/app/compendium/_components/RevisionComparison.tsx
+b50f4ce8fa8cd1715abfbb1934bb45c3236d9661ddac9bee6dcb25ca7c793d50  apps/studio/app/compendium/_components/RevisionSection.tsx
+0da742fa32c559edae8535d7df56e595578fa11b0c6bfb1c4d97f010cc7d3cd9  apps/studio/app/compendium/_components/SourceReferenceSection.tsx
+2b9fde6b1e5d2a2d0c0afd7abf9e1fd8d30716443ae52ee3681bedfbf30f14b5  apps/studio/app/compendium/_components/StructuredDataViewer.tsx
+0e7b159892b4a34552494ee5c26497de85f3bb477c6e4436c92835fe2a21e3fd  apps/studio/app/compendium/_components/VersionHistoryList.tsx
+6b91d3be5cfe00ba6b62701f69c5c09f508828792908dd3c4895b1ed9806d32c  apps/studio/app/compendium/_components/VersionScopedSection.tsx
+fd472584a935a2460acf15e667ffba94040eebef0f8aa44265511048e6cc9aa0  apps/studio/app/compendium/_lib/api-client.ts
+65950a6bd8086890dfd4212224be50e7d3a2a0cd63972237cf3c5eaf9676d910  apps/studio/app/compendium/_lib/detail-url.ts
+4bf5e3b263089e2cc5d6bd2d8e667f1eebc408e6668a3780dbe046648c8f29de  apps/studio/app/compendium/_lib/revision-selection.ts
+92156ee9952a1ea5b761f69582b8825cef3429c2e1445a354e95826af718bf82  apps/studio/app/compendium/_lib/use-version-details.ts
+eef06f8fdb6bd580687f63058d21d8d39df577faf34789e3450288dabce1cd8f  apps/studio/app/compendium/entities/[entityId]/page.tsx
+53f906087d59e8c8bcffa8f019d8b13371fa13d8b5cafd95c0a03008ac9877eb  apps/studio/app/compendium/page.tsx
+d6691bd126003de80d6d1663c0756aa0594ca4731924f58cd966389c6d7a2e35  apps/studio/app/components/AppShell.tsx
+4122777fe9e194c98db1c779a1489cff9109658dae7caa2bbea43435a542b9d7  apps/studio/app/developer/page.tsx
+2efa7399264f3ebb1813c11d1059f2bb43dd63bb57b4bc2ba0ea9e6a64609644  apps/studio/app/globals.css
+5b1d146c4b22310a4b208564b6b7cac81d3a9e0ced2f05d88a7de709f5f59189  apps/studio/app/gm/page.tsx
+8c7647dc1aeca3ad60e3a0971b0d21522d3eb351bd18a63d268fb30c9ed43196  apps/studio/app/layout.tsx
+6a30e10c21dfdc520f705fffd68b7837786ad2972b45e50c8645f5816dc94675  apps/studio/app/page.tsx
+b21edfcbc574f0ede1286b8f26082b9086538c428ad5ee933bbe23beb2e369bc  apps/studio/app/publishing/page.tsx
+8e8fb027c5848699a136e8ce13ba6ec58589d38f69b206611d3b3b364b6a3ac5  apps/studio/app/studio/page.tsx
+e6706f1aa2ef0808a3f51dee2403b08cd38ff7774c5c54b06315b287a38ad56d  apps/studio/app/world/page.tsx
+da4068a2b25ed8c3ca0c693966726bb7b6d5509fac8be8f39588dd9041f1d0be  apps/studio/eslint.config.mjs
+0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc  apps/studio/next-env.d.ts
+9d997815e40b6b51871860912857c829aabead42eb9143649bd2055498d18a04  apps/studio/next.config.ts
+1ee0213d3ef078948eac7dc329e15dab8dc92a8a8e004448314f49b4a16c343a  apps/studio/package.json
+a240784308dc527a2a6736fbd3ded7c58a76ef2dde179474290b5d583e6fdec9  apps/studio/playwright.config.ts
+f605cbb047c7daec4da88091784616584031d48b2c5a67156c5c3ff9b365b0e5  apps/studio/src/api/errors.ts
+8620e701bd490397101ad2ae5b2274600c2859035108c479ea075998ebfb8d43  apps/studio/src/api/index.ts
+027dd79879143347362efa8c84228b8ca4b504e2e13cb1a3cf9275d329599903  apps/studio/src/api/pagination.ts
+50d4418cd341326be1451833eaf7618789da69d815b9296e49212a0605688ea9  apps/studio/src/api/request.ts
+50b95b0a022232002a3c5405795fdf474bf06e1c7161f1ff7cc4a17ffacf8b1e  apps/studio/src/api/response.ts
+135ec7f0a7035c429adad36211b750a0246e656f0f29edd33efebdf2c6d8d8cb  apps/studio/src/api/serialize.ts
+2131e31290ce5fecd7a3b2bc85926d49982b37e01e16062aab6ce23c27b56676  apps/studio/src/api/uuid.ts
+e002b05ac213b05cf3d51cb98ea6950c98d5694588cfe9bead600849e9681fe6  apps/studio/src/config/index.ts
+d8e21cc585a5ec8cae1dbcb55b7ceb40cf5ff8c2447230475f4a014b35432b0e  apps/studio/src/config/load.ts
+6d8001d09fa917ee5cfa8c52139d7de96325a2e85a090da1a5899bd876608d00  apps/studio/src/config/schema.ts
+fc8ae542b8eba1ffddd0929999462199bee7817ddb54b36b711b0b51a378d255  apps/studio/src/config/validate.ts
+ee8d5638c0e9709d294d6766b3fd81e76a83dc4cf37b457bbd350aa74354f3cf  apps/studio/src/navigation.ts
+8c02895ebdb33e2fc156fb28e67e03b6383d5916c4859cf07067015b212e44de  apps/studio/tests/e2e/boot.spec.ts
+48eec57efffc8506cc82a4dc59e0061f94bbaa9ebfcec7bd2f4bda7de4928905  apps/studio/tests/e2e/compendium.spec.ts
+4cbccccacdbb5c7ad38bbc4d1fd33aabe46fad0f8319081efa7d990c8c115356  apps/studio/tests/e2e/m1-audit.spec.ts
+bb5d6ea49168a506ecf18ab92de1019204137696074eba7dfbe80b3f133c693e  apps/studio/tests/e2e/version-history.spec.ts
+2c6ffbeeb586c32d8e28d4cbd85b4b5e5b18d539950563ce9fbc64972b1202ba  apps/studio/tests/integration/entity-alias-api.test.ts
+e8c763d489ccf29fedacfe7479da79bec1239dbd2a39b82e80f3f63d8c7489ed  apps/studio/tests/integration/entity-api.test.ts
+045241a430137af6a0e557229b53c4fc3f8f39cda5efc0657405b3eeeceb3bc0  apps/studio/tests/integration/entity-version-api.test.ts
+7f1a1954f12beb997695da898b7fb3c9fb8e45ac248e74f267b261741567fe60  apps/studio/tests/integration/error-mapping-api.test.ts
+43921ef6418c0d361596dae5317cbc5cbf20d2ca83c7c5daf29c08e049661000  apps/studio/tests/integration/helpers.ts
+c8caff5b63fba164b0c187c0c527a107d014cb2e44a0fcc00a75260cd886a9e6  apps/studio/tests/integration/keyword-api.test.ts
+0fcdcd83d51200d333169aa3ea2e56d58e1db29e00df32136b4b630e48bf8a0c  apps/studio/tests/integration/m1-audit-api.test.ts
+4f6fe387ce860ffb8334f8b330b258ead7acca347758b6e843abac449588b4a0  apps/studio/tests/integration/relationship-api.test.ts
+8eeb14fff33fcd2ede0159c99e028cfdc74edb1b9a352cc4f32e266153d97e60  apps/studio/tests/integration/setup.mjs
+891224c06f2ec4f98f150d29a8a04e2aca073fafced34c9805c2cc699e5f8783  apps/studio/tests/integration/source-api.test.ts
+981d16d816cfa36e30a89fe1181e6e9e4f3feb4edd752247d071d1d958435a24  apps/studio/tests/unit/api-helpers.test.ts
+c7e81e2f2e0a0bece831271f866b4416ce34fd9bb51a2b6a89661ea7958e9bb8  apps/studio/tests/unit/app-shell.test.tsx
+38c7cbad496d36e85240b95bac4618f8003034160aae32652556be2f8c2b0086  apps/studio/tests/unit/compendium-api-client.test.ts
+69aee50a79fb02a22e398392783e304b3bf24743a3341fc2a07029dbd816931a  apps/studio/tests/unit/compendium-components.test.tsx
+e11e54f4f87d187bb820dea3e7a5f0bd82ca6a358dbf0b5b4f95c73e778d1621  apps/studio/tests/unit/compendium-detail-view.test.tsx
+03c020a5c29257fc7974bd13aa86baef9c6a6adfd9abe7b2bbe30f21738724b6  apps/studio/tests/unit/compendium-revision-selection.test.ts
+422259e8d8acac2481c8c17986da47c83a88f8a32bbcf2ae9a4435f30d781f64  apps/studio/tests/unit/compendium-source-cache.test.ts
+928377c4072cc25cefe0db1b5eec86bc6aeea66cfdf8cb75d2c21fec6b333984  apps/studio/tests/unit/compendium-terminology.test.ts
+461284d082e949d7eae8cd2a36b79cd6c779bddd16456b9f0763fb566cde8dec  apps/studio/tests/unit/compendium-version-history-components.test.tsx
+4c8cafd6bb613424119d7d662039ab2be54a0b6aaf39a017ee734faf9369ea19  apps/studio/tests/unit/config-centralized.test.ts
+5cc1992d9c6e4df697351da6099d194a9446af50b3ecd6f29cc0ca0c46cda109  apps/studio/tests/unit/config-env-files.test.ts
+1069b71bebb326178f480d929b8508b7bad65bf96f3cd32391c228d7ae4bf32f  apps/studio/tests/unit/config-server-only.test.ts
+949faa1d2a74999f26bbfbd5e8294d0be21ac86efbee782b9fcf32d354ff96cc  apps/studio/tests/unit/config-validate.test.ts
+362f5cd2f7b569153bfdb5a1c5506f93574116de9dedde6afb7fc10d74df2b91  apps/studio/tests/unit/m1-audit-static.test.ts
+dfd6f92c92236a7a53e507a4fdf07259ec3965b8355fe37243c466d9754607b2  apps/studio/tests/unit/navigation.test.ts
+34c8437594bb4cad1c9494b6733c0177fa60028748f9b9e182924ca69f80687c  apps/studio/tests/unit/pages.test.ts
+4878e4f6790fb787fdf5f3bed46d1d3873d0c297a5302e460f2c12a8d17c4cb6  apps/studio/tsconfig.json
+f0d1351c33b1e39bbded351b3a5e2a3e3e6dbbf2c619eb20a5c177ea162704df  apps/studio/vitest.config.ts
+c4476ddf3c55f9968e02d91640d83c5dc0e506d08c768424a7713507d95eb117  apps/studio/vitest.integration.config.ts
+a8a688b8e66776bba4ac2617e93f9ecba5ad5e0d972917735e9c46e7f8fd10ee  apps/studio/vitest.setup.ts
+ec4c93ce572da39c6255bfc9b36b55f4045e4554b9c0ed77871a95ca08f55e3d  database/migrations/README.md
+c6fba4fd448cf80d67f8496c47abc0c29b9957d895c57e68da4ba3fb2a3a0a4f  docs/architecture/api-layer.md
+3a0f5f2c97d5bee5bd112a724555af706d6f651bab5ed80b29b033ce38d6d38b  docs/architecture/ci.md
+e7a9b836ec795dbfc70e8a411676df88fc95fb870b72790ba462225e4a3b5126  docs/architecture/compendium-ui.md
+b73c59f1707be87ad116a4dafc7431d27bf9ed5c70b95d970ec96e76f45ca23b  docs/architecture/database.md
+78a03d9acf673b6358f855a702912b6e19521f5bc1e46534d7efdc5067876cf3  docs/architecture/entity-alias-model.md
+8ee8c1d86a00477bb0716d9603a7d43ce150bbc71814251976e81f8176bbeba0  docs/architecture/entity-model.md
+b4a29ab555bfa022969eb0760ba8de8b5a444ceffa0424056554a85433f22498  docs/architecture/entity-relationship-model.md
+30f762c7d80cf9a77eb5cbb1ebb72a3bbc553a4d65c08ac6168bb859c9527efe  docs/architecture/entity-version-lifecycle.md
+e63a044afca661a10eddd6af71c0f2c46e5343f5d0702def8fc301c6c6d69118  docs/architecture/entity-version-model.md
+bf3cbf66827e0bb3513673f075a1922a509ee1d0d86238b51948fa227d2356c9  docs/architecture/keyword-model.md
+8ed6f08cbe94c75e478f2d9a3fa68113eab16b84ad6cd0773e6f9eb93f7c8d9c  docs/architecture/m1-entity-version-core.md
+9041eff49eb02dd7cfcf44be5889a313ce00b2dab02ee4b8598ef172f0dd91cd  docs/architecture/source-provenance-model.md
+5ca18812c9103f89cc70eec5cee3ed79e6d0929145cbea9359b3ca67f5ec45ab  docs/architecture/stack-decisions.md
+7922acfd4342716e782e0211e9d3d6a6487830663025df4dcb6302f67474b4c6  docs/architecture/studio-shell.md
+4c6bfe490e80e7919c066093750aa74696f7322c560a7a5efa22f728cfc5daec  docs/architecture/version-history-ui.md
+f4d36c487f321045dd1586dfa7fe3ceb0bce6e5742d0926add408f6ab255cc73  docs/audits/m1-completion-audit.md
+4b96aa43e6559ef117c7d4582551b51fc12471ae1e660c05b03f10c9c491a51d  eslint.config.mjs
+466aea94c5ced52aef62a7e9b56445ab0a258912fb005c895b26eca8164e239d  package.json
+91d3bdab368f13023b500362b6452ccc2a42fa823c5666b3b2fe43f2f3b8eda2  packages/prowess-db/package.json
+49b59b06cfefd6aea18df79b38cdbc597bcf36b613c5fdd709414a269c879c3c  packages/prowess-db/prisma.config.ts
+e53c493a022e483c2bb4b9dcea5a5a600b8af44e4b434f54e1db4bf7d561eb59  packages/prowess-db/prisma/migrations/20260930235722_init/migration.sql
+115e875462d4bf7821a10a4d7efd72dd79c785c308c283cdc1008df9eda41acf  packages/prowess-db/prisma/migrations/20261001045349_add_entity/migration.sql
+61d5ab1ad075e1f80681a5ff3d74c408fe8743aa7c075630c24bf733eb065c68  packages/prowess-db/prisma/migrations/20261001212804_add_entity_version/migration.sql
+bef8e61bb81336e2b6e86d11fd61d4fe8881a9584e9081c1b807e5db08117307  packages/prowess-db/prisma/migrations/20261001215241_add_entity_version_updated_at/migration.sql
+fa21a62cf2bfd8ec8ac390cd4ce034060b63ae2acf5c9492209b446fae571beb  packages/prowess-db/prisma/migrations/20261002022400_add_entity_alias/migration.sql
+67fba78240cb615ddedebc583c15008bbcfb1b30c91db35dd3df323618775543  packages/prowess-db/prisma/migrations/20261002025218_add_keyword_foundation/migration.sql
+3ba841c4b649a298c47e254ff65f6e995556d69e52a1c7488d305dd891cdd717  packages/prowess-db/prisma/migrations/20261002225710_add_entity_relationship/migration.sql
+75392f571ba230dae4c14ec555dc7962803978b6288cf8ecc6072d9432a53a70  packages/prowess-db/prisma/migrations/20261002231523_add_source_provenance/migration.sql
+99836963713b4f5b269ad49af0ed3d7b0b2e336115c2f92dc9ac683d139d0900  packages/prowess-db/prisma/migrations/migration_lock.toml
+d24fffbb81d1d38e85db303974cc5163634bd3e73db43154d535780592b46788  packages/prowess-db/prisma/schema.prisma
+4cfd0ba79e02e55ecb91904d2a62c1269e1bd3cf6c33dfe05d32fa4eb85ca8c1  packages/prowess-db/scripts/reset-test-db.mjs
+50bb59e63da1071d3a4f6f2de47b3b9f50ed477126443794019eba7b320f030c  packages/prowess-db/src/client.ts
+87f35a8c6d8854ac66ab53c263d89c1377be3e991f6ba4bd4cdbdf8aea0b8b1b  packages/prowess-db/src/entity-alias/index.ts
+9a1e90928a37ed50b334382caa7aaf2275c324f553fd891912b09dfd452f67c0  packages/prowess-db/src/entity-alias/repository.ts
+54e43350ad966f3a1bd918fd0c84393895d72507627d1fffa2b9a1018b64dcf9  packages/prowess-db/src/entity-alias/service.ts
+8ea625d6c3ba5dcebafc529a9f7a8d1fa4ec57f3b96b5c08701dd2d4af18d69e  packages/prowess-db/src/entity-keyword/index.ts
+48ecbdbafb157c7471e26d265e44a65cafc02c97ae75c671421a34e3b8ab5970  packages/prowess-db/src/entity-keyword/repository.ts
+0add17f7757bc4222ab7d6a2dc9f99523e070321d895325e24739c99d0a055ce  packages/prowess-db/src/entity-keyword/service.ts
+32c84936c20ca836e608e59012858b937d8c6c4e4d621258ad3439eb6ab83842  packages/prowess-db/src/entity-query/index.ts
+2a287db2773b4cdb7b600952497ee0cc7e95ed236a0f94388f9ffd44324dc100  packages/prowess-db/src/entity-query/repository.ts
+b5f68d10ec590130eb1c2e0a2d46fc1c8afcf8e85a9b3c6a3c91648427c84c0b  packages/prowess-db/src/entity-query/service.ts
+89ab2751b32e002e532226c24b467a4394a0077d04a54c59acb5510c93c170aa  packages/prowess-db/src/entity-relationship/index.ts
+1272cee052d15d67617bfc9b80cf633037e092bdf9897e3383110e3e18c9fc56  packages/prowess-db/src/entity-relationship/repository.ts
+4232ccfe3c96dff60a14879695e93f984ac14472b8b8df40615af41ab563ff50  packages/prowess-db/src/entity-relationship/service.ts
+5bd50cdddf5ad5862c258cb5ff06b6cb8c15b18d3177500a2cd6e2c6469a777b  packages/prowess-db/src/entity-version-keyword/index.ts
+fd4fc196ab78ae2b2a049215ae5266a2d4a516db3f7ad0de6d86377688b3d629  packages/prowess-db/src/entity-version-keyword/repository.ts
+a59815fa3f088746060decc370c244f19d90c4dda2dc88d5acbdf9bf0164f1bd  packages/prowess-db/src/entity-version-keyword/service.ts
+1c85e26d18dcb354f80abd2bc3e9b85b26c33186f608dbe078a62c17a16f7c75  packages/prowess-db/src/entity-version/index.ts
+553bf97d13d1723c008877a34bbeffbdda18f8a631c51dbdcf8dae060c988bc5  packages/prowess-db/src/entity-version/repository.ts
+2593bbf11cbc6357280310570708f1f2d9a74fec65fd8e618fd6cc7aa5e8e94f  packages/prowess-db/src/entity-version/service.ts
+6791743eb9d4ba17accb5f23cf2d0f412ef0075b25cae19e6427430a61dad9b2  packages/prowess-db/src/entity/index.ts
+f32ae4729a1292e40e602ec56fb922a088c11508ecbb78c79ae9749a5c527392  packages/prowess-db/src/entity/repository.ts
+813b8e870c3fbdb3d16f5c2f30f4966a788920ceb7638d2e9ef227f358cd6d8c  packages/prowess-db/src/entity/service.ts
+5a5f8089f6452ebf2cf667a11150bef7323dffbcf46bf31fca0fe7ded9bebf39  packages/prowess-db/src/index.ts
+8620862922c53a91b2c1db90b3c74336f8023688b1ec3829c248a26ba0c0f34d  packages/prowess-db/src/keyword-category/index.ts
+da8c795d5c6d18de38a6390b96afb0111c9f249bccc6b23732beba6ee3963fbc  packages/prowess-db/src/keyword-category/repository.ts
+d0d858f55e9d0eeefc8d7dc5959f4dba35290c0192cb00323f3aed93b1ce6360  packages/prowess-db/src/keyword-category/service.ts
+45125b865b3c40fb72286c2ce6365dd49ceed0c2b6dd407b1db81ee8761b45e8  packages/prowess-db/src/keyword-definition/index.ts
+374034ddebb439068884f524c7072e31d5637137ade19274f0e10374d11d47ad  packages/prowess-db/src/keyword-definition/repository.ts
+819d787b54fb2a3bcbd70db8fca571135d4112223dbdd9b6320cce2675734234  packages/prowess-db/src/keyword-definition/service.ts
+8e5a24604762db8b6a4689574232ebb01f2f74af71faf7e168e90a72dd1c9625  packages/prowess-db/src/source-document/index.ts
+b4979ea8f94f43b276e7cc8fe7156a3f32459d7bac866328e1b03b9e8475fb67  packages/prowess-db/src/source-document/repository.ts
+4b8b4b5963cd2129900fe5ef2f78c559088caed6ab88fd83a12566a29476d308  packages/prowess-db/src/source-document/service.ts
+43f85b08e12ee5f893d6aa2eb4da0365e22ef6e7a9a0df9c1b67abd53cf31298  packages/prowess-db/src/source-reference/index.ts
+faf5db9e1e5040f66ae5e6c0d2501fecc7690ae0825aec1770ef7b5b21625ace  packages/prowess-db/src/source-reference/repository.ts
+fd587435b9b0129182e444e95306b8acc4e454fdd83102571132a16b8aedf665  packages/prowess-db/src/source-reference/service.ts
+56089f035fb92e39692634feccf0a43f1ffe1ec2f000e5532025838608d18f67  packages/prowess-db/src/testDatabaseGuard.ts
+bd8529ce86a80dcc7e07a1ae27a0af22dd0e49bbbeb29c29882b7e9e242ceb82  packages/prowess-db/tests/integration/entity-alias.test.ts
+d0ecaac9c59b27854adde8a7ec87cae8f9815ee3e4ad847d4930cc60b40d92b4  packages/prowess-db/tests/integration/entity-keyword.test.ts
+74eb1469e17e213c3133dc93286d71866966aa563c1ca987e46ddbfea0952314  packages/prowess-db/tests/integration/entity-relationship.test.ts
+39c5ac74763f7d1eab126e22da58cd052242030d9989fcaa00a3c8e3ad3f4e54  packages/prowess-db/tests/integration/entity-version-keyword.test.ts
+2068e572d91a409a9fa844a22eb6bea028ecab319224b00a0fd4cd489855a142  packages/prowess-db/tests/integration/entity-version-lifecycle.test.ts
+b13c221af505e5e71b13ad7c9e49dbc297b947e03edb476fb352ef5068c1ef5c  packages/prowess-db/tests/integration/entity-version.test.ts
+3c41a017f81794799fa9632efded0b5af4c08a0b94d9af8a0a828af1fd6fecbd  packages/prowess-db/tests/integration/entity.test.ts
+78242ef86d82564480a4090993990588a6a59d0d93c5ccaffdf79a2b79bddf2e  packages/prowess-db/tests/integration/env.ts
+273ba85824961d2071aa94d7e1dae8cc4235ac1f8be169dfd6d057a140357cb5  packages/prowess-db/tests/integration/keyword-definition.test.ts
+02d915768d3a38bfcc6ac3ae14b9157e97a781089a1cba66ef3cf72ca63e2ee8  packages/prowess-db/tests/integration/m1-audit.test.ts
+7440f6e29597a9e8cd140c2462a1bf014ca59ec411fb00fd9ba96907c145564f  packages/prowess-db/tests/integration/persistence.test.ts
+ecad6993228d6626ad52e9361f775d36f62843d94d976fd9cf30d63a00139470  packages/prowess-db/tests/integration/setup.mjs
+a2efafeca4a10e1f8bc636520be17f811ab3f77c0f9e1038d6aa66231381c86f  packages/prowess-db/tests/integration/source-provenance.test.ts
+0864218f0eda5804a24f9b42dd34a329c536c22b41d31053064ef83e5b01ca0f  packages/prowess-db/tests/unit/testDatabaseGuard.test.ts
+f6236ba211a2af50269e7858c9c9194ff662e48391b04f0b93c5820485d83110  packages/prowess-db/tsconfig.json
+6342ee54bfb0a743875ad152a27cc58c5fc3f5fdeae003453ce72d3e5bb361be  packages/prowess-db/tsconfig.typecheck.json
+94f958c043b5cc8ccce4c9bd22d85b984a3b932a05b71dd57cb5d172fe745c78  packages/prowess-db/vitest.integration.config.ts
+2a252b11ec1a6d9b6c65b7b155c762831b072917c7f636d3f43cf54244c2af58  packages/prowess-db/vitest.unit.config.ts
+5e038d5ba2181c197e2e5a9e8ade32ab7c247047ce9f95cf12ee5064d4d06914  packages/prowess-model/package.json
+d59caaf7b08720747e22acb41ed0a5eebdcbb2f273284fc782f853adbf63fa46  packages/prowess-model/src/canonical-key.test.ts
+24d8a541e512e190815bc831bef8eb917bed520eb15511929176fb2e8ed1e931  packages/prowess-model/src/canonical-key.ts
+7cf4ed45b686389b6268115c77a56aa4a9d541ed1bad532eb06db05095a23bfc  packages/prowess-model/src/change-type.test.ts
+99fcec75c0862b34442118c300f8858b71c40a6ca507920fa2deeae697756810  packages/prowess-model/src/change-type.ts
+098a08683170504ae6ffd646f0192f9cdfd6792738db3048c804be7f924af1d4  packages/prowess-model/src/entity-alias.test.ts
+0b6a4aba83a8f8d55e6ca94ae537920dc020612c0de1c14e345929d49f261402  packages/prowess-model/src/entity-alias.ts
+8bad4b9524018182cf930291abd2dddaa2070290afd8a53228fd575eac2d9150  packages/prowess-model/src/entity-relationship.test.ts
+39bac1226ae7b366e0fe97f6ae8abb967384a99dd665b95410e301b28b978dd3  packages/prowess-model/src/entity-relationship.ts
+2644e22a0a50d5f00911609dc996a7ac6ae2091f0cd922a58064efae99c830f3  packages/prowess-model/src/entity-type.ts
+2bbae50c8346620527c60e9aa15b590ded5dba10a069069523306c596da6c01d  packages/prowess-model/src/entity-version-lifecycle.test.ts
+30379e88df52e3c64308949ae7009ca0355705954ad0150dc93f0e6716ece216  packages/prowess-model/src/entity-version-lifecycle.ts
+ad7e17e08f5c0a01feb5345b4216fef2d88ea3503fbe68f05bcfae9bb60f430a  packages/prowess-model/src/entity-version.test.ts
+e59a340ed6cac7f45dcebd77b7b84b45008960620dea6fa5ea5289653642afd2  packages/prowess-model/src/entity-version.ts
+a8da6884103f4fe23f6ca76017e99beaa8b5cc72ae9360f71d24bff1dd5ac854  packages/prowess-model/src/entity.ts
+186d6672e3b621e035a35aaebefad7943c366430cb970480f8e605cec29e0176  packages/prowess-model/src/errors.ts
+614a2d4b48d6aac8ed3de0ff3b49eb90a04c2fbd0baf75c49b6bbfec3b6f4f11  packages/prowess-model/src/ids.ts
+d3f19c884582d7de0d96f3e7d2c9ac2b590305d6e8d33a3eba02de00e5458c51  packages/prowess-model/src/index.test.ts
+589ddd2c7579e7ced7d9e1c990d7ad1f397807272e99f9fdbf6f84a451084d7c  packages/prowess-model/src/index.ts
+9637ab1dc90a04fa95cecb8f23d47cf11bad10278ae4b83ae384f26600f19501  packages/prowess-model/src/json.ts
+8271789dc3f0d3debba6a3726f048c3078c836484d56bdd27c49725ee2becb15  packages/prowess-model/src/keyword-assignment-source.test.ts
+344358c3f8b85cad1f314daeda3c67e7c1cdfc5614f6434ac5ba71611bd750cf  packages/prowess-model/src/keyword-assignment-source.ts
+1b6b073b2a5113d181abe505a679f02dfe78952a2686a6d00e59b3fde8943c22  packages/prowess-model/src/keyword-assignment.ts
+e26dcb605f84e70afad5a93babfae134a35267b9997e022268eaa5d8816169e7  packages/prowess-model/src/keyword-category.ts
+75e34e4c60d45928665eb605ae262490bdc3de6f8e2e0b41bc7268219b63907f  packages/prowess-model/src/keyword-definition.test.ts
+4965e790be607700fb0f642e541524a8c04d78532345c8e6c0c6399c27d13847  packages/prowess-model/src/keyword-definition.ts
+c1d69b273fd1d1642146f96ce57b04d560dca148a59939fe9808bb6fbe9cf599  packages/prowess-model/src/relationship-type.test.ts
+91fbbf47e8956105ef38a69b5160ef76642ea1e57bd2a4fece5b65a8e083dc13  packages/prowess-model/src/relationship-type.ts
+eaec0445eec76333966d86f65260c74840805b3089bdc0d6f84c81c0b0b3aea0  packages/prowess-model/src/source-authority-status.ts
+1ffb22e5771fa878ffcbc0febb190a02eee75784fd78ad3ed80ba81cbf6a3db8  packages/prowess-model/src/source-document-type.test.ts
+9d5b32abbdcb16e8943681ae39a0c3ac8f1eaf8ac7a6329819913398eaa4c0b7  packages/prowess-model/src/source-document-type.ts
+cf6dc3d91466017b5dbb357f98ab89c2222e59248093adff205467880f760db5  packages/prowess-model/src/source-document.test.ts
+128771d026eb2ccf30b18ae30db11265816c33ada072eec26b400a16886ffe38  packages/prowess-model/src/source-document.ts
+eea751af3e2f58fb89144ea6bf6b83c8f1d459174f30eca717b62960b7dcd638  packages/prowess-model/src/source-reference.ts
+f0c7e0be94178b13793430fd80cdebb516f1f804dd2b30a917a5bb1f0d788f59  packages/prowess-model/src/status.ts
+1a9f0873fec04475a675b9b11b9402a9eca94c930c65a199019538b9f521b861  packages/prowess-model/tsconfig.json
+aa7858f05b2261348f1502fa076550b0930672e0df3f054a22e8a8d9b68fb32e  packages/prowess-model/vitest.config.ts
+82b89b946c32ac1f0f6f07eab371bd41774a3fb3914ebea297c86631e603d659  packages/prowess-test-fixtures/package.json
+b459ac3c2d9d893a16bead3a1eac750b3d19d10d6e5627efdaa44d00dd10664a  packages/prowess-test-fixtures/src/index.ts
+1a9f0873fec04475a675b9b11b9402a9eca94c930c65a199019538b9f521b861  packages/prowess-test-fixtures/tsconfig.json
+650ae917dd673f9988f6f601f91f782d9878a90ac41ca9937237376de6960c7a  packages/prowess-ui/package.json
+54133f139da7e4b17eb86405848cd5927a98194f1e0e1a2cad7b93556a91933c  packages/prowess-ui/src/EmptyState.tsx
+bbf1d09f7069715ffc8f447e14545c1a8b3f649bd54ebeaa7ae4305bb74567a5  packages/prowess-ui/src/EntityTypeBadge.tsx
+e006321a93116e940b730e21f2f2303f209a3ad336fdc6de8473483fc1023a17  packages/prowess-ui/src/InspectorPanel.tsx
+9e44ef28379be9310186738ef77dfcb6b82b77b1626779e93c3093e0143195e4  packages/prowess-ui/src/KeywordChip.tsx
+de1b7825a6b180c97de21acdec712cbc199e4e952a3a2900deab9cb033ccb226  packages/prowess-ui/src/NavLink.tsx
+52db4c68d93cbc0f0fe41bd98d3135b282402ff34cdfb48a67c4f45bbdd518bd  packages/prowess-ui/src/NavToggle.tsx
+3c8f1c06b8fe3daacffaa280a0cce53f14b5c7f7ebf9e6798a98d627058636a6  packages/prowess-ui/src/Pagination.tsx
+a3ce8a70f72e74fc1ac67764ea7632655cd8b08985bf48406cbfed5e04b56840  packages/prowess-ui/src/ProwessBrand.tsx
+6f560b0294e463642d4e57e4c47bffe5bd75bae8783eb53c8b06b7193cfd7cba  packages/prowess-ui/src/TopBar.tsx
+1e76fb914d6990cd8eb5b871b726d8330fc69ae56b26bd747cc29b8160793eb4  packages/prowess-ui/src/VersionStatusBadge.tsx
+f356e79bc0ecf60ab7409616b1eb911c228ac5db270c617d655e58d65ee1659b  packages/prowess-ui/src/index.test.tsx
+29913817d0242a0f949a515ac2777a58eae181e499e55c41b758ff7a65da756d  packages/prowess-ui/src/index.ts
+8332cf2e87d5bb0165c8c032bb5ba47d0e8808091cbafc9579414bc54db327a5  packages/prowess-ui/tsconfig.build.json
+b5ff180359bf9d88f0231f21e7cef0885a6a19de8f0d0fb479a1e6ba51951c06  packages/prowess-ui/tsconfig.json
+cd6c87a5a35da1c327cab308a0e03b3c12e7b993cc3d9f0e0bad47ef8de78ad0  packages/prowess-ui/tsconfig.typecheck.json
+9ff8186bdb67b60a69289889d2ee1bb3620abfeb10549420073673c19fa079ca  packages/prowess-ui/vitest.config.ts
+e9ee36cbf47ecd4064641850190e6ef2edeae532bf1533f781aac7d11470d3e5  packages/prowess-ui/vitest.setup.ts
+e7ad6910aa23e02669136ca4c9b08120da8376683e79eb88347ffd73fb201109  pnpm-lock.yaml
+08d75840c97ab0e72d1d9b5b84a17e47a2e06cb159a5fbec5ee0a6a56682dad7  pnpm-workspace.yaml
+7bd7a8e7d33ce7098e67396e71589182e2ec02d6177492d21d75e57ea6d71686  scripts/check-architecture.mjs
+33433b1c9304bca43598f2b12a1bdef898e398244d02a2c7da89d11bd6597735  scripts/load-studio-env.mjs
+9650698f4d1f3be35444996dba9552d6409a4df8d3f4c8753a4b0803d4152ff6  scripts/with-env.mjs
+92d579a8993ec4bde261c2058d405b6049bee03a436b0ee3af553d6bdf610162  tests/README.md
+85c7b438230e0c378ce26bb90f11d37beb70b89a6d9a2d098879abca0d1e0154  tsconfig.base.json

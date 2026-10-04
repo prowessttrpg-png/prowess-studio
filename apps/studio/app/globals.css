@@ -1,5 +1,42 @@
+/* Prowess Studio shell — design tokens, top bar, navigation, workspace,
+   Inspector region, and responsive behavior. PAS-10 M0-WO5.
+
+   This is a structural/foundational pass, not the final Prowess visual
+   design — see docs/architecture/studio-shell.md. */
+
 :root {
   color-scheme: light dark;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+
+  /* Layout tokens */
+  --shell-nav-width: 220px;
+  --shell-topbar-height: 56px;
+  --shell-inspector-width: 320px;
+  --shell-breakpoint-desktop: 900px;
+
+  /* Color tokens (restrained — structural, not a final brand pass) */
+  --color-border: #33333340;
+  --color-border-strong: #333333;
+  --color-bg-active: #33333322;
+  --color-bg-hover: #33333314;
+  --color-text-muted: #666666;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-border: #ffffff2a;
+    --color-border-strong: #ffffffcc;
+    --color-bg-active: #ffffff22;
+    --color-bg-hover: #ffffff14;
+    --color-text-muted: #a0a0a0;
+  }
 }
 
 * {
@@ -14,21 +51,180 @@ body {
 
 .prowess-shell {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
 }
 
-.prowess-shell__nav {
-  width: 220px;
-  flex-shrink: 0;
-  border-right: 1px solid #33333340;
-  padding: 1rem 0.75rem;
+/* ---------------------------------------------------------------------- */
+/* Top bar                                                                  */
+/* ---------------------------------------------------------------------- */
+
+.prowess-topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--shell-topbar-height);
+  padding: 0 var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
 }
 
-.prowess-shell__brand {
+.prowess-topbar__start {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.prowess-topbar__brand {
   font-weight: 700;
   letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.prowess-topbar__end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Global Search placeholder */
+.prowess-topbar__search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1 1 240px;
+  max-width: 420px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text-muted);
+}
+
+.prowess-topbar__search-placeholder {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prowess-topbar__search-shortcut {
+  font-family: inherit;
+  font-size: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  white-space: nowrap;
+}
+
+/* Ruleset selector placeholder */
+.prowess-topbar__ruleset {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.1;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  cursor: not-allowed;
+}
+
+.prowess-topbar__ruleset-eyebrow {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.prowess-topbar__ruleset-label {
+  font-weight: 600;
+}
+
+/* Create / Account placeholders */
+.prowess-topbar__create,
+.prowess-topbar__account {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  cursor: not-allowed;
+}
+
+.prowess-topbar__create {
+  padding: var(--space-2) var(--space-3);
+  font-weight: 600;
+}
+
+.prowess-topbar__account {
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.prowess-topbar__account-avatar {
+  font-weight: 700;
+}
+
+/* Mobile nav toggle — hidden at desktop widths, see breakpoint below */
+.prowess-shell__nav-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.prowess-shell__nav-toggle-bars,
+.prowess-shell__nav-toggle-bars::before,
+.prowess-shell__nav-toggle-bars::after {
+  content: "";
   display: block;
-  margin-bottom: 1.5rem;
+  width: 18px;
+  height: 2px;
+  background: currentColor;
+}
+
+.prowess-shell__nav-toggle-bars {
+  position: relative;
+}
+
+.prowess-shell__nav-toggle-bars::before {
+  position: absolute;
+  top: -6px;
+}
+
+.prowess-shell__nav-toggle-bars::after {
+  position: absolute;
+  top: 6px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Body: nav + workspace + inspector                                       */
+/* ---------------------------------------------------------------------- */
+
+.prowess-shell__body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.prowess-shell__nav {
+  width: var(--shell-nav-width);
+  flex-shrink: 0;
+  border-right: 1px solid var(--color-border);
+  padding: var(--space-4) var(--space-3);
 }
 
 .prowess-shell__nav-list {
@@ -37,46 +233,764 @@ body {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
 .prowess-shell__nav-item a {
   display: block;
-  padding: 0.5rem 0.75rem;
+  padding: var(--space-2) var(--space-3);
   border-radius: 6px;
   text-decoration: none;
   color: inherit;
+  border-left: 3px solid transparent;
 }
 
+.prowess-shell__nav-item a:hover {
+  background: var(--color-bg-hover);
+}
+
+.prowess-shell__nav-item a:focus-visible {
+  outline: 2px solid var(--color-border-strong);
+  outline-offset: 2px;
+}
+
+/* Active state communicated by more than color: background + bold weight +
+   a left border, and `aria-current="page"` on the link itself for
+   assistive tech (set in AppShell, not CSS). */
 .prowess-shell__nav-item[data-active="true"] a {
-  background: #33333322;
+  background: var(--color-bg-active);
   font-weight: 600;
-}
-
-.prowess-shell__nav-item[data-disabled="true"] a {
-  opacity: 0.4;
-  pointer-events: none;
+  border-left-color: var(--color-border-strong);
 }
 
 .prowess-shell__workspace {
   flex: 1;
-  padding: 1.5rem 2rem;
+  padding: var(--space-5) var(--space-6);
   min-width: 0;
 }
 
-@media (max-width: 768px) {
-  .prowess-shell {
+/* Right Inspector — reserved region, empty/hidden by default (M0-WO5 §6) */
+.prowess-shell__inspector {
+  width: var(--shell-inspector-width);
+  flex-shrink: 0;
+  border-left: 1px solid var(--color-border);
+  padding: var(--space-5) var(--space-4);
+}
+
+.prowess-shell__inspector[hidden] {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Responsive behavior                                                     */
+/* ---------------------------------------------------------------------- */
+
+/* Below the desktop breakpoint: the nav is a toggleable drawer. It stays
+   in the DOM and the accessibility tree at every width (a native `hidden`
+   attribute would remove it from assistive tech and keyboard tab order
+   unconditionally, which is wrong at desktop widths where it must always
+   be reachable) — visibility here is pure CSS, keyed off the
+   `data-mobile-open` attribute AppShell sets from its own React state. */
+@media (max-width: 899px) {
+  .prowess-shell__body {
     flex-direction: column;
   }
 
   .prowess-shell__nav {
+    display: none;
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid #33333340;
+    border-bottom: 1px solid var(--color-border);
   }
 
-  .prowess-shell__nav-list {
-    flex-direction: row;
-    flex-wrap: wrap;
+  .prowess-shell__nav[data-mobile-open="true"] {
+    display: block;
+  }
+
+  .prowess-topbar__search {
+    order: 3;
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .prowess-topbar__search-shortcut {
+    display: none;
+  }
+
+  .prowess-shell__inspector {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--color-border);
+  }
+}
+
+/* At/above the desktop breakpoint: navigation is always a persistent
+   sidebar, regardless of the mobile-open state. The toggle button only
+   matters below this width, so it's hidden here. */
+@media (min-width: 900px) {
+  .prowess-shell__nav {
+    display: block;
+  }
+
+  .prowess-shell__nav-toggle {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Compendium — Entity Browser (M1-WO9)                                    */
+/* ---------------------------------------------------------------------- */
+
+.prowess-compendium__header {
+  margin-bottom: var(--space-5);
+}
+
+.prowess-compendium__description {
+  max-width: 65ch;
+  color: var(--color-text-muted);
+}
+
+.prowess-compendium__loading,
+.prowess-compendium__error {
+  padding: var(--space-5) 0;
+}
+
+.prowess-compendium__error-message {
+  color: var(--color-text-muted);
+}
+
+.prowess-compendium__retry {
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* --- Filters --- */
+
+.prowess-entity-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.prowess-entity-filters__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.prowess-entity-filters__search,
+.prowess-entity-filters__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.prowess-entity-filters__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.prowess-entity-filters__input,
+.prowess-entity-filters__select {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font: inherit;
+  background: transparent;
+  color: inherit;
+}
+
+.prowess-entity-filters__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Entity list --- */
+
+.prowess-entity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.prowess-entity-row {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.prowess-entity-row__link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  text-decoration: none;
+  color: inherit;
+}
+
+.prowess-entity-row__link:hover {
+  background: var(--color-bg-hover);
+}
+
+.prowess-entity-row__link:focus-visible {
+  outline: 2px solid var(--color-border-strong);
+  outline-offset: -2px;
+}
+
+.prowess-entity-row__primary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.prowess-entity-row__label {
+  font-weight: 600;
+}
+
+.prowess-entity-row__canonical-key {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.prowess-entity-row__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.prowess-entity-row__revision,
+.prowess-entity-row__no-revisions {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Badges / chips --- */
+
+.prowess-badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.prowess-badge--status-draft {
+  border-color: #6b7280;
+}
+.prowess-badge--status-in-review {
+  border-color: #b45309;
+}
+.prowess-badge--status-approved,
+.prowess-badge--status-playtest {
+  border-color: #1d4ed8;
+}
+.prowess-badge--status-canon {
+  border-color: #15803d;
+  font-weight: 700;
+}
+.prowess-badge--status-deprecated,
+.prowess-badge--status-superseded,
+.prowess-badge--status-archived {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.prowess-keyword-chip {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 6px;
+  background: var(--color-bg-active);
+  font-size: 0.8rem;
+}
+
+/* --- Empty state --- */
+
+.prowess-empty-state {
+  padding: var(--space-5) var(--space-4);
+  text-align: left;
+  border: 1px dashed var(--color-border);
+  border-radius: 8px;
+}
+
+.prowess-empty-state__title {
+  font-weight: 600;
+  margin: 0 0 var(--space-1);
+}
+
+.prowess-empty-state__description {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+/* --- Pagination --- */
+
+.prowess-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.prowess-pagination__button {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.prowess-pagination__button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.prowess-pagination__status {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Entity detail --- */
+
+.prowess-entity-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 900px;
+}
+
+.prowess-entity-detail__back a {
+  color: inherit;
+}
+
+.prowess-entity-detail section > h2 {
+  margin-bottom: var(--space-3);
+}
+
+.prowess-detail-fields {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  row-gap: var(--space-2);
+  column-gap: var(--space-4);
+  margin: 0;
+}
+
+.prowess-detail-fields__row {
+  display: contents;
+}
+
+.prowess-detail-fields dt {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.prowess-detail-fields dd {
+  margin: 0;
+}
+
+.prowess-detail-fields__uuid {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.prowess-detail-fields__rules-text {
+  white-space: pre-wrap;
+}
+
+.prowess-detail-fields__empty {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.prowess-detail-versions-count {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.prowess-structured-data {
+  max-width: 100%;
+  max-height: 320px;
+  overflow: auto;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  background: var(--color-bg-hover);
+}
+
+.prowess-structured-data__empty {
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+/* --- Aliases --- */
+
+.prowess-alias-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.prowess-alias-list__item {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+}
+
+.prowess-alias-list__context {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Keywords --- */
+
+.prowess-keyword-section__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* --- Relationships --- */
+
+.prowess-relationship-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.prowess-relationship-list__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+
+.prowess-relationship-list__type {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.prowess-relationship-list__counterpart {
+  color: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+/* --- Sources --- */
+
+.prowess-source-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.prowess-source-list__item {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+
+.prowess-source-list__title {
+  font-weight: 600;
+  margin: 0 0 var(--space-2);
+}
+
+.prowess-source-list__authority-note,
+.prowess-source-list__opaque-note {
+  margin-left: var(--space-2);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.prowess-source-list__file-reference {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+}
+
+/* --- Responsive: narrow widths stack rows instead of a wide row layout --- */
+
+@media (max-width: 899px) {
+  .prowess-entity-row__link {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .prowess-detail-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .prowess-detail-fields dt {
+    margin-top: var(--space-2);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Version History (M1-WO10)                                               */
+/* ---------------------------------------------------------------------- */
+
+/* Long unbroken tokens (canonical keys, UUIDs, source titles) must wrap
+   rather than force horizontal page scroll on narrow screens. */
+.prowess-detail-fields dd,
+.prowess-entity-row__canonical-key,
+.prowess-relationship-list__counterpart,
+.prowess-version-history__link,
+.prowess-source-list__title {
+  overflow-wrap: anywhere;
+}
+
+.prowess-entity-detail {
+  max-width: 1100px;
+}
+
+.prowess-history-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.prowess-selected-revision {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.prowess-version-history__heading {
+  margin-top: 0;
+  font-size: 1rem;
+}
+
+.prowess-version-history__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.prowess-version-history__item {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+/* Selected is marked by text ("Selected"), aria-current, AND a heavier
+   border — never by color alone. */
+.prowess-version-history__item--selected {
+  border: 3px double var(--color-border-strong);
+}
+
+.prowess-version-history__link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  text-decoration: none;
+  color: inherit;
+}
+
+.prowess-version-history__link:hover {
+  background: var(--color-bg-hover);
+}
+
+.prowess-version-history__link:focus-visible {
+  outline: 2px solid var(--color-border-strong);
+  outline-offset: -2px;
+}
+
+.prowess-version-history__title {
+  font-weight: 700;
+}
+
+.prowess-version-history__tag {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 4px;
+}
+
+.prowess-version-history__tag--selected {
+  background: var(--color-bg-active);
+  font-weight: 700;
+}
+
+.prowess-version-history__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.prowess-version-history__summary {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.prowess-return-to-latest {
+  font-weight: 600;
+}
+
+.prowess-stable-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-4);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: 8px;
+}
+
+.prowess-stable-group__note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Comparison --- */
+
+.prowess-compare-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+}
+
+.prowess-compare-controls__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.prowess-compare-controls__field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.prowess-compare-controls__field select,
+.prowess-compare-controls__clear {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font: inherit;
+  background: transparent;
+  color: inherit;
+  max-width: 100%;
+}
+
+.prowess-compare-controls__clear {
+  cursor: pointer;
+}
+
+.prowess-compare-unavailable,
+.prowess-compare-note {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.prowess-compare-field {
+  margin-top: var(--space-4);
+}
+
+.prowess-compare-field__label {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.prowess-compare-field__state {
+  margin: 0 0 var(--space-2);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.prowess-compare-field__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+.prowess-compare-field__cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+
+.prowess-compare-field__side {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.prowess-compare-field__text {
+  white-space: pre-wrap;
+}
+
+.prowess-compare-keywords__group {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+
+.prowess-compare-keywords__group h4 {
+  margin: 0 0 var(--space-2);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 899px) {
+  .prowess-history-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .prowess-compare-field__columns {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

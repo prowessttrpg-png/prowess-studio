@@ -227,3 +227,232 @@ boundary + circular dependency enforcement) is plain Node, zero new
 dependencies, chosen deliberately over a dedicated tool like
 dependency-cruiser given how few and simple this repo's current boundary
 rules are.
+
+## M0-WO5: Studio Application Shell
+
+Full details — shell structure, navigation, top bar, responsive behavior,
+accessibility, and the active/placeholder route distinction — live in
+`docs/architecture/studio-shell.md`. No new dependencies were introduced.
+Three new presentational primitives were added to `@prowess/ui`
+(`TopBar.tsx`, `NavToggle.tsx`, `InspectorPanel.tsx`) — React only, same
+boundary as every existing `@prowess/ui` component. A real accessibility
+bug was found and fixed during this Work Order (not merely written and
+assumed correct): an initial draft used the native `hidden` attribute to
+drive mobile-only nav visibility, which unconditionally removes content
+from the accessibility tree at *every* width, not just mobile — caught by
+the shell's own failing component tests, fixed with a CSS-only,
+`data-mobile-open`-driven approach instead. See
+`docs/architecture/studio-shell.md`'s "Responsive behavior" section for
+the full explanation.
+
+## M1-WO1: Base Entity Model
+
+Full details — what an Entity is/isn't, canonical-key format, EntityType,
+repository/service responsibilities, error vocabulary — live in
+`docs/architecture/entity-model.md`. No new dependencies were introduced.
+`@prowess/db` now has a real (non-workspace-only-in-theory) dependency on
+`@prowess/model` for the first time — the Entity service imports its
+`EntityId`, `EntityType`, `CanonicalKey`, `DomainError`, and
+`ENTITY_ERROR_CODES` — matching the already-approved dependency direction
+(`prowess-model <- prowess-db`), not a new architectural decision.
+
+## M1-WO2: Entity Version Model
+
+Full details — revision numbering/allocation, concurrency strategy, status
+field scope, structured_data purpose, parent lineage, snapshot behavior,
+and the EntityVersion error vocabulary — live in
+`docs/architecture/entity-version-model.md`. No new dependencies were
+introduced. The revision-allocation concurrency strategy (bounded retry on
+a Postgres unique-constraint race, max 5 attempts) was chosen deliberately
+over heavyweight distributed-lock infrastructure, per the Work Order's own
+explicit guidance, and is exercised by a dedicated integration test — but
+that test, like every other `@prowess/db` integration test in this
+project, could not actually be executed in this sandbox (missing generated
+Prisma client); it is reasoned-through and locally type/lint-clean, not
+locally run. See the completion report's "Local Verification" and
+"Sandbox Limitations" sections for the precise boundary.
+
+## M1-WO3: Entity Status & Immutability Rules
+
+Full details — the lifecycle graph, mutation policy, always-immutable
+fields, the atomic conditional-update strategy, error codes, and the
+CANON-vs-Ruleset-authority distinction — live in
+`docs/architecture/entity-version-lifecycle.md`. No new dependencies were
+introduced. A documentation correction from M1-WO2 is also recorded here:
+`entity-version-model.md`'s original "each persisted EntityVersion is a
+self-contained, immutable snapshot" phrasing conflated historical
+independence (always true) with mutability (true only for DRAFT) — fixed
+in both the markdown doc and the `@prowess/model` source's own doc
+comment, per this Work Order's explicit instruction.
+
+## M1-WO4: Entity Aliases & Canonical Keys
+
+Full details -- normalization strategy (NFC not NFKC, and why), the
+deliberate normalized-context-key schema strategy that avoids PostgreSQL's
+NULL-is-distinct-from-NULL uniqueness pitfall, duplicate/ambiguity policy,
+and the error vocabulary -- live in
+`docs/architecture/entity-alias-model.md`. No new dependencies were
+introduced. `toDomainEntity` was promoted from a private helper to an
+exported (but still package-internal, not part of `@prowess/db`'s public
+`index.ts`) function in `entity/repository.ts`, so `entity-alias/
+repository.ts`'s alias-to-Entity join query could reuse the exact same row
+mapping rather than duplicating it -- a small, deliberate exception to
+"repository internals stay fully private," scoped to same-package reuse
+only.
+
+### M1-WO4 patch: locale-independent alias normalization
+
+`normalizeEntityAlias` originally used `.toLocaleLowerCase()` with no
+explicit locale, which is host-default-locale-dependent and therefore
+non-deterministic across developer machines, CI, and deployments for a
+value that gets persisted as a database lookup/uniqueness key. Fixed to
+`.toLowerCase()` (locale-independent Unicode lowercasing). No other part
+of the normalization sequence, schema, duplicate/context architecture, or
+service surface changed. See `entity-alias-model.md`'s "Normalization"
+section for the full explanation, including the classic Turkish-locale
+`"I"` -> `"ı"` example this fix avoids.
+
+## M1-WO5: Keyword Foundation
+
+Full details -- the core "no implicit mechanics" rule, KeywordCategory/
+KeywordDefinition, why two explicit relational assignment models instead
+of one polymorphic target_type+target_id table, assignment source types,
+the Version-lifecycle interaction (and its atomic SELECT...FOR UPDATE
+guard across two tables), reverse lookup, and the full error vocabulary --
+live in docs/architecture/keyword-model.md. No new dependencies were
+introduced. The M0-WO1 placeholder `KeywordId` branded type was renamed to
+`KeywordDefinitionId` (matching this Work Order's exact spec'd naming) and
+a new `KeywordCategoryId` was added alongside it -- confirmed unused
+anywhere before renaming. `toDomainEntityVersion` was promoted from a
+private helper to an exported (but still package-internal) function in
+entity-version/repository.ts, following the exact same reuse pattern
+already established for `toDomainEntity` (M1-WO4) and
+`toDomainKeywordDefinition` (this Work Order) -- each reused by the
+reverse-lookup join queries in entity-keyword/ and
+entity-version-keyword/.
+
+## M1-WO6: Entity Relationships
+
+Full details -- the stable-identity-only scope and why version-specific
+relationships are deferred, the no-unstated-mechanics principle, directed
+single-row storage with no automatic inverse, duplicate/self-reference
+policy, metadata's non-authoritative-for-mechanics rule, and why typed
+subsystem joins will exist separately later -- live in
+docs/architecture/entity-relationship-model.md. No new dependencies were
+introduced. M0-WO1's placeholder `RelationshipId` was renamed to
+`EntityRelationshipId` (matching this Work Order's exact spec'd naming),
+following the same pattern already used for `KeywordId` ->
+`KeywordDefinitionId` in M1-WO5 -- confirmed unused anywhere before
+renaming. The existing `RelationshipType` enum from M0-WO1 already
+contained exactly the Phase 1 vocabulary this Work Order needed and
+required no changes at all. A new small `JsonValue`/`JsonObject` type was
+added to @prowess/model (no shared JSON-compatible type existed yet) for
+relationship metadata, reusable by any future domain type with the same
+need.
+
+## M1-WO7: Source Reference Foundation
+
+Full details -- why SourceReferences attach to EntityVersion rather than
+stable Entity, no automatic propagation between revisions, the
+descriptive-only authority vocabulary (matching PAS-08's Canon Manager
+spec exactly), file_reference's provider-agnostic design, the deliberate
+lack of a duplicate-prevention constraint on source_references, and why
+provenance attachment is NOT gated by DRAFT/CANON lifecycle status -- live
+in docs/architecture/source-provenance-model.md. No new dependencies were
+introduced. SourceDocumentId and SourceReferenceId already existed with
+the exact names this Work Order needed (an M0-WO1 placeholder that, unlike
+KeywordId/RelationshipId in M1-WO5/WO6, required no renaming). The
+SourceAuthorityStatus vocabulary was sourced directly from the existing
+PAS-08 Canon Manager specification already present in this project's
+reference documents, not independently invented, confirmed by searching
+for it before writing any code.
+
+## M1-WO8: Entity API
+
+Full details -- the complete HTTP status mapping with its reasoning, pagination/
+filter semantics (including the two stated M1-WO8 scope limitations: Entity-level-
+only keyword filtering, and the status-filter pagination cost tradeoff), the
+latestRevision convention, the no-auth Phase 1 scope, and the architecture
+enforcement extension -- live in docs/architecture/api-layer.md. apps/studio
+gained its first real dependency on @prowess/db. This is the first Work Order
+where that dependency's consequences became directly visible from the
+application side: apps/studio's production build now fails locally (it
+bundles against @prowess/db's stale dist/, frozen since before the Prisma-
+generation blocker existed), confirmed to be a sandbox artifact and not a
+code defect via a temporary, reverted tsconfig.json path override that
+typechecked every route handler's actual @prowess/db calls against real
+source. A new @prowess/db query service, listEntities, was added
+specifically to back GET /api/entities -- the one genuinely new piece of
+backend logic this Work Order required, deliberately avoiding Prisma's
+distinct+orderBy interaction (unverifiable without a working generated
+client) in favor of a plain, fully-inspectable JS reduction for latest-
+revision resolution.
+
+### M1-WO8 patch: exhaustive, fail-closed DomainError-to-HTTP mapping
+
+The centralized DomainError->HTTP status map originally defaulted an
+unmapped future error code to 400, which conflated "the client sent bad
+input" with "the server shipped a new error code without choosing its
+HTTP status" -- the latter is an application contract omission, not client
+error. Fixed: the map is now built with `satisfies
+Record<KnownDomainErrorCode, number>`, where `KnownDomainErrorCode` is
+derived directly from @prowess/model's own `*_ERROR_CODES` constants, so
+adding a new domain error code without adding a matching HTTP-status entry
+is now a TypeScript compile error. At runtime, any code that still
+reaches the boundary unmapped (should be unreachable given the compile-time
+check, but defended anyway) fails closed to a generic 500
+`INTERNAL.UNEXPECTED_ERROR`, never a 400 and never exposing the original
+code. No endpoint, pagination, filter, service behavior, schema, or route
+structure changed. See `docs/architecture/api-layer.md`'s "HTTP status
+mapping" section for the full explanation.
+
+## M1-WO9: Entity Browser UI
+
+Full details -- the API-only architecture, search/filter/pagination/URL-
+state semantics, the latestRevision terminology rule, the detail-page
+section-by-section design, the N+1-avoidance decision for SourceDocument
+titles (client-side parallel fetch rather than a backend change), and why
+Ruleset/current-version selection is still absent -- live in
+docs/architecture/compendium-ui.md. No new dependencies were introduced.
+Five new presentational primitives were added to @prowess/ui
+(EntityTypeBadge, VersionStatusBadge, KeywordChip, EmptyState, Pagination)
+-- all text-labeled by construction, never color-only, satisfying the
+accessibility requirement directly rather than as an afterthought. A real,
+caught-and-fixed issue along the way: the newer react-hooks/
+set-state-in-effect lint rule flagged the standard data-fetch-on-mount
+pattern used by both Compendium pages; resolved with narrow, justified
+eslint-disable comments rather than a disproportionate rewrite into a
+heavier data-fetching architecture (React Query/SWR) this project doesn't
+otherwise use. pageSize was made URL-configurable on the list page
+specifically so automated tests could exercise pagination without needing
+20+ fixtures, per the Work Order's own explicit allowance for this.
+
+## M1-WO10: Version History UI
+
+Full details -- the `?revision=` URL strategy (and why not `/versions/:id`),
+Latest-vs-Selected terminology, real-`parentVersionId` lineage, the
+stable-vs-version-scoped data split, comparison mode and its limits, the
+deliberate absence of lifecycle-event history -- live in
+docs/architecture/version-history-ui.md. No new dependencies; no backend or
+API change. Revision content is taken from the Entity's Version list (which
+already returns full snapshots) instead of refetching each Version.
+`resolveSourceDocuments` gained an optional shared cache so revisions citing
+the same document cost one request. M1-WO9's LatestRevisionSection was
+generalized to RevisionSection, and an existing M1-WO9 Playwright heading
+assertion was tightened to `exact: true` since "Latest Revision" is a
+substring of the "Latest Revision Keywords" heading.
+
+## M1-WO11: Integration & Historical Reproducibility Audit Gate
+
+No product feature, schema change, or migration. Added a four-layer audit
+(static / database / API / browser), three named CI gate steps, and an
+informational Prisma drift step. Full record: `docs/audits/m1-completion-audit.md`;
+architecture summary: `docs/architecture/m1-entity-version-core.md`.
+Decisions worth keeping: (1) the drift check is deliberately non-blocking
+because Prisma cannot run in the authoring sandbox and static review found a
+probable real mismatch (migrations declare `DEFAULT gen_random_uuid()`, the
+schema uses client-side `@default(uuid())`) — a schema decision is left to a
+human per the Work Order's stop-and-report rule; (2) a private helper's
+`errorCode: string` was tightened to `RelationshipErrorCode`, and the static
+audit now forbids uncontrolled codes reaching `DomainError`; (3) canonical
+keys cannot contain hyphens, so the audit uses `historical_rule`.
