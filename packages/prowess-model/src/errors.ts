@@ -217,3 +217,24 @@ export const SOURCE_REFERENCE_ERROR_CODES = {
 
 export type SourceReferenceErrorCode =
   (typeof SOURCE_REFERENCE_ERROR_CODES)[keyof typeof SOURCE_REFERENCE_ERROR_CODES];
+
+/**
+ * Ruleset error codes (PAS-10 M2-WO1 §13).
+ *
+ * `INVALID_PARENT` and `PARENT_CYCLE` are kept distinct because they carry
+ * different diagnostics and call for different fixes: INVALID_PARENT means the
+ * named parent does not exist (a bad reference — pick another id);
+ * PARENT_CYCLE means the parent exists but the assignment would make a lineage
+ * loop, including a Ruleset parenting itself (the lineage itself is the
+ * problem). Collapsing them would force callers to parse a message to tell
+ * which.
+ */
+export const RULESET_ERROR_CODES = {
+  NOT_FOUND: "RULESET.NOT_FOUND",
+  CANONICAL_KEY_CONFLICT: "RULESET.CANONICAL_KEY_CONFLICT",
+  INVALID_INPUT: "RULESET.INVALID_INPUT",
+  INVALID_PARENT: "RULESET.INVALID_PARENT",
+  PARENT_CYCLE: "RULESET.PARENT_CYCLE",
+} as const;
+
+export type RulesetErrorCode = (typeof RULESET_ERROR_CODES)[keyof typeof RULESET_ERROR_CODES];

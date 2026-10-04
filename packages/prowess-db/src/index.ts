@@ -92,3 +92,5 @@ export type {
   ListEntitiesResult,
 } from "./entity-query/index.js";
 export type { PrismaClient } from "../generated/prisma/client.js";
+export { createRuleset, findRulesetByCanonicalKey, getRuleset, listRulesets } from "./ruleset/index.js";
+export type { ListRulesetsFilters } from "./ruleset/index.js";

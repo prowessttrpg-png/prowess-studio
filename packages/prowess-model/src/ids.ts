@@ -66,3 +66,9 @@ export const SourceDocumentId = {
 export const SourceReferenceId = {
   of: (value: string) => asBrand<string, "SourceReferenceId">(value),
 };
+
+/** Opaque, immutable UUID identity of a Ruleset (PAS-10 M2-WO1). */
+export type RulesetId = Brand<string, "RulesetId">;
+export const RulesetId = {
+  of: (value: string) => asBrand<string, "RulesetId">(value),
+};
