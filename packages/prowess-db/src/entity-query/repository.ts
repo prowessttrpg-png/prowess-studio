@@ -102,9 +102,17 @@ export async function selectEntitiesByIds(ids: string[]): Promise<Entity[]> {
     return [];
   }
   const rows = await prisma.entity.findMany({ where: { id: { in: ids } } });
-  const byId = new Map(rows.map((row: { id: string }) => [row.id, row]));
+  const byId = new Map(rows.map((row) => [row.id, row] as const));
   // Preserve the caller's ordering rather than whatever order the DB returns.
-  return ids.map((id) => toDomainEntity(byId.get(id))).filter((e): e is Entity => e !== undefined);
+  // A missing row is skipped BEFORE conversion (it must never reach toDomainEntity).
+  const entities: Entity[] = [];
+  for (const id of ids) {
+    const row = byId.get(id);
+    if (row !== undefined) {
+      entities.push(toDomainEntity(row));
+    }
+  }
+  return entities;
 }
 
 /**
