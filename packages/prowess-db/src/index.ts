@@ -94,3 +94,11 @@ export type {
 export type { PrismaClient } from "../generated/prisma/client.js";
 export { createRuleset, findRulesetByCanonicalKey, getRuleset, listRulesets } from "./ruleset/index.js";
 export type { ListRulesetsFilters } from "./ruleset/index.js";
+export {
+  createRulesetManifest,
+  getLatestRulesetManifest,
+  getManifestEntry,
+  getRulesetManifest,
+  listRulesetManifests,
+  resolveEntityVersionFromManifest,
+} from "./ruleset-manifest/index.js";

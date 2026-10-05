@@ -238,3 +238,36 @@ export const RULESET_ERROR_CODES = {
 } as const;
 
 export type RulesetErrorCode = (typeof RULESET_ERROR_CODES)[keyof typeof RULESET_ERROR_CODES];
+
+/**
+ * RulesetManifest error codes (PAS-10 M2-WO2 §18).
+ *
+ * One consistent approach: every failure of manifest creation or retrieval
+ * lives in this namespace — including a missing Ruleset, Entity, or
+ * EntityVersion — rather than reusing RULESET.NOT_FOUND / ENTITY.NOT_FOUND /
+ * ENTITY_VERSION.NOT_FOUND. Reasons: (1) the same word means different things
+ * here: NOT_FOUND is "the manifest you asked for does not exist" (a missing
+ * URL-style resource), whereas ENTITY_NOT_FOUND / VERSION_NOT_FOUND mean "a
+ * thing your request body REFERENCES does not exist" — callers (and the HTTP
+ * map) need to tell them apart; (2) one namespace lets a caller handle every
+ * manifest outcome without importing four vocabularies.
+ */
+export const RULESET_MANIFEST_ERROR_CODES = {
+  /** The manifest asked for by id does not exist (including a malformed id). */
+  NOT_FOUND: "RULESET_MANIFEST.NOT_FOUND",
+  /** The Ruleset the manifest is for (or is being listed under) does not exist. */
+  RULESET_NOT_FOUND: "RULESET_MANIFEST.RULESET_NOT_FOUND",
+  INVALID_INPUT: "RULESET_MANIFEST.INVALID_INPUT",
+  /** manifest_version could not be allocated after bounded retries; safe to retry the request. */
+  VERSION_CONFLICT: "RULESET_MANIFEST.VERSION_CONFLICT",
+  /** An entry references an Entity that does not exist. */
+  ENTITY_NOT_FOUND: "RULESET_MANIFEST.ENTITY_NOT_FOUND",
+  /** An entry references an EntityVersion that does not exist. */
+  VERSION_NOT_FOUND: "RULESET_MANIFEST.VERSION_NOT_FOUND",
+  /** An entry pairs an Entity with a Version that belongs to a different Entity. */
+  VERSION_ENTITY_MISMATCH: "RULESET_MANIFEST.VERSION_ENTITY_MISMATCH",
+  /** One manifest names the same Entity twice. */
+  DUPLICATE_ENTITY: "RULESET_MANIFEST.DUPLICATE_ENTITY",
+} as const;
+
+export type RulesetManifestErrorCode = (typeof RULESET_MANIFEST_ERROR_CODES)[keyof typeof RULESET_MANIFEST_ERROR_CODES];

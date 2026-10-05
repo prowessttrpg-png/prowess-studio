@@ -484,3 +484,19 @@ inherits it; INVALID_PARENT and PARENT_CYCLE stay distinct for diagnostic value;
 error codes were added to the central compile-time-exhaustive HTTP map even though no route exists
 (verified: leaving them out is a type error); (6) the M1 database conventions were followed exactly
 from the first commit so the blocking drift gate stays green. No new dependency; no HTTP route; no UI.
+
+## M2-WO2: Ruleset manifest and EntityVersion pinning
+
+Full design in `docs/architecture/ruleset-manifest.md`. Decisions worth keeping: (1) a manifest is an
+immutable snapshot of exact (Entity, EntityVersion) pins; there is no entry mutation and no current /
+active / published manifest, and nothing is inferred from latest revision, lifecycle status, Source
+authority, Keywords, relationships, or a parent Ruleset; (2) the "Version belongs to Entity" invariant
+is enforced by the database through a COMPOSITE foreign key (needing one extra unique index on
+`entity_versions(id, entity_id)`), not only by the service; (3) consequently no separate foreign key
+to `entities` and no `Entity.manifestEntries` back-relation — chosen over two overlapping relations on
+one column, which the toolchain could not be shown to accept; (4) no CHECK constraint for
+`manifest_version > 0` — M1 has none and nothing yet shows how Prisma's blocking drift check treats
+them; positivity comes from the allocator and is pinned by tests; (5) manifest_version allocation
+reuses M1's bounded-retry strategy with unique(ruleset_id, manifest_version) as final authority;
+(6) one error namespace `RULESET_MANIFEST.*` for every manifest failure, with HTTP statuses recorded
+in the compile-time-exhaustive map before any route exists. No new dependency, enum, route, or UI.

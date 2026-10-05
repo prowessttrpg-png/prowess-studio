@@ -10,6 +10,7 @@ import {
   SOURCE_DOCUMENT_ERROR_CODES,
   SOURCE_REFERENCE_ERROR_CODES,
   RULESET_ERROR_CODES,
+  RULESET_MANIFEST_ERROR_CODES,
 } from "@prowess/model";
 import { describe, expect, it } from "vitest";
 import {
@@ -46,6 +47,7 @@ const ALL_KNOWN_DOMAIN_ERROR_CODES = [
   ...Object.values(SOURCE_DOCUMENT_ERROR_CODES),
   ...Object.values(SOURCE_REFERENCE_ERROR_CODES),
   ...Object.values(RULESET_ERROR_CODES),
+  ...Object.values(RULESET_MANIFEST_ERROR_CODES),
 ];
 
 describe("statusForDomainErrorCode", () => {
@@ -74,6 +76,14 @@ describe("statusForDomainErrorCode", () => {
     ["RULESET.PARENT_CYCLE", 409],
     ["RULESET.INVALID_INPUT", 400],
     ["RULESET.INVALID_PARENT", 400],
+    ["RULESET_MANIFEST.NOT_FOUND", 404],
+    ["RULESET_MANIFEST.RULESET_NOT_FOUND", 404],
+    ["RULESET_MANIFEST.VERSION_CONFLICT", 409],
+    ["RULESET_MANIFEST.INVALID_INPUT", 400],
+    ["RULESET_MANIFEST.ENTITY_NOT_FOUND", 400],
+    ["RULESET_MANIFEST.VERSION_NOT_FOUND", 400],
+    ["RULESET_MANIFEST.VERSION_ENTITY_MISMATCH", 400],
+    ["RULESET_MANIFEST.DUPLICATE_ENTITY", 400],
   ])("maps %s to %d (documented mapping unchanged by the patch)", (code, expectedStatus) => {
     expect(statusForDomainErrorCode(code)).toBe(expectedStatus);
   });

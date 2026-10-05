@@ -31,10 +31,10 @@ describe("M2-WO1 — the Ruleset model is identity and lifecycle only", () => {
     for (const file of rulesetSources) expect(existsSync(file), file).toBe(true);
   });
 
-  it("has exactly the specified fields — nothing that names or selects content", () => {
+  it("has exactly the specified fields (M2-WO2 added only the manifests back-relation list, never a column) — nothing that names or selects content", () => {
     const fields = [...(ruleset?.body ?? "").matchAll(/^\s+(\w+)\s+[A-Z]/gm)].map((m) => m[1]).sort();
     expect(fields).toEqual(
-      ["canonicalKey", "channel", "children", "createdAt", "description", "id", "name", "parent", "parentRulesetId", "status", "updatedAt", "versionLabel"].sort(),
+      ["canonicalKey", "channel", "children", "createdAt", "description", "id", "manifests", "name", "parent", "parentRulesetId", "status", "updatedAt", "versionLabel"].sort(),
     );
   });
 
@@ -42,15 +42,18 @@ describe("M2-WO1 — the Ruleset model is identity and lifecycle only", () => {
     expect(ruleset?.body).not.toMatch(/\bBoolean\b/);
   });
 
-  it("references no Entity or EntityVersion, and no other model references Ruleset", () => {
+  it("references no Entity or EntityVersion; and apart from the two manifest models, no model references Ruleset", () => {
+    // M2-WO2 superseded the old blanket "no other model references Ruleset": the manifest models legitimately do.
+    // The intent stands: Entity and EntityVersion never reference a Ruleset (no ruleset_id on EntityVersion).
     expect(ruleset?.body).not.toMatch(/\bEntity(Version)?\b/);
-    for (const other of models.filter((m) => m.name !== "Ruleset")) {
-      expect(other.body, `${other.name} must not reference Ruleset (no ruleset_id / rulesetId / Ruleset relation)`).not.toMatch(/ruleset/i);
+    for (const other of models.filter((model) => !["Ruleset", "RulesetManifest", "RulesetManifestEntry"].includes(model.name))) {
+      expect(other.body, `${other.name} must not reference Ruleset (no ruleset_id / rulesetId / Ruleset relation)`).not.toMatch(/\bRuleset\b|rulesetId|ruleset_id/i);
     }
   });
 
-  it("no manifest, Canon, release, change-set, conflict, or authority-record model exists yet", () => {
-    const premature = models.map((m) => m.name).filter((n) => /manifest|canon(policy|decision)|release|changeset|ruleconflict|authorityrecord/i.test(n));
+  it("no Canon-policy, decision, release, change-set, conflict, authority-record, inheritance, or effective-manifest model exists yet", () => {
+    // Manifests were removed from this list by M2-WO2; everything still out of scope stays on it.
+    const premature = models.map((m) => m.name).filter((n) => /canon(policy|decision)|release|changeset|ruleconflict|authorityrecord|inherit|effective/i.test(n));
     expect(premature).toEqual([]);
   });
 });

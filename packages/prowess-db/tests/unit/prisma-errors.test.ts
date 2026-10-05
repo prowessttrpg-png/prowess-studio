@@ -24,7 +24,7 @@ const adapterError = (constraint: string) =>
     },
   );
 
-// Exactly the matchers used by the seven call sites.
+// Exactly the matchers used by the nine call sites.
 const SITES: Array<[string, string, string[]]> = [
   ["entity canonical key", "entities_canonical_key_key", ["canonical_key"]],
   ["keyword category canonical key", "keyword_categories_canonical_key_key", ["canonical_key"]],
@@ -33,6 +33,8 @@ const SITES: Array<[string, string, string[]]> = [
   ["entity relationship", "entity_relationships_source_target_type_key", ["source_entity_id", "target_entity_id", "relationship_type"]],
   ["entity revision", "entity_versions_entity_id_revision_number_key", ["entity_id", "revision_number"]],
   ["ruleset canonical key", "rulesets_canonical_key_key", ["canonical_key"]],
+  ["ruleset manifest version", "ruleset_manifests_ruleset_id_manifest_version_key", ["ruleset_id", "manifest_version"]],
+  ["ruleset manifest entry (one pin per Entity)", "ruleset_manifest_entries_manifest_id_entity_id_key", ["manifest_id", "entity_id"]],
 ];
 
 describe("isUniqueViolation (the Prisma 7 driver-adapter regression)", () => {

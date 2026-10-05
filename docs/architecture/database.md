@@ -89,6 +89,7 @@ packages/prowess-db/
                                         (M1-WO7, lifecycle-independent of DRAFT/CANON)
     entity-query/                          — paginated/filtered Entity list query (M1-WO8,
     ruleset/                               — Ruleset repository + service (M2-WO1; create/read only)
+    ruleset-manifest/                      - RulesetManifest repository + service (M2-WO2; create/read only)
                                         backs GET /api/entities; see docs/architecture/api-layer.md)
       index.ts                            — re-exports the service only
     index.ts                      — package entry point (exports all of the above)
@@ -507,6 +508,18 @@ Follows the M1-WO11-aligned conventions exactly (`DEFAULT gen_random_uuid()` id,
 `DEFAULT CURRENT_TIMESTAMP` on `created_at`, no default on `updated_at`), so the
 blocking drift gate stays at zero differences. No manifest tables, no link to any
 Entity or EntityVersion. See `ruleset-foundation.md`.
+
+**`20261005001500_add_ruleset_manifest`** (M2-WO2) — adds `ruleset_manifests` (`id`,
+`ruleset_id`, `manifest_version`, `created_at`; `UNIQUE(ruleset_id, manifest_version)`) and
+`ruleset_manifest_entries` (`id`, `manifest_id`, `entity_id`, `entity_version_id`, `created_at`;
+`UNIQUE(manifest_id, entity_id)`), with three `ON DELETE RESTRICT` foreign keys — one of them
+COMPOSITE, `(entity_version_id, entity_id) → entity_versions(id, entity_id)`, so a Version can only
+be pinned under its own Entity. That composite key needs a unique index on the referenced pair, so
+the migration also adds `entity_versions_id_entity_id_key` (harmless: `id` is already the primary
+key). No `updated_at` (a snapshot is never edited), no new enum, no CHECK constraint, no
+current/active manifest pointer anywhere. Follows the M1-WO11-aligned conventions, so the blocking
+drift gate stays at zero differences. The M2-WO1 migration is untouched (a static audit pins its
+hash). See `ruleset-manifest.md`.
 
 ## Migration commands
 

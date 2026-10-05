@@ -294,7 +294,15 @@ model EntityVersion {
   /// simply stops changing once it leaves DRAFT.
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
+  /// The manifest entries that pin this exact Version (M2-WO2). A relation list only.
+  manifestEntries RulesetManifestEntry[]
+
   @@unique([entityId, revisionNumber])
+  /// Exists so RulesetManifestEntry can reference (id, entityId) together — a composite
+  /// foreign key that makes "Entity A pinned to Entity B's Version" impossible in the
+  /// database itself. `id` is already the primary key, so this adds no real constraint
+  /// on EntityVersion; it is purely the target of that foreign key.
+  @@unique([id, entityId], map: "entity_versions_id_entity_id_key")
   @@map("entity_versions")
 }
 
@@ -785,9 +793,77 @@ model Ruleset {
   parent          Ruleset?  @relation("RulesetLineage", fields: [parentRulesetId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   children        Ruleset[] @relation("RulesetLineage")
 
+  /// The composition snapshots of this Ruleset (M2-WO2). A relation list only —
+  /// there is deliberately NO current/active/published manifest pointer here.
+  manifests RulesetManifest[]
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([parentRulesetId], map: "rulesets_parent_ruleset_id_idx")
   @@map("rulesets")
+}
+
+/// RulesetManifest — an immutable historical SNAPSHOT of a Ruleset's composition
+/// (PAS-10 M2-WO2). See docs/architecture/ruleset-manifest.md.
+///
+/// A Ruleset has many manifests over time; changing a composition means creating
+/// a NEW manifest, never editing one — so there is no updatedAt. `manifestVersion`
+/// (1, 2, 3 … per Ruleset) is allocated automatically with a bounded retry, and
+/// UNIQUE(ruleset_id, manifest_version) is the final authority. There is
+/// deliberately no current/active/published flag or pointer anywhere: the
+/// numerically highest manifest is only ever "the Latest Manifest", a
+/// deterministic convenience that says nothing about which composition is in force.
+///
+/// ON DELETE RESTRICT: a Ruleset cannot be physically deleted while manifests exist.
+model RulesetManifest {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  rulesetId String  @map("ruleset_id") @db.Uuid
+  ruleset   Ruleset @relation(fields: [rulesetId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  /// Positive, unique within the Ruleset, never supplied by callers. Positivity is
+  /// guaranteed by the allocator (always >= 1) and pinned by tests, following M1's
+  /// convention (no CHECK constraints in this schema).
+  manifestVersion Int @map("manifest_version")
+
+  entries RulesetManifestEntry[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([rulesetId, manifestVersion], map: "ruleset_manifests_ruleset_id_manifest_version_key")
+  @@map("ruleset_manifests")
+}
+
+/// RulesetManifestEntry — one pin: "within this manifest, use exactly this
+/// EntityVersion for this Entity" (PAS-10 M2-WO2). It never means "the latest
+/// Version from now on", and nothing here consults status, Source authority,
+/// Keywords, or relationships.
+///
+/// The core invariant — the Version belongs to the Entity — is enforced by the
+/// database: the foreign key is COMPOSITE, (entity_version_id, entity_id) →
+/// entity_versions(id, entity_id). That single constraint also guarantees the
+/// Entity exists, which is why there is no separate foreign key to `entities`
+/// (and so no overlapping second relation on entityId).
+///
+/// UNIQUE(manifest_id, entity_id): a manifest pins one Version per Entity.
+/// Every foreign key is ON DELETE RESTRICT: historical composition is never
+/// cascade-deleted, and a pinned Version / its Entity / the manifest / the
+/// Ruleset cannot be physically deleted while an entry references it.
+model RulesetManifestEntry {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  manifestId String          @map("manifest_id") @db.Uuid
+  manifest   RulesetManifest @relation(fields: [manifestId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  entityId        String        @map("entity_id") @db.Uuid
+  entityVersionId String        @map("entity_version_id") @db.Uuid
+  entityVersion   EntityVersion @relation(fields: [entityVersionId, entityId], references: [id, entityId], onDelete: Restrict, onUpdate: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([manifestId, entityId], map: "ruleset_manifest_entries_manifest_id_entity_id_key")
+  @@index([entityVersionId], map: "ruleset_manifest_entries_entity_version_id_idx")
+  @@index([entityId], map: "ruleset_manifest_entries_entity_id_idx")
+  @@map("ruleset_manifest_entries")
 }

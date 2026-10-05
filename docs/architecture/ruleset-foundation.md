@@ -147,7 +147,7 @@ and — for every `@updatedAt` field — default presence), and the CI step
 
 ## Explicitly deferred
 
-Ruleset manifests and EntityVersion pinning (M2-WO2); inheritance resolution; Canon
+Ruleset manifests and EntityVersion pinning (built since, in M2-WO2 - see `ruleset-manifest.md`); inheritance resolution; Canon
 policy/decisions; Source authority records; rule conflicts; change sets; releases;
 publishing and any status transition; any mutation including parent changes; HTTP
 API; UI (the Studio shell's Ruleset selector remains a placeholder); Rules Engine.
