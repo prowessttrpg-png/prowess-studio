@@ -278,6 +278,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     // function, and no raw Prisma update payload type, ever gets added
     // without this test failing first.
     const exportedNames = Object.keys(DbPackage).sort();
+    // M2-WO4 added six policy operations (create + reads + authority resolution; no mutation).
     // M2-WO3 added two inheritance operations (effective resolution and effective composition; reads only).
     // M2-WO2 added six manifest operations (create + reads only; no entry mutation).
     // M2-WO1 added createRuleset / findRulesetByCanonicalKey / getRuleset / listRulesets
@@ -294,6 +295,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "assignKeywordToEntity",
         "assignKeywordToEntityVersion",
         "createEntity",
+        "createCanonPolicy",
         "createEntityAlias",
         "createEntityRelationship",
         "createEntityVersion",
@@ -312,12 +314,14 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "findRulesetByCanonicalKey",
         "getEntityById",
         "getEffectiveManifestEntries",
+        "getCanonPolicy",
         "getEntityRelationship",
         "getEntityVersion",
         "getIncomingRelationships",
         "getKeywordCategory",
         "getKeywordDefinition",
         "getLatestEntityVersion",
+        "getLatestCanonPolicy",
         "getLatestRulesetManifest",
         "getManifestEntry",
         "getOutgoingRelationships",
@@ -325,7 +329,9 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "getRulesetManifest",
         "getSourceDocument",
         "getSourceReference",
+        "getSourceAuthorityRecord",
         "listEntities",
+        "listCanonPolicies",
         "listEntityAliases",
         "listEntityKeywords",
         "listEntityVersionKeywords",
@@ -344,6 +350,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "removeKeywordFromEntityVersion",
         "removeSourceReference",
         "resolveEffectiveEntityVersion",
+        "resolveSourceAuthority",
         "resolveEntityVersionFromManifest",
         "transitionEntityVersionStatus",
         "updateDraftEntityVersion",

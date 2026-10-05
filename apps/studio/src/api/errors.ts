@@ -9,6 +9,8 @@ import {
   RELATIONSHIP_ERROR_CODES,
   RULESET_ERROR_CODES,
   RULESET_MANIFEST_ERROR_CODES,
+  CANON_POLICY_ERROR_CODES,
+  SOURCE_AUTHORITY_ERROR_CODES,
   SOURCE_DOCUMENT_ERROR_CODES,
   SOURCE_REFERENCE_ERROR_CODES,
   type EntityAliasErrorCode,
@@ -20,6 +22,8 @@ import {
   type RelationshipErrorCode,
   type RulesetErrorCode,
   type RulesetManifestErrorCode,
+  type CanonPolicyErrorCode,
+  type SourceAuthorityErrorCode,
   type SourceDocumentErrorCode,
   type SourceReferenceErrorCode,
 } from "@prowess/model";
@@ -81,6 +85,8 @@ type KnownDomainErrorCode =
   | RelationshipErrorCode
   | RulesetErrorCode
   | RulesetManifestErrorCode
+  | CanonPolicyErrorCode
+  | SourceAuthorityErrorCode
   | SourceDocumentErrorCode
   | SourceReferenceErrorCode;
 
@@ -134,6 +140,9 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [RULESET_MANIFEST_ERROR_CODES.NOT_FOUND]: 404,
   // The Ruleset is the resource a manifest request is addressed to, so a missing one is a 404.
   [RULESET_MANIFEST_ERROR_CODES.RULESET_NOT_FOUND]: 404,
+  [CANON_POLICY_ERROR_CODES.NOT_FOUND]: 404,
+  // The Ruleset is the resource a policy request is addressed to, so a missing one is a 404.
+  [CANON_POLICY_ERROR_CODES.RULESET_NOT_FOUND]: 404,
 
   // --- 409: conflict with current state / duplicate ---
   [ENTITY_ERROR_CODES.CANONICAL_KEY_CONFLICT]: 409,
@@ -151,6 +160,8 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [RULESET_ERROR_CODES.PARENT_CYCLE]: 409,
   // Version allocation lost a race repeatedly; nothing is wrong with the request and it is safe to retry.
   [RULESET_MANIFEST_ERROR_CODES.VERSION_CONFLICT]: 409,
+  // policy_version allocation lost a race repeatedly; nothing is wrong with the request and it is safe to retry.
+  [CANON_POLICY_ERROR_CODES.VERSION_CONFLICT]: 409,
 
   // --- 400: invalid input / invalid reference within a request body ---
   [ENTITY_ERROR_CODES.INVALID_TYPE]: 400,
@@ -181,6 +192,13 @@ const DOMAIN_ERROR_STATUS_MAP = {
   // The parent manifest is named INSIDE the request body, so an unusable one (missing, wrong Ruleset,
   // or a Ruleset with no parent) is a bad request — the same reasoning as ENTITY_NOT_FOUND above.
   [RULESET_MANIFEST_ERROR_CODES.INVALID_PARENT_MANIFEST]: 400,
+  [CANON_POLICY_ERROR_CODES.INVALID_INPUT]: 400,
+  // SourceDocuments and scope keys are named INSIDE the request body, so a missing document, a malformed
+  // scope, or the same document + scope twice is a bad request, not a missing URL resource (the same
+  // reasoning as RULESET_MANIFEST.ENTITY_NOT_FOUND -> 400).
+  [SOURCE_AUTHORITY_ERROR_CODES.SOURCE_NOT_FOUND]: 400,
+  [SOURCE_AUTHORITY_ERROR_CODES.INVALID_SCOPE]: 400,
+  [SOURCE_AUTHORITY_ERROR_CODES.DUPLICATE_SOURCE_SCOPE]: 400,
   // Corrupt stored data, not anything the caller did: supported operations cannot create an inheritance
   // loop. An integrity failure on the server is a 500 by design, mapped explicitly so it is a decision
   // and not merely the fail-closed default for an unmapped code.

@@ -672,6 +672,10 @@ model SourceDocument {
 
   references SourceReference[]
 
+  /// Ruleset-scoped authority declarations about this document (M2-WO4). Distinct from the
+  /// descriptive `authorityStatus` above, which is never copied into or synchronized with them.
+  authorityRecords SourceAuthorityRecord[]
+
   @@map("source_documents")
 }
 
@@ -797,6 +801,10 @@ model Ruleset {
   /// there is deliberately NO current/active/published manifest pointer here.
   manifests RulesetManifest[]
 
+  /// The source-authority policy snapshots of this Ruleset (M2-WO4). A relation list only —
+  /// there is deliberately NO current/active policy pointer here.
+  canonPolicies CanonPolicy[]
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -879,4 +887,71 @@ model RulesetManifestEntry {
   @@index([entityVersionId], map: "ruleset_manifest_entries_entity_version_id_idx")
   @@index([entityId], map: "ruleset_manifest_entries_entity_id_idx")
   @@map("ruleset_manifest_entries")
+}
+
+/// CanonPolicy — an immutable historical SNAPSHOT of how authoritative each SourceDocument
+/// is within one Ruleset (PAS-10 M2-WO4). See docs/architecture/canon-policy-source-authority.md.
+///
+/// A Ruleset has many policies over time; to change source authority you create policy
+/// N+1, never edit one — so there is no updatedAt. `policyVersion` (1, 2, 3 … per Ruleset)
+/// is allocated automatically with a bounded retry, and UNIQUE(ruleset_id, policy_version)
+/// is the final authority. There is deliberately no current/active policy flag or pointer
+/// anywhere: the highest policy_version is only ever "the Latest Canon Policy", a
+/// deterministic convenience. A policy is GOVERNANCE METADATA ONLY — it never selects an
+/// EntityVersion, alters a manifest, or makes anything Canon.
+///
+/// ON DELETE RESTRICT: a Ruleset cannot be physically deleted while policies exist.
+model CanonPolicy {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  rulesetId String  @map("ruleset_id") @db.Uuid
+  ruleset   Ruleset @relation(fields: [rulesetId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  /// Positive, unique within the Ruleset, never supplied by callers. Positivity is
+  /// guaranteed by the allocator (always >= 1) and pinned by tests, following M1's
+  /// convention (no CHECK constraints in this schema).
+  policyVersion Int @map("policy_version")
+
+  name        String
+  description String?
+
+  authorityRecords SourceAuthorityRecord[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([rulesetId, policyVersion], map: "canon_policies_ruleset_id_policy_version_key")
+  @@map("canon_policies")
+}
+
+/// SourceAuthorityRecord — "in this policy, this SourceDocument has this authority within
+/// this scope" (PAS-10 M2-WO4). It belongs to exactly one CanonPolicy snapshot and references
+/// a SourceDocument; it does NOT attach to an Entity, EntityVersion, or SourceReference.
+///
+/// `authorityStatus` reuses the existing SourceAuthorityStatus enum (no second vocabulary),
+/// and is deliberately independent of SourceDocument.authorityStatus: the document's own
+/// field is descriptive provenance, this one is Ruleset-scoped governance. They are never
+/// copied or synchronized. `scopeKey` is `global` or a dotted machine-readable scope such as
+/// `entity_type.spell_effect`; UNIQUE(canon_policy_id, source_document_id, scope_key) allows
+/// one declaration per document per scope per policy. A missing declaration is NOT stored as
+/// an UNRESOLVED row — "no authority declared" is derived on lookup.
+///
+/// Both foreign keys are ON DELETE RESTRICT: governance history is never cascade-deleted.
+model SourceAuthorityRecord {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  canonPolicyId String      @map("canon_policy_id") @db.Uuid
+  canonPolicy   CanonPolicy @relation(fields: [canonPolicyId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  sourceDocumentId String         @map("source_document_id") @db.Uuid
+  sourceDocument   SourceDocument @relation(fields: [sourceDocumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  scopeKey        String                @map("scope_key")
+  authorityStatus SourceAuthorityStatus @map("authority_status")
+  rationale       String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([canonPolicyId, sourceDocumentId, scopeKey], map: "source_authority_records_policy_source_scope_key")
+  @@index([sourceDocumentId], map: "source_authority_records_source_document_id_idx")
+  @@map("source_authority_records")
 }
