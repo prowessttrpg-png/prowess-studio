@@ -193,7 +193,8 @@ describe("Ruleset (prowess_studio_test only)", () => {
 
     it("exposes no operation that changes a parent: the public surface has no update/set for Rulesets", async () => {
       const surface = await import("../../src/index");
-      const rulesetOps = Object.keys(surface).filter((n) => /ruleset/i.test(n)).sort();
+      // Manifest operations (M2-WO2) have their own audit; this one is about Ruleset itself.
+      const rulesetOps = Object.keys(surface).filter((n) => /ruleset/i.test(n) && !/manifest/i.test(n)).sort();
       expect(rulesetOps).toEqual(["createRuleset", "findRulesetByCanonicalKey", "getRuleset", "listRulesets"]);
     });
   });

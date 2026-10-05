@@ -72,3 +72,15 @@ export type RulesetId = Brand<string, "RulesetId">;
 export const RulesetId = {
   of: (value: string) => asBrand<string, "RulesetId">(value),
 };
+
+/** Opaque, immutable UUID identity of a RulesetManifest (PAS-10 M2-WO2). */
+export type RulesetManifestId = Brand<string, "RulesetManifestId">;
+export const RulesetManifestId = {
+  of: (value: string) => asBrand<string, "RulesetManifestId">(value),
+};
+
+/** Opaque, immutable UUID identity of a RulesetManifestEntry (PAS-10 M2-WO2). */
+export type RulesetManifestEntryId = Brand<string, "RulesetManifestEntryId">;
+export const RulesetManifestEntryId = {
+  of: (value: string) => asBrand<string, "RulesetManifestEntryId">(value),
+};

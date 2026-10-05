@@ -8,6 +8,7 @@ import {
   KEYWORD_ERROR_CODES,
   RELATIONSHIP_ERROR_CODES,
   RULESET_ERROR_CODES,
+  RULESET_MANIFEST_ERROR_CODES,
   SOURCE_DOCUMENT_ERROR_CODES,
   SOURCE_REFERENCE_ERROR_CODES,
   type EntityAliasErrorCode,
@@ -18,6 +19,7 @@ import {
   type KeywordErrorCode,
   type RelationshipErrorCode,
   type RulesetErrorCode,
+  type RulesetManifestErrorCode,
   type SourceDocumentErrorCode,
   type SourceReferenceErrorCode,
 } from "@prowess/model";
@@ -78,6 +80,7 @@ type KnownDomainErrorCode =
   | KeywordAssignmentErrorCode
   | RelationshipErrorCode
   | RulesetErrorCode
+  | RulesetManifestErrorCode
   | SourceDocumentErrorCode
   | SourceReferenceErrorCode;
 
@@ -128,6 +131,9 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [SOURCE_DOCUMENT_ERROR_CODES.NOT_FOUND]: 404,
   [SOURCE_REFERENCE_ERROR_CODES.NOT_FOUND]: 404,
   [RULESET_ERROR_CODES.NOT_FOUND]: 404,
+  [RULESET_MANIFEST_ERROR_CODES.NOT_FOUND]: 404,
+  // The Ruleset is the resource a manifest request is addressed to, so a missing one is a 404.
+  [RULESET_MANIFEST_ERROR_CODES.RULESET_NOT_FOUND]: 404,
 
   // --- 409: conflict with current state / duplicate ---
   [ENTITY_ERROR_CODES.CANONICAL_KEY_CONFLICT]: 409,
@@ -143,6 +149,8 @@ const DOMAIN_ERROR_STATUS_MAP = {
   // A cycle depends on the lineage that already exists (state), not on the shape of the
   // request — the same reasoning as INVALID_STATUS_TRANSITION -> 409.
   [RULESET_ERROR_CODES.PARENT_CYCLE]: 409,
+  // Version allocation lost a race repeatedly; nothing is wrong with the request and it is safe to retry.
+  [RULESET_MANIFEST_ERROR_CODES.VERSION_CONFLICT]: 409,
 
   // --- 400: invalid input / invalid reference within a request body ---
   [ENTITY_ERROR_CODES.INVALID_TYPE]: 400,
@@ -162,6 +170,14 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [RULESET_ERROR_CODES.INVALID_INPUT]: 400,
   // A bad reference inside a request body — the same reasoning as RELATIONSHIP.INVALID_SOURCE -> 400.
   [RULESET_ERROR_CODES.INVALID_PARENT]: 400,
+  [RULESET_MANIFEST_ERROR_CODES.INVALID_INPUT]: 400,
+  // Entities and Versions are referenced INSIDE the request body, so a missing one — or a Version that
+  // belongs to a different Entity, or the same Entity twice — is a bad request, not a missing URL
+  // resource (the same reasoning as RELATIONSHIP.INVALID_SOURCE -> 400).
+  [RULESET_MANIFEST_ERROR_CODES.ENTITY_NOT_FOUND]: 400,
+  [RULESET_MANIFEST_ERROR_CODES.VERSION_NOT_FOUND]: 400,
+  [RULESET_MANIFEST_ERROR_CODES.VERSION_ENTITY_MISMATCH]: 400,
+  [RULESET_MANIFEST_ERROR_CODES.DUPLICATE_ENTITY]: 400,
 } satisfies Record<KnownDomainErrorCode, number>;
 
 /**

@@ -278,6 +278,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     // function, and no raw Prisma update payload type, ever gets added
     // without this test failing first.
     const exportedNames = Object.keys(DbPackage).sort();
+    // M2-WO2 added six manifest operations (create + reads only; no entry mutation).
     // M2-WO1 added createRuleset / findRulesetByCanonicalKey / getRuleset / listRulesets
     // (read + create only — no Ruleset mutation is exposed yet).
     // M1-WO11: this allowlist was frozen at M1-WO3's 13 names and never
@@ -296,6 +297,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "createEntityRelationship",
         "createEntityVersion",
         "createRuleset",
+        "createRulesetManifest",
         "createKeywordCategory",
         "createKeywordDefinition",
         "createSourceDocument",
@@ -314,8 +316,11 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "getKeywordCategory",
         "getKeywordDefinition",
         "getLatestEntityVersion",
+        "getLatestRulesetManifest",
+        "getManifestEntry",
         "getOutgoingRelationships",
         "getRuleset",
+        "getRulesetManifest",
         "getSourceDocument",
         "getSourceReference",
         "listEntities",
@@ -326,6 +331,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "listKeywordCategories",
         "listKeywordDefinitions",
         "listRulesets",
+        "listRulesetManifests",
         "listSourceDocuments",
         "listSourceReferencesForDocument",
         "listSourceReferencesForVersion",
@@ -335,6 +341,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "removeKeywordFromEntity",
         "removeKeywordFromEntityVersion",
         "removeSourceReference",
+        "resolveEntityVersionFromManifest",
         "transitionEntityVersionStatus",
         "updateDraftEntityVersion",
       ].sort(),
