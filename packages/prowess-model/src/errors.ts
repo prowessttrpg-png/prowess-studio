@@ -324,3 +324,38 @@ export const SOURCE_AUTHORITY_ERROR_CODES = {
 } as const;
 
 export type SourceAuthorityErrorCode = (typeof SOURCE_AUTHORITY_ERROR_CODES)[keyof typeof SOURCE_AUTHORITY_ERROR_CODES];
+
+/**
+ * RuleConflict error codes (PAS-10 M2-WO5 §33).
+ *
+ * One namespace for every conflict outcome, following RulesetManifest's precedent: a
+ * caller handles conflict creation without importing four vocabularies, and the codes
+ * keep "the resource you ADDRESSED does not exist" (NOT_FOUND, RULESET_NOT_FOUND)
+ * apart from "something your request REFERENCES does not exist" (ENTITY_NOT_FOUND,
+ * VERSION_NOT_FOUND) — the HTTP map gives them different statuses.
+ *
+ * Deliberately absent: any code for a status transition, a winner, or a resolution.
+ * Those belong to M2-WO6 (Canon Decisions).
+ */
+export const RULE_CONFLICT_ERROR_CODES = {
+  /** The conflict asked for by id does not exist (including a malformed id). */
+  NOT_FOUND: "RULE_CONFLICT.NOT_FOUND",
+  /** The Ruleset the conflict is created or listed under does not exist. */
+  RULESET_NOT_FOUND: "RULE_CONFLICT.RULESET_NOT_FOUND",
+  /** The conflict's Entity (named in the request) does not exist. */
+  ENTITY_NOT_FOUND: "RULE_CONFLICT.ENTITY_NOT_FOUND",
+  /** Shape problems: a blank or over-long title, an unknown type or severity, too many candidates, a bad field. */
+  INVALID_INPUT: "RULE_CONFLICT.INVALID_INPUT",
+  /** Fewer than two candidates: with zero or one there is no represented disagreement. */
+  INSUFFICIENT_CANDIDATES: "RULE_CONFLICT.INSUFFICIENT_CANDIDATES",
+  /** The same EntityVersion appears more than once in one conflict. */
+  DUPLICATE_CANDIDATE: "RULE_CONFLICT.DUPLICATE_CANDIDATE",
+  /** A candidate names an EntityVersion that does not exist. */
+  VERSION_NOT_FOUND: "RULE_CONFLICT.VERSION_NOT_FOUND",
+  /** A candidate's EntityVersion belongs to a different Entity than the conflict's. */
+  VERSION_ENTITY_MISMATCH: "RULE_CONFLICT.VERSION_ENTITY_MISMATCH",
+  /** A candidate's SourceReference does not exist, or belongs to a different EntityVersion than the candidate's. */
+  INVALID_SOURCE_REFERENCE: "RULE_CONFLICT.INVALID_SOURCE_REFERENCE",
+} as const;
+
+export type RuleConflictErrorCode = (typeof RULE_CONFLICT_ERROR_CODES)[keyof typeof RULE_CONFLICT_ERROR_CODES];

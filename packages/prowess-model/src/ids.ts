@@ -96,3 +96,15 @@ export type SourceAuthorityRecordId = Brand<string, "SourceAuthorityRecordId">;
 export const SourceAuthorityRecordId = {
   of: (value: string) => asBrand<string, "SourceAuthorityRecordId">(value),
 };
+
+/** Opaque, immutable UUID identity of a RuleConflict (PAS-10 M2-WO5). */
+export type RuleConflictId = Brand<string, "RuleConflictId">;
+export const RuleConflictId = {
+  of: (value: string) => asBrand<string, "RuleConflictId">(value),
+};
+
+/** Opaque, immutable UUID identity of a RuleConflictCandidate (PAS-10 M2-WO5). */
+export type RuleConflictCandidateId = Brand<string, "RuleConflictCandidateId">;
+export const RuleConflictCandidateId = {
+  of: (value: string) => asBrand<string, "RuleConflictCandidateId">(value),
+};

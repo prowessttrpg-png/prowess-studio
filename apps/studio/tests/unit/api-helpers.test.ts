@@ -13,6 +13,7 @@ import {
   RULESET_MANIFEST_ERROR_CODES,
   CANON_POLICY_ERROR_CODES,
   SOURCE_AUTHORITY_ERROR_CODES,
+  RULE_CONFLICT_ERROR_CODES,
 } from "@prowess/model";
 import { describe, expect, it } from "vitest";
 import {
@@ -52,6 +53,7 @@ const ALL_KNOWN_DOMAIN_ERROR_CODES = [
   ...Object.values(RULESET_MANIFEST_ERROR_CODES),
   ...Object.values(CANON_POLICY_ERROR_CODES),
   ...Object.values(SOURCE_AUTHORITY_ERROR_CODES),
+  ...Object.values(RULE_CONFLICT_ERROR_CODES),
 ];
 
 describe("statusForDomainErrorCode", () => {
@@ -97,6 +99,15 @@ describe("statusForDomainErrorCode", () => {
     ["SOURCE_AUTHORITY.SOURCE_NOT_FOUND", 400],
     ["SOURCE_AUTHORITY.INVALID_SCOPE", 400],
     ["SOURCE_AUTHORITY.DUPLICATE_SOURCE_SCOPE", 400],
+    ["RULE_CONFLICT.NOT_FOUND", 404],
+    ["RULE_CONFLICT.RULESET_NOT_FOUND", 404],
+    ["RULE_CONFLICT.ENTITY_NOT_FOUND", 400],
+    ["RULE_CONFLICT.INVALID_INPUT", 400],
+    ["RULE_CONFLICT.INSUFFICIENT_CANDIDATES", 400],
+    ["RULE_CONFLICT.DUPLICATE_CANDIDATE", 400],
+    ["RULE_CONFLICT.VERSION_NOT_FOUND", 400],
+    ["RULE_CONFLICT.VERSION_ENTITY_MISMATCH", 400],
+    ["RULE_CONFLICT.INVALID_SOURCE_REFERENCE", 400],
   ])("maps %s to %d (documented mapping unchanged by the patch)", (code, expectedStatus) => {
     expect(statusForDomainErrorCode(code)).toBe(expectedStatus);
   });

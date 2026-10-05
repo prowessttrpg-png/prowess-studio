@@ -92,6 +92,7 @@ packages/prowess-db/
     ruleset-manifest/                      - RulesetManifest repository + service (M2-WO2; create/read only)
     ruleset-inheritance/                   - effective resolution across pinned parent manifests (M2-WO3; read only)
     canon-policy/                          - Ruleset-scoped source-authority snapshots + resolution (M2-WO4)
+    rule-conflict/                         - Ruleset-scoped records of rule disagreements; create + read only (M2-WO5)
                                         backs GET /api/entities; see docs/architecture/api-layer.md)
       index.ts                            — re-exports the service only
     index.ts                      — package entry point (exports all of the above)
@@ -544,6 +545,24 @@ policy pointer, and no link to any manifest, Entity, or EntityVersion. An UNRESO
 on lookup and never stored. Follows the M1-WO11-aligned conventions, so the blocking drift gate stays at
 zero differences. The M2-WO1/WO2/WO3 migrations are untouched (a static audit pins all three by
 hash). See `canon-policy-source-authority.md`.
+
+**`20261006010000_add_rule_conflicts`** (M2-WO5) — adds three enums (`RuleConflictType`,
+`RuleConflictSeverity`, `RuleConflictStatus`), `rule_conflicts` (`id`, `ruleset_id`, `entity_id`,
+`conflict_type`, `severity`, `status` DEFAULT `'OPEN'`, `title`, `description`, `created_at`) and
+`rule_conflict_candidates` (`id`, `rule_conflict_id`, `entity_id`, `entity_version_id`,
+`source_reference_id` NULL, `label`, `position_summary`, `created_at`). Five foreign keys, all
+`ON DELETE RESTRICT`, three of them COMPOSITE so the database itself guarantees that every candidate
+Version belongs to the conflict's Entity and that cited evidence belongs to the candidate's Version:
+`(rule_conflict_id, entity_id) → rule_conflicts(id, entity_id)`, `(entity_version_id, entity_id) →
+entity_versions(id, entity_id)`, `(source_reference_id, entity_version_id) → source_references(id,
+entity_version_id)`. Two composite-key targets are added: `UNIQUE(id, entity_id)` on `rule_conflicts`
+and `UNIQUE(id, entity_version_id)` on `source_references` — the only change this migration makes to an
+existing table, and an index only (no column), exactly as M2-WO2 did for `entity_versions`. Plus
+`UNIQUE(rule_conflict_id, entity_version_id)` and four plain indexes. No winner, resolution, decision,
+or policy column; no `updated_at`; no CHECK or trigger (the two-candidate minimum spans rows and is
+enforced in the creating transaction). Constraint names are explicit because Prisma's defaults would
+exceed PostgreSQL's 63-byte limit. The M2-WO1…WO4 migrations are untouched (pinned by hash). See
+`rule-conflicts.md`.
 
 ## Migration commands
 
