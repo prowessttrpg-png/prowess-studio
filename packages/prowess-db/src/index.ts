@@ -103,3 +103,11 @@ export {
   resolveEntityVersionFromManifest,
 } from "./ruleset-manifest/index.js";
 export { getEffectiveManifestEntries, resolveEffectiveEntityVersion } from "./ruleset-inheritance/index.js";
+export {
+  createCanonPolicy,
+  getCanonPolicy,
+  getLatestCanonPolicy,
+  getSourceAuthorityRecord,
+  listCanonPolicies,
+  resolveSourceAuthority,
+} from "./canon-policy/index.js";

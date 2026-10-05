@@ -242,3 +242,12 @@ domain (callers)
 
 Only each service's public functions are part of `@prowess/db`'s public
 surface, re-exported from the package's own `index.ts`.
+
+## Ruleset-scoped authority (added in M2-WO4)
+
+`SourceDocument.authorityStatus` described above remains **descriptive provenance metadata
+carried by the document itself**. It is not Ruleset-specific governance. How authoritative a
+document is *within a particular Ruleset* is declared separately, in an immutable
+`SourceAuthorityRecord` inside a versioned `CanonPolicy` snapshot — see
+`canon-policy-source-authority.md`. The two are never copied or synchronized, and neither one
+selects an EntityVersion.

@@ -91,6 +91,7 @@ packages/prowess-db/
     ruleset/                               — Ruleset repository + service (M2-WO1; create/read only)
     ruleset-manifest/                      - RulesetManifest repository + service (M2-WO2; create/read only)
     ruleset-inheritance/                   - effective resolution across pinned parent manifests (M2-WO3; read only)
+    canon-policy/                          - Ruleset-scoped source-authority snapshots + resolution (M2-WO4)
                                         backs GET /api/entities; see docs/architecture/api-layer.md)
       index.ts                            — re-exports the service only
     index.ts                      — package entry point (exports all of the above)
@@ -531,6 +532,18 @@ key cannot); a database-level proof would need redundant columns and was deliber
 new table, no enum, no persisted flattened state. The M2-WO1 and M2-WO2 migrations are untouched (a
 static audit pins both by hash). Follows the M1-WO11 conventions, so the blocking drift gate stays at
 zero differences. See `ruleset-inheritance.md`.
+
+**`20261005220000_add_canon_policy`** (M2-WO4) — adds `canon_policies` (`id`, `ruleset_id`,
+`policy_version`, `name`, `description`, `created_at`; `UNIQUE(ruleset_id, policy_version)`) and
+`source_authority_records` (`id`, `canon_policy_id`, `source_document_id`, `scope_key`,
+`authority_status`, `rationale`, `created_at`; `UNIQUE(canon_policy_id, source_document_id,
+scope_key)`), with three `ON DELETE RESTRICT` foreign keys and one index on `source_document_id`
+(for the reverse delete check). `authority_status` reuses the existing `SourceAuthorityStatus` enum —
+no new enum. No `updated_at` (a snapshot is never edited), no CHECK constraint, no current/active
+policy pointer, and no link to any manifest, Entity, or EntityVersion. An UNRESOLVED answer is derived
+on lookup and never stored. Follows the M1-WO11-aligned conventions, so the blocking drift gate stays at
+zero differences. The M2-WO1/WO2/WO3 migrations are untouched (a static audit pins all three by
+hash). See `canon-policy-source-authority.md`.
 
 ## Migration commands
 

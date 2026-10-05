@@ -285,3 +285,42 @@ export const RULESET_MANIFEST_ERROR_CODES = {
 } as const;
 
 export type RulesetManifestErrorCode = (typeof RULESET_MANIFEST_ERROR_CODES)[keyof typeof RULESET_MANIFEST_ERROR_CODES];
+
+/**
+ * CanonPolicy error codes (PAS-10 M2-WO4 §29).
+ *
+ * `RULESET_NOT_FOUND` is the Ruleset a policy is being created or listed for
+ * (the resource the request is addressed to); `NOT_FOUND` is a policy asked for
+ * by id. `INVALID_INPUT` also covers an unrecognized authority status or a
+ * blank name. `VERSION_CONFLICT` means policy_version allocation lost a race
+ * repeatedly; the request is safe to retry.
+ */
+export const CANON_POLICY_ERROR_CODES = {
+  NOT_FOUND: "CANON_POLICY.NOT_FOUND",
+  RULESET_NOT_FOUND: "CANON_POLICY.RULESET_NOT_FOUND",
+  INVALID_INPUT: "CANON_POLICY.INVALID_INPUT",
+  VERSION_CONFLICT: "CANON_POLICY.VERSION_CONFLICT",
+} as const;
+
+export type CanonPolicyErrorCode = (typeof CANON_POLICY_ERROR_CODES)[keyof typeof CANON_POLICY_ERROR_CODES];
+
+/**
+ * SourceAuthorityRecord error codes (PAS-10 M2-WO4 §29).
+ *
+ * A missing SourceDocument uses this namespace's `SOURCE_NOT_FOUND` rather than
+ * reusing `SOURCE_DOCUMENT.NOT_FOUND`, for the same reason RulesetManifest has
+ * its own `ENTITY_NOT_FOUND`: the document is referenced INSIDE a request body,
+ * so "the thing you referenced does not exist" (a bad request) must be told apart
+ * from "the resource you addressed does not exist" (a 404), and one namespace
+ * covers every policy-creation failure.
+ */
+export const SOURCE_AUTHORITY_ERROR_CODES = {
+  /** An authority record references a SourceDocument that does not exist. */
+  SOURCE_NOT_FOUND: "SOURCE_AUTHORITY.SOURCE_NOT_FOUND",
+  /** A scope key is malformed (see isValidSourceAuthorityScopeKey), or a lookup used an invalid one. */
+  INVALID_SCOPE: "SOURCE_AUTHORITY.INVALID_SCOPE",
+  /** One policy declares the same SourceDocument + scope twice. */
+  DUPLICATE_SOURCE_SCOPE: "SOURCE_AUTHORITY.DUPLICATE_SOURCE_SCOPE",
+} as const;
+
+export type SourceAuthorityErrorCode = (typeof SOURCE_AUTHORITY_ERROR_CODES)[keyof typeof SOURCE_AUTHORITY_ERROR_CODES];

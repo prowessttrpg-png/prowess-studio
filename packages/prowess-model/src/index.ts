@@ -40,3 +40,6 @@ export * from "./ruleset.js";
 export * from "./ruleset-lineage.js";
 export * from "./ruleset-manifest.js";
 export * from "./ruleset-resolution.js";
+export * from "./source-authority-scope.js";
+export * from "./canon-policy.js";
+export * from "./source-authority-resolution.js";

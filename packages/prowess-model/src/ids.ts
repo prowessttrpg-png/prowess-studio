@@ -84,3 +84,15 @@ export type RulesetManifestEntryId = Brand<string, "RulesetManifestEntryId">;
 export const RulesetManifestEntryId = {
   of: (value: string) => asBrand<string, "RulesetManifestEntryId">(value),
 };
+
+/** Opaque, immutable UUID identity of a CanonPolicy snapshot (PAS-10 M2-WO4). */
+export type CanonPolicyId = Brand<string, "CanonPolicyId">;
+export const CanonPolicyId = {
+  of: (value: string) => asBrand<string, "CanonPolicyId">(value),
+};
+
+/** Opaque, immutable UUID identity of a SourceAuthorityRecord (PAS-10 M2-WO4). */
+export type SourceAuthorityRecordId = Brand<string, "SourceAuthorityRecordId">;
+export const SourceAuthorityRecordId = {
+  of: (value: string) => asBrand<string, "SourceAuthorityRecordId">(value),
+};

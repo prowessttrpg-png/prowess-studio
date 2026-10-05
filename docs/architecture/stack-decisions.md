@@ -515,3 +515,22 @@ persisted, and ordered by asking the database (its collation is the M2-WO2 order
 JavaScript comparison would not reproduce); (5) the resolution trace is a domain-only type, not a
 Prisma enum; (6) INHERITANCE_CYCLE maps to HTTP 500 deliberately — it is corrupt data, not a caller
 error. The earlier local manifest operations are unchanged. No new dependency, table, enum, route, or UI.
+
+## M2-WO4: Canon policy and source authority
+
+Full design in `docs/architecture/canon-policy-source-authority.md`. Decisions worth keeping: (1) a
+CanonPolicy is an immutable, Ruleset-scoped snapshot; to change source authority create policy N+1 —
+there is no mutation and no active/current policy pointer, and "latest" means only highest policy_version;
+(2) `SourceDocument.authorityStatus` (descriptive provenance on the document) and `SourceAuthorityRecord`
+(Ruleset-scoped governance) are distinct facts that are never copied or synchronized; (3) the existing
+`SourceAuthorityStatus` enum is reused, so there is no second authority vocabulary to drift; (4) scope keys
+use a narrow validator — the literal `global` plus the existing canonical-key grammar — because that grammar
+requires two segments and rejects `global`, and weakening it for everyone was the worse choice;
+(5) resolution is exact scope -> global -> UNRESOLVED inside ONE policy, with UNRESOLVED derived and never
+stored, and no fallback across policies or to a parent Ruleset's policy; (6) policy code is structurally
+barred from selecting content: it imports only its own repository plus Ruleset and SourceDocument existence
+lookups, and a static audit forbids EntityVersion selection, manifest, inheritance, status, keyword, and
+relationship identifiers; (7) records are ordered by scope_key then source_document_id, because a
+SourceDocument's title is not unique; (8) a missing SourceDocument gets its own code in the new namespace
+(a body reference, not an addressed resource); (9) no CHECK constraint for policy_version > 0, following M1.
+No new dependency, enum, route, or UI.
