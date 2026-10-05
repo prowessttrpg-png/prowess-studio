@@ -534,3 +534,23 @@ relationship identifiers; (7) records are ordered by scope_key then source_docum
 SourceDocument's title is not unique; (8) a missing SourceDocument gets its own code in the new namespace
 (a body reference, not an addressed resource); (9) no CHECK constraint for policy_version > 0, following M1.
 No new dependency, enum, route, or UI.
+
+## M2-WO5: Rule conflicts
+
+Full design in `docs/architecture/rule-conflicts.md`. Decisions worth keeping: (1) a RuleConflict RECORDS a
+disagreement and never resolves it — no winner, resolution, or decision column exists, and M2-WO6's
+CanonDecision will own outcomes; (2) a conflict is Ruleset-scoped and single-Entity, and is NOT tied to a
+CanonPolicy (the decision will record the policy snapshot it relied on); (3) candidates pin exact
+EntityVersion ids, so later revisions never join a conflict; (4) "the candidate Version belongs to the
+conflict's Entity" is enforced by the DATABASE through a redundant `rule_conflict_candidates.entity_id`
+pinned by two composite foreign keys (to the conflict and to the Version), which makes the copy impossible
+to diverge — the redundancy buys real integrity, so it was taken; (5) cited SourceReference evidence is
+likewise a composite key on (source_reference_id, entity_version_id), which needs one new unique index on
+`source_references` and is skipped by PostgreSQL when no reference is cited; (6) at least two and at most 25
+candidates — the minimum spans rows, so it lives in the service transaction, not a trigger; (7) every
+conflict starts OPEN and there is no transition operation, though the full status vocabulary (including
+ACCEPTED_DIVERGENCE) is declared now; (8) type and severity are classification only, and a static audit
+forbids branching on their values; (9) candidates are ordered by revision ascending then id — a display
+order, never a ranking; (10) RULESET_NOT_FOUND is 404 (the addressed resource, as for manifests and
+policies) while every body-reference and shape error, including DUPLICATE_CANDIDATE, is 400. No new
+dependency, route, or UI.

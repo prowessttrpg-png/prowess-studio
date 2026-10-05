@@ -11,6 +11,7 @@ import {
   RULESET_MANIFEST_ERROR_CODES,
   CANON_POLICY_ERROR_CODES,
   SOURCE_AUTHORITY_ERROR_CODES,
+  RULE_CONFLICT_ERROR_CODES,
   SOURCE_DOCUMENT_ERROR_CODES,
   SOURCE_REFERENCE_ERROR_CODES,
   type EntityAliasErrorCode,
@@ -24,6 +25,7 @@ import {
   type RulesetManifestErrorCode,
   type CanonPolicyErrorCode,
   type SourceAuthorityErrorCode,
+  type RuleConflictErrorCode,
   type SourceDocumentErrorCode,
   type SourceReferenceErrorCode,
 } from "@prowess/model";
@@ -87,6 +89,7 @@ type KnownDomainErrorCode =
   | RulesetManifestErrorCode
   | CanonPolicyErrorCode
   | SourceAuthorityErrorCode
+  | RuleConflictErrorCode
   | SourceDocumentErrorCode
   | SourceReferenceErrorCode;
 
@@ -143,6 +146,11 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [CANON_POLICY_ERROR_CODES.NOT_FOUND]: 404,
   // The Ruleset is the resource a policy request is addressed to, so a missing one is a 404.
   [CANON_POLICY_ERROR_CODES.RULESET_NOT_FOUND]: 404,
+  [RULE_CONFLICT_ERROR_CODES.NOT_FOUND]: 404,
+  // The Ruleset is the resource a conflict request is addressed to (it is the createRuleConflict /
+  // listRuleConflicts subject, not a body field), so a missing one is a 404 — the same convention as
+  // RULESET_MANIFEST.RULESET_NOT_FOUND and CANON_POLICY.RULESET_NOT_FOUND.
+  [RULE_CONFLICT_ERROR_CODES.RULESET_NOT_FOUND]: 404,
 
   // --- 409: conflict with current state / duplicate ---
   [ENTITY_ERROR_CODES.CANONICAL_KEY_CONFLICT]: 409,
@@ -199,6 +207,18 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [SOURCE_AUTHORITY_ERROR_CODES.SOURCE_NOT_FOUND]: 400,
   [SOURCE_AUTHORITY_ERROR_CODES.INVALID_SCOPE]: 400,
   [SOURCE_AUTHORITY_ERROR_CODES.DUPLICATE_SOURCE_SCOPE]: 400,
+  // RuleConflict (M2-WO5): every one of these describes the request BODY — its shape, its candidate
+  // list, or an Entity / Version / SourceReference it names — so each is a bad request, never a missing
+  // URL resource (the same reasoning as RULESET_MANIFEST.ENTITY_NOT_FOUND / DUPLICATE_ENTITY -> 400).
+  // DUPLICATE_CANDIDATE is 400, not 409: the duplicate is inside one request, not a clash with stored
+  // state (two separate conflicts may legitimately share candidates).
+  [RULE_CONFLICT_ERROR_CODES.INVALID_INPUT]: 400,
+  [RULE_CONFLICT_ERROR_CODES.ENTITY_NOT_FOUND]: 400,
+  [RULE_CONFLICT_ERROR_CODES.INSUFFICIENT_CANDIDATES]: 400,
+  [RULE_CONFLICT_ERROR_CODES.DUPLICATE_CANDIDATE]: 400,
+  [RULE_CONFLICT_ERROR_CODES.VERSION_NOT_FOUND]: 400,
+  [RULE_CONFLICT_ERROR_CODES.VERSION_ENTITY_MISMATCH]: 400,
+  [RULE_CONFLICT_ERROR_CODES.INVALID_SOURCE_REFERENCE]: 400,
   // Corrupt stored data, not anything the caller did: supported operations cannot create an inheritance
   // loop. An integrity failure on the server is a 500 by design, mapped explicitly so it is a decision
   // and not merely the fail-closed default for an unmapped code.

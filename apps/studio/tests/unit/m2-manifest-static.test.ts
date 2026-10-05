@@ -73,8 +73,8 @@ describe("M2-WO2 — the manifest models are immutable snapshots with exact pins
     expect(find("Ruleset")?.body).toMatch(/manifests\s+RulesetManifest\[\]/);
   });
 
-  it("nothing still out of scope exists: no Canon decision, release, change set, conflict, inheritance, or effective manifest", () => {
-    const premature = models.map((m) => m.name).filter((n) => /canondecision|release|changeset|ruleconflict|inherit|effective/i.test(n));
+  it("nothing still out of scope exists: no Canon decision, release, change set, inheritance, or effective manifest", () => {
+    const premature = models.map((m) => m.name).filter((n) => /canondecision|release|changeset|inherit|effective/i.test(n));
     expect(premature).toEqual([]);
   });
 });

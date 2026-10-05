@@ -154,6 +154,10 @@ model Entity {
   outgoingRelationships EntityRelationship[] @relation("EntityRelationshipSource")
   incomingRelationships EntityRelationship[] @relation("EntityRelationshipTarget")
 
+  /// Governance conflicts about this Entity (M2-WO5), each scoped to one Ruleset. A relation
+  /// list only — no conflict pointer, flag, or winner on the Entity itself.
+  ruleConflicts RuleConflict[]
+
   @@map("entities")
 }
 
@@ -296,6 +300,10 @@ model EntityVersion {
 
   /// The manifest entries that pin this exact Version (M2-WO2). A relation list only.
   manifestEntries RulesetManifestEntry[]
+
+  /// The conflict candidates that name this exact Version (M2-WO5). A relation list only:
+  /// being a candidate never changes this Version's status or content.
+  conflictCandidates RuleConflictCandidate[]
 
   @@unique([entityId, revisionNumber])
   /// Exists so RulesetManifestEntry can reference (id, entityId) together — a composite
@@ -735,8 +743,16 @@ model SourceReference {
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
+  /// Conflict candidates citing this reference as evidence (M2-WO5). A relation list only.
+  conflictCandidates RuleConflictCandidate[]
+
   @@index([sourceDocumentId], map: "source_references_source_document_id_idx")
   @@index([entityVersionId], map: "source_references_entity_version_id_idx")
+  /// Exists so RuleConflictCandidate can reference (id, entityVersionId) together (M2-WO5) — a
+  /// composite foreign key that makes "a candidate for Version A cites Version B's reference"
+  /// impossible in the database itself. `id` is already the primary key, so this adds no real
+  /// constraint on SourceReference; it is purely the target of that foreign key.
+  @@unique([id, entityVersionId], map: "source_references_id_entity_version_id_key")
   @@map("source_references")
 }
 
@@ -804,6 +820,10 @@ model Ruleset {
   /// The source-authority policy snapshots of this Ruleset (M2-WO4). A relation list only —
   /// there is deliberately NO current/active policy pointer here.
   canonPolicies CanonPolicy[]
+
+  /// Governance conflicts recorded in this Ruleset's context (M2-WO5). A relation list only —
+  /// a conflict never changes this Ruleset's status, manifests, or policies.
+  ruleConflicts RuleConflict[]
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -954,4 +974,129 @@ model SourceAuthorityRecord {
   @@unique([canonPolicyId, sourceDocumentId, scopeKey], map: "source_authority_records_policy_source_scope_key")
   @@index([sourceDocumentId], map: "source_authority_records_source_document_id_idx")
   @@map("source_authority_records")
+}
+
+/// What kind of disagreement a RuleConflict records (PAS-10 M2-WO5 §5). Classification only:
+/// no value carries behavior. Kept in lockstep with @prowess/model's RULE_CONFLICT_TYPES
+/// (packages/prowess-model/src/rule-conflict-type.ts); the static audit enforces it.
+enum RuleConflictType {
+  SOURCE_CONTRADICTION
+  MECHANICAL_DIVERGENCE
+  TERMINOLOGY_DIVERGENCE
+  STRUCTURAL_DIVERGENCE
+  AUTHORING_STANDARD_CONFLICT
+  OTHER
+}
+
+/// Review priority of a RuleConflict (PAS-10 M2-WO5 §6). Governance metadata only: it never
+/// selects a candidate, blocks resolution, or changes a Ruleset, manifest, policy, or Version.
+/// Kept in lockstep with @prowess/model's RULE_CONFLICT_SEVERITIES.
+enum RuleConflictSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+/// Governance state of a RuleConflict (PAS-10 M2-WO5 §7, §8). M2-WO5 creates every conflict
+/// OPEN and offers no transition; M2-WO6 (Canon Decisions) owns how a conflict reaches the
+/// other states. ACCEPTED_DIVERGENCE = the difference is intentional and both forms stay
+/// valid in distinct Ruleset contexts. Kept in lockstep with @prowess/model's RULE_CONFLICT_STATUSES.
+enum RuleConflictStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  ACCEPTED_DIVERGENCE
+  DISMISSED
+}
+
+/// RuleConflict — an explicit, historically reproducible record that exact historical rule
+/// representations disagree and need governance review (PAS-10 M2-WO5).
+/// See docs/architecture/rule-conflicts.md.
+///
+/// It RECORDS a disagreement; it never RESOLVES one. There is deliberately no winner,
+/// selected/resolved candidate, decision, resolution text, or resolved_at column — M2-WO6's
+/// CanonDecision owns outcomes. Creating one changes no manifest, inheritance result,
+/// EntityVersion status, or CanonPolicy, and it carries no canon_policy_id: the policy
+/// snapshot a decision relies on is recorded by that decision, not pinned before review.
+///
+/// Ruleset-scoped (the same Versions may conflict in one Ruleset and not another) and
+/// single-Entity. No updatedAt: no edit operation exists. `status` defaults to OPEN and no
+/// operation changes it in M2-WO5.
+///
+/// UNIQUE(id, entity_id) adds no real constraint (id is the primary key); it is the target of
+/// the candidates' composite foreign key, which is how the database guarantees every
+/// candidate concerns this conflict's Entity. Both foreign keys are ON DELETE RESTRICT:
+/// governance history is never cascade-deleted.
+model RuleConflict {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  rulesetId String  @map("ruleset_id") @db.Uuid
+  ruleset   Ruleset @relation(fields: [rulesetId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  entityId String @map("entity_id") @db.Uuid
+  entity   Entity @relation(fields: [entityId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  conflictType RuleConflictType     @map("conflict_type")
+  severity     RuleConflictSeverity
+  status       RuleConflictStatus   @default(OPEN)
+
+  title       String
+  description String?
+
+  candidates RuleConflictCandidate[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([id, entityId], map: "rule_conflicts_id_entity_id_key")
+  @@index([rulesetId, entityId], map: "rule_conflicts_ruleset_id_entity_id_idx")
+  @@index([rulesetId, status], map: "rule_conflicts_ruleset_id_status_idx")
+  @@index([entityId], map: "rule_conflicts_entity_id_idx")
+  @@map("rule_conflicts")
+}
+
+/// RuleConflictCandidate — one exact historical EntityVersion participating in a conflict
+/// (PAS-10 M2-WO5). Never "latest", "CANON", or "current": an exact Version id, so a later
+/// revision is never silently added to an existing conflict.
+///
+/// `entityId` is a REDUNDANT copy of the conflict's Entity, kept for one reason: database
+/// enforcement of "every candidate Version belongs to the conflict's Entity". Two composite
+/// foreign keys pin it from both sides, so it cannot diverge:
+///   (rule_conflict_id, entity_id)   -> rule_conflicts(id, entity_id)    it IS the conflict's Entity
+///   (entity_version_id, entity_id)  -> entity_versions(id, entity_id)   the Version belongs to it
+/// The service always writes it from the conflict and validates first; the foreign keys are
+/// the final authority.
+///
+/// Optional evidence: (source_reference_id, entity_version_id) -> source_references(id,
+/// entity_version_id) means a cited SourceReference must belong to THIS candidate's Version.
+/// With no reference (NULL), PostgreSQL's MATCH SIMPLE skips that check — provenance is
+/// optional because conflicts may come from playtest or design review. `label` and
+/// `positionSummary` are editorial review aids, never mechanics. No source-authority status is
+/// copied here: authority never ranks candidates.
+///
+/// UNIQUE(rule_conflict_id, entity_version_id): a Version appears at most once per conflict.
+/// The "at least two candidates" rule spans rows, so the service enforces it inside the
+/// creating transaction (no trigger). Every foreign key is ON DELETE RESTRICT.
+model RuleConflictCandidate {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  ruleConflictId String       @map("rule_conflict_id") @db.Uuid
+  entityId       String       @map("entity_id") @db.Uuid
+  ruleConflict   RuleConflict @relation(fields: [ruleConflictId, entityId], references: [id, entityId], onDelete: Restrict, onUpdate: Cascade, map: "rule_conflict_candidates_conflict_entity_fkey")
+
+  entityVersionId String        @map("entity_version_id") @db.Uuid
+  entityVersion   EntityVersion @relation(fields: [entityVersionId, entityId], references: [id, entityId], onDelete: Restrict, onUpdate: Cascade, map: "rule_conflict_candidates_version_entity_fkey")
+
+  sourceReferenceId String?          @map("source_reference_id") @db.Uuid
+  sourceReference   SourceReference? @relation(fields: [sourceReferenceId, entityVersionId], references: [id, entityVersionId], onDelete: Restrict, onUpdate: Cascade, map: "rule_conflict_candidates_source_reference_fkey")
+
+  label           String?
+  positionSummary String? @map("position_summary")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([ruleConflictId, entityVersionId], map: "rule_conflict_candidates_conflict_version_key")
+  @@index([entityVersionId], map: "rule_conflict_candidates_entity_version_id_idx")
+  @@index([sourceReferenceId], map: "rule_conflict_candidates_source_reference_id_idx")
+  @@map("rule_conflict_candidates")
 }

@@ -111,3 +111,4 @@ export {
   listCanonPolicies,
   resolveSourceAuthority,
 } from "./canon-policy/index.js";
+export { createRuleConflict, getRuleConflict, listRuleConflicts, listRuleConflictsForEntity } from "./rule-conflict/index.js";

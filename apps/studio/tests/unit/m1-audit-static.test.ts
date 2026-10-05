@@ -85,6 +85,9 @@ describe("M1 audit — enum parity between Prisma schema and @prowess/model (§1
     SourceAuthorityStatus: model.SOURCE_AUTHORITY_STATUSES,
     RulesetStatus: model.RULESET_STATUSES,
     RulesetChannel: model.RULESET_CHANNELS,
+    RuleConflictType: model.RULE_CONFLICT_TYPES,
+    RuleConflictSeverity: model.RULE_CONFLICT_SEVERITIES,
+    RuleConflictStatus: model.RULE_CONFLICT_STATUSES,
   };
 
   const schemaEnums = new Map<string, string[]>(
@@ -112,7 +115,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
   >;
   const allCodes = vocabularies.flatMap(([, codes]) => Object.values(codes));
 
-  it("exports the thirteen vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4)", () => {
+  it("exports the fourteen vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5)", () => {
     expect(vocabularies.map(([name]) => name).sort()).toEqual(
       [
         "ENTITY_ALIAS_ERROR_CODES",
@@ -126,6 +129,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
         "RULESET_MANIFEST_ERROR_CODES",
         "CANON_POLICY_ERROR_CODES",
         "SOURCE_AUTHORITY_ERROR_CODES",
+        "RULE_CONFLICT_ERROR_CODES",
         "SOURCE_DOCUMENT_ERROR_CODES",
         "SOURCE_REFERENCE_ERROR_CODES",
       ].sort(),
@@ -191,7 +195,7 @@ describe("M1 audit — migration chain (§26)", () => {
       "20261002231523_add_source_provenance",
     ];
     // M2 migrations are appended deliberately: a new one must be added here on purpose.
-    const M2 = ["20261004233000_add_ruleset_foundation", "20261005001500_add_ruleset_manifest", "20261005120000_add_manifest_inheritance", "20261005220000_add_canon_policy"];
+    const M2 = ["20261004233000_add_ruleset_foundation", "20261005001500_add_ruleset_manifest", "20261005120000_add_manifest_inheritance", "20261005220000_add_canon_policy", "20261006010000_add_rule_conflicts"];
     expect(names.slice(0, M1.length)).toEqual(M1);
     expect(names).toEqual([...M1, ...M2]);
     expect([...names].sort()).toEqual(names);
