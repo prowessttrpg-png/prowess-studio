@@ -84,6 +84,8 @@ describe("statusForDomainErrorCode", () => {
     ["RULESET_MANIFEST.VERSION_NOT_FOUND", 400],
     ["RULESET_MANIFEST.VERSION_ENTITY_MISMATCH", 400],
     ["RULESET_MANIFEST.DUPLICATE_ENTITY", 400],
+    ["RULESET_MANIFEST.INVALID_PARENT_MANIFEST", 400],
+    ["RULESET_MANIFEST.INHERITANCE_CYCLE", 500],
   ])("maps %s to %d (documented mapping unchanged by the patch)", (code, expectedStatus) => {
     expect(statusForDomainErrorCode(code)).toBe(expectedStatus);
   });

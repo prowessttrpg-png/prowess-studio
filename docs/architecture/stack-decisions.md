@@ -500,3 +500,18 @@ them; positivity comes from the allocator and is pinned by tests; (5) manifest_v
 reuses M1's bounded-retry strategy with unique(ruleset_id, manifest_version) as final authority;
 (6) one error namespace `RULESET_MANIFEST.*` for every manifest failure, with HTTP statuses recorded
 in the compile-time-exhaustive map before any route exists. No new dependency, enum, route, or UI.
+
+## M2-WO3: Ruleset inheritance and effective resolution
+
+Full design in `docs/architecture/ruleset-inheritance.md`. Decisions worth keeping: (1) a child
+manifest inherits through an EXACT `parent_manifest_id`, never the parent Ruleset's latest manifest, so
+creating newer parent manifests cannot change an existing child — and resolution lives in a separate
+module that has no way to look up a Ruleset or a latest manifest, which a static audit enforces;
+(2) Ruleset lineage and manifest inheritance are deliberately not the same thing: a manifest with no
+parent manifest inherits nothing even when its Ruleset has a parent; (3) the parent manifest must
+belong to the DIRECT parent Ruleset and is validated by the service — a database-level proof would need
+redundant keys and was rejected as disproportionate; (4) effective composition is derived, never
+persisted, and ordered by asking the database (its collation is the M2-WO2 ordering convention, which a
+JavaScript comparison would not reproduce); (5) the resolution trace is a domain-only type, not a
+Prisma enum; (6) INHERITANCE_CYCLE maps to HTTP 500 deliberately — it is corrupt data, not a caller
+error. The earlier local manifest operations are unchanged. No new dependency, table, enum, route, or UI.

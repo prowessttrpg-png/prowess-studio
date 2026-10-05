@@ -822,6 +822,18 @@ model RulesetManifest {
   rulesetId String  @map("ruleset_id") @db.Uuid
   ruleset   Ruleset @relation(fields: [rulesetId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
+  /// Inheritance (M2-WO3): the EXACT manifest — which must belong to this Ruleset's
+  /// DIRECT parent Ruleset — from which Entities this manifest does not pin may be
+  /// inherited, or NULL for "this manifest inherits nothing". Chosen at creation and
+  /// never changed. It is a snapshot reference, never "the parent's latest manifest",
+  /// so a newer parent manifest can never alter an existing child's composition.
+  /// A plain foreign key cannot prove the parent belongs to the parent RULESET, so
+  /// the service enforces that; ON DELETE RESTRICT keeps an inherited manifest from
+  /// disappearing while a child references it.
+  parentManifestId String?           @map("parent_manifest_id") @db.Uuid
+  parentManifest   RulesetManifest?  @relation("ManifestInheritance", fields: [parentManifestId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  childManifests   RulesetManifest[] @relation("ManifestInheritance")
+
   /// Positive, unique within the Ruleset, never supplied by callers. Positivity is
   /// guaranteed by the allocator (always >= 1) and pinned by tests, following M1's
   /// convention (no CHECK constraints in this schema).
@@ -832,6 +844,7 @@ model RulesetManifest {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@unique([rulesetId, manifestVersion], map: "ruleset_manifests_ruleset_id_manifest_version_key")
+  @@index([parentManifestId], map: "ruleset_manifests_parent_manifest_id_idx")
   @@map("ruleset_manifests")
 }
 

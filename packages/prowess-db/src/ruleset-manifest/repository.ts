@@ -29,6 +29,7 @@ export function toDomainManifest(row: PrismaManifestRow): RulesetManifest {
   return {
     id: RulesetManifestId.of(row.id),
     rulesetId: RulesetId.of(row.rulesetId),
+    parentManifestId: row.parentManifestId === null ? null : RulesetManifestId.of(row.parentManifestId),
     manifestVersion: row.manifestVersion,
     createdAt: row.createdAt,
   };
@@ -60,7 +61,8 @@ export interface ManifestEntryInsert {
 const MAX_MANIFEST_VERSION_ATTEMPTS = 8;
 
 /**
- * Creates one manifest and all of its entries ATOMICALLY.
+ * Creates one manifest — with its (already-validated) inherited parent manifest, if any —
+ * and all of its entries ATOMICALLY.
  *
  * One transaction: read this Ruleset's highest manifest_version, insert the
  * manifest at the next number, insert every entry in order. If ANY step fails
@@ -75,6 +77,7 @@ const MAX_MANIFEST_VERSION_ATTEMPTS = 8;
 export async function insertRulesetManifestWithEntries(
   rulesetId: string,
   entries: readonly ManifestEntryInsert[],
+  parentManifestId: string | null = null,
 ): Promise<RulesetManifestWithEntries> {
   let lastError: unknown;
 
@@ -89,7 +92,7 @@ export async function insertRulesetManifestWithEntries(
         const nextManifestVersion = (latest?.manifestVersion ?? 0) + 1;
 
         const manifest = await tx.rulesetManifest.create({
-          data: { rulesetId, manifestVersion: nextManifestVersion },
+          data: { rulesetId, manifestVersion: nextManifestVersion, parentManifestId },
         });
         for (const entry of entries) {
           await tx.rulesetManifestEntry.create({

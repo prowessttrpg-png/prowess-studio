@@ -63,14 +63,23 @@ describe("validateCreateRulesetManifestInput", () => {
     expect(validateCreateRulesetManifestInput({ entries: many })?.kind).toBe("INVALID_INPUT");
   });
 
-  it("has no way to supply a manifest version or any selector: the input type carries only entries", () => {
+  it("accepts an absent or null parentManifestId (no inheritance) and a non-blank one; rejects a blank or non-string one", () => {
+    const entries: CreateRulesetManifestInput["entries"] = [];
+    expect(validateCreateRulesetManifestInput({ entries })).toBeNull();
+    expect(validateCreateRulesetManifestInput({ entries, parentManifestId: null })).toBeNull();
+    expect(validateCreateRulesetManifestInput({ entries, parentManifestId: A })).toBeNull();
+    expect(validateCreateRulesetManifestInput({ entries, parentManifestId: "   " })?.kind).toBe("INVALID_INPUT");
+    expect(validateCreateRulesetManifestInput({ entries, parentManifestId: 7 as unknown as string })?.kind).toBe("INVALID_INPUT");
+  });
+
+  it("has no way to supply a manifest version or any selector: the input type carries only entries and an optional parent manifest", () => {
     const input: CreateRulesetManifestInput = { entries: [] };
     expect(Object.keys(input)).toEqual(["entries"]);
   });
 });
 
 describe("RULESET_MANIFEST_ERROR_CODES", () => {
-  it("is the eight controlled codes, DOMAIN.REASON-shaped, in one namespace", () => {
+  it("is the ten controlled codes, DOMAIN.REASON-shaped, in one namespace", () => {
     expect(RULESET_MANIFEST_ERROR_CODES).toEqual({
       NOT_FOUND: "RULESET_MANIFEST.NOT_FOUND",
       RULESET_NOT_FOUND: "RULESET_MANIFEST.RULESET_NOT_FOUND",
@@ -80,6 +89,8 @@ describe("RULESET_MANIFEST_ERROR_CODES", () => {
       VERSION_NOT_FOUND: "RULESET_MANIFEST.VERSION_NOT_FOUND",
       VERSION_ENTITY_MISMATCH: "RULESET_MANIFEST.VERSION_ENTITY_MISMATCH",
       DUPLICATE_ENTITY: "RULESET_MANIFEST.DUPLICATE_ENTITY",
+      INVALID_PARENT_MANIFEST: "RULESET_MANIFEST.INVALID_PARENT_MANIFEST",
+      INHERITANCE_CYCLE: "RULESET_MANIFEST.INHERITANCE_CYCLE",
     });
     for (const code of Object.values(RULESET_MANIFEST_ERROR_CODES)) {
       expect(code).toMatch(/^[A-Z_]+\.[A-Z_]+$/);

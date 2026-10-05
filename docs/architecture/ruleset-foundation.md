@@ -78,7 +78,7 @@ confirms it is ignored). There are no publishing or status-changing operations y
 ## Parent lineage
 
 `parent_ruleset_id` records that one Ruleset descends from another (Core Playtest →
-Experimental). **It is metadata only** in M2-WO1: nothing inherits manifest contents
+Experimental). **It is metadata only** in M2-WO1 (manifest inheritance, built later in M2-WO3, is a separate explicit per-manifest opt-in; see `ruleset-inheritance.md`): nothing inherits manifest contents
 and nothing resolves content through a parent. Inheritance *semantics* are explicitly
 deferred.
 

@@ -178,6 +178,13 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [RULESET_MANIFEST_ERROR_CODES.VERSION_NOT_FOUND]: 400,
   [RULESET_MANIFEST_ERROR_CODES.VERSION_ENTITY_MISMATCH]: 400,
   [RULESET_MANIFEST_ERROR_CODES.DUPLICATE_ENTITY]: 400,
+  // The parent manifest is named INSIDE the request body, so an unusable one (missing, wrong Ruleset,
+  // or a Ruleset with no parent) is a bad request — the same reasoning as ENTITY_NOT_FOUND above.
+  [RULESET_MANIFEST_ERROR_CODES.INVALID_PARENT_MANIFEST]: 400,
+  // Corrupt stored data, not anything the caller did: supported operations cannot create an inheritance
+  // loop. An integrity failure on the server is a 500 by design, mapped explicitly so it is a decision
+  // and not merely the fail-closed default for an unmapped code.
+  [RULESET_MANIFEST_ERROR_CODES.INHERITANCE_CYCLE]: 500,
 } satisfies Record<KnownDomainErrorCode, number>;
 
 /**

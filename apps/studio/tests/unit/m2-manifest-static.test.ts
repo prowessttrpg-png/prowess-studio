@@ -37,7 +37,9 @@ describe("M2-WO2 — the manifest models are immutable snapshots with exact pins
   });
 
   it("RulesetManifest has exactly its specified fields — and NO updatedAt, because a snapshot is never edited", () => {
-    expect(fieldNames(find("RulesetManifest")?.body)).toEqual(["createdAt", "entries", "id", "manifestVersion", "ruleset", "rulesetId"]);
+    expect(fieldNames(find("RulesetManifest")?.body)).toEqual(
+      ["childManifests", "createdAt", "entries", "id", "manifestVersion", "parentManifest", "parentManifestId", "ruleset", "rulesetId"],
+    ); // M2-WO3 added only the parent-manifest self-reference
     expect(find("RulesetManifest")?.body).not.toMatch(/updatedAt/);
   });
 
@@ -80,13 +82,19 @@ describe("M2-WO2 — the manifest models are immutable snapshots with exact pins
 describe("M2-WO2 — a manifest never infers what it pins", () => {
   // Resolution must be by the exact EntityVersion id stored in the entry. These are the ways it could silently drift.
   const INFERENCE =
-    /\b(latestRevision|revisionNumber|getLatestEntityVersion|selectLatestEntityVersion|listEntityVersions|authorityStatus|SourceAuthority|parentRulesetId|keyword|Keyword|EntityRelationship|relationship|CANON|EntityVersionStatus)\b/;
+    /\b(latestRevision|revisionNumber|getLatestEntityVersion|selectLatestEntityVersion|listEntityVersions|authorityStatus|SourceAuthority|keyword|Keyword|EntityRelationship|relationship|CANON|EntityVersionStatus)\b/;
   const CURRENT_POINTERS =
     /\b(currentManifest|activeManifest|effectiveManifest|current_manifest\w*|active_manifest\w*|is_active|isActive|is_current|isCurrent|useLatest|use_latest\w*|automaticLatest|automatic_latest)\b/;
 
   it.each(manifestSources.map((f) => [path.relative(ROOT, f), f]))("%s", (_name, file) => {
     const code = stripTs(readFileSync(file as string, "utf8"));
-    expect(code, "no latest-version / lifecycle / authority / keyword / relationship / parent inference").not.toMatch(INFERENCE);
+    expect(code, "no latest-version / lifecycle / authority / keyword / relationship inference").not.toMatch(INFERENCE);
+    // M2-WO3: validating a pinned parent manifest at CREATION requires reading the Ruleset's direct parent, so the
+    // creation service may mention parentRulesetId. Nothing else in manifest code may — and the resolution module
+    // (ruleset-inheritance/) is audited separately and may not touch Rulesets at all.
+    if (!String(file).endsWith(path.join("ruleset-manifest", "service.ts"))) {
+      expect(code, "only the creation service may read a Ruleset's parent").not.toMatch(/\bparentRulesetId\b/);
+    }
     expect(code, "no status test on an EntityVersion").not.toMatch(/\.status\b/);
     expect(code, "no SQL-style latest-revision inference").not.toMatch(/MAX\s*\(|ORDER\s+BY[^;\n]*revision/i);
     expect(code, "no revision ordering").not.toMatch(/orderBy:\s*\{\s*revisionNumber/);

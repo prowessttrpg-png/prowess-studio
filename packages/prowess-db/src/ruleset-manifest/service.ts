@@ -4,6 +4,7 @@ import {
   validateCreateRulesetManifestInput,
   type CreateRulesetManifestInput,
   type EntityVersion,
+  type Ruleset,
   type RulesetManifest,
   type RulesetManifestEntry,
   type RulesetManifestWithEntries,
@@ -58,6 +59,45 @@ async function requireManifest(manifestId: string): Promise<RulesetManifest> {
 }
 
 /**
+ * Validates the parent manifest a new manifest wants to inherit from (M2-WO3).
+ * Returns the canonical id to store, or `null` when no inheritance was requested.
+ *
+ * Inheritance climbs the Ruleset lineage ONE level at a time, so the parent
+ * manifest must belong to this Ruleset's DIRECT parent Ruleset — not to a
+ * grandparent (the resolver reaches the grandparent through the parent's own
+ * pinned manifest) and not to an unrelated Ruleset. A Ruleset with no parent
+ * cannot inherit at all. Having a parent Ruleset does NOT require inheriting:
+ * omitting `parentManifestId` is a deliberate "this manifest inherits nothing".
+ *
+ * A plain foreign key cannot express "belongs to the parent Ruleset", so this
+ * check is the enforcement; the database separately guarantees the referenced
+ * manifest exists and cannot be deleted while a child points at it. It never
+ * picks a manifest for the caller — in particular never the parent's latest.
+ */
+async function validateParentManifest(ruleset: Ruleset, requested: string | null | undefined): Promise<string | null> {
+  if (requested === undefined || requested === null) {
+    return null;
+  }
+  if (ruleset.parentRulesetId === null) {
+    throw new DomainError(
+      RULESET_MANIFEST_ERROR_CODES.INVALID_PARENT_MANIFEST,
+      `Ruleset ${ruleset.id} has no parent Ruleset, so its manifests cannot inherit`,
+    );
+  }
+  const parent = await selectRulesetManifestById(normalizeId(requested));
+  if (parent === null) {
+    throw new DomainError(RULESET_MANIFEST_ERROR_CODES.INVALID_PARENT_MANIFEST, `Parent manifest not found: ${requested}`);
+  }
+  if (parent.rulesetId !== ruleset.parentRulesetId) {
+    throw new DomainError(
+      RULESET_MANIFEST_ERROR_CODES.INVALID_PARENT_MANIFEST,
+      `Manifest ${parent.id} belongs to Ruleset ${parent.rulesetId}, not to this Ruleset's direct parent ${ruleset.parentRulesetId}`,
+    );
+  }
+  return parent.id;
+}
+
+/**
  * Creates the next manifest for a Ruleset, atomically, with exactly the
  * supplied pins. `manifest_version` is allocated automatically — the input has
  * no field for it.
@@ -66,6 +106,8 @@ async function requireManifest(manifestId: string): Promise<RulesetManifest> {
  *   1. input shape                            -> INVALID_INPUT
  *   2. the same Entity twice                  -> DUPLICATE_ENTITY
  *   3. the Ruleset exists                     -> RULESET_NOT_FOUND
+ *   3b. a requested parent manifest is valid   -> INVALID_PARENT_MANIFEST
+ *        (exists; belongs to this Ruleset's DIRECT parent; this Ruleset has a parent)
  *   4. for each entry, in order:
  *        the Entity exists                    -> ENTITY_NOT_FOUND
  *        the EntityVersion exists             -> VERSION_NOT_FOUND
@@ -89,6 +131,7 @@ export async function createRulesetManifest(
   }
 
   const ruleset = await requireRuleset(rulesetId);
+  const parentManifestId = await validateParentManifest(ruleset, input.parentManifestId);
 
   const pins: ManifestEntryInsert[] = [];
   for (const entry of input.entries) {
@@ -110,7 +153,7 @@ export async function createRulesetManifest(
   }
 
   try {
-    return await insertRulesetManifestWithEntries(ruleset.id, pins);
+    return await insertRulesetManifestWithEntries(ruleset.id, pins, parentManifestId);
   } catch (error) {
     if (isManifestVersionViolation(error)) {
       throw new DomainError(

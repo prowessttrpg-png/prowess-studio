@@ -90,6 +90,7 @@ packages/prowess-db/
     entity-query/                          — paginated/filtered Entity list query (M1-WO8,
     ruleset/                               — Ruleset repository + service (M2-WO1; create/read only)
     ruleset-manifest/                      - RulesetManifest repository + service (M2-WO2; create/read only)
+    ruleset-inheritance/                   - effective resolution across pinned parent manifests (M2-WO3; read only)
                                         backs GET /api/entities; see docs/architecture/api-layer.md)
       index.ts                            — re-exports the service only
     index.ts                      — package entry point (exports all of the above)
@@ -520,6 +521,16 @@ key). No `updated_at` (a snapshot is never edited), no new enum, no CHECK constr
 current/active manifest pointer anywhere. Follows the M1-WO11-aligned conventions, so the blocking
 drift gate stays at zero differences. The M2-WO1 migration is untouched (a static audit pins its
 hash). See `ruleset-manifest.md`.
+
+**`20261005120000_add_manifest_inheritance`** (M2-WO3) — adds one nullable column,
+`ruleset_manifests.parent_manifest_id`, a self-referencing foreign key to `ruleset_manifests(id)`
+that is `ON DELETE RESTRICT`, and an index on it. The value is the EXACT manifest a manifest inherits
+unpinned Entities from — a snapshot reference, never "the parent's latest" — chosen at creation and
+never changed. The service enforces that it belongs to the Ruleset's direct parent (a plain foreign
+key cannot); a database-level proof would need redundant columns and was deliberately not added. No
+new table, no enum, no persisted flattened state. The M2-WO1 and M2-WO2 migrations are untouched (a
+static audit pins both by hash). Follows the M1-WO11 conventions, so the blocking drift gate stays at
+zero differences. See `ruleset-inheritance.md`.
 
 ## Migration commands
 

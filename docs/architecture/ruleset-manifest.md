@@ -38,7 +38,7 @@ those is consulted anywhere in manifest code (a static audit scans for the ident
 
 | Table | Columns |
 | --- | --- |
-| `ruleset_manifests` | `id` (UUID), `ruleset_id`, `manifest_version`, `created_at` |
+| `ruleset_manifests` | `id` (UUID), `ruleset_id`, `manifest_version`, `created_at`, and (M2-WO3) the nullable `parent_manifest_id` - see `ruleset-inheritance.md` |
 | `ruleset_manifest_entries` | `id` (UUID), `manifest_id`, `entity_id`, `entity_version_id`, `created_at` |
 
 There is **no** `updated_at` (a snapshot is never edited) and **no**
@@ -134,7 +134,9 @@ physically deleted while referenced, so historical composition is never cascade-
 - **Latest EntityVersion** — never consulted. A test pins A1, creates A2, and confirms
   resolution still returns A1 (after proving the Entity's latest really moved to A2).
 - **Parent Ruleset** — ignored. If a child Ruleset has no entry for an Entity, it does
-  **not** look in its parent; a regression test pins that. Inheritance begins in M2-WO3.
+  **not** look in its parent; a regression test pins that. Inheritance (M2-WO3) is a separate, explicit
+  operation: a manifest opts in by pinning an exact parent manifest, and these local operations still return
+  only a manifest's own entries.
 - **Lifecycle status** — a manifest may pin a DRAFT as readily as a CANON. M2-WO2 is
   composition infrastructure, not publication governance; later publishing or Canon
   policies may restrict eligible states.
@@ -163,6 +165,6 @@ out is a type error — verified), so a future route need not retrofit them.
 
 ## Explicitly deferred
 
-Ruleset inheritance and any "effective manifest" (M2-WO3); Canon policy and decisions;
+Canon policy and decisions;
 Source authority governance; rule conflicts; change sets; publishing and releases; any
 notion of a current/active/published manifest; migration planning; HTTP API; UI.
