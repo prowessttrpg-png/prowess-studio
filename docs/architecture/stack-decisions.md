@@ -554,3 +554,24 @@ forbids branching on their values; (9) candidates are ordered by revision ascend
 order, never a ranking; (10) RULESET_NOT_FOUND is 404 (the addressed resource, as for manifests and
 policies) while every body-reference and shape error, including DUPLICATE_CANDIDATE, is 400. No new
 dependency, route, or UI.
+
+## M2-WO6: Canon decisions
+
+Full design in `docs/architecture/canon-decisions.md`. Decisions worth keeping: (1) a CanonDecision is an
+immutable record of an explicit outcome — it never applies itself to a manifest, lifecycle, policy or
+Ruleset, and the ONLY existing row it changes is its conflict's status; (2) type (what was done) and
+disposition (how the conflict ended) are separate vocabularies, with the legal combinations and selection
+counts in one data table type-checked against both; ACCEPTED_DIVERGENCE is reachable only via KEEP_SEPARATE;
+(3) every decision pins one exact conflict and one exact policy, and the Ruleset is derived from the conflict;
+(4) same-Ruleset, same-Entity (MERGE result) and same-conflict (selections) are enforced by composite foreign
+keys, via redundant `entity_id` / `rule_conflict_id` columns pinned so they cannot diverge, plus three PK-led
+target indexes on existing tables; (5) race safety comes from running a conditional
+`UPDATE … WHERE status IN ('OPEN','UNDER_REVIEW')` FIRST in the transaction, so PostgreSQL's row lock
+serializes deciders and the loser matches zero rows — no read-then-insert window, no distributed lock;
+(6) no `UNIQUE(rule_conflict_id)`, so future rollback/supersession can add history — the lifecycle
+transition, not a constraint, enforces "one decision" today; (7) the transition is internal; there is no
+public conflict-status setter; (8) pure validation runs before database lookups (it reveals nothing about
+stored state), a reordering of the WO's suggested sequence; (9) no `summary` field — the required rationale
+is the single audit text; (10) RULESET_NOT_FOUND was added to the vocabulary for `listCanonDecisions`;
+CONFLICT_NOT_FOUND is 404 (the addressed subject) while POLICY_NOT_FOUND is 400 (a body reference). No new
+dependency, route, or UI.

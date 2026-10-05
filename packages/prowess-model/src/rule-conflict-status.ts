@@ -25,3 +25,14 @@ export const INITIAL_RULE_CONFLICT_STATUS = "OPEN" satisfies RuleConflictStatus;
 export function isRuleConflictStatus(value: string): value is RuleConflictStatus {
   return (RULE_CONFLICT_STATUSES as readonly string[]).includes(value);
 }
+
+/**
+ * The statuses from which a CanonDecision may take a conflict to its terminal disposition
+ * (PAS-10 M2-WO6 §9). Every other status is terminal: a decided conflict cannot receive another
+ * normal decision. Future explicit rollback / supersession may reopen governance; WO6 does not.
+ */
+export const DECIDABLE_RULE_CONFLICT_STATUSES = ["OPEN", "UNDER_REVIEW"] as const satisfies readonly RuleConflictStatus[];
+
+export function isDecidableRuleConflictStatus(status: RuleConflictStatus): boolean {
+  return (DECIDABLE_RULE_CONFLICT_STATUSES as readonly string[]).includes(status);
+}

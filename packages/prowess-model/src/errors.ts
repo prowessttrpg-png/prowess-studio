@@ -359,3 +359,41 @@ export const RULE_CONFLICT_ERROR_CODES = {
 } as const;
 
 export type RuleConflictErrorCode = (typeof RULE_CONFLICT_ERROR_CODES)[keyof typeof RULE_CONFLICT_ERROR_CODES];
+
+/**
+ * CanonDecision error codes (PAS-10 M2-WO6 §55).
+ *
+ * Addressed vs referenced, as everywhere in M2: the RuleConflict a decision is created for (or
+ * listed under) and the Ruleset decisions are listed under are the ADDRESSED resources
+ * (CONFLICT_NOT_FOUND, RULESET_NOT_FOUND -> 404), while the CanonPolicy, candidates and merge
+ * result are REFERENCED in the request body (-> 400). RULESET_NOT_FOUND is not in the WO's list;
+ * it is added for `listCanonDecisions`, following CANON_POLICY / RULE_CONFLICT precedent.
+ *
+ * CONFLICT_ALREADY_DECIDED: the conflict is (or concurrently became) terminal. DECISION_CONFLICT:
+ * the database aborted the write because of a concurrent transaction (deadlock / write conflict)
+ * — nothing was written and the request is safe to retry.
+ */
+export const CANON_DECISION_ERROR_CODES = {
+  /** The decision asked for by id does not exist (including a malformed id). */
+  NOT_FOUND: "CANON_DECISION.NOT_FOUND",
+  /** The RuleConflict being decided (or listed) does not exist. */
+  CONFLICT_NOT_FOUND: "CANON_DECISION.CONFLICT_NOT_FOUND",
+  /** The Ruleset being listed does not exist. */
+  RULESET_NOT_FOUND: "CANON_DECISION.RULESET_NOT_FOUND",
+  /** The conflict is already RESOLVED / ACCEPTED_DIVERGENCE / DISMISSED (or another decision won the race). */
+  CONFLICT_ALREADY_DECIDED: "CANON_DECISION.CONFLICT_ALREADY_DECIDED",
+  /** The referenced CanonPolicy does not exist. */
+  POLICY_NOT_FOUND: "CANON_DECISION.POLICY_NOT_FOUND",
+  /** The CanonPolicy belongs to a different Ruleset than the conflict. */
+  INVALID_POLICY_CONTEXT: "CANON_DECISION.INVALID_POLICY_CONTEXT",
+  /** Shape problems, an invalid type/disposition combination, a wrong selection count, a duplicate selection, a missing MERGE result. */
+  INVALID_INPUT: "CANON_DECISION.INVALID_INPUT",
+  /** A selected candidate does not exist or belongs to a different RuleConflict. */
+  INVALID_CANDIDATE: "CANON_DECISION.INVALID_CANDIDATE",
+  /** The MERGE result Version does not exist or belongs to a different Entity than the conflict's. */
+  INVALID_RESULT_VERSION: "CANON_DECISION.INVALID_RESULT_VERSION",
+  /** A concurrent transaction aborted the write; nothing was written and it is safe to retry. */
+  DECISION_CONFLICT: "CANON_DECISION.DECISION_CONFLICT",
+} as const;
+
+export type CanonDecisionErrorCode = (typeof CANON_DECISION_ERROR_CODES)[keyof typeof CANON_DECISION_ERROR_CODES];
