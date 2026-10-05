@@ -406,7 +406,14 @@ describe("Ruleset inheritance (prowess_studio_test only)", () => {
       const surface = await import("../../src/index");
       const names = Object.keys(surface);
       expect(names.filter((n) => /effective/i.test(n)).sort()).toEqual(["getEffectiveManifestEntries", "resolveEffectiveEntityVersion"]);
-      expect(names.filter((n) => /(setParentManifest|changeInheritedManifest|rebaseManifest|updateManifest|setManifest|reparent)/i.test(n))).toEqual([]);
+      // Anchored at the START of the name. An unanchored /setManifest/i also matches "createRulesetManifest",
+      // because "Ruleset" ends in "set" — the first CI run caught exactly that false positive.
+      const mutatorVerb = /^(set|change|rebase|reparent|update|add|remove|delete|patch|upsert)/i;
+      const mutators = (list: string[]) => list.filter((n) => /manifest|inherit|parent/i.test(n) && mutatorVerb.test(n));
+      // A control, so the check below cannot silently stop working: it must flag genuine mutators...
+      expect(mutators(["setParentManifest", "rebaseManifest", "updateManifestEntry", "changeInheritedManifest", "removeManifestEntry"])).toHaveLength(5);
+      // ...and must flag nothing that is actually exported.
+      expect(mutators(names)).toEqual([]);
     });
   });
 
