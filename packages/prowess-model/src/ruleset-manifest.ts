@@ -25,6 +25,14 @@ import type { EntityId, EntityVersionId, RulesetId, RulesetManifestEntryId, Rule
 export interface RulesetManifest {
   id: RulesetManifestId;
   rulesetId: RulesetId;
+  /**
+   * The EXACT manifest, belonging to this Ruleset's direct parent Ruleset, from
+   * which Entities this manifest does not pin may be inherited — or `null`,
+   * meaning this manifest performs no inheritance at all. Chosen at creation
+   * and never changed (a new inheritance means a new manifest). It is a
+   * snapshot reference, never "the parent's latest manifest".
+   */
+  parentManifestId: RulesetManifestId | null;
   /** Positive, unique within the Ruleset, automatically allocated. Never the identity. */
   manifestVersion: number;
   createdAt: Date;
@@ -59,6 +67,13 @@ export interface CreateRulesetManifestEntryInput {
  * selection is explicit, by EntityVersion id, and nothing else.
  */
 export interface CreateRulesetManifestInput {
+  /**
+   * Optional. The exact manifest to inherit unpinned Entities from; it must
+   * belong to this Ruleset's DIRECT parent Ruleset, and a Ruleset with no parent
+   * cannot supply one. Omit (or pass null) for a manifest that inherits nothing —
+   * having a parent Ruleset does not by itself activate inheritance.
+   */
+  parentManifestId?: string | null;
   /** May be empty: an empty snapshot means "this Ruleset pins no Entity content". */
   entries: CreateRulesetManifestEntryInput[];
 }
@@ -97,6 +112,11 @@ export function validateCreateRulesetManifestInput(input: CreateRulesetManifestI
     }
     if (typeof entry.entityVersionId !== "string" || entry.entityVersionId.trim().length === 0) {
       return { kind: "INVALID_INPUT", message: `entries[${index}].entityVersionId is required` };
+    }
+  }
+  if (input.parentManifestId !== undefined && input.parentManifestId !== null) {
+    if (typeof input.parentManifestId !== "string" || input.parentManifestId.trim().length === 0) {
+      return { kind: "INVALID_INPUT", message: "parentManifestId, when supplied, must be a non-blank string" };
     }
   }
   const seen = new Set<string>();

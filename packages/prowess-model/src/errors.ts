@@ -268,6 +268,20 @@ export const RULESET_MANIFEST_ERROR_CODES = {
   VERSION_ENTITY_MISMATCH: "RULESET_MANIFEST.VERSION_ENTITY_MISMATCH",
   /** One manifest names the same Entity twice. */
   DUPLICATE_ENTITY: "RULESET_MANIFEST.DUPLICATE_ENTITY",
+  /**
+   * The parent manifest a new manifest tried to inherit from is unusable: it does
+   * not exist, it belongs to a Ruleset other than this Ruleset's DIRECT parent
+   * (including a grandparent's — inheritance climbs one Ruleset at a time), or this
+   * Ruleset has no parent at all. One code, because every case means "that is not a
+   * valid thing to inherit from"; the message says which.
+   */
+  INVALID_PARENT_MANIFEST: "RULESET_MANIFEST.INVALID_PARENT_MANIFEST",
+  /**
+   * Resolution met a loop in the stored parent_manifest_id chain. Supported
+   * operations cannot create one (each hop climbs the acyclic Ruleset lineage), so
+   * this signals corrupt data; the resolver stops with this error rather than recurse forever.
+   */
+  INHERITANCE_CYCLE: "RULESET_MANIFEST.INHERITANCE_CYCLE",
 } as const;
 
 export type RulesetManifestErrorCode = (typeof RULESET_MANIFEST_ERROR_CODES)[keyof typeof RULESET_MANIFEST_ERROR_CODES];

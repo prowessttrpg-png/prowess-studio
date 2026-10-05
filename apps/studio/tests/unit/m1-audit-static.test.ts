@@ -189,7 +189,7 @@ describe("M1 audit — migration chain (§26)", () => {
       "20261002231523_add_source_provenance",
     ];
     // M2 migrations are appended deliberately: a new one must be added here on purpose.
-    const M2 = ["20261004233000_add_ruleset_foundation", "20261005001500_add_ruleset_manifest"];
+    const M2 = ["20261004233000_add_ruleset_foundation", "20261005001500_add_ruleset_manifest", "20261005120000_add_manifest_inheritance"];
     expect(names.slice(0, M1.length)).toEqual(M1);
     expect(names).toEqual([...M1, ...M2]);
     expect([...names].sort()).toEqual(names);

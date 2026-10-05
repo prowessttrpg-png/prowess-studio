@@ -102,3 +102,4 @@ export {
   listRulesetManifests,
   resolveEntityVersionFromManifest,
 } from "./ruleset-manifest/index.js";
+export { getEffectiveManifestEntries, resolveEffectiveEntityVersion } from "./ruleset-inheritance/index.js";

@@ -321,8 +321,10 @@ describe("RulesetManifest (prowess_studio_test only)", () => {
     it("exposes no operation that adds, removes, or updates a manifest's entries (§22)", async () => {
       const surface = await import("../../src/index");
       const ops = Object.keys(surface).filter((n) => /manifest/i.test(n)).sort();
+      // getEffectiveManifestEntries (M2-WO3) also matches /manifest/; it is a read.
       expect(ops).toEqual([
         "createRulesetManifest",
+        "getEffectiveManifestEntries",
         "getLatestRulesetManifest",
         "getManifestEntry",
         "getRulesetManifest",
@@ -392,7 +394,7 @@ describe("RulesetManifest (prowess_studio_test only)", () => {
         (await prisma.$queryRaw<Array<{ column_name: string }>>`
           SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = ${table} ORDER BY column_name`)
           .map((c) => c.column_name);
-      expect(await cols("ruleset_manifests")).toEqual(["created_at", "id", "manifest_version", "ruleset_id"]);
+      expect(await cols("ruleset_manifests")).toEqual(["created_at", "id", "manifest_version", "parent_manifest_id", "ruleset_id"]); // + parent_manifest_id (M2-WO3)
       expect(await cols("ruleset_manifest_entries")).toEqual(["created_at", "entity_id", "entity_version_id", "id", "manifest_id"]);
 
       const pointers = await prisma.$queryRaw<Array<{ table_name: string; column_name: string }>>`

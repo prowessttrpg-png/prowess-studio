@@ -39,3 +39,4 @@ export * from "./ruleset-channel.js";
 export * from "./ruleset.js";
 export * from "./ruleset-lineage.js";
 export * from "./ruleset-manifest.js";
+export * from "./ruleset-resolution.js";
