@@ -41,7 +41,8 @@ describe("M2-WO7 — the ChangeSet models are immutable, exactly-referenced prop
 
   it("ChangeSet and ChangeSetOperation have exactly their specified fields (+ documented sequence / redundant rulesetId) and no updatedAt (§2, §6)", () => {
     expect(fieldNames(find("ChangeSet")?.body)).toEqual(
-      ["canonDecision", "canonDecisionId", "createdAt", "description", "id", "name", "operations", "ruleset", "rulesetId", "status"].sort(),
+      // M2-WO8 added only the releases back-relation list (a release applies at most one ChangeSet).
+      ["canonDecision", "canonDecisionId", "createdAt", "description", "id", "name", "operations", "releases", "ruleset", "rulesetId", "status"].sort(),
     );
     expect(fieldNames(find("ChangeSetOperation")?.body)).toEqual(
       [
@@ -65,7 +66,9 @@ describe("M2-WO7 — the ChangeSet models are immutable, exactly-referenced prop
     );
     for (const name of ["ChangeSet", "ChangeSetOperation"]) {
       expect(find(name)?.body, name).not.toMatch(/updatedAt|\bBoolean\b|\bJson\b/);
-      expect(find(name)?.body, name).not.toMatch(/\b(applied\w*|executed\w*|published\w*|release\w*|latest\w*|current\w*|active\w*|patch\w*|script\w*)\b/i);
+      // M2-WO8's only permitted mention is the back-relation list `releases RulesetRelease[]` on ChangeSet.
+      const body = (find(name)?.body ?? "").replace(/^\s*releases\s+RulesetRelease\[\]\s*$/m, "");
+      expect(body, name).not.toMatch(/\b(applied\w*|executed\w*|published\w*|release\w*|latest\w*|current\w*|active\w*|patch\w*|script\w*)\b/i);
     }
   });
 
@@ -97,7 +100,8 @@ describe("M2-WO7 — the ChangeSet models are immutable, exactly-referenced prop
         'changeSetOperationsTo ChangeSetOperation[] @relation("ChangeSetOperationTo")',
       ],
     };
-    for (const m of models.filter((x) => !["ChangeSet", "ChangeSetOperation"].includes(x.name))) {
+    // M2-WO8's RulesetRelease cites an applied ChangeSet by design (composite key); it has its own audit.
+    for (const m of models.filter((x) => !["ChangeSet", "ChangeSetOperation", "RulesetRelease"].includes(x.name))) {
       expect(m.body.split("\n").filter((l) => /changeset/i.test(l)).map(squash), m.name).toEqual(expected[m.name] ?? []);
     }
   });
@@ -109,8 +113,8 @@ describe("M2-WO7 — the ChangeSet models are immutable, exactly-referenced prop
     expect(find("ChangeSet")?.body).toMatch(/status\s+ChangeSetStatus\s+@default\(DRAFT\)/);
   });
 
-  it("nothing out of scope exists: no release, publishing, application, rollback or impact-persistence model (§46)", () => {
-    expect(models.map((m) => m.name).filter((n) => /release|publish|applic|applied|rollback|impact|dependency|snapshot|cache/i.test(n))).toEqual([]);
+  it("nothing out of scope exists: no application, rollback or impact-persistence model (§46; RulesetRelease arrived in M2-WO8)", () => {
+    expect(models.map((m) => m.name).filter((n) => /applic|applied|rollback|impact|dependency|snapshot|cache/i.test(n))).toEqual([]);
   });
 });
 

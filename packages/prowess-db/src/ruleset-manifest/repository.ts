@@ -83,24 +83,7 @@ export async function insertRulesetManifestWithEntries(
 
   for (let attempt = 0; attempt < MAX_MANIFEST_VERSION_ATTEMPTS; attempt++) {
     try {
-      const manifestId = await prisma.$transaction(async (tx) => {
-        const latest = await tx.rulesetManifest.findFirst({
-          where: { rulesetId },
-          orderBy: { manifestVersion: "desc" },
-          select: { manifestVersion: true },
-        });
-        const nextManifestVersion = (latest?.manifestVersion ?? 0) + 1;
-
-        const manifest = await tx.rulesetManifest.create({
-          data: { rulesetId, manifestVersion: nextManifestVersion, parentManifestId },
-        });
-        for (const entry of entries) {
-          await tx.rulesetManifestEntry.create({
-            data: { manifestId: manifest.id, entityId: entry.entityId, entityVersionId: entry.entityVersionId },
-          });
-        }
-        return manifest.id;
-      });
+      const manifestId = await prisma.$transaction((tx) => insertManifestSnapshotInTransaction(tx, rulesetId, entries, parentManifestId));
 
       const created = await selectRulesetManifestWithEntries(manifestId);
       if (created === null) {
@@ -117,6 +100,38 @@ export async function insertRulesetManifestWithEntries(
   }
 
   throw lastError;
+}
+
+type ManifestTx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
+/**
+ * The allocator's transaction body, callable inside an ENCLOSING transaction (M2-WO8 publication):
+ * read this Ruleset's highest manifest_version, insert the manifest at the next number, insert every
+ * entry in order. The caller owns the transaction and the bounded retry on `isManifestVersionViolation`
+ * — exactly as `insertRulesetManifestWithEntries` does. One allocator, two callers.
+ */
+export async function insertManifestSnapshotInTransaction(
+  tx: ManifestTx,
+  rulesetId: string,
+  entries: readonly ManifestEntryInsert[],
+  parentManifestId: string | null,
+): Promise<string> {
+  const latest = await tx.rulesetManifest.findFirst({
+    where: { rulesetId },
+    orderBy: { manifestVersion: "desc" },
+    select: { manifestVersion: true },
+  });
+  const nextManifestVersion = (latest?.manifestVersion ?? 0) + 1;
+
+  const manifest = await tx.rulesetManifest.create({
+    data: { rulesetId, manifestVersion: nextManifestVersion, parentManifestId },
+  });
+  for (const entry of entries) {
+    await tx.rulesetManifestEntry.create({
+      data: { manifestId: manifest.id, entityId: entry.entityId, entityVersionId: entry.entityVersionId },
+    });
+  }
+  return manifest.id;
 }
 
 /** UUID-safe: a malformed id simply finds nothing (never a raw database error). */

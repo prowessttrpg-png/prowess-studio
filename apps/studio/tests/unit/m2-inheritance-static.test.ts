@@ -49,7 +49,8 @@ describe("M2-WO3 — the inheritance reference is an exact, immutable snapshot p
   it("RulesetManifest gained exactly the self-reference — a nullable parentManifestId plus its two relation fields — and still has no updatedAt", () => {
     expect(fieldNames(manifest?.body)).toEqual(
       // M2-WO7 added only the changeSetOperations back-relation list.
-      ["changeSetOperations", "childManifests", "createdAt", "entries", "id", "manifestVersion", "parentManifest", "parentManifestId", "ruleset", "rulesetId"],
+      // M2-WO8 added only the releases back-relation list.
+      ["changeSetOperations", "childManifests", "createdAt", "entries", "id", "manifestVersion", "parentManifest", "parentManifestId", "releases", "ruleset", "rulesetId"],
     );
     expect(manifest?.body).toMatch(/parentManifestId\s+String\?/);
     expect(manifest?.body).not.toMatch(/updatedAt/);

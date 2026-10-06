@@ -139,8 +139,8 @@ describe("M2-WO6 — the decision models are immutable, exactly-pinned records",
     }
   });
 
-  it("nothing still out of scope exists: no RulesetRelease, decision-application or rollback model (§59; ChangeSet arrived in M2-WO7)", () => {
-    expect(models.map((m) => m.name).filter((n) => /release|application|applied|rollback|supersession/i.test(n))).toEqual([]);
+  it("nothing still out of scope exists: no decision-application or rollback model (§59; ChangeSet arrived in M2-WO7, RulesetRelease in M2-WO8)", () => {
+    expect(models.map((m) => m.name).filter((n) => /application|applied|rollback|supersession/i.test(n))).toEqual([]);
   });
 });
 

@@ -150,8 +150,8 @@ describe("M2-WO5 — the conflict models record, never resolve", () => {
     ]);
   });
 
-  it("nothing still out of scope exists: no RulesetRelease or resolution model (CanonDecision arrived in M2-WO6, ChangeSet in M2-WO7)", () => {
-    expect(models.map((m) => m.name).filter((n) => /release|resolution|winner/i.test(n))).toEqual([]);
+  it("nothing still out of scope exists: no resolution or winner model (CanonDecision arrived in M2-WO6, ChangeSet in M2-WO7, RulesetRelease in M2-WO8)", () => {
+    expect(models.map((m) => m.name).filter((n) => /resolution|winner/i.test(n))).toEqual([]);
   });
 });
 

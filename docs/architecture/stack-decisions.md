@@ -595,3 +595,22 @@ same-Ruleset decision/manifest and same-Entity Versions are composite foreign ke
 `ruleset_id` on operations; (10) OPERATION_CONFLICT is 400 (a contradiction inside one request). The audit
 work also fixed a latent regex gap in the M2-WO6 static audit (a `\b` after `(` meant `.update({` never
 matched); both audits now carry control cases. No new dependency, route, or UI.
+
+## M2-WO8: Ruleset publishing and immutable releases
+
+Full design in `docs/architecture/ruleset-publishing-releases.md`. Decisions worth keeping: (1) publication
+is the ONLY boundary from approved proposal to release state and creates new rows — a flattened, parentless
+release manifest and an immutable release that pins manifest, policy, ChangeSet, number, label, channel and
+hash; (2) review transitions are explicit expected-state conditional updates of status only; APPROVED ->
+PUBLISHED happens only in publication; (3) the M1 EntityVersion lifecycle and the M2-WO2 manifest allocator are
+REUSED inside the publication transaction by threading an optional transaction client through the same
+functions (defaults unchanged) — neither "stop" condition was triggered; (4) operations fail closed
+(STALE_CHANGE_SET), CREATE is never materialized (409), DEPRECATE is lifecycle-only and never changes
+composition; (5) all publications of a Ruleset serialize on `SELECT … FOR UPDATE` of the Ruleset row, release
+numbers are previous+1 under that lock with UNIQUE as the final authority, and unique races retry the whole
+transaction (bounded); (6) release history is linear — later releases must base on the previous release's
+manifest; (7) the hash is SHA-256 of a versioned canonical text (PROWESS_MANIFEST_V1) over composition only,
+computed in @prowess/db so the model stays runtime-neutral; (8) one release per ChangeSet (UNIQUE), no
+current/active release pointer, `getLatestRulesetRelease` is a query; (9) two codes beyond the WO list:
+RULESET_RELEASE.INVALID_INPUT and INVALID_CHANGE_SET_CONTEXT. The pre-existing M0-WO5 `/publishing`
+placeholder route is pinned by the static audit as an unchanged placeholder until M2-WO10.

@@ -264,8 +264,14 @@ export async function transitionEntityVersionStatusAtomic(
   id: string,
   fromStatus: EntityVersionStatus,
   toStatus: EntityVersionStatus,
+  client?: EntityVersionClient,
 ): Promise<EntityVersion | null> {
-  const result = await prisma.entityVersion.updateMany({
+  if (client === undefined) {
+    // M1 default — unchanged.
+    const result = await prisma.entityVersion.updateMany({ where: { id, status: fromStatus }, data: { status: toStatus } });
+    return result.count === 0 ? null : selectEntityVersionById(id);
+  }
+  const result = await client.entityVersion.updateMany({
     where: { id, status: fromStatus },
     data: { status: toStatus },
   });
@@ -273,5 +279,20 @@ export async function transitionEntityVersionStatusAtomic(
   if (result.count === 0) {
     return null;
   }
-  return selectEntityVersionById(id);
+  const row = await client.entityVersion.findUnique({ where: { id } });
+  return row === null ? null : toDomainEntityVersion(row);
+}
+
+/**
+ * The client a lifecycle write runs on: the global client (M1 default), or an enclosing interactive
+ * transaction (M2-WO8 publication), so a DEPRECATE commits or rolls back WITH the release. Same
+ * conditional UPDATE either way — one lifecycle path, not two.
+ */
+export type EntityVersionClient = Pick<typeof prisma, "entityVersion">;
+
+/** Exact-id read on a given client (an enclosing transaction). UUID-safe: a malformed id finds nothing. */
+export async function selectEntityVersionByIdWith(client: EntityVersionClient, id: string): Promise<EntityVersion | null> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
+  const row = await client.entityVersion.findUnique({ where: { id } });
+  return row === null ? null : toDomainEntityVersion(row);
 }

@@ -558,9 +558,11 @@ describe("ChangeSet (prowess_studio_test only)", () => {
       await expectCode(listChangeSets(r.id, { canonDecisionId: "nope" }), CHANGE_SET_ERROR_CODES.INVALID_INPUT);
     });
 
-    it("exposes exactly five ChangeSet operations; nothing applies, executes, edits, or deletes (§40, §42, §71)", async () => {
+    it("exposes exactly five ChangeSet proposal operations; nothing applies, executes, edits, or deletes (§40, §42, §71)", async () => {
       const names = Object.keys(await import("../../src/index"));
-      expect(names.filter((n) => /changeset/i.test(n)).sort()).toEqual([
+      // M2-WO8 added the explicit review transitions (submit/approve/reject), audited in ruleset-release.test.ts.
+      const review = ["submitChangeSetForReview", "approveChangeSet", "rejectChangeSet"];
+      expect(names.filter((n) => /changeset/i.test(n) && !review.includes(n)).sort()).toEqual([
         "analyzeChangeSetImpact",
         "createChangeSet",
         "getChangeSet",
@@ -570,7 +572,8 @@ describe("ChangeSet (prowess_studio_test only)", () => {
       const forbidden = /^(apply|execute|publish|commit|update|edit|delete|remove|add|set|transition|approve|reject|supersede|submit)\w*(changeset|operation)/i;
       const control = ["applyChangeSet", "executeChangeSet", "updateChangeSet", "deleteChangeSet", "addChangeSetOperation", "approveChangeSet", "setChangeSetStatus"];
       expect(control.filter((n) => forbidden.test(n))).toEqual(control);
-      expect(names.filter((n) => forbidden.test(n))).toEqual([]);
+      expect(names.filter((n) => forbidden.test(n) && !review.includes(n))).toEqual([]);
+      expect(names.filter((n) => /^(apply|execute|set)\w*changeset/i.test(n))).toEqual([]); // still no apply/execute/generic setter
     });
   });
 
