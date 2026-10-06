@@ -305,6 +305,10 @@ model EntityVersion {
   /// being a candidate never changes this Version's status or content.
   conflictCandidates RuleConflictCandidate[]
 
+  /// MERGE decisions naming this exact Version as their result (M2-WO6). A relation list only:
+  /// being a merge result never changes this Version's status or content.
+  mergeResultDecisions CanonDecision[]
+
   @@unique([entityId, revisionNumber])
   /// Exists so RulesetManifestEntry can reference (id, entityId) together — a composite
   /// foreign key that makes "Entity A pinned to Entity B's Version" impossible in the
@@ -825,6 +829,10 @@ model Ruleset {
   /// a conflict never changes this Ruleset's status, manifests, or policies.
   ruleConflicts RuleConflict[]
 
+  /// Canon decisions recorded in this Ruleset's context (M2-WO6). A relation list only — a decision
+  /// never changes this Ruleset's status, manifests, or policies.
+  canonDecisions CanonDecision[]
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -937,9 +945,16 @@ model CanonPolicy {
 
   authorityRecords SourceAuthorityRecord[]
 
+  /// Decisions made under this exact snapshot (M2-WO6). A relation list only: being cited never
+  /// changes a policy or its records.
+  canonDecisions CanonDecision[]
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@unique([rulesetId, policyVersion], map: "canon_policies_ruleset_id_policy_version_key")
+  /// Target of CanonDecision's composite key (M2-WO6) — makes "a decision for Ruleset A under
+  /// Ruleset B's policy" impossible in the database. Adds no real constraint: `id` is the primary key.
+  @@unique([id, rulesetId], map: "canon_policies_id_ruleset_id_key")
   @@map("canon_policies")
 }
 
@@ -1046,9 +1061,17 @@ model RuleConflict {
 
   candidates RuleConflictCandidate[]
 
+  /// The decisions about this conflict (M2-WO6). Normal flow yields at most one (a decided conflict is
+  /// terminal); no UNIQUE(rule_conflict_id) is imposed so future explicit rollback / supersession can
+  /// add history. A relation list only.
+  canonDecisions CanonDecision[]
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@unique([id, entityId], map: "rule_conflicts_id_entity_id_key")
+  /// Target of CanonDecision's composite key (M2-WO6): a decision's Ruleset and Entity are pinned to
+  /// its conflict's. Adds no real constraint: `id` is the primary key.
+  @@unique([id, rulesetId, entityId], map: "rule_conflicts_id_ruleset_id_entity_id_key")
   @@index([rulesetId, entityId], map: "rule_conflicts_ruleset_id_entity_id_idx")
   @@index([rulesetId, status], map: "rule_conflicts_ruleset_id_status_idx")
   @@index([entityId], map: "rule_conflicts_entity_id_idx")
@@ -1093,10 +1116,116 @@ model RuleConflictCandidate {
   label           String?
   positionSummary String? @map("position_summary")
 
+  /// Decisions that selected this exact candidate (M2-WO6). A relation list only.
+  decisionSelections CanonDecisionSelection[]
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@unique([ruleConflictId, entityVersionId], map: "rule_conflict_candidates_conflict_version_key")
+  /// Target of CanonDecisionSelection's composite key (M2-WO6): a selected candidate must belong to the
+  /// decision's conflict. Adds no real constraint: `id` is the primary key.
+  @@unique([id, ruleConflictId], map: "rule_conflict_candidates_id_rule_conflict_id_key")
   @@index([entityVersionId], map: "rule_conflict_candidates_entity_version_id_idx")
   @@index([sourceReferenceId], map: "rule_conflict_candidates_source_reference_id_idx")
   @@map("rule_conflict_candidates")
+}
+
+/// What governance action a CanonDecision records (PAS-10 M2-WO6 §6) — the conflict-resolution subset of
+/// PAS-08's vocabulary. Records only: no value executes rule behavior. Kept in lockstep with
+/// @prowess/model's CANON_DECISION_TYPES (packages/prowess-model/src/canon-decision-type.ts).
+enum CanonDecisionType {
+  SELECT_RULE
+  KEEP_SEPARATE
+  MERGE
+  RESOLVE_CONFLICT
+}
+
+/// The terminal RuleConflict status a decision produces (PAS-10 M2-WO6 §7, §8); each value maps to the
+/// RuleConflictStatus of the same name. Kept in lockstep with @prowess/model's CANON_CONFLICT_DISPOSITIONS.
+enum CanonConflictDisposition {
+  RESOLVED
+  ACCEPTED_DIVERGENCE
+  DISMISSED
+}
+
+/// CanonDecision — an immutable, auditable governance outcome for exactly one RuleConflict, decided under
+/// exactly one CanonPolicy snapshot (PAS-10 M2-WO6). See docs/architecture/canon-decisions.md.
+///
+/// Records; never applies. Creating one changes no manifest, inheritance result, EntityVersion status,
+/// CanonPolicy, or Ruleset — the ONLY side effect is the conflict's status moving to
+/// `conflict_disposition`, in the same transaction. No updated_at, winner, active/current/latest flag, or
+/// applied-manifest column: a decision is never edited, and applying it belongs to later ChangeSets.
+///
+/// Integrity, all in the database (composite foreign keys, the M2-WO2/WO5 pattern):
+///   (rule_conflict_id, ruleset_id, entity_id) -> rule_conflicts(id, ruleset_id, entity_id)
+///       the decision's Ruleset and Entity ARE its conflict's
+///   (canon_policy_id, ruleset_id) -> canon_policies(id, ruleset_id)
+///       the policy belongs to that same Ruleset
+///   (result_entity_version_id, entity_id) -> entity_versions(id, entity_id)
+///       a MERGE result belongs to the conflict's Entity (NULL = no result; MATCH SIMPLE skips the check)
+/// `entity_id` is a redundant integrity column, always written from the conflict and pinned by the first
+/// key, so it cannot diverge; it is not part of the domain shape.
+///
+/// No UNIQUE(rule_conflict_id): the service allows one decision per OPEN/UNDER_REVIEW conflict via an
+/// atomic conditional status transition, and future explicit rollback/supersession may add history.
+/// Every foreign key is ON DELETE RESTRICT.
+model CanonDecision {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  rulesetId String  @map("ruleset_id") @db.Uuid
+  ruleset   Ruleset @relation(fields: [rulesetId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  entityId String @map("entity_id") @db.Uuid
+
+  ruleConflictId String       @map("rule_conflict_id") @db.Uuid
+  ruleConflict   RuleConflict @relation(fields: [ruleConflictId, rulesetId, entityId], references: [id, rulesetId, entityId], onDelete: Restrict, onUpdate: Cascade, map: "canon_decisions_conflict_fkey")
+
+  canonPolicyId String      @map("canon_policy_id") @db.Uuid
+  canonPolicy   CanonPolicy @relation(fields: [canonPolicyId, rulesetId], references: [id, rulesetId], onDelete: Restrict, onUpdate: Cascade, map: "canon_decisions_policy_fkey")
+
+  decisionType        CanonDecisionType        @map("decision_type")
+  conflictDisposition CanonConflictDisposition @map("conflict_disposition")
+
+  resultEntityVersionId String?        @map("result_entity_version_id") @db.Uuid
+  resultEntityVersion   EntityVersion? @relation(fields: [resultEntityVersionId, entityId], references: [id, entityId], onDelete: Restrict, onUpdate: Cascade, map: "canon_decisions_result_version_fkey")
+
+  rationale String
+
+  selections CanonDecisionSelection[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  /// Target of CanonDecisionSelection's composite key. Adds no real constraint: `id` is the primary key.
+  @@unique([id, ruleConflictId], map: "canon_decisions_id_rule_conflict_id_key")
+  @@index([rulesetId], map: "canon_decisions_ruleset_id_idx")
+  @@index([ruleConflictId], map: "canon_decisions_rule_conflict_id_idx")
+  @@index([canonPolicyId], map: "canon_decisions_canon_policy_id_idx")
+  @@index([resultEntityVersionId], map: "canon_decisions_result_entity_version_id_idx")
+  @@map("canon_decisions")
+}
+
+/// CanonDecisionSelection — one exact RuleConflictCandidate a decision selected (SELECT_RULE), kept
+/// (KEEP_SEPARATE), merged (MERGE), or cited (RESOLVE_CONFLICT) (PAS-10 M2-WO6). Never a "latest" Version.
+///
+/// `rule_conflict_id` is a redundant integrity column, always written from the decision. Two composite
+/// foreign keys pin it from both sides, so "decision for Conflict A selects Conflict B's candidate" is
+/// impossible to store and the copy cannot diverge:
+///   (canon_decision_id, rule_conflict_id)          -> canon_decisions(id, rule_conflict_id)
+///   (rule_conflict_candidate_id, rule_conflict_id) -> rule_conflict_candidates(id, rule_conflict_id)
+/// UNIQUE(canon_decision_id, rule_conflict_candidate_id): a candidate appears once per decision.
+model CanonDecisionSelection {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  canonDecisionId String        @map("canon_decision_id") @db.Uuid
+  ruleConflictId  String        @map("rule_conflict_id") @db.Uuid
+  canonDecision   CanonDecision @relation(fields: [canonDecisionId, ruleConflictId], references: [id, ruleConflictId], onDelete: Restrict, onUpdate: Cascade, map: "canon_decision_selections_decision_fkey")
+
+  ruleConflictCandidateId String                @map("rule_conflict_candidate_id") @db.Uuid
+  ruleConflictCandidate   RuleConflictCandidate @relation(fields: [ruleConflictCandidateId, ruleConflictId], references: [id, ruleConflictId], onDelete: Restrict, onUpdate: Cascade, map: "canon_decision_selections_candidate_fkey")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([canonDecisionId, ruleConflictCandidateId], map: "canon_decision_selections_decision_candidate_key")
+  @@index([ruleConflictCandidateId], map: "canon_decision_selections_candidate_id_idx")
+  @@map("canon_decision_selections")
 }

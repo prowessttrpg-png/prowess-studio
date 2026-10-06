@@ -40,7 +40,8 @@ describe("M2-WO4 — the policy models are immutable snapshots with explicit aut
 
   it("CanonPolicy has exactly its specified fields, and NO updatedAt — a snapshot is never edited", () => {
     expect(fieldNames(find("CanonPolicy")?.body)).toEqual(
-      ["authorityRecords", "createdAt", "description", "id", "name", "policyVersion", "ruleset", "rulesetId"],
+      // M2-WO6 added only the canonDecisions back-relation list (decisions cite a policy; a policy never points at one).
+      ["authorityRecords", "canonDecisions", "createdAt", "description", "id", "name", "policyVersion", "ruleset", "rulesetId"],
     );
     expect(find("CanonPolicy")?.body).not.toMatch(/updatedAt|\bBoolean\b/);
   });
@@ -81,6 +82,13 @@ describe("M2-WO4 — the policy models are immutable snapshots with explicit aut
       const lines = model.body.split("\n").filter((line) => /polic/i.test(line));
       if (model.name === "Ruleset") {
         expect(lines.map((l) => l.trim().replace(/\s+/g, " "))).toEqual(["canonPolicies CanonPolicy[]"]);
+      } else if (model.name === "CanonDecision") {
+        // M2-WO6: a decision pins ONE exact policy id (composite with its Ruleset) — never a current/latest pointer.
+        expect(lines.map((l) => l.trim().replace(/\s+/g, " "))).toEqual([
+          'canonPolicyId String @map("canon_policy_id") @db.Uuid',
+          'canonPolicy CanonPolicy @relation(fields: [canonPolicyId, rulesetId], references: [id, rulesetId], onDelete: Restrict, onUpdate: Cascade, map: "canon_decisions_policy_fkey")',
+          '@@index([canonPolicyId], map: "canon_decisions_canon_policy_id_idx")',
+        ]);
       } else {
         expect(lines, `${model.name} must not reference a policy`).toEqual([]);
       }

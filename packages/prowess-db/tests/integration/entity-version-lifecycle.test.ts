@@ -278,6 +278,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     // function, and no raw Prisma update payload type, ever gets added
     // without this test failing first.
     const exportedNames = Object.keys(DbPackage).sort();
+    // M2-WO6 added four decision operations (create + reads only; no update, apply, delete, or status setter).
     // M2-WO5 added four conflict operations (create + reads only; no status transition, edit, or delete).
     // M2-WO4 added six policy operations (create + reads + authority resolution; no mutation).
     // M2-WO3 added two inheritance operations (effective resolution and effective composition; reads only).
@@ -297,6 +298,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "assignKeywordToEntityVersion",
         "createEntity",
         "createCanonPolicy",
+        "createCanonDecision",
         "createRuleConflict",
         "createEntityAlias",
         "createEntityRelationship",
@@ -317,6 +319,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "getEntityById",
         "getEffectiveManifestEntries",
         "getCanonPolicy",
+        "getCanonDecision",
         "getRuleConflict",
         "getEntityRelationship",
         "getEntityVersion",
@@ -335,6 +338,8 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "getSourceAuthorityRecord",
         "listEntities",
         "listCanonPolicies",
+        "listCanonDecisions",
+        "listCanonDecisionsForConflict",
         "listRuleConflicts",
         "listRuleConflictsForEntity",
         "listEntityAliases",

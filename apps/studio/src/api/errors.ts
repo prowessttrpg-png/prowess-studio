@@ -12,6 +12,7 @@ import {
   CANON_POLICY_ERROR_CODES,
   SOURCE_AUTHORITY_ERROR_CODES,
   RULE_CONFLICT_ERROR_CODES,
+  CANON_DECISION_ERROR_CODES,
   SOURCE_DOCUMENT_ERROR_CODES,
   SOURCE_REFERENCE_ERROR_CODES,
   type EntityAliasErrorCode,
@@ -26,6 +27,7 @@ import {
   type CanonPolicyErrorCode,
   type SourceAuthorityErrorCode,
   type RuleConflictErrorCode,
+  type CanonDecisionErrorCode,
   type SourceDocumentErrorCode,
   type SourceReferenceErrorCode,
 } from "@prowess/model";
@@ -90,6 +92,7 @@ type KnownDomainErrorCode =
   | CanonPolicyErrorCode
   | SourceAuthorityErrorCode
   | RuleConflictErrorCode
+  | CanonDecisionErrorCode
   | SourceDocumentErrorCode
   | SourceReferenceErrorCode;
 
@@ -151,6 +154,12 @@ const DOMAIN_ERROR_STATUS_MAP = {
   // listRuleConflicts subject, not a body field), so a missing one is a 404 — the same convention as
   // RULESET_MANIFEST.RULESET_NOT_FOUND and CANON_POLICY.RULESET_NOT_FOUND.
   [RULE_CONFLICT_ERROR_CODES.RULESET_NOT_FOUND]: 404,
+  [CANON_DECISION_ERROR_CODES.NOT_FOUND]: 404,
+  // The RuleConflict is the subject a decision is created for / listed under (createCanonDecision's first
+  // argument, not a body field), and the Ruleset is the subject of listCanonDecisions: both are ADDRESSED
+  // resources, so a missing one is a 404 — the same convention as RULE_CONFLICT.RULESET_NOT_FOUND.
+  [CANON_DECISION_ERROR_CODES.CONFLICT_NOT_FOUND]: 404,
+  [CANON_DECISION_ERROR_CODES.RULESET_NOT_FOUND]: 404,
 
   // --- 409: conflict with current state / duplicate ---
   [ENTITY_ERROR_CODES.CANONICAL_KEY_CONFLICT]: 409,
@@ -170,6 +179,10 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [RULESET_MANIFEST_ERROR_CODES.VERSION_CONFLICT]: 409,
   // policy_version allocation lost a race repeatedly; nothing is wrong with the request and it is safe to retry.
   [CANON_POLICY_ERROR_CODES.VERSION_CONFLICT]: 409,
+  // The conflict is already terminal: a clash with stored state, exactly like INVALID_STATUS_TRANSITION.
+  [CANON_DECISION_ERROR_CODES.CONFLICT_ALREADY_DECIDED]: 409,
+  // A concurrent transaction aborted the write; nothing was written and the request is safe to retry.
+  [CANON_DECISION_ERROR_CODES.DECISION_CONFLICT]: 409,
 
   // --- 400: invalid input / invalid reference within a request body ---
   [ENTITY_ERROR_CODES.INVALID_TYPE]: 400,
@@ -219,6 +232,14 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [RULE_CONFLICT_ERROR_CODES.VERSION_NOT_FOUND]: 400,
   [RULE_CONFLICT_ERROR_CODES.VERSION_ENTITY_MISMATCH]: 400,
   [RULE_CONFLICT_ERROR_CODES.INVALID_SOURCE_REFERENCE]: 400,
+  // CanonDecision (M2-WO6): the policy, candidates and merge result are REFERENCED in the request body, so a
+  // missing or mismatched one is a bad request (RULESET_MANIFEST.ENTITY_NOT_FOUND precedent), as are shape and
+  // type/disposition/selection-count problems.
+  [CANON_DECISION_ERROR_CODES.POLICY_NOT_FOUND]: 400,
+  [CANON_DECISION_ERROR_CODES.INVALID_POLICY_CONTEXT]: 400,
+  [CANON_DECISION_ERROR_CODES.INVALID_INPUT]: 400,
+  [CANON_DECISION_ERROR_CODES.INVALID_CANDIDATE]: 400,
+  [CANON_DECISION_ERROR_CODES.INVALID_RESULT_VERSION]: 400,
   // Corrupt stored data, not anything the caller did: supported operations cannot create an inheritance
   // loop. An integrity failure on the server is a 500 by design, mapped explicitly so it is a decision
   // and not merely the fail-closed default for an unmapped code.

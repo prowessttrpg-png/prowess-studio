@@ -31,10 +31,10 @@ describe("M2-WO1 — the Ruleset model is identity and lifecycle only", () => {
     for (const file of rulesetSources) expect(existsSync(file), file).toBe(true);
   });
 
-  it("has exactly the specified fields (M2-WO2, M2-WO4 and M2-WO5 added only the manifests, canonPolicies and ruleConflicts back-relation lists, never a column) — nothing that names or selects content", () => {
+  it("has exactly the specified fields (M2-WO2, M2-WO4, M2-WO5 and M2-WO6 added only the manifests, canonPolicies, ruleConflicts and canonDecisions back-relation lists, never a column) — nothing that names or selects content", () => {
     const fields = [...(ruleset?.body ?? "").matchAll(/^\s+(\w+)\s+[A-Z]/gm)].map((m) => m[1]).sort();
     expect(fields).toEqual(
-      ["canonPolicies", "canonicalKey", "channel", "children", "createdAt", "description", "id", "manifests", "name", "parent", "parentRulesetId", "ruleConflicts", "status", "updatedAt", "versionLabel"].sort(),
+      ["canonDecisions", "canonPolicies", "canonicalKey", "channel", "children", "createdAt", "description", "id", "manifests", "name", "parent", "parentRulesetId", "ruleConflicts", "status", "updatedAt", "versionLabel"].sort(),
     );
   });
 
@@ -42,18 +42,18 @@ describe("M2-WO1 — the Ruleset model is identity and lifecycle only", () => {
     expect(ruleset?.body).not.toMatch(/\bBoolean\b/);
   });
 
-  it("references no Entity or EntityVersion; and apart from the manifest models, CanonPolicy and RuleConflict, no model references Ruleset", () => {
+  it("references no Entity or EntityVersion; and apart from the manifest models, CanonPolicy, RuleConflict and CanonDecision, no model references Ruleset", () => {
     // M2-WO2 superseded the old blanket "no other model references Ruleset": the manifest models legitimately do.
     // The intent stands: Entity and EntityVersion never reference a Ruleset (no ruleset_id on EntityVersion).
     expect(ruleset?.body).not.toMatch(/\bEntity(Version)?\b/);
-    for (const other of models.filter((model) => !["Ruleset", "RulesetManifest", "RulesetManifestEntry", "CanonPolicy", "RuleConflict"].includes(model.name))) {
+    for (const other of models.filter((model) => !["Ruleset", "RulesetManifest", "RulesetManifestEntry", "CanonPolicy", "RuleConflict", "CanonDecision"].includes(model.name))) {
       expect(other.body, `${other.name} must not reference Ruleset (no ruleset_id / rulesetId / Ruleset relation)`).not.toMatch(/\bRuleset\b|rulesetId|ruleset_id/i);
     }
   });
 
-  it("no Canon-decision, release, change-set, inheritance, or effective-manifest model exists yet", () => {
+  it("no release, change-set, inheritance, or effective-manifest model exists yet", () => {
     // Manifests were removed from this list by M2-WO2; everything still out of scope stays on it.
-    const premature = models.map((m) => m.name).filter((n) => /canondecision|release|changeset|inherit|effective/i.test(n));
+    const premature = models.map((m) => m.name).filter((n) => /release|changeset|inherit|effective/i.test(n));
     expect(premature).toEqual([]);
   });
 });

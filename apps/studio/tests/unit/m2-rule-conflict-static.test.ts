@@ -45,7 +45,8 @@ describe("M2-WO5 — the conflict models record, never resolve", () => {
 
   it("RuleConflict has exactly its specified fields — no winner, resolution, decision, policy, or updatedAt (§4, §64)", () => {
     expect(fieldNames(find("RuleConflict")?.body)).toEqual(
-      ["candidates", "conflictType", "createdAt", "description", "entity", "entityId", "id", "ruleset", "rulesetId", "severity", "status", "title"].sort(),
+      // M2-WO6 added only the canonDecisions back-relation LIST: a decision points at its conflict, never the reverse.
+      ["candidates", "canonDecisions", "conflictType", "createdAt", "description", "entity", "entityId", "id", "ruleset", "rulesetId", "severity", "status", "title"].sort(),
     );
     expect(find("RuleConflict")?.body).not.toMatch(/updatedAt|\bBoolean\b/);
   });
@@ -54,6 +55,7 @@ describe("M2-WO5 — the conflict models record, never resolve", () => {
     expect(fieldNames(find("RuleConflictCandidate")?.body)).toEqual(
       [
         "createdAt",
+        "decisionSelections", // M2-WO6 back-relation list only
         "entityId",
         "entityVersion",
         "entityVersionId",
@@ -70,8 +72,13 @@ describe("M2-WO5 — the conflict models record, never resolve", () => {
   });
 
   it("no winner / current / selected / resolution / decision identifier exists in either model (§64)", () => {
-    expect(find("RuleConflict")?.body).not.toMatch(WINNER_WORDS);
-    expect(find("RuleConflictCandidate")?.body).not.toMatch(WINNER_WORDS);
+    // M2-WO6 superseded "no decision identifier at all": the ONE permitted mention is the back-relation list
+    // `canonDecisions CanonDecision[]`. A conflict or candidate still has no decision POINTER column.
+    const withoutWo6Lists = (body: string | undefined) =>
+      (body ?? "").replace(/^\s*canonDecisions\s+CanonDecision\[\]\s*$/m, "").replace(/^\s*decisionSelections\s+CanonDecisionSelection\[\]\s*$/m, "");
+    expect(withoutWo6Lists(find("RuleConflict")?.body)).not.toMatch(WINNER_WORDS);
+    expect(withoutWo6Lists(find("RuleConflictCandidate")?.body)).not.toMatch(WINNER_WORDS);
+    for (const name of ["RuleConflict", "RuleConflictCandidate"]) expect(find(name)?.body, name).not.toMatch(/\w*[Dd]ecisionId\s+String/);
     // Control: the matcher must catch the forbidden names, so the check above cannot silently stop working.
     for (const name of ["winningVersionId", "selectedCandidateId", "resolvedCandidate", "preferredCandidate", "activeCandidate", "currentCandidate", "canonDecisionId", "resolvedAt"]) {
       expect(name, name).toMatch(WINNER_WORDS);
@@ -110,7 +117,8 @@ describe("M2-WO5 — the conflict models record, never resolve", () => {
       EntityVersion: ["conflictCandidates RuleConflictCandidate[]"],
       SourceReference: ["conflictCandidates RuleConflictCandidate[]"],
     };
-    for (const model of models.filter((m) => !["RuleConflict", "RuleConflictCandidate"].includes(m.name))) {
+    // M2-WO6's decision models reference conflicts by design; they have their own audit (m2-canon-decision-static).
+    for (const model of models.filter((m) => !["RuleConflict", "RuleConflictCandidate", "CanonDecision", "CanonDecisionSelection"].includes(m.name))) {
       const lines = model.body
         .split("\n")
         .filter((line) => /conflict/i.test(line))
@@ -132,11 +140,18 @@ describe("M2-WO5 — the conflict models record, never resolve", () => {
     expect(enumValues("RuleConflictStatus")).toEqual(["OPEN", "UNDER_REVIEW", "RESOLVED", "ACCEPTED_DIVERGENCE", "DISMISSED"]);
     expect(find("RuleConflict")?.body).toMatch(/status\s+RuleConflictStatus\s+@default\(OPEN\)/);
     const enums = [...SCHEMA.matchAll(/^enum (\w+)/gm)].map((m) => m[1]);
-    expect(enums.filter((n) => /conflict|decision|resolution|winner/i.test(n ?? "")).sort()).toEqual(["RuleConflictSeverity", "RuleConflictStatus", "RuleConflictType"]);
+    // M2-WO6 added CanonDecisionType and CanonConflictDisposition (audited in m2-canon-decision-static); nothing else.
+    expect(enums.filter((n) => /conflict|decision|resolution|winner/i.test(n ?? "")).sort()).toEqual([
+      "CanonConflictDisposition",
+      "CanonDecisionType",
+      "RuleConflictSeverity",
+      "RuleConflictStatus",
+      "RuleConflictType",
+    ]);
   });
 
-  it("nothing still out of scope exists: no CanonDecision, ChangeSet, RulesetRelease, or resolution model", () => {
-    expect(models.map((m) => m.name).filter((n) => /canondecision|decision|changeset|release|resolution|winner/i.test(n))).toEqual([]);
+  it("nothing still out of scope exists: no ChangeSet, RulesetRelease, or resolution model (CanonDecision arrived in M2-WO6)", () => {
+    expect(models.map((m) => m.name).filter((n) => /changeset|release|resolution|winner/i.test(n))).toEqual([]);
   });
 });
 
@@ -222,7 +237,14 @@ describe("M2-WO5 — conflict code observes; it never resolves, selects, or infe
     walk(path.join(ROOT, "packages", "prowess-model", "src"));
     walk(path.join(ROOT, "packages", "prowess-db", "src"));
     expect(holders).toEqual({
-      ACCEPTED_DIVERGENCE: [path.join("packages", "prowess-model", "src", "rule-conflict-status.ts")],
+      // M2-WO6: the disposition vocabulary deliberately repeats the three terminal labels (its own Prisma enum);
+      // m2-canon-decision-static proves it is an exact subset of RuleConflictStatus.
+      ACCEPTED_DIVERGENCE: [
+        path.join("packages", "prowess-model", "src", "canon-conflict-disposition.ts"),
+        // The decision rules table USES the disposition values; `satisfies` type-checks them against the vocabulary.
+        path.join("packages", "prowess-model", "src", "canon-decision.ts"),
+        path.join("packages", "prowess-model", "src", "rule-conflict-status.ts"),
+      ],
       AUTHORING_STANDARD_CONFLICT: [path.join("packages", "prowess-model", "src", "rule-conflict-type.ts")],
       CRITICAL: [path.join("packages", "prowess-model", "src", "rule-conflict-severity.ts")],
     });

@@ -47,3 +47,6 @@ export * from "./rule-conflict-type.js";
 export * from "./rule-conflict-severity.js";
 export * from "./rule-conflict-status.js";
 export * from "./rule-conflict.js";
+export * from "./canon-decision-type.js";
+export * from "./canon-conflict-disposition.js";
+export * from "./canon-decision.js";

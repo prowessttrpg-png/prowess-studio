@@ -498,7 +498,8 @@ describe("RuleConflict (prowess_studio_test only)", () => {
     it("exposes exactly four conflict operations, none of which transitions, edits, resolves, or deletes (§29–§31)", async () => {
       const surface = await import("../../src/index");
       const names = Object.keys(surface);
-      expect(names.filter((n) => /conflict/i.test(n)).sort()).toEqual(["createRuleConflict", "getRuleConflict", "listRuleConflicts", "listRuleConflictsForEntity"]);
+      // M2-WO6's decision operations (e.g. listCanonDecisionsForConflict) are audited in canon-decision.test.ts.
+      expect(names.filter((n) => /ruleconflict/i.test(n)).sort()).toEqual(["createRuleConflict", "getRuleConflict", "listRuleConflicts", "listRuleConflictsForEntity"]);
       const mutatorVerb = /^(set|change|update|resolve|dismiss|accept|choose|select|close|reopen|add|remove|delete|patch|upsert|edit)/i;
       const mutators = (list: string[]) => list.filter((n) => /conflict|candidate|divergence|winner/i.test(n) && mutatorVerb.test(n));
       expect(mutators(["resolveConflict", "dismissConflict", "acceptDivergence", "setConflictStatus", "chooseWinner", "addConflictCandidate"])).toHaveLength(6);
@@ -603,8 +604,9 @@ describe("RuleConflict (prowess_studio_test only)", () => {
       expect(forbidden).toEqual([]);
       const touched = await prisma.$queryRaw<Array<{ table_name: string; column_name: string }>>`
         SELECT table_name, column_name FROM information_schema.columns
-        WHERE table_schema = 'public' AND table_name NOT LIKE 'rule_conflict%' AND column_name ~* 'conflict'`;
-      expect(touched).toEqual([]); // no other table points at a conflict
+        WHERE table_schema = 'public' AND table_name NOT LIKE 'rule_conflict%' AND table_name NOT LIKE 'canon_decision%'
+          AND column_name ~* 'conflict'`;
+      expect(touched).toEqual([]); // no other table points at a conflict (M2-WO6's decision tables do, by design — audited there)
     });
 
     it("the status column defaults to OPEN and the enums hold exactly the domain vocabularies (§7, §58, §66)", async () => {

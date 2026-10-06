@@ -108,3 +108,15 @@ export type RuleConflictCandidateId = Brand<string, "RuleConflictCandidateId">;
 export const RuleConflictCandidateId = {
   of: (value: string) => asBrand<string, "RuleConflictCandidateId">(value),
 };
+
+/** Opaque, immutable UUID identity of a CanonDecision (PAS-10 M2-WO6). */
+export type CanonDecisionId = Brand<string, "CanonDecisionId">;
+export const CanonDecisionId = {
+  of: (value: string) => asBrand<string, "CanonDecisionId">(value),
+};
+
+/** Opaque, immutable UUID identity of a CanonDecisionSelection (PAS-10 M2-WO6). */
+export type CanonDecisionSelectionId = Brand<string, "CanonDecisionSelectionId">;
+export const CanonDecisionSelectionId = {
+  of: (value: string) => asBrand<string, "CanonDecisionSelectionId">(value),
+};
