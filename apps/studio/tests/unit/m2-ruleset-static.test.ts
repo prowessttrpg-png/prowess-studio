@@ -108,11 +108,13 @@ describe("M2-WO1 — scope boundaries", () => {
     expect(sql).not.toMatch(/ON DELETE (CASCADE|SET NULL)|DROP /);
   });
 
-  it("no Ruleset HTTP route or UI exists yet (those have their own Work Orders)", () => {
+  it("no Ruleset UI exists yet (those have their own Work Orders) — the HTTP API arrived in M2-WO9 (pinned by m2-api-static)", () => {
     const found: string[] = [];
     const walk = (dir: string) => {
       for (const entry of readdirSync(dir)) {
         if (entry === "node_modules" || entry === ".next") continue;
+        // M2-WO9: the HTTP API now exists; its exact route inventory is pinned by m2-api-static. UI is still WO10's.
+        if (path.join(dir, entry) === path.join(ROOT, "apps", "studio", "app", "api")) continue;
         const full = path.join(dir, entry);
         if (/ruleset/i.test(entry)) found.push(path.relative(ROOT, full));
         if (statSync(full).isDirectory()) walk(full);

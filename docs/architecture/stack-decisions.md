@@ -614,3 +614,18 @@ computed in @prowess/db so the model stays runtime-neutral; (8) one release per 
 current/active release pointer, `getLatestRulesetRelease` is a query; (9) two codes beyond the WO list:
 RULESET_RELEASE.INVALID_INPUT and INVALID_CHANGE_SET_CONTEXT. The pre-existing M0-WO5 `/publishing`
 placeholder route is pinned by the static audit as an unchanged placeholder until M2-WO10.
+
+## M2-WO9: Ruleset & Canon HTTP API
+
+Full reference in `docs/architecture/ruleset-canon-api.md`. Decisions worth keeping: (1) 31 route files / 38
+handlers, each a thin adapter — shape validation, one public `@prowess/db` call, `serializeForApi`, the central
+error map — with no Prisma/repository import and no domain logic (pinned by `m2-api-static`, mutation-checked);
+(2) M2 request bodies are STRICT: unknown keys (including forbidden ones like `status` or `releaseNumber`) are
+400s, and vocabularies come from `@prowess/model`; unknown query parameters are 400s too; (3) the M1 envelopes,
+error shape, pagination and serializer are reused unchanged; M2 lists page over the services' ordered results
+rather than rewriting services for HTTP; (4) named POST commands for every lifecycle move; no DELETE/PATCH/PUT
+on governance resources; (5) "latest" is numeric only, `null` (200) when none; `resolve` returns `{ resolution:
+null }` (200) for an unpinned Entity; hash verification is 200 even when invalid; (6) no migration, no UI, no
+auth, no OpenAPI, no URL versioning. The eight earlier "no HTTP route or UI yet" audits now exclude only
+`app/api` (whose inventory WO9 pins) and still forbid UI until M2-WO10; a `\b`-after-operator regex trap was
+caught by the new audit's own control case before it shipped.
