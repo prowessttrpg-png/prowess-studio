@@ -120,3 +120,15 @@ export type CanonDecisionSelectionId = Brand<string, "CanonDecisionSelectionId">
 export const CanonDecisionSelectionId = {
   of: (value: string) => asBrand<string, "CanonDecisionSelectionId">(value),
 };
+
+/** Opaque, immutable UUID identity of a ChangeSet (PAS-10 M2-WO7). */
+export type ChangeSetId = Brand<string, "ChangeSetId">;
+export const ChangeSetId = {
+  of: (value: string) => asBrand<string, "ChangeSetId">(value),
+};
+
+/** Opaque, immutable UUID identity of a ChangeSetOperation (PAS-10 M2-WO7). */
+export type ChangeSetOperationId = Brand<string, "ChangeSetOperationId">;
+export const ChangeSetOperationId = {
+  of: (value: string) => asBrand<string, "ChangeSetOperationId">(value),
+};

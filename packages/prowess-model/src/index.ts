@@ -50,3 +50,8 @@ export * from "./rule-conflict.js";
 export * from "./canon-decision-type.js";
 export * from "./canon-conflict-disposition.js";
 export * from "./canon-decision.js";
+export * from "./change-set-status.js";
+export * from "./change-set-operation-type.js";
+export * from "./change-set.js";
+export * from "./change-set-translation.js";
+export * from "./change-set-impact.js";

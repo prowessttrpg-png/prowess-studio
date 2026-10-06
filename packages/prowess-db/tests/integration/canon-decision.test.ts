@@ -535,7 +535,8 @@ describe("CanonDecision (prowess_studio_test only)", () => {
 
     it("exposes exactly four decision operations — nothing updates, applies, or deletes; no public conflict-status setter (§2, §28, §65)", async () => {
       const names = Object.keys(await import("../../src/index"));
-      expect(names.filter((n) => /decision/i.test(n)).sort()).toEqual(["createCanonDecision", "getCanonDecision", "listCanonDecisions", "listCanonDecisionsForConflict"]);
+      // M2-WO7's proposeChangeSetFromCanonDecision is a ChangeSet operation, audited in change-set.test.ts.
+      expect(names.filter((n) => /decision/i.test(n) && !/changeset/i.test(n)).sort()).toEqual(["createCanonDecision", "getCanonDecision", "listCanonDecisions", "listCanonDecisionsForConflict"]);
       const forbidden = /^(update|edit|change|replace|delete|remove|apply|promote|set|transition|reopen|rollback|supersede)\w*(decision|outcome|selection|conflict(status)?|manifest(fromdecision)?|policy|candidate)/i;
       const control = ["updateDecision", "editDecision", "changeOutcome", "replacePolicy", "changeSelections", "deleteDecision", "applyDecision", "updateManifestFromDecision", "promoteSelectedCandidate", "setRuleConflictStatus", "transitionRuleConflict"];
       expect(control.filter((n) => forbidden.test(n))).toEqual(control);
@@ -681,7 +682,8 @@ describe("CanonDecision (prowess_studio_test only)", () => {
       expect(forbidden).toEqual([]);
       const uniques = await prisma.$queryRaw<Array<{ indexdef: string }>>`
         SELECT indexdef FROM pg_indexes WHERE tablename = 'canon_decisions' AND indexdef LIKE 'CREATE UNIQUE%'`;
-      expect(uniques.map((u) => u.indexdef.replace(/^.*\((.*)\)$/, "$1")).sort()).toEqual(["id", "id, rule_conflict_id"]);
+      // M2-WO7 added "id, ruleset_id" — a PK-led composite-key target for ChangeSet, not a uniqueness on rule_conflict_id.
+      expect(uniques.map((u) => u.indexdef.replace(/^.*\((.*)\)$/, "$1")).sort()).toEqual(["id", "id, rule_conflict_id", "id, ruleset_id"]);
     });
 
     it("the M2-WO6 migration is applied and finished", async () => {

@@ -397,3 +397,41 @@ export const CANON_DECISION_ERROR_CODES = {
 } as const;
 
 export type CanonDecisionErrorCode = (typeof CANON_DECISION_ERROR_CODES)[keyof typeof CANON_DECISION_ERROR_CODES];
+
+/**
+ * ChangeSet error codes (PAS-10 M2-WO7 §38).
+ *
+ * The Ruleset a ChangeSet is created or listed under is the ADDRESSED resource (RULESET_NOT_FOUND ->
+ * 404); the CanonDecision, Entities, Versions and Manifests are REFERENCED in the request body
+ * (-> 400). OPERATION_CONFLICT describes contradictory operations inside ONE request, so it is a bad
+ * request (400) like RULE_CONFLICT.DUPLICATE_CANDIDATE — not a clash with stored state.
+ * Deliberately absent: any code for applying, executing, or transitioning a ChangeSet.
+ */
+export const CHANGE_SET_ERROR_CODES = {
+  /** The ChangeSet asked for by id does not exist (including a malformed id). */
+  NOT_FOUND: "CHANGE_SET.NOT_FOUND",
+  /** The Ruleset the ChangeSet is created or listed under does not exist. */
+  RULESET_NOT_FOUND: "CHANGE_SET.RULESET_NOT_FOUND",
+  /** The referenced CanonDecision does not exist. */
+  DECISION_NOT_FOUND: "CHANGE_SET.DECISION_NOT_FOUND",
+  /** The CanonDecision belongs to a different Ruleset than the ChangeSet. */
+  INVALID_DECISION_CONTEXT: "CHANGE_SET.INVALID_DECISION_CONTEXT",
+  /** Shape problems: name, description, operation count. */
+  INVALID_INPUT: "CHANGE_SET.INVALID_INPUT",
+  /** One operation breaks its type's rules (a required id missing, a forbidden id present, from = to). */
+  INVALID_OPERATION: "CHANGE_SET.INVALID_OPERATION",
+  /** Operations in one request contradict each other (e.g. two REPLACEs for one Entity, NO_CHANGE mixed with changes). */
+  OPERATION_CONFLICT: "CHANGE_SET.OPERATION_CONFLICT",
+  /** An operation's target Entity does not exist. */
+  ENTITY_NOT_FOUND: "CHANGE_SET.ENTITY_NOT_FOUND",
+  /** An operation's from/to EntityVersion does not exist. */
+  VERSION_NOT_FOUND: "CHANGE_SET.VERSION_NOT_FOUND",
+  /** An operation's from/to EntityVersion belongs to a different Entity than its target. */
+  VERSION_ENTITY_MISMATCH: "CHANGE_SET.VERSION_ENTITY_MISMATCH",
+  /** An operation's target RulesetManifest does not exist. */
+  MANIFEST_NOT_FOUND: "CHANGE_SET.MANIFEST_NOT_FOUND",
+  /** An operation's target RulesetManifest belongs to a different Ruleset than the ChangeSet. */
+  INVALID_MANIFEST_CONTEXT: "CHANGE_SET.INVALID_MANIFEST_CONTEXT",
+} as const;
+
+export type ChangeSetErrorCode = (typeof CHANGE_SET_ERROR_CODES)[keyof typeof CHANGE_SET_ERROR_CODES];

@@ -575,3 +575,23 @@ stored state), a reordering of the WO's suggested sequence; (9) no `summary` fie
 is the single audit text; (10) RULESET_NOT_FOUND was added to the vocabulary for `listCanonDecisions`;
 CONFLICT_NOT_FOUND is 404 (the addressed subject) while POLICY_NOT_FOUND is 400 (a body reference). No new
 dependency, route, or UI.
+
+## M2-WO7: ChangeSets and impact analysis
+
+Full design in `docs/architecture/change-sets-impact-analysis.md`. Decisions worth keeping: (1) decision,
+ChangeSet and application are three separate stages — deciding creates no ChangeSet, creating one applies
+nothing, and no apply/execute operation exists; (2) a ChangeSet is an immutable DRAFT snapshot, revised only
+by creating another; the other four statuses are vocabulary for M2-WO8; (3) the operation matrix is one data
+table, and every Version reference is an exact id; (4) operations keep the author's order via an explicit
+`sequence`, because rows from one transaction share `created_at`; (5) contradictions are a deliberately small
+rule set — NO_CHANGE alone, one manifest-composition operation per Entity, no duplicate CREATE/DEPRECATE, no
+deprecating a Version being pinned; (6) `target_manifest_id` records ANALYSIS context, never an edit — applied
+composition changes will create a new manifest; (7) decision translation is a pure function behind an
+explicit service call; it uses M2-WO3 effective resolution so inherited pins produce a child-manifest
+override, never a parent edit; KEEP_SEPARATE, RESOLVE_CONFLICT and DISMISSED map to NO_CHANGE; (8) impact is
+derived and never persisted, labelled `derivation: "LIVE"`, and means "review may be required"; relationships
+are walked one hop, inheritance transitively; one item per (category, resource) with all reasons; (9)
+same-Ruleset decision/manifest and same-Entity Versions are composite foreign keys via a redundant
+`ruleset_id` on operations; (10) OPERATION_CONFLICT is 400 (a contradiction inside one request). The audit
+work also fixed a latent regex gap in the M2-WO6 static audit (a `\b` after `(` meant `.update({` never
+matched); both audits now carry control cases. No new dependency, route, or UI.
