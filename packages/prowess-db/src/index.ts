@@ -113,3 +113,10 @@ export {
 } from "./canon-policy/index.js";
 export { createRuleConflict, getRuleConflict, listRuleConflicts, listRuleConflictsForEntity } from "./rule-conflict/index.js";
 export { createCanonDecision, getCanonDecision, listCanonDecisions, listCanonDecisionsForConflict } from "./canon-decision/index.js";
+export {
+  analyzeChangeSetImpact,
+  createChangeSet,
+  getChangeSet,
+  listChangeSets,
+  proposeChangeSetFromCanonDecision,
+} from "./change-set/index.js";

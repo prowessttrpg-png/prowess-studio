@@ -13,6 +13,7 @@ import {
   SOURCE_AUTHORITY_ERROR_CODES,
   RULE_CONFLICT_ERROR_CODES,
   CANON_DECISION_ERROR_CODES,
+  CHANGE_SET_ERROR_CODES,
   SOURCE_DOCUMENT_ERROR_CODES,
   SOURCE_REFERENCE_ERROR_CODES,
   type EntityAliasErrorCode,
@@ -28,6 +29,7 @@ import {
   type SourceAuthorityErrorCode,
   type RuleConflictErrorCode,
   type CanonDecisionErrorCode,
+  type ChangeSetErrorCode,
   type SourceDocumentErrorCode,
   type SourceReferenceErrorCode,
 } from "@prowess/model";
@@ -93,6 +95,7 @@ type KnownDomainErrorCode =
   | SourceAuthorityErrorCode
   | RuleConflictErrorCode
   | CanonDecisionErrorCode
+  | ChangeSetErrorCode
   | SourceDocumentErrorCode
   | SourceReferenceErrorCode;
 
@@ -160,6 +163,9 @@ const DOMAIN_ERROR_STATUS_MAP = {
   // resources, so a missing one is a 404 — the same convention as RULE_CONFLICT.RULESET_NOT_FOUND.
   [CANON_DECISION_ERROR_CODES.CONFLICT_NOT_FOUND]: 404,
   [CANON_DECISION_ERROR_CODES.RULESET_NOT_FOUND]: 404,
+  [CHANGE_SET_ERROR_CODES.NOT_FOUND]: 404,
+  // The Ruleset a ChangeSet is created / listed under is the addressed resource (createChangeSet's first argument).
+  [CHANGE_SET_ERROR_CODES.RULESET_NOT_FOUND]: 404,
 
   // --- 409: conflict with current state / duplicate ---
   [ENTITY_ERROR_CODES.CANONICAL_KEY_CONFLICT]: 409,
@@ -240,6 +246,19 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [CANON_DECISION_ERROR_CODES.INVALID_INPUT]: 400,
   [CANON_DECISION_ERROR_CODES.INVALID_CANDIDATE]: 400,
   [CANON_DECISION_ERROR_CODES.INVALID_RESULT_VERSION]: 400,
+  // ChangeSet (M2-WO7): the decision, Entities, Versions and manifests are REFERENCED (request body / decision
+  // translation input), so missing or mismatched ones are bad requests. OPERATION_CONFLICT is a contradiction
+  // INSIDE one request, not a clash with stored state — 400, like RULE_CONFLICT.DUPLICATE_CANDIDATE.
+  [CHANGE_SET_ERROR_CODES.DECISION_NOT_FOUND]: 400,
+  [CHANGE_SET_ERROR_CODES.INVALID_DECISION_CONTEXT]: 400,
+  [CHANGE_SET_ERROR_CODES.INVALID_INPUT]: 400,
+  [CHANGE_SET_ERROR_CODES.INVALID_OPERATION]: 400,
+  [CHANGE_SET_ERROR_CODES.OPERATION_CONFLICT]: 400,
+  [CHANGE_SET_ERROR_CODES.ENTITY_NOT_FOUND]: 400,
+  [CHANGE_SET_ERROR_CODES.VERSION_NOT_FOUND]: 400,
+  [CHANGE_SET_ERROR_CODES.VERSION_ENTITY_MISMATCH]: 400,
+  [CHANGE_SET_ERROR_CODES.MANIFEST_NOT_FOUND]: 400,
+  [CHANGE_SET_ERROR_CODES.INVALID_MANIFEST_CONTEXT]: 400,
   // Corrupt stored data, not anything the caller did: supported operations cannot create an inheritance
   // loop. An integrity failure on the server is a 500 by design, mapped explicitly so it is a decision
   // and not merely the fail-closed default for an unmapped code.

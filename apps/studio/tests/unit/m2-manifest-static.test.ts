@@ -38,7 +38,8 @@ describe("M2-WO2 — the manifest models are immutable snapshots with exact pins
 
   it("RulesetManifest has exactly its specified fields — and NO updatedAt, because a snapshot is never edited", () => {
     expect(fieldNames(find("RulesetManifest")?.body)).toEqual(
-      ["childManifests", "createdAt", "entries", "id", "manifestVersion", "parentManifest", "parentManifestId", "ruleset", "rulesetId"],
+      // M2-WO7 added only the changeSetOperations back-relation LIST: proposals cite a manifest; a manifest is never edited.
+      ["changeSetOperations", "childManifests", "createdAt", "entries", "id", "manifestVersion", "parentManifest", "parentManifestId", "ruleset", "rulesetId"],
     ); // M2-WO3 added only the parent-manifest self-reference
     expect(find("RulesetManifest")?.body).not.toMatch(/updatedAt/);
   });
@@ -73,8 +74,8 @@ describe("M2-WO2 — the manifest models are immutable snapshots with exact pins
     expect(find("Ruleset")?.body).toMatch(/manifests\s+RulesetManifest\[\]/);
   });
 
-  it("nothing still out of scope exists: no release, change set, inheritance, or effective manifest", () => {
-    const premature = models.map((m) => m.name).filter((n) => /release|changeset|inherit|effective/i.test(n));
+  it("nothing still out of scope exists: no release, inheritance, or effective manifest (ChangeSet arrived in M2-WO7)", () => {
+    const premature = models.map((m) => m.name).filter((n) => /release|inherit|effective/i.test(n));
     expect(premature).toEqual([]);
   });
 });

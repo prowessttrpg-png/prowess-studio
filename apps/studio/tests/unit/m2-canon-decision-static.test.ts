@@ -49,6 +49,7 @@ describe("M2-WO6 — the decision models are immutable, exactly-pinned records",
       [
         "canonPolicy",
         "canonPolicyId",
+        "changeSets", // M2-WO7 back-relation list only: a ChangeSet cites a decision; a decision never points at one
         "conflictDisposition",
         "createdAt",
         "decisionType",
@@ -116,7 +117,8 @@ describe("M2-WO6 — the decision models are immutable, exactly-pinned records",
       EntityVersion: ["mergeResultDecisions CanonDecision[]"],
       RuleConflictCandidate: ["decisionSelections CanonDecisionSelection[]"],
     };
-    for (const m of models.filter((x) => !["CanonDecision", "CanonDecisionSelection"].includes(x.name))) {
+    // M2-WO7's ChangeSet cites a decision by design (optional, same-Ruleset composite key); it has its own audit.
+    for (const m of models.filter((x) => !["CanonDecision", "CanonDecisionSelection", "ChangeSet"].includes(x.name))) {
       const lines = m.body.split("\n").filter((l) => /decision/i.test(l)).map(squash);
       expect(lines, m.name).toEqual(expected[m.name] ?? []);
     }
@@ -137,14 +139,21 @@ describe("M2-WO6 — the decision models are immutable, exactly-pinned records",
     }
   });
 
-  it("nothing still out of scope exists: no ChangeSet, RulesetRelease, decision-application or rollback model (§59)", () => {
-    expect(models.map((m) => m.name).filter((n) => /changeset|release|application|applied|rollback|supersession/i.test(n))).toEqual([]);
+  it("nothing still out of scope exists: no RulesetRelease, decision-application or rollback model (§59; ChangeSet arrived in M2-WO7)", () => {
+    expect(models.map((m) => m.name).filter((n) => /release|application|applied|rollback|supersession/i.test(n))).toEqual([]);
   });
 });
 
 describe("M2-WO6 — decision code records; it never applies, infers, or selects automatically (§27–§31, §53, §64)", () => {
   const FORBIDDEN =
-    /\b(rulesetManifest\w*|RulesetManifest\w*|manifestEntr\w*|createRulesetManifest|getRulesetManifest|resolveEntityVersionFromManifest|resolveEffectiveEntityVersion|getEffectiveManifestEntries|parentManifestId|transitionEntityVersionStatus|updateDraftEntityVersion|createEntityVersion|entityVersion\.(update|updateMany|upsert|delete)|sourceAuthorityRecord|SourceAuthorityStatus|resolveSourceAuthority|getSourceAuthorityRecord|selectSourceAuthorityRecord|resolveAuthorityFromDeclarations|GOVERNING|REFERENCE_ONLY|ruleset\.(update|updateMany|upsert|delete)|canonPolicy\.(create|update|updateMany|upsert|delete)|getLatest\w*|selectLatest\w*|calculate\w*|evaluate\w*|rulesEngine|applyDecision|winner\w*)\b/;
+    /\b(rulesetManifest\w*|RulesetManifest\w*|manifestEntr\w*|createRulesetManifest|getRulesetManifest|resolveEntityVersionFromManifest|resolveEffectiveEntityVersion|getEffectiveManifestEntries|parentManifestId|transitionEntityVersionStatus|updateDraftEntityVersion|createEntityVersion|sourceAuthorityRecord|SourceAuthorityStatus|resolveSourceAuthority|getSourceAuthorityRecord|selectSourceAuthorityRecord|resolveAuthorityFromDeclarations|GOVERNING|REFERENCE_ONLY|getLatest\w*|selectLatest\w*|calculate\w*|evaluate\w*|rulesEngine|applyDecision|winner\w*)\b|\b(entityVersion|ruleset)\.(update|updateMany|upsert|delete)\(|\bcanonPolicy\.(create|update|updateMany|upsert|delete)\(/;
+  // M2-WO7 fix: method-call writes sit OUTSIDE the \b(...)\b group — a trailing \b after "(" never matched "({".
+
+  it("the forbidden-call pattern catches method-call writes (control for the M2-WO7 regex fix)", () => {
+    for (const control of ["await tx.entityVersion.update({ where: {} })", "prisma.ruleset.delete({})", "tx.canonPolicy.create({ data: {} })"]) {
+      expect(control, control).toMatch(FORBIDDEN);
+    }
+  });
 
   it.each(decisionSources.map((f) => [path.relative(ROOT, f), f]))("%s", (_name, file) => {
     const code = stripTs(readFileSync(file as string, "utf8"));

@@ -158,6 +158,9 @@ model Entity {
   /// list only — no conflict pointer, flag, or winner on the Entity itself.
   ruleConflicts RuleConflict[]
 
+  /// ChangeSet operations proposing something about this Entity (M2-WO7). A relation list only.
+  changeSetOperations ChangeSetOperation[]
+
   @@map("entities")
 }
 
@@ -308,6 +311,11 @@ model EntityVersion {
   /// MERGE decisions naming this exact Version as their result (M2-WO6). A relation list only:
   /// being a merge result never changes this Version's status or content.
   mergeResultDecisions CanonDecision[]
+
+  /// ChangeSet operations naming this exact Version as their from / to side (M2-WO7). Relation lists
+  /// only: a proposal never changes this Version's status or content.
+  changeSetOperationsFrom ChangeSetOperation[] @relation("ChangeSetOperationFrom")
+  changeSetOperationsTo   ChangeSetOperation[] @relation("ChangeSetOperationTo")
 
   @@unique([entityId, revisionNumber])
   /// Exists so RulesetManifestEntry can reference (id, entityId) together — a composite
@@ -833,6 +841,10 @@ model Ruleset {
   /// never changes this Ruleset's status, manifests, or policies.
   canonDecisions CanonDecision[]
 
+  /// Proposed ChangeSets in this Ruleset's context (M2-WO7). A relation list only — a proposal never
+  /// changes this Ruleset.
+  changeSets ChangeSet[]
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -877,9 +889,16 @@ model RulesetManifest {
 
   entries RulesetManifestEntry[]
 
+  /// ChangeSet operations that analyzed this exact manifest (M2-WO7). A relation list only: a proposal
+  /// never edits a manifest — an applied change will create a NEW one.
+  changeSetOperations ChangeSetOperation[]
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@unique([rulesetId, manifestVersion], map: "ruleset_manifests_ruleset_id_manifest_version_key")
+  /// Target of ChangeSetOperation's composite key (M2-WO7): an analyzed manifest belongs to the ChangeSet's
+  /// Ruleset. Adds no real constraint: `id` is the primary key.
+  @@unique([id, rulesetId], map: "ruleset_manifests_id_ruleset_id_key")
   @@index([parentManifestId], map: "ruleset_manifests_parent_manifest_id_idx")
   @@map("ruleset_manifests")
 }
@@ -1193,10 +1212,16 @@ model CanonDecision {
 
   selections CanonDecisionSelection[]
 
+  /// ChangeSets this decision motivated (M2-WO7). A relation list only: linking never modifies a decision.
+  changeSets ChangeSet[]
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   /// Target of CanonDecisionSelection's composite key. Adds no real constraint: `id` is the primary key.
   @@unique([id, ruleConflictId], map: "canon_decisions_id_rule_conflict_id_key")
+  /// Target of ChangeSet's composite key (M2-WO7): a linked decision belongs to the ChangeSet's Ruleset.
+  /// Adds no real constraint: `id` is the primary key.
+  @@unique([id, rulesetId], map: "canon_decisions_id_ruleset_id_key")
   @@index([rulesetId], map: "canon_decisions_ruleset_id_idx")
   @@index([ruleConflictId], map: "canon_decisions_rule_conflict_id_idx")
   @@index([canonPolicyId], map: "canon_decisions_canon_policy_id_idx")
@@ -1228,4 +1253,107 @@ model CanonDecisionSelection {
   @@unique([canonDecisionId, ruleConflictCandidateId], map: "canon_decision_selections_decision_candidate_key")
   @@index([ruleConflictCandidateId], map: "canon_decision_selections_candidate_id_idx")
   @@map("canon_decision_selections")
+}
+
+/// Lifecycle vocabulary of a ChangeSet (PAS-10 M2-WO7 §3). Every ChangeSet is created DRAFT and M2-WO7 offers
+/// no transition; the review/publishing workflow (M2-WO8) owns the rest. Kept in lockstep with
+/// @prowess/model's CHANGE_SET_STATUSES.
+enum ChangeSetStatus {
+  DRAFT
+  READY_FOR_REVIEW
+  APPROVED
+  REJECTED
+  SUPERSEDED
+}
+
+/// What one ChangeSetOperation PROPOSES (PAS-10 M2-WO7 §7). Never executed by M2-WO7. Kept in lockstep with
+/// @prowess/model's CHANGE_SET_OPERATION_TYPES.
+enum ChangeSetOperationType {
+  PIN_ENTITY_VERSION
+  REPLACE_ENTITY_VERSION
+  ADD_ENTITY_TO_MANIFEST
+  REMOVE_ENTITY_FROM_MANIFEST
+  CREATE_ENTITY_VERSION
+  DEPRECATE_ENTITY_VERSION
+  NO_CHANGE
+}
+
+/// ChangeSet — an immutable PROPOSAL of exact repository/ruleset changes (PAS-10 M2-WO7).
+/// See docs/architecture/change-sets-impact-analysis.md.
+///
+/// It mutates nothing — no Entity, Version, Ruleset, manifest, policy, conflict, decision, authority record,
+/// keyword, relationship or source. Created DRAFT, never edited (no updated_at): revise by creating another.
+/// No applied / executed / release column: application belongs to M2-WO8.
+///
+/// (canon_decision_id, ruleset_id) -> canon_decisions(id, ruleset_id): a linked decision belongs to the
+/// same Ruleset (NULL = no link; MATCH SIMPLE skips the check). UNIQUE(id, ruleset_id) adds no real
+/// constraint; it is the target of the operations' composite key. Every foreign key is ON DELETE RESTRICT.
+model ChangeSet {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  rulesetId String  @map("ruleset_id") @db.Uuid
+  ruleset   Ruleset @relation(fields: [rulesetId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  canonDecisionId String?        @map("canon_decision_id") @db.Uuid
+  canonDecision   CanonDecision? @relation(fields: [canonDecisionId, rulesetId], references: [id, rulesetId], onDelete: Restrict, onUpdate: Cascade, map: "change_sets_canon_decision_fkey")
+
+  name        String
+  description String?
+  status      ChangeSetStatus @default(DRAFT)
+
+  operations ChangeSetOperation[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([id, rulesetId], map: "change_sets_id_ruleset_id_key")
+  @@index([rulesetId], map: "change_sets_ruleset_id_idx")
+  @@index([canonDecisionId], map: "change_sets_canon_decision_id_idx")
+  @@map("change_sets")
+}
+
+/// ChangeSetOperation — one exact proposed change (PAS-10 M2-WO7). Which ids are present depends on
+/// operation_type (the validation matrix in @prowess/model's CHANGE_SET_OPERATION_RULES). Every Version is
+/// an exact id. `sequence` preserves the author's order (all rows of one transaction share created_at).
+///
+/// Integrity, in the database (composite foreign keys, the M2 pattern):
+///   (change_set_id, ruleset_id)             -> change_sets(id, ruleset_id)          ruleset_id IS the ChangeSet's
+///   (target_manifest_id, ruleset_id)        -> ruleset_manifests(id, ruleset_id)    analyzed manifest is in that Ruleset
+///   (from_entity_version_id, target_entity_id) -> entity_versions(id, entity_id)     from Version belongs to the target
+///   (to_entity_version_id, target_entity_id)   -> entity_versions(id, entity_id)     to Version belongs to the target
+/// `ruleset_id` is a redundant integrity column, always written from the ChangeSet and pinned by the first
+/// key. A NULL manifest/version skips its check (MATCH SIMPLE). The service guarantees a Version is never
+/// named without its target Entity (the matrix requires target_entity_id whenever a Version is allowed).
+/// target_manifest_id records ANALYSIS context — the manifest is never edited. Every key is ON DELETE RESTRICT.
+model ChangeSetOperation {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  changeSetId String    @map("change_set_id") @db.Uuid
+  rulesetId   String    @map("ruleset_id") @db.Uuid
+  changeSet   ChangeSet @relation(fields: [changeSetId, rulesetId], references: [id, rulesetId], onDelete: Restrict, onUpdate: Cascade, map: "change_set_operations_change_set_fkey")
+
+  sequence      Int
+  operationType ChangeSetOperationType @map("operation_type")
+
+  targetEntityId String? @map("target_entity_id") @db.Uuid
+  targetEntity   Entity? @relation(fields: [targetEntityId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "change_set_operations_target_entity_fkey")
+
+  fromEntityVersionId String?        @map("from_entity_version_id") @db.Uuid
+  fromEntityVersion   EntityVersion? @relation("ChangeSetOperationFrom", fields: [fromEntityVersionId, targetEntityId], references: [id, entityId], onDelete: Restrict, onUpdate: Cascade, map: "change_set_operations_from_version_fkey")
+
+  toEntityVersionId String?        @map("to_entity_version_id") @db.Uuid
+  toEntityVersion   EntityVersion? @relation("ChangeSetOperationTo", fields: [toEntityVersionId, targetEntityId], references: [id, entityId], onDelete: Restrict, onUpdate: Cascade, map: "change_set_operations_to_version_fkey")
+
+  targetManifestId String?          @map("target_manifest_id") @db.Uuid
+  targetManifest   RulesetManifest? @relation(fields: [targetManifestId, rulesetId], references: [id, rulesetId], onDelete: Restrict, onUpdate: Cascade, map: "change_set_operations_target_manifest_fkey")
+
+  description String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([changeSetId, sequence], map: "change_set_operations_change_set_id_sequence_key")
+  @@index([targetEntityId], map: "change_set_operations_target_entity_id_idx")
+  @@index([fromEntityVersionId], map: "change_set_operations_from_entity_version_id_idx")
+  @@index([toEntityVersionId], map: "change_set_operations_to_entity_version_id_idx")
+  @@index([targetManifestId], map: "change_set_operations_target_manifest_id_idx")
+  @@map("change_set_operations")
 }
