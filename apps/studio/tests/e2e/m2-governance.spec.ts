@@ -42,14 +42,39 @@ function trackWrites(page: Page) {
   });
   return writes;
 }
-async function dbFingerprint(): Promise<string> {
+/**
+ * A content fingerprint of the rows THIS test owns: its Rulesets' governance records and its Entities' Versions.
+ * Scoped deliberately — CI runs spec files in parallel workers against one database, so a whole-table
+ * fingerprint would also see other tests' fixtures (the first CI run proved it). The whole-database, serial
+ * read-only proof for impact analysis lives in the API integration suite (m2-change-set-api).
+ */
+async function dbFingerprint(scope: { rulesetIds: string[]; entityIds: string[] }): Promise<string> {
   const { prisma, assertRunningAgainstTestDatabase } = await import("@prowess/db");
   assertRunningAgainstTestDatabase(process.env.DATABASE_URL!);
-  const tables = ["rulesets", "ruleset_manifests", "ruleset_manifest_entries", "canon_policies", "source_authority_records", "rule_conflicts", "rule_conflict_candidates", "canon_decisions", "change_sets", "change_set_operations", "ruleset_releases", "entity_versions"];
+  const R = "SELECT id FROM rulesets WHERE id = ANY($1::uuid[])";
+  const queries: Record<string, string> = {
+    rulesets: `SELECT t FROM rulesets t WHERE t.id IN (${R})`,
+    ruleset_manifests: `SELECT t FROM ruleset_manifests t WHERE t.ruleset_id IN (${R})`,
+    ruleset_manifest_entries: `SELECT t FROM ruleset_manifest_entries t WHERE t.manifest_id IN (SELECT id FROM ruleset_manifests WHERE ruleset_id IN (${R}))`,
+    canon_policies: `SELECT t FROM canon_policies t WHERE t.ruleset_id IN (${R})`,
+    source_authority_records: `SELECT t FROM source_authority_records t WHERE t.canon_policy_id IN (SELECT id FROM canon_policies WHERE ruleset_id IN (${R}))`,
+    rule_conflicts: `SELECT t FROM rule_conflicts t WHERE t.ruleset_id IN (${R})`,
+    rule_conflict_candidates: `SELECT t FROM rule_conflict_candidates t WHERE t.rule_conflict_id IN (SELECT id FROM rule_conflicts WHERE ruleset_id IN (${R}))`,
+    canon_decisions: `SELECT t FROM canon_decisions t WHERE t.ruleset_id IN (${R})`,
+    canon_decision_selections: `SELECT t FROM canon_decision_selections t WHERE t.canon_decision_id IN (SELECT id FROM canon_decisions WHERE ruleset_id IN (${R}))`,
+    change_sets: `SELECT t FROM change_sets t WHERE t.ruleset_id IN (${R})`,
+    change_set_operations: `SELECT t FROM change_set_operations t WHERE t.ruleset_id IN (${R})`,
+    ruleset_releases: `SELECT t FROM ruleset_releases t WHERE t.ruleset_id IN (${R})`,
+    entity_versions: "SELECT t FROM entity_versions t WHERE t.entity_id = ANY($1::uuid[])",
+  };
   const parts: string[] = [];
-  for (const t of tables) {
-    const [row] = await prisma.$queryRawUnsafe<Array<{ h: string }>>(`SELECT md5(coalesce(string_agg(t::text, '|' ORDER BY t::text), '')) AS h FROM "${t}" t`);
-    parts.push(`${t}:${row?.h}`);
+  for (const [table, sql] of Object.entries(queries)) {
+    // Each query binds exactly one array parameter: the Ruleset ids, or (for entity_versions) the Entity ids.
+    const [row] = await prisma.$queryRawUnsafe<Array<{ h: string; n: number }>>(
+      `SELECT md5(coalesce(string_agg(q.t::text, '|' ORDER BY q.t::text), '')) AS h, count(*)::int AS n FROM (${sql}) q`,
+      table === "entity_versions" ? scope.entityIds : scope.rulesetIds,
+    );
+    parts.push(`${table}:${row?.n}:${row?.h}`);
   }
   return parts.join(";");
 }
@@ -138,12 +163,14 @@ test.describe("M2-WO10 Ruleset & Canon governance UI", () => {
 
     // 9 Impact — read-only (§78)
     const writes = trackWrites(page);
-    const before = await dbFingerprint();
+    const scope = { rulesetIds: [rulesetUrl.split("/").pop()!], entityIds: [a.entity.id] };
+    const before = await dbFingerprint(scope);
+    expect(before).toMatch(/rule_conflicts:1:/); // the scope really contains this test's governance rows
     await page.getByRole("button", { name: "Analyze Impact" }).click();
     await expect(page.locator('[data-derivation="LIVE"]')).toBeVisible();
     await expect(page.locator('[data-category="DIRECT_ENTITY"] summary')).toContainText("(1)");
     expect(writes).toEqual([]);
-    expect(await dbFingerprint()).toBe(before);
+    expect(await dbFingerprint(scope)).toBe(before);
 
     // 10–11 Review
     await confirm(page, "Submit for Review");
@@ -208,12 +235,14 @@ test.describe("M2-WO10 Ruleset & Canon governance UI", () => {
     const selector = page.getByTestId("topbar-ruleset");
     await expect(selector).toHaveValue(one.id);
     const writes = trackWrites(page);
-    const before = await dbFingerprint();
+    const scope = { rulesetIds: [one.id, two.id], entityIds: [] };
+    const before = await dbFingerprint(scope);
+    expect(before).toMatch(/rulesets:2:/);
     await selector.selectOption(two.id);
     await page.waitForURL(`**/developer/rulesets/${two.id}`);
     await expect(page.getByRole("heading", { name: "Selector Two" })).toBeVisible();
     expect(writes).toEqual([]);
-    expect(await dbFingerprint()).toBe(before);
+    expect(await dbFingerprint(scope)).toBe(before);
     await expect(page.locator(".prowess-topbar")).not.toContainText(/Active Ruleset|Current Ruleset/);
   });
 
