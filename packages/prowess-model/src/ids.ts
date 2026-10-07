@@ -132,3 +132,9 @@ export type ChangeSetOperationId = Brand<string, "ChangeSetOperationId">;
 export const ChangeSetOperationId = {
   of: (value: string) => asBrand<string, "ChangeSetOperationId">(value),
 };
+
+/** Opaque, immutable UUID identity of a RulesetRelease (PAS-10 M2-WO8). */
+export type RulesetReleaseId = Brand<string, "RulesetReleaseId">;
+export const RulesetReleaseId = {
+  of: (value: string) => asBrand<string, "RulesetReleaseId">(value),
+};

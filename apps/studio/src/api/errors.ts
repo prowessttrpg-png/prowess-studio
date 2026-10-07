@@ -14,6 +14,7 @@ import {
   RULE_CONFLICT_ERROR_CODES,
   CANON_DECISION_ERROR_CODES,
   CHANGE_SET_ERROR_CODES,
+  RULESET_RELEASE_ERROR_CODES,
   SOURCE_DOCUMENT_ERROR_CODES,
   SOURCE_REFERENCE_ERROR_CODES,
   type EntityAliasErrorCode,
@@ -30,6 +31,7 @@ import {
   type RuleConflictErrorCode,
   type CanonDecisionErrorCode,
   type ChangeSetErrorCode,
+  type RulesetReleaseErrorCode,
   type SourceDocumentErrorCode,
   type SourceReferenceErrorCode,
 } from "@prowess/model";
@@ -96,6 +98,7 @@ type KnownDomainErrorCode =
   | RuleConflictErrorCode
   | CanonDecisionErrorCode
   | ChangeSetErrorCode
+  | RulesetReleaseErrorCode
   | SourceDocumentErrorCode
   | SourceReferenceErrorCode;
 
@@ -166,6 +169,29 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [CHANGE_SET_ERROR_CODES.NOT_FOUND]: 404,
   // The Ruleset a ChangeSet is created / listed under is the addressed resource (createChangeSet's first argument).
   [CHANGE_SET_ERROR_CODES.RULESET_NOT_FOUND]: 404,
+  // M2-WO8 review transitions: a disallowed or concurrently-lost transition clashes with stored state (as for
+  // ENTITY_VERSION.INVALID_STATUS_TRANSITION).
+  [CHANGE_SET_ERROR_CODES.INVALID_STATUS_TRANSITION]: 409,
+  [RULESET_ERROR_CODES.INVALID_STATUS_TRANSITION]: 409,
+  // RulesetRelease (M2-WO8): addressed resources 404; body references 400; clashes with stored state 409.
+  [RULESET_RELEASE_ERROR_CODES.NOT_FOUND]: 404,
+  [RULESET_RELEASE_ERROR_CODES.RULESET_NOT_FOUND]: 404,
+  [RULESET_RELEASE_ERROR_CODES.INVALID_INPUT]: 400,
+  [RULESET_RELEASE_ERROR_CODES.MANIFEST_NOT_FOUND]: 400,
+  [RULESET_RELEASE_ERROR_CODES.INVALID_MANIFEST_CONTEXT]: 400,
+  [RULESET_RELEASE_ERROR_CODES.POLICY_NOT_FOUND]: 400,
+  [RULESET_RELEASE_ERROR_CODES.INVALID_POLICY_CONTEXT]: 400,
+  [RULESET_RELEASE_ERROR_CODES.CHANGE_SET_NOT_FOUND]: 400,
+  [RULESET_RELEASE_ERROR_CODES.INVALID_CHANGE_SET_CONTEXT]: 400,
+  [RULESET_RELEASE_ERROR_CODES.INVALID_OPERATION]: 400,
+  [RULESET_RELEASE_ERROR_CODES.RULESET_NOT_PUBLISHABLE]: 409,
+  [RULESET_RELEASE_ERROR_CODES.CHANGE_SET_NOT_APPROVED]: 409,
+  [RULESET_RELEASE_ERROR_CODES.CHANGE_SET_ALREADY_PUBLISHED]: 409,
+  [RULESET_RELEASE_ERROR_CODES.VERSION_LABEL_CONFLICT]: 409,
+  [RULESET_RELEASE_ERROR_CODES.STALE_CHANGE_SET]: 409,
+  // Well-formed request, but the APPROVED proposal is not publishable in its current state: 409, not 400.
+  [RULESET_RELEASE_ERROR_CODES.UNRESOLVED_CREATE_OPERATION]: 409,
+  [RULESET_RELEASE_ERROR_CODES.RELEASE_CONFLICT]: 409,
 
   // --- 409: conflict with current state / duplicate ---
   [ENTITY_ERROR_CODES.CANONICAL_KEY_CONFLICT]: 409,

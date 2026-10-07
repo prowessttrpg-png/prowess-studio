@@ -92,6 +92,7 @@ describe("RULESET_ERROR_CODES", () => {
       INVALID_INPUT: "RULESET.INVALID_INPUT",
       INVALID_PARENT: "RULESET.INVALID_PARENT",
       PARENT_CYCLE: "RULESET.PARENT_CYCLE",
+      INVALID_STATUS_TRANSITION: "RULESET.INVALID_STATUS_TRANSITION", // M2-WO8 review lifecycle
     });
     for (const code of Object.values(RULESET_ERROR_CODES)) expect(code).toMatch(/^[A-Z_]+\.[A-Z_]+$/);
   });

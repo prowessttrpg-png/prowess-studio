@@ -120,3 +120,12 @@ export {
   listChangeSets,
   proposeChangeSetFromCanonDecision,
 } from "./change-set/index.js";
+export { approveChangeSet, approveRuleset, rejectChangeSet, submitChangeSetForReview, submitRulesetForReview } from "./review-lifecycle/index.js";
+export {
+  compareRulesetReleases,
+  getLatestRulesetRelease,
+  getRulesetRelease,
+  listRulesetReleases,
+  publishRulesetRelease,
+  verifyRulesetReleaseManifestHash,
+} from "./ruleset-release/index.js";

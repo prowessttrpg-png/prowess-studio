@@ -320,7 +320,8 @@ describe("RulesetManifest (prowess_studio_test only)", () => {
 
     it("exposes no operation that adds, removes, or updates a manifest's entries (§22)", async () => {
       const surface = await import("../../src/index");
-      const ops = Object.keys(surface).filter((n) => /manifest/i.test(n)).sort();
+      // M2-WO8's verifyRulesetReleaseManifestHash (/release/) is a read; it is audited in ruleset-release.test.ts.
+      const ops = Object.keys(surface).filter((n) => /manifest/i.test(n) && !/release/i.test(n)).sort();
       // getEffectiveManifestEntries (M2-WO3) also matches /manifest/; it is a read.
       expect(ops).toEqual([
         "createRulesetManifest",

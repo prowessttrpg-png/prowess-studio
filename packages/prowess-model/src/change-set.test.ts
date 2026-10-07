@@ -54,9 +54,10 @@ describe("vocabularies, ids, errors (§3, §7, §37, §38)", () => {
   it("ids brand without changing values; errors are exactly the twelve CHANGE_SET codes", () => {
     expect(ChangeSetId.of(E)).toBe(E);
     expect(ChangeSetOperationId.of(V1)).toBe(V1);
-    expect(Object.keys(CHANGE_SET_ERROR_CODES)).toHaveLength(12);
+    // M2-WO8 added INVALID_STATUS_TRANSITION for the review lifecycle (13 codes).
+    expect(Object.keys(CHANGE_SET_ERROR_CODES)).toHaveLength(13);
     for (const [key, code] of Object.entries(CHANGE_SET_ERROR_CODES)) expect(code).toBe(`CHANGE_SET.${key}`);
-    expect(Object.keys(CHANGE_SET_ERROR_CODES).filter((k) => /APPLY|EXECUTE|TRANSITION|PUBLISH/.test(k))).toEqual([]);
+    expect(Object.keys(CHANGE_SET_ERROR_CODES).filter((k) => /APPLY|EXECUTE|PUBLISH/.test(k))).toEqual([]);
   });
 });
 

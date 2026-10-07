@@ -17,8 +17,10 @@ import {
   selectEntityVersionById,
   selectEntityVersionsByEntityId,
   selectLatestEntityVersion,
+  selectEntityVersionByIdWith,
   transitionEntityVersionStatusAtomic,
   updateDraftEntityVersionContentAtomic,
+  type EntityVersionClient,
 } from "./repository.js";
 
 /**
@@ -259,7 +261,32 @@ export async function transitionEntityVersionStatus(
     );
   }
 
-  const current = await getEntityVersion(versionId);
+  return transitionEntityVersionStatusWith(undefined, versionId, targetStatus);
+}
+
+/**
+ * The SAME M1 lifecycle transition, run on an enclosing interactive transaction (PAS-10 M2-WO8 §30):
+ * identical validation (`isValidEntityVersionTransition`) and the identical conditional UPDATE, so a
+ * publication's DEPRECATE commits or rolls back together with the release. Internal to @prowess/db.
+ */
+export async function transitionEntityVersionStatusInTransaction(
+  tx: EntityVersionClient,
+  versionId: string,
+  targetStatus: EntityVersionStatus,
+): Promise<EntityVersion> {
+  return transitionEntityVersionStatusWith(tx, versionId, targetStatus);
+}
+
+async function transitionEntityVersionStatusWith(
+  client: EntityVersionClient | undefined,
+  versionId: string,
+  targetStatus: EntityVersionStatus,
+): Promise<EntityVersion> {
+  // Default (M1): exactly the original read. In a transaction: the same read on the transaction.
+  const current = client === undefined ? await getEntityVersion(versionId) : await selectEntityVersionByIdWith(client, versionId);
+  if (current === null) {
+    throw new DomainError(ENTITY_VERSION_ERROR_CODES.NOT_FOUND, `EntityVersion not found: ${versionId}`);
+  }
 
   if (!isValidEntityVersionTransition(current.status, targetStatus)) {
     throw new DomainError(
@@ -272,6 +299,7 @@ export async function transitionEntityVersionStatus(
     versionId,
     current.status as EntityVersionStatus,
     targetStatus,
+    client,
   );
 
   if (!updated) {

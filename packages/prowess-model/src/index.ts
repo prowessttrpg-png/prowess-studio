@@ -55,3 +55,5 @@ export * from "./change-set-operation-type.js";
 export * from "./change-set.js";
 export * from "./change-set-translation.js";
 export * from "./change-set-impact.js";
+export * from "./review-lifecycle.js";
+export * from "./ruleset-release.js";

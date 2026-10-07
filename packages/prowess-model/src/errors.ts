@@ -235,6 +235,8 @@ export const RULESET_ERROR_CODES = {
   INVALID_INPUT: "RULESET.INVALID_INPUT",
   INVALID_PARENT: "RULESET.INVALID_PARENT",
   PARENT_CYCLE: "RULESET.PARENT_CYCLE",
+  /** M2-WO8: the requested review transition is not allowed from the current status (or the status changed concurrently). */
+  INVALID_STATUS_TRANSITION: "RULESET.INVALID_STATUS_TRANSITION",
 } as const;
 
 export type RulesetErrorCode = (typeof RULESET_ERROR_CODES)[keyof typeof RULESET_ERROR_CODES];
@@ -432,6 +434,54 @@ export const CHANGE_SET_ERROR_CODES = {
   MANIFEST_NOT_FOUND: "CHANGE_SET.MANIFEST_NOT_FOUND",
   /** An operation's target RulesetManifest belongs to a different Ruleset than the ChangeSet. */
   INVALID_MANIFEST_CONTEXT: "CHANGE_SET.INVALID_MANIFEST_CONTEXT",
+  /** M2-WO8: the requested review transition is not allowed from the current status (or the status changed concurrently). */
+  INVALID_STATUS_TRANSITION: "CHANGE_SET.INVALID_STATUS_TRANSITION",
 } as const;
 
 export type ChangeSetErrorCode = (typeof CHANGE_SET_ERROR_CODES)[keyof typeof CHANGE_SET_ERROR_CODES];
+
+/**
+ * RulesetRelease / publication error codes (PAS-10 M2-WO8 §51). Two codes beyond the WO's list:
+ * INVALID_INPUT (request shape) and INVALID_CHANGE_SET_CONTEXT (a ChangeSet of another Ruleset).
+ * Statuses: addressed resources 404; body references 400; conflicts with stored state 409 — including
+ * UNRESOLVED_CREATE_OPERATION, because the request is well-formed but the APPROVED proposal is not yet
+ * publishable in its current state.
+ */
+export const RULESET_RELEASE_ERROR_CODES = {
+  /** The release asked for by id does not exist (including a malformed id). */
+  NOT_FOUND: "RULESET_RELEASE.NOT_FOUND",
+  /** The Ruleset being published or listed does not exist. */
+  RULESET_NOT_FOUND: "RULESET_RELEASE.RULESET_NOT_FOUND",
+  /** The Ruleset is not APPROVED or PUBLISHED. */
+  RULESET_NOT_PUBLISHABLE: "RULESET_RELEASE.RULESET_NOT_PUBLISHABLE",
+  /** Request shape problems. */
+  INVALID_INPUT: "RULESET_RELEASE.INVALID_INPUT",
+  /** The base manifest does not exist. */
+  MANIFEST_NOT_FOUND: "RULESET_RELEASE.MANIFEST_NOT_FOUND",
+  /** The base manifest belongs to another Ruleset, is not the latest release's manifest, or an operation targets another manifest. */
+  INVALID_MANIFEST_CONTEXT: "RULESET_RELEASE.INVALID_MANIFEST_CONTEXT",
+  /** The CanonPolicy does not exist. */
+  POLICY_NOT_FOUND: "RULESET_RELEASE.POLICY_NOT_FOUND",
+  /** The CanonPolicy belongs to another Ruleset. */
+  INVALID_POLICY_CONTEXT: "RULESET_RELEASE.INVALID_POLICY_CONTEXT",
+  /** The ChangeSet does not exist. */
+  CHANGE_SET_NOT_FOUND: "RULESET_RELEASE.CHANGE_SET_NOT_FOUND",
+  /** The ChangeSet belongs to another Ruleset. */
+  INVALID_CHANGE_SET_CONTEXT: "RULESET_RELEASE.INVALID_CHANGE_SET_CONTEXT",
+  /** The ChangeSet is not APPROVED. */
+  CHANGE_SET_NOT_APPROVED: "RULESET_RELEASE.CHANGE_SET_NOT_APPROVED",
+  /** The ChangeSet already backs a release (one release per ChangeSet in Phase 1). */
+  CHANGE_SET_ALREADY_PUBLISHED: "RULESET_RELEASE.CHANGE_SET_ALREADY_PUBLISHED",
+  /** The version label is already used by a release of this Ruleset. */
+  VERSION_LABEL_CONFLICT: "RULESET_RELEASE.VERSION_LABEL_CONFLICT",
+  /** A ChangeSet operation's expectations no longer match the base composition. */
+  STALE_CHANGE_SET: "RULESET_RELEASE.STALE_CHANGE_SET",
+  /** The ChangeSet still contains CREATE_ENTITY_VERSION, which publishing never materializes. */
+  UNRESOLVED_CREATE_OPERATION: "RULESET_RELEASE.UNRESOLVED_CREATE_OPERATION",
+  /** An operation cannot be applied (e.g. DEPRECATE of a Version whose lifecycle does not allow it). */
+  INVALID_OPERATION: "RULESET_RELEASE.INVALID_OPERATION",
+  /** A concurrent publication changed the release history first; nothing was written, re-check and retry. */
+  RELEASE_CONFLICT: "RULESET_RELEASE.RELEASE_CONFLICT",
+} as const;
+
+export type RulesetReleaseErrorCode = (typeof RULESET_RELEASE_ERROR_CODES)[keyof typeof RULESET_RELEASE_ERROR_CODES];

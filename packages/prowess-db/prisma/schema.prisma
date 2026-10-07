@@ -845,6 +845,10 @@ model Ruleset {
   /// changes this Ruleset.
   changeSets ChangeSet[]
 
+  /// Published history (M2-WO8). A relation list only — there is NO current/active release pointer;
+  /// "latest" is the highest release_number, computed only when explicitly asked.
+  releases RulesetRelease[]
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -892,6 +896,9 @@ model RulesetManifest {
   /// ChangeSet operations that analyzed this exact manifest (M2-WO7). A relation list only: a proposal
   /// never edits a manifest — an applied change will create a NEW one.
   changeSetOperations ChangeSetOperation[]
+
+  /// Releases whose composition IS this manifest (M2-WO8). A relation list only.
+  releases RulesetRelease[]
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -967,6 +974,9 @@ model CanonPolicy {
   /// Decisions made under this exact snapshot (M2-WO6). A relation list only: being cited never
   /// changes a policy or its records.
   canonDecisions CanonDecision[]
+
+  /// Releases published under this exact snapshot (M2-WO8). A relation list only.
+  releases RulesetRelease[]
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -1303,6 +1313,9 @@ model ChangeSet {
 
   operations ChangeSetOperation[]
 
+  /// The release that applied this ChangeSet (M2-WO8). At most one: ruleset_releases.change_set_id is UNIQUE.
+  releases RulesetRelease[]
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@unique([id, rulesetId], map: "change_sets_id_ruleset_id_key")
@@ -1356,4 +1369,49 @@ model ChangeSetOperation {
   @@index([toEntityVersionId], map: "change_set_operations_to_entity_version_id_idx")
   @@index([targetManifestId], map: "change_set_operations_target_manifest_id_idx")
   @@map("change_set_operations")
+}
+
+/// RulesetRelease — immutable published history (PAS-10 M2-WO8). See docs/architecture/ruleset-publishing-releases.md.
+///
+/// Born published: no updated_at, draft state, or current/active flag. Pins EXACTLY the Ruleset, a NEW flattened
+/// parentless manifest (its composition), the governing CanonPolicy, the applied ChangeSet (optional), a per-Ruleset
+/// release_number and version_label, the Ruleset's channel at publication (the existing RulesetChannel enum — no
+/// second channel vocabulary), and the SHA-256 of the canonical composition (PROWESS_MANIFEST_V1).
+///
+/// Same-Ruleset integrity is enforced by composite keys onto the existing PK-led targets:
+///   (manifest_id, ruleset_id)     -> ruleset_manifests(id, ruleset_id)
+///   (canon_policy_id, ruleset_id) -> canon_policies(id, ruleset_id)
+///   (change_set_id, ruleset_id)   -> change_sets(id, ruleset_id)      (NULL = no ChangeSet; MATCH SIMPLE)
+/// UNIQUE(ruleset_id, release_number), UNIQUE(ruleset_id, version_label), UNIQUE(change_set_id) (one release per
+/// ChangeSet in Phase 1; NULLs never collide). Every foreign key is ON DELETE RESTRICT; no delete operation exists.
+model RulesetRelease {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  rulesetId String  @map("ruleset_id") @db.Uuid
+  ruleset   Ruleset @relation(fields: [rulesetId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  releaseNumber Int            @map("release_number")
+  versionLabel  String         @map("version_label")
+  channel       RulesetChannel
+
+  manifestId String          @map("manifest_id") @db.Uuid
+  manifest   RulesetManifest @relation(fields: [manifestId, rulesetId], references: [id, rulesetId], onDelete: Restrict, onUpdate: Cascade, map: "ruleset_releases_manifest_fkey")
+
+  canonPolicyId String      @map("canon_policy_id") @db.Uuid
+  canonPolicy   CanonPolicy @relation(fields: [canonPolicyId, rulesetId], references: [id, rulesetId], onDelete: Restrict, onUpdate: Cascade, map: "ruleset_releases_policy_fkey")
+
+  changeSetId String?    @map("change_set_id") @db.Uuid
+  changeSet   ChangeSet? @relation(fields: [changeSetId, rulesetId], references: [id, rulesetId], onDelete: Restrict, onUpdate: Cascade, map: "ruleset_releases_change_set_fkey")
+
+  manifestHash String  @map("manifest_hash")
+  releaseNotes String? @map("release_notes")
+
+  publishedAt DateTime @default(now()) @map("published_at") @db.Timestamptz(6)
+
+  @@unique([rulesetId, releaseNumber], map: "ruleset_releases_ruleset_id_release_number_key")
+  @@unique([rulesetId, versionLabel], map: "ruleset_releases_ruleset_id_version_label_key")
+  @@unique([changeSetId], map: "ruleset_releases_change_set_id_key")
+  @@index([manifestId], map: "ruleset_releases_manifest_id_idx")
+  @@index([canonPolicyId], map: "ruleset_releases_canon_policy_id_idx")
+  @@map("ruleset_releases")
 }
