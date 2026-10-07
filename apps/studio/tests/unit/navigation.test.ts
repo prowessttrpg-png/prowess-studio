@@ -44,7 +44,10 @@ describe("PRIMARY_NAVIGATION", () => {
     ]);
 
     const developer = PRIMARY_NAVIGATION.find((e) => e.id === "developer");
+    // M2-WO10: Rulesets added; Canon Manager now points into the same Ruleset workspace (one UI, two labels).
+    expect(developer?.children?.find((c) => c.label === "Canon Manager")?.href).toBe("/developer/rulesets");
     expect(developer?.children?.map((c) => c.label)).toEqual([
+      "Rulesets",
       "Rules Inspector",
       "Canon Manager",
       "Sources",

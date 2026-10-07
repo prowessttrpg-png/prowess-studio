@@ -1,7 +1,8 @@
 /**
  * Top bar placeholder primitives (PAS-06 §5 "Global Top Bar").
  *
- * All four are deliberately non-functional placeholders for M0-WO5 — no
+* The Ruleset selector became a real VIEWING control in M2-WO10; the other three are still
+ * deliberately non-functional placeholders from M0-WO5 — no
  * search implementation, no Ruleset data, no object-creation workflow, no
  * authentication. Each is a clearly-labeled stand-in for a real future
  * component, not a disguised shortcut implementation of the real thing.
@@ -24,24 +25,45 @@ export function TopBarSearch({ placeholder = "Search Prowess..." }: TopBarSearch
   );
 }
 
-export interface TopBarRulesetSelectorProps {
-  /** The ruleset name to display. Static for M0-WO5 — no real Ruleset data yet. */
-  label?: string;
+export interface TopBarRulesetOption {
+  id: string;
+  label: string;
 }
 
-/** Ruleset selector placeholder — a future control, not a real selector yet. */
-export function TopBarRulesetSelector({ label = "Core Playtest" }: TopBarRulesetSelectorProps) {
+export interface TopBarRulesetSelectorProps {
+  /** Rulesets the user can VIEW. Empty while loading (the control is then disabled). */
+  options?: readonly TopBarRulesetOption[];
+  /** The Ruleset currently being viewed, or "" when none. */
+  value?: string;
+  /** Called with the chosen Ruleset id. The host decides what "viewing" means (e.g. navigate). */
+  onChange?: (rulesetId: string) => void;
+}
+
+/**
+ * Ruleset VIEWING selector (PAS-10 M2-WO10 §5, §6). A workspace/navigation context control only: it is not an
+ * "active" or "current" Ruleset, stores nothing, and has no backend effect — the host only navigates. Purely
+ * presentational (React only, no Next.js, no data access).
+ */
+export function TopBarRulesetSelector({ options = [], value = "", onChange }: TopBarRulesetSelectorProps) {
   return (
-    <button
-      type="button"
-      data-testid="topbar-ruleset"
-      className="prowess-topbar__ruleset"
-      disabled
-      aria-label={`Ruleset: ${label} (selector not yet implemented)`}
-    >
-      <span className="prowess-topbar__ruleset-eyebrow">Ruleset</span>
-      <span className="prowess-topbar__ruleset-label">{label}</span>
-    </button>
+    <label className="prowess-topbar__ruleset">
+      <span className="prowess-topbar__ruleset-eyebrow">Viewing</span>
+      <select
+        data-testid="topbar-ruleset"
+        className="prowess-topbar__ruleset-select"
+        aria-label="Ruleset to view"
+        value={value}
+        disabled={options.length === 0 || onChange === undefined}
+        onChange={(event) => onChange?.(event.target.value)}
+      >
+        <option value="">{options.length === 0 ? "No Rulesets" : "Choose a Ruleset…"}</option>
+        {options.map((option) => (
+          <option key={option.id} value={option.id}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 

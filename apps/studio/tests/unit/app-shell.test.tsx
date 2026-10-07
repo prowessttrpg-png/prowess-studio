@@ -4,9 +4,21 @@ import { AppShell } from "../../app/components/AppShell";
 
 let mockPathname = "/";
 
+const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
   usePathname: () => mockPathname,
+  useRouter: () => ({ push: mockPush }),
 }));
+
+// M2-WO10: the shell loads Rulesets for the VIEWING selector through the client layer only (no network here).
+const mockListRulesets = vi.fn(async () => ({
+  items: [
+    { id: "11111111-1111-4111-8111-111111111111", name: "Core Playtest" },
+    { id: "22222222-2222-4222-8222-222222222222", name: "Experimental" },
+  ],
+  pagination: null,
+}));
+vi.mock("../../src/api-client", () => ({ listRulesets: () => mockListRulesets() }));
 
 vi.mock("next/link", () => ({
   // A minimal stand-in sufficient for rendering/assertions — real
@@ -152,5 +164,16 @@ describe("AppShell", () => {
       fireEvent.click(screen.getByRole("link", { name: "Compendium" }));
       expect(toggle).toHaveAttribute("aria-expanded", "false");
     });
+  });
+
+  it("the Ruleset selector only NAVIGATES to the chosen Ruleset's workspace (M2-WO10 §5, §71)", async () => {
+    mockPathname = "/developer/rulesets/11111111-1111-4111-8111-111111111111/conflicts";
+    render(<AppShell><p>content</p></AppShell>);
+    const select = await screen.findByRole("combobox", { name: "Ruleset to view" });
+    await screen.findByRole("option", { name: "Experimental" });
+    expect(select).toHaveValue("11111111-1111-4111-8111-111111111111");
+    fireEvent.change(select, { target: { value: "22222222-2222-4222-8222-222222222222" } });
+    expect(mockPush).toHaveBeenCalledWith("/developer/rulesets/22222222-2222-4222-8222-222222222222");
+    expect(mockListRulesets).toHaveBeenCalled(); // the only data call: a read
   });
 });

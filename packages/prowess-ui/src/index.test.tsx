@@ -35,12 +35,17 @@ describe("@prowess/ui primitives", () => {
       expect(screen.getByTestId("topbar-search")).toHaveTextContent("Ctrl/Cmd+K");
     });
 
-    it("renders the Ruleset selector placeholder as a disabled control", () => {
-      render(<TopBarRulesetSelector />);
-      const button = screen.getByTestId("topbar-ruleset");
-      expect(button).toBeDisabled();
-      expect(button).toHaveTextContent("Core Playtest");
-      expect(button).toHaveAccessibleName();
+    it("renders the Ruleset VIEWING selector: disabled until it has options, then enabled with an accessible name", () => {
+      // M2-WO10: a real VIEWING selector — disabled only until it has options and a handler.
+      const { rerender } = render(<TopBarRulesetSelector />);
+      const select = screen.getByTestId("topbar-ruleset");
+      expect(select).toBeDisabled();
+      expect(select).toHaveTextContent("No Rulesets");
+      rerender(<TopBarRulesetSelector options={[{ id: "r1", label: "Core Playtest" }]} value="r1" onChange={() => undefined} />);
+      expect(screen.getByTestId("topbar-ruleset")).toBeEnabled();
+      expect(screen.getByTestId("topbar-ruleset")).toHaveValue("r1");
+      expect(screen.getByText("Viewing")).toBeInTheDocument();
+      expect(screen.getByTestId("topbar-ruleset")).toHaveAccessibleName("Ruleset to view");
     });
 
     it("renders the Create placeholder as a disabled control with an accessible name", () => {
