@@ -121,11 +121,13 @@ describe("M2-WO8 — scope boundaries", () => {
     expect(existsSync(path.join(ROOT, ...MIGRATION))).toBe(true);
   });
 
-  it("no release / publishing HTTP route or UI exists yet (M2-WO9 / M2-WO10) (§95, §96)", () => {
+  it("no release / publishing UI exists yet (M2-WO9 / M2-WO10) (§95, §96) — the HTTP API arrived in M2-WO9 (pinned by m2-api-static)", () => {
     const found: string[] = [];
     const walk = (d: string) => {
       for (const entry of readdirSync(d)) {
         if (entry === "node_modules" || entry === ".next") continue;
+        // M2-WO9: the HTTP API now exists; its exact route inventory is pinned by m2-api-static. UI is still WO10's.
+        if (path.join(d, entry) === path.join(ROOT, "apps", "studio", "app", "api")) continue;
         const full = path.join(d, entry);
         if (/release|publish|change|impact|decision|conflict|canon/i.test(entry)) found.push(path.relative(ROOT, full));
         if (statSync(full).isDirectory()) walk(full);
