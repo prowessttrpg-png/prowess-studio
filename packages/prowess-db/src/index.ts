@@ -129,3 +129,4 @@ export {
   publishRulesetRelease,
   verifyRulesetReleaseManifestHash,
 } from "./ruleset-release/index.js";
+export { createMigrationPlan, getMigrationPlan, listMigrationPlans, previewRulesetMigration } from "./migration-plan/index.js";

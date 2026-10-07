@@ -161,6 +161,9 @@ model Entity {
   /// ChangeSet operations proposing something about this Entity (M2-WO7). A relation list only.
   changeSetOperations ChangeSetOperation[]
 
+  /// Migration plan items assessing this Entity (M2-WO11). A relation list only.
+  migrationPlanItems MigrationPlanItem[]
+
   @@map("entities")
 }
 
@@ -316,6 +319,11 @@ model EntityVersion {
   /// only: a proposal never changes this Version's status or content.
   changeSetOperationsFrom ChangeSetOperation[] @relation("ChangeSetOperationFrom")
   changeSetOperationsTo   ChangeSetOperation[] @relation("ChangeSetOperationTo")
+
+  /// Migration plan items naming this exact Version on their source / target side (M2-WO11). Relation lists
+  /// only: being assessed never changes this Version.
+  migrationItemsAsSource MigrationPlanItem[] @relation("MigrationItemSourceVersion")
+  migrationItemsAsTarget MigrationPlanItem[] @relation("MigrationItemTargetVersion")
 
   @@unique([entityId, revisionNumber])
   /// Exists so RulesetManifestEntry can reference (id, entityId) together — a composite
@@ -1406,6 +1414,11 @@ model RulesetRelease {
   manifestHash String  @map("manifest_hash")
   releaseNotes String? @map("release_notes")
 
+  /// Migration plans assessing this exact Release as source / target (M2-WO11). Relation lists only: an
+  /// assessment never modifies, archives, deprecates or hides a Release.
+  migrationPlansAsSource MigrationPlan[] @relation("MigrationPlanSourceRelease")
+  migrationPlansAsTarget MigrationPlan[] @relation("MigrationPlanTargetRelease")
+
   publishedAt DateTime @default(now()) @map("published_at") @db.Timestamptz(6)
 
   @@unique([rulesetId, releaseNumber], map: "ruleset_releases_ruleset_id_release_number_key")
@@ -1414,4 +1427,84 @@ model RulesetRelease {
   @@index([manifestId], map: "ruleset_releases_manifest_id_idx")
   @@index([canonPolicyId], map: "ruleset_releases_canon_policy_id_idx")
   @@map("ruleset_releases")
+}
+
+/// Structural change of one Entity between two exact Release compositions (PAS-10 M2-WO11 §5). Kept in lockstep with
+/// @prowess/model's MIGRATION_CHANGE_TYPES.
+enum MigrationChangeType {
+  UNCHANGED
+  ADDED_ENTITY
+  REMOVED_ENTITY
+  CHANGED_VERSION
+}
+
+/// The PAS-08 compatibility vocabulary (PAS-10 M2-WO11 §6), declared in full; WO11 assigns only UNCHANGED and
+/// REVIEW_REQUIRED. Kept in lockstep with @prowess/model's MIGRATION_COMPATIBILITY_CLASSIFICATIONS.
+enum MigrationCompatibilityClassification {
+  UNCHANGED
+  RECALCULATE_ONLY
+  VALID_WITH_CHANGES
+  REVIEW_REQUIRED
+  INVALID
+  UNSUPPORTED
+}
+
+/// MigrationPlan — an immutable, historical assessment of two EXACT published Releases (PAS-10 M2-WO11).
+/// See docs/architecture/ruleset-migration-legacy.md. Planning only: no applied / current / active / complete column,
+/// no updated_at, and nothing ever executes a plan. The Releases' hashes are recorded as verified at creation.
+/// Every foreign key is ON DELETE RESTRICT.
+model MigrationPlan {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  sourceReleaseId String         @map("source_release_id") @db.Uuid
+  sourceRelease   RulesetRelease @relation("MigrationPlanSourceRelease", fields: [sourceReleaseId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "migration_plans_source_release_fkey")
+
+  targetReleaseId String         @map("target_release_id") @db.Uuid
+  targetRelease   RulesetRelease @relation("MigrationPlanTargetRelease", fields: [targetReleaseId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "migration_plans_target_release_fkey")
+
+  sourceManifestHash String @map("source_manifest_hash")
+  targetManifestHash String @map("target_manifest_hash")
+
+  name        String
+  description String?
+
+  items MigrationPlanItem[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([sourceReleaseId], map: "migration_plans_source_release_id_idx")
+  @@index([targetReleaseId], map: "migration_plans_target_release_id_idx")
+  @@map("migration_plans")
+}
+
+/// MigrationPlanItem — one Entity's structural change within a plan (PAS-10 M2-WO11). At most one per Entity per plan.
+/// Version references are composite keys onto entity_versions(id, entity_id), so a referenced Version must belong to
+/// the item's Entity (NULL = absent on that side; MATCH SIMPLE skips the check). Which side is NULL follows the change
+/// type exactly (ADDED: source NULL; REMOVED: target NULL; CHANGED: both, different; UNCHANGED: both, equal) — the
+/// service computes items, they are never caller-supplied. Every foreign key is ON DELETE RESTRICT.
+model MigrationPlanItem {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  migrationPlanId String        @map("migration_plan_id") @db.Uuid
+  migrationPlan   MigrationPlan @relation(fields: [migrationPlanId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "migration_plan_items_plan_fkey")
+
+  entityId String @map("entity_id") @db.Uuid
+  entity   Entity @relation(fields: [entityId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "migration_plan_items_entity_fkey")
+
+  sourceEntityVersionId String?        @map("source_entity_version_id") @db.Uuid
+  sourceEntityVersion   EntityVersion? @relation("MigrationItemSourceVersion", fields: [sourceEntityVersionId, entityId], references: [id, entityId], onDelete: Restrict, onUpdate: Cascade, map: "migration_plan_items_source_version_fkey")
+
+  targetEntityVersionId String?        @map("target_entity_version_id") @db.Uuid
+  targetEntityVersion   EntityVersion? @relation("MigrationItemTargetVersion", fields: [targetEntityVersionId, entityId], references: [id, entityId], onDelete: Restrict, onUpdate: Cascade, map: "migration_plan_items_target_version_fkey")
+
+  changeType                  MigrationChangeType                  @map("change_type")
+  compatibilityClassification MigrationCompatibilityClassification @map("compatibility_classification")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([migrationPlanId, entityId], map: "migration_plan_items_plan_entity_key")
+  @@index([entityId], map: "migration_plan_items_entity_id_idx")
+  @@index([sourceEntityVersionId], map: "migration_plan_items_source_entity_version_id_idx")
+  @@index([targetEntityVersionId], map: "migration_plan_items_target_entity_version_id_idx")
+  @@map("migration_plan_items")
 }

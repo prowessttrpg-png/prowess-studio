@@ -485,3 +485,27 @@ export const RULESET_RELEASE_ERROR_CODES = {
 } as const;
 
 export type RulesetReleaseErrorCode = (typeof RULESET_RELEASE_ERROR_CODES)[keyof typeof RULESET_RELEASE_ERROR_CODES];
+
+/**
+ * MigrationPlan error codes (PAS-10 M2-WO11 §22). The two Releases are REFERENCED in the request body (-> 400 when
+ * missing); a hash that fails verification, or a write the database rejects, clashes with stored state (-> 409).
+ * Deliberately absent: any code for applying, executing, or upgrading — no migration execution exists.
+ */
+export const MIGRATION_PLAN_ERROR_CODES = {
+  /** The plan asked for by id does not exist (including a malformed id). */
+  NOT_FOUND: "MIGRATION_PLAN.NOT_FOUND",
+  /** The source Release does not exist. */
+  SOURCE_RELEASE_NOT_FOUND: "MIGRATION_PLAN.SOURCE_RELEASE_NOT_FOUND",
+  /** The target Release does not exist. */
+  TARGET_RELEASE_NOT_FOUND: "MIGRATION_PLAN.TARGET_RELEASE_NOT_FOUND",
+  /** Shape problems: missing/identical Release ids, name, description, filters. */
+  INVALID_INPUT: "MIGRATION_PLAN.INVALID_INPUT",
+  /** A Release's stored manifest hash does not verify against its published composition; nothing is planned. */
+  MANIFEST_INTEGRITY_FAILURE: "MIGRATION_PLAN.MANIFEST_INTEGRITY_FAILURE",
+  /** The database rejected an item's Entity/Version reference (Version not of that Entity, or missing). */
+  INVALID_VERSION_REFERENCE: "MIGRATION_PLAN.INVALID_VERSION_REFERENCE",
+  /** The database rejected the plan as a whole (e.g. a concurrent change); nothing was written. */
+  PLAN_CONFLICT: "MIGRATION_PLAN.PLAN_CONFLICT",
+} as const;
+
+export type MigrationPlanErrorCode = (typeof MIGRATION_PLAN_ERROR_CODES)[keyof typeof MIGRATION_PLAN_ERROR_CODES];

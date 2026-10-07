@@ -15,6 +15,7 @@ import {
   CANON_DECISION_ERROR_CODES,
   CHANGE_SET_ERROR_CODES,
   RULESET_RELEASE_ERROR_CODES,
+  MIGRATION_PLAN_ERROR_CODES,
   SOURCE_DOCUMENT_ERROR_CODES,
   SOURCE_REFERENCE_ERROR_CODES,
   type EntityAliasErrorCode,
@@ -32,6 +33,7 @@ import {
   type CanonDecisionErrorCode,
   type ChangeSetErrorCode,
   type RulesetReleaseErrorCode,
+  type MigrationPlanErrorCode,
   type SourceDocumentErrorCode,
   type SourceReferenceErrorCode,
 } from "@prowess/model";
@@ -99,6 +101,7 @@ type KnownDomainErrorCode =
   | CanonDecisionErrorCode
   | ChangeSetErrorCode
   | RulesetReleaseErrorCode
+  | MigrationPlanErrorCode
   | SourceDocumentErrorCode
   | SourceReferenceErrorCode;
 
@@ -192,6 +195,15 @@ const DOMAIN_ERROR_STATUS_MAP = {
   // Well-formed request, but the APPROVED proposal is not publishable in its current state: 409, not 400.
   [RULESET_RELEASE_ERROR_CODES.UNRESOLVED_CREATE_OPERATION]: 409,
   [RULESET_RELEASE_ERROR_CODES.RELEASE_CONFLICT]: 409,
+  // MigrationPlan (M2-WO11): the plan is the addressed resource (404); both Releases are referenced in the body (400);
+  // an integrity failure or a database rejection clashes with stored state (409).
+  [MIGRATION_PLAN_ERROR_CODES.NOT_FOUND]: 404,
+  [MIGRATION_PLAN_ERROR_CODES.SOURCE_RELEASE_NOT_FOUND]: 400,
+  [MIGRATION_PLAN_ERROR_CODES.TARGET_RELEASE_NOT_FOUND]: 400,
+  [MIGRATION_PLAN_ERROR_CODES.INVALID_INPUT]: 400,
+  [MIGRATION_PLAN_ERROR_CODES.MANIFEST_INTEGRITY_FAILURE]: 409,
+  [MIGRATION_PLAN_ERROR_CODES.INVALID_VERSION_REFERENCE]: 409,
+  [MIGRATION_PLAN_ERROR_CODES.PLAN_CONFLICT]: 409,
 
   // --- 409: conflict with current state / duplicate ---
   [ENTITY_ERROR_CODES.CANONICAL_KEY_CONFLICT]: 409,

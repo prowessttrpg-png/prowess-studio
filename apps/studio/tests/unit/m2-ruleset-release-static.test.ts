@@ -25,7 +25,8 @@ const writesIn = (code: string) => [...code.matchAll(/\b(?:tx|prisma|client)\.(\
 describe("M2-WO8 — RulesetRelease is born published and pins exactly", () => {
   it("has exactly its specified fields; no updatedAt, mutable status, draft, current or active field (§2, §57)", () => {
     expect(fieldNames(find("RulesetRelease")?.body)).toEqual(
-      ["canonPolicy", "canonPolicyId", "changeSet", "changeSetId", "channel", "id", "manifest", "manifestHash", "manifestId", "publishedAt", "releaseNotes", "releaseNumber", "ruleset", "rulesetId", "versionLabel"].sort(),
+      // M2-WO11 added only the two migration-plan back-relation LISTS (a plan pins Releases; a Release never points at a plan).
+      ["canonPolicy", "canonPolicyId", "changeSet", "changeSetId", "channel", "id", "manifest", "manifestHash", "manifestId", "migrationPlansAsSource", "migrationPlansAsTarget", "publishedAt", "releaseNotes", "releaseNumber", "ruleset", "rulesetId", "versionLabel"].sort(),
     );
     expect(find("RulesetRelease")?.body).not.toMatch(/updatedAt|\bstatus\b|\bdraft\w*|\bcurrent\w*|\bactive\w*|isCurrent|isActive|\bBoolean\b/i);
     expect(find("RulesetRelease")?.body).toMatch(/channel\s+RulesetChannel\b/); // the existing enum — no second channel vocabulary (§5, §91)
@@ -37,7 +38,8 @@ describe("M2-WO8 — RulesetRelease is born published and pins exactly", () => {
     for (const [field, scalar] of [["manifest", "manifestId"], ["canonPolicy", "canonPolicyId"], ["changeSet", "changeSetId"]] as const) {
       expect(body).toMatch(new RegExp(`${field}\\s+\\w+\\??\\s+@relation\\(fields:\\s*\\[${scalar},\\s*rulesetId\\],\\s*references:\\s*\\[id,\\s*rulesetId\\]`));
     }
-    for (const r of [...body.matchAll(/@relation\(([^)]*)\)/g)].map((m) => m[1] as string)) expect(r).toMatch(/onDelete:\s*Restrict/);
+    // Relations this model OWNS (they carry fields:) are RESTRICT; back-relation lists (M2-WO11) declare no keys.
+    for (const r of [...body.matchAll(/@relation\(([^)]*)\)/g)].map((m) => m[1] as string).filter((x) => x.includes("fields:"))) expect(r).toMatch(/onDelete:\s*Restrict/);
     expect(body).toMatch(/@@unique\(\[rulesetId,\s*releaseNumber\]/);
     expect(body).toMatch(/@@unique\(\[rulesetId,\s*versionLabel\]/);
     expect(body).toMatch(/@@unique\(\[changeSetId\]/);
@@ -46,7 +48,8 @@ describe("M2-WO8 — RulesetRelease is born published and pins exactly", () => {
   it("no model holds a current / active / published release or manifest pointer (§40, §58)", () => {
     for (const m of models) expect(m.body, m.name).not.toMatch(/\b(currentRelease\w*|activeRelease\w*|publishedManifest\w*|latestRelease\w*|currentManifest\w*)\b/);
     const expected: Record<string, string> = { Ruleset: "releases RulesetRelease[]", RulesetManifest: "releases RulesetRelease[]", CanonPolicy: "releases RulesetRelease[]", ChangeSet: "releases RulesetRelease[]" };
-    for (const m of models.filter((x) => x.name !== "RulesetRelease")) {
+    // M2-WO11's MigrationPlan pins exact Releases by design (its own audit covers it).
+    for (const m of models.filter((x) => x.name !== "RulesetRelease" && x.name !== "MigrationPlan")) {
       const lines = m.body.split("\n").filter((l) => /RulesetRelease/.test(l)).map((l) => l.trim().replace(/\s+/g, " "));
       expect(lines, m.name).toEqual(expected[m.name] === undefined ? [] : [expected[m.name]]);
     }
