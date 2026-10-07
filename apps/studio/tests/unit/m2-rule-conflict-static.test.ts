@@ -305,13 +305,15 @@ describe("M2-WO5 — scope boundaries", () => {
     expect(sha256(...base, "20261005220000_add_canon_policy", "migration.sql")).toBe("82d4a44f2caa1bb3f3ac88aaac2bdf18e95448787e32372a45a38398a919fc3c");
   });
 
-  it("no conflict UI exists yet (M2-WO9 / M2-WO10 own those) (§70, §71) — the HTTP API arrived in M2-WO9 (pinned by m2-api-static)", () => {
+  it("no conflict UI exists outside the M2-WO10 governance workspace (M2-WO9 / M2-WO10 own those) (§70, §71) — the HTTP API arrived in M2-WO9 (pinned by m2-api-static)", () => {
     const found: string[] = [];
     const walk = (dir: string) => {
       for (const entry of readdirSync(dir)) {
         if (entry === "node_modules" || entry === ".next") continue;
         // M2-WO9: the HTTP API now exists; its exact route inventory is pinned by m2-api-static. UI is still WO10's.
         if (path.join(dir, entry) === path.join(ROOT, "apps", "studio", "app", "api")) continue;
+        // M2-WO10: the Ruleset & Canon governance UI now exists; its boundaries are pinned by m2-ui-static.
+        if (path.join(dir, entry) === path.join(ROOT, "apps", "studio", "app", "developer", "rulesets")) continue;
         const full = path.join(dir, entry);
         if (/conflict|decision/i.test(entry)) found.push(path.relative(ROOT, full));
         if (statSync(full).isDirectory()) walk(full);

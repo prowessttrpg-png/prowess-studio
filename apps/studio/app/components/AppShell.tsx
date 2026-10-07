@@ -11,8 +11,9 @@ import {
   TopBarSearch,
 } from "@prowess/ui";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState, type ReactNode } from "react";
+import { listRulesets } from "../../src/api-client";
 import { isNavEntryActive, PRIMARY_NAVIGATION } from "../../src/navigation";
 
 const PRIMARY_NAV_ID = "prowess-primary-nav";
@@ -30,7 +31,18 @@ const PRIMARY_NAV_ID = "prowess-primary-nav";
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  // Ruleset VIEWING context (M2-WO10 §5): derived from the URL, changed only by navigation — never stored,
+  // never sent to the backend as an "active" Ruleset.
+  const [rulesetOptions, setRulesetOptions] = useState<Array<{ id: string; label: string }>>([]);
+  const viewedRulesetId = /^\/developer\/rulesets\/([0-9a-f-]{36})(\/|$)/i.exec(pathname)?.[1] ?? "";
+  useEffect(() => {
+    listRulesets().then(
+      ({ items }) => setRulesetOptions(items.map((r) => ({ id: r.id, label: r.name }))),
+      () => setRulesetOptions([]),
+    );
+  }, [viewedRulesetId]);
 
   return (
     <div className="prowess-shell">
@@ -47,7 +59,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         <TopBarSearch />
         <div className="prowess-topbar__end">
-          <TopBarRulesetSelector />
+          <TopBarRulesetSelector
+            options={rulesetOptions}
+            value={viewedRulesetId}
+            onChange={(id) => router.push(id ? `/developer/rulesets/${id}` : "/developer/rulesets")}
+          />
           <TopBarCreateButton />
           <TopBarAccount />
         </div>

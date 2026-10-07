@@ -20,6 +20,7 @@ export {
 export type {
   TopBarSearchProps,
   TopBarRulesetSelectorProps,
+  TopBarRulesetOption,
   TopBarAccountProps,
 } from "./TopBar.js";
 export { EntityTypeBadge, formatEnumLabel } from "./EntityTypeBadge.js";

@@ -629,3 +629,18 @@ null }` (200) for an unpinned Entity; hash verification is 200 even when invalid
 auth, no OpenAPI, no URL versioning. The eight earlier "no HTTP route or UI yet" audits now exclude only
 `app/api` (whose inventory WO9 pins) and still forbid UI until M2-WO10; a `\b`-after-operator regex trap was
 caught by the new audit's own control case before it shipped.
+
+## M2-WO10: Ruleset & Canon Studio UI
+
+Full design in `docs/architecture/ruleset-canon-studio-ui.md`. Decisions worth keeping: (1) the governance UI
+is an operator interface over the M2 HTTP API — one typed client layer (`src/api-client`) is the only
+`fetch` caller (relative `/api`, GET/POST only) and preserves domain error codes; no `@prowess/db`/Prisma
+import (architecture rule + static audit); (2) no business rule lives in React: operation fields and decision
+affordances are DERIVED from `@prowess/model`'s rule tables, and no resolution, hashing, translation, impact
+or ranking logic runs client-side; (3) one route tree with durable ID URLs for every historical record; Canon
+Manager IS the Ruleset workspace; (4) the top-bar selector is a VIEWING control only (URL-derived, navigates,
+never writes; labelled "Viewing"); (5) lifecycle commands are named, status-gated buttons behind accessible
+confirmation dialogs — no status dropdown; (6) no migration, no client cache library, no component framework;
+(7) the entity picker merges M1's name/alias search with its exact canonical-key filter (a gap the E2E run
+found). Phase-1 list pagination over ordered service results is recorded as technical debt to replace with
+database-level pagination before large imports or public API use.

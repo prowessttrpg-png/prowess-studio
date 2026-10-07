@@ -141,6 +141,19 @@ const RULES = [
     reason: "route handlers must use only @prowess/db's public service surface — no direct Prisma, no deep/internal @prowess/db import",
   },
   {
+    // M2-WO10: the Ruleset & Canon governance UI and its client layer talk to data ONLY through the HTTP API.
+    name: "apps/studio (app/developer/ + src/api-client/)",
+    srcDir: path.join(ROOT, "apps/studio/app/developer"),
+    forbidden: ["@prisma/client", "@prisma/adapter-pg", "prisma", "@prowess/db"],
+    forbiddenSubstrings: ["generated/prisma"],
+  },
+  {
+    name: "apps/studio (src/api-client/)",
+    srcDir: path.join(ROOT, "apps/studio/src/api-client"),
+    forbidden: ["@prisma/client", "@prisma/adapter-pg", "prisma", "@prowess/db"],
+    forbiddenSubstrings: ["generated/prisma"],
+  },
+  {
     // The Compendium frontend (PAS-10 M1-WO9 §1, §41) must consume ONLY
     // the HTTP/API layer (apps/studio/app/compendium/_lib/api-client.ts,
     // which itself only ever calls `fetch`) — unlike `app/api/`, it has no

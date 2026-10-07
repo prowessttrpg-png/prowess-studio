@@ -55,8 +55,10 @@ export const PRIMARY_NAVIGATION: readonly NavEntry[] = [
     label: "Developer",
     href: "/developer",
     children: [
+      // M2-WO10: the Ruleset workspace IS the Canon Manager — one UI, reached from both labels.
+      { label: "Rulesets", href: "/developer/rulesets" },
       { label: "Rules Inspector", href: "/developer/rules-inspector" },
-      { label: "Canon Manager", href: "/developer/canon-manager" },
+      { label: "Canon Manager", href: "/developer/rulesets" },
       { label: "Sources", href: "/developer/sources" },
       { label: "Tests", href: "/developer/tests" },
     ],
