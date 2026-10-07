@@ -17,6 +17,7 @@ import {
   CANON_DECISION_ERROR_CODES,
   CHANGE_SET_ERROR_CODES,
   RULESET_RELEASE_ERROR_CODES,
+  MIGRATION_PLAN_ERROR_CODES,
 } from "@prowess/model";
 import { describe, expect, it } from "vitest";
 import {
@@ -60,6 +61,7 @@ const ALL_KNOWN_DOMAIN_ERROR_CODES = [
   ...Object.values(CANON_DECISION_ERROR_CODES),
   ...Object.values(CHANGE_SET_ERROR_CODES),
   ...Object.values(RULESET_RELEASE_ERROR_CODES),
+  ...Object.values(MIGRATION_PLAN_ERROR_CODES),
 ];
 
 describe("statusForDomainErrorCode", () => {
@@ -155,6 +157,13 @@ describe("statusForDomainErrorCode", () => {
     ["RULESET_RELEASE.STALE_CHANGE_SET", 409],
     ["RULESET_RELEASE.UNRESOLVED_CREATE_OPERATION", 409],
     ["RULESET_RELEASE.RELEASE_CONFLICT", 409],
+    ["MIGRATION_PLAN.NOT_FOUND", 404],
+    ["MIGRATION_PLAN.SOURCE_RELEASE_NOT_FOUND", 400],
+    ["MIGRATION_PLAN.TARGET_RELEASE_NOT_FOUND", 400],
+    ["MIGRATION_PLAN.INVALID_INPUT", 400],
+    ["MIGRATION_PLAN.MANIFEST_INTEGRITY_FAILURE", 409],
+    ["MIGRATION_PLAN.INVALID_VERSION_REFERENCE", 409],
+    ["MIGRATION_PLAN.PLAN_CONFLICT", 409],
   ])("maps %s to %d (documented mapping unchanged by the patch)", (code, expectedStatus) => {
     expect(statusForDomainErrorCode(code)).toBe(expectedStatus);
   });

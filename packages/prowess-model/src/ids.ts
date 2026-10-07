@@ -138,3 +138,15 @@ export type RulesetReleaseId = Brand<string, "RulesetReleaseId">;
 export const RulesetReleaseId = {
   of: (value: string) => asBrand<string, "RulesetReleaseId">(value),
 };
+
+/** Opaque, immutable UUID identity of a MigrationPlan (PAS-10 M2-WO11). */
+export type MigrationPlanId = Brand<string, "MigrationPlanId">;
+export const MigrationPlanId = {
+  of: (value: string) => asBrand<string, "MigrationPlanId">(value),
+};
+
+/** Opaque, immutable UUID identity of a MigrationPlanItem (PAS-10 M2-WO11). */
+export type MigrationPlanItemId = Brand<string, "MigrationPlanItemId">;
+export const MigrationPlanItemId = {
+  of: (value: string) => asBrand<string, "MigrationPlanItemId">(value),
+};

@@ -194,10 +194,10 @@ describe("Ruleset (prowess_studio_test only)", () => {
     it("exposes no operation that changes a parent: the public surface has no update/set for Rulesets", async () => {
       const surface = await import("../../src/index");
       // Manifest operations (M2-WO2) have their own audit; this one is about Ruleset itself.
-      // M2-WO8 release operations (/release/) and the two status-only review transitions are audited in
+      // M2-WO8 release operations (/release/), M2-WO11 read-only migration planning (/migration/) and the two status-only review transitions are audited in
       // ruleset-release.test.ts; none of them touches a parent.
       const review = ["submitRulesetForReview", "approveRuleset"];
-      const rulesetOps = Object.keys(surface).filter((n) => /ruleset/i.test(n) && !/manifest|release/i.test(n) && !review.includes(n)).sort();
+      const rulesetOps = Object.keys(surface).filter((n) => /ruleset/i.test(n) && !/manifest|release|migration/i.test(n) && !review.includes(n)).sort();
       expect(rulesetOps).toEqual(["createRuleset", "findRulesetByCanonicalKey", "getRuleset", "listRulesets"]);
       expect(Object.keys(surface).filter((n) => /parent/i.test(n) && /^(set|update|change|move|reparent)/i.test(n))).toEqual([]);
     });

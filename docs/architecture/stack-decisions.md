@@ -644,3 +644,14 @@ confirmation dialogs — no status dropdown; (6) no migration, no client cache l
 (7) the entity picker merges M1's name/alias search with its exact canonical-key filter (a gap the E2E run
 found). Phase-1 list pagination over ordered service results is recorded as technical debt to replace with
 database-level pagination before large imports or public API use.
+
+## M2-WO11: Ruleset migration planning & legacy preservation
+
+Full design in `docs/architecture/ruleset-migration-legacy.md`. Decisions worth keeping: (1) planning is not execution —
+preview is read-only, plans are immutable, and no apply/execute/upgrade path exists; (2) both Releases are explicit and
+must differ; nothing is inferred from "latest"; (3) both hashes are verified with the WO8 verification service before any
+assessment, and plans record the verified hashes; (4) structural classification is Version identity only, ordered by Entity
+id; the pure `assessMigration` agrees with WO8's `diffCompositions`; (5) compatibility is never overstated — only UNCHANGED
+or REVIEW_REQUIRED, while the full PAS-08 vocabulary is stored for the future; (6) composite keys make an item's Versions
+belong to its Entity; everything is RESTRICT; plan + items are one transaction; (7) cross-Ruleset comparison is supported
+over flattened compositions; (8) no saved-creation tables, no route, no UI.

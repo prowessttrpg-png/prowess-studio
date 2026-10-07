@@ -92,6 +92,8 @@ describe("M1 audit — enum parity between Prisma schema and @prowess/model (§1
     CanonConflictDisposition: model.CANON_CONFLICT_DISPOSITIONS,
     ChangeSetStatus: model.CHANGE_SET_STATUSES,
     ChangeSetOperationType: model.CHANGE_SET_OPERATION_TYPES,
+    MigrationChangeType: model.MIGRATION_CHANGE_TYPES,
+    MigrationCompatibilityClassification: model.MIGRATION_COMPATIBILITY_CLASSIFICATIONS,
   };
 
   const schemaEnums = new Map<string, string[]>(
@@ -119,7 +121,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
   >;
   const allCodes = vocabularies.flatMap(([, codes]) => Object.values(codes));
 
-  it("exports the seventeen vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5, CanonDecision M2-WO6, ChangeSet M2-WO7, RulesetRelease M2-WO8)", () => {
+  it("exports the eighteen vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5, CanonDecision M2-WO6, ChangeSet M2-WO7, RulesetRelease M2-WO8, MigrationPlan M2-WO11)", () => {
     expect(vocabularies.map(([name]) => name).sort()).toEqual(
       [
         "ENTITY_ALIAS_ERROR_CODES",
@@ -137,6 +139,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
         "CANON_DECISION_ERROR_CODES",
         "CHANGE_SET_ERROR_CODES",
         "RULESET_RELEASE_ERROR_CODES",
+        "MIGRATION_PLAN_ERROR_CODES",
         "SOURCE_DOCUMENT_ERROR_CODES",
         "SOURCE_REFERENCE_ERROR_CODES",
       ].sort(),
@@ -202,7 +205,7 @@ describe("M1 audit — migration chain (§26)", () => {
       "20261002231523_add_source_provenance",
     ];
     // M2 migrations are appended deliberately: a new one must be added here on purpose.
-    const M2 = ["20261004233000_add_ruleset_foundation", "20261005001500_add_ruleset_manifest", "20261005120000_add_manifest_inheritance", "20261005220000_add_canon_policy", "20261006010000_add_rule_conflicts", "20261007010000_add_canon_decisions", "20261008010000_add_change_sets", "20261009010000_add_ruleset_releases"];
+    const M2 = ["20261004233000_add_ruleset_foundation", "20261005001500_add_ruleset_manifest", "20261005120000_add_manifest_inheritance", "20261005220000_add_canon_policy", "20261006010000_add_rule_conflicts", "20261007010000_add_canon_decisions", "20261008010000_add_change_sets", "20261009010000_add_ruleset_releases", "20261010010000_add_migration_plans"];
     expect(names.slice(0, M1.length)).toEqual(M1);
     expect(names).toEqual([...M1, ...M2]);
     expect([...names].sort()).toEqual(names);
