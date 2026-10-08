@@ -155,6 +155,7 @@ export function mapPublicationError(error: unknown): unknown {
   if (error instanceof PublicationAbort) {
     if (error.reason === "RULESET_NOT_PUBLISHABLE") return new DomainError(RULESET_RELEASE_ERROR_CODES.RULESET_NOT_PUBLISHABLE, error.message);
     if (error.reason === "INVALID_OPERATION") return new DomainError(RULESET_RELEASE_ERROR_CODES.INVALID_OPERATION, error.message);
+    if (error.reason === "MUTABLE_VERSION_PINNED") return new DomainError(RULESET_RELEASE_ERROR_CODES.MUTABLE_VERSION_PINNED, error.message);
     return new DomainError(RULESET_RELEASE_ERROR_CODES.RELEASE_CONFLICT, error.message);
   }
   if (isVersionLabelViolation(error)) return new DomainError(RULESET_RELEASE_ERROR_CODES.VERSION_LABEL_CONFLICT, "The version label was taken by a concurrent publication; nothing was written");

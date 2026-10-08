@@ -62,7 +62,15 @@ async function entity(label: string) {
   entityIds.push(e.id);
   return e;
 }
-const version = (entityId: string, name: string) => createEntityVersion(entityId, { displayName: name });
+/**
+ * M2-WO12 F1: published compositions may pin only content-frozen Versions, so fixture Versions move out of DRAFT
+ * through the NORMAL M1 lifecycle (DRAFT -> IN_REVIEW -> APPROVED) — never by direct database writes.
+ */
+const version = async (entityId: string, name: string) => {
+  const v = await createEntityVersion(entityId, { displayName: name });
+  await transitionEntityVersionStatus(v.id, "IN_REVIEW");
+  return transitionEntityVersionStatus(v.id, "APPROVED");
+};
 const policy = (rulesetId: string) => createCanonPolicy(rulesetId, { name: `P ${next()}`, authorities: [] });
 async function approvedChangeSet(rulesetId: string, operations: CreateChangeSetOperationInput[], canonDecisionId?: string) {
   const cs = await createChangeSet(rulesetId, { name: `cs ${next()}`, operations, ...(canonDecisionId === undefined ? {} : { canonDecisionId }) });
@@ -363,7 +371,7 @@ describe("Ruleset publishing (prowess_studio_test only)", () => {
   describe("lifecycle, atomicity and concurrency (§30, §34, §36, §74–§76)", () => {
     it("an approved DEPRECATE moves the Version to DEPRECATED through the M1 lifecycle, in the publication; composition is unaffected (§30, §74)", async () => {
       const { r, a, b, a1, a2, b1, m, p1 } = await world("deprecate");
-      for (const s of ["IN_REVIEW", "APPROVED", "PLAYTEST", "CANON"]) await transitionEntityVersionStatus(a1.id, s);
+      for (const s of ["PLAYTEST", "CANON"]) await transitionEntityVersionStatus(a1.id, s); // fixture Versions start APPROVED (F1)
       const cs = await approvedChangeSet(r.id, [
         { operationType: "REPLACE_ENTITY_VERSION", targetEntityId: a.id, fromEntityVersionId: a1.id, toEntityVersionId: a2.id },
         { operationType: "DEPRECATE_ENTITY_VERSION", targetEntityId: a.id, fromEntityVersionId: a1.id },
@@ -372,16 +380,17 @@ describe("Ruleset publishing (prowess_studio_test only)", () => {
       expect((await prisma.entityVersion.findUniqueOrThrow({ where: { id: a1.id } })).status).toBe("DEPRECATED");
       expect(compositionOf(rel)).toEqual({ [a.id]: a2.id, [b.id]: b1.id });
 
-      // A DEPRECATE the lifecycle forbids (DRAFT -> DEPRECATED) blocks publication with nothing written.
+      // A DEPRECATE the lifecycle forbids (DRAFT -> DEPRECATED) blocks publication with nothing written. The DRAFT
+      // Version is not part of the composition, so this exercises INVALID_OPERATION, not MUTABLE_VERSION_PINNED.
       const w = await world("deprecatebad");
-      const bad = await approvedChangeSet(w.r.id, [{ operationType: "DEPRECATE_ENTITY_VERSION", targetEntityId: w.b.id, fromEntityVersionId: w.b1.id }]);
+      const bDraft = await createEntityVersion(w.b.id, { displayName: "B draft" });
+      const bad = await approvedChangeSet(w.r.id, [{ operationType: "DEPRECATE_ENTITY_VERSION", targetEntityId: w.b.id, fromEntityVersionId: bDraft.id }]);
       await expectCode(publishRulesetRelease({ rulesetId: w.r.id, baseManifestId: w.m.id, canonPolicyId: w.p1.id, changeSetId: bad.id, versionLabel: "x" }), RULESET_RELEASE_ERROR_CODES.INVALID_OPERATION);
-      expect((await prisma.entityVersion.findUniqueOrThrow({ where: { id: w.b1.id } })).status).toBe("DRAFT");
+      expect((await prisma.entityVersion.findUniqueOrThrow({ where: { id: bDraft.id } })).status).toBe("DRAFT");
     });
 
     it("a failure AFTER the status transition, the lifecycle change, the manifest and its entries rolls ALL of it back (§34, §75)", async () => {
       const { r, a, b, a1, a2, b1 } = await world("rollback");
-      for (const s of ["IN_REVIEW", "APPROVED"]) await transitionEntityVersionStatus(a1.id, s);
       const foreignPolicy = await policy((await ruleset("rbother")).id);
       const before = await rowsOf(r.id);
       // Bypass the service so the LAST statement (the release insert) fails on its composite policy key.

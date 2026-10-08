@@ -1,6 +1,8 @@
 import type { ChangeSetOperation } from "./change-set.js";
 import type { CanonPolicyId, ChangeSetId, EntityId, EntityVersionId, RulesetId, RulesetManifestId, RulesetReleaseId } from "./ids.js";
 import type { RulesetChannel } from "./ruleset-channel.js";
+import { ENTITY_VERSION_STATUSES, type EntityVersionStatus } from "./status.js";
+import { ENTITY_VERSION_TRANSITIONS } from "./entity-version-lifecycle.js";
 
 /**
  * A RulesetRelease — immutable published history (PAS-10 M2-WO8). Born published: no draft state, no
@@ -213,4 +215,31 @@ export function diffCompositions(
     else unchangedCount++;
   }
   return { entries, unchangedCount };
+}
+
+/**
+ * EntityVersion statuses whose CONTENT is, or can again become, editable (M2-WO12 F1): DRAFT — the only status
+ * `updateDraftEntityVersion` accepts — plus every status from which the M1 lifecycle graph can REACH DRAFT. DERIVED
+ * from ENTITY_VERSION_TRANSITIONS (never hard-coded), so a lifecycle change re-derives it. Today: DRAFT, IN_REVIEW
+ * (IN_REVIEW -> DRAFT is M1's send-back path). A published composition may pin none of these.
+ */
+export const MUTABLE_ENTITY_VERSION_STATUSES: readonly EntityVersionStatus[] = ENTITY_VERSION_STATUSES.filter((status) => {
+  const seen = new Set<EntityVersionStatus>([status]);
+  const queue: EntityVersionStatus[] = [status];
+  while (queue.length > 0) {
+    const current = queue.shift() as EntityVersionStatus;
+    if (current === "DRAFT") return true;
+    for (const next of ENTITY_VERSION_TRANSITIONS[current]) {
+      if (!seen.has(next)) {
+        seen.add(next);
+        queue.push(next);
+      }
+    }
+  }
+  return false;
+});
+
+/** Whether a Version in this status may be pinned by a published Release (its content can never be edited again). */
+export function isPublishableVersionStatus(status: EntityVersionStatus): boolean {
+  return !MUTABLE_ENTITY_VERSION_STATUSES.includes(status);
 }

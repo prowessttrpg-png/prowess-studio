@@ -22,7 +22,13 @@ type Id = { id: string };
 async function entityWithVersions(request: APIRequestContext, ...names: string[]) {
   const entity = await post<Id & { canonicalKey: string }>(request, "/api/entities", { entityType: "GENERIC_RULE", canonicalKey: unique("entity") });
   const versions: Id[] = [];
-  for (const displayName of names) versions.push(await post<Id>(request, `/api/entities/${entity.id}/versions`, { displayName }));
+  for (const displayName of names) {
+    const v = await post<Id>(request, `/api/entities/${entity.id}/versions`, { displayName });
+    // M2-WO12 F1: published Versions must be content-frozen — moved through the normal lifecycle API.
+    await post(request, `/api/entity-versions/${v.id}/status`, { status: "IN_REVIEW" });
+    await post(request, `/api/entity-versions/${v.id}/status`, { status: "APPROVED" });
+    versions.push(v);
+  }
   return { entity, versions };
 }
 async function sourceDocument(request: APIRequestContext, title: string) {

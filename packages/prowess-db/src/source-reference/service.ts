@@ -13,6 +13,7 @@ import {
   selectSourceReferencesForDocument,
   selectSourceReferencesForVersion,
 } from "./repository.js";
+import { mapSourceReferenceRemovalError } from "./removal-errors.js";
 
 /**
  * SourceReference service — the application/domain boundary for
@@ -99,7 +100,13 @@ export async function listSourceReferencesForDocument(
  * EntityRelationships.
  */
 export async function removeSourceReference(id: string): Promise<void> {
-  const deleted = await deleteSourceReference(id);
+  let deleted: Awaited<ReturnType<typeof deleteSourceReference>>;
+  try {
+    deleted = await deleteSourceReference(id);
+  } catch (error) {
+    // M2-WO12 F2: only the known evidence-reference refusal becomes SOURCE_REFERENCE.IN_USE; anything else rethrows.
+    throw mapSourceReferenceRemovalError(error, id);
+  }
   if (!deleted) {
     throw new DomainError(
       SOURCE_REFERENCE_ERROR_CODES.NOT_FOUND,

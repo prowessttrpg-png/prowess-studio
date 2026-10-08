@@ -261,3 +261,22 @@ candidates, ChangeSet operations, source references, relationships, and keywords
 M2-WO9 will expose these operations over HTTP; the error map is already complete. M2-WO10 will
 build the publishing UI. Until then, the Studio's `/publishing` route remains the M0-WO5 navigation
 placeholder, and the static audit pins it as one.
+
+## M2-WO12 fix F1 — mutable Versions never cross the publication boundary
+
+Publication refuses any **final** composition that pins an EntityVersion whose content is, or can again become,
+editable. The code is `RULESET_RELEASE.MUTABLE_VERSION_PINNED` (409).
+
+- **What counts as mutable:** DRAFT (the only status `updateDraftEntityVersion` accepts) **and every status that
+  can reach DRAFT** through the M1 lifecycle. The set is derived from `ENTITY_VERSION_TRANSITIONS` and today is
+  {DRAFT, IN_REVIEW}, because `IN_REVIEW → DRAFT` is M1's send-back path.
+- **Where it runs:** inside the publication transaction, under the Ruleset row lock, before any write. It checks the
+  composition *after* the ChangeSet's operations are applied: a base that pins a DRAFT Version can still publish if
+  the ChangeSet replaces it with a frozen one.
+- **What it never does:** promote or modify a Version, or affect development manifests, which may still pin DRAFTs.
+- **A rejection leaves nothing behind:** no Release, no Manifest or entries, no Ruleset transition, and no lifecycle
+  side effects.
+
+**Why:** the manifest hash covers Version *ids*, not content. Before this fix, a published Release could pin a DRAFT
+Version whose content was edited later while the hash still verified. Tests now prove that a published Version's
+content cannot be edited and that the Release still verifies.

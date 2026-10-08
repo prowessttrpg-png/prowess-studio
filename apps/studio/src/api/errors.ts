@@ -195,6 +195,8 @@ const DOMAIN_ERROR_STATUS_MAP = {
   // Well-formed request, but the APPROVED proposal is not publishable in its current state: 409, not 400.
   [RULESET_RELEASE_ERROR_CODES.UNRESOLVED_CREATE_OPERATION]: 409,
   [RULESET_RELEASE_ERROR_CODES.RELEASE_CONFLICT]: 409,
+  // M2-WO12 F1: editable Versions may not be published — a clash with stored lifecycle state.
+  [RULESET_RELEASE_ERROR_CODES.MUTABLE_VERSION_PINNED]: 409,
   // MigrationPlan (M2-WO11): the plan is the addressed resource (404); both Releases are referenced in the body (400);
   // an integrity failure or a database rejection clashes with stored state (409).
   [MIGRATION_PLAN_ERROR_CODES.NOT_FOUND]: 404,
@@ -243,6 +245,8 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [RELATIONSHIP_ERROR_CODES.SELF_REFERENCE]: 400,
   [SOURCE_DOCUMENT_ERROR_CODES.INVALID_INPUT]: 400,
   [SOURCE_REFERENCE_ERROR_CODES.INVALID_INPUT]: 400,
+  // M2-WO12 F2: the reference is historical evidence and cannot be removed.
+  [SOURCE_REFERENCE_ERROR_CODES.IN_USE]: 409,
   [RULESET_ERROR_CODES.INVALID_INPUT]: 400,
   // A bad reference inside a request body — the same reasoning as RELATIONSHIP.INVALID_SOURCE -> 400.
   [RULESET_ERROR_CODES.INVALID_PARENT]: 400,
