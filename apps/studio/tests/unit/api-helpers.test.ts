@@ -18,6 +18,10 @@ import {
   CHANGE_SET_ERROR_CODES,
   RULESET_RELEASE_ERROR_CODES,
   MIGRATION_PLAN_ERROR_CODES,
+  SOURCE_SNAPSHOT_ERROR_CODES,
+  SOURCE_STRUCTURE_ERROR_CODES,
+  SOURCE_ASSET_ERROR_CODES,
+  SOURCE_PARSE_ERROR_CODES,
 } from "@prowess/model";
 import { describe, expect, it } from "vitest";
 import {
@@ -62,6 +66,10 @@ const ALL_KNOWN_DOMAIN_ERROR_CODES = [
   ...Object.values(CHANGE_SET_ERROR_CODES),
   ...Object.values(RULESET_RELEASE_ERROR_CODES),
   ...Object.values(MIGRATION_PLAN_ERROR_CODES),
+  ...Object.values(SOURCE_SNAPSHOT_ERROR_CODES),
+  ...Object.values(SOURCE_STRUCTURE_ERROR_CODES),
+  ...Object.values(SOURCE_ASSET_ERROR_CODES),
+  ...Object.values(SOURCE_PARSE_ERROR_CODES),
 ];
 
 describe("statusForDomainErrorCode", () => {

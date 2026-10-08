@@ -150,3 +150,51 @@ export type MigrationPlanItemId = Brand<string, "MigrationPlanItemId">;
 export const MigrationPlanItemId = {
   of: (value: string) => asBrand<string, "MigrationPlanItemId">(value),
 };
+
+/** Opaque, immutable UUID identity of a SourceSnapshot — one exact revision of a source's bytes (PAS-10 M3-WO1). */
+export type SourceSnapshotId = Brand<string, "SourceSnapshotId">;
+export const SourceSnapshotId = {
+  of: (value: string) => asBrand<string, "SourceSnapshotId">(value),
+};
+
+/** Opaque, immutable UUID identity of a SourceSnapshotIngestion record (PAS-10 M3-WO1). */
+export type SourceSnapshotIngestionId = Brand<string, "SourceSnapshotIngestionId">;
+export const SourceSnapshotIngestionId = {
+  of: (value: string) => asBrand<string, "SourceSnapshotIngestionId">(value),
+};
+
+/** Opaque, immutable UUID identity of a SourceSection (PAS-10 M3-WO1). */
+export type SourceSectionId = Brand<string, "SourceSectionId">;
+export const SourceSectionId = {
+  of: (value: string) => asBrand<string, "SourceSectionId">(value),
+};
+
+/** Opaque, immutable UUID identity of a SourceBlock (PAS-10 M3-WO1). */
+export type SourceBlockId = Brand<string, "SourceBlockId">;
+export const SourceBlockId = {
+  of: (value: string) => asBrand<string, "SourceBlockId">(value),
+};
+
+/** Opaque, immutable UUID identity of a SourceTable (PAS-10 M3-WO1). */
+export type SourceTableId = Brand<string, "SourceTableId">;
+export const SourceTableId = {
+  of: (value: string) => asBrand<string, "SourceTableId">(value),
+};
+
+/** Opaque, immutable UUID identity of a SourceAsset (PAS-10 M3-WO1). */
+export type SourceAssetId = Brand<string, "SourceAssetId">;
+export const SourceAssetId = {
+  of: (value: string) => asBrand<string, "SourceAssetId">(value),
+};
+
+/** Opaque, immutable UUID identity of a SourceAssetPlacement (PAS-10 M3-WO1). */
+export type SourceAssetPlacementId = Brand<string, "SourceAssetPlacementId">;
+export const SourceAssetPlacementId = {
+  of: (value: string) => asBrand<string, "SourceAssetPlacementId">(value),
+};
+
+/** Opaque, immutable UUID identity of a SourceContentNode (PAS-10 M3-WO1). */
+export type SourceContentNodeId = Brand<string, "SourceContentNodeId">;
+export const SourceContentNodeId = {
+  of: (value: string) => asBrand<string, "SourceContentNodeId">(value),
+};

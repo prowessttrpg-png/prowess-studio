@@ -2,8 +2,11 @@ import {
   DomainError,
   SOURCE_REFERENCE_ERROR_CODES,
   type CreateSourceReferenceInput,
+  type CreateSourceStructuralLocationInput,
   type SourceReference,
 } from "@prowess/model";
+import { selectSourceSnapshotById } from "../source-snapshot/repository.js";
+import { selectBlockById, selectSectionById, selectTableById } from "../source-structure/repository.js";
 import { getEntityVersion } from "../entity-version/service.js";
 import { getSourceDocument } from "../source-document/service.js";
 import {
@@ -50,6 +53,7 @@ export async function createSourceReference(
 ): Promise<SourceReference> {
   await getEntityVersion(entityVersionId);
   await getSourceDocument(input.sourceDocumentId);
+  const location = await validateStructuralLocation(input.sourceDocumentId, input.structuralLocation ?? null);
 
   return insertSourceReference({
     sourceDocumentId: input.sourceDocumentId,
@@ -57,7 +61,46 @@ export async function createSourceReference(
     sectionLabel: input.sectionLabel ?? null,
     pageReference: input.pageReference ?? null,
     sourceExcerptNote: input.sourceExcerptNote ?? null,
+    sourceSnapshotId: location?.sourceSnapshotId ?? null,
+    sourceSectionId: location?.sourceSectionId ?? null,
+    sourceBlockId: location?.sourceBlockId ?? null,
+    sourceTableId: location?.sourceTableId ?? null,
   });
+}
+
+/**
+ * M3-WO1: validates an optional exact structural location. Absent/null keeps the M1 behaviour exactly. When
+ * present, the Snapshot must be a Snapshot OF the referenced SourceDocument, and every finer locator must belong to
+ * that Snapshot — otherwise `SOURCE_REFERENCE.INVALID_INPUT` (the reserved M1 code, now used). The database's
+ * composite foreign keys and CHECK constraint enforce the same rules independently.
+ */
+async function validateStructuralLocation(
+  sourceDocumentId: string,
+  location: CreateSourceStructuralLocationInput | null,
+): Promise<{ sourceSnapshotId: string; sourceSectionId: string | null; sourceBlockId: string | null; sourceTableId: string | null } | null> {
+  if (location === null) return null;
+  const invalid = (message: string) => new DomainError(SOURCE_REFERENCE_ERROR_CODES.INVALID_INPUT, message);
+  if (typeof location !== "object" || typeof location.sourceSnapshotId !== "string") {
+    throw invalid("structuralLocation.sourceSnapshotId is required when a structural location is given");
+  }
+  const snapshot = await selectSourceSnapshotById(location.sourceSnapshotId);
+  if (!snapshot) throw invalid(`structuralLocation: SourceSnapshot ${location.sourceSnapshotId} does not exist`);
+  if (snapshot.sourceDocumentId !== sourceDocumentId) {
+    throw invalid(`structuralLocation: SourceSnapshot ${snapshot.id} is not a Snapshot of SourceDocument ${sourceDocumentId}`);
+  }
+  const check = async (id: string | null | undefined, what: string, load: (id: string) => Promise<{ sourceSnapshotId: string } | null>) => {
+    if (id === undefined || id === null) return null;
+    const found = typeof id === "string" ? await load(id) : null;
+    if (!found) throw invalid(`structuralLocation: ${what} ${String(id)} does not exist`);
+    if (found.sourceSnapshotId !== snapshot.id) throw invalid(`structuralLocation: ${what} ${id} belongs to a different Snapshot`);
+    return id;
+  };
+  return {
+    sourceSnapshotId: snapshot.id,
+    sourceSectionId: await check(location.sourceSectionId, "SourceSection", selectSectionById),
+    sourceBlockId: await check(location.sourceBlockId, "SourceBlock", selectBlockById),
+    sourceTableId: await check(location.sourceTableId, "SourceTable", selectTableById),
+  };
 }
 
 /** Retrieves a SourceReference by its explicit UUID identity. */

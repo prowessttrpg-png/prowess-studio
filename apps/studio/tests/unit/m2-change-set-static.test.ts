@@ -114,7 +114,10 @@ describe("M2-WO7 — the ChangeSet models are immutable, exactly-referenced prop
   });
 
   it("nothing out of scope exists: no application, rollback or impact-persistence model (§46; RulesetRelease arrived in M2-WO8)", () => {
-    expect(models.map((m) => m.name).filter((n) => /applic|applied|rollback|impact|dependency|snapshot|cache/i.test(n))).toEqual([]);
+    // M3-WO1's SourceSnapshot / SourceSnapshotIngestion are exact SOURCE-BYTE revisions mandated by name, not a ChangeSet
+    // application / impact snapshot — they are excluded by exact name, so any other "snapshot" model still fails.
+    const m3SourceRevisionModels = ["SourceSnapshot", "SourceSnapshotIngestion"];
+    expect(models.map((m) => m.name).filter((n) => !m3SourceRevisionModels.includes(n)).filter((n) => /applic|applied|rollback|impact|dependency|snapshot|cache/i.test(n))).toEqual([]);
   });
 });
 

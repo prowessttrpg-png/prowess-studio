@@ -251,3 +251,13 @@ document is *within a particular Ruleset* is declared separately, in an immutabl
 `SourceAuthorityRecord` inside a versioned `CanonPolicy` snapshot — see
 `canon-policy-source-authority.md`. The two are never copied or synchronized, and neither one
 selects an EntityVersion.
+
+## Exact structural locations (added in M3-WO1)
+
+A `SourceReference` may now also carry an optional `structuralLocation` — an exact Snapshot, and optionally a
+section, block and/or table inside it — pointing into the structured source layer described in
+`m3-source-structure.md`. It extends this same provenance graph rather than creating a second one: the four new
+columns are nullable, every reference created as described above has them `NULL` (`structuralLocation: null`), and
+the free-text locators, lifecycle independence and deletion behaviour on this page are unchanged. Composite foreign
+keys guarantee that a cited Snapshot belongs to the reference's own `SourceDocument` and that a cited section / block
+/ table belongs to that Snapshot. Citing structure records where a source says something — never whether it is Canon.

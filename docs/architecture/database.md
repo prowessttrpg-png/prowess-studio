@@ -97,6 +97,9 @@ packages/prowess-db/
     change-set/                            - immutable ChangeSet proposals, decision translation, read-only impact analysis (M2-WO7)
     review-lifecycle/                      - explicit ChangeSet / Ruleset review transitions, conditional updates (M2-WO8)
     ruleset-release/                       - publication, immutable releases, manifest hash, release diff (M2-WO8)
+    source-snapshot/                       - immutable exact-byte SourceSnapshots of a SourceDocument (M3-WO1)
+    source-structure/                      - atomic, insert-only structural ingestion + ordered structure reads (M3-WO1)
+    source-ingestion/                      - bytes -> Snapshot + structure; dependency-free DOCX structural parser (M3-WO1)
                                         backs GET /api/entities; see docs/architecture/api-layer.md)
       index.ts                            — re-exports the service only
     index.ts                      — package entry point (exports all of the above)

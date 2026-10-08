@@ -631,7 +631,9 @@ describe("ChangeSet (prowess_studio_test only)", () => {
         { constraint_name: "change_sets_ruleset_id_fkey", delete_rule: "RESTRICT", cols: "ruleset_id" },
       ]);
       const impactTables = await prisma.$queryRaw<Array<{ table_name: string }>>`
-        SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name ~* '(impact|dependency|snapshot|cache)'`;
+        SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name ~* '(impact|dependency|snapshot|cache)'
+          -- M3-WO1's source-byte revisions are mandated by name and are not ChangeSet impact snapshots (excluded exactly).
+          AND table_name NOT IN ('source_snapshots', 'source_snapshot_ingestions')`;
       expect(impactTables).toEqual([]);
       const cols = await prisma.$queryRaw<Array<{ column_name: string }>>`
         SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name LIKE 'change_set%'

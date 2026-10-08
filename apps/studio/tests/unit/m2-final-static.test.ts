@@ -111,7 +111,11 @@ describe("§44–§45 migration chain", () => {
       ["20261010010000_add_migration_plans", "6a4624ffeb062144c5825917177c6eef2599b3376c62c96ee0e595bdcef2253e"],
     ];
     const dir = path.join(ROOT, "packages", "prowess-db", "prisma", "migrations");
-    expect(readdirSync(dir).filter((e) => statSync(path.join(dir, e)).isDirectory()).sort()).toEqual(pins.map(([n]) => n)); // WO12 added none
+    // WO12 added none. Later milestones append deliberately (each pinned by its own milestone audit): M3-WO1 adds
+    // 20261011010000_add_source_structure (hash pinned in m3-source-structure-static.test.ts). Nothing is inserted
+    // before, squashed into, or reordered among the M1/M2 migrations.
+    const appendedAfterM2 = ["20261011010000_add_source_structure"];
+    expect(readdirSync(dir).filter((e) => statSync(path.join(dir, e)).isDirectory()).sort()).toEqual([...pins.map(([n]) => n), ...appendedAfterM2]);
     for (const [n, h] of pins) expect(createHash("sha256").update(readFileSync(path.join(dir, n, "migration.sql"))).digest("hex"), n).toBe(h);
   });
 });
@@ -126,7 +130,7 @@ describe("§50 public service surface", () => {
       [
         "approveChangeSet", "approveRuleset", "assignKeywordToEntity", "assignKeywordToEntityVersion", "createCanonDecision", "createCanonPolicy", "createChangeSet",
         "createEntity", "createEntityAlias", "createEntityRelationship", "createEntityVersion", "createKeywordCategory", "createKeywordDefinition", "createMigrationPlan",
-        "createRuleConflict", "createRuleset", "createRulesetManifest", "createSourceDocument", "createSourceReference", "proposeChangeSetFromCanonDecision",
+        "createRuleConflict", "createRuleset", "createRulesetManifest", "createSourceDocument", "createSourceReference", "createSourceSnapshot", "proposeChangeSetFromCanonDecision",
         "publishRulesetRelease", "rejectChangeSet", "removeEntityAlias", "removeEntityRelationship", "removeKeywordFromEntity", "removeKeywordFromEntityVersion",
         "removeSourceReference", "submitChangeSetForReview", "submitRulesetForReview", "transitionEntityVersionStatus", "updateDraftEntityVersion",
       ].sort(),
