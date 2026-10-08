@@ -34,6 +34,7 @@ export * from "./source-document-type.js";
 export * from "./source-authority-status.js";
 export * from "./source-document.js";
 export * from "./source-reference.js";
+export * from "./source-structure.js";
 export * from "./ruleset-status.js";
 export * from "./ruleset-channel.js";
 export * from "./ruleset.js";

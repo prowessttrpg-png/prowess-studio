@@ -1,7 +1,11 @@
 import {
   EntityVersionId,
+  SourceBlockId,
   SourceDocumentId,
   SourceReferenceId,
+  SourceSectionId,
+  SourceSnapshotId,
+  SourceTableId,
   type SourceReference,
 } from "@prowess/model";
 import { prisma } from "../client.js";
@@ -23,6 +27,16 @@ function toDomainSourceReference(row: PrismaSourceReferenceRow): SourceReference
     sectionLabel: row.sectionLabel,
     pageReference: row.pageReference,
     sourceExcerptNote: row.sourceExcerptNote,
+    // M3-WO1: null for every M1-era row (all four columns NULL) — those rows read exactly as before.
+    structuralLocation:
+      row.sourceSnapshotId === null
+        ? null
+        : {
+            sourceSnapshotId: SourceSnapshotId.of(row.sourceSnapshotId),
+            sourceSectionId: row.sourceSectionId === null ? null : SourceSectionId.of(row.sourceSectionId),
+            sourceBlockId: row.sourceBlockId === null ? null : SourceBlockId.of(row.sourceBlockId),
+            sourceTableId: row.sourceTableId === null ? null : SourceTableId.of(row.sourceTableId),
+          },
     createdAt: row.createdAt,
   };
 }
@@ -33,6 +47,11 @@ export interface InsertSourceReferenceInput {
   sectionLabel: string | null;
   pageReference: string | null;
   sourceExcerptNote: string | null;
+  /** M3-WO1 structural locators — all null for an M1-style reference. */
+  sourceSnapshotId: string | null;
+  sourceSectionId: string | null;
+  sourceBlockId: string | null;
+  sourceTableId: string | null;
 }
 
 /**
@@ -52,6 +71,10 @@ export async function insertSourceReference(
       sectionLabel: input.sectionLabel,
       pageReference: input.pageReference,
       sourceExcerptNote: input.sourceExcerptNote,
+      sourceSnapshotId: input.sourceSnapshotId,
+      sourceSectionId: input.sourceSectionId,
+      sourceBlockId: input.sourceBlockId,
+      sourceTableId: input.sourceTableId,
     },
   });
   return toDomainSourceReference(row);

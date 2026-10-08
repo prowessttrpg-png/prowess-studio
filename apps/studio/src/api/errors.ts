@@ -18,6 +18,10 @@ import {
   MIGRATION_PLAN_ERROR_CODES,
   SOURCE_DOCUMENT_ERROR_CODES,
   SOURCE_REFERENCE_ERROR_CODES,
+  SOURCE_SNAPSHOT_ERROR_CODES,
+  SOURCE_STRUCTURE_ERROR_CODES,
+  SOURCE_ASSET_ERROR_CODES,
+  SOURCE_PARSE_ERROR_CODES,
   type EntityAliasErrorCode,
   type EntityErrorCode,
   type EntityVersionErrorCode,
@@ -36,6 +40,10 @@ import {
   type MigrationPlanErrorCode,
   type SourceDocumentErrorCode,
   type SourceReferenceErrorCode,
+  type SourceSnapshotErrorCode,
+  type SourceStructureErrorCode,
+  type SourceAssetErrorCode,
+  type SourceParseErrorCode,
 } from "@prowess/model";
 import { NextResponse } from "next/server";
 
@@ -103,7 +111,11 @@ type KnownDomainErrorCode =
   | RulesetReleaseErrorCode
   | MigrationPlanErrorCode
   | SourceDocumentErrorCode
-  | SourceReferenceErrorCode;
+  | SourceReferenceErrorCode
+  | SourceSnapshotErrorCode
+  | SourceStructureErrorCode
+  | SourceAssetErrorCode
+  | SourceParseErrorCode;
 
 /**
  * Centralized `DomainError.code` -> HTTP status mapping (PAS-10 M1-WO8
@@ -305,6 +317,26 @@ const DOMAIN_ERROR_STATUS_MAP = {
   // loop. An integrity failure on the server is a 500 by design, mapped explicitly so it is a decision
   // and not merely the fail-closed default for an unmapped code.
   [RULESET_MANIFEST_ERROR_CODES.INHERITANCE_CYCLE]: 500,
+
+  // Structured source layer (M3-WO1). No HTTP routes expose these yet (services only in WO1); each code still gets a
+  // deliberate status now so the exhaustive map stays exhaustive and a later API Work Order inherits the decision.
+  // Addressed resources 404; shape problems 400; clashes with stored state 409; unparseable uploads 422.
+  [SOURCE_SNAPSHOT_ERROR_CODES.NOT_FOUND]: 404,
+  [SOURCE_SNAPSHOT_ERROR_CODES.INVALID_INPUT]: 400,
+  // The document already has a Snapshot of exactly these bytes — a clash with stored state.
+  [SOURCE_SNAPSHOT_ERROR_CODES.DUPLICATE_CONTENT]: 409,
+  // A Snapshot's structure is immutable once ingested — the same category as ENTITY_VERSION.IMMUTABLE.
+  [SOURCE_SNAPSHOT_ERROR_CODES.IMMUTABLE]: 409,
+  [SOURCE_STRUCTURE_ERROR_CODES.NOT_FOUND]: 404,
+  // Every remaining structure code describes the submitted structure itself (a bad request).
+  [SOURCE_STRUCTURE_ERROR_CODES.INVALID_PARENT]: 400,
+  [SOURCE_STRUCTURE_ERROR_CODES.INVALID_ORDER]: 400,
+  [SOURCE_STRUCTURE_ERROR_CODES.INVALID_NODE_TARGET]: 400,
+  [SOURCE_STRUCTURE_ERROR_CODES.INVALID_INPUT]: 400,
+  [SOURCE_ASSET_ERROR_CODES.NOT_FOUND]: 404,
+  // Well-formed request, but the payload is not a processable instance of its declared format.
+  [SOURCE_PARSE_ERROR_CODES.UNSUPPORTED_FORMAT]: 415,
+  [SOURCE_PARSE_ERROR_CODES.MALFORMED_SOURCE]: 422,
 } satisfies Record<KnownDomainErrorCode, number>;
 
 /**

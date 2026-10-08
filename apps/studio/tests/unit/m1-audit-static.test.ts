@@ -55,9 +55,11 @@ describe("M1 audit — no global current-version state (§14)", () => {
     expect(SCHEMA_CODE).not.toMatch(FORBIDDEN);
   });
 
-  it("the ONLY boolean column in the whole schema is KeywordDefinition.deprecated (any new flag must be consciously audited)", () => {
+  it("the ONLY boolean columns in the whole schema are KeywordDefinition.deprecated and SourceBlock.listOrdered (any new flag must be consciously audited)", () => {
     const booleans = [...SCHEMA_CODE.matchAll(/^\s+(\w+)\s+Boolean\b/gm)].map((m) => m[1]);
-    expect(booleans).toEqual(["deprecated"]);
+    // M3-WO1 (audited): SourceBlock.listOrdered is a nullable STRUCTURAL descriptor copied from the source (numbered vs
+    // bulleted list item). It is not a current/active/version flag and nothing selects or governs by it.
+    expect(booleans).toEqual(["deprecated", "listOrdered"]);
   });
 
   it("Entity holds no pointer to any EntityVersion; versions point only at their Entity and optional parent", () => {
@@ -94,6 +96,11 @@ describe("M1 audit — enum parity between Prisma schema and @prowess/model (§1
     ChangeSetOperationType: model.CHANGE_SET_OPERATION_TYPES,
     MigrationChangeType: model.MIGRATION_CHANGE_TYPES,
     MigrationCompatibilityClassification: model.MIGRATION_COMPATIBILITY_CLASSIFICATIONS,
+    // M3-WO1 structured source layer
+    SourceBlockType: model.SOURCE_BLOCK_TYPES,
+    SourceContentNodeType: model.SOURCE_CONTENT_NODE_TYPES,
+    SourceAssetType: model.SOURCE_ASSET_TYPES,
+    SourcePageLocationBasis: model.SOURCE_PAGE_LOCATION_BASES,
   };
 
   const schemaEnums = new Map<string, string[]>(
@@ -121,7 +128,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
   >;
   const allCodes = vocabularies.flatMap(([, codes]) => Object.values(codes));
 
-  it("exports the eighteen vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5, CanonDecision M2-WO6, ChangeSet M2-WO7, RulesetRelease M2-WO8, MigrationPlan M2-WO11)", () => {
+  it("exports the twenty-two vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5, CanonDecision M2-WO6, ChangeSet M2-WO7, RulesetRelease M2-WO8, MigrationPlan M2-WO11, SourceSnapshot / SourceStructure / SourceAsset / SourceParse M3-WO1)", () => {
     expect(vocabularies.map(([name]) => name).sort()).toEqual(
       [
         "ENTITY_ALIAS_ERROR_CODES",
@@ -142,6 +149,10 @@ describe("M1 audit — error vocabulary (§17)", () => {
         "MIGRATION_PLAN_ERROR_CODES",
         "SOURCE_DOCUMENT_ERROR_CODES",
         "SOURCE_REFERENCE_ERROR_CODES",
+        "SOURCE_SNAPSHOT_ERROR_CODES",
+        "SOURCE_STRUCTURE_ERROR_CODES",
+        "SOURCE_ASSET_ERROR_CODES",
+        "SOURCE_PARSE_ERROR_CODES",
       ].sort(),
     );
   });
@@ -193,7 +204,7 @@ describe("M1 audit — migration chain (§26)", () => {
   const dir = path.join(ROOT, "packages", "prowess-db", "prisma", "migrations");
   const names = readdirSync(dir).filter((e) => statSync(path.join(dir, e)).isDirectory());
 
-  it("is exactly the eight frozen M1 migrations followed by the deliberately-added M2 ones, in timestamp order", () => {
+  it("is exactly the eight frozen M1 migrations followed by the deliberately-added M2 and M3 ones, in timestamp order", () => {
     const M1 = [
       "20260930235722_init",
       "20261001045349_add_entity",
@@ -207,7 +218,9 @@ describe("M1 audit — migration chain (§26)", () => {
     // M2 migrations are appended deliberately: a new one must be added here on purpose.
     const M2 = ["20261004233000_add_ruleset_foundation", "20261005001500_add_ruleset_manifest", "20261005120000_add_manifest_inheritance", "20261005220000_add_canon_policy", "20261006010000_add_rule_conflicts", "20261007010000_add_canon_decisions", "20261008010000_add_change_sets", "20261009010000_add_ruleset_releases", "20261010010000_add_migration_plans"];
     expect(names.slice(0, M1.length)).toEqual(M1);
-    expect(names).toEqual([...M1, ...M2]);
+    // M3 migrations are appended deliberately too.
+    const M3 = ["20261011010000_add_source_structure"];
+    expect(names).toEqual([...M1, ...M2, ...M3]);
     expect([...names].sort()).toEqual(names);
     expect(new Set(names.map((n) => n.slice(0, 14))).size).toBe(names.length);
   });

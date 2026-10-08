@@ -1,4 +1,12 @@
-import type { EntityVersionId, SourceDocumentId, SourceReferenceId } from "./ids.js";
+import type {
+  EntityVersionId,
+  SourceBlockId,
+  SourceDocumentId,
+  SourceReferenceId,
+  SourceSectionId,
+  SourceSnapshotId,
+  SourceTableId,
+} from "./ids.js";
 
 /**
  * SourceReference — a link from a specific `EntityVersion` to the
@@ -42,7 +50,26 @@ export interface SourceReference {
   pageReference: string | null;
   /** A short editorial/provenance annotation — NOT the full source text. */
   sourceExcerptNote: string | null;
+  /**
+   * M3-WO1: an exact location inside the structured source layer, or `null`. Every M1-era reference is `null`
+   * here and stays exactly as readable as before — the free-text locators above are untouched and remain valid.
+   * When present, the Snapshot is guaranteed (by composite foreign keys) to be a Snapshot of `sourceDocumentId`,
+   * and the section / block / table to belong to that Snapshot.
+   */
+  structuralLocation: SourceStructuralLocation | null;
   createdAt: Date;
+}
+
+/**
+ * An exact place in ONE SourceSnapshot (PAS-10 M3-WO1). `sourceSnapshotId` is always present; the finer locators
+ * are optional and independent (a block may be cited with or without its section). Pointing at structure records
+ * WHERE a source says something — never whether that source is Canon.
+ */
+export interface SourceStructuralLocation {
+  sourceSnapshotId: SourceSnapshotId;
+  sourceSectionId: SourceSectionId | null;
+  sourceBlockId: SourceBlockId | null;
+  sourceTableId: SourceTableId | null;
 }
 
 export interface CreateSourceReferenceInput {
@@ -50,4 +77,13 @@ export interface CreateSourceReferenceInput {
   sectionLabel?: string | null;
   pageReference?: string | null;
   sourceExcerptNote?: string | null;
+  /** M3-WO1: optional exact structural location. Omitted / null keeps M1 behavior exactly. */
+  structuralLocation?: CreateSourceStructuralLocationInput | null;
+}
+
+export interface CreateSourceStructuralLocationInput {
+  sourceSnapshotId: string;
+  sourceSectionId?: string | null;
+  sourceBlockId?: string | null;
+  sourceTableId?: string | null;
 }

@@ -278,6 +278,9 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     // function, and no raw Prisma update payload type, ever gets added
     // without this test failing first.
     const exportedNames = Object.keys(DbPackage).sort();
+    // M3-WO1 added the structured-source layer: one creation (createSourceSnapshot), two idempotent INSERT-only
+    // ingestions (ingestSourceSnapshot, ingestSourceStructure), the structural parser and its constants, a hash
+    // helper, and reads. No update, delete or status setter for any source-structure record.
     // M2-WO8 added five review transitions and six release operations (publish + five reads; no release mutation or delete).
     // M2-WO7 added five ChangeSet operations (create, two reads, explicit decision translation, read-only impact; no apply/execute).
     // M2-WO6 added four decision operations (create + reads only; no update, apply, delete, or status setter).
@@ -327,6 +330,27 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "createKeywordDefinition",
         "createSourceDocument",
         "createSourceReference",
+        "createSourceSnapshot",
+        "DOCX_MIME_TYPE",
+        "DOCX_PARSER_NAME",
+        "DOCX_PARSER_VERSION",
+        "findSourceSnapshotByContentHash",
+        "getSourceAsset",
+        "getSourceBlock",
+        "getSourceSection",
+        "getSourceSectionContent",
+        "getSourceSnapshot",
+        "getSourceSnapshotIngestion",
+        "getSourceStructure",
+        "getSourceTable",
+        "hashSourceStructure",
+        "ingestSourceSnapshot",
+        "ingestSourceStructure",
+        "listSourceAssetPlacements",
+        "listSourceAssets",
+        "listSourceSectionChildren",
+        "listSourceSnapshots",
+        "parseDocxStructure",
         "findEntitiesByAlias",
         "findEntitiesByKeyword",
         "findEntityByCanonicalKey",

@@ -68,7 +68,8 @@ describe("M2-WO4 — the policy models are immutable snapshots with explicit aut
   it("SourceDocument.authorityStatus is untouched — still nullable descriptive metadata — and gained only a back-relation list", () => {
     expect(find("SourceDocument")?.body).toMatch(/authorityStatus\s+SourceAuthorityStatus\?/);
     expect(fieldNames(find("SourceDocument")?.body)).toEqual(
-      ["authorityRecords", "authorityStatus", "createdAt", "fileReference", "id", "notes", "references", "sourceType", "title", "versionLabel"],
+      // "snapshots": M3-WO1's back-relation list to SourceSnapshot (a relation only — no column, no authority).
+      ["authorityRecords", "authorityStatus", "createdAt", "fileReference", "id", "notes", "references", "snapshots", "sourceType", "title", "versionLabel"],
     );
   });
 

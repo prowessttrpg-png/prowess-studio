@@ -704,6 +704,10 @@ model SourceDocument {
   /// descriptive `authorityStatus` above, which is never copied into or synchronized with them.
   authorityRecords SourceAuthorityRecord[]
 
+  /// Exact byte revisions of this document (M3-WO1). A relation list only — the document stays the stable
+  /// conceptual identity; changed bytes are a NEW Snapshot, never an overwrite.
+  snapshots SourceSnapshot[]
+
   @@map("source_documents")
 }
 
@@ -763,16 +767,38 @@ model SourceReference {
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
+  /// M3-WO1 — optional exact location in the structured source layer. All four are NULL for every M1-era
+  /// reference, which keeps those rows exactly as valid and readable as before. Composite foreign keys make a
+  /// mismatch impossible in the database itself: the Snapshot must be a Snapshot of `sourceDocumentId`, and the
+  /// section / block / table must belong to that Snapshot. A CHECK constraint (in the migration; Prisma does not
+  /// model CHECK constraints) requires `sourceSnapshotId` whenever a finer locator is set, so MATCH SIMPLE can
+  /// never silently skip the composite check.
+  sourceSnapshotId String?         @map("source_snapshot_id") @db.Uuid
+  sourceSnapshot   SourceSnapshot? @relation(fields: [sourceSnapshotId, sourceDocumentId], references: [id, sourceDocumentId], onDelete: Restrict, onUpdate: Cascade, map: "source_references_snapshot_fkey")
+
+  sourceSectionId String?        @map("source_section_id") @db.Uuid
+  sourceSection   SourceSection? @relation(fields: [sourceSectionId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "source_references_section_fkey")
+
+  sourceBlockId String?      @map("source_block_id") @db.Uuid
+  sourceBlock   SourceBlock? @relation(fields: [sourceBlockId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "source_references_block_fkey")
+
+  sourceTableId String?      @map("source_table_id") @db.Uuid
+  sourceTable   SourceTable? @relation(fields: [sourceTableId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "source_references_table_fkey")
+
   /// Conflict candidates citing this reference as evidence (M2-WO5). A relation list only.
   conflictCandidates RuleConflictCandidate[]
 
-  @@index([sourceDocumentId], map: "source_references_source_document_id_idx")
-  @@index([entityVersionId], map: "source_references_entity_version_id_idx")
   /// Exists so RuleConflictCandidate can reference (id, entityVersionId) together (M2-WO5) — a
   /// composite foreign key that makes "a candidate for Version A cites Version B's reference"
   /// impossible in the database itself. `id` is already the primary key, so this adds no real
   /// constraint on SourceReference; it is purely the target of that foreign key.
   @@unique([id, entityVersionId], map: "source_references_id_entity_version_id_key")
+  @@index([sourceDocumentId], map: "source_references_source_document_id_idx")
+  @@index([entityVersionId], map: "source_references_entity_version_id_idx")
+  @@index([sourceSnapshotId], map: "source_references_source_snapshot_id_idx")
+  @@index([sourceSectionId], map: "source_references_source_section_id_idx")
+  @@index([sourceBlockId], map: "source_references_source_block_id_idx")
+  @@index([sourceTableId], map: "source_references_source_table_id_idx")
   @@map("source_references")
 }
 
@@ -1507,4 +1533,295 @@ model MigrationPlanItem {
   @@index([sourceEntityVersionId], map: "migration_plan_items_source_entity_version_id_idx")
   @@index([targetEntityVersionId], map: "migration_plan_items_target_entity_version_id_idx")
   @@map("migration_plan_items")
+}
+
+// ---------------------------------------------------------------------------
+// M3-WO1 — Structured source layer.
+//
+//   SourceDocument -> SourceSnapshot -> { SourceSection, SourceContentNode -> Block | Table | AssetPlacement }
+//
+// Every table below is INSERT-ONLY: no update or delete service exists. Every child carries its Snapshot id, and
+// every reference between structure rows is a COMPOSITE foreign key over (id, source_snapshot_id), so structure
+// from one Snapshot can never reference structure from another — enforced by PostgreSQL, not just the service.
+// All foreign keys are ON DELETE RESTRICT. "Source structure records what a source says and where it says it. It
+// does not determine whether that source is Canon." Nothing here is game-semantic. See
+// docs/architecture/m3-source-structure.md.
+// ---------------------------------------------------------------------------
+
+/// Structural block kinds (M3-WO1). Never game-semantic. Lockstep with @prowess/model SOURCE_BLOCK_TYPES.
+enum SourceBlockType {
+  HEADING
+  PARAGRAPH
+  LIST_ITEM
+  CAPTION
+  PREFORMATTED
+  OTHER
+}
+
+/// What a content node targets (M3-WO1). Lockstep with @prowess/model SOURCE_CONTENT_NODE_TYPES.
+enum SourceContentNodeType {
+  BLOCK
+  TABLE
+  ASSET_PLACEMENT
+}
+
+/// Embedded asset kinds (M3-WO1). Lockstep with @prowess/model SOURCE_ASSET_TYPES.
+enum SourceAssetType {
+  IMAGE
+  EMBEDDED_OBJECT
+  OTHER
+}
+
+/// Where a page location came from (M3-WO1): stated by the source, or unavailable (all page fields NULL).
+/// There is deliberately no "estimated" value. Lockstep with @prowess/model SOURCE_PAGE_LOCATION_BASES.
+enum SourcePageLocationBasis {
+  SOURCE_NATIVE
+  UNAVAILABLE
+}
+
+/// One exact revision of a SourceDocument's bytes (M3-WO1). Identified by (sourceDocumentId, contentHash): the
+/// same bytes for the same document are one Snapshot; changed bytes are a new one. The bytes themselves are not
+/// stored in the database — `contentHash` + `byteSize` identify them exactly. Declared version / draft state are
+/// what the source says about itself and are descriptive only: they never imply authority or Canon status.
+model SourceSnapshot {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  sourceDocumentId String         @map("source_document_id") @db.Uuid
+  sourceDocument   SourceDocument @relation(fields: [sourceDocumentId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "source_snapshots_document_fkey")
+
+  label              String
+  originalFilename   String  @map("original_filename")
+  mimeType           String  @map("mime_type")
+  contentHash        String  @map("content_hash")
+  byteSize           Int     @map("byte_size")
+  pageCount          Int?    @map("page_count")
+  declaredVersion    String? @map("declared_version")
+  declaredDraftState String? @map("declared_draft_state")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  ingestion        SourceSnapshotIngestion?
+  sections         SourceSection[]
+  blocks           SourceBlock[]
+  tables           SourceTable[]
+  assets           SourceAsset[]
+  assetPlacements  SourceAssetPlacement[]
+  contentNodes     SourceContentNode[]
+  sourceReferences SourceReference[]
+
+  @@unique([sourceDocumentId, contentHash], map: "source_snapshots_document_content_hash_key")
+  /// Target of SourceReference's composite key: a reference's Snapshot must belong to the reference's document.
+  @@unique([id, sourceDocumentId], map: "source_snapshots_id_document_key")
+  @@map("source_snapshots")
+}
+
+/// The one-and-only record that a Snapshot's structure was ingested (M3-WO1). UNIQUE per Snapshot: a second
+/// ingestion can never be inserted, which is what makes a Snapshot immutable after structural ingestion without
+/// any row ever being updated. Written in the SAME transaction as the structure itself.
+model SourceSnapshotIngestion {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  sourceSnapshotId String         @unique(map: "source_snapshot_ingestions_snapshot_key") @map("source_snapshot_id") @db.Uuid
+  sourceSnapshot   SourceSnapshot @relation(fields: [sourceSnapshotId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "source_snapshot_ingestions_snapshot_fkey")
+
+  parserName    String @map("parser_name")
+  parserVersion String @map("parser_version")
+  structureHash String @map("structure_hash")
+  sectionCount  Int    @map("section_count")
+  nodeCount     Int    @map("node_count")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("source_snapshot_ingestions")
+}
+
+/// A heading-delimited section of one Snapshot (M3-WO1), nested via `parentSectionId`. The parent must be a
+/// section of the SAME Snapshot (composite self-reference).
+model SourceSection {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  sourceSnapshotId String         @map("source_snapshot_id") @db.Uuid
+  sourceSnapshot   SourceSnapshot @relation(fields: [sourceSnapshotId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "source_sections_snapshot_fkey")
+
+  parentSectionId String?         @map("parent_section_id") @db.Uuid
+  parentSection   SourceSection?  @relation("SourceSectionNesting", fields: [parentSectionId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "source_sections_parent_fkey")
+  childSections   SourceSection[] @relation("SourceSectionNesting")
+
+  title             String
+  headingLevel      Int                     @map("heading_level")
+  ordinal           Int
+  startPage         Int?                    @map("start_page")
+  endPage           Int?                    @map("end_page")
+  pageLocationBasis SourcePageLocationBasis @map("page_location_basis")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  blocks           SourceBlock[]
+  tables           SourceTable[]
+  assetPlacements  SourceAssetPlacement[]
+  contentNodes     SourceContentNode[]
+  sourceReferences SourceReference[]
+
+  @@unique([id, sourceSnapshotId], map: "source_sections_id_snapshot_key")
+  @@unique([sourceSnapshotId, ordinal], map: "source_sections_snapshot_ordinal_key")
+  @@index([parentSectionId], map: "source_sections_parent_section_id_idx")
+  @@map("source_sections")
+}
+
+/// A structural text block of one Snapshot (M3-WO1). `rawText` is the source's text verbatim and is never
+/// replaced by `normalizedText` (a convenience view, NULL when identical).
+model SourceBlock {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  sourceSnapshotId String         @map("source_snapshot_id") @db.Uuid
+  sourceSnapshot   SourceSnapshot @relation(fields: [sourceSnapshotId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "source_blocks_snapshot_fkey")
+
+  sourceSectionId String?        @map("source_section_id") @db.Uuid
+  sourceSection   SourceSection? @relation(fields: [sourceSectionId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "source_blocks_section_fkey")
+
+  blockType         SourceBlockType         @map("block_type")
+  ordinal           Int
+  rawText           String                  @map("raw_text")
+  normalizedText    String?                 @map("normalized_text")
+  sourceStyle       String?                 @map("source_style")
+  listLevel         Int?                    @map("list_level")
+  listOrdered       Boolean?                @map("list_ordered")
+  pageStart         Int?                    @map("page_start")
+  pageEnd           Int?                    @map("page_end")
+  pageLocationBasis SourcePageLocationBasis @map("page_location_basis")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  /// At most one element: `block_id` / `table_id` is UNIQUE on source_content_nodes (a relation list only
+  /// because the foreign key is composite).
+  contentNodes     SourceContentNode[]
+  sourceReferences SourceReference[]
+
+  @@unique([id, sourceSnapshotId], map: "source_blocks_id_snapshot_key")
+  @@unique([sourceSnapshotId, ordinal], map: "source_blocks_snapshot_ordinal_key")
+  @@index([sourceSectionId], map: "source_blocks_source_section_id_idx")
+  @@map("source_blocks")
+}
+
+/// A table of one Snapshot (M3-WO1), kept STRUCTURED: `structureJson` preserves row / column / cell order and
+/// represents headers, row spans and column spans. `rawText` is an optional plain rendering, never a replacement.
+model SourceTable {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  sourceSnapshotId String         @map("source_snapshot_id") @db.Uuid
+  sourceSnapshot   SourceSnapshot @relation(fields: [sourceSnapshotId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "source_tables_snapshot_fkey")
+
+  sourceSectionId String?        @map("source_section_id") @db.Uuid
+  sourceSection   SourceSection? @relation(fields: [sourceSectionId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "source_tables_section_fkey")
+
+  ordinal           Int
+  caption           String?
+  pageStart         Int?                    @map("page_start")
+  pageEnd           Int?                    @map("page_end")
+  pageLocationBasis SourcePageLocationBasis @map("page_location_basis")
+  structureJson     Json                    @map("structure_json")
+  rawText           String?                 @map("raw_text")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  /// At most one element: `block_id` / `table_id` is UNIQUE on source_content_nodes (a relation list only
+  /// because the foreign key is composite).
+  contentNodes     SourceContentNode[]
+  sourceReferences SourceReference[]
+
+  @@unique([id, sourceSnapshotId], map: "source_tables_id_snapshot_key")
+  @@unique([sourceSnapshotId, ordinal], map: "source_tables_snapshot_ordinal_key")
+  @@index([sourceSectionId], map: "source_tables_source_section_id_idx")
+  @@map("source_tables")
+}
+
+/// An embedded asset of one Snapshot (M3-WO1) — an image or embedded object, represented explicitly and never
+/// analysed. Identified within the Snapshot by its content hash: the same bytes placed twice are one asset with
+/// two placements. Bytes are not stored in the database (hash + size identify them).
+model SourceAsset {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  sourceSnapshotId String         @map("source_snapshot_id") @db.Uuid
+  sourceSnapshot   SourceSnapshot @relation(fields: [sourceSnapshotId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "source_assets_snapshot_fkey")
+
+  assetType         SourceAssetType @map("asset_type")
+  mimeType          String          @map("mime_type")
+  contentHash       String          @map("content_hash")
+  byteSize          Int             @map("byte_size")
+  width             Int?
+  height            Int?
+  sourceFilename    String?         @map("source_filename")
+  caption           String?
+  altTextFromSource String?         @map("alt_text_from_source")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  placements SourceAssetPlacement[]
+
+  @@unique([id, sourceSnapshotId], map: "source_assets_id_snapshot_key")
+  @@unique([sourceSnapshotId, contentHash], map: "source_assets_snapshot_content_hash_key")
+  @@map("source_assets")
+}
+
+/// Where an asset appears in one Snapshot (M3-WO1). Carries its Snapshot id so the asset, section and content
+/// node it relates to are all provably of the SAME Snapshot (composite keys).
+model SourceAssetPlacement {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  sourceSnapshotId String         @map("source_snapshot_id") @db.Uuid
+  sourceSnapshot   SourceSnapshot @relation(fields: [sourceSnapshotId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "source_asset_placements_snapshot_fkey")
+
+  sourceAssetId String      @map("source_asset_id") @db.Uuid
+  sourceAsset   SourceAsset @relation(fields: [sourceAssetId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "source_asset_placements_asset_fkey")
+
+  sourceSectionId String?        @map("source_section_id") @db.Uuid
+  sourceSection   SourceSection? @relation(fields: [sourceSectionId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "source_asset_placements_section_fkey")
+
+  ordinal           Int
+  pageNumber        Int?                    @map("page_number")
+  pageLocationBasis SourcePageLocationBasis @map("page_location_basis")
+  altTextFromSource String?                 @map("alt_text_from_source")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  /// At most one element: `asset_placement_id` is UNIQUE on source_content_nodes.
+  contentNodes SourceContentNode[]
+
+  @@unique([id, sourceSnapshotId], map: "source_asset_placements_id_snapshot_key")
+  @@unique([sourceSnapshotId, ordinal], map: "source_asset_placements_snapshot_ordinal_key")
+  @@index([sourceAssetId], map: "source_asset_placements_source_asset_id_idx")
+  @@index([sourceSectionId], map: "source_asset_placements_source_section_id_idx")
+  @@map("source_asset_placements")
+}
+
+/// The ordered document flow of one Snapshot (M3-WO1): blocks, tables and asset placements interleaved exactly
+/// as in the source. Exactly one target, matching `nodeType` — enforced by a CHECK constraint in the migration
+/// (Prisma does not model CHECK constraints) as well as by the service. Each target appears in the flow at most
+/// once (unique), and every target and section is of the SAME Snapshot (composite keys).
+model SourceContentNode {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  sourceSnapshotId String         @map("source_snapshot_id") @db.Uuid
+  sourceSnapshot   SourceSnapshot @relation(fields: [sourceSnapshotId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "source_content_nodes_snapshot_fkey")
+
+  sourceSectionId String?        @map("source_section_id") @db.Uuid
+  sourceSection   SourceSection? @relation(fields: [sourceSectionId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "source_content_nodes_section_fkey")
+
+  ordinal  Int
+  nodeType SourceContentNodeType @map("node_type")
+
+  blockId String?      @unique(map: "source_content_nodes_block_key") @map("block_id") @db.Uuid
+  block   SourceBlock? @relation(fields: [blockId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "source_content_nodes_block_fkey")
+
+  tableId String?      @unique(map: "source_content_nodes_table_key") @map("table_id") @db.Uuid
+  table   SourceTable? @relation(fields: [tableId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "source_content_nodes_table_fkey")
+
+  assetPlacementId String?               @unique(map: "source_content_nodes_asset_placement_key") @map("asset_placement_id") @db.Uuid
+  assetPlacement   SourceAssetPlacement? @relation(fields: [assetPlacementId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "source_content_nodes_asset_placement_fkey")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([sourceSnapshotId, ordinal], map: "source_content_nodes_snapshot_ordinal_key")
+  @@index([sourceSectionId], map: "source_content_nodes_source_section_id_idx")
+  @@map("source_content_nodes")
 }

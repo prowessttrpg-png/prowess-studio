@@ -517,3 +517,60 @@ export const MIGRATION_PLAN_ERROR_CODES = {
 } as const;
 
 export type MigrationPlanErrorCode = (typeof MIGRATION_PLAN_ERROR_CODES)[keyof typeof MIGRATION_PLAN_ERROR_CODES];
+
+/**
+ * SourceSnapshot error codes (PAS-10 M3-WO1). A Snapshot is one exact revision of a source's bytes; it is
+ * immutable once its structure has been ingested.
+ */
+export const SOURCE_SNAPSHOT_ERROR_CODES = {
+  /** The Snapshot asked for by id does not exist (including a malformed id). */
+  NOT_FOUND: "SOURCE_SNAPSHOT.NOT_FOUND",
+  /** An explicit create named bytes (contentHash) this SourceDocument already has a Snapshot for. */
+  DUPLICATE_CONTENT: "SOURCE_SNAPSHOT.DUPLICATE_CONTENT",
+  /** The Snapshot already has an ingested structure, and the new structure differs from it. Nothing was written. */
+  IMMUTABLE: "SOURCE_SNAPSHOT.IMMUTABLE",
+  /** Shape problems with Snapshot metadata (hash format, byte size, filename, mime type, …). */
+  INVALID_INPUT: "SOURCE_SNAPSHOT.INVALID_INPUT",
+} as const;
+
+export type SourceSnapshotErrorCode = (typeof SOURCE_SNAPSHOT_ERROR_CODES)[keyof typeof SOURCE_SNAPSHOT_ERROR_CODES];
+
+/**
+ * Source structure error codes (PAS-10 M3-WO1): sections, blocks, tables, asset placements and the ordered
+ * content flow of ONE Snapshot. Structure never crosses Snapshots.
+ */
+export const SOURCE_STRUCTURE_ERROR_CODES = {
+  /** A section / block / table / placement / content node asked for by id does not exist. */
+  NOT_FOUND: "SOURCE_STRUCTURE.NOT_FOUND",
+  /** A section's parent is missing, is itself, or does not precede it in document order. */
+  INVALID_PARENT: "SOURCE_STRUCTURE.INVALID_PARENT",
+  /** Ordinals are not unique, contiguous non-negative integers starting at 0. */
+  INVALID_ORDER: "SOURCE_STRUCTURE.INVALID_ORDER",
+  /** A content node's target does not match its nodeType, or names something absent from this structure. */
+  INVALID_NODE_TARGET: "SOURCE_STRUCTURE.INVALID_NODE_TARGET",
+  /** Any other shape problem (block type, text, table structure, page location fields, keys). */
+  INVALID_INPUT: "SOURCE_STRUCTURE.INVALID_INPUT",
+} as const;
+
+export type SourceStructureErrorCode = (typeof SOURCE_STRUCTURE_ERROR_CODES)[keyof typeof SOURCE_STRUCTURE_ERROR_CODES];
+
+/** SourceAsset error codes (PAS-10 M3-WO1). */
+export const SOURCE_ASSET_ERROR_CODES = {
+  /** The asset asked for by id does not exist (including a malformed id). */
+  NOT_FOUND: "SOURCE_ASSET.NOT_FOUND",
+} as const;
+
+export type SourceAssetErrorCode = (typeof SOURCE_ASSET_ERROR_CODES)[keyof typeof SOURCE_ASSET_ERROR_CODES];
+
+/**
+ * Structural source parsing error codes (PAS-10 M3-WO1). The parser reads document STRUCTURE only; it never
+ * interprets prose into rules, so there is no "could not understand the rule" error here by design.
+ */
+export const SOURCE_PARSE_ERROR_CODES = {
+  /** No structural parser exists for this mime type / format. */
+  UNSUPPORTED_FORMAT: "SOURCE_PARSE.UNSUPPORTED_FORMAT",
+  /** The bytes are not a well-formed instance of the declared format (e.g. a corrupt DOCX container). */
+  MALFORMED_SOURCE: "SOURCE_PARSE.MALFORMED_SOURCE",
+} as const;
+
+export type SourceParseErrorCode = (typeof SOURCE_PARSE_ERROR_CODES)[keyof typeof SOURCE_PARSE_ERROR_CODES];

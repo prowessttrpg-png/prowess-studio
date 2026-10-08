@@ -85,6 +85,29 @@ export {
   listSourceReferencesForDocument,
   removeSourceReference,
 } from "./source-reference/index.js";
+export {
+  createSourceSnapshot,
+  findSourceSnapshotByContentHash,
+  getSourceSnapshot,
+  listSourceSnapshots,
+} from "./source-snapshot/index.js";
+export {
+  getSourceAsset,
+  getSourceBlock,
+  getSourceSection,
+  getSourceSectionContent,
+  getSourceSnapshotIngestion,
+  getSourceStructure,
+  getSourceTable,
+  hashSourceStructure,
+  ingestSourceStructure,
+  listSourceAssetPlacements,
+  listSourceAssets,
+  listSourceSectionChildren,
+} from "./source-structure/index.js";
+export type { IngestSourceStructureResult } from "./source-structure/index.js";
+export { ingestSourceSnapshot, parseDocxStructure, DOCX_MIME_TYPE, DOCX_PARSER_NAME, DOCX_PARSER_VERSION } from "./source-ingestion/index.js";
+export type { DocxDeclaredMetadata, IngestSourceSnapshotInput, IngestSourceSnapshotResult, ParsedDocx } from "./source-ingestion/index.js";
 export { listEntities } from "./entity-query/index.js";
 export type {
   EntityListItem,
