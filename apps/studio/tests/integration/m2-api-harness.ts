@@ -3,7 +3,7 @@
  * Next.js route handlers as functions against the real prowess_studio_test database. Entities, Versions
  * and source rows are created through the existing public services (they are not part of the M2 API).
  */
-import { createEntity, createEntityVersion, createSourceDocument, createSourceReference, prisma } from "@prowess/db";
+import { createEntity, createEntityVersion, createSourceDocument, createSourceReference, prisma, transitionEntityVersionStatus } from "@prowess/db";
 import { SOURCE_DOCUMENT_TYPES } from "@prowess/model";
 
 export const PREFIX = "test.m2api";
@@ -33,7 +33,12 @@ export async function call(handler: unknown, method: string, path: string, param
 export async function entityWithVersions(label: string, ...names: string[]) {
   const entity = await createEntity({ entityType: "GENERIC_RULE", canonicalKey: key(label) });
   const versions = [];
-  for (const name of names) versions.push(await createEntityVersion(entity.id, { displayName: name }));
+  for (const name of names) {
+    const v = await createEntityVersion(entity.id, { displayName: name });
+    // M2-WO12 F1: Versions that may be published leave DRAFT through the normal M1 lifecycle.
+    await transitionEntityVersionStatus(v.id, "IN_REVIEW");
+    versions.push(await transitionEntityVersionStatus(v.id, "APPROVED"));
+  }
   return { entity, versions };
 }
 

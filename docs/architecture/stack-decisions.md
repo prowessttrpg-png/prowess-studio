@@ -655,3 +655,12 @@ id; the pure `assessMigration` agrees with WO8's `diffCompositions`; (5) compati
 or REVIEW_REQUIRED, while the full PAS-08 vocabulary is stored for the future; (6) composite keys make an item's Versions
 belong to its Entity; everything is RESTRICT; plan + items are one transaction; (7) cross-Ruleset comparison is supported
 over flattened compositions; (8) no saved-creation tables, no route, no UI.
+
+## M2-WO12: Final integration audit
+
+Full report in `docs/architecture/m2-final-audit.md`. WO12 verified M2 without redesign and made two approved fixes:
+F1 — publication refuses compositions pinning editable Versions (`RULESET_RELEASE.MUTABLE_VERSION_PINNED`, 409;
+the editable set is derived from the lifecycle graph: DRAFT + anything that can reach DRAFT, today IN_REVIEW), so
+published content is frozen; F2 — removing a SourceReference that conflict evidence cites returns
+`SOURCE_REFERENCE.IN_USE` (409), scoped to that one constraint. A golden M2 history fixture is the regression baseline
+for M3+. No migration was added; the 17-migration chain is hash-pinned.

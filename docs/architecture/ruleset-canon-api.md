@@ -86,7 +86,7 @@ decision/release mutation, and no record-by-record source-authority route.
 | POST | `/api/change-sets/:changeSetId/submit-review` | none / `{}` | 200 ChangeSet | 409 CHANGE_SET.INVALID_STATUS_TRANSITION |
 | POST | `/api/change-sets/:changeSetId/approve` | none / `{}` | 200 ChangeSet | 409 |
 | POST | `/api/change-sets/:changeSetId/reject` | none / `{}` | 200 ChangeSet | 409 |
-| POST | `/api/rulesets/:rulesetId/releases` | `baseManifestId, canonPolicyId, changeSetId?, versionLabel, releaseNotes?` | 201 release + composition | 409 STALE_CHANGE_SET / UNRESOLVED_CREATE_OPERATION / VERSION_LABEL_CONFLICT / CHANGE_SET_ALREADY_PUBLISHED / RELEASE_CONFLICT / RULESET_NOT_PUBLISHABLE · 400 references |
+| POST | `/api/rulesets/:rulesetId/releases` | `baseManifestId, canonPolicyId, changeSetId?, versionLabel, releaseNotes?` | 201 release + composition | 409 STALE_CHANGE_SET / UNRESOLVED_CREATE_OPERATION / VERSION_LABEL_CONFLICT / CHANGE_SET_ALREADY_PUBLISHED / RELEASE_CONFLICT / RULESET_NOT_PUBLISHABLE / MUTABLE_VERSION_PINNED (M2-WO12) · 400 references |
 | GET | `/api/rulesets/:rulesetId/releases` | pagination | 200 list (releaseNumber ASC) | 404 |
 | GET | `/api/rulesets/:rulesetId/releases/latest` | — | 200 release or `null` | 404 |
 | GET | `/api/ruleset-releases/:releaseId` | — | 200 release + exact composition | 404 |

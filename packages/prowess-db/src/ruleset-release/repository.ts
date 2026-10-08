@@ -1,5 +1,6 @@
 import {
   CanonPolicyId,
+  isPublishableVersionStatus,
   ChangeSetId,
   EntityId,
   EntityVersionId,
@@ -98,7 +99,7 @@ export interface PublicationPlanInsert {
 /** Aborts a publication transaction with a controlled reason (mapped by the service). */
 export class PublicationAbort extends Error {
   constructor(
-    readonly reason: "RULESET_NOT_PUBLISHABLE" | "RELEASE_CONFLICT" | "INVALID_OPERATION",
+    readonly reason: "RULESET_NOT_PUBLISHABLE" | "RELEASE_CONFLICT" | "INVALID_OPERATION" | "MUTABLE_VERSION_PINNED",
     message: string,
   ) {
     super(message);
@@ -123,6 +124,9 @@ export function isChangeSetReuseViolation(error: unknown): boolean {
  *   1. lock the Ruleset row (SELECT … FOR UPDATE): all publications of one Ruleset serialize here;
  *   2. under the lock, re-check publishability and that the latest release's manifest is still the
  *      plan's baseline (linear history) — a concurrent publisher that got there first => RELEASE_CONFLICT;
+ *   2b. M2-WO12 F1: every Version of the FINAL composition must be content-frozen (not DRAFT, and unable to return to
+ *      DRAFT through the M1 lifecycle); otherwise MUTABLE_VERSION_PINNED. Checked on this transaction, before any write;
+ *      nothing is promoted or modified;
  *   3. first release only: APPROVED -> PUBLISHED (expected-state conditional update);
  *   4. approved DEPRECATEs through the M1 lifecycle transition, ON THIS TRANSACTION;
  *   5. the new flattened, parentless manifest + entries via the M2-WO2 allocator body;
@@ -145,6 +149,15 @@ export async function executePublication(plan: PublicationPlanInsert): Promise<s
         const latest = await tx.rulesetRelease.findFirst({ where: { rulesetId: plan.rulesetId }, orderBy: { releaseNumber: "desc" } });
         if ((latest?.manifestId ?? null) !== plan.expectedLatestManifestId) {
           throw new PublicationAbort("RELEASE_CONFLICT", "Another release was published first; this publication's base is no longer the latest release's manifest");
+        }
+        const pinnedIds = plan.pins.map((p) => p.entityVersionId);
+        const pinned = await tx.entityVersion.findMany({ where: { id: { in: pinnedIds } }, select: { id: true, status: true }, orderBy: { id: "asc" } });
+        const mutable = pinned.filter((v) => !isPublishableVersionStatus(v.status as Parameters<typeof isPublishableVersionStatus>[0]));
+        if (mutable.length > 0 || pinned.length !== new Set(pinnedIds).size) {
+          throw new PublicationAbort(
+            "MUTABLE_VERSION_PINNED",
+            `The published composition would pin editable EntityVersion(s): ${mutable.map((v) => `${v.id} (${v.status})`).join(", ")}. Move them out of DRAFT / IN_REVIEW through the lifecycle before publishing.`,
+          );
         }
         if (ruleset.status === "APPROVED") {
           const { count } = await tx.ruleset.updateMany({ where: { id: plan.rulesetId, status: "APPROVED" }, data: { status: "PUBLISHED" } });

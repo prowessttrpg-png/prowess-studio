@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   approveChangeSet, approveRuleset, createCanonPolicy, createChangeSet, createEntity, createEntityVersion, createMigrationPlan, createRuleset,
   createRulesetManifest, getMigrationPlan, getRulesetRelease, listMigrationPlans, prisma, previewRulesetMigration, publishRulesetRelease,
-  submitChangeSetForReview, submitRulesetForReview, verifyRulesetReleaseManifestHash,
+  submitChangeSetForReview, submitRulesetForReview, transitionEntityVersionStatus, verifyRulesetReleaseManifestHash,
 } from "../../src/index";
 import { insertMigrationPlanWithItems } from "../../src/migration-plan/repository";
 import { mapMigrationPlanWriteError } from "../../src/migration-plan/service";
@@ -21,7 +21,11 @@ async function entity(label: string, ...names: string[]) {
   const e = await createEntity({ entityType: "GENERIC_RULE", canonicalKey: `test.migration.${label.toLowerCase()}_${tag}_${++n}` });
   entityIds.push(e.id);
   const versions = [];
-  for (const name of names) versions.push(await createEntityVersion(e.id, { displayName: name }));
+  for (const name of names) {
+    const v = await createEntityVersion(e.id, { displayName: name });
+    await transitionEntityVersionStatus(v.id, "IN_REVIEW"); // M2-WO12 F1: published Versions must be content-frozen
+    versions.push(await transitionEntityVersionStatus(v.id, "APPROVED"));
+  }
   return { id: e.id, v: versions.map((x) => x.id) };
 }
 /** An approved Ruleset with a policy, published as Release 1 from the given pins. */

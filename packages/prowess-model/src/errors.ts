@@ -213,6 +213,8 @@ export type SourceDocumentErrorCode =
 export const SOURCE_REFERENCE_ERROR_CODES = {
   NOT_FOUND: "SOURCE_REFERENCE.NOT_FOUND",
   INVALID_INPUT: "SOURCE_REFERENCE.INVALID_INPUT",
+  /** M2-WO12 F2: the reference is historical evidence (e.g. a RuleConflictCandidate cites it); it cannot be removed. */
+  IN_USE: "SOURCE_REFERENCE.IN_USE",
 } as const;
 
 export type SourceReferenceErrorCode =
@@ -482,6 +484,12 @@ export const RULESET_RELEASE_ERROR_CODES = {
   INVALID_OPERATION: "RULESET_RELEASE.INVALID_OPERATION",
   /** A concurrent publication changed the release history first; nothing was written, re-check and retry. */
   RELEASE_CONFLICT: "RULESET_RELEASE.RELEASE_CONFLICT",
+  /**
+   * M2-WO12 F1: the final composition pins an EntityVersion whose content is still editable — DRAFT, or a status
+   * from which the M1 lifecycle can return it to DRAFT (derived from ENTITY_VERSION_TRANSITIONS; today IN_REVIEW).
+   * Mutable content may not cross the immutable publication boundary. Nothing is promoted or written.
+   */
+  MUTABLE_VERSION_PINNED: "RULESET_RELEASE.MUTABLE_VERSION_PINNED",
 } as const;
 
 export type RulesetReleaseErrorCode = (typeof RULESET_RELEASE_ERROR_CODES)[keyof typeof RULESET_RELEASE_ERROR_CODES];

@@ -113,7 +113,18 @@ describe("input, ids, errors (§18, §50, §51)", () => {
   });
   it("brands ids; the release error vocabulary is exactly seventeen codes", () => {
     expect(RulesetReleaseId.of(A)).toBe(A);
-    expect(Object.keys(RULESET_RELEASE_ERROR_CODES)).toHaveLength(17);
+    expect(Object.keys(RULESET_RELEASE_ERROR_CODES)).toHaveLength(18); // +MUTABLE_VERSION_PINNED (M2-WO12 F1)
     for (const [k, v] of Object.entries(RULESET_RELEASE_ERROR_CODES)) expect(v).toBe(`RULESET_RELEASE.${k}`);
+  });
+});
+
+describe("M2-WO12 F1 — mutable Version statuses are derived from the lifecycle graph", () => {
+  it("DRAFT and every status that can reach DRAFT are mutable; today that is exactly DRAFT and IN_REVIEW", async () => {
+    const { ENTITY_VERSION_TRANSITIONS } = await import("./entity-version-lifecycle.js");
+    const { MUTABLE_ENTITY_VERSION_STATUSES, isPublishableVersionStatus } = await import("./ruleset-release.js");
+    expect([...MUTABLE_ENTITY_VERSION_STATUSES]).toEqual(["DRAFT", "IN_REVIEW"]);
+    // Requirement 6, made explicit: the ONLY transition back to DRAFT is M1's IN_REVIEW send-back.
+    expect(Object.entries(ENTITY_VERSION_TRANSITIONS).filter(([, to]) => (to as readonly string[]).includes("DRAFT")).map(([from]) => from)).toEqual(["IN_REVIEW"]);
+    for (const s of ["APPROVED", "PLAYTEST", "CANON", "SUPERSEDED", "DEPRECATED", "ARCHIVED"] as const) expect(isPublishableVersionStatus(s), s).toBe(true);
   });
 });
