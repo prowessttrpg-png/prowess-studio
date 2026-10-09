@@ -107,6 +107,14 @@ const RULES = [
     reason: "is the persistence boundary — it must not depend on UI or the application layer",
   },
   {
+    // M3-WO2: framework-independent import-specific pure logic. Node's standard library (node:crypto) is allowed.
+    name: "@prowess/import",
+    srcDir: path.join(ROOT, "packages/prowess-import/src"),
+    forbidden: ["@prowess/db", "@prisma/client", "@prisma/adapter-pg", "prisma", "pg", "next", "react", "react-dom", "@prowess/ui", "@prowess/studio"],
+    forbiddenSubstrings: ["generated/prisma", "apps/studio", "prowess-db"],
+    reason: "is framework-independent import logic — it may use @prowess/model only, never persistence, UI or the application",
+  },
+  {
     name: "@prowess/ui",
     srcDir: path.join(ROOT, "packages/prowess-ui/src"),
     forbidden: ["@prisma/client", "@prisma/adapter-pg", "prisma", "pg", "@prowess/db"],
@@ -194,6 +202,7 @@ const WORKSPACE_PACKAGE_DIRS = [
   "packages/prowess-model",
   "packages/prowess-ui",
   "packages/prowess-db",
+  "packages/prowess-import",
   "packages/prowess-test-fixtures",
   "apps/studio",
 ];

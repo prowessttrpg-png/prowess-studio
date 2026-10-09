@@ -100,6 +100,8 @@ packages/prowess-db/
     source-snapshot/                       - immutable exact-byte SourceSnapshots of a SourceDocument (M3-WO1)
     source-structure/                      - atomic, insert-only structural ingestion + ordered structure reads (M3-WO1)
     source-ingestion/                      - bytes -> Snapshot + structure; dependency-free DOCX structural parser (M3-WO1)
+    import-batch/                          - idempotent ImportBatches pinned to an exact ingested Snapshot (M3-WO2)
+    extraction-candidate/                  - atomic, insert-only UNREVIEWED extraction proposals with exact anchors (M3-WO2)
                                         backs GET /api/entities; see docs/architecture/api-layer.md)
       index.ts                            — re-exports the service only
     index.ts                      — package entry point (exports all of the above)

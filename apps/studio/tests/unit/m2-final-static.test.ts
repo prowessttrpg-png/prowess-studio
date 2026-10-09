@@ -114,7 +114,7 @@ describe("§44–§45 migration chain", () => {
     // WO12 added none. Later milestones append deliberately (each pinned by its own milestone audit): M3-WO1 adds
     // 20261011010000_add_source_structure (hash pinned in m3-source-structure-static.test.ts). Nothing is inserted
     // before, squashed into, or reordered among the M1/M2 migrations.
-    const appendedAfterM2 = ["20261011010000_add_source_structure"];
+    const appendedAfterM2 = ["20261011010000_add_source_structure", "20261012010000_add_import_batches_candidates"];
     expect(readdirSync(dir).filter((e) => statSync(path.join(dir, e)).isDirectory()).sort()).toEqual([...pins.map(([n]) => n), ...appendedAfterM2]);
     for (const [n, h] of pins) expect(createHash("sha256").update(readFileSync(path.join(dir, n, "migration.sql"))).digest("hex"), n).toBe(h);
   });
@@ -129,7 +129,7 @@ describe("§50 public service surface", () => {
     expect(mutations).toEqual(
       [
         "approveChangeSet", "approveRuleset", "assignKeywordToEntity", "assignKeywordToEntityVersion", "createCanonDecision", "createCanonPolicy", "createChangeSet",
-        "createEntity", "createEntityAlias", "createEntityRelationship", "createEntityVersion", "createKeywordCategory", "createKeywordDefinition", "createMigrationPlan",
+        "createEntity", "createEntityAlias", "createImportBatch", "createEntityRelationship", "createEntityVersion", "createKeywordCategory", "createKeywordDefinition", "createMigrationPlan",
         "createRuleConflict", "createRuleset", "createRulesetManifest", "createSourceDocument", "createSourceReference", "createSourceSnapshot", "proposeChangeSetFromCanonDecision",
         "publishRulesetRelease", "rejectChangeSet", "removeEntityAlias", "removeEntityRelationship", "removeKeywordFromEntity", "removeKeywordFromEntityVersion",
         "removeSourceReference", "submitChangeSetForReview", "submitRulesetForReview", "transitionEntityVersionStatus", "updateDraftEntityVersion",

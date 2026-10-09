@@ -34,7 +34,8 @@ describe("M2-WO1 — the Ruleset model is identity and lifecycle only", () => {
   it("has exactly the specified fields (M2-WO2, M2-WO4, M2-WO5, M2-WO6, M2-WO7 and M2-WO8 added only the manifests, canonPolicies, ruleConflicts, canonDecisions, changeSets and releases back-relation lists, never a column — in particular no current/active release pointer) — nothing that names or selects content", () => {
     const fields = [...(ruleset?.body ?? "").matchAll(/^\s+(\w+)\s+[A-Z]/gm)].map((m) => m[1]).sort();
     expect(fields).toEqual(
-      ["canonDecisions", "canonPolicies", "canonicalKey", "changeSets", "channel", "children", "createdAt", "description", "id", "manifests", "name", "parent", "parentRulesetId", "releases", "ruleConflicts", "status", "updatedAt", "versionLabel"].sort(),
+      // M3-WO2 added only the importBatches back-relation list (review CONTEXT; a Ruleset never points at a Batch).
+      ["canonDecisions", "canonPolicies", "canonicalKey", "changeSets", "channel", "children", "createdAt", "description", "id", "importBatches", "manifests", "name", "parent", "parentRulesetId", "releases", "ruleConflicts", "status", "updatedAt", "versionLabel"].sort(),
     );
   });
 
@@ -46,7 +47,7 @@ describe("M2-WO1 — the Ruleset model is identity and lifecycle only", () => {
     // M2-WO2 superseded the old blanket "no other model references Ruleset": the manifest models legitimately do.
     // The intent stands: Entity and EntityVersion never reference a Ruleset (no ruleset_id on EntityVersion).
     expect(ruleset?.body).not.toMatch(/\bEntity(Version)?\b/);
-    for (const other of models.filter((model) => !["Ruleset", "RulesetManifest", "RulesetManifestEntry", "CanonPolicy", "RuleConflict", "CanonDecision", "ChangeSet", "ChangeSetOperation", "RulesetRelease"].includes(model.name))) {
+    for (const other of models.filter((model) => !["Ruleset", "RulesetManifest", "RulesetManifestEntry", "CanonPolicy", "RuleConflict", "CanonDecision", "ChangeSet", "ChangeSetOperation", "RulesetRelease", /* M3-WO2: exact review CONTEXT only */ "ImportBatch"].includes(model.name))) {
       expect(other.body, `${other.name} must not reference Ruleset (no ruleset_id / rulesetId / Ruleset relation)`).not.toMatch(/\bRuleset\b|rulesetId|ruleset_id/i);
     }
   });

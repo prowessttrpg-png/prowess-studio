@@ -62,7 +62,8 @@ describe("M2-WO4 — the policy models are immutable snapshots with explicit aut
   it("reuses the existing SourceAuthorityStatus enum: no second authority vocabulary, no new enum at all", () => {
     expect(find("SourceAuthorityRecord")?.body).toMatch(/authorityStatus\s+SourceAuthorityStatus\s/);
     const enums = [...SCHEMA.matchAll(/^enum (\w+)/gm)].map((m) => m[1]);
-    expect(enums.filter((n) => /polic|authority|resolution|scope/i.test(n ?? ""))).toEqual(["SourceAuthorityStatus"]);
+    // M3-WO2's ImportBatchScopeType is a source-SECTION scope, not an authority scope (excluded by exact name).
+    expect(enums.filter((n) => n !== "ImportBatchScopeType" && /polic|authority|resolution|scope/i.test(n ?? ""))).toEqual(["SourceAuthorityStatus"]);
   });
 
   it("SourceDocument.authorityStatus is untouched — still nullable descriptive metadata — and gained only a back-relation list", () => {

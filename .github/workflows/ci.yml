@@ -149,7 +149,7 @@ jobs:
       # later, which needs application config env vars this step doesn't
       # have.
       - name: Build workspace packages
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
 
       - name: Lint
         run: pnpm lint
@@ -164,7 +164,7 @@ jobs:
       # UI) rather than one big "pnpm test" step, so a failure's layer is
       # immediately obvious from the Actions UI without opening logs.
       - name: Unit tests (packages)
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/db" --filter "@prowess/test-fixtures" run test:unit
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/db" --filter "@prowess/test-fixtures" run test:unit
 
       - name: Database integration tests
         run: pnpm --filter "@prowess/db" run test:integration

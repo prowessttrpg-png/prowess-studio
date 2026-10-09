@@ -108,6 +108,10 @@ export {
 export type { IngestSourceStructureResult } from "./source-structure/index.js";
 export { ingestSourceSnapshot, parseDocxStructure, DOCX_MIME_TYPE, DOCX_PARSER_NAME, DOCX_PARSER_VERSION } from "./source-ingestion/index.js";
 export type { DocxDeclaredMetadata, IngestSourceSnapshotInput, IngestSourceSnapshotResult, ParsedDocx } from "./source-ingestion/index.js";
+export { createImportBatch, getImportBatch, getImportBatchSummary, listImportBatches } from "./import-batch/index.js";
+export type { CreateImportBatchResult } from "./import-batch/index.js";
+export { getExtractionCandidate, listExtractionCandidates, recordExtractionCandidates } from "./extraction-candidate/index.js";
+export type { RecordExtractionCandidatesResult } from "./extraction-candidate/index.js";
 export { listEntities } from "./entity-query/index.js";
 export type {
   EntityListItem,

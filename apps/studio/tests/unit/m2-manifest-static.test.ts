@@ -40,7 +40,8 @@ describe("M2-WO2 — the manifest models are immutable snapshots with exact pins
     expect(fieldNames(find("RulesetManifest")?.body)).toEqual(
       // M2-WO7 added only the changeSetOperations back-relation LIST: proposals cite a manifest; a manifest is never edited.
       // M2-WO8 added only the releases back-relation list: a release pins a manifest; a manifest never points at a release.
-      ["changeSetOperations", "childManifests", "createdAt", "entries", "id", "manifestVersion", "parentManifest", "parentManifestId", "releases", "ruleset", "rulesetId"],
+      // M3-WO2 added only the importBatches back-relation list: a Batch may pin a manifest as comparison context.
+      ["changeSetOperations", "childManifests", "createdAt", "entries", "id", "importBatches", "manifestVersion", "parentManifest", "parentManifestId", "releases", "ruleset", "rulesetId"],
     ); // M2-WO3 added only the parent-manifest self-reference
     expect(find("RulesetManifest")?.body).not.toMatch(/updatedAt/);
   });
