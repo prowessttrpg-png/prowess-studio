@@ -23,7 +23,8 @@ walk(API);
 const rel = (f: string) => path.relative(API, path.dirname(f)).split(path.sep).join("/");
 const methods = (src: string) => [...src.matchAll(/export async function (GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\b/g)].map((m) => m[1]).sort();
 const M1_PREFIXES = ["entities", "entity-aliases", "entity-versions", "keyword-categories", "keywords", "relationships", "source-documents", "source-references"];
-const m2Files = files.filter((f) => !M1_PREFIXES.some((p) => rel(f) === p || rel(f).startsWith(`${p}/`)));
+// M3-WO7's /api/import/* routes are the M3 Import API, pinned by m3-import-api-static (not part of the M2 surface).
+const m2Files = files.filter((f) => ![...M1_PREFIXES, "import"].some((p) => rel(f) === p || rel(f).startsWith(`${p}/`)));
 const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
 
 const EXPECTED: Record<string, string[]> = {
