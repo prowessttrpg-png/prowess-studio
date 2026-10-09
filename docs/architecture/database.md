@@ -104,6 +104,8 @@ packages/prowess-db/
     extraction-candidate/                  - atomic, insert-only UNREVIEWED extraction proposals with exact anchors (M3-WO2)
     extraction/                            - explicit, atomic, idempotent execution of a Batch's exact registered extractor (M3-WO3)
     import-match/                          - immutable, advisory Entity identity matching runs + duplicate groups (M3-WO4)
+                                             (M3-WO5 adds no module: semantic extraction is prowess.semantic-foundation@1,
+                                              registered in @prowess/import and run through extraction/)
                                         backs GET /api/entities; see docs/architecture/api-layer.md)
       index.ts                            — re-exports the service only
     index.ts                      — package entry point (exports all of the above)

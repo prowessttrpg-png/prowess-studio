@@ -60,8 +60,9 @@ describe("M3-WO3 extractor purity and boundary (@prowess/import)", () => {
     expect(src).not.toMatch(/latest|newest|fallback|default(?!Extractor)|semver|compatib/i);
   });
 
-  it("the official registry is exactly prowess.structural@1", () => {
-    expect(stripComments(readFileSync(path.join(IMPORT_SRC, "registry.ts"), "utf8"))).toMatch(/OFFICIAL_EXTRACTORS = \[structuralExtractorV1\] as const/);
+  it("the official registry is exactly prowess.structural@1 (+ prowess.semantic-foundation@1 since M3-WO5)", () => {
+    // M3-WO5 registered its semantic extractor as a SEPARATE key; prowess.structural@1 itself is unchanged (pinned below).
+    expect(stripComments(readFileSync(path.join(IMPORT_SRC, "registry.ts"), "utf8"))).toMatch(/OFFICIAL_EXTRACTORS = \[structuralExtractorV1, semanticFoundationExtractorV1\] as const/);
     const v1 = readFileSync(path.join(IMPORT_SRC, "structural-v1.ts"), "utf8");
     expect(v1).toMatch(/STRUCTURAL_EXTRACTOR_KEY = "prowess\.structural"/);
     expect(v1).toMatch(/STRUCTURAL_EXTRACTOR_VERSION = "1"/);

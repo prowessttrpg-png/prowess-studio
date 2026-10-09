@@ -67,3 +67,18 @@ export type {
   MatchingRun,
   MatchSuggestionOutput,
 } from "./matcher.js";
+export {
+  findingsToCandidates,
+  findSemanticStatements,
+  normalizeKeywordLabel,
+  SEMANTIC_FORMULA_PAYLOAD_SCHEMA,
+  SEMANTIC_FOUNDATION_EXTRACTOR_KEY,
+  SEMANTIC_FOUNDATION_EXTRACTOR_VERSION,
+  SEMANTIC_KEYWORD_PAYLOAD_SCHEMA,
+  SEMANTIC_PAYLOAD_SCHEMA_VERSION,
+  SEMANTIC_REQUIREMENT_PAYLOAD_SCHEMA,
+  semanticFoundationExtractorV1,
+} from "./semantic-foundation-v1.js";
+export type { SemanticFinding } from "./semantic-foundation-v1.js";
+export { parseAssignment, parseExpression } from "./semantic-formula.js";
+export type { FormulaParse } from "./semantic-formula.js";
