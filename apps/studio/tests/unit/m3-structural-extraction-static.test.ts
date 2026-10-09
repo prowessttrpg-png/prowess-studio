@@ -132,7 +132,7 @@ describe("M3-WO3 orchestration writes and reads (@prowess/db/src/extraction)", (
   it("the public surface adds exactly the three extraction services; no HTTP route or Studio UI references extraction", () => {
     const root = read("packages", "prowess-db", "src", "index.ts");
     expect(root).toContain('export { extractImportBatch, getExtractionResult, verifyExtractionOutput } from "./extraction/index.js";');
-    for (const f of [...walk(path.join(ROOT, "apps", "studio", "app")), ...walk(path.join(ROOT, "apps", "studio", "src", "api-client"))]) {
+    for (const f of [...walk(path.join(ROOT, "apps", "studio", "app")).filter((f) => !rel(f).startsWith("apps/studio/app/api/import/")) /* M3-WO7 Import API: audited by m3-import-api-static */, ...walk(path.join(ROOT, "apps", "studio", "src", "api-client"))]) {
       expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/extractImportBatch|getExtractionResult|verifyExtractionOutput|ImportBatch|ExtractionCandidate|structural extraction/i);
     }
   });

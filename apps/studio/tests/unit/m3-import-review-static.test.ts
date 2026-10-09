@@ -133,7 +133,7 @@ describe("M3-WO6 pure conflict logic (@prowess/import/src/review.ts)", () => {
 
 describe("M3-WO6 no HTTP route, no UI", () => {
   it("nothing in the Studio app references import review", () => {
-    for (const f of [...walk(path.join(ROOT, "apps", "studio", "app")), ...walk(path.join(ROOT, "apps", "studio", "src", "api-client"))]) {
+    for (const f of [...walk(path.join(ROOT, "apps", "studio", "app")).filter((f) => !rel(f).startsWith("apps/studio/app/api/import/")) /* M3-WO7 Import API: audited by m3-import-api-static */, ...walk(path.join(ROOT, "apps", "studio", "src", "api-client"))]) {
       expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/ImportDecision|reviewImportCandidate|completeImportReview|analyzeImportConflicts|import-review/);
     }
   });

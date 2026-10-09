@@ -181,10 +181,10 @@ describe("M3-WO1 public service surface", () => {
     for (const x of names) expect(x).not.toMatch(/promote|Promotion|matchEntit|matchCandidate|extractFormula|approveCandidate|rejectCandidate/i); // ImportDecision arrived in M3-WO6 (audited there)
   });
 
-  it("no HTTP route exposes the structure layer yet (services only in WO1)", () => {
+  it("no HTTP route outside the M3-WO7 Import API (/api/import, audited by m3-import-api-static) exposes the structure layer", () => {
     const api = path.join(ROOT, "apps", "studio", "app", "api");
     const routes: string[] = [];
-    const visit = (d: string) => { for (const e of readdirSync(d)) { const f = path.join(d, e); if (statSync(f).isDirectory()) visit(f); else routes.push(readFileSync(f, "utf8")); } };
+    const visit = (d: string) => { for (const e of readdirSync(d)) { const f = path.join(d, e); if (statSync(f).isDirectory()) { if (f !== path.join(api, "import")) visit(f); } else routes.push(readFileSync(f, "utf8")); } };
     visit(api);
     for (const r of routes) expect(r).not.toMatch(/SourceSnapshot|SourceStructure|ingestSource|getSource(Section|Block|Table|Asset)/);
   });

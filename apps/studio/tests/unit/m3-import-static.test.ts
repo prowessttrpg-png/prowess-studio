@@ -179,7 +179,7 @@ describe("M3-WO2 @prowess/import boundary", () => {
 
 describe("M3-WO2 no HTTP API, no Studio UI", () => {
   it("no route, page, component or client references import batches or candidates", () => {
-    for (const f of [...walk(path.join(ROOT, "apps", "studio", "app")), ...walk(path.join(ROOT, "apps", "studio", "src", "api-client"))]) {
+    for (const f of [...walk(path.join(ROOT, "apps", "studio", "app")).filter((f) => !rel(f).startsWith("apps/studio/app/api/import/")) /* M3-WO7 Import API: audited by m3-import-api-static */, ...walk(path.join(ROOT, "apps", "studio", "src", "api-client"))]) {
       expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/ImportBatch|import-batch|ExtractionCandidate|extraction-candidate|recordExtraction/i);
     }
   });
