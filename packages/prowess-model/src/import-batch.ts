@@ -49,6 +49,15 @@ export const isImportBatchStatus = (v: unknown): v is ImportBatchStatus =>
   typeof v === "string" && (IMPORT_BATCH_STATUSES as readonly string[]).includes(v);
 /** The only status WO2 ever writes for a Batch. */
 export const INITIAL_IMPORT_BATCH_STATUS = "CREATED" satisfies ImportBatchStatus;
+/**
+ * M3-WO3: the status held while an extraction commits. It is set and left INSIDE the single commit transaction, so it
+ * is never visible to other readers and a crash can never leave a Batch stuck in it.
+ */
+export const EXTRACTING_IMPORT_BATCH_STATUS = "EXTRACTING" satisfies ImportBatchStatus;
+/** M3-WO3: the status of a Batch whose Candidate set (and output hash) has been committed. */
+export const EXTRACTED_IMPORT_BATCH_STATUS = "READY_FOR_REVIEW" satisfies ImportBatchStatus;
+/** M3-WO3: statuses past READY_FOR_REVIEW, in which extraction is closed (owned by later review Work Orders). */
+export const POST_EXTRACTION_REVIEW_STATUSES = ["REVIEWING", "COMPLETED", "CANCELLED"] as const satisfies readonly ImportBatchStatus[];
 
 /** Generic extraction kinds — infrastructure vocabulary, never game-specific (no SPELL_EFFECT, WEAPON_RULE, ...). */
 export const EXTRACTION_CANDIDATE_KINDS = ["ENTITY", "ENTITY_FIELD", "FORMULA", "REQUIREMENT", "KEYWORD", "RELATIONSHIP", "REFERENCE", "UNKNOWN"] as const;
@@ -86,7 +95,11 @@ export const MAX_IMPORT_BATCH_LABEL_LENGTH = 300;
 export const MAX_IMPORT_TEXT_LENGTH = 4000;
 export const MAX_EXTRACTOR_KEY_LENGTH = 200;
 export const MAX_PAYLOAD_SCHEMA_KEY_LENGTH = 200;
-export const MAX_SUPPORTING_ANCHORS = 100;
+/**
+ * Raised from 100 to 10,000 in M3-WO3: a structural SECTION unit cites every directly-owned content node of its
+ * section as a supporting anchor, and a long section of the ~898-page Playtest Packet can own hundreds.
+ */
+export const MAX_SUPPORTING_ANCHORS = 10_000;
 export const MAX_CANDIDATES_PER_CALL = 5000;
 /** Extractor key / payload schema key syntax: lowercase dotted / dashed identifiers, e.g. "prowess.entity.skill". */
 export const IMPORT_IDENTIFIER_PATTERN = /^[a-z0-9]+(?:[.\-_][a-z0-9]+)*$/;
@@ -117,7 +130,36 @@ export interface ImportBatch {
   /** SHA-256 (lowercase hex) of the versioned extraction-context preimage (PROWESS_IMPORT_BATCH_V1). */
   batchFingerprint: string;
   status: ImportBatchStatus;
+  /**
+   * M3-WO3: SHA-256 (lowercase hex) of the committed Candidate set (PROWESS_EXTRACTION_SET_V1 over `ordinal:fingerprint`
+   * in ordinal order), or null until extraction succeeds. Pins exactly which immutable Candidates the Batch produced.
+   */
+  extractionOutputHash: string | null;
+  /** M3-WO3: when the extracted Candidate set was committed, or null. Metadata only — never part of a fingerprint. */
+  extractedAt: Date | null;
   createdAt: Date;
+}
+
+/** M3-WO3: what an extraction run returns. */
+export interface ImportBatchExtractionResult {
+  batch: ImportBatch;
+  candidateCount: number;
+  extractionOutputHash: string;
+  summary: ImportBatchSummary;
+  /** true when the Batch was already extracted and the deterministic re-run matched the committed set. */
+  alreadyExtracted: boolean;
+}
+
+/** M3-WO3: an explicit re-verification of a committed extraction. */
+export interface ImportBatchExtractionVerification {
+  importBatchId: ImportBatchId;
+  storedOutputHash: string;
+  /** Recomputed from the Candidates actually stored (ordinal + fingerprint). */
+  persistedSetHash: string;
+  /** Recomputed by re-running the exact registered extractor over the exact pinned source structure. */
+  recomputedOutputHash: string;
+  persistedSetMatches: boolean;
+  extractorOutputMatches: boolean;
 }
 
 /** Derived (never persisted) counts over a Batch's Candidates. Every vocabulary value is present, zero or not. */

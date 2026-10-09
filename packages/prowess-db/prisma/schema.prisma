@@ -1949,6 +1949,13 @@ model ImportBatch {
 
   status ImportBatchStatus @default(CREATED)
 
+  /// M3-WO3 extraction workflow fields — set exactly once, in the same transaction that commits the Candidate set
+  /// and moves the Batch to READY_FOR_REVIEW. `extractionOutputHash` (PROWESS_EXTRACTION_SET_V1) pins which immutable
+  /// Candidates the Batch produced; `extractedAt` is metadata only. CHECK constraints (in the migration) tie both to
+  /// the status: null while CREATED / EXTRACTING, present from READY_FOR_REVIEW on.
+  extractionOutputHash String?   @map("extraction_output_hash")
+  extractedAt          DateTime? @map("extracted_at") @db.Timestamptz(6)
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   candidates ExtractionCandidate[]

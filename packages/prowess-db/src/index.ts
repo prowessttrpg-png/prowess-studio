@@ -112,6 +112,7 @@ export { createImportBatch, getImportBatch, getImportBatchSummary, listImportBat
 export type { CreateImportBatchResult } from "./import-batch/index.js";
 export { getExtractionCandidate, listExtractionCandidates, recordExtractionCandidates } from "./extraction-candidate/index.js";
 export type { RecordExtractionCandidatesResult } from "./extraction-candidate/index.js";
+export { extractImportBatch, getExtractionResult, verifyExtractionOutput } from "./extraction/index.js";
 export { listEntities } from "./entity-query/index.js";
 export type {
   EntityListItem,

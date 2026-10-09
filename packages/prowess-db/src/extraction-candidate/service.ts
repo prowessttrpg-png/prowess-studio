@@ -1,6 +1,8 @@
 import {
   DomainError,
   EXTRACTION_CANDIDATE_ERROR_CODES,
+  IMPORT_BATCH_ERROR_CODES,
+  INITIAL_IMPORT_BATCH_STATUS,
   isUuidString,
   MAX_CANDIDATES_PER_CALL,
   validateCreateExtractionCandidateInput,
@@ -64,23 +66,26 @@ interface Resolved {
  */
 export async function recordExtractionCandidates(importBatchId: string, candidates: CreateExtractionCandidateInput[]): Promise<RecordExtractionCandidatesResult> {
   const batch = await requireBatch(importBatchId);
+  if (batch.status !== INITIAL_IMPORT_BATCH_STATUS) throw notOpen(batch);
   if (!Array.isArray(candidates) || candidates.length === 0 || candidates.length > MAX_CANDIDATES_PER_CALL) {
     throw new DomainError(EXTRACTION_CANDIDATE_ERROR_CODES.INVALID_INPUT, `candidates must be a non-empty array of at most ${MAX_CANDIDATES_PER_CALL}`);
   }
   candidates.forEach((c, i) => validateCreateExtractionCandidateInput(c, `candidates[${i}]`));
 
-  const prepared = await prepare(batch, candidates);
+  const prepared = await prepareCandidates(batch, candidates);
   const unique = collapseWithinCall(prepared);
 
   const first = await classifyAgainstStored(batch.id, unique);
   if (first.toCreate.length > 0) {
     const outcome = await insertCandidates(batch.id, batch.sourceSnapshotId, first.toCreate);
+    if (outcome === "BATCH_NOT_OPEN") throw notOpen(batch);
     if (outcome === "UNIQUE_RACE") {
       // A concurrent call recorded some of these first. Re-evaluate: identical content is reused, anything else is a
       // conflict. Nothing of this attempt was written (the transaction rolled back), so retrying is safe.
       const second = await classifyAgainstStored(batch.id, unique);
       if (second.toCreate.length > 0) {
         const retry = await insertCandidates(batch.id, batch.sourceSnapshotId, second.toCreate);
+        if (retry === "BATCH_NOT_OPEN") throw notOpen(batch);
         if (retry === "UNIQUE_RACE") throw new DomainError(EXTRACTION_CANDIDATE_ERROR_CODES.CANDIDATE_CONFLICT, "Candidates of this Batch are being recorded concurrently with conflicting content; nothing was written");
       }
       return finish(batch.id, unique, second.toCreate.length);
@@ -95,8 +100,15 @@ async function finish(importBatchId: string, unique: readonly PreparedCandidate[
   return { candidates: stored, createdCount, reusedCount: unique.length - createdCount };
 }
 
-/** Resolves and verifies every anchor (existence, Snapshot, scope, verbatim excerpt) and computes fingerprints. */
-async function prepare(batch: ImportBatch, candidates: readonly CreateExtractionCandidateInput[]): Promise<PreparedCandidate[]> {
+/** M3-WO3: Candidates can be recorded only while the Batch is CREATED (before any extraction is committed). */
+const notOpen = (batch: ImportBatch) =>
+  new DomainError(IMPORT_BATCH_ERROR_CODES.EXTRACTION_CONFLICT, `ImportBatch ${batch.id} is no longer open for recording Candidates (it has been extracted); its committed Candidate set is immutable`);
+
+/**
+ * Resolves and verifies every anchor (existence, Snapshot, scope, verbatim excerpt) against the DATABASE and computes
+ * fingerprints. Internal to @prowess/db (also used by extraction to re-validate extractor output); not exported.
+ */
+export async function prepareCandidates(batch: ImportBatch, candidates: readonly CreateExtractionCandidateInput[]): Promise<PreparedCandidate[]> {
   const allAnchors = candidates.flatMap((c) => [c.primarySourceAnchor, ...(c.supportingSourceAnchors ?? [])]);
   const sectionIds = [...new Set(allAnchors.map((a) => a.sectionId).filter((x): x is string => typeof x === "string").map((x) => x.toLowerCase()))];
   const nodeIds = [...new Set(allAnchors.map((a) => a.contentNodeId).filter((x): x is string => typeof x === "string").map((x) => x.toLowerCase()))];

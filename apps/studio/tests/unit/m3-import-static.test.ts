@@ -113,16 +113,20 @@ describe("M3-WO2 persistence code boundaries", () => {
     const writes: string[] = [];
     for (const f of WO2_DB_FILES) {
       const src = strip(readFileSync(f, "utf8"));
-      expect(src, rel(f)).not.toMatch(/\$executeRaw|\$queryRaw|\b(?:tx|prisma)\.\w+\.(update|updateMany|upsert|delete|deleteMany)\(/);
-      for (const m of src.matchAll(/\b(?:tx|prisma)\.(\w+)\.(create|createMany)\(/g)) writes.push(`${m[1]}.${m[2]}`);
+      expect(src, rel(f)).not.toMatch(/\$executeRaw|\$queryRaw|\b(?:tx|prisma)\.\w+\.(update|upsert|delete|deleteMany)\(/);
+      for (const m of src.matchAll(/\b(?:tx|prisma)\.(\w+)\.(create|createMany|updateMany)\(/g)) writes.push(`${m[1]}.${m[2]}`);
     }
-    expect([...new Set(writes)].sort()).toEqual(["extractionCandidate.create", "extractionCandidateSource.createMany", "importBatch.create"]);
+    // M3-WO3 added exactly one updateMany: the no-op CREATED -> CREATED row-lock guard that keeps manual recording from
+    // interleaving with an extraction commit (pinned below to that exact shape).
+    expect([...new Set(writes)].sort()).toEqual(["extractionCandidate.create", "extractionCandidateSource.createMany", "importBatch.create", "importBatch.updateMany"]);
+    const guard = strip(read("packages", "prowess-db", "src", "extraction-candidate", "repository.ts"));
+    expect([...guard.matchAll(/importBatch\.updateMany\(([^;]*)\)/g)].map((m) => m[1]?.replace(/\s+/g, " "))).toEqual(["{ where: { id: importBatchId, status: INITIAL_IMPORT_BATCH_STATUS }, data: { status: INITIAL_IMPORT_BATCH_STATUS } }"]);
   });
 
   it("status is only ever written as the initial constant", () => {
     const repos = WO2_DB_FILES.filter((f) => f.endsWith("repository.ts")).map((f) => strip(readFileSync(f, "utf8"))).join("\n");
     const written = [...repos.matchAll(/\bstatus:\s*([\w.]+)/g)].map((m) => m[1]).filter((v) => v !== "row.status"); // row.status = reading back
-    expect(written.sort()).toEqual(["INITIAL_EXTRACTION_CANDIDATE_STATUS", "INITIAL_IMPORT_BATCH_STATUS"]);
+    expect([...new Set(written)].sort()).toEqual(["INITIAL_EXTRACTION_CANDIDATE_STATUS", "INITIAL_IMPORT_BATCH_STATUS"]);
     expect(repos).not.toMatch(/"(APPROVED|REJECTED|MATCHED|NEW_ENTITY|CONFLICT|NEEDS_MAPPING|EXTRACTING|READY_FOR_REVIEW|REVIEWING|COMPLETED|FAILED|CANCELLED)"/);
   });
 
@@ -180,7 +184,8 @@ describe("M3-WO2 no HTTP API, no Studio UI", () => {
     const names = new Set<string>();
     for (const m of root.matchAll(/export\s*\{([^}]*)\}/g)) for (const x of (m[1] as string).split(",")) { const t = x.trim().split(/\s+as\s+/).pop(); if (t) names.add(t); }
     expect([...names].filter((x) => /ImportBatch|ExtractionCandidate/.test(x)).sort()).toEqual(
-      ["createImportBatch", "getExtractionCandidate", "getImportBatch", "getImportBatchSummary", "listExtractionCandidates", "listImportBatches", "recordExtractionCandidates"].sort(),
+      // M3-WO3 added extractImportBatch (explicit extraction; pinned with its siblings in m3-structural-extraction-static).
+      ["createImportBatch", "extractImportBatch", "getExtractionCandidate", "getImportBatch", "getImportBatchSummary", "listExtractionCandidates", "listImportBatches", "recordExtractionCandidates"].sort(),
     );
     for (const x of names) expect(x).not.toMatch(/ImportDecision|approveCandidate|rejectCandidate|setImportBatchStatus|updateExtraction|deleteExtraction|replaceCandidate/);
   });

@@ -117,3 +117,25 @@ export function extractionCandidateFingerprintPreimage(input: ExtractionCandidat
 export function extractionCandidateFingerprint(input: ExtractionCandidateFingerprintInput): string {
   return sha256Hex(extractionCandidateFingerprintPreimage(input));
 }
+
+/** M3-WO3: versioned format of a Batch's committed Candidate set. */
+export const EXTRACTION_SET_HASH_VERSION = "PROWESS_EXTRACTION_SET_V1";
+
+/**
+ * ```
+ * PROWESS_EXTRACTION_SET_V1
+ * 1:<candidateFingerprint>
+ * 2:<candidateFingerprint>
+ * ...
+ * ```
+ * One line per Candidate in ascending ordinal order, joined by "\n" (an empty set is the version line alone). SHA-256,
+ * lowercase hex. Proves exactly which immutable Candidate set a Batch produced.
+ */
+export function extractionSetPreimage(entries: ReadonlyArray<{ ordinal: number; candidateFingerprint: string }>): string {
+  const sorted = [...entries].sort((a, b) => a.ordinal - b.ordinal);
+  return [EXTRACTION_SET_HASH_VERSION, ...sorted.map((e) => `${e.ordinal}:${e.candidateFingerprint}`)].join("\n");
+}
+
+export function extractionSetHash(entries: ReadonlyArray<{ ordinal: number; candidateFingerprint: string }>): string {
+  return sha256Hex(extractionSetPreimage(entries));
+}

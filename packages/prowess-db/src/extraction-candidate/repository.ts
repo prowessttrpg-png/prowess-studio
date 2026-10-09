@@ -3,6 +3,7 @@ import {
   ExtractionCandidateSourceId,
   ImportBatchId,
   INITIAL_EXTRACTION_CANDIDATE_STATUS,
+  INITIAL_IMPORT_BATCH_STATUS,
   SourceContentNodeId,
   SourceSectionId,
   SourceSnapshotId,
@@ -160,10 +161,16 @@ export interface PreparedCandidate {
  * "UNIQUE_RACE" when a concurrent call took one of the (batch, ordinal) / (batch, fingerprint) keys first; nothing
  * of this call is then written and the service re-evaluates against the database.
  */
-export async function insertCandidates(importBatchId: string, sourceSnapshotId: string, prepared: readonly PreparedCandidate[]): Promise<"OK" | "UNIQUE_RACE"> {
+class BatchNotOpen extends Error {}
+
+export async function insertCandidates(importBatchId: string, sourceSnapshotId: string, prepared: readonly PreparedCandidate[]): Promise<"OK" | "UNIQUE_RACE" | "BATCH_NOT_OPEN"> {
   try {
     await prisma.$transaction(
       async (tx) => {
+        // M3-WO3 guard: a no-op conditional write that row-locks the Batch and proves it is still CREATED, so manual
+        // recording can never interleave with (or follow) a committed extraction and invalidate its output hash.
+        const open = await tx.importBatch.updateMany({ where: { id: importBatchId, status: INITIAL_IMPORT_BATCH_STATUS }, data: { status: INITIAL_IMPORT_BATCH_STATUS } });
+        if (open.count !== 1) throw new BatchNotOpen();
         for (const c of prepared) {
           const created = await tx.extractionCandidate.create({
             data: {
@@ -197,6 +204,7 @@ export async function insertCandidates(importBatchId: string, sourceSnapshotId: 
     );
     return "OK";
   } catch (error) {
+    if (error instanceof BatchNotOpen) return "BATCH_NOT_OPEN";
     if (isUniqueViolation(error, { constraint: CANDIDATE_ORDINAL_UNIQUE, fields: ["import_batch_id", "ordinal"] })) return "UNIQUE_RACE";
     if (isUniqueViolation(error, { constraint: CANDIDATE_FINGERPRINT_UNIQUE, fields: ["import_batch_id", "candidate_fingerprint"] })) return "UNIQUE_RACE";
     throw error;
