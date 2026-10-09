@@ -24,6 +24,7 @@ import {
   SOURCE_PARSE_ERROR_CODES,
   IMPORT_BATCH_ERROR_CODES,
   EXTRACTION_CANDIDATE_ERROR_CODES,
+  IMPORT_MATCH_ERROR_CODES,
   type EntityAliasErrorCode,
   type EntityErrorCode,
   type EntityVersionErrorCode,
@@ -48,6 +49,7 @@ import {
   type SourceParseErrorCode,
   type ImportBatchErrorCode,
   type ExtractionCandidateErrorCode,
+  type ImportMatchErrorCode,
 } from "@prowess/model";
 import { NextResponse } from "next/server";
 
@@ -121,7 +123,8 @@ type KnownDomainErrorCode =
   | SourceAssetErrorCode
   | SourceParseErrorCode
   | ImportBatchErrorCode
-  | ExtractionCandidateErrorCode;
+  | ExtractionCandidateErrorCode
+  | ImportMatchErrorCode;
 
 /**
  * Centralized `DomainError.code` -> HTTP status mapping (PAS-10 M1-WO8
@@ -372,6 +375,17 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [IMPORT_BATCH_ERROR_CODES.NONDETERMINISTIC_OUTPUT]: 409,
   [IMPORT_BATCH_ERROR_CODES.ALREADY_REVIEWING]: 409,
   [IMPORT_BATCH_ERROR_CODES.NOT_EXTRACTED]: 409,
+  // Identity matching (M3-WO4). No routes yet (WO7). The addressed MatchRun 404; a referenced Batch / bad options 400;
+  // state clashes and integrity failures against stored history 409; a defective matcher an explicit, safe 500.
+  [IMPORT_MATCH_ERROR_CODES.NOT_FOUND]: 404,
+  [IMPORT_MATCH_ERROR_CODES.BATCH_NOT_FOUND]: 400,
+  [IMPORT_MATCH_ERROR_CODES.BATCH_NOT_EXTRACTED]: 409,
+  [IMPORT_MATCH_ERROR_CODES.MATCHER_NOT_FOUND]: 400,
+  [IMPORT_MATCH_ERROR_CODES.INVALID_INPUT]: 400,
+  [IMPORT_MATCH_ERROR_CODES.CATALOG_INTEGRITY_FAILURE]: 409,
+  [IMPORT_MATCH_ERROR_CODES.NONDETERMINISTIC_RESULT]: 409,
+  [IMPORT_MATCH_ERROR_CODES.MATCH_CONFLICT]: 409,
+  [IMPORT_MATCH_ERROR_CODES.INVALID_MATCHER_OUTPUT]: 500,
 } satisfies Record<KnownDomainErrorCode, number>;
 
 /**

@@ -34,3 +34,36 @@ export {
 } from "./structural-v1.js";
 export type { StructuralExtractionUnit, StructuralUnitType } from "./structural-v1.js";
 export { defaultExtractorRegistry, OFFICIAL_EXTRACTORS } from "./registry.js";
+export {
+  defaultMatcherRegistry,
+  editSimilarity,
+  ENTITY_CATALOG_HASH_VERSION,
+  ENTITY_MATCHER_KEY,
+  ENTITY_MATCHER_V1_DEFAULT_CONFIG,
+  ENTITY_MATCHER_VERSION,
+  entityCatalogHash,
+  entityMatcherV1,
+  IMPORT_MATCH_RESULT_HASH_VERSION,
+  IMPORT_MATCH_RUN_FINGERPRINT_VERSION,
+  importMatchResultHash,
+  importMatchRunFingerprint,
+  isIdentityCandidate,
+  matcherConfigHash,
+  MatcherRegistry,
+  MatchingError,
+  OFFICIAL_MATCHERS,
+  resolveMatcherConfig,
+  runMatching,
+} from "./matcher.js";
+export type {
+  DuplicateGroupOutput,
+  EntityIdentityRecord,
+  ImportMatchRunFingerprintInput,
+  MatchAssessmentOutput,
+  MatchCandidateInput,
+  MatcherDefinition,
+  MatcherOutput,
+  MatchingErrorKind,
+  MatchingRun,
+  MatchSuggestionOutput,
+} from "./matcher.js";

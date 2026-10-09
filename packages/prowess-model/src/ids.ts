@@ -216,3 +216,19 @@ export type ExtractionCandidateSourceId = Brand<string, "ExtractionCandidateSour
 export const ExtractionCandidateSourceId = {
   of: (value: string) => asBrand<string, "ExtractionCandidateSourceId">(value),
 };
+
+/** Opaque, immutable UUID identity of an ImportMatchRun — one exact identity-matching analysis (PAS-10 M3-WO4). */
+export type ImportMatchRunId = Brand<string, "ImportMatchRunId">;
+export const ImportMatchRunId = { of: (value: string) => asBrand<string, "ImportMatchRunId">(value) };
+
+/** Opaque, immutable UUID identity of a CandidateMatchAssessment (PAS-10 M3-WO4). */
+export type CandidateMatchAssessmentId = Brand<string, "CandidateMatchAssessmentId">;
+export const CandidateMatchAssessmentId = { of: (value: string) => asBrand<string, "CandidateMatchAssessmentId">(value) };
+
+/** Opaque, immutable UUID identity of a CandidateMatchSuggestion (PAS-10 M3-WO4). */
+export type CandidateMatchSuggestionId = Brand<string, "CandidateMatchSuggestionId">;
+export const CandidateMatchSuggestionId = { of: (value: string) => asBrand<string, "CandidateMatchSuggestionId">(value) };
+
+/** Opaque, immutable UUID identity of a CandidateDuplicateGroup (PAS-10 M3-WO4). */
+export type CandidateDuplicateGroupId = Brand<string, "CandidateDuplicateGroupId">;
+export const CandidateDuplicateGroupId = { of: (value: string) => asBrand<string, "CandidateDuplicateGroupId">(value) };

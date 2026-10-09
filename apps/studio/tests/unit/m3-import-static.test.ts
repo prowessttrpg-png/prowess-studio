@@ -145,7 +145,10 @@ describe("M3-WO2 persistence code boundaries", () => {
   });
 
   it("contains no semantic rule interpretation and no Entity matching", () => {
-    for (const f of [...WO2_DB_FILES, ...IMPORT_PKG_FILES]) {
+    // M3-WO4's identity matcher (packages/prowess-import/src/matcher.ts) legitimately performs Entity matching and fuzzy
+    // similarity; it (and the package barrel that re-exports it) is excluded by exact path here and audited instead by
+    // m3-entity-matching-static.
+    for (const f of [...WO2_DB_FILES, ...IMPORT_PKG_FILES.filter((x) => !x.endsWith(`${path.sep}matcher.ts`) && !x.endsWith(`${path.sep}index.ts`))]) {
       const src = strip(readFileSync(f, "utf8"));
       expect(src, rel(f)).not.toMatch(/MP\s*=|AP\s*=|Spell Effect|Requires\s+(Trained|Expert|Master)|\bspell\w*|\bdamage\w*|\bmaneuver\w*|\bweapon\w*|findEntit\w*|matchEntit\w*|similarity|levenshtein|fuzzy/i);
       expect(src, rel(f)).not.toMatch(/\.(includes|startsWith|match|test)\(\s*["'`/][^"'`/]*(MP|Spell|Requires|Formula)/);
@@ -185,7 +188,8 @@ describe("M3-WO2 no HTTP API, no Studio UI", () => {
     for (const m of root.matchAll(/export\s*\{([^}]*)\}/g)) for (const x of (m[1] as string).split(",")) { const t = x.trim().split(/\s+as\s+/).pop(); if (t) names.add(t); }
     expect([...names].filter((x) => /ImportBatch|ExtractionCandidate/.test(x)).sort()).toEqual(
       // M3-WO3 added extractImportBatch (explicit extraction; pinned with its siblings in m3-structural-extraction-static).
-      ["createImportBatch", "extractImportBatch", "getExtractionCandidate", "getImportBatch", "getImportBatchSummary", "listExtractionCandidates", "listImportBatches", "recordExtractionCandidates"].sort(),
+      // M3-WO4 added analyzeImportBatchMatches (identity analysis; pinned in m3-entity-matching-static).
+      ["analyzeImportBatchMatches", "createImportBatch", "extractImportBatch", "getExtractionCandidate", "getImportBatch", "getImportBatchSummary", "listExtractionCandidates", "listImportBatches", "recordExtractionCandidates"].sort(),
     );
     for (const x of names) expect(x).not.toMatch(/ImportDecision|approveCandidate|rejectCandidate|setImportBatchStatus|updateExtraction|deleteExtraction|replaceCandidate/);
   });

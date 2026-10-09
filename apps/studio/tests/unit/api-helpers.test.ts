@@ -24,6 +24,7 @@ import {
   SOURCE_PARSE_ERROR_CODES,
   IMPORT_BATCH_ERROR_CODES,
   EXTRACTION_CANDIDATE_ERROR_CODES,
+  IMPORT_MATCH_ERROR_CODES,
 } from "@prowess/model";
 import { describe, expect, it } from "vitest";
 import {
@@ -74,6 +75,7 @@ const ALL_KNOWN_DOMAIN_ERROR_CODES = [
   ...Object.values(SOURCE_PARSE_ERROR_CODES),
   ...Object.values(IMPORT_BATCH_ERROR_CODES),
   ...Object.values(EXTRACTION_CANDIDATE_ERROR_CODES),
+  ...Object.values(IMPORT_MATCH_ERROR_CODES),
 ];
 
 describe("statusForDomainErrorCode", () => {
