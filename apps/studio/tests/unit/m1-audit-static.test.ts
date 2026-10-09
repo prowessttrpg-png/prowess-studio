@@ -101,6 +101,12 @@ describe("M1 audit — enum parity between Prisma schema and @prowess/model (§1
     SourceContentNodeType: model.SOURCE_CONTENT_NODE_TYPES,
     SourceAssetType: model.SOURCE_ASSET_TYPES,
     SourcePageLocationBasis: model.SOURCE_PAGE_LOCATION_BASES,
+    // M3-WO2 import batches & extraction candidates
+    ImportBatchScopeType: model.IMPORT_BATCH_SCOPE_TYPES,
+    ImportBatchStatus: model.IMPORT_BATCH_STATUSES,
+    ExtractionCandidateKind: model.EXTRACTION_CANDIDATE_KINDS,
+    ExtractionConfidence: model.EXTRACTION_CONFIDENCES,
+    ExtractionCandidateStatus: model.EXTRACTION_CANDIDATE_STATUSES,
   };
 
   const schemaEnums = new Map<string, string[]>(
@@ -128,7 +134,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
   >;
   const allCodes = vocabularies.flatMap(([, codes]) => Object.values(codes));
 
-  it("exports the twenty-two vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5, CanonDecision M2-WO6, ChangeSet M2-WO7, RulesetRelease M2-WO8, MigrationPlan M2-WO11, SourceSnapshot / SourceStructure / SourceAsset / SourceParse M3-WO1)", () => {
+  it("exports the twenty-four vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5, CanonDecision M2-WO6, ChangeSet M2-WO7, RulesetRelease M2-WO8, MigrationPlan M2-WO11, SourceSnapshot / SourceStructure / SourceAsset / SourceParse M3-WO1, ImportBatch / ExtractionCandidate M3-WO2)", () => {
     expect(vocabularies.map(([name]) => name).sort()).toEqual(
       [
         "ENTITY_ALIAS_ERROR_CODES",
@@ -153,6 +159,8 @@ describe("M1 audit — error vocabulary (§17)", () => {
         "SOURCE_STRUCTURE_ERROR_CODES",
         "SOURCE_ASSET_ERROR_CODES",
         "SOURCE_PARSE_ERROR_CODES",
+        "IMPORT_BATCH_ERROR_CODES",
+        "EXTRACTION_CANDIDATE_ERROR_CODES",
       ].sort(),
     );
   });
@@ -219,7 +227,7 @@ describe("M1 audit — migration chain (§26)", () => {
     const M2 = ["20261004233000_add_ruleset_foundation", "20261005001500_add_ruleset_manifest", "20261005120000_add_manifest_inheritance", "20261005220000_add_canon_policy", "20261006010000_add_rule_conflicts", "20261007010000_add_canon_decisions", "20261008010000_add_change_sets", "20261009010000_add_ruleset_releases", "20261010010000_add_migration_plans"];
     expect(names.slice(0, M1.length)).toEqual(M1);
     // M3 migrations are appended deliberately too.
-    const M3 = ["20261011010000_add_source_structure"];
+    const M3 = ["20261011010000_add_source_structure", "20261012010000_add_import_batches_candidates"];
     expect(names).toEqual([...M1, ...M2, ...M3]);
     expect([...names].sort()).toEqual(names);
     expect(new Set(names.map((n) => n.slice(0, 14))).size).toBe(names.length);
@@ -265,7 +273,9 @@ describe("M1 audit — workspace layering (§29)", () => {
     "packages/prowess-model": [],
     "packages/prowess-ui": [],
     "packages/prowess-test-fixtures": [],
-    "packages/prowess-db": ["@prowess/model"],
+    // M3-WO2: @prowess/db may use @prowess/import's pure helpers; @prowess/import depends only on @prowess/model.
+    "packages/prowess-db": ["@prowess/import", "@prowess/model"],
+    "packages/prowess-import": ["@prowess/model"],
     "apps/studio": ["@prowess/db", "@prowess/model", "@prowess/ui"],
   };
 

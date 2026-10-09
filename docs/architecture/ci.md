@@ -129,6 +129,7 @@ extend). Two things are checked:
 | --- | --- | --- |
 | `@prowess/model` | nothing framework-specific | `next`, `react`, `react-dom`, `@prisma/client`, `@prisma/adapter-pg`, `prisma`, `pg`, `@prowess/db`, `@prowess/ui` |
 | `@prowess/db` | Prisma, `@prowess/model` (not yet a real dependency, but permitted) | `react`, `react-dom`, `next`, `@prowess/ui` |
+| `@prowess/import` (M3-WO2) | `@prowess/model`, Node's standard library (`node:crypto`) | `@prowess/db`, `@prisma/client`, `@prisma/adapter-pg`, `prisma`, `pg`, `next`, `react`, `react-dom`, `@prowess/ui`, anything under `apps/studio` or `generated/prisma` |
 | `@prowess/ui` | React | `@prisma/client`, `@prisma/adapter-pg`, `prisma`, `pg`, `@prowess/db` |
 | `apps/studio` (`app/`) | the packages below it | `@prisma/client`, `@prisma/adapter-pg`, `prisma` directly (must always go through `@prowess/db`) |
 | `apps/studio` (`src/`) | the packages below it | same as `app/` — application-level modules (config, navigation) are held to the same standard |

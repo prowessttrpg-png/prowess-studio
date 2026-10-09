@@ -198,3 +198,21 @@ export type SourceContentNodeId = Brand<string, "SourceContentNodeId">;
 export const SourceContentNodeId = {
   of: (value: string) => asBrand<string, "SourceContentNodeId">(value),
 };
+
+/** Opaque, immutable UUID identity of an ImportBatch — one reproducible extraction attempt (PAS-10 M3-WO2). */
+export type ImportBatchId = Brand<string, "ImportBatchId">;
+export const ImportBatchId = {
+  of: (value: string) => asBrand<string, "ImportBatchId">(value),
+};
+
+/** Opaque, immutable UUID identity of an ExtractionCandidate — one proposed piece of extracted information (M3-WO2). */
+export type ExtractionCandidateId = Brand<string, "ExtractionCandidateId">;
+export const ExtractionCandidateId = {
+  of: (value: string) => asBrand<string, "ExtractionCandidateId">(value),
+};
+
+/** Opaque, immutable UUID identity of an ExtractionCandidateSource — one supporting source anchor (M3-WO2). */
+export type ExtractionCandidateSourceId = Brand<string, "ExtractionCandidateSourceId">;
+export const ExtractionCandidateSourceId = {
+  of: (value: string) => asBrand<string, "ExtractionCandidateSourceId">(value),
+};

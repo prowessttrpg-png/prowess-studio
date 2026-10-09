@@ -22,6 +22,8 @@ import {
   SOURCE_STRUCTURE_ERROR_CODES,
   SOURCE_ASSET_ERROR_CODES,
   SOURCE_PARSE_ERROR_CODES,
+  IMPORT_BATCH_ERROR_CODES,
+  EXTRACTION_CANDIDATE_ERROR_CODES,
   type EntityAliasErrorCode,
   type EntityErrorCode,
   type EntityVersionErrorCode,
@@ -44,6 +46,8 @@ import {
   type SourceStructureErrorCode,
   type SourceAssetErrorCode,
   type SourceParseErrorCode,
+  type ImportBatchErrorCode,
+  type ExtractionCandidateErrorCode,
 } from "@prowess/model";
 import { NextResponse } from "next/server";
 
@@ -115,7 +119,9 @@ type KnownDomainErrorCode =
   | SourceSnapshotErrorCode
   | SourceStructureErrorCode
   | SourceAssetErrorCode
-  | SourceParseErrorCode;
+  | SourceParseErrorCode
+  | ImportBatchErrorCode
+  | ExtractionCandidateErrorCode;
 
 /**
  * Centralized `DomainError.code` -> HTTP status mapping (PAS-10 M1-WO8
@@ -337,6 +343,24 @@ const DOMAIN_ERROR_STATUS_MAP = {
   // Well-formed request, but the payload is not a processable instance of its declared format.
   [SOURCE_PARSE_ERROR_CODES.UNSUPPORTED_FORMAT]: 415,
   [SOURCE_PARSE_ERROR_CODES.MALFORMED_SOURCE]: 422,
+
+  // Import Batches & Extraction Candidates (M3-WO2). No routes yet (the Import API is M3-WO7); each code still gets a
+  // deliberate status now. Addressed resources 404; referenced Snapshot / section / Ruleset / Manifest and every shape
+  // problem 400; clashes with stored state 409.
+  [IMPORT_BATCH_ERROR_CODES.NOT_FOUND]: 404,
+  [IMPORT_BATCH_ERROR_CODES.SOURCE_SNAPSHOT_NOT_FOUND]: 400,
+  // The Snapshot exists but is not ingested yet — a clash with its current state, not a malformed request.
+  [IMPORT_BATCH_ERROR_CODES.SOURCE_STRUCTURE_NOT_READY]: 409,
+  [IMPORT_BATCH_ERROR_CODES.INVALID_SCOPE]: 400,
+  [IMPORT_BATCH_ERROR_CODES.INVALID_COMPARISON_CONTEXT]: 400,
+  [IMPORT_BATCH_ERROR_CODES.INVALID_INPUT]: 400,
+  [IMPORT_BATCH_ERROR_CODES.CONFLICT]: 409,
+  [EXTRACTION_CANDIDATE_ERROR_CODES.NOT_FOUND]: 404,
+  [EXTRACTION_CANDIDATE_ERROR_CODES.INVALID_INPUT]: 400,
+  [EXTRACTION_CANDIDATE_ERROR_CODES.INVALID_SOURCE_ANCHOR]: 400,
+  [EXTRACTION_CANDIDATE_ERROR_CODES.OUTSIDE_BATCH_SCOPE]: 400,
+  [EXTRACTION_CANDIDATE_ERROR_CODES.ORDINAL_CONFLICT]: 409,
+  [EXTRACTION_CANDIDATE_ERROR_CODES.CANDIDATE_CONFLICT]: 409,
 } satisfies Record<KnownDomainErrorCode, number>;
 
 /**

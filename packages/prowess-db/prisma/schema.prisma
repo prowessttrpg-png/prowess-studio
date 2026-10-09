@@ -887,6 +887,9 @@ model Ruleset {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([parentRulesetId], map: "rulesets_parent_ruleset_id_idx")
+  /// Import Batches naming this Ruleset as REVIEW CONTEXT only (M3-WO2) — never a destination or anything mutated.
+  importBatches ImportBatch[]
+
   @@map("rulesets")
 }
 
@@ -935,6 +938,9 @@ model RulesetManifest {
   releases RulesetRelease[]
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  /// Import Batches pinning this exact Manifest as a historical comparison baseline (M3-WO2). A relation list only.
+  importBatches ImportBatch[]
 
   @@unique([rulesetId, manifestVersion], map: "ruleset_manifests_ruleset_id_manifest_version_key")
   /// Target of ChangeSetOperation's composite key (M2-WO7): an analyzed manifest belongs to the ChangeSet's
@@ -1609,6 +1615,11 @@ model SourceSnapshot {
   contentNodes     SourceContentNode[]
   sourceReferences SourceReference[]
 
+  /// Import Batches run against this exact Snapshot (M3-WO2). A relation list only.
+  importBatches        ImportBatch[]
+  extractionCandidates ExtractionCandidate[]
+  candidateSources     ExtractionCandidateSource[]
+
   @@unique([sourceDocumentId, contentHash], map: "source_snapshots_document_content_hash_key")
   /// Target of SourceReference's composite key: a reference's Snapshot must belong to the reference's document.
   @@unique([id, sourceDocumentId], map: "source_snapshots_id_document_key")
@@ -1632,6 +1643,11 @@ model SourceSnapshotIngestion {
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
+  importBatches ImportBatch[]
+
+  /// Target of ImportBatch's composite key (M3-WO2): a Batch can only pin a structure hash this Snapshot was
+  /// actually ingested with. `source_snapshot_id` is already unique, so this adds no real constraint.
+  @@unique([sourceSnapshotId, structureHash], map: "source_snapshot_ingestions_snapshot_structure_hash_key")
   @@map("source_snapshot_ingestions")
 }
 
@@ -1661,6 +1677,11 @@ model SourceSection {
   assetPlacements  SourceAssetPlacement[]
   contentNodes     SourceContentNode[]
   sourceReferences SourceReference[]
+
+  /// M3-WO2 back-relations (lists only).
+  importBatchScopes    ImportBatch[]
+  primaryForCandidates ExtractionCandidate[]
+  candidateSources     ExtractionCandidateSource[]
 
   @@unique([id, sourceSnapshotId], map: "source_sections_id_snapshot_key")
   @@unique([sourceSnapshotId, ordinal], map: "source_sections_snapshot_ordinal_key")
@@ -1821,7 +1842,197 @@ model SourceContentNode {
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
+  /// M3-WO2 back-relations (lists only).
+  primaryForCandidates ExtractionCandidate[]
+  candidateSources     ExtractionCandidateSource[]
+
+  /// Target of the M3-WO2 candidate anchor composite keys: an anchored node must be of the candidate's Snapshot.
+  @@unique([id, sourceSnapshotId], map: "source_content_nodes_id_snapshot_key")
   @@unique([sourceSnapshotId, ordinal], map: "source_content_nodes_snapshot_ordinal_key")
   @@index([sourceSectionId], map: "source_content_nodes_source_section_id_idx")
   @@map("source_content_nodes")
+}
+
+// ---------------------------------------------------------------------------
+// M3-WO2 — Import Batches & Extraction Candidates.
+//
+//   SourceSnapshot -> ImportBatch -> ExtractionCandidate (UNREVIEWED) -> ExtractionCandidateSource (supporting)
+//
+// INSERT-ONLY in WO2: no update or delete service exists. Every structural anchor is a COMPOSITE foreign key over
+// (id, source_snapshot_id), and every child repeats its Batch's Snapshot through a composite key, so no Batch or
+// Candidate can reference structure of another Snapshot. All foreign keys are ON DELETE RESTRICT. CHECK constraints
+// (scope shape, comparison context, exactly-one anchor, positive ordinals) live in the migration and are pinned by
+// the M3 static audit. Candidates are proposals only — see docs/architecture/m3-import-batches-candidates.md.
+// ---------------------------------------------------------------------------
+
+/// What part of a Snapshot a Batch covers (M3-WO2). Lockstep with @prowess/model IMPORT_BATCH_SCOPE_TYPES.
+enum ImportBatchScopeType {
+  SNAPSHOT
+  SECTION_SUBTREE
+}
+
+/// Batch lifecycle (M3-WO2). RESERVED: WO2 writes only CREATED; transitions belong to WO3 / WO6.
+/// Lockstep with @prowess/model IMPORT_BATCH_STATUSES.
+enum ImportBatchStatus {
+  CREATED
+  EXTRACTING
+  READY_FOR_REVIEW
+  REVIEWING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+/// Generic extraction kinds (M3-WO2) — never game-specific. Lockstep with @prowess/model EXTRACTION_CANDIDATE_KINDS.
+enum ExtractionCandidateKind {
+  ENTITY
+  ENTITY_FIELD
+  FORMULA
+  REQUIREMENT
+  KEYWORD
+  RELATIONSHIP
+  REFERENCE
+  UNKNOWN
+}
+
+/// How confident the EXTRACTION was (M3-WO2). NOT source authority. Lockstep with @prowess/model EXTRACTION_CONFIDENCES.
+enum ExtractionConfidence {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+/// The PAS-07 candidate vocabulary (M3-WO2). WO2 writes only UNREVIEWED. APPROVED (future) means "approved by import
+/// review", never Canon. Lockstep with @prowess/model EXTRACTION_CANDIDATE_STATUSES.
+enum ExtractionCandidateStatus {
+  UNREVIEWED
+  MATCHED
+  NEW_ENTITY
+  CONFLICT
+  NEEDS_MAPPING
+  REJECTED
+  APPROVED
+}
+
+/// One reproducible extraction attempt against ONE exact, structurally-ingested SourceSnapshot (M3-WO2).
+/// `(sourceSnapshotId, sourceStructureHash)` is a composite key onto the Snapshot's ingestion record, so a Batch can
+/// exist only for an ingested Snapshot and only with the hash it was actually ingested with. Review Ruleset /
+/// comparison Manifest are exact historical CONTEXT ONLY; the Manifest must belong to that Ruleset (composite key).
+/// `batchFingerprint` (PROWESS_IMPORT_BATCH_V1) is the Batch's extraction identity; label/description are not part of it.
+model ImportBatch {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  sourceSnapshotId String         @map("source_snapshot_id") @db.Uuid
+  sourceSnapshot   SourceSnapshot @relation(fields: [sourceSnapshotId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "import_batches_snapshot_fkey")
+
+  sourceStructureHash String                  @map("source_structure_hash")
+  sourceIngestion     SourceSnapshotIngestion @relation(fields: [sourceSnapshotId, sourceStructureHash], references: [sourceSnapshotId, structureHash], onDelete: Restrict, onUpdate: Cascade, map: "import_batches_structure_hash_fkey")
+
+  label       String
+  description String?
+
+  scopeType      ImportBatchScopeType @map("scope_type")
+  scopeSectionId String?              @map("scope_section_id") @db.Uuid
+  scopeSection   SourceSection?       @relation(fields: [scopeSectionId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "import_batches_scope_section_fkey")
+
+  reviewRulesetId String?  @map("review_ruleset_id") @db.Uuid
+  reviewRuleset   Ruleset? @relation(fields: [reviewRulesetId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "import_batches_review_ruleset_fkey")
+
+  comparisonManifestId String?          @map("comparison_manifest_id") @db.Uuid
+  comparisonManifest   RulesetManifest? @relation(fields: [comparisonManifestId, reviewRulesetId], references: [id, rulesetId], onDelete: Restrict, onUpdate: Cascade, map: "import_batches_comparison_manifest_fkey")
+
+  extractorKey        String  @map("extractor_key")
+  extractorVersion    String  @map("extractor_version")
+  extractorConfigHash String? @map("extractor_config_hash")
+
+  batchFingerprint String @unique(map: "import_batches_batch_fingerprint_key") @map("batch_fingerprint")
+
+  status ImportBatchStatus @default(CREATED)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  candidates ExtractionCandidate[]
+
+  /// Target of ExtractionCandidate's composite key: a Candidate's Snapshot is its Batch's Snapshot.
+  @@unique([id, sourceSnapshotId], map: "import_batches_id_snapshot_key")
+  @@index([sourceSnapshotId], map: "import_batches_source_snapshot_id_idx")
+  @@index([status], map: "import_batches_status_idx")
+  @@index([reviewRulesetId], map: "import_batches_review_ruleset_id_idx")
+  @@index([comparisonManifestId], map: "import_batches_comparison_manifest_id_idx")
+  @@map("import_batches")
+}
+
+/// One immutable PROPOSED piece of extracted information (M3-WO2) — never authoritative game data, never an Entity.
+/// Exactly one primary anchor (section OR content node, CHECK), of the Batch's Snapshot (composite keys).
+/// `candidateFingerprint` (PROWESS_EXTRACTION_CANDIDATE_V1) excludes status, so review can never redefine identity.
+model ExtractionCandidate {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  importBatchId    String         @map("import_batch_id") @db.Uuid
+  sourceSnapshotId String         @map("source_snapshot_id") @db.Uuid
+  importBatch      ImportBatch    @relation(fields: [importBatchId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "extraction_candidates_batch_fkey")
+  sourceSnapshot   SourceSnapshot @relation(fields: [sourceSnapshotId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "extraction_candidates_snapshot_fkey")
+
+  ordinal Int
+
+  candidateKind        ExtractionCandidateKind @map("candidate_kind")
+  proposedEntityType   EntityType?             @map("proposed_entity_type")
+  proposedCanonicalKey String?                 @map("proposed_canonical_key")
+
+  displayLabel String  @map("display_label")
+  summary      String?
+
+  confidence ExtractionConfidence
+  status     ExtractionCandidateStatus @default(UNREVIEWED)
+
+  payloadSchemaKey     String @map("payload_schema_key")
+  payloadSchemaVersion Int    @map("payload_schema_version")
+  payloadJson          Json   @map("payload_json")
+
+  candidateFingerprint String @map("candidate_fingerprint")
+
+  primarySourceSectionId     String?            @map("primary_source_section_id") @db.Uuid
+  primarySourceSection       SourceSection?     @relation(fields: [primarySourceSectionId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "extraction_candidates_primary_section_fkey")
+  primarySourceContentNodeId String?            @map("primary_source_content_node_id") @db.Uuid
+  primarySourceContentNode   SourceContentNode? @relation(fields: [primarySourceContentNodeId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "extraction_candidates_primary_content_node_fkey")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  supportingSources ExtractionCandidateSource[]
+
+  @@unique([importBatchId, ordinal], map: "extraction_candidates_batch_ordinal_key")
+  @@unique([importBatchId, candidateFingerprint], map: "extraction_candidates_batch_fingerprint_key")
+  /// Target of ExtractionCandidateSource's composite key.
+  @@unique([id, sourceSnapshotId], map: "extraction_candidates_id_snapshot_key")
+  @@index([status], map: "extraction_candidates_status_idx")
+  @@index([confidence], map: "extraction_candidates_confidence_idx")
+  @@index([candidateKind], map: "extraction_candidates_candidate_kind_idx")
+  @@index([proposedEntityType], map: "extraction_candidates_proposed_entity_type_idx")
+  @@map("extraction_candidates")
+}
+
+/// A SUPPORTING source anchor of a Candidate (M3-WO2): additional evidence, never another Candidate. Exactly one of
+/// section / content node (CHECK), of the Candidate's Snapshot (composite keys). `excerpt`, when present, is verbatim
+/// text of the anchored block / table (service-verified). No finer locator exists in the WO1 location model, so none
+/// is stored; page numbers and offsets are never invented.
+model ExtractionCandidateSource {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  extractionCandidateId String              @map("extraction_candidate_id") @db.Uuid
+  sourceSnapshotId      String              @map("source_snapshot_id") @db.Uuid
+  extractionCandidate   ExtractionCandidate @relation(fields: [extractionCandidateId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "extraction_candidate_sources_candidate_fkey")
+  sourceSnapshot        SourceSnapshot      @relation(fields: [sourceSnapshotId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "extraction_candidate_sources_snapshot_fkey")
+
+  sourceSectionId     String?            @map("source_section_id") @db.Uuid
+  sourceSection       SourceSection?     @relation(fields: [sourceSectionId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "extraction_candidate_sources_section_fkey")
+  sourceContentNodeId String?            @map("source_content_node_id") @db.Uuid
+  sourceContentNode   SourceContentNode? @relation(fields: [sourceContentNodeId, sourceSnapshotId], references: [id, sourceSnapshotId], onDelete: Restrict, onUpdate: Cascade, map: "extraction_candidate_sources_content_node_fkey")
+
+  ordinal Int
+  excerpt String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([extractionCandidateId, ordinal], map: "extraction_candidate_sources_candidate_ordinal_key")
+  @@map("extraction_candidate_sources")
 }

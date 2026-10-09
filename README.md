@@ -18,6 +18,10 @@ packages/
                          is currently BLOCKED in some sandboxed
                          environments; read that doc before assuming
                          `pnpm db:*` commands will just work.
+  prowess-import/        Framework-independent, import-specific pure logic (M3-WO2):
+                         canonical JSON, ImportBatch / ExtractionCandidate
+                         fingerprints, source-scope helpers. Depends only on
+                         @prowess/model; used by @prowess/db.
   prowess-test-fixtures/ Shared test fixtures/factories (placeholder in M0).
 database/
   migrations/            Reserved — the real migrations live in

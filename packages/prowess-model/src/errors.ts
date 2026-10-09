@@ -574,3 +574,47 @@ export const SOURCE_PARSE_ERROR_CODES = {
 } as const;
 
 export type SourceParseErrorCode = (typeof SOURCE_PARSE_ERROR_CODES)[keyof typeof SOURCE_PARSE_ERROR_CODES];
+
+/**
+ * ImportBatch error codes (PAS-10 M3-WO2). The Batch is the addressed resource (NOT_FOUND -> 404); the Snapshot,
+ * scope section and comparison context are REFERENCED in the request (-> 400); a Snapshot whose structure is not yet
+ * ingested, or a write the database rejects, clashes with stored state (-> 409).
+ */
+export const IMPORT_BATCH_ERROR_CODES = {
+  /** The Batch asked for by id does not exist (including a malformed id). */
+  NOT_FOUND: "IMPORT_BATCH.NOT_FOUND",
+  /** The referenced SourceSnapshot does not exist. */
+  SOURCE_SNAPSHOT_NOT_FOUND: "IMPORT_BATCH.SOURCE_SNAPSHOT_NOT_FOUND",
+  /** The SourceSnapshot exists but its WO1 structural ingestion has not completed. Nothing is triggered. */
+  SOURCE_STRUCTURE_NOT_READY: "IMPORT_BATCH.SOURCE_STRUCTURE_NOT_READY",
+  /** Scope type / section mismatch, or a scope section that is not a section of the Batch's Snapshot. */
+  INVALID_SCOPE: "IMPORT_BATCH.INVALID_SCOPE",
+  /** A comparison Manifest without its Ruleset, an unknown Ruleset / Manifest, or a Manifest of another Ruleset. */
+  INVALID_COMPARISON_CONTEXT: "IMPORT_BATCH.INVALID_COMPARISON_CONTEXT",
+  /** Any other shape problem, including a forbidden server-controlled field (status, fingerprint, hash). */
+  INVALID_INPUT: "IMPORT_BATCH.INVALID_INPUT",
+  /** The database rejected the Batch in a way that is not an idempotent duplicate; nothing was written. */
+  CONFLICT: "IMPORT_BATCH.CONFLICT",
+} as const;
+
+export type ImportBatchErrorCode = (typeof IMPORT_BATCH_ERROR_CODES)[keyof typeof IMPORT_BATCH_ERROR_CODES];
+
+/**
+ * ExtractionCandidate error codes (PAS-10 M3-WO2). A rejected call records NOTHING (the whole group is atomic).
+ */
+export const EXTRACTION_CANDIDATE_ERROR_CODES = {
+  /** The Candidate asked for by id does not exist (including a malformed id). */
+  NOT_FOUND: "EXTRACTION_CANDIDATE.NOT_FOUND",
+  /** Shape problems, including a forbidden server-controlled field (status, fingerprint, sourceSnapshotId). */
+  INVALID_INPUT: "EXTRACTION_CANDIDATE.INVALID_INPUT",
+  /** An anchor names a section / content node that does not exist or belongs to another Snapshot, or an excerpt that is not verbatim source text. */
+  INVALID_SOURCE_ANCHOR: "EXTRACTION_CANDIDATE.INVALID_SOURCE_ANCHOR",
+  /** An anchor is a real part of the Snapshot but lies outside the Batch's section-subtree scope. */
+  OUTSIDE_BATCH_SCOPE: "EXTRACTION_CANDIDATE.OUTSIDE_BATCH_SCOPE",
+  /** The ordinal is already owned by a DIFFERENT Candidate of the Batch. Nothing is renumbered. */
+  ORDINAL_CONFLICT: "EXTRACTION_CANDIDATE.ORDINAL_CONFLICT",
+  /** The same extracted content (fingerprint) is already recorded with a different ordinal or summary. */
+  CANDIDATE_CONFLICT: "EXTRACTION_CANDIDATE.CANDIDATE_CONFLICT",
+} as const;
+
+export type ExtractionCandidateErrorCode = (typeof EXTRACTION_CANDIDATE_ERROR_CODES)[keyof typeof EXTRACTION_CANDIDATE_ERROR_CODES];

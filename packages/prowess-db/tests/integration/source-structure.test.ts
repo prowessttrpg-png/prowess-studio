@@ -488,8 +488,9 @@ describe("M3-WO1 source structure (prowess_studio_test only)", () => {
       const rows = await prisma.$queryRaw<Array<{ migration_name: string; finished_at: Date | null; rolled_back_at: Date | null }>>`
         SELECT migration_name, finished_at, rolled_back_at FROM _prisma_migrations ORDER BY migration_name`;
       const names = rows.filter((r) => r.rolled_back_at === null).map((r) => r.migration_name);
-      expect(names.at(-1)).toBe("20261011010000_add_source_structure");
-      expect(names.length).toBe(18);
+      // Exactly the 17 M1/M2 migrations precede it; later M3 migrations (M3-WO2 onward) may follow it.
+      expect(names.indexOf("20261011010000_add_source_structure")).toBe(17);
+      expect([...names].sort()).toEqual(names);
       expect(rows.every((r) => r.rolled_back_at !== null || r.finished_at !== null)).toBe(true);
     });
   });

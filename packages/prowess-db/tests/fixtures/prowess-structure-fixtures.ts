@@ -153,3 +153,21 @@ export const PLAYTEST_PACKET_MINIATURE: FxDocument = {
 };
 
 export const docx = (doc: FxDocument) => buildDocx(doc);
+
+/** M3-WO2 scope fixture: two top-level chapters so section-subtree Batches have an inside and an outside. */
+export const IMPORT_SCOPE: FxDocument = {
+  title: "Import scope fixture",
+  blocks: [
+    { kind: "p", text: "Preface before any heading." },
+    { kind: "heading", level: 1, text: "Spellcasting" },
+    { kind: "p", text: "Spells are built from modules." },
+    { kind: "heading", level: 2, text: "Targeting" },
+    { kind: "p", text: "A spell targets one creature in range." },
+    { kind: "heading", level: 2, text: "Effects" },
+    { kind: "p", text: "Damage equals (Power × 2) + Tier." },
+    { kind: "table", headerRows: 1, rows: [["Tier", "MP"], ["1", "3"], ["2", "5"]] },
+    { kind: "heading", level: 1, text: "Skills" },
+    { kind: "heading", level: 2, text: "Arcana" },
+    { kind: "p", text: "Arcana covers magical lore. Requires Expert rank to identify rituals." },
+  ],
+};
