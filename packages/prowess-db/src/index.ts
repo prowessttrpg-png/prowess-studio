@@ -121,6 +121,15 @@ export {
   listCandidateMatchAssessments,
   listImportMatchRuns,
 } from "./import-match/index.js";
+export {
+  analyzeImportConflicts,
+  completeImportReview,
+  getImportDecision,
+  getImportReviewSummary,
+  listImportDecisionsForBatch,
+  listImportDecisionsForCandidate,
+  reviewImportCandidate,
+} from "./import-review/index.js";
 export { listEntities } from "./entity-query/index.js";
 export type {
   EntityListItem,

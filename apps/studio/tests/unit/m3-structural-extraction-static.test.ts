@@ -115,7 +115,7 @@ describe("M3-WO3 orchestration writes and reads (@prowess/db/src/extraction)", (
     const repo = stripComments(read("packages", "prowess-db", "src", "extraction", "repository.ts"));
     expect([...new Set([...repo.matchAll(/\bstatus:\s*([\w.]+)/g)].map((m) => m[1]))].sort()).toEqual(["EXTRACTED_IMPORT_BATCH_STATUS", "EXTRACTING_IMPORT_BATCH_STATUS", "INITIAL_EXTRACTION_CANDIDATE_STATUS", "INITIAL_IMPORT_BATCH_STATUS"]);
     const surface = read("packages", "prowess-db", "src", "index.ts");
-    expect(surface).not.toMatch(/setImportBatchStatus|transitionImportBatch|approveCandidate|rejectCandidate|matchCandidate|ImportDecision/);
+    expect(surface).not.toMatch(/setImportBatchStatus|transitionImportBatch|approveCandidate|rejectCandidate|matchCandidate/); // ImportDecision arrived in M3-WO6
   });
 
   it("does no matching and touches no Entity / Keyword / conflict / decision / governance / source-authority code", () => {

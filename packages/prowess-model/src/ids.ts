@@ -232,3 +232,7 @@ export const CandidateMatchSuggestionId = { of: (value: string) => asBrand<strin
 /** Opaque, immutable UUID identity of a CandidateDuplicateGroup (PAS-10 M3-WO4). */
 export type CandidateDuplicateGroupId = Brand<string, "CandidateDuplicateGroupId">;
 export const CandidateDuplicateGroupId = { of: (value: string) => asBrand<string, "CandidateDuplicateGroupId">(value) };
+
+/** Opaque, immutable UUID identity of an ImportDecision — one append-only editorial review action (PAS-10 M3-WO6). */
+export type ImportDecisionId = Brand<string, "ImportDecisionId">;
+export const ImportDecisionId = { of: (value: string) => asBrand<string, "ImportDecisionId">(value) };

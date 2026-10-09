@@ -193,7 +193,7 @@ describe("M3-WO2 no HTTP API, no Studio UI", () => {
       // M3-WO4 added analyzeImportBatchMatches (identity analysis; pinned in m3-entity-matching-static).
       ["analyzeImportBatchMatches", "createImportBatch", "extractImportBatch", "getExtractionCandidate", "getImportBatch", "getImportBatchSummary", "listExtractionCandidates", "listImportBatches", "recordExtractionCandidates"].sort(),
     );
-    for (const x of names) expect(x).not.toMatch(/ImportDecision|approveCandidate|rejectCandidate|setImportBatchStatus|updateExtraction|deleteExtraction|replaceCandidate/);
+    for (const x of names) expect(x).not.toMatch(/approveCandidate|rejectCandidate|setImportBatchStatus|updateExtraction|deleteExtraction|replaceCandidate/);
   });
 });
 

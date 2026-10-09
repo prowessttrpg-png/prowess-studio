@@ -82,3 +82,12 @@ export {
 export type { SemanticFinding } from "./semantic-foundation-v1.js";
 export { parseAssignment, parseExpression } from "./semantic-formula.js";
 export type { FormulaParse } from "./semantic-formula.js";
+export {
+  analyzeConflictSignals,
+  hasRationale,
+  IMPORT_DECISION_FINGERPRINT_VERSION,
+  importDecisionFingerprint,
+  ruleFor,
+  validateReviewInputShape,
+} from "./review.js";
+export type { ConflictCandidateInput, ConflictGroupInput, ConflictSignalOutput, ImportDecisionFingerprintInput } from "./review.js";

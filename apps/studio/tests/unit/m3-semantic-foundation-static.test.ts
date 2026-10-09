@@ -32,8 +32,9 @@ describe("M3-WO5 database / migration status", () => {
   it("adds no migration (the 21 approved migrations are the whole chain) and no schema change", () => {
     const dir = path.join(ROOT, "packages", "prowess-db", "prisma", "migrations");
     const names = readdirSync(dir).filter((e) => statSync(path.join(dir, e)).isDirectory()).sort();
-    expect(names.length).toBe(21);
-    expect(names.at(-1)).toBe("20261014010000_add_import_entity_matching");
+    // WO5 itself appended nothing after WO4's migration (later Work Orders append their own, e.g. M3-WO6).
+    expect(names.indexOf("20261014010000_add_import_entity_matching")).toBe(20);
+    expect(names.slice(21)).toEqual(["20261015010000_add_import_decisions"]);
     expect(read("packages", "prowess-db", "prisma", "schema.prisma")).not.toMatch(/model (Semantic\w*|FormulaCandidate|RequirementCandidate|KeywordCandidate|SemanticImportBatch)/);
   });
 });
