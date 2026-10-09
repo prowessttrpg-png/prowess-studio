@@ -179,7 +179,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
   });
 
   const CONTROLLED_UNIONS =
-    "Entity|EntityVersion|EntityAlias|KeywordCategory|Keyword|KeywordAssignment|Relationship|SourceDocument|SourceReference".split("|").map((n) => `${n}ErrorCode`).join("|");
+    "Entity|EntityVersion|EntityAlias|KeywordCategory|Keyword|KeywordAssignment|Relationship|SourceDocument|SourceReference|ImportBatch".split("|").map((n) => `${n}ErrorCode`).join("|");
 
   it("every DomainError thrown in @prowess/db uses a controlled constant (or a parameter typed with a controlled union) — never a raw string", () => {
     const files = walk(path.join(ROOT, "packages", "prowess-db", "src"), isSource);
@@ -227,7 +227,7 @@ describe("M1 audit — migration chain (§26)", () => {
     const M2 = ["20261004233000_add_ruleset_foundation", "20261005001500_add_ruleset_manifest", "20261005120000_add_manifest_inheritance", "20261005220000_add_canon_policy", "20261006010000_add_rule_conflicts", "20261007010000_add_canon_decisions", "20261008010000_add_change_sets", "20261009010000_add_ruleset_releases", "20261010010000_add_migration_plans"];
     expect(names.slice(0, M1.length)).toEqual(M1);
     // M3 migrations are appended deliberately too.
-    const M3 = ["20261011010000_add_source_structure", "20261012010000_add_import_batches_candidates"];
+    const M3 = ["20261011010000_add_source_structure", "20261012010000_add_import_batches_candidates", "20261013010000_add_import_batch_extraction_output"];
     expect(names).toEqual([...M1, ...M2, ...M3]);
     expect([...names].sort()).toEqual(names);
     expect(new Set(names.map((n) => n.slice(0, 14))).size).toBe(names.length);

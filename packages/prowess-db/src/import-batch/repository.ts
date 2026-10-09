@@ -41,6 +41,8 @@ export function toDomainImportBatch(row: BatchRow): ImportBatch {
     extractorConfigHash: row.extractorConfigHash,
     batchFingerprint: row.batchFingerprint,
     status: row.status as ImportBatchStatus,
+    extractionOutputHash: row.extractionOutputHash,
+    extractedAt: row.extractedAt,
     createdAt: row.createdAt,
   };
 }

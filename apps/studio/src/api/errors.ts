@@ -361,6 +361,17 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [EXTRACTION_CANDIDATE_ERROR_CODES.OUTSIDE_BATCH_SCOPE]: 400,
   [EXTRACTION_CANDIDATE_ERROR_CODES.ORDINAL_CONFLICT]: 409,
   [EXTRACTION_CANDIDATE_ERROR_CODES.CANDIDATE_CONFLICT]: 409,
+  // Automated extraction (M3-WO3). State clashes are 409: an extractor this deployment does not register for the
+  // Batch's exact key@version, a Batch that is not extractable / not extracted / already in review, and a committed
+  // output the same extractor no longer reproduces (an integrity failure reported like
+  // MIGRATION_PLAN.MANIFEST_INTEGRITY_FAILURE). Invalid extractor output is a server-side defect, not anything the
+  // caller did, so it is an explicit 500 (like RULESET_MANIFEST.INHERITANCE_CYCLE) — never a raw stack trace.
+  [IMPORT_BATCH_ERROR_CODES.EXTRACTOR_NOT_FOUND]: 409,
+  [IMPORT_BATCH_ERROR_CODES.INVALID_EXTRACTOR_OUTPUT]: 500,
+  [IMPORT_BATCH_ERROR_CODES.EXTRACTION_CONFLICT]: 409,
+  [IMPORT_BATCH_ERROR_CODES.NONDETERMINISTIC_OUTPUT]: 409,
+  [IMPORT_BATCH_ERROR_CODES.ALREADY_REVIEWING]: 409,
+  [IMPORT_BATCH_ERROR_CODES.NOT_EXTRACTED]: 409,
 } satisfies Record<KnownDomainErrorCode, number>;
 
 /**

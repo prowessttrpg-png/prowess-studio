@@ -595,6 +595,18 @@ export const IMPORT_BATCH_ERROR_CODES = {
   INVALID_INPUT: "IMPORT_BATCH.INVALID_INPUT",
   /** The database rejected the Batch in a way that is not an idempotent duplicate; nothing was written. */
   CONFLICT: "IMPORT_BATCH.CONFLICT",
+  /** M3-WO3: no registered extractor matches the Batch's EXACT key + version (+ configuration). Nothing falls forward. */
+  EXTRACTOR_NOT_FOUND: "IMPORT_BATCH.EXTRACTOR_NOT_FOUND",
+  /** M3-WO3: the extractor threw, or its output failed validation; nothing was written and the Batch stays CREATED. */
+  INVALID_EXTRACTOR_OUTPUT: "IMPORT_BATCH.INVALID_EXTRACTOR_OUTPUT",
+  /** M3-WO3: the Batch cannot be extracted in its current state (e.g. it already holds manually recorded Candidates, or Candidates cannot be recorded because it is already extracted). */
+  EXTRACTION_CONFLICT: "IMPORT_BATCH.EXTRACTION_CONFLICT",
+  /** M3-WO3: the same exact extractor, Snapshot and structure now produce a different Candidate set than the one committed. Fails closed; history is never overwritten. */
+  NONDETERMINISTIC_OUTPUT: "IMPORT_BATCH.NONDETERMINISTIC_OUTPUT",
+  /** M3-WO3: the Batch has moved past READY_FOR_REVIEW (review / completion / cancellation); extraction is closed. */
+  ALREADY_REVIEWING: "IMPORT_BATCH.ALREADY_REVIEWING",
+  /** M3-WO3: an extraction result was requested for a Batch that has not been extracted. */
+  NOT_EXTRACTED: "IMPORT_BATCH.NOT_EXTRACTED",
 } as const;
 
 export type ImportBatchErrorCode = (typeof IMPORT_BATCH_ERROR_CODES)[keyof typeof IMPORT_BATCH_ERROR_CODES];
