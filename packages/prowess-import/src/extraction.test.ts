@@ -79,7 +79,7 @@ describe("registry: exact key + version only", () => {
     expect(defaultExtractorRegistry.find("prowess.structural", "2")).toBeNull();
     expect(defaultExtractorRegistry.find("prowess.structural", "1.0")).toBeNull();
     expect(defaultExtractorRegistry.find("manual-foundation", "1.0")).toBeNull();
-    expect(defaultExtractorRegistry.keys()).toEqual(["prowess.structural@1"]);
+    expect(defaultExtractorRegistry.keys()).toEqual(["prowess.semantic-foundation@1", "prowess.structural@1"]); // M3-WO5 registered the semantic extractor
   });
 
   it("an unknown exact extractor, or a configuration v1 does not accept, is EXTRACTOR_NOT_FOUND", () => {

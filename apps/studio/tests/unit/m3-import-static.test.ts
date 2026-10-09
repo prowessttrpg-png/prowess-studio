@@ -147,8 +147,10 @@ describe("M3-WO2 persistence code boundaries", () => {
   it("contains no semantic rule interpretation and no Entity matching", () => {
     // M3-WO4's identity matcher (packages/prowess-import/src/matcher.ts) legitimately performs Entity matching and fuzzy
     // similarity; it (and the package barrel that re-exports it) is excluded by exact path here and audited instead by
-    // m3-entity-matching-static.
-    for (const f of [...WO2_DB_FILES, ...IMPORT_PKG_FILES.filter((x) => !x.endsWith(`${path.sep}matcher.ts`) && !x.endsWith(`${path.sep}index.ts`))]) {
+    // m3-entity-matching-static. M3-WO5's explicit semantic extractor (semantic-*.ts) deliberately recognizes Formula /
+    // Requirement / Keyword statements; it is excluded by exact path and audited by m3-semantic-foundation-static.
+    const laterAudited = ["matcher.ts", "index.ts", "semantic-declarations.ts", "semantic-formula.ts", "semantic-foundation-v1.ts"];
+    for (const f of [...WO2_DB_FILES, ...IMPORT_PKG_FILES.filter((x) => !laterAudited.some((n) => x.endsWith(`${path.sep}${n}`)))]) {
       const src = strip(readFileSync(f, "utf8"));
       expect(src, rel(f)).not.toMatch(/MP\s*=|AP\s*=|Spell Effect|Requires\s+(Trained|Expert|Master)|\bspell\w*|\bdamage\w*|\bmaneuver\w*|\bweapon\w*|findEntit\w*|matchEntit\w*|similarity|levenshtein|fuzzy/i);
       expect(src, rel(f)).not.toMatch(/\.(includes|startsWith|match|test)\(\s*["'`/][^"'`/]*(MP|Spell|Requires|Formula)/);

@@ -347,7 +347,7 @@ describe("M3-WO3 structural extraction (prowess_studio_test only)", () => {
 
   describe("registry", () => {
     it("the default registry is exactly the official structural extractor", () => {
-      expect(defaultExtractorRegistry.keys()).toEqual(["prowess.structural@1"]);
+      expect(defaultExtractorRegistry.keys()).toEqual(["prowess.semantic-foundation@1", "prowess.structural@1"]); // M3-WO5 registered the semantic extractor
     });
     it("IMPORT_SCOPE fixture still extracts (WO2 fixtures remain usable)", async () => {
       const f = await ingested("import-scope", IMPORT_SCOPE);
