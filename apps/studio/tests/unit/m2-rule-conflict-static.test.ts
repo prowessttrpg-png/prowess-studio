@@ -141,7 +141,9 @@ describe("M2-WO5 — the conflict models record, never resolve", () => {
     expect(find("RuleConflict")?.body).toMatch(/status\s+RuleConflictStatus\s+@default\(OPEN\)/);
     const enums = [...SCHEMA.matchAll(/^enum (\w+)/gm)].map((m) => m[1]);
     // M2-WO6 added CanonDecisionType and CanonConflictDisposition (audited in m2-canon-decision-static); nothing else.
-    expect(enums.filter((n) => /conflict|decision|resolution|winner/i.test(n ?? "")).sort()).toEqual([
+    // M3-WO6's ImportDecisionType / ImportMatchDecisionBasis are IMPORT-REVIEW vocabularies (they never create or decide an
+    // M2 RuleConflict); they are excluded by exact name and audited by m3-import-review-static.
+    expect(enums.filter((n) => !["ImportDecisionType", "ImportMatchDecisionBasis"].includes(n ?? "") && /conflict|decision|resolution|winner/i.test(n ?? "")).sort()).toEqual([
       "CanonConflictDisposition",
       "CanonDecisionType",
       "RuleConflictSeverity",

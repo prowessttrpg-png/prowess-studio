@@ -168,6 +168,9 @@ model Entity {
   matchAssessments CandidateMatchAssessment[]
   matchSuggestions CandidateMatchSuggestion[]
 
+  /// M3-WO6 back-relation (list only): review decisions naming this Entity. Review never writes an Entity.
+  importDecisions ImportDecision[]
+
   @@map("entities")
 }
 
@@ -332,6 +335,9 @@ model EntityVersion {
   /// M3-WO4 back-relations (lists only): exact comparison-Manifest Versions cited by matching evidence.
   matchAssessments CandidateMatchAssessment[]
   matchSuggestions CandidateMatchSuggestion[]
+
+  /// M3-WO6 back-relation (list only): exact comparison Versions pinned by review decisions.
+  importDecisions ImportDecision[]
 
   @@unique([entityId, revisionNumber])
   /// Exists so RulesetManifestEntry can reference (id, entityId) together — a composite
@@ -1975,6 +1981,9 @@ model ImportBatch {
   duplicateGroups      CandidateDuplicateGroup[]
   duplicateGroupMembers CandidateDuplicateGroupMember[]
 
+  /// M3-WO6 back-relation (list only): review decisions over this Batch's committed Candidate set.
+  decisions ImportDecision[] @relation("ImportDecisionCandidateSet")
+
   /// Targets of ImportMatchRun's composite keys (M3-WO4): a run pins exactly the Batch's committed extraction hash and
   /// exactly the Batch's comparison Manifest. `id` is already unique, so neither adds a real constraint.
   @@unique([id, extractionOutputHash], map: "import_batches_id_extraction_output_hash_key")
@@ -2030,6 +2039,12 @@ model ExtractionCandidate {
   matchAssessments CandidateMatchAssessment[]
   duplicateMemberships CandidateDuplicateGroupMember[]
 
+  /// M3-WO6: append-only review decisions. Only they ever change `status` (which stays the CURRENT workflow state).
+  decisions                ImportDecision[] @relation("ImportDecisionCandidate")
+  decisionsByFingerprint   ImportDecision[] @relation("ImportDecisionFingerprintPin")
+
+  /// Target of ImportDecision's composite key: a decision pins the exact fingerprint of the exact Candidate.
+  @@unique([id, candidateFingerprint], map: "extraction_candidates_id_fingerprint_key")
   /// Target of the M3-WO4 composite keys: an assessed / grouped Candidate belongs to the run's Batch.
   @@unique([id, importBatchId], map: "extraction_candidates_id_batch_key")
   @@unique([importBatchId, ordinal], map: "extraction_candidates_batch_ordinal_key")
@@ -2136,6 +2151,9 @@ model ImportMatchRun {
   assessments     CandidateMatchAssessment[]
   duplicateGroups CandidateDuplicateGroup[]
 
+  /// M3-WO6 back-relation (list only): decisions citing this exact run as evidence.
+  decisions ImportDecision[]
+
   @@unique([id, importBatchId], map: "import_match_runs_id_batch_key")
   @@index([importBatchId], map: "import_match_runs_import_batch_id_idx")
   @@map("import_match_runs")
@@ -2171,6 +2189,11 @@ model CandidateMatchAssessment {
 
   suggestions CandidateMatchSuggestion[]
 
+  /// M3-WO6 back-relation (list only).
+  decisions ImportDecision[]
+
+  /// Target of ImportDecision's composite key: a cited assessment is of the cited run AND of the reviewed Candidate.
+  @@unique([id, matchRunId, extractionCandidateId], map: "candidate_match_assessments_id_run_candidate_key")
   @@unique([matchRunId, extractionCandidateId], map: "candidate_match_assessments_run_candidate_key")
   @@index([extractionCandidateId], map: "candidate_match_assessments_extraction_candidate_id_idx")
   @@index([matchedEntityId], map: "candidate_match_assessments_matched_entity_id_idx")
@@ -2221,6 +2244,11 @@ model CandidateDuplicateGroup {
 
   members CandidateDuplicateGroupMember[]
 
+  /// M3-WO6 back-relation (list only).
+  decisions ImportDecision[]
+
+  /// Target of ImportDecision's composite key: a cited group is of the cited run.
+  @@unique([id, matchRunId], map: "candidate_duplicate_groups_id_run_key")
   @@unique([matchRunId, basis, identityKeyHash], map: "candidate_duplicate_groups_run_identity_key")
   @@unique([id, importBatchId], map: "candidate_duplicate_groups_id_batch_key")
   @@map("candidate_duplicate_groups")
@@ -2242,7 +2270,91 @@ model CandidateDuplicateGroupMember {
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
+  /// M3-WO6 back-relation (list only): a decision citing a group must cite one of its members (composite key).
+  decisions ImportDecision[]
+
   @@unique([groupId, extractionCandidateId], map: "candidate_duplicate_group_members_group_candidate_key")
   @@unique([groupId, ordinal], map: "candidate_duplicate_group_members_group_ordinal_key")
   @@map("candidate_duplicate_group_members")
+}
+
+// ---------------------------------------------------------------------------
+// M3-WO6 — Conflict Detection & Import Review Decisions.
+//
+//   ExtractionCandidate -> automated evidence (MatchRuns, derived conflict signals) -> ImportDecision -> Candidate.status
+//
+// ImportDecision is the ONLY thing that changes an ExtractionCandidate's status, and is an INSERT-ONLY, append-only
+// audit record (no update / delete service). Composite keys prove that every cited row belongs to the same Batch and
+// Candidate: the exact Candidate fingerprint, the Batch's committed Candidate-set hash, a MatchRun of that Batch, an
+// assessment of that run AND that Candidate, a duplicate group of that run of which the Candidate is a MEMBER, and a
+// comparison Version of the target Entity. All foreign keys are ON DELETE RESTRICT. CHECKs (type / status / target /
+// basis / rationale invariants) live in the migration. Conflict signals are derived, never stored. Nothing here
+// creates an M2 RuleConflict or any domain record. See docs/architecture/m3-import-review-decisions.md.
+// ---------------------------------------------------------------------------
+
+/// Explicit review decisions. Lockstep with @prowess/model IMPORT_DECISION_TYPES.
+enum ImportDecisionType {
+  CLASSIFY_MATCHED
+  CLASSIFY_NEW_ENTITY
+  MARK_CONFLICT
+  MARK_NEEDS_MAPPING
+  REJECT
+  APPROVE_MATCHED
+  APPROVE_NEW_ENTITY
+  APPROVE_SEMANTIC
+}
+
+/// What a CLASSIFY_MATCHED decision rests on. Lockstep with @prowess/model IMPORT_MATCH_DECISION_BASES.
+enum ImportMatchDecisionBasis {
+  EXACT_MATCH
+  SUGGESTED_MATCH
+  MANUAL_OVERRIDE
+}
+
+/// One immutable, append-only editorial review action on one Candidate (sequence 1, 2, 3 … per Candidate).
+model ImportDecision {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  importBatchId    String      @map("import_batch_id") @db.Uuid
+  candidateSetHash String      @map("candidate_set_hash")
+  importBatch      ImportBatch @relation("ImportDecisionCandidateSet", fields: [importBatchId, candidateSetHash], references: [id, extractionOutputHash], onDelete: Restrict, onUpdate: Cascade, map: "import_decisions_candidate_set_fkey")
+
+  extractionCandidateId String              @map("extraction_candidate_id") @db.Uuid
+  extractionCandidate   ExtractionCandidate @relation("ImportDecisionCandidate", fields: [extractionCandidateId, importBatchId], references: [id, importBatchId], onDelete: Restrict, onUpdate: Cascade, map: "import_decisions_candidate_fkey")
+
+  candidateFingerprint String              @map("candidate_fingerprint")
+  reviewedCandidate    ExtractionCandidate @relation("ImportDecisionFingerprintPin", fields: [extractionCandidateId, candidateFingerprint], references: [id, candidateFingerprint], onDelete: Restrict, onUpdate: Cascade, map: "import_decisions_candidate_fingerprint_fkey")
+
+  sequenceNumber Int                       @map("sequence_number")
+  decisionType   ImportDecisionType        @map("decision_type")
+  fromStatus     ExtractionCandidateStatus @map("from_status")
+  toStatus       ExtractionCandidateStatus @map("to_status")
+  matchBasis     ImportMatchDecisionBasis? @map("match_basis")
+
+  matchRunId String?         @map("match_run_id") @db.Uuid
+  matchRun   ImportMatchRun? @relation(fields: [matchRunId, importBatchId], references: [id, importBatchId], onDelete: Restrict, onUpdate: Cascade, map: "import_decisions_match_run_fkey")
+
+  matchAssessmentId String?                   @map("match_assessment_id") @db.Uuid
+  matchAssessment   CandidateMatchAssessment? @relation(fields: [matchAssessmentId, matchRunId, extractionCandidateId], references: [id, matchRunId, extractionCandidateId], onDelete: Restrict, onUpdate: Cascade, map: "import_decisions_match_assessment_fkey")
+
+  duplicateGroupId  String?                        @map("duplicate_group_id") @db.Uuid
+  duplicateGroup    CandidateDuplicateGroup?       @relation(fields: [duplicateGroupId, matchRunId], references: [id, matchRunId], onDelete: Restrict, onUpdate: Cascade, map: "import_decisions_duplicate_group_fkey")
+  duplicateMembership CandidateDuplicateGroupMember? @relation(fields: [duplicateGroupId, extractionCandidateId], references: [groupId, extractionCandidateId], onDelete: Restrict, onUpdate: Cascade, map: "import_decisions_duplicate_member_fkey")
+
+  targetEntityId String? @map("target_entity_id") @db.Uuid
+  targetEntity   Entity? @relation(fields: [targetEntityId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "import_decisions_target_entity_fkey")
+
+  comparisonEntityVersionId String?        @map("comparison_entity_version_id") @db.Uuid
+  comparisonEntityVersion   EntityVersion? @relation(fields: [comparisonEntityVersionId, targetEntityId], references: [id, entityId], onDelete: Restrict, onUpdate: Cascade, map: "import_decisions_comparison_version_fkey")
+
+  rationale String?
+
+  decisionFingerprint String @unique(map: "import_decisions_decision_fingerprint_key") @map("decision_fingerprint")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([extractionCandidateId, sequenceNumber], map: "import_decisions_candidate_sequence_key")
+  @@index([importBatchId], map: "import_decisions_import_batch_id_idx")
+  @@index([targetEntityId], map: "import_decisions_target_entity_id_idx")
+  @@map("import_decisions")
 }

@@ -37,6 +37,7 @@ export * from "./source-reference.js";
 export * from "./source-structure.js";
 export * from "./import-batch.js";
 export * from "./import-match.js";
+export * from "./import-decision.js";
 export * from "./ruleset-status.js";
 export * from "./ruleset-channel.js";
 export * from "./ruleset.js";

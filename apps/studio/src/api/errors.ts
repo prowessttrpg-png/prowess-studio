@@ -25,6 +25,8 @@ import {
   IMPORT_BATCH_ERROR_CODES,
   EXTRACTION_CANDIDATE_ERROR_CODES,
   IMPORT_MATCH_ERROR_CODES,
+  IMPORT_DECISION_ERROR_CODES,
+  IMPORT_REVIEW_ERROR_CODES,
   type EntityAliasErrorCode,
   type EntityErrorCode,
   type EntityVersionErrorCode,
@@ -50,6 +52,8 @@ import {
   type ImportBatchErrorCode,
   type ExtractionCandidateErrorCode,
   type ImportMatchErrorCode,
+  type ImportDecisionErrorCode,
+  type ImportReviewErrorCode,
 } from "@prowess/model";
 import { NextResponse } from "next/server";
 
@@ -124,7 +128,9 @@ type KnownDomainErrorCode =
   | SourceParseErrorCode
   | ImportBatchErrorCode
   | ExtractionCandidateErrorCode
-  | ImportMatchErrorCode;
+  | ImportMatchErrorCode
+  | ImportDecisionErrorCode
+  | ImportReviewErrorCode;
 
 /**
  * Centralized `DomainError.code` -> HTTP status mapping (PAS-10 M1-WO8
@@ -386,6 +392,22 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [IMPORT_MATCH_ERROR_CODES.NONDETERMINISTIC_RESULT]: 409,
   [IMPORT_MATCH_ERROR_CODES.MATCH_CONFLICT]: 409,
   [IMPORT_MATCH_ERROR_CODES.INVALID_MATCHER_OUTPUT]: 500,
+  // Import review decisions (M3-WO6). No routes yet (WO7). The addressed Decision / Candidate / Batch 404; bad
+  // references, evidence and shapes 400; an invalid transition, a non-reviewable Batch, incomplete review or a lost
+  // concurrent race 409.
+  [IMPORT_DECISION_ERROR_CODES.NOT_FOUND]: 404,
+  [IMPORT_DECISION_ERROR_CODES.CANDIDATE_NOT_FOUND]: 404,
+  [IMPORT_DECISION_ERROR_CODES.INVALID_INPUT]: 400,
+  [IMPORT_DECISION_ERROR_CODES.INVALID_EVIDENCE]: 400,
+  [IMPORT_DECISION_ERROR_CODES.INVALID_TARGET_ENTITY]: 400,
+  [IMPORT_DECISION_ERROR_CODES.MATCH_RUN_MISMATCH]: 400,
+  [IMPORT_DECISION_ERROR_CODES.DUPLICATE_GROUP_MISMATCH]: 400,
+  [IMPORT_DECISION_ERROR_CODES.MANUAL_RATIONALE_REQUIRED]: 400,
+  [IMPORT_DECISION_ERROR_CODES.INVALID_TRANSITION]: 409,
+  [IMPORT_DECISION_ERROR_CODES.DECISION_CONFLICT]: 409,
+  [IMPORT_REVIEW_ERROR_CODES.BATCH_NOT_FOUND]: 404,
+  [IMPORT_REVIEW_ERROR_CODES.NOT_READY]: 409,
+  [IMPORT_REVIEW_ERROR_CODES.INCOMPLETE]: 409,
 } satisfies Record<KnownDomainErrorCode, number>;
 
 /**

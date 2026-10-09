@@ -111,6 +111,9 @@ describe("M1 audit — enum parity between Prisma schema and @prowess/model (§1
     ImportMatchOutcome: model.IMPORT_MATCH_OUTCOMES,
     ImportMatchBasis: model.IMPORT_MATCH_BASES,
     CandidateDuplicateBasis: model.CANDIDATE_DUPLICATE_BASES,
+    // M3-WO6 import review
+    ImportDecisionType: model.IMPORT_DECISION_TYPES,
+    ImportMatchDecisionBasis: model.IMPORT_MATCH_DECISION_BASES,
   };
 
   const schemaEnums = new Map<string, string[]>(
@@ -138,7 +141,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
   >;
   const allCodes = vocabularies.flatMap(([, codes]) => Object.values(codes));
 
-  it("exports the twenty-five vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5, CanonDecision M2-WO6, ChangeSet M2-WO7, RulesetRelease M2-WO8, MigrationPlan M2-WO11, SourceSnapshot / SourceStructure / SourceAsset / SourceParse M3-WO1, ImportBatch / ExtractionCandidate M3-WO2, ImportMatch M3-WO4)", () => {
+  it("exports the twenty-seven vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5, CanonDecision M2-WO6, ChangeSet M2-WO7, RulesetRelease M2-WO8, MigrationPlan M2-WO11, SourceSnapshot / SourceStructure / SourceAsset / SourceParse M3-WO1, ImportBatch / ExtractionCandidate M3-WO2, ImportMatch M3-WO4, ImportDecision / ImportReview M3-WO6)", () => {
     expect(vocabularies.map(([name]) => name).sort()).toEqual(
       [
         "ENTITY_ALIAS_ERROR_CODES",
@@ -166,6 +169,8 @@ describe("M1 audit — error vocabulary (§17)", () => {
         "IMPORT_BATCH_ERROR_CODES",
         "EXTRACTION_CANDIDATE_ERROR_CODES",
         "IMPORT_MATCH_ERROR_CODES",
+        "IMPORT_DECISION_ERROR_CODES",
+        "IMPORT_REVIEW_ERROR_CODES",
       ].sort(),
     );
   });
@@ -184,7 +189,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
   });
 
   const CONTROLLED_UNIONS =
-    "Entity|EntityVersion|EntityAlias|KeywordCategory|Keyword|KeywordAssignment|Relationship|SourceDocument|SourceReference|ImportBatch|ImportMatch".split("|").map((n) => `${n}ErrorCode`).join("|");
+    "Entity|EntityVersion|EntityAlias|KeywordCategory|Keyword|KeywordAssignment|Relationship|SourceDocument|SourceReference|ImportBatch|ImportMatch|ImportDecision|ImportReview".split("|").map((n) => `${n}ErrorCode`).join("|");
 
   it("every DomainError thrown in @prowess/db uses a controlled constant (or a parameter typed with a controlled union) — never a raw string", () => {
     const files = walk(path.join(ROOT, "packages", "prowess-db", "src"), isSource);
@@ -232,7 +237,7 @@ describe("M1 audit — migration chain (§26)", () => {
     const M2 = ["20261004233000_add_ruleset_foundation", "20261005001500_add_ruleset_manifest", "20261005120000_add_manifest_inheritance", "20261005220000_add_canon_policy", "20261006010000_add_rule_conflicts", "20261007010000_add_canon_decisions", "20261008010000_add_change_sets", "20261009010000_add_ruleset_releases", "20261010010000_add_migration_plans"];
     expect(names.slice(0, M1.length)).toEqual(M1);
     // M3 migrations are appended deliberately too.
-    const M3 = ["20261011010000_add_source_structure", "20261012010000_add_import_batches_candidates", "20261013010000_add_import_batch_extraction_output", "20261014010000_add_import_entity_matching"];
+    const M3 = ["20261011010000_add_source_structure", "20261012010000_add_import_batches_candidates", "20261013010000_add_import_batch_extraction_output", "20261014010000_add_import_entity_matching", "20261015010000_add_import_decisions"];
     expect(names).toEqual([...M1, ...M2, ...M3]);
     expect([...names].sort()).toEqual(names);
     expect(new Set(names.map((n) => n.slice(0, 14))).size).toBe(names.length);

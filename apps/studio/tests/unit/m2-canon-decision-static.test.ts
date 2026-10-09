@@ -118,8 +118,10 @@ describe("M2-WO6 — the decision models are immutable, exactly-pinned records",
       RuleConflictCandidate: ["decisionSelections CanonDecisionSelection[]"],
     };
     // M2-WO7's ChangeSet cites a decision by design (optional, same-Ruleset composite key); it has its own audit.
-    for (const m of models.filter((x) => !["CanonDecision", "CanonDecisionSelection", "ChangeSet"].includes(x.name))) {
-      const lines = m.body.split("\n").filter((l) => /decision/i.test(l)).map(squash);
+    // M3-WO6's ImportDecision (an import-review record, never a CanonDecision) and its back-relation lists are excluded
+    // by exact name; they are audited by m3-import-review-static.
+    for (const m of models.filter((x) => !["CanonDecision", "CanonDecisionSelection", "ChangeSet", "ImportDecision"].includes(x.name))) {
+      const lines = m.body.split("\n").filter((l) => /decision/i.test(l) && !/ImportDecision/.test(l)).map(squash);
       expect(lines, m.name).toEqual(expected[m.name] ?? []);
     }
   });

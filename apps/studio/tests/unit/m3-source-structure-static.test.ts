@@ -178,7 +178,7 @@ describe("M3-WO1 public service surface", () => {
   });
 
   it("has no Canon-promotion, matching or semantic-extraction surface (ImportBatch / ExtractionCandidate arrived in M3-WO2; the rest are later M3 Work Orders)", () => {
-    for (const x of names) expect(x).not.toMatch(/promote|Promotion|matchEntit|matchCandidate|extractFormula|approveCandidate|rejectCandidate|ImportDecision/i);
+    for (const x of names) expect(x).not.toMatch(/promote|Promotion|matchEntit|matchCandidate|extractFormula|approveCandidate|rejectCandidate/i); // ImportDecision arrived in M3-WO6 (audited there)
   });
 
   it("no HTTP route exposes the structure layer yet (services only in WO1)", () => {

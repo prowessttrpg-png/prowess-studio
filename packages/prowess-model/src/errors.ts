@@ -657,3 +657,44 @@ export const IMPORT_MATCH_ERROR_CODES = {
 } as const;
 
 export type ImportMatchErrorCode = (typeof IMPORT_MATCH_ERROR_CODES)[keyof typeof IMPORT_MATCH_ERROR_CODES];
+
+/**
+ * ImportDecision error codes (PAS-10 M3-WO6). The addressed Decision / Candidate is 404; bad references and shapes
+ * are 400; an invalid transition or a lost concurrent race is 409. A rejected review writes NOTHING.
+ */
+export const IMPORT_DECISION_ERROR_CODES = {
+  /** The Decision asked for by id does not exist. */
+  NOT_FOUND: "IMPORT_DECISION.NOT_FOUND",
+  /** The Candidate under review does not exist. */
+  CANDIDATE_NOT_FOUND: "IMPORT_DECISION.CANDIDATE_NOT_FOUND",
+  /** Shape problems, fields a decision type does not accept, or a missing rationale on REJECT. */
+  INVALID_INPUT: "IMPORT_DECISION.INVALID_INPUT",
+  /** The decision type is not allowed from the Candidate's current status, or not for its kind. */
+  INVALID_TRANSITION: "IMPORT_DECISION.INVALID_TRANSITION",
+  /** Cited evidence does not exist, does not belong to this Candidate, or does not say what the decision claims. */
+  INVALID_EVIDENCE: "IMPORT_DECISION.INVALID_EVIDENCE",
+  /** The target Entity does not exist, or differs from the Candidate's accepted MATCHED classification. */
+  INVALID_TARGET_ENTITY: "IMPORT_DECISION.INVALID_TARGET_ENTITY",
+  /** The cited MatchRun belongs to another ImportBatch (another Candidate set). */
+  MATCH_RUN_MISMATCH: "IMPORT_DECISION.MATCH_RUN_MISMATCH",
+  /** The cited duplicate group is not of the cited MatchRun, or the Candidate is not one of its members. */
+  DUPLICATE_GROUP_MISMATCH: "IMPORT_DECISION.DUPLICATE_GROUP_MISMATCH",
+  /** A MANUAL_OVERRIDE match decision needs a non-empty rationale. */
+  MANUAL_RATIONALE_REQUIRED: "IMPORT_DECISION.MANUAL_RATIONALE_REQUIRED",
+  /** A concurrent review changed the Candidate first; nothing was written. Re-read and decide again. */
+  DECISION_CONFLICT: "IMPORT_DECISION.DECISION_CONFLICT",
+} as const;
+
+export type ImportDecisionErrorCode = (typeof IMPORT_DECISION_ERROR_CODES)[keyof typeof IMPORT_DECISION_ERROR_CODES];
+
+/** Import review lifecycle error codes (PAS-10 M3-WO6). */
+export const IMPORT_REVIEW_ERROR_CODES = {
+  /** The ImportBatch does not exist. */
+  BATCH_NOT_FOUND: "IMPORT_REVIEW.BATCH_NOT_FOUND",
+  /** The Batch is not in a reviewable state (not yet extracted, or review already completed). */
+  NOT_READY: "IMPORT_REVIEW.NOT_READY",
+  /** Review cannot complete: some Candidate is not yet APPROVED or REJECTED. */
+  INCOMPLETE: "IMPORT_REVIEW.INCOMPLETE",
+} as const;
+
+export type ImportReviewErrorCode = (typeof IMPORT_REVIEW_ERROR_CODES)[keyof typeof IMPORT_REVIEW_ERROR_CODES];
