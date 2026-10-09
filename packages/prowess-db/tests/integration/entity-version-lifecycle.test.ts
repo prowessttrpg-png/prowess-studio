@@ -278,6 +278,8 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     // function, and no raw Prisma update payload type, ever gets added
     // without this test failing first.
     const exportedNames = Object.keys(DbPackage).sort();
+    // M3-WO4 added analyzeImportBatchMatches (idempotent, insert-only identity analysis) and five reads. Matching never
+    // creates or updates an Entity, alias, Version or Candidate.
     // M3-WO3 added extractImportBatch (explicit, idempotent extraction of the Batch's exact registered extractor),
     // getExtractionResult and verifyExtractionOutput (reads). No status setter, review or Entity operation.
     // M3-WO2 added createImportBatch (idempotent), recordExtractionCandidates (idempotent, atomic, INSERT-only) and
@@ -345,6 +347,12 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "extractImportBatch",
         "getExtractionResult",
         "verifyExtractionOutput",
+        "analyzeImportBatchMatches",
+        "getImportMatchRun",
+        "listImportMatchRuns",
+        "getCandidateMatchAssessment",
+        "listCandidateMatchAssessments",
+        "listCandidateDuplicateGroups",
         "DOCX_MIME_TYPE",
         "DOCX_PARSER_NAME",
         "DOCX_PARSER_VERSION",

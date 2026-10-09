@@ -113,6 +113,14 @@ export type { CreateImportBatchResult } from "./import-batch/index.js";
 export { getExtractionCandidate, listExtractionCandidates, recordExtractionCandidates } from "./extraction-candidate/index.js";
 export type { RecordExtractionCandidatesResult } from "./extraction-candidate/index.js";
 export { extractImportBatch, getExtractionResult, verifyExtractionOutput } from "./extraction/index.js";
+export {
+  analyzeImportBatchMatches,
+  getCandidateMatchAssessment,
+  getImportMatchRun,
+  listCandidateDuplicateGroups,
+  listCandidateMatchAssessments,
+  listImportMatchRuns,
+} from "./import-match/index.js";
 export { listEntities } from "./entity-query/index.js";
 export type {
   EntityListItem,

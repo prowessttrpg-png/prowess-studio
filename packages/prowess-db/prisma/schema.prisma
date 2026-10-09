@@ -164,6 +164,10 @@ model Entity {
   /// Migration plan items assessing this Entity (M2-WO11). A relation list only.
   migrationPlanItems MigrationPlanItem[]
 
+  /// M3-WO4 back-relations (lists only): identity-matching evidence. Matching never writes an Entity.
+  matchAssessments CandidateMatchAssessment[]
+  matchSuggestions CandidateMatchSuggestion[]
+
   @@map("entities")
 }
 
@@ -324,6 +328,10 @@ model EntityVersion {
   /// only: being assessed never changes this Version.
   migrationItemsAsSource MigrationPlanItem[] @relation("MigrationItemSourceVersion")
   migrationItemsAsTarget MigrationPlanItem[] @relation("MigrationItemTargetVersion")
+
+  /// M3-WO4 back-relations (lists only): exact comparison-Manifest Versions cited by matching evidence.
+  matchAssessments CandidateMatchAssessment[]
+  matchSuggestions CandidateMatchSuggestion[]
 
   @@unique([entityId, revisionNumber])
   /// Exists so RulesetManifestEntry can reference (id, entityId) together — a composite
@@ -1960,6 +1968,17 @@ model ImportBatch {
 
   candidates ExtractionCandidate[]
 
+  /// M3-WO4 back-relations (lists only): identity-matching runs over this Batch's committed Candidate set.
+  matchRuns            ImportMatchRun[] @relation("ImportMatchRunCandidateSet")
+  matchRunsByContext   ImportMatchRun[] @relation("ImportMatchRunComparison")
+  matchAssessments     CandidateMatchAssessment[]
+  duplicateGroups      CandidateDuplicateGroup[]
+  duplicateGroupMembers CandidateDuplicateGroupMember[]
+
+  /// Targets of ImportMatchRun's composite keys (M3-WO4): a run pins exactly the Batch's committed extraction hash and
+  /// exactly the Batch's comparison Manifest. `id` is already unique, so neither adds a real constraint.
+  @@unique([id, extractionOutputHash], map: "import_batches_id_extraction_output_hash_key")
+  @@unique([id, comparisonManifestId], map: "import_batches_id_comparison_manifest_key")
   /// Target of ExtractionCandidate's composite key: a Candidate's Snapshot is its Batch's Snapshot.
   @@unique([id, sourceSnapshotId], map: "import_batches_id_snapshot_key")
   @@index([sourceSnapshotId], map: "import_batches_source_snapshot_id_idx")
@@ -2007,6 +2026,12 @@ model ExtractionCandidate {
 
   supportingSources ExtractionCandidateSource[]
 
+  /// M3-WO4 back-relations (lists only).
+  matchAssessments CandidateMatchAssessment[]
+  duplicateMemberships CandidateDuplicateGroupMember[]
+
+  /// Target of the M3-WO4 composite keys: an assessed / grouped Candidate belongs to the run's Batch.
+  @@unique([id, importBatchId], map: "extraction_candidates_id_batch_key")
   @@unique([importBatchId, ordinal], map: "extraction_candidates_batch_ordinal_key")
   @@unique([importBatchId, candidateFingerprint], map: "extraction_candidates_batch_fingerprint_key")
   /// Target of ExtractionCandidateSource's composite key.
@@ -2042,4 +2067,182 @@ model ExtractionCandidateSource {
 
   @@unique([extractionCandidateId, ordinal], map: "extraction_candidate_sources_candidate_ordinal_key")
   @@map("extraction_candidate_sources")
+}
+
+// ---------------------------------------------------------------------------
+// M3-WO4 — Entity Matching, Normalization & Duplicate Detection.
+//
+//   ImportBatch (committed Candidate set) -> ImportMatchRun -> CandidateMatchAssessment -> CandidateMatchSuggestion
+//                                                           -> CandidateDuplicateGroup  -> CandidateDuplicateGroupMember
+//
+// Advisory, IMMUTABLE identity analysis. INSERT-ONLY: no update or delete service. Every row repeats its Batch id and
+// is tied to it by composite keys, so an assessment or group member can only cite a Candidate of the run's own Batch;
+// a cited comparison Version must be a Version of the cited Entity (composite key onto entity_versions(id, entity_id)).
+// All foreign keys are ON DELETE RESTRICT. CHECK constraints (outcome / basis / score / rank invariants) live in the
+// migration and are pinned by the M3 static audit. Candidates are never modified; their status stays UNREVIEWED.
+// See docs/architecture/m3-entity-matching.md.
+// ---------------------------------------------------------------------------
+
+/// Lockstep with @prowess/model IMPORT_MATCH_OUTCOMES.
+enum ImportMatchOutcome {
+  EXACT_MATCH
+  POTENTIAL_MATCH
+  NO_MATCH
+  INSUFFICIENT_IDENTITY
+  NOT_APPLICABLE
+}
+
+/// Lockstep with @prowess/model IMPORT_MATCH_BASES. Only CANONICAL_KEY_EXACT / ALIAS_EXACT can establish EXACT_MATCH.
+enum ImportMatchBasis {
+  CANONICAL_KEY_EXACT
+  ALIAS_EXACT
+  DISPLAY_LABEL_EXACT
+  NORMALIZED_LABEL
+  FUZZY_LABEL
+  NONE
+}
+
+/// Lockstep with @prowess/model CANDIDATE_DUPLICATE_BASES. Never fuzzy.
+enum CandidateDuplicateBasis {
+  PROPOSED_CANONICAL_KEY
+  NORMALIZED_LABEL
+}
+
+/// One immutable identity analysis of one exact Candidate set (the Batch's committed extraction hash, pinned by a
+/// composite key) against one exact Entity identity catalog (entityCatalogHash) using one exact matcher + config.
+/// `runFingerprint` (PROWESS_IMPORT_MATCH_RUN_V1) is its identity; `resultHash` (PROWESS_IMPORT_MATCH_RESULT_V1)
+/// detects nondeterminism on re-analysis. No current / active / latest / applied flag exists.
+model ImportMatchRun {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  importBatchId    String      @map("import_batch_id") @db.Uuid
+  candidateSetHash String      @map("candidate_set_hash")
+  importBatch      ImportBatch @relation("ImportMatchRunCandidateSet", fields: [importBatchId, candidateSetHash], references: [id, extractionOutputHash], onDelete: Restrict, onUpdate: Cascade, map: "import_match_runs_candidate_set_fkey")
+
+  comparisonManifestId String?      @map("comparison_manifest_id") @db.Uuid
+  comparisonContext    ImportBatch? @relation("ImportMatchRunComparison", fields: [importBatchId, comparisonManifestId], references: [id, comparisonManifestId], onDelete: Restrict, onUpdate: Cascade, map: "import_match_runs_comparison_manifest_fkey")
+
+  matcherKey        String @map("matcher_key")
+  matcherVersion    String @map("matcher_version")
+  matcherConfigHash String @map("matcher_config_hash")
+  matcherConfigJson Json   @map("matcher_config_json")
+
+  entityCatalogHash String @map("entity_catalog_hash")
+  runFingerprint    String @unique(map: "import_match_runs_run_fingerprint_key") @map("run_fingerprint")
+  resultHash        String @map("result_hash")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  assessments     CandidateMatchAssessment[]
+  duplicateGroups CandidateDuplicateGroup[]
+
+  @@unique([id, importBatchId], map: "import_match_runs_id_batch_key")
+  @@index([importBatchId], map: "import_match_runs_import_batch_id_idx")
+  @@map("import_match_runs")
+}
+
+/// Exactly one assessment per Candidate per MatchRun. `matchedEntityId` is authoritative only for EXACT_MATCH (CHECK);
+/// it is never derived from suggestion rank. `comparisonEntityVersionId` is the matched Entity's exact Version in the
+/// Batch's comparison Manifest, or null — absence never means "new Entity".
+model CandidateMatchAssessment {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  matchRunId    String         @map("match_run_id") @db.Uuid
+  importBatchId String         @map("import_batch_id") @db.Uuid
+  matchRun      ImportMatchRun @relation(fields: [matchRunId, importBatchId], references: [id, importBatchId], onDelete: Restrict, onUpdate: Cascade, map: "candidate_match_assessments_run_fkey")
+  importBatch   ImportBatch    @relation(fields: [importBatchId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "candidate_match_assessments_batch_fkey")
+
+  extractionCandidateId String              @map("extraction_candidate_id") @db.Uuid
+  extractionCandidate   ExtractionCandidate @relation(fields: [extractionCandidateId, importBatchId], references: [id, importBatchId], onDelete: Restrict, onUpdate: Cascade, map: "candidate_match_assessments_candidate_fkey")
+
+  outcome   ImportMatchOutcome
+  matchedBy ImportMatchBasis   @map("matched_by")
+
+  matchedEntityId String? @map("matched_entity_id") @db.Uuid
+  matchedEntity   Entity? @relation(fields: [matchedEntityId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "candidate_match_assessments_entity_fkey")
+
+  normalizedCandidateLabel       String? @map("normalized_candidate_label")
+  normalizedProposedCanonicalKey String? @map("normalized_proposed_canonical_key")
+
+  comparisonEntityVersionId String?        @map("comparison_entity_version_id") @db.Uuid
+  comparisonEntityVersion   EntityVersion? @relation(fields: [comparisonEntityVersionId, matchedEntityId], references: [id, entityId], onDelete: Restrict, onUpdate: Cascade, map: "candidate_match_assessments_comparison_version_fkey")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  suggestions CandidateMatchSuggestion[]
+
+  @@unique([matchRunId, extractionCandidateId], map: "candidate_match_assessments_run_candidate_key")
+  @@index([extractionCandidateId], map: "candidate_match_assessments_extraction_candidate_id_idx")
+  @@index([matchedEntityId], map: "candidate_match_assessments_matched_entity_id_idx")
+  @@index([outcome], map: "candidate_match_assessments_outcome_idx")
+  @@map("candidate_match_assessments")
+}
+
+/// Immutable ranked evidence for one assessment. Rank and Entity are each unique per assessment; score in [0, 1].
+model CandidateMatchSuggestion {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  candidateMatchAssessmentId String                   @map("candidate_match_assessment_id") @db.Uuid
+  assessment                 CandidateMatchAssessment @relation(fields: [candidateMatchAssessmentId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "candidate_match_suggestions_assessment_fkey")
+
+  entityId String @map("entity_id") @db.Uuid
+  entity   Entity @relation(fields: [entityId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "candidate_match_suggestions_entity_fkey")
+
+  rank  Int
+  score Float
+  basis ImportMatchBasis
+
+  comparisonEntityVersionId String?        @map("comparison_entity_version_id") @db.Uuid
+  comparisonEntityVersion   EntityVersion? @relation(fields: [comparisonEntityVersionId, entityId], references: [id, entityId], onDelete: Restrict, onUpdate: Cascade, map: "candidate_match_suggestions_comparison_version_fkey")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([candidateMatchAssessmentId, rank], map: "candidate_match_suggestions_assessment_rank_key")
+  @@unique([candidateMatchAssessmentId, entityId], map: "candidate_match_suggestions_assessment_entity_key")
+  @@index([entityId], map: "candidate_match_suggestions_entity_id_idx")
+  @@map("candidate_match_suggestions")
+}
+
+/// "These distinct Candidates may represent the same Entity identity." Advisory only: no winner, nothing merged or
+/// deleted. Identity key unique per run and basis.
+model CandidateDuplicateGroup {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  matchRunId    String         @map("match_run_id") @db.Uuid
+  importBatchId String         @map("import_batch_id") @db.Uuid
+  matchRun      ImportMatchRun @relation(fields: [matchRunId, importBatchId], references: [id, importBatchId], onDelete: Restrict, onUpdate: Cascade, map: "candidate_duplicate_groups_run_fkey")
+  importBatch   ImportBatch    @relation(fields: [importBatchId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "candidate_duplicate_groups_batch_fkey")
+
+  basis           CandidateDuplicateBasis
+  identityKey     String                  @map("identity_key")
+  identityKeyHash String                  @map("identity_key_hash")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  members CandidateDuplicateGroupMember[]
+
+  @@unique([matchRunId, basis, identityKeyHash], map: "candidate_duplicate_groups_run_identity_key")
+  @@unique([id, importBatchId], map: "candidate_duplicate_groups_id_batch_key")
+  @@map("candidate_duplicate_groups")
+}
+
+/// One Candidate of a duplicate group. `ordinal` is display order (Candidate ordinal order) — never authority.
+model CandidateDuplicateGroupMember {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  groupId       String                  @map("group_id") @db.Uuid
+  importBatchId String                  @map("import_batch_id") @db.Uuid
+  group         CandidateDuplicateGroup @relation(fields: [groupId, importBatchId], references: [id, importBatchId], onDelete: Restrict, onUpdate: Cascade, map: "candidate_duplicate_group_members_group_fkey")
+  importBatch   ImportBatch             @relation(fields: [importBatchId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "candidate_duplicate_group_members_batch_fkey")
+
+  extractionCandidateId String              @map("extraction_candidate_id") @db.Uuid
+  extractionCandidate   ExtractionCandidate @relation(fields: [extractionCandidateId, importBatchId], references: [id, importBatchId], onDelete: Restrict, onUpdate: Cascade, map: "candidate_duplicate_group_members_candidate_fkey")
+
+  ordinal Int
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([groupId, extractionCandidateId], map: "candidate_duplicate_group_members_group_candidate_key")
+  @@unique([groupId, ordinal], map: "candidate_duplicate_group_members_group_ordinal_key")
+  @@map("candidate_duplicate_group_members")
 }

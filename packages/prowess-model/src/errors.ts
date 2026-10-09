@@ -630,3 +630,30 @@ export const EXTRACTION_CANDIDATE_ERROR_CODES = {
 } as const;
 
 export type ExtractionCandidateErrorCode = (typeof EXTRACTION_CANDIDATE_ERROR_CODES)[keyof typeof EXTRACTION_CANDIDATE_ERROR_CODES];
+
+/**
+ * Import identity-matching error codes (PAS-10 M3-WO4). A MatchRun is the addressed resource (NOT_FOUND -> 404);
+ * the Batch is referenced (BATCH_NOT_FOUND -> 400); state clashes are 409; a defective matcher is an explicit 500.
+ */
+export const IMPORT_MATCH_ERROR_CODES = {
+  /** The MatchRun (or the Assessment asked for within it) does not exist, including a malformed id. */
+  NOT_FOUND: "IMPORT_MATCH.NOT_FOUND",
+  /** The referenced ImportBatch does not exist. */
+  BATCH_NOT_FOUND: "IMPORT_MATCH.BATCH_NOT_FOUND",
+  /** The ImportBatch has no committed extraction (no extractionOutputHash), so there is no exact Candidate set to match. */
+  BATCH_NOT_EXTRACTED: "IMPORT_MATCH.BATCH_NOT_EXTRACTED",
+  /** No registered matcher matches the EXACT key + version requested. Nothing falls forward. */
+  MATCHER_NOT_FOUND: "IMPORT_MATCH.MATCHER_NOT_FOUND",
+  /** Shape problems with the request, including an invalid matcher configuration. */
+  INVALID_INPUT: "IMPORT_MATCH.INVALID_INPUT",
+  /** Stored identity data is internally inconsistent (e.g. an alias whose stored normalized form is not its normalization). */
+  CATALOG_INTEGRITY_FAILURE: "IMPORT_MATCH.CATALOG_INTEGRITY_FAILURE",
+  /** The same exact analysis context now produces a different result than the stored MatchRun. Fails closed. */
+  NONDETERMINISTIC_RESULT: "IMPORT_MATCH.NONDETERMINISTIC_RESULT",
+  /** The Batch's stored Candidates no longer reproduce its committed extraction hash, or the database rejected the run. */
+  MATCH_CONFLICT: "IMPORT_MATCH.MATCH_CONFLICT",
+  /** The matcher produced structurally invalid output — a server-side defect. Nothing was written. */
+  INVALID_MATCHER_OUTPUT: "IMPORT_MATCH.INVALID_MATCHER_OUTPUT",
+} as const;
+
+export type ImportMatchErrorCode = (typeof IMPORT_MATCH_ERROR_CODES)[keyof typeof IMPORT_MATCH_ERROR_CODES];
