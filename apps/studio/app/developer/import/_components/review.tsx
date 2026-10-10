@@ -27,7 +27,7 @@ import { EntityLabel, EntityPicker, VersionLabel } from "../../rulesets/_compone
 import { ConfirmButton, EmptyNote, Field, Loading, useResource } from "../../rulesets/_components/primitives";
 import {
   availableDecisions,
-  candidateSectionId,
+  candidateSectionIds,
   CANDIDATE_STATUS_LABEL,
   CONFLICT_SIGNAL_HELP,
   CONFLICT_SIGNAL_LABEL,
@@ -50,20 +50,25 @@ const num = (v: unknown) => (typeof v === "number" ? v : null);
 
 /** "Where in the source did this Candidate come from?" — exact anchors, verbatim excerpts, a link into the source. */
 export function SourceEvidence({ candidate, sections, snapshotId }: { candidate: ExtractionCandidateDto; sections: readonly SourceSectionDto[]; snapshotId: string }) {
-  const sectionId = candidateSectionId(candidate, sections);
+  const sectionIds = candidateSectionIds(candidate, sections);
   const nodeId = candidate.primarySourceContentNodeId;
   const p = candidate.payload;
-  const loaded = useResource<SourceContentNodeDto | "missing">(async () => {
-    if (!sectionId || !nodeId) return "missing";
-    for (let page = 1; page <= 20; page += 1) {
-      const { items, pagination } = await listSectionContents(sectionId, { page, pageSize: 100 });
-      const hit = items.find((n) => n.id === nodeId);
-      if (hit) return hit;
-      if (!pagination || page >= pagination.totalPages) return "missing";
+  // Find the anchored node in the candidate's section; when a path is repeated in the source, try each such section.
+  const loaded = useResource<{ node: SourceContentNodeDto; sectionId: string } | "missing">(async () => {
+    if (!nodeId) return "missing";
+    for (const sectionId of sectionIds) {
+      for (let page = 1; page <= 20; page += 1) {
+        const { items, pagination } = await listSectionContents(sectionId, { page, pageSize: 100 });
+        const hit = items.find((n) => n.id === nodeId);
+        if (hit) return { node: hit, sectionId };
+        if (!pagination || page >= pagination.totalPages) break;
+      }
     }
     return "missing";
-  }, [sectionId, nodeId]);
-  const node = loaded.error !== undefined ? "missing" : (loaded.data ?? null);
+  }, [sectionIds.join(","), nodeId]);
+  const found = loaded.error !== undefined ? "missing" : (loaded.data ?? null);
+  const node = found !== null && found !== "missing" ? found.node : found;
+  const sectionId = found !== null && found !== "missing" ? found.sectionId : (sectionIds[0] ?? null);
   const params = new URLSearchParams();
   if (sectionId) params.set("section", sectionId);
   if (nodeId) params.set("node", nodeId);
