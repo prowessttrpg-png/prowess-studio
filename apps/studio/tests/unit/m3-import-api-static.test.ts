@@ -154,6 +154,9 @@ describe("M3-WO7 — no UI change, no DEVELOPMENT_MODE leak", () => {
       }
       return out;
     };
-    for (const f of [...studio(path.join(STUDIO, "app")), ...studio(path.join(STUDIO, "src", "api-client"))]) expect(readFileSync(f, "utf8"), f).not.toMatch(/\/api\/import/);
+    // M3-WO8: the Import Studio (app/developer/import) and its client (src/api-client/import.ts) are the ONLY UI allowed to
+    // call the Import API; they are audited by m3-import-ui-static.
+    const importUi = (f: string) => f.includes(`${path.sep}developer${path.sep}import${path.sep}`) || f.endsWith(`${path.sep}api-client${path.sep}import.ts`);
+    for (const f of [...studio(path.join(STUDIO, "app")), ...studio(path.join(STUDIO, "src", "api-client"))].filter((f) => !importUi(f))) expect(readFileSync(f, "utf8"), f).not.toMatch(/\/api\/import/);
   });
 });

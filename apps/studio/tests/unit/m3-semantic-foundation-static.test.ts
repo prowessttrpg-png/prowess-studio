@@ -96,7 +96,7 @@ describe("M3-WO5 no new service, route or UI", () => {
     expect(read("packages", "prowess-db", "src", "index.ts")).not.toMatch(/extractSemantic|SemanticBatch|semanticFoundation|semantic-foundation/i);
   });
   it("no route, page, component or client references semantic extraction", () => {
-    for (const f of [...walk(path.join(ROOT, "apps", "studio", "app")), ...walk(path.join(ROOT, "apps", "studio", "src", "api-client"))]) {
+    for (const f of [...walk(path.join(ROOT, "apps", "studio", "app")).filter((f) => !rel(f).startsWith("apps/studio/app/developer/import/")) /* M3-WO8 Import Studio: audited by m3-import-ui-static */, ...walk(path.join(ROOT, "apps", "studio", "src", "api-client")).filter((f) => !rel(f).endsWith("src/api-client/import.ts")) /* M3-WO8 Import Studio client: audited by m3-import-ui-static */]) {
       expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/semantic-foundation|semanticFoundation|SemanticFinding/);
     }
   });
