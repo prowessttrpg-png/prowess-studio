@@ -146,7 +146,7 @@ describe("M3-WO4 surface: services only, no HTTP route, no UI", () => {
     expect(root).not.toMatch(/updateMatch|deleteMatch|applyMatch|acceptMatch|setActiveMatchRun/);
   });
   it("no route, page, component or client references matching", () => {
-    for (const f of [...walk(path.join(ROOT, "apps", "studio", "app")).filter((f) => !rel(f).startsWith("apps/studio/app/api/import/")) /* M3-WO7 Import API: audited by m3-import-api-static */, ...walk(path.join(ROOT, "apps", "studio", "src", "api-client"))]) {
+    for (const f of [...walk(path.join(ROOT, "apps", "studio", "app")).filter((f) => !rel(f).startsWith("apps/studio/app/api/import/") && !rel(f).startsWith("apps/studio/app/developer/import/")) /* M3-WO7 Import API and M3-WO8 Import Studio: audited by m3-import-api-static / m3-import-ui-static */, ...walk(path.join(ROOT, "apps", "studio", "src", "api-client")).filter((f) => !rel(f).endsWith("src/api-client/import.ts")) /* M3-WO8 Import Studio client: audited by m3-import-ui-static */]) {
       expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/MatchRun|MatchAssessment|DuplicateGroup|analyzeImportBatchMatches|import-match/i);
     }
   });

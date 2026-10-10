@@ -59,7 +59,9 @@ export const PRIMARY_NAVIGATION: readonly NavEntry[] = [
       { label: "Rulesets", href: "/developer/rulesets" },
       { label: "Rules Inspector", href: "/developer/rules-inspector" },
       { label: "Canon Manager", href: "/developer/rulesets" },
-      { label: "Sources", href: "/developer/sources" },
+      // M3-WO8: the Import Studio (source snapshots, Import Batches, review). Sources now opens its Source browser.
+      { label: "Import", href: "/developer/import" },
+      { label: "Sources", href: "/developer/import/sources" },
       { label: "Tests", href: "/developer/tests" },
     ],
   },

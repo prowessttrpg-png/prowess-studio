@@ -13,8 +13,14 @@ export default function DeveloperPage() {
           <p>Ruleset governance: manifests, Canon policies, rule conflicts, decisions, ChangeSets, impact review and immutable releases.</p>
         </li>
         <li className="gov-card">
-          <h2 className="gov-card__title">Rules Inspector, Sources, Tests</h2>
-          <p>Placeholder — calculation traces, source review and test tooling arrive in later milestones.</p>
+          <h2 className="gov-card__title">
+            <Link href="/developer/import">Import Studio</Link>
+          </h2>
+          <p>Registered source snapshots, structure inspection, Import Batches, extraction, matching evidence and explicit import review. Approved for Import is not Canon.</p>
+        </li>
+        <li className="gov-card">
+          <h2 className="gov-card__title">Rules Inspector, Tests</h2>
+          <p>Placeholder — calculation traces and test tooling arrive in later milestones.</p>
         </li>
       </ul>
     </section>

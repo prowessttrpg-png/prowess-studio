@@ -73,6 +73,12 @@ describe("M2-WO10 â€” the governance UI stays on the API side of the boundary (Â
         "developer",
         "developer/rulesets",
         "developer/rulesets/[rulesetId]",
+        // M3-WO8 Import Studio (audited by m3-import-ui-static)
+        "developer/import",
+        "developer/import/sources",
+        "developer/import/sources/[snapshotId]",
+        "developer/import/batches",
+        "developer/import/batches/[batchId]",
         "developer/rulesets/[rulesetId]/change-sets",
         "developer/rulesets/[rulesetId]/change-sets/[changeSetId]",
         "developer/rulesets/[rulesetId]/conflicts",

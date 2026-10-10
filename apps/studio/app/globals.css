@@ -1057,3 +1057,93 @@ body {
   .gov-form, .gov-panel { padding: var(--space-3); }
   .prowess-topbar__ruleset-select { max-width: 9rem; }
 }
+
+/* ---------------------------------------------------------------------------------------------------------------
+ * M3-WO8 Import Studio — information-dense developer workbench built on the existing tokens. Status text is always
+ * present; borders / weight only supplement it. Below 900px the workspace becomes a tabbed single column.
+ * ------------------------------------------------------------------------------------------------------------- */
+.imp-shell { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: var(--space-4); align-items: start; }
+.imp-shell__main { min-width: 0; }
+.imp-nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.imp-nav a { display: block; padding: var(--space-1) var(--space-2); border-radius: 6px; }
+.imp-nav a[aria-current="page"] { background: var(--color-bg-active); font-weight: 600; }
+.imp-nav a:focus-visible, .imp-queue__row:focus-visible, .imp-outline__item:focus-visible, .imp-tab:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.imp-badge { display: inline-block; padding: 0 var(--space-2); font-size: 0.75rem; font-weight: 600; border: 1px solid var(--color-border-strong); }
+.imp-status { border-radius: 999px; }
+.imp-status--approved, .imp-status--rejected { border-width: 2px; }
+.imp-status--conflict { border-style: dashed; }
+.imp-confidence { border-radius: 3px; background: none; font-weight: 500; }
+.imp-kind { border-radius: 3px; text-transform: uppercase; letter-spacing: 0.03em; }
+.imp-batch-status { border-radius: 999px; background: var(--color-bg-active); }
+.imp-badges { display: inline-flex; flex-wrap: wrap; gap: var(--space-1); }
+.imp-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.imp-lifecycle { list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-2); padding: 0; margin: var(--space-2) 0; font-size: 0.8rem; }
+.imp-lifecycle li { padding: 0 var(--space-2); border: 1px solid var(--color-border); border-radius: 4px; color: var(--color-text-muted); }
+.imp-lifecycle li[aria-current="step"] { border: 2px solid var(--color-border-strong); color: inherit; font-weight: 700; }
+.imp-fields { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--space-1) var(--space-3); margin: var(--space-2) 0; }
+.imp-fields > div, .imp-counts > div, .imp-technical dl > div { display: contents; }
+.imp-fields dt, .imp-counts dt, .imp-technical dt { color: var(--color-text-muted); }
+.imp-fields dd, .imp-counts dd, .imp-technical dd { margin: 0; overflow-wrap: anywhere; }
+.imp-counts { display: grid; grid-template-columns: max-content max-content; gap: 0 var(--space-3); font-size: 0.85rem; }
+.imp-technical { margin: var(--space-2) 0; font-size: 0.8rem; }
+.imp-technical dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0 var(--space-2); }
+.imp-boundary { border-left: 3px solid var(--color-border-strong); padding-left: var(--space-2); color: var(--color-text-muted); font-size: 0.85rem; }
+.imp-progress progress { width: 100%; }
+.imp-progress__headline { margin: 0; }
+.imp-workspace { display: grid; grid-template-columns: minmax(14rem, 1fr) minmax(18rem, 1.3fr) minmax(18rem, 1.4fr); grid-template-areas: "source queue details" "source history details"; gap: var(--space-4); align-items: start; }
+.imp-pane { min-width: 0; }
+.imp-pane--source { grid-area: source; }
+.imp-pane--queue { grid-area: queue; }
+.imp-pane--details { grid-area: details; }
+.imp-pane--history { grid-area: history; }
+.imp-tabs { display: none; }
+.imp-queue { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.imp-queue__row { width: 100%; text-align: left; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); padding: var(--space-1) var(--space-2); border: 1px solid var(--color-border); border-radius: 4px; background: none; font: inherit; cursor: pointer; }
+.imp-queue__row:hover { background: var(--color-bg-hover); }
+.imp-queue__row[aria-current="true"] { border: 2px solid var(--color-border-strong); background: var(--color-bg-active); }
+.imp-queue__ordinal { font-variant-numeric: tabular-nums; color: var(--color-text-muted); }
+.imp-queue__label { font-weight: 600; }
+.imp-queue__context { width: 100%; font-size: 0.8rem; }
+.imp-source-layout { display: grid; grid-template-columns: minmax(12rem, 1fr) minmax(0, 2.5fr); gap: var(--space-4); align-items: start; margin-top: var(--space-3); }
+.imp-outline__list { list-style: none; margin: 0; padding-left: var(--space-3); }
+.imp-outline > .imp-outline__list { padding-left: 0; }
+.imp-outline__item { background: none; border: 1px solid transparent; border-radius: 4px; padding: 2px var(--space-1); font: inherit; text-align: left; cursor: pointer; }
+.imp-outline__item[aria-current="true"] { border-color: var(--color-border-strong); background: var(--color-bg-active); font-weight: 600; }
+.imp-node { border: 1px solid var(--color-border); border-radius: 4px; padding: var(--space-2); margin-bottom: var(--space-2); }
+.imp-node[data-selected="true"] { border: 2px solid var(--color-border-strong); }
+.imp-node__meta { margin: 0 0 var(--space-1); font-size: 0.75rem; }
+.imp-source-text { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+.imp-source-text mark { outline: 1px solid var(--color-border-strong); }
+.imp-table-scroll { overflow-x: auto; max-width: 100%; }
+.imp-source-table { border-collapse: collapse; font-size: 0.85rem; }
+.imp-source-table th, .imp-source-table td { border: 1px solid var(--color-border); padding: 2px var(--space-2); vertical-align: top; white-space: pre-wrap; }
+.imp-source-table [data-highlight="true"] { outline: 3px solid var(--color-border-strong); outline-offset: -3px; font-weight: 600; }
+.imp-excerpt { margin: var(--space-2) 0; padding-left: var(--space-2); border-left: 3px solid var(--color-border); }
+.imp-side-by-side { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: var(--space-2); }
+.imp-side { border: 1px solid var(--color-border); border-radius: 4px; padding: var(--space-2); min-width: 0; }
+.imp-side[aria-current="true"] { border-width: 2px; }
+.imp-payload-summary { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.75rem; margin: 0; }
+.imp-decision-form { border: 1px solid var(--color-border-strong); border-radius: 6px; padding: var(--space-3); margin-top: var(--space-2); }
+.imp-radio, .imp-checkbox { display: block; margin: var(--space-1) 0; }
+.imp-history { padding-left: var(--space-4); }
+.imp-history li { margin-bottom: var(--space-2); }
+.imp-status-message:empty { display: none; }
+.imp-grid-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.imp-grid-table th, .imp-grid-table td { text-align: left; padding: var(--space-1) var(--space-2); border-bottom: 1px solid var(--color-border); overflow-wrap: anywhere; }
+@media (max-width: 899px) {
+  .imp-shell { grid-template-columns: minmax(0, 1fr); }
+  .imp-nav ul { flex-direction: row; flex-wrap: wrap; }
+  .imp-source-layout { grid-template-columns: minmax(0, 1fr); }
+  .imp-tabs { display: flex; gap: var(--space-1); position: sticky; top: 0; z-index: 1; padding: var(--space-1) 0; background: var(--color-bg-active); }
+  .imp-tab { flex: 1; padding: var(--space-2); border: 1px solid var(--color-border); border-radius: 4px; background: none; font: inherit; }
+  .imp-tab[aria-selected="true"] { border: 2px solid var(--color-border-strong); font-weight: 700; }
+  .imp-workspace { display: block; }
+  .imp-workspace .imp-pane { display: none; }
+  .imp-workspace[data-tab="queue"] .imp-pane--queue,
+  .imp-workspace[data-tab="source"] .imp-pane--source,
+  .imp-workspace[data-tab="details"] .imp-pane--details,
+  .imp-workspace[data-tab="history"] .imp-pane--history { display: block; }
+  .imp-grid-table thead { display: none; }
+  .imp-grid-table tr { display: block; border-bottom: 1px solid var(--color-border); padding: var(--space-1) 0; }
+  .imp-grid-table td { display: block; border: none; padding: 0 var(--space-1); }
+}
