@@ -2,7 +2,9 @@ import { createHash, randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 
 /**
- * PAS-10 M3-WO8 §79–§88 — the Import Studio through the REAL browser UI.
+ * PAS-10 M3-WO8 §79–§88 — the Import Studio through the REAL browser UI. (M3-WO10 final flow: covers M3-I09 no implicit
+ * match acceptance, M3-I12 explicit review transitions, M3-I13 Approved ≠ Canon, M3-I14 Review Complete ≠ published,
+ * M3-I15 no materialization, plus a review action on the narrow layout.)
  *
  * Fixtures that have no UI by design are seeded BEFORE the browser starts through the guarded @prowess/db test
  * client against prowess_studio_test only (no production /seed route exists): a registered Source Snapshot with an
@@ -251,6 +253,14 @@ test("§87 / §88 mobile: tabbed queue, details, source evidence and history, no
   await expect(page.getByTestId("source-evidence")).toBeVisible();
   await tabs.getByRole("tab", { name: "History" }).click();
   await expect(page.getByRole("tabpanel", { name: "History" })).toBeVisible();
+  // M3-WO10 §53: an actual review action still works on the narrow layout (Mystery was classified MATCHED above)
+  await tabs.getByRole("tab", { name: "Queue" }).click();
+  await row(page, `Mystery Term ${STAMP}`).click();
+  await expect(tabs.getByRole("tab", { name: "Details" })).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("button", { name: "Approve Matched for Import", exact: true }).click();
+  await page.getByRole("checkbox", { name: /Select the next Candidate/ }).uncheck();
+  await page.getByRole("button", { name: "Record: Approve Matched for Import" }).click();
+  await expect(page.getByTestId("decision-status")).toContainText("Approved for Import");
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(1);
   // §88 keyboard: tabs and queue rows are focusable buttons with accessible names; status is text, not color.
