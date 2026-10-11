@@ -1,6 +1,6 @@
 # Ruleset Publishing & Immutable Releases (M2-WO8)
 
-**Status: implemented; awaiting its first CI run.** M2-WO8 adds the controlled publication boundary:
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M2-WO8 was approved, and the M2 final audit (`m2-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting its first CI run".) M2-WO8 adds the controlled publication boundary:
 explicit review lifecycles for ChangeSets and Rulesets, and `publishRulesetRelease`, which turns an
 approved proposal into an immutable RulesetRelease. It adds no HTTP API (M2-WO9), no UI (M2-WO10), no
 multi-ChangeSet bundles, rollback, deletion, or supersession, and no Rules Engine behavior.

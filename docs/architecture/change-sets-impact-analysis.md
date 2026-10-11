@@ -1,6 +1,6 @@
 # ChangeSets & Impact Analysis (M2-WO7)
 
-**Status: implemented; awaiting its first CI run.** M2-WO7 adds immutable proposed ChangeSets and
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M2-WO7 was approved, and the M2 final audit (`m2-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting its first CI run".) M2-WO7 adds immutable proposed ChangeSets and
 derived, read-only impact analysis. It adds no application, review workflow, release, publishing,
 rollback, HTTP API, UI, or Rules Engine behavior.
 

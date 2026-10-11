@@ -1,6 +1,6 @@
 # Import Studio UI (M3-WO8)
 
-**Status: implemented; awaiting CI verification.** The internal Prowess Studio workspace over the approved
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M3-WO8 was approved, and the M3 final audit (`m3-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting CI verification".) The internal Prowess Studio workspace over the approved
 `/api/import` surface (WO7). It adds no import mechanics, no API route, no schema change and no migration: every
 review mutation is the one WO7 ImportDecision command, and the server stays authoritative.
 

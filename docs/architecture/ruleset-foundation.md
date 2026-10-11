@@ -1,6 +1,6 @@
 # Ruleset Foundation (M2-WO1)
 
-**Status: implemented; awaiting its first CI run.** M2-WO1 adds the *identity and
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M2-WO1 was approved, and the M2 final audit (`m2-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting its first CI run".) M2-WO1 adds the *identity and
 lifecycle* of a Ruleset — nothing more. It has no HTTP API, no UI, and no content.
 
 ## What a Ruleset is

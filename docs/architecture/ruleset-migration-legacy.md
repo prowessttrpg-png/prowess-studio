@@ -1,6 +1,6 @@
 # Ruleset Migration Planning & Legacy Preservation (M2-WO11)
 
-**Status: implemented; awaiting its first CI run.** M2-WO11 builds the migration-*planning* foundation. It compares
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M2-WO11 was approved, and the M2 final audit (`m2-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting its first CI run".) M2-WO11 builds the migration-*planning* foundation. It compares
 two exact published Releases and records immutable assessments of them. It performs **no migration**: nothing is
 upgraded, substituted, rewritten, archived, or applied, and no saved-creation models (Spell, Character, Card,
 Campaign, Summon, Maneuver) are added before their real persistence exists.

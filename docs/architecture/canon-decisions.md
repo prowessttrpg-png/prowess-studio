@@ -1,6 +1,6 @@
 # Canon Decisions (M2-WO6)
 
-**Status: implemented; awaiting its first CI run.** M2-WO6 adds immutable, auditable Canon
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M2-WO6 was approved, and the M2 final audit (`m2-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting its first CI run".) M2-WO6 adds immutable, auditable Canon
 Decisions that explicitly resolve RuleConflicts. It adds no HTTP API, no UI, no ChangeSets, no
 decision application, no rollback/supersession, and no publishing.
 

@@ -2,7 +2,7 @@
   "name": "@prowess/import",
   "version": "0.1.0",
   "private": true,
-  "description": "Framework-independent, import-specific pure logic (M3): canonical JSON, deterministic ImportBatch / ExtractionCandidate fingerprints, source-scope helpers. No persistence, no UI, no semantic extraction.",
+  "description": "Framework-independent, pure M3 import logic: canonical JSON and deterministic fingerprints, the exact-version extractor registry with the structural (prowess.structural@1) and semantic-foundation (prowess.semantic-foundation@1) extractors, the identity matcher, and review / conflict helpers. No persistence, no UI, no AI or network.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

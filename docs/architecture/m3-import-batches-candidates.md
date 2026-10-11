@@ -1,6 +1,6 @@
 # Import Batches & Extraction Candidates (M3-WO2)
 
-**Status: implemented; awaiting CI verification.** The infrastructure for performing an import against one exact
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M3-WO2 was approved, and the M3 final audit (`m3-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting CI verification".) The infrastructure for performing an import against one exact
 SourceSnapshot (`m3-source-structure.md`) and recording reviewable extraction **proposals**. There is no semantic
 extraction, Entity matching, review, ImportDecision, Import API or Import UI yet — those are later M3 Work Orders.
 

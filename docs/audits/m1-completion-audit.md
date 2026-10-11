@@ -1,8 +1,9 @@
 # M1 Completion Audit (PAS-10 M1-WO11)
 
-**Status: NOT YET PASSED — the first real CI run found defects (sections 11–12).** This is *not* a PASS. It becomes
-"M1 APPROVED" only after the permanent GitHub Actions workflow succeeds
-against the audit (see "CI result" at the end).
+**Status: M1 — COMPLETE / FINAL PASS.** The permanent GitHub Actions workflow passed against this audit after the
+drift-resolution patch (section 12), and M1 was approved. Everything below is preserved as the historical audit record:
+counts, findings and "pending" notes describe the state *at the time each section was written*. (Historical note: this
+header originally read "NOT YET PASSED — the first real CI run found defects (sections 11–12)".)
 
 ## 1. Scope and method
 
@@ -359,3 +360,9 @@ build PASS; and every Playwright flow (Compendium, Version History, M1 reproduci
 mobile) PASS.
 
 **M1 is NOT marked approved by this patch.** Approval depends on that CI run.
+
+## Closure note (pre-M4 baseline cleanup)
+
+The final CI run described in section 12 passed — Prisma validate / generate, all eight migrations from empty, the
+blocking drift check with no differences, the M1 audit gates, unit and integration tests, the production build and the
+Playwright flows — and **M1 was approved**. M2 and M3 were subsequently built and approved on this baseline.

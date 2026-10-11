@@ -1,6 +1,6 @@
 # Ruleset & Canon HTTP API (M2-WO9)
 
-**Status: implemented; awaiting its first CI run.** M2-WO9 exposes the approved M2 service layer over
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M2-WO9 was approved, and the M2 final audit (`m2-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting its first CI run".) M2-WO9 exposes the approved M2 service layer over
 HTTP. It is **transport only**: no governance behavior is new, no schema changed (no migration), and
 there is no new UI (M2-WO10), authentication, OpenAPI tooling, or `/v1/` prefix (Phase 1).
 

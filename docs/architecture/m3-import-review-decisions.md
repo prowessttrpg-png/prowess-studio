@@ -1,6 +1,6 @@
 # Conflict Detection & Import Review Decisions (M3-WO6)
 
-**Status: implemented; awaiting CI verification.** Deterministic import-conflict evidence, explicit editorial
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M3-WO6 was approved, and the M3 final audit (`m3-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting CI verification".) Deterministic import-conflict evidence, explicit editorial
 classification, an immutable ImportDecision history, and controlled Candidate workflow transitions. Nothing is
 materialized: no Entity, EntityVersion, alias, Formula / Requirement / Keyword definition or relationship is created
 from a Candidate, and no M2 RuleConflict is created.

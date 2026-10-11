@@ -1,7 +1,8 @@
 # M3 — Source & Import Core: Final Audit (M3-WO10)
 
-**Status: audit gate implemented; awaiting permanent CI.** This is the formal M3 closure document. M3 is declared
-complete only after permanent GitHub CI is green on this Work Order.
+**Status: M3-WO10 — FINAL PASS. M3 — SOURCE & IMPORT CORE: COMPLETE.** This is the formal M3 closure document.
+Permanent GitHub CI passed on M3-WO10 and the Work Order was approved and merged. (Historical note: when this document
+was authored, it read "audit gate implemented; awaiting permanent CI".)
 
 ## 1. M3 purpose
 
@@ -263,5 +264,5 @@ Domain:
 M3 — Source & Import Core provides byte-exact, reproducible source records; deterministic structural and semantic
 extraction with exact provenance; immutable identity-matching and conflict evidence; append-only, explicit human review;
 a strict HTTP API and an Import Studio over it — validated on the real Prowess Core Playtest Packet V0.1 — without
-materializing domain content or touching Canon governance. **M3 is complete once permanent GitHub CI passes this audit
-gate.**
+materializing domain content or touching Canon governance. **M3-WO10 — FINAL PASS; M3 — SOURCE & IMPORT CORE:
+COMPLETE.** (At authoring time the closure was conditional on permanent GitHub CI; that CI run subsequently passed.)

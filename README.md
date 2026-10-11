@@ -1,84 +1,91 @@
 # Prowess Studio
 
-Monorepo for the Prowess Platform. Implements PAS-10 (M0/M1 Work Orders)
-against the architecture defined in PAS-01–PAS-09.
+Monorepo for the Prowess Platform — the internal Prowess Studio application and its framework-independent packages.
+Implements the PAS-10 Work Orders against the architecture defined in PAS-01–PAS-09.
+
+## Current milestone status
+
+| Milestone | Status |
+| --- | --- |
+| M0 — Project Foundation | ✓ Complete |
+| M1 — Entity & Version Core | ✓ Complete |
+| M2 — Ruleset / Canon Governance | ✓ Complete |
+| M3 — Source & Import Core | ✓ Complete |
+| M4 — Rules Engine Foundation | Next |
+
+Closure audits: `docs/audits/m1-completion-audit.md`, `docs/architecture/m2-final-audit.md`,
+`docs/architecture/m3-final-audit.md`. The real-source validation of M3 is recorded in
+`docs/import-reports/m3-wo9-core-playtest-v0.1.md`.
 
 ## Structure
 
 ```
 apps/
-  studio/               Next.js (App Router) application — routes, pages,
-                         server/API integration, application state.
+  studio/                Next.js (App Router) Studio: the application shell, Compendium, Version History,
+                         Ruleset & Canon governance (Developer → Rulesets), Import Studio (Developer → Import),
+                         and the strict internal HTTP API (/api/...), all backed by @prowess/db.
 packages/
-  prowess-model/        Framework-independent shared domain types
-                         (identifiers, status/relationship enums).
+  prowess-model/         Framework-independent domain types, vocabularies, validation and error codes.
   prowess-ui/            Shared Studio UI primitives (React only).
-  prowess-db/            Centralized PostgreSQL/Prisma persistence boundary.
-                         See docs/architecture/database.md — Prisma's CLI
-                         is currently BLOCKED in some sandboxed
-                         environments; read that doc before assuming
-                         `pnpm db:*` commands will just work.
-  prowess-import/        Framework-independent, import-specific pure logic (M3-WO2):
-                         canonical JSON, ImportBatch / ExtractionCandidate
-                         fingerprints, source-scope helpers. Depends only on
-                         @prowess/model; used by @prowess/db.
-  prowess-test-fixtures/ Shared test fixtures/factories (placeholder in M0).
+  prowess-import/        Pure M3 import logic: canonical JSON and fingerprints, the exact-version extractor
+                         registry (structural and semantic-foundation extractors), the identity matcher, and
+                         review / conflict helpers. No persistence, no UI.
+  prowess-db/            Centralized PostgreSQL / Prisma persistence boundary and the domain services
+                         (Entities, Rulesets & Canon, Source & Import). Migrations live in
+                         packages/prowess-db/prisma/migrations/.
+  prowess-test-fixtures/ Reserved for shared cross-package fixtures (currently a placeholder; suites keep
+                         their fixtures beside them).
 database/
-  migrations/            Reserved — the real migrations live in
-                         packages/prowess-db/prisma/migrations/ once
-                         generation is unblocked; this top-level folder is
-                         a placeholder from M0-WO1.
+  migrations/            Pointer only — the canonical migrations are in packages/prowess-db/prisma/migrations/.
 docs/
-  architecture/          Stack decisions and architecture notes, including
-                         database.md (persistence setup, the Prisma
-                         blocker, and its verification checklist).
-tests/                   Reserved for cross-package integration/e2e suites.
+  architecture/          Component and milestone architecture documents (start with database.md, ci.md and the
+                         m2 / m3 final audits).
+  audits/                The M1 completion audit.
+  import-reports/        Real-source import validation reports.
+tests/                   Orientation for the test layers (suites live beside the code they test).
+scripts/                 Repository tooling (architecture check, env loader, developer-only helpers).
 ```
 
-Architectural rule: `prowess-model` and future domain packages
-(`prowess-rules`, `prowess-canon`, …) must never depend on Next.js, Prisma,
-or any other framework/database client. `apps/studio` hosts the
-application; `prowess-db` hosts persistence; neither owns Prowess
-mechanics, and the dependency direction is `prowess-model <- prowess-db <-
-apps/studio`, never the reverse.
+Dependency direction (enforced by `pnpm run test:architecture`):
+`@prowess/model ← @prowess/import ← @prowess/db ← apps/studio`. Domain packages never depend on Next.js, Prisma or
+React; no package owns Prowess game mechanics yet — the Rules Engine is M4.
 
 ## Requirements
 
 - Node.js >= 20 (developed against Node 22)
-- pnpm >= 9 (`packageManager` field pins the exact version)
-- PostgreSQL (developed against 16.x) with two local databases —
-  `prowess_studio_dev` and `prowess_studio_test`. See
-  `docs/architecture/database.md` for exact setup steps and for the
-  current Prisma CLI network blocker some sandboxes hit.
+- pnpm >= 9 (`packageManager` pins the exact version)
+- PostgreSQL 16 with two local databases, `prowess_studio_dev` and `prowess_studio_test` — see
+  `docs/architecture/database.md` for setup.
 
 ## Getting started
 
 ```sh
 pnpm install
-pnpm dev            # starts apps/studio on http://localhost:3000
+pnpm db:generate         # generate the Prisma client (not run automatically on install)
+pnpm db:migrate:deploy   # apply the migrations to the development database
+pnpm dev                 # starts apps/studio on http://localhost:3000
 ```
-
-`pnpm install` does not run `prisma generate` automatically (see
-`docs/architecture/database.md` for why) — the persistence layer
-(`@prowess/db`) is not yet wired into `apps/studio`, so this doesn't block
-running the app.
 
 ## Common commands
 
-| Command              | Description                                   |
-| -------------------- | ---------------------------------------------- |
-| `pnpm build`          | Build all workspace packages/apps              |
-| `pnpm lint`           | Lint all workspaces                            |
-| `pnpm typecheck`      | Type-check all workspaces                      |
-| `pnpm test`           | Run each workspace's default test script       |
-| `pnpm test:unit`      | Run unit tests (Vitest) across workspaces      |
-| `pnpm test:e2e`       | Run Playwright e2e tests for apps/studio       |
-| `pnpm db:generate`     | `prisma generate` (see database.md — BLOCKED in some sandboxes) |
-| `pnpm db:migrate:dev`  | `prisma migrate dev` (development only)        |
-| `pnpm db:migrate:deploy` | `prisma migrate deploy` (production-safe)    |
-| `pnpm db:migrate:status` | `prisma migrate status`                      |
-| `pnpm db:reset:test`     | The only vetted way to reset the test database (guarded — see database.md) |
+| Command | Description |
+| --- | --- |
+| `pnpm build` | Build all workspace packages / apps |
+| `pnpm lint` | Lint all workspaces |
+| `pnpm typecheck` | Type-check all workspaces |
+| `pnpm run test:architecture` | Package import-boundary and circular-dependency check |
+| `pnpm test:unit` | Unit tests (Vitest) across workspaces |
+| `pnpm test:e2e` | Playwright end-to-end tests for apps/studio |
+| `pnpm db:generate` | `prisma generate` |
+| `pnpm db:migrate:dev` | `prisma migrate dev` (development only) |
+| `pnpm db:migrate:deploy` | `prisma migrate deploy` (production-safe) |
+| `pnpm db:migrate:status` | `prisma migrate status` |
+| `pnpm db:reset:test` | The only vetted way to reset the test database (refuses any non-`_test` target) |
+| `pnpm import:source --file "<path>"` | Developer-only: ingest a local DOCX source through the M3 services (see the WO9 report) |
+| `pnpm import:verify-real-source --file "<path>"` | Developer-only: re-verify a real source end to end |
 
-See `docs/architecture/stack-decisions.md` for pinned dependency versions
-and the reasoning behind them, and `docs/architecture/database.md` for
-everything persistence-related.
+CI (`.github/workflows/ci.yml`, described in `docs/architecture/ci.md`) is the verification authority: Prisma validate /
+generate, the full migration chain from empty, a blocking drift check, architecture checks, lint, typecheck, unit,
+database and API integration tests, the static audit gates, the production build and Playwright.
+
+Pinned dependency versions and their reasoning: `docs/architecture/stack-decisions.md`.
