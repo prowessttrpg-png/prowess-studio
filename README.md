@@ -30,6 +30,9 @@ packages/
   prowess-import/        Pure M3 import logic: canonical JSON and fingerprints, the exact-version extractor
                          registry (structural and semantic-foundation extractors), the identity matcher, and
                          review / conflict helpers. No persistence, no UI.
+  prowess-rules/         Pure M4 Rules Engine foundation: the four evaluation contexts, the common response
+                         envelope, engine errors vs validation messages, the calculation trace and rule
+                         provenance. Depends on @prowess/model only; no clock, randomness, network or persistence.
   prowess-db/            Centralized PostgreSQL / Prisma persistence boundary and the domain services
                          (Entities, Rulesets & Canon, Source & Import). Migrations live in
                          packages/prowess-db/prisma/migrations/.
@@ -47,8 +50,9 @@ scripts/                 Repository tooling (architecture check, env loader, dev
 ```
 
 Dependency direction (enforced by `pnpm run test:architecture`):
-`@prowess/model ← @prowess/import ← @prowess/db ← apps/studio`. Domain packages never depend on Next.js, Prisma or
-React; no package owns Prowess game mechanics yet — the Rules Engine is M4.
+`@prowess/model ← @prowess/import ← @prowess/db ← apps/studio`, and `@prowess/model ← @prowess/rules` (the pure Rules
+Engine, M4). Domain packages never depend on Next.js, Prisma or React; no package implements Prowess game mechanics yet —
+M4-WO1 established only the engine's generic contracts (see docs/architecture/m4-rules-engine-core.md).
 
 ## Requirements
 
