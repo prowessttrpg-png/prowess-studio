@@ -1,11 +1,13 @@
 // Prowess Platform — persistence schema.
 //
 // M0-WO3 established migration/connection tooling (SystemMigrationProbe,
-// below). M1-WO1 adds the first real Prowess domain table: Entity — the
-// stable identity layer only (see the Entity model's own doc comment).
-// EntityVersion, EntityAlias, Keyword, EntityRelationship, SourceDocument,
-// Ruleset, and Spell-specific tables all remain out of scope until their
-// own later Work Orders.
+// below). M1 adds the Entity & Version core (Entity, EntityVersion,
+// EntityAlias, Keywords, EntityRelationship, SourceDocument / SourceReference);
+// M2 adds Ruleset / Canon governance (Rulesets, Manifests, CanonPolicy, rule
+// conflicts, Canon decisions, ChangeSets, Releases, MigrationPlans); M3 adds
+// Source & Import (Source structure, ImportBatches, ExtractionCandidates,
+// MatchRuns, ImportDecisions). Each model's own doc comment describes it.
+// Spell-specific and Rules Engine tables remain out of scope (M4 and later).
 
 generator client {
   // Prisma 7's current generator. "prisma-client-js" (the legacy name) also
@@ -666,7 +668,7 @@ enum SourceDocumentType {
 /// determine Canon, choose a current rule, override a Ruleset, or
 /// automatically supersede another document. Nothing in this package reads
 /// this field to make any decision — actual source-authority governance
-/// belongs to PAS-08/M2's Canon Manager, which does not exist yet.
+/// belongs to the M2 Canon governance layer (Ruleset-scoped SourceAuthorityRecords).
 enum SourceAuthorityStatus {
   GOVERNING
   CURRENT_PRIMARY

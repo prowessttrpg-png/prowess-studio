@@ -1,6 +1,6 @@
 # Ruleset Manifest & EntityVersion Pinning (M2-WO2)
 
-**Status: implemented; awaiting its first CI run.** M2-WO2 gives a Ruleset an
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M2-WO2 was approved, and the M2 final audit (`m2-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting its first CI run".) M2-WO2 gives a Ruleset an
 explicit, reproducible composition of exact EntityVersions. It has no HTTP API, no
 UI, no inheritance, and no publishing.
 

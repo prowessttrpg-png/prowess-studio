@@ -2,7 +2,7 @@
   "name": "@prowess/test-fixtures",
   "version": "0.1.0",
   "private": true,
-  "description": "Shared test fixtures and factories for Prowess Platform tests. Empty placeholder in M0 — populated as domain models are introduced starting in M1.",
+  "description": "Reserved workspace for shared cross-package test fixtures. Currently a placeholder: the M1–M3 fixtures live beside their suites (e.g. packages/prowess-db/tests/fixtures).",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

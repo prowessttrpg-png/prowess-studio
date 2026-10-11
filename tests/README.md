@@ -1,11 +1,14 @@
 # tests/
 
-Reserved for cross-package integration and end-to-end suites that don't
-belong to a single package/app (e.g. future rules-engine integration tests,
-M1-WO11 historical reproducibility tests). As of M0-WO1:
+Orientation only — every suite lives beside the code it tests. The current test layers:
 
-- Package-local unit tests live beside their source
-  (`packages/*/src/**/*.test.ts`, `apps/studio/tests/unit/`).
-- The Playwright e2e suite lives in `apps/studio/tests/e2e/`.
+| Layer | Location | Notes |
+| --- | --- | --- |
+| Package unit tests | `packages/*/src/**/*.test.ts`, `packages/prowess-db/tests/unit/` | Vitest; no database |
+| Studio unit / component tests and static audit gates | `apps/studio/tests/unit/` | Vitest + Testing Library; includes the M1–M3 static audits (route inventories, layering, migration pins, invariant coverage) |
+| Database integration | `packages/prowess-db/tests/integration/` | real PostgreSQL (`prowess_studio_test` only, guarded); includes the M1 / M2 / M3 audit and Golden lifecycle suites |
+| API integration | `apps/studio/tests/integration/` | the real Next.js route handlers against PostgreSQL |
+| End-to-end | `apps/studio/tests/e2e/` | Playwright, including mobile layouts |
+| Migrations / drift | CI | migration chain from an empty database and a blocking Prisma drift check |
 
-This directory is currently empty by design.
+See `docs/architecture/ci.md` for how CI runs each layer.

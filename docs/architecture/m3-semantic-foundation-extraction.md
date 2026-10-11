@@ -1,6 +1,6 @@
 # Formula, Requirement & Keyword Semantic Extraction (M3-WO5)
 
-**Status: implemented; awaiting CI verification.** The first deliberately SEMANTIC extractor. It recognizes
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M3-WO5 was approved, and the M3 final audit (`m3-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting CI verification".) The first deliberately SEMANTIC extractor. It recognizes
 **explicit** Formula, Requirement and Keyword statements in source text and records them as ordinary, immutable,
 UNREVIEWED ExtractionCandidates. It resolves nothing, evaluates nothing and creates no definitions.
 

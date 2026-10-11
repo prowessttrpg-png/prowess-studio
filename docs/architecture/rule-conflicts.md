@@ -1,6 +1,6 @@
 # Rule Conflicts (M2-WO5)
 
-**Status: implemented; awaiting its first CI run.** M2-WO5 adds an explicit, historically
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M2-WO5 was approved, and the M2 final audit (`m2-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting its first CI run".) M2-WO5 adds an explicit, historically
 reproducible representation of rule conflicts. It adds no HTTP API, no UI, no Canon decisions,
 no conflict resolution, no ChangeSets, and no publishing.
 

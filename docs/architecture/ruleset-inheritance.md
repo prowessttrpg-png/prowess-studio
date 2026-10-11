@@ -1,6 +1,6 @@
 # Ruleset Inheritance & Effective Resolution (M2-WO3)
 
-**Status: implemented; awaiting its first CI run.** M2-WO3 lets a child Ruleset's
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M2-WO3 was approved, and the M2 final audit (`m2-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting its first CI run".) M2-WO3 lets a child Ruleset's
 manifest inherit Entity pins from a parent Ruleset's manifest — as an exact, historical
 **snapshot reference**, never as "whatever the parent's latest manifest is today". It adds
 no HTTP API, no UI, no Canon policy, and no publishing.

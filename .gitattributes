@@ -1,0 +1,4 @@
+# Repository line-ending policy (pre-M4 baseline cleanup).
+# Every text file is stored and checked out with LF on all platforms, so Windows working copies and ZIP
+# round-trips no longer show files as modified purely because of CRLF/LF. Git auto-detects binaries.
+* text=auto eol=lf

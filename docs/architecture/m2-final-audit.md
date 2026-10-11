@@ -1,6 +1,6 @@
 # M2 Final Audit — Ruleset & Canon Governance (M2-WO12)
 
-**Status: audit complete locally; awaiting permanent GitHub CI.** This document audits M2 as one integrated
+**Status: M2 — COMPLETE. M2 final audit — FINAL PASS.** Permanent GitHub CI subsequently passed on M2-WO12 and the Work Order was approved. (Historical note: when authored, this header read "audit complete locally; awaiting permanent GitHub CI".) This document audits M2 as one integrated
 governance system. M2-WO12 verified the architecture and did not redesign it. It made two approved fixes (F1, F2);
 no Prisma migration was added.
 
@@ -218,7 +218,12 @@ pass within the integration totals. The Compendium and Version History E2E specs
 | Legacy preservation | ✅ Old Releases retrievable, verifiable, comparable; plans pinned |
 | API/UI boundaries | ✅ Thin strict API; API-only UI (audited) |
 | Zero drift | ✅ No difference detected |
-| Green CI | ⏳ Pending permanent GitHub CI for this branch |
+| Green CI | ✅ Permanent GitHub CI passed (at authoring time this row read "⏳ Pending permanent GitHub CI for this branch") |
 
 **Readiness decision:** the platform is **ready for M3 — Source & Import Core** once permanent GitHub CI is green on
 this branch. M3 should build on the golden history fixture as its regression baseline.
+
+## Closure note (pre-M4 baseline cleanup)
+
+Permanent GitHub CI later passed on M2-WO12; M2 was approved, and M3 — Source & Import Core was built on this
+baseline (see `m3-final-audit.md`). The audit body above is preserved as historical evidence.

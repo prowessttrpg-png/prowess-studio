@@ -235,8 +235,8 @@ Nothing in this Work Order infers, computes, or displays a "currently
 active" rule. `latestRevision` is the one and only deterministic
 convenience this UI uses, and it is labeled as exactly that everywhere.
 Which EntityVersion is authoritative within a given Ruleset is a question
-for M2's Ruleset/Canon system, which doesn't exist yet — the Compendium is
-built to not pretend otherwise.
+for M2's Ruleset/Canon system, which did not exist when this was written (M2 now provides it) — the
+Compendium is built to not pretend otherwise.
 
 ## Update (M1-WO10)
 

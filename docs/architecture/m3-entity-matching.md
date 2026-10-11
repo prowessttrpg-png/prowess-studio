@@ -1,6 +1,6 @@
 # Entity Matching, Normalization & Duplicate Detection (M3-WO4)
 
-**Status: implemented; awaiting CI verification.** A reproducible, advisory identity-matching layer over a Batch's
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M3-WO4 was approved, and the M3 final audit (`m3-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting CI verification".) A reproducible, advisory identity-matching layer over a Batch's
 committed Candidate set (`m3-structural-extraction.md`). It answers *"which existing Prowess Entity, if any, could
 this Candidate represent?"* — never *"which rule is correct?"*.
 

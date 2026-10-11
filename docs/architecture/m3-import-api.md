@@ -1,6 +1,6 @@
 # Import HTTP API (M3-WO7)
 
-**Status: implemented; awaiting CI verification.** A thin HTTP layer over the approved M3 services. It adds no import
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M3-WO7 was approved, and the M3 final audit (`m3-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting CI verification".) A thin HTTP layer over the approved M3 services. It adds no import
 semantics: no extraction, matching, workflow, conflict or materialization rule lives in a route.
 
 ```

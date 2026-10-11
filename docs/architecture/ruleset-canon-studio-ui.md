@@ -1,6 +1,6 @@
 # Ruleset & Canon Studio UI (M2-WO10)
 
-**Status: implemented; awaiting its first CI run.** M2-WO10 makes the whole M2 governance workflow
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M2-WO10 was approved, and the M2 final audit (`m2-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting its first CI run".) M2-WO10 makes the whole M2 governance workflow
 usable in Prowess Studio. It is an **operator interface over the M2 HTTP API** (M2-WO9). It adds no
 migration, no persistence semantics, and no business rules in React.
 

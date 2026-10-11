@@ -1,6 +1,6 @@
 # Structured Source Layer (M3-WO1)
 
-**Status: implemented; awaiting CI verification.** Source Document & Source Structure Foundation — the first M3 Work
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M3-WO1 was approved, and the M3 final audit (`m3-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting CI verification".) Source Document & Source Structure Foundation — the first M3 Work
 Order. It expands M1-WO7's minimal provenance foundation (`SourceDocument` → `SourceReference` → `EntityVersion`,
 see `source-provenance-model.md`) into an immutable structured-source layer that can represent real Prowess documents
 **before** any semantic extraction exists.

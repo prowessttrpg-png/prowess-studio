@@ -1,6 +1,6 @@
 # Canon Policy & Source Authority (M2-WO4)
 
-**Status: implemented; awaiting its first CI run.** M2-WO4 adds Ruleset-scoped
+**Status: implemented and verified.** The permanent GitHub Actions CI workflow passed against this component when M2-WO4 was approved, and the M2 final audit (`m2-final-audit.md`) re-checks its invariants. (Historical note: this header originally read "awaiting its first CI run".) M2-WO4 adds Ruleset-scoped
 **source-authority** governance as immutable, versioned snapshots. It adds no HTTP API, no UI,
 no rule conflicts, no Canon decisions, and no publishing.
 
