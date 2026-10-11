@@ -124,33 +124,82 @@ export function reviewProgress(byStatus: Record<string, number>, total: number) 
 }
 export const STATUS_ORDER = EXTRACTION_CANDIDATE_STATUSES;
 
+/**
+ * Per-outline indexes, built ONCE per loaded outline array (M3-WO9 real-source fix: a ~2,500-section outline made the
+ * previous per-call map building quadratic — every queue row re-derived every section path on every render).
+ */
+const outlineIndex = new WeakMap<readonly SourceSectionDto[], { byId: Map<string, SourceSectionDto>; paths: Map<string, string>; byPath: Map<string, SourceSectionDto[]>; resolved: Map<string, SourceSectionDto[]> }>();
+function indexFor(sections: readonly SourceSectionDto[]) {
+  let index = outlineIndex.get(sections);
+  if (!index) {
+    const byId = new Map(sections.map((s) => [s.id, s]));
+    const paths = new Map<string, string>();
+    const byPath = new Map<string, SourceSectionDto[]>();
+    for (const s of sections) {
+      const titles: string[] = [];
+      let cur: SourceSectionDto | undefined = s;
+      let guard = 0;
+      while (cur && guard < 64) {
+        titles.unshift(cur.title);
+        cur = cur.parentSectionId === null ? undefined : byId.get(cur.parentSectionId);
+        guard += 1;
+      }
+      const path = titles.join(" > ");
+      paths.set(s.id, path);
+      byPath.set(path, [...(byPath.get(path) ?? []), s]); // real sources repeat paths (e.g. several "Example" sub-headings)
+    }
+    index = { byId, paths, byPath, resolved: new Map() };
+    outlineIndex.set(sections, index);
+  }
+  return index;
+}
+
 /** "Spellcasting > Spell Costs" for a section, following parent links within the loaded outline. */
 export function sectionPath(sectionId: string | null, sections: readonly SourceSectionDto[]): string | null {
   if (sectionId === null) return null;
-  const byId = new Map(sections.map((s) => [s.id, s]));
-  const titles: string[] = [];
-  let cur = byId.get(sectionId);
-  let guard = 0;
-  while (cur && guard < 64) {
-    titles.unshift(cur.title);
-    cur = cur.parentSectionId === null ? undefined : byId.get(cur.parentSectionId);
-    guard += 1;
-  }
-  return titles.length === 0 ? null : titles.join(" > ");
+  return indexFor(sections).paths.get(sectionId) ?? null;
 }
 
 /** The section a semantic payload's `sectionPath` names, resolved against the outline (display only). */
 export function sectionForPath(path: unknown, sections: readonly SourceSectionDto[]): SourceSectionDto | null {
   if (typeof path !== "string") return null;
-  return sections.find((s) => sectionPath(s.id, sections) === path) ?? null;
+  return indexFor(sections).byPath.get(path)?.[0] ?? null;
 }
 
-/** The section a Candidate's evidence lives in, from its anchors and structural / semantic payload. */
-export function candidateSectionId(candidate: { primarySourceSectionId: string | null; payload: Record<string, unknown> }, sections: readonly SourceSectionDto[]): string | null {
-  if (candidate.primarySourceSectionId) return candidate.primarySourceSectionId;
+/**
+ * Every section this path can denote, in source order: exact full-path matches first, then sections whose full path
+ * ENDS with it. The suffix case matters because a SECTION_SUBTREE Batch's semantic payload records the path relative to
+ * the Batch's scope root (WO5), e.g. "Fire Conversion" for "EXAMPLE TRAIT ENTRY > Fire Conversion". Paths are not unique
+ * in real documents either; the evidence view confirms the right section by finding the anchored node in it.
+ */
+export function sectionsForPath(path: unknown, sections: readonly SourceSectionDto[]): SourceSectionDto[] {
+  if (typeof path !== "string") return [];
+  const index = indexFor(sections);
+  let hit = index.resolved.get(path); // memoized: queue rows re-render often, outlines are large
+  if (!hit) {
+    const exact = index.byPath.get(path) ?? [];
+    const suffix = sections.filter((s) => (index.paths.get(s.id) ?? "").endsWith(` > ${path}`));
+    hit = [...exact, ...suffix];
+    index.resolved.set(path, hit);
+  }
+  return hit;
+}
+
+/**
+ * The section(s) a Candidate's evidence may live in, from its anchors and structural / semantic payload. A semantic
+ * payload records only the section PATH, which a real source can repeat, so every section with that path is returned
+ * (source order); the evidence view then finds the one actually holding the anchored content node.
+ */
+export function candidateSectionIds(candidate: { primarySourceSectionId: string | null; payload: Record<string, unknown> }, sections: readonly SourceSectionDto[]): string[] {
+  if (candidate.primarySourceSectionId) return [candidate.primarySourceSectionId];
   const p = candidate.payload;
-  if (typeof p.sourceSectionId === "string") return p.sourceSectionId;
-  return sectionForPath(p.sectionPath, sections)?.id ?? null;
+  if (typeof p.sourceSectionId === "string") return [p.sourceSectionId];
+  return sectionsForPath(p.sectionPath, sections).map((s) => s.id);
+}
+
+/** The first such section (enough for a path label — all candidates share the same path text). */
+export function candidateSectionId(candidate: { primarySourceSectionId: string | null; payload: Record<string, unknown> }, sections: readonly SourceSectionDto[]): string | null {
+  return candidateSectionIds(candidate, sections)[0] ?? null;
 }
 
 export const shortHash = (hash: string | null | undefined) => (hash ? hash.slice(0, 12) : "—");

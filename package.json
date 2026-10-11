@@ -26,7 +26,11 @@
     "db:migrate:deploy": "node scripts/with-env.mjs pnpm --filter @prowess/db exec prisma migrate deploy",
     "db:migrate:status": "node scripts/with-env.mjs pnpm --filter @prowess/db exec prisma migrate status",
     "predb:reset:test": "pnpm --filter @prowess/db run build",
-    "db:reset:test": "node packages/prowess-db/scripts/reset-test-db.mjs"
+    "db:reset:test": "node packages/prowess-db/scripts/reset-test-db.mjs",
+    "preimport:source": "pnpm --filter @prowess/model --filter @prowess/import --filter @prowess/db run build",
+    "import:source": "node --import ./scripts/dev/register-extensionless.mjs packages/prowess-db/scripts/import-source.mjs",
+    "preimport:verify-real-source": "pnpm --filter @prowess/model --filter @prowess/import --filter @prowess/db run build",
+    "import:verify-real-source": "node --import ./scripts/dev/register-extensionless.mjs packages/prowess-db/scripts/verify-real-source.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.3",

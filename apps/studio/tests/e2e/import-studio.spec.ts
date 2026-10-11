@@ -18,14 +18,27 @@ type Db = typeof import("@prowess/db");
 let db: Db;
 const fx = { snapshotId: "", entityBatchId: "", documentId: "", e1: "", e2: "", e3: "" };
 
-async function domainCounts() {
+/**
+ * Letters-only run tag woven into this spec's source text, so every Candidate label is unique to this run.
+ * (Global table counts cannot prove "nothing materialized" here: CI runs other spec files in parallel workers, and
+ * they legitimately create Entities, Versions, Keywords and RuleConflicts at the same time.)
+ */
+const TAG = `Zq${STAMP.slice(-7).replace(/\d/g, (d) => "abcdefghij"[Number(d)] as string)}`;
+
+/**
+ * §86: no domain / governance record derived from this run's import content exists anywhere — any materialization
+ * of these Candidates would have to carry their unique labels. (Full-table byte-for-byte immutability is proven
+ * serially by the API and DB integration suites.)
+ */
+async function materializedFromThisRun() {
   const p = db.prisma;
+  const like = { contains: TAG };
   return {
-    entities: await p.entity.count(),
-    versions: await p.entityVersion.count(),
-    keywords: await p.keywordDefinition.count(),
-    ruleConflicts: await p.ruleConflict.count(),
-    aliases: await p.entityAlias.count(),
+    entities: await p.entity.count({ where: { canonicalKey: like } }),
+    versions: await p.entityVersion.count({ where: { OR: [{ displayName: like }, { rulesText: like }] } }),
+    keywords: await p.keywordDefinition.count({ where: { OR: [{ name: like }, { canonicalKey: like }] } }),
+    aliases: await p.entityAlias.count({ where: { alias: like } }),
+    ruleConflicts: await p.ruleConflict.count({ where: { OR: [{ title: like }, { description: like }] } }),
   };
 }
 
@@ -49,8 +62,8 @@ test.beforeAll(async () => {
     nodes: [
       { ordinal: 0, sectionKey: "rules", nodeType: "BLOCK", block: { blockType: "HEADING", rawText: "Spellcasting", pageLocationBasis: "UNAVAILABLE" } },
       { ordinal: 1, sectionKey: "costs", nodeType: "BLOCK", block: { blockType: "HEADING", rawText: "Spell Costs", pageLocationBasis: "UNAVAILABLE" } },
-      { ordinal: 2, sectionKey: "costs", nodeType: "BLOCK", block: { blockType: "PARAGRAPH", rawText: "Spell AP = floor(Final MP / PRO), minimum 1.", pageLocationBasis: "UNAVAILABLE" } },
-      { ordinal: 3, sectionKey: "costs", nodeType: "BLOCK", block: { blockType: "PARAGRAPH", rawText: "Keywords: Cost, Magic", pageLocationBasis: "UNAVAILABLE" } },
+      { ordinal: 2, sectionKey: "costs", nodeType: "BLOCK", block: { blockType: "PARAGRAPH", rawText: `Spell AP ${TAG} = floor(Final MP / PRO), minimum 1.`, pageLocationBasis: "UNAVAILABLE" } },
+      { ordinal: 3, sectionKey: "costs", nodeType: "BLOCK", block: { blockType: "PARAGRAPH", rawText: `Keywords: Cost ${TAG}, Magic ${TAG}`, pageLocationBasis: "UNAVAILABLE" } },
       { ordinal: 4, sectionKey: "costs", nodeType: "TABLE", table: { pageLocationBasis: "UNAVAILABLE", structure: { schemaVersion: 1, rowCount: 2, columnCount: 2, rows: [
         { index: 0, isHeader: true, cells: [{ index: 0, columnIndex: 0, rowSpan: 1, colSpan: 1, isHeader: true, rawText: "Tier", nestedTables: [] }, { index: 1, columnIndex: 1, rowSpan: 1, colSpan: 1, isHeader: true, rawText: "MP", nestedTables: [] }] },
         { index: 1, isHeader: false, cells: [{ index: 0, columnIndex: 0, rowSpan: 1, colSpan: 1, isHeader: false, rawText: "Novice", nestedTables: [] }, { index: 1, columnIndex: 1, rowSpan: 1, colSpan: 1, isHeader: false, rawText: "3", nestedTables: [] }] },
@@ -136,12 +149,13 @@ test("§80 Source Inspector: outline, section selection, verbatim text, table", 
   await expect(outline.getByRole("button", { name: /Spellcasting/ })).toBeVisible();
   await outline.getByRole("button", { name: /Spell Costs/ }).click();
   await expect(page.getByTestId("selected-section")).toHaveText("Spellcasting > Spell Costs");
-  await expect(page.getByText("Spell AP = floor(Final MP / PRO), minimum 1.", { exact: true })).toBeVisible();
+  await expect(page.getByText(`Spell AP ${TAG} = floor(Final MP / PRO), minimum 1.`, { exact: true })).toBeVisible();
   await expect(page.getByTestId("source-table").getByRole("cell", { name: "Novice" })).toBeVisible();
 });
 
 test("§81 / §82 / §85 / §86 create, extract, semantic review, completion — nothing materialized", async ({ page }) => {
-  const before = await domainCounts();
+  const zero = { entities: 0, versions: 0, keywords: 0, aliases: 0, ruleConflicts: 0 };
+  expect(await materializedFromThisRun()).toEqual(zero);
   await page.goto(`/developer/import/batches?snapshot=${fx.snapshotId}`);
   await page.getByRole("radio", { name: /Semantic Foundation/ }).check();
   await page.getByLabel("Label").fill(`Semantic ${STAMP}`);
@@ -155,24 +169,24 @@ test("§81 / §82 / §85 / §86 create, extract, semantic review, completion —
   const rows = page.getByTestId("queue-row");
   await expect(rows).toHaveCount(3);
 
-  await row(page, "Spell AP").click();
+  await row(page, `Spell AP ${TAG}`).click();
   await expect(page.getByTestId("formula-view")).toContainText("floor(Final MP / PRO)");
-  await expect(page.getByTestId("source-highlight")).toHaveText("Spell AP = floor(Final MP / PRO), minimum 1");
+  await expect(page.getByTestId("source-highlight")).toHaveText(`Spell AP ${TAG} = floor(Final MP / PRO), minimum 1`);
   await record(page, "Approve Semantic for Import");
-  await expect(row(page, "Spell AP").getByTestId("candidate-status")).toHaveText(/Approved for Import/);
+  await expect(row(page, `Spell AP ${TAG}`).getByTestId("candidate-status")).toHaveText(/Approved for Import/);
 
-  await row(page, "Cost").click();
+  await row(page, `Cost ${TAG}`).click();
   await expect(page.getByTestId("keyword-view")).toContainText("does not grant mechanics");
   await record(page, "Approve Semantic for Import");
   await expect(page.getByTestId("complete-blocked")).toContainText("1 Candidate(s)"); // §85 cannot complete early
   await expect(page.getByRole("button", { name: "Complete Review" })).toBeDisabled();
 
-  await row(page, "Magic").click();
+  await row(page, `Magic ${TAG}`).click();
   await page.getByRole("button", { name: "Reject", exact: true }).click();
   await page.getByLabel("Rationale (required)").fill("Covered by the Magic glossary entry.");
   await page.getByRole("button", { name: "Record rejection" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Confirm: Record rejection" }).click();
-  await expect(row(page, "Magic").getByTestId("candidate-status")).toHaveText(/Rejected/);
+  await expect(row(page, `Magic ${TAG}`).getByTestId("candidate-status")).toHaveText(/Rejected/);
   await expect(page.getByTestId("decision-history").first()).toBeVisible();
 
   await page.getByRole("button", { name: "Complete Review" }).click();
@@ -185,7 +199,7 @@ test("§81 / §82 / §85 / §86 create, extract, semantic review, completion —
   await expect(page.getByTestId("decision-panel")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /^(Approve|Reject|Classify|Record|Run Extraction|Analyze)/ })).toHaveCount(0);
   await expect(page.getByRole("tabpanel", { name: "History" }).getByTestId("decision-entry")).toHaveCount(4); // 1 candidate history + 3 batch entries
-  expect(await domainCounts()).toEqual(before); // §86 nothing materialized
+  expect(await materializedFromThisRun()).toEqual(zero); // §86 nothing materialized from this run's Candidates
 });
 
 test("§83 / §84 match review: explicit run, no automatic selection, suggested and manual classification", async ({ page }) => {
