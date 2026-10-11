@@ -147,6 +147,19 @@ importers:
         specifier: 5.0.2
         version: 5.0.2(@types/node@22.20.4)(jsdom@30.1.1)(vite@8.3.1(@types/node@22.20.4)(jiti@2.7.0))
 
+  packages/prowess-rules:
+    dependencies:
+      '@prowess/model':
+        specifier: workspace:*
+        version: link:../prowess-model
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: 5.0.2
+        version: 5.0.2(@types/node@22.20.4)(jsdom@30.1.1)(vite@8.3.1(@types/node@22.20.4)(jiti@2.7.0))
+
   packages/prowess-test-fixtures:
     devDependencies:
       typescript:

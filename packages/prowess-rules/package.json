@@ -1,0 +1,30 @@
+{
+  "name": "@prowess/rules",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Framework-independent, pure M4 Rules Engine foundation: the four evaluation contexts (Ruleset, Actor, Build, Runtime), the common RuleEngineResponse envelope, structured engine errors and validation messages, the calculation trace contract and rule provenance. Evaluates only exact, caller-supplied rule material — no persistence, no UI, no clock, no randomness, no network, no authored-code execution.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src --max-warnings=0",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "pnpm run test:unit",
+    "test:unit": "vitest run",
+    "test:integration": "echo \"@prowess/rules: no integration tests (pure package)\" && exit 0"
+  },
+  "dependencies": {
+    "@prowess/model": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vitest": "5.0.2"
+  }
+}

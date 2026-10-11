@@ -1,0 +1,430 @@
+# M4 Rules Engine Core — `@prowess/rules` (M4-WO1)
+
+**Status:** M4-WO1 — Rules Engine Core & Evaluation Contracts. This document begins the permanent M4 invariant
+catalog; later M4 Work Orders append to it.
+
+## Purpose
+
+M4-WO1 creates the `@prowess/rules` package and the stable evaluation contracts every later M4 subsystem uses —
+Formula (WO3), Keyword resolution (WO4), Requirement (WO5), Modifier (WO6), Resource (WO7), Validation (WO8) and Trace /
+Explanation (WO9) — so none of them invents its own context, response, message or trace format.
+
+**M4-WO1 implements no Prowess mechanics.** There is no formula, requirement, modifier, keyword behaviour, resource
+payment, rounding rule or Ruleset resolution here. The engine knows no stat, rank, resource, keyword or unit by name.
+
+## Architecture
+
+```
+M1 ENTITY/VERSION
+       │
+       ▼
+M2 RULESET/MANIFEST
+       │
+       ▼
+Application Resolution
+       │
+       ▼
+┌─────────────────────────┐
+│     @prowess/rules      │
+│                         │
+│ RulesetContext          │
+│ ActorContext            │
+│ BuildContext            │
+│ RuntimeContext          │
+│                         │
+│ Result                  │
+│ Validation Messages     │
+│ Trace                   │
+└─────────────────────────┘
+       │
+       ▼
+Future:
+Formula / Requirement /
+Modifier / Resource /
+Validation / Trace Engines
+```
+
+### Dependency boundary
+
+```
+@prowess/model  ←  @prowess/rules  ←  (future) application services / HTTP API (M4-WO10) / Studio (M4-WO11)
+```
+
+`@prowess/rules` depends on `@prowess/model` only. It must never import `@prowess/db`, `@prowess/import`,
+`@prowess/ui`, the Studio app, Prisma, `pg`, Next.js, React, any Node built-in (filesystem, network, `crypto`, `vm`,
+child processes) or any AI / web service. Enforced three ways:
+
+- `scripts/check-architecture.mjs` — the `@prowess/rules` import-boundary rule, plus the workspace cycle check;
+- `apps/studio/tests/unit/m1-audit-static.test.ts` — the layering audit pins `@prowess/rules` → `@prowess/model`;
+- `apps/studio/tests/unit/m4-wo1-static.test.ts` — the M4-WO1 static audit (imports and purity patterns).
+
+As a compile-time backstop, the package's `tsconfig.json` loads **no** Node or DOM type definitions (`types: []`,
+`lib: ["ES2022"]`): engine code that names `fetch`, `process`, `setTimeout` or a Node module does not typecheck.
+
+No lower package depends on `@prowess/rules`, and nothing in `apps/studio` imports it yet (M4-WO10 is the first
+consumer).
+
+## Pure evaluation model
+
+The engine is **pure, deterministic, ruleset-aware, explainable, non-mutating and historically reproducible**. It
+evaluates exactly what it is given:
+
+```
+Application service → resolve exact data → construct evaluation context → @prowess/rules
+```
+
+It never queries a database, never asks for "the latest" or "the current" anything, and never decides what is Canon,
+which Ruleset or Release is newest, which EntityVersion is current, which import Candidate is correct, or what should
+be published. Those decisions belong to M1 / M2 / M3. M4-WO2 connects M2's exact Ruleset / Manifest resolution to
+`RulesetContext`.
+
+All engine operations are plain synchronous functions. There is no `RulesEngine` class, no rule registry and no
+module-level mutable state.
+
+### `evaluate(definition, input)`
+
+The generic boundary every later subsystem plugs into:
+
+1. reads and normalizes the request (structure only); a malformed request is an `ERROR` response and the evaluator
+   never runs;
+2. checks the request's `kind` against the definition and the context families it `requires` (`MISSING_CONTEXT`);
+3. deep-freezes the normalized request and calls the evaluator with it — the evaluator works on a detached, immutable
+   copy, so neither the caller's input nor the rules can be changed;
+4. checks the evaluator's output (plain data, well-formed messages and trace), numbers the messages and derives the
+   status.
+
+A `RulesEngineError` thrown by an evaluator becomes an `ERROR` response. Any other exception is a defect and is
+re-thrown unchanged — never disguised as an engine error or a rule outcome.
+
+## The four evaluation contexts
+
+Each family is independently constructible (`createRulesetContext`, `createActorContext`, `createBuildContext`,
+`createRuntimeContext`, `createEvaluationRequest`). Construction returns `{ ok: true, value }` with a normalized,
+deep-frozen copy, or `{ ok: false, errors }` listing every structural problem — it never throws on bad input.
+
+Validation is **structural only**: types, finite numbers, UUID / canonical-key / context-key grammar, unknown fields,
+duplicate set members, one version per Entity. No Requirement or game validation happens here.
+
+**Context keys** (stat, rank, resource, property, keyword, tag, component, effect, evaluation kind, step and unit keys)
+are lowercase dotted segments — `power`, `stat.power`, `resource.primary`, `keyword.fire`. `__proto__`,
+`constructor` and `prototype` are always rejected.
+
+**Normalization (order independence):** keyed collections are rebuilt with sorted keys and set-like lists are
+sorted, so object insertion order and set order never change a context. Explicitly ordered lists — build
+`components` and runtime `activeEffects` — keep the caller's order, because order there may carry meaning. UUIDs are
+lowercased (UUIDs are case-insensitive; PostgreSQL emits lowercase); every other value is kept verbatim.
+
+### RulesetContext
+
+The exact rules environment, always supplied by the caller:
+
+| Field | Meaning |
+| --- | --- |
+| `rulesetId`, `manifestId` | exact, required identities |
+| `manifestHash` | M2's lowercase hex SHA-256, preserved **verbatim**, never recomputed; `null` when the manifest is unpublished |
+| `rulesetVersionLabel` | the Ruleset's human label, or `null` |
+| `release` | `{ releaseId, releaseNumber, versionLabel }` when evaluating a published release, else `null` |
+| `rules` | `ResolvedRuleReference[]`, sorted by `entityId`, at most one version per Entity |
+
+`ResolvedRuleReference` = `{ entityId, entityVersionId, canonicalKey, entityType, sourceRulesetId, sourceManifestId }`.
+Identity is always the immutable ids; `canonicalKey` is explanatory, never relational identity. `sourceRulesetId` /
+`sourceManifestId` record where an (inherited) pin came from when the caller knows it, and are `null` otherwise.
+
+The context deliberately has **no** Canon, authority, status, "latest" or "current" field — supplying one is rejected
+as an unknown field.
+
+### ActorContext
+
+The evaluating character / creature / object: `actorRef` (opaque, explanatory), `stats` (keyed numbers), `ranks`
+(keyed scalars — a rank may be a number or a named tier), `keywords` (set), `resources` (keyed actor resource values,
+e.g. a capacity), `ownedEntities` (set of exact references), `properties` (keyed scalars), `tags` (set).
+
+### BuildContext
+
+The object being constructed — a future Spell, Maneuver, Equipment or Summon build: `buildKind` (required context
+key), `components` (ordered, unique keys, each with an optional exact reference and parameters), `parameters`,
+`keywords`, `properties`, `references`.
+
+### RuntimeContext
+
+Transient play-time state, as a **container only**: `resourceValues` (current values), `reservedCapacity`,
+`activeEffects` (ordered, unique keys), `conditions` (set), `state` (keyed scalars). No turns, casting, damage,
+conditions or resource changes are implemented, and evaluation never mutates runtime state.
+
+### Empty and absent contexts
+
+`RulesetContext` is required only by evaluations that declare it. Actor / Build / Runtime are optional unless an
+evaluator requires them. An empty Actor or Runtime context is valid; a Build context needs only its `buildKind`. In a
+normalized request an absent family is explicitly `null`.
+
+### EvaluationRequest
+
+`{ contractVersion, kind, ruleset, actor, build, runtime, metadata }`. `kind` is a generic context key; no
+subsystem-specific union exists yet. `metadata` is caller-supplied **deterministic** plain JSON — it is part of the
+evaluation input, so it must never contain a wall-clock time, a random id or anything else that varies between
+identical evaluations.
+
+## Response contract
+
+```
+RuleEngineResponse<T> {
+  contractVersion    1
+  evaluationKind     the request's kind, or null if the request was unreadable
+  success            boolean
+  status             SUCCESS | VALID_WITH_WARNINGS | INVALID | ERROR
+  data               T | null
+  errors             RuleMessage[]        (engine errors AND validation errors, distinguished by kind)
+  warnings           ValidationMessage[]
+  info               ValidationMessage[]
+  trace              CalculationTrace
+  ruleset            RulesetProvenance | null   (verbatim from the request's RulesetContext)
+}
+```
+
+The same envelope serves every later result type — `RuleEngineResponse<FormulaResult>`,
+`RuleEngineResponse<RequirementResult>`, `RuleEngineResponse<ResourcePreview>` and so on.
+
+**Status** is derived from the messages alone (`deriveResponseStatus`):
+
+| Status | Condition | `success` | `data` |
+| --- | --- | --- | --- |
+| `ERROR` | at least one ENGINE error | false | null |
+| `INVALID` | no engine error; at least one VALIDATION error | false | null |
+| `VALID_WITH_WARNINGS` | no errors; at least one warning | true | result |
+| `SUCCESS` | no errors, no warnings (INFO never changes status) | true | result |
+
+`success` means evaluation completed and produced a valid result, even with advisory warnings or info. An unsatisfied
+condition reported **as data** (for example a future `RequirementResult { satisfied: false }`) is still a successful
+evaluation; it is `INVALID` only when promoted to a blocking validation message.
+
+The earlier api-contract draft's `OK` / `WARNING` / `CONFLICT` statuses are superseded by this vocabulary. In
+particular there is no `CONFLICT`: the engine never resolves or reports Canon conflicts (M2 decided them before
+evaluation); a future ruleset-integrity finding is a `RULESET`-category message.
+
+## Engine errors vs validation messages
+
+These never collapse into one opaque string.
+
+**Engine error** (`kind: "ENGINE"`) — the engine could not evaluate. Codes (only those M4-WO1 raises; later Work
+Orders append their own, e.g. an unsupported formula operation in WO3):
+
+| Code | Meaning |
+| --- | --- |
+| `RULE_ENGINE.INVALID_INPUT` | malformed input: shape, unknown field, bad id or key, duplicate set member, wrong kind |
+| `RULE_ENGINE.NON_FINITE_NUMBER` | NaN or ±Infinity at the public boundary |
+| `RULE_ENGINE.MISSING_CONTEXT` | a required context family is absent |
+| `RULE_ENGINE.INVARIANT_VIOLATION` | an engine defect — e.g. an evaluator produced malformed or non-serializable output |
+
+`RulesEngineError` (the thrown form, used inside evaluators) extends the shared `DomainError`. The vocabulary lives in
+`@prowess/rules` rather than `@prowess/model` because it is engine-specific. M4-WO1 adds no HTTP route, and the central
+HTTP status map is keyed by `@prowess/model`'s vocabularies only, so no status mapping is required yet; **M4-WO10 owns
+mapping the `RULE_ENGINE.*` codes** when the Rules HTTP API exists. The codes collide with no model code (tested).
+
+**Validation message** (`kind: "VALIDATION"`) — a statement about the rules or build being evaluated:
+
+```
+{ kind, ordinal, severity, category, code, message, path, provenance, details }
+```
+
+- severity: `ERROR` | `WARNING` | `INFO`
+- category: `STRUCTURE` | `COMPATIBILITY` | `REQUIREMENT` | `PARAMETER` | `CAPACITY` | `RESOURCE` | `FORMULA` | `RULESET` | `RUNTIME` (no validators exist yet — M4-WO8)
+- code: namespaced upper case (`REQUIREMENT.NOT_MET`); the `RULE_ENGINE.` namespace is reserved for engine errors
+- path: RFC 6901 JSON Pointer into the evaluated input (e.g. `/build/components/1`), or `null`
+
+The **machine contract** is `code`, `category`, `severity` and structured `details`. The human `message` is useful but
+clients and tests must not depend on its wording. A malformed message is an engine defect (`INVARIANT_VIOLATION`).
+
+**Ordering:** every message carries an `ordinal` — its position in emission order (input walk order for engine
+errors, evaluator emission order for validation messages). Ordinals are unique across `errors`, `warnings` and `info`,
+and each list is in ordinal order.
+
+**Serialization:** messages and errors are plain data — no stack trace, cause chain, function or circular reference.
+Non-serializable error `details` are dropped rather than leaked.
+
+## Trace contract
+
+```
+CalculationTrace { steps: TraceStep[], stepCount }
+TraceStep {
+  ordinal, path, key, operation, phase,
+  inputs: { name, value }[],   (ordered — operand order can matter)
+  output, provenance, modifierSource, explanation,
+  children: TraceStep[]
+}
+```
+
+Deterministic identity, with no random UUID and no timestamp: steps stay in the order the evaluator produced them;
+`key` is unique among siblings; `path` is hierarchical and 1-based (`"1"`, `"1.2"`, `"1.2.1"`); `ordinal` is the 0-based
+pre-order position. Identical inputs produce a byte-identical trace. The trace is structured data only — no HTML, no
+React element, no display formatting; Studio renders it later (M4-WO11), and M4-WO9 builds explanations on it.
+
+Trace inputs and outputs are `EvaluationValue`s — a minimal typed value: `NUMBER` (finite, with an optional semantic
+`unit` context key and no built-in units), `BOOLEAN`, `STRING`, `IDENTIFIER`, `LIST`. M4-WO3 owns value semantics.
+
+## Provenance contract
+
+`RuleProvenance { entityId, entityVersionId, canonicalKey, rulesetId, manifestId }` (each nullable) can be attached
+to any trace step (`provenance`, and `modifierSource` for the rule that modified a value) and to any validation
+message. `provenanceOf(rule, context)` builds it from a `ResolvedRuleReference`, preferring the pin's source
+Ruleset / Manifest when known. Provenance is optional — a SourceReference is not required on every step — and the
+engine never queries M3 source data to fill it in.
+
+`RulesetProvenance` on the response is copied verbatim from the request's `RulesetContext`: identity, manifest hash,
+version label and release — never re-resolved or recomputed.
+
+## Determinism and immutability
+
+- Identical input → deep-equal, byte-identical serialized response.
+- Inputs are never mutated: normalization builds detached copies, and the evaluator receives a deep-frozen request
+  (attempts to mutate rules, actor, runtime or metadata throw `TypeError`).
+- Results are deep-frozen; repeated reads never change them; returned `data` is a detached copy.
+- Performance: one structural read and copy at the boundary per evaluation; no repeated deep cloning inside helpers.
+
+`src/testing/determinism.ts` (`assertDeterministic`) is the reusable helper for later M4 Work Orders: it snapshots and
+deep-freezes inputs, runs the evaluation repeatedly, and requires byte-identical plain-data output, an unchanged output
+after re-reading, and unchanged inputs. It is test support and is not exported from the package.
+
+## Clock, randomness and network policy
+
+- **Clock — option A:** the pure response contains no `evaluatedAt`. A wall-clock time would make two identical
+  evaluations unequal; an application or HTTP layer that needs one stamps it outside the pure result.
+- **Randomness:** none. No `Math.random`, `crypto.randomUUID`, random bytes. Future dice resolution is a separate
+  concern outside the M4 core.
+- **Network:** none. No network calls, AI calls, external APIs or dynamic fetching; evaluation runs offline.
+- **No authored code is ever executed:** no `eval`, `new Function`, `vm`, or dynamic import.
+
+Enforced by the static audit (source patterns) and by a runtime test that makes `Date.now`, `new Date()`,
+`Math.random`, `fetch`, `crypto` and `performance.now` throw during an evaluation.
+
+## Numeric and serialization policy
+
+- Numbers are JavaScript **finite** numbers. NaN / ±Infinity are rejected at every public boundary with
+  `RULE_ENGINE.NON_FINITE_NUMBER`. `-0` is normalized to `0` so in-memory and serialized values agree. No
+  arbitrary-precision library is introduced.
+- **Rounding is always explicit.** The engine never silently floors, ceils or rounds; M4-WO3 implements explicit
+  rounding rules.
+- **Units:** no units engine; a `NUMBER` may carry an optional semantic unit label. No unit is hard-coded.
+- Every public input and result is plain JSON data: no `Map`, `Set`, `Date`, class instance, function, symbol,
+  bigint, `undefined`, sparse array, accessor or cycle.
+- **Null policy:** absence is explicit `null` in every normalized context, message, trace step and response. On input,
+  an omitted field and `null` both mean absent where a field is optional.
+
+## Cost vs payment boundary
+
+A **listed / computed cost** is not the same thing as a **runtime payment**. The contracts keep them apart:
+`ActorContext.resources` holds an actor's resource values, `RuntimeContext.resourceValues` holds current play-time
+values, and nothing merges them. There is no `effectiveCost` field anywhere (and supplying one is rejected as an
+unknown field). M4-WO7 and M5 build on this distinction.
+
+## Preview vs commit boundary
+
+Pure evaluation is **preview / read-only**. `@prowess/rules` computes results; it never commits, pays, spends or
+otherwise mutates actor or runtime state. Any future runtime command that changes state belongs in an
+application / service layer, outside pure evaluation.
+
+## Keywords
+
+Keywords are metadata / rule hooks with **no implicit mechanics**. M4-WO1 only carries keyword keys in contexts;
+M4-WO4 implements the generic keyword resolution foundation.
+
+## Example (generic)
+
+```
+Input:
+  RulesetContext R1 (exact ruleset + manifest ids, hash verbatim)
+  ActorContext   stats: { "stat.power": 4 }
+
+Evaluation:
+  a test evaluator that reads stat.power and records one trace step
+
+Output:
+  status SUCCESS, data { power: 4 }
+  trace  [ { ordinal 0, path "1", key "step.read", operation "op.read", output NUMBER 4 } ]
+  ruleset { rulesetId R1, manifestId …, manifestHash … }
+```
+
+No game arithmetic is implemented: the evaluator in the tests only reads a slot.
+
+## Contract evolution
+
+`RULES_ENGINE_CONTRACT_VERSION` (currently `1`) versions the shape of the public contracts — contexts, request,
+response, messages and trace. It is not a Prowess Ruleset version and not the package version. Additive,
+backward-compatible changes keep it; any breaking contract change must increment it deliberately, in the Work Order
+that makes the change. A request carrying a different `contractVersion` is rejected. M4-WO1 implements no
+contract-migration machinery.
+
+## Explicit M4-WO1 limitations
+
+Not implemented: Ruleset resolution (WO2); formula parsing, AST, calculation or rounding (WO3); keyword resolution
+(WO4); requirement evaluation (WO5); modifier application (WO6); resource preview or payment (WO7); validation
+orchestration (WO8); explanation generation (WO9); the Rules HTTP API and `RULE_ENGINE.*` HTTP mapping (WO10); the
+Rules Inspector UI (WO11); any Spell, Character, Weapon, Maneuver or Summoning rule. No evaluation fingerprint exists —
+nothing consumes one yet; when one is introduced it must use deterministic canonical serialization, exclude timestamps
+and random ids, include the exact Ruleset and input contexts, and be versioned. No schema change, migration, HTTP
+route or UI was added.
+
+## M4 roadmap
+
+| Work Order | Scope |
+| --- | --- |
+| M4-WO1 | Rules Engine Core & Evaluation Contracts (this document) |
+| M4-WO2 | Exact Ruleset Resolver |
+| M4-WO3 | Formula Engine |
+| M4-WO4 | Keyword Resolution Foundation |
+| M4-WO5 | Requirement Engine |
+| M4-WO6 | Modifier Engine |
+| M4-WO7 | Resource Engine Foundation |
+| M4-WO8 | Validation Engine |
+| M4-WO9 | Calculation Trace & Explanation Engine |
+| M4-WO10 | Rules Evaluation Orchestration & HTTP API |
+| M4-WO11 | Rules Inspector & Calculation Lab UI |
+| M4-WO12 | Final M4 Integration & Reproducibility Audit |
+
+## M4 invariant catalog
+
+- **M4-I01** Exact Ruleset Context — evaluation uses only the exact, caller-supplied Ruleset / Manifest / rule
+  versions; the engine never resolves them.
+- **M4-I02** No Hidden Latest — no engine operation selects a "latest", "newest" or "current" rule, version, manifest
+  or release.
+- **M4-I03** Pure Deterministic Evaluation — identical input yields an identical result; no module-level mutable state.
+- **M4-I04** No Arbitrary Code Execution — authored text is never executed (`eval`, `Function`, `vm`, dynamic import).
+- **M4-I05** No Wall-Clock Dependency — pure evaluation never reads the clock; results carry no `evaluatedAt`.
+- **M4-I06** No Randomness — no random numbers or random ids inside the engine.
+- **M4-I07** No Network Dependency — no network, AI or external API; evaluation runs offline.
+- **M4-I08** Inputs Are Not Mutated — no caller input or context is changed by evaluation.
+- **M4-I09** Structured Validation Messages — messages are structured (severity, category, code, details), distinct
+  from engine errors, and the code — not the prose — is the contract.
+- **M4-I10** Deterministic Trace Ordering — trace step order, paths and ordinals are deterministic.
+- **M4-I11** Rule Provenance Preserved — rule / version / ruleset / manifest provenance survives into contexts, trace
+  and response verbatim.
+- **M4-I12** Engine Does Not Choose Canon — the engine has no Canon, authority or release-selection concept.
+- **M4-I13** Engine Does Not Mutate Rules — resolved rule material is immutable during evaluation.
+- **M4-I14** Listed Cost and Payment Remain Distinct Concepts — no merged "effective cost"; actor and runtime resource
+  values are separate slots.
+- **M4-I15** Runtime Mutation Is Outside Pure Evaluation — evaluation is preview only; it never commits runtime state.
+
+## Test coverage map (M4-WO1)
+
+Every invariant has at least one automated guard; the guard files cite the invariant id. The static audit verifies
+this table.
+
+| Invariant | Name | Guards |
+| --- | --- | --- |
+| M4-I01 | Exact Ruleset Context | `context.test.ts` |
+| M4-I02 | No Hidden Latest | `m4-wo1-static.test.ts` |
+| M4-I03 | Pure Deterministic Evaluation | `evaluate.test.ts`, `m4-wo1-static.test.ts` |
+| M4-I04 | No Arbitrary Code Execution | `m4-wo1-static.test.ts` |
+| M4-I05 | No Wall-Clock Dependency | `evaluate.test.ts`, `m4-wo1-static.test.ts` |
+| M4-I06 | No Randomness | `evaluate.test.ts`, `m4-wo1-static.test.ts` |
+| M4-I07 | No Network Dependency | `evaluate.test.ts`, `m4-wo1-static.test.ts` |
+| M4-I08 | Inputs Are Not Mutated | `evaluate.test.ts`, `context.test.ts` |
+| M4-I09 | Structured Validation Messages | `response.test.ts` |
+| M4-I10 | Deterministic Trace Ordering | `trace.test.ts` |
+| M4-I11 | Rule Provenance Preserved | `context.test.ts`, `trace.test.ts` |
+| M4-I12 | Engine Does Not Choose Canon | `context.test.ts`, `m4-wo1-static.test.ts` |
+| M4-I13 | Engine Does Not Mutate Rules | `evaluate.test.ts` |
+| M4-I14 | Listed Cost and Payment Remain Distinct Concepts | `context.test.ts`, `m4-wo1-static.test.ts` |
+| M4-I15 | Runtime Mutation Is Outside Pure Evaluation | `evaluate.test.ts`, `m4-wo1-static.test.ts` |
+
+Test files: `packages/prowess-rules/src/{context,response,trace,evaluate,public-surface}.test.ts` and
+`apps/studio/tests/unit/m4-wo1-static.test.ts`.

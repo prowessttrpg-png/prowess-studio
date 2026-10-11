@@ -286,6 +286,8 @@ describe("M1 audit — workspace layering (§29)", () => {
     // M3-WO2: @prowess/db may use @prowess/import's pure helpers; @prowess/import depends only on @prowess/model.
     "packages/prowess-db": ["@prowess/import", "@prowess/model"],
     "packages/prowess-import": ["@prowess/model"],
+    // M4-WO1: the pure Rules Engine depends on @prowess/model only.
+    "packages/prowess-rules": ["@prowess/model"],
     "apps/studio": ["@prowess/db", "@prowess/model", "@prowess/ui"],
   };
 
