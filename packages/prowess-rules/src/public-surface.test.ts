@@ -89,6 +89,25 @@ describe("@prowess/rules public surface", () => {
         "MODIFIER_TARGET_KINDS",
         "evaluateModifiers",
         "validateModifiers",
+        // M4-WO7 Resource Engine Foundation
+        "PAYMENT_MODES",
+        "RESOURCE_CEILINGS",
+        "RESOURCE_DIAGNOSTIC_CODES",
+        "RESOURCE_KINDS",
+        "RESOURCE_LIMITS",
+        "RESOURCE_OVERFLOW_POLICIES",
+        "RESOURCE_REFRESH_TARGETS",
+        "RESOURCE_TRANSITIONS",
+        "applyResourcePayment",
+        "createResourceSnapshot",
+        "getAvailableMaximum",
+        "previewResourcePayment",
+        "refreshResource",
+        "releaseResourceCapacity",
+        "reserveResourceCapacity",
+        "restoreResource",
+        "setResourceCurrent",
+        "spendResource",
       ].sort(),
     );
   });
@@ -108,6 +127,8 @@ describe("@prowess/rules public surface", () => {
       expect(name).not.toMatch(/RequirementEngine|indexFacts|evaluatePredicate|evaluateNode|CUSTOM|RANK_LADDER|isValidFactKey|isExactLabel/);
       // M4-WO6: no engine class; the WO5 prepared-facts path and modifier internals stay private.
       expect(name).not.toMatch(/ModifierEngine|prepareRequirementFacts|evaluateValidatedRequirement|validateModifiersWithIndex|operationFamily|^numeric$/);
+      // M4-WO7: no engine class, allocation internals or effective-cost helper is public.
+      expect(name).not.toMatch(/ResourceEngine|allocatePayment|replaceResource|runTransition|effectiveCost|effective_cost/i);
     }
   });
 });

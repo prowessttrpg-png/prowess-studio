@@ -240,6 +240,13 @@ jobs:
       - name: M4-WO6 audit gate — Modifier ordering, stacking & safety
         run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo6-static.test.ts
 
+      # M4-WO7: the Resource Engine's static gate (listed cost never rewritten; one allocation for preview and apply;
+      # atomic payment; reservation never spends, release never restores, refresh never lowers; no kind-based
+      # behaviour, timing, rounding, game resources or Formula / Modifier execution). Its unit suite runs in
+      # "Unit tests (packages)" with the rest of @prowess/rules.
+      - name: M4-WO7 audit gate — Resource state, payment & capacity safety
+        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo7-static.test.ts
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own

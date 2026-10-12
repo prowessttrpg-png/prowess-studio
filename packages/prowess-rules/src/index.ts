@@ -210,3 +210,42 @@ export {
 } from "./modifier/model.js";
 export { validateModifiers, type ModifierRequest, type ModifierValidation } from "./modifier/validate.js";
 export { MODIFIER_EVALUATION_KIND, evaluateModifiers, type EvaluateModifiersOptions } from "./modifier/evaluate.js";
+
+// M4-WO7 Resource Engine Foundation: explicit runtime resource state and pure transitions. Listed cost is never
+// rewritten by payment; insufficient resources are a valid outcome; reservation never spends, release never restores.
+export {
+  PAYMENT_MODES,
+  RESOURCE_CEILINGS,
+  RESOURCE_DIAGNOSTIC_CODES,
+  RESOURCE_KINDS,
+  RESOURCE_LIMITS,
+  RESOURCE_OVERFLOW_POLICIES,
+  RESOURCE_TRANSITIONS,
+  type PaymentAllocation,
+  type PaymentMode,
+  type PaymentRequest,
+  type PaymentResult,
+  type PaymentSource,
+  type ResourceCeiling,
+  type ResourceDiagnostic,
+  type ResourceDiagnosticCode,
+  type ResourceKind,
+  type ResourceOverflowPolicy,
+  type ResourceSnapshot,
+  type ResourceState,
+  type ResourceTransition,
+  type ResourceTransitionResult,
+} from "./resource/model.js";
+export { createResourceSnapshot, getAvailableMaximum, type ResourceSnapshotOutcome } from "./resource/snapshot.js";
+export {
+  RESOURCE_REFRESH_TARGETS,
+  refreshResource,
+  releaseResourceCapacity,
+  reserveResourceCapacity,
+  restoreResource,
+  setResourceCurrent,
+  spendResource,
+  type ResourceOperationOptions,
+  type ResourceRefreshTarget,
+} from "./resource/transition.js";
+export { applyResourcePayment, previewResourcePayment } from "./resource/payment.js";

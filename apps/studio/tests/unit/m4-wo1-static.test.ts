@@ -49,7 +49,9 @@ const FORBIDDEN: Rule[] = [
   { id: "hidden-latest", pattern: /latest|newest|mostRecent|getCurrent\w*|findCurrent\w*|currentVersion|isCurrent\b/i },
   { id: "canon-choice", pattern: /\bcanon(?!ical)\w*|isCanon|GOVERNING|chooseRuleset|selectRuleset|resolveRuleset/i },
   { id: "cost-payment-merge", pattern: /effectiveCost|effective_cost/i },
-  { id: "runtime-mutation", pattern: /\bfunction\s+(commit|pay|spend|deduct|consume|mutate|apply|persist|save)\w*\s*\(/i },
+  // M4-WO7's pure resource transitions (spendResource, applyResourcePayment) return new immutable state and persist
+  // nothing; they are the only allowed names of this shape. Any other such function still fails.
+  { id: "runtime-mutation", pattern: /\bfunction\s+(?!spendResource\s*\(|applyResourcePayment\s*\()(commit|pay|spend|deduct|consume|mutate|apply|persist|save)\w*\s*\(/i },
   { id: "import-review-coupling", pattern: /ImportCandidate|ImportDecision|ExtractionCandidate|ImportBatch|ImportMatch|ImportReview|SourceSnapshot|SourceSection|SourceBlock/ },
   { id: "game-vocabulary", pattern: /\b(spells?|mana|sustain\w*|concentration|affinit(y|ies)|emission|evocation|weapons?|maneuvers?|damage|healing|summon\w*|arcana|casting)\b/i },
   { id: "game-stat", pattern: /\b(AP|MP|ME|HP|STR|AGI|CON|PER|PRO|RES)\b/ },
@@ -88,6 +90,8 @@ describe("M4-WO1 static audit — scanner control tests (§64)", () => {
     ["export function isCanonRuleset() { return true; }", "canon-choice"],
     ["const effectiveCost = 3;", "cost-payment-merge"],
     ["export function commitResources() {}", "runtime-mutation"],
+    ["export function spendAll(snapshot) {}", "runtime-mutation"],
+    ["export function applyPaymentToCharacter(c) {}", "runtime-mutation"],
     ["const c: ImportDecision = x;", "import-review-coupling"],
     ['const k = "damage";', "game-vocabulary"],
     ["const v = stats.PRO;", "game-stat"],
