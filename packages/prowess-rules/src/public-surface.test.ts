@@ -65,6 +65,16 @@ describe("@prowess/rules public surface", () => {
         "hasKeywordByCanonicalKey",
         "hasKeywordById",
         "resolveKeywords",
+        // M4-WO5 Requirement Engine
+        "REQUIREMENT_DIAGNOSTIC_CODES",
+        "REQUIREMENT_EVALUATION_KIND",
+        "REQUIREMENT_GROUP_KINDS",
+        "REQUIREMENT_LIMITS",
+        "REQUIREMENT_NUMERIC_OPERATORS",
+        "REQUIREMENT_PREDICATE_KINDS",
+        "createRequirementFacts",
+        "evaluateRequirement",
+        "validateRequirement",
       ].sort(),
     );
   });
@@ -80,6 +90,8 @@ describe("@prowess/rules public surface", () => {
       expect(name).not.toMatch(/tokenize|Lexer|Parser$|analyzeAst|childrenOf|evaluateNode|bindVariables|^Formula[A-Z]?\w*Engine$|^Formula$/);
       // M4-WO4: aggregation internals stay private; no registry, merge, removal or string-only Keyword API.
       expect(name).not.toMatch(/aggregate|KeywordRegistry|merge|remove|suppress|negate|^resolveKeywordStrings$/i);
+      // M4-WO5: no engine class, fact index, callback / CUSTOM evaluator or rank ladder is public.
+      expect(name).not.toMatch(/RequirementEngine|indexFacts|evaluatePredicate|evaluateNode|CUSTOM|RANK_LADDER|isValidFactKey|isExactLabel/);
     }
   });
 });

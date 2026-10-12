@@ -1,7 +1,7 @@
 # M4 Rules Engine Core — `@prowess/rules` (M4-WO1)
 
 **Status:** M4-WO1 — Rules Engine Core & Evaluation Contracts. This document holds the permanent M4 invariant
-catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25; M4-WO3: M4-I26 – M4-I39; M4-WO4: M4-I40 – M4-I50).
+catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25; M4-WO3: M4-I26 – M4-I39; M4-WO4: M4-I40 – M4-I50; M4-WO5: M4-I51 – M4-I64).
 
 ## Purpose
 
@@ -378,7 +378,7 @@ route or UI was added.
 | M4-WO2 | Exact Ruleset Resolver (`m4-exact-ruleset-resolver.md`) |
 | M4-WO3 | Formula Engine (`m4-formula-engine.md`) |
 | M4-WO4 | Keyword Resolution Foundation (`m4-keyword-resolution.md`) |
-| M4-WO5 | Requirement Engine |
+| M4-WO5 | Requirement Engine (`m4-requirement-engine.md`) |
 | M4-WO6 | Modifier Engine |
 | M4-WO7 | Resource Engine Foundation |
 | M4-WO8 | Validation Engine |
@@ -473,6 +473,31 @@ Appended by M4-WO4 (Keyword Resolution — see `m4-keyword-resolution.md`):
 - **M4-I49** Keyword Provenance Is Preserved — every contributor's source id and RuleProvenance are kept and traced.
 - **M4-I50** Keyword Resolution Is Locale-Independent — code-unit ordering; no case conversion or locale API.
 
+Appended by M4-WO5 (Requirement Engine — see `m4-requirement-engine.md`):
+
+- **M4-I51** Unmet Requirement Is A Valid Evaluation Result — a false prerequisite is SUCCESS with `satisfied: false`
+  and no error, warning or info.
+- **M4-I52** Invalid Requirement Is Distinct From Unsatisfied — malformed definitions or unusable facts are INVALID
+  with REQUIREMENT.* diagnostics, never false.
+- **M4-I53** Requirement Predicates Consume Explicit Facts Only — no stat, level, rank, ownership or resource is
+  computed or looked up.
+- **M4-I54** Requirement Facts Use Exact Identity — exact keys, labels, members and ids; conflicting duplicates fail
+  closed; fact order never matters.
+- **M4-I55** Requirement Groups Support ALL / ANY / NONE — nested, non-empty, authored order preserved.
+- **M4-I56** Requirement Groups Evaluate Every Child — no short-circuit; a decided sibling never hides an invalid child.
+- **M4-I57** Rank Ordering Is Data, Not Hard-Coded Mechanics — supplied integer orders decide; labels are metadata.
+- **M4-I58** Keyword Requirements Reuse Exact WO4 Membership — presence via WO4's lookups; a supplied KeywordSet must be
+  exactly what WO4 produces.
+- **M4-I59** Requirements Have No Side Effects — no fact, KeywordSet, context or resource changes.
+- **M4-I60** Requirement Evaluation Is Deterministic — same inputs give byte-identical result, outcome, diagnostics and
+  trace.
+- **M4-I61** Requirement Inputs / Outputs Are Immutable — inputs untouched; outputs deep-frozen and detached.
+- **M4-I62** Missing Required Context Fails Closed — absent fact, ownership collection or KeywordSet is INVALID; an
+  absent member of a supplied collection is a valid false.
+- **M4-I63** Requirement Provenance Is Preserved — Requirement-node and fact provenance are kept distinct.
+- **M4-I64** Requirement Trees Are Complexity-Bounded — 2,048 nodes, depth 64, 512 children per group; cycles rejected;
+  no stack overflow.
+
 ## Test coverage map (M4-WO1)
 
 Every invariant has at least one automated guard; the guard files cite the invariant id. The static audit verifies
@@ -530,10 +555,25 @@ this table.
 | M4-I48 | Keyword Inputs / Results Are Immutable | `keyword-resolution.test.ts` |
 | M4-I49 | Keyword Provenance Is Preserved | `keyword-resolution.test.ts` |
 | M4-I50 | Keyword Resolution Is Locale-Independent | `keyword-resolution.test.ts`, `m4-wo4-static.test.ts` |
+| M4-I51 | Unmet Requirement Is A Valid Evaluation Result | `requirement-evaluate.test.ts` |
+| M4-I52 | Invalid Requirement Is Distinct From Unsatisfied | `requirement-evaluate.test.ts`, `requirement-definition-facts.test.ts` |
+| M4-I53 | Requirement Predicates Consume Explicit Facts Only | `requirement-evaluate.test.ts`, `m4-wo5-static.test.ts` |
+| M4-I54 | Requirement Facts Use Exact Identity | `requirement-definition-facts.test.ts`, `requirement-evaluate.test.ts` |
+| M4-I55 | Requirement Groups Support ALL / ANY / NONE | `requirement-evaluate.test.ts` |
+| M4-I56 | Requirement Groups Evaluate Every Child | `requirement-evaluate.test.ts`, `m4-wo5-static.test.ts` |
+| M4-I57 | Rank Ordering Is Data, Not Hard-Coded Mechanics | `requirement-evaluate.test.ts`, `m4-wo5-static.test.ts` |
+| M4-I58 | Keyword Requirements Reuse Exact WO4 Membership | `requirement-evaluate.test.ts`, `m4-wo5-static.test.ts` |
+| M4-I59 | Requirements Have No Side Effects | `requirement-evaluate.test.ts`, `m4-wo5-static.test.ts` |
+| M4-I60 | Requirement Evaluation Is Deterministic | `requirement-evaluate.test.ts` |
+| M4-I61 | Requirement Inputs / Outputs Are Immutable | `requirement-evaluate.test.ts`, `requirement-definition-facts.test.ts` |
+| M4-I62 | Missing Required Context Fails Closed | `requirement-evaluate.test.ts` |
+| M4-I63 | Requirement Provenance Is Preserved | `requirement-evaluate.test.ts` |
+| M4-I64 | Requirement Trees Are Complexity-Bounded | `requirement-definition-facts.test.ts` |
 
 Test files: `packages/prowess-rules/src/{context,response,trace,evaluate,public-surface,lookup}.test.ts`,
 `packages/prowess-rules/src/formula-{parser,evaluate,dependency-security}.test.ts`,
 `packages/prowess-rules/src/keyword-resolution.test.ts`, `packages/prowess-db/tests/integration/m1-keyword-resolution.test.ts`,
+`packages/prowess-rules/src/requirement-{evaluate,definition-facts}.test.ts`,
 `packages/prowess-db/tests/unit/ruleset-context-composition.test.ts`,
 `packages/prowess-db/tests/integration/ruleset-context.test.ts`, and
-`apps/studio/tests/unit/m4-wo{1,2,3,4}-static.test.ts`.
+`apps/studio/tests/unit/m4-wo{1,2,3,4,5}-static.test.ts`.
