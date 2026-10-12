@@ -203,12 +203,19 @@ function collapseWithinCall(prepared: readonly PreparedCandidate[]): PreparedCan
   return out;
 }
 
-/** Compares against what the Batch already holds: identical -> reuse, ordinal / content clash -> conflict. */
+/**
+ * Compares against what the Batch already holds: identical -> reuse, ordinal / content clash -> conflict.
+ *
+ * The two reads are SEQUENTIAL, ordinals FIRST. They used to run concurrently (separate pooled connections, separate
+ * snapshots): a concurrent identical recording that committed between them was visible to the ordinal read but not
+ * the fingerprint read, so identical content was misreported as ORDINAL_CONFLICT (an intermittent §77 failure). Under
+ * READ COMMITTED a later statement sees every commit an earlier one saw, so any stored row the ordinal read finds is
+ * also visible to the fingerprint read: identical content is always recognized and reused, while a genuinely different
+ * Candidate at that ordinal remains a conflict.
+ */
 async function classifyAgainstStored(importBatchId: string, unique: readonly PreparedCandidate[]): Promise<{ toCreate: PreparedCandidate[] }> {
-  const [byFingerprint, byOrdinal] = await Promise.all([
-    selectCandidatesByFingerprints(importBatchId, unique.map((c) => c.candidateFingerprint)),
-    selectCandidatesByOrdinals(importBatchId, unique.map((c) => c.ordinal)),
-  ]);
+  const byOrdinal = await selectCandidatesByOrdinals(importBatchId, unique.map((c) => c.ordinal));
+  const byFingerprint = await selectCandidatesByFingerprints(importBatchId, unique.map((c) => c.candidateFingerprint));
   const storedByFingerprint = new Map(byFingerprint.map((s) => [s.candidateFingerprint, s]));
   const storedByOrdinal = new Map(byOrdinal.map((s) => [s.ordinal, s]));
   const toCreate: PreparedCandidate[] = [];
