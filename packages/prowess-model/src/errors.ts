@@ -698,3 +698,23 @@ export const IMPORT_REVIEW_ERROR_CODES = {
 } as const;
 
 export type ImportReviewErrorCode = (typeof IMPORT_REVIEW_ERROR_CODES)[keyof typeof IMPORT_REVIEW_ERROR_CODES];
+
+/**
+ * Exact Ruleset resolution error codes (PAS-10 M4-WO2) — the application resolver that turns an exact Manifest or
+ * Release into an M4 RulesetContext. Only conditions the existing vocabularies cannot express live here: a missing
+ * Manifest / Release, or an inheritance cycle, keep their M2 codes (RULESET_MANIFEST.NOT_FOUND,
+ * RULESET_RELEASE.NOT_FOUND, RULESET_MANIFEST.INHERITANCE_CYCLE). Both codes mean persisted state is not trustworthy
+ * for evaluation; the resolver fails closed and returns no context.
+ */
+export const RULESET_RESOLUTION_ERROR_CODES = {
+  /** The Release's stored composition no longer matches its stored manifest hash (as verified by M2). */
+  RELEASE_INTEGRITY_FAILURE: "RULESET_RESOLUTION.RELEASE_INTEGRITY_FAILURE",
+  /**
+   * The resolved composition cannot become an unambiguous RulesetContext: an Entity twice, a pinned Entity or
+   * EntityVersion missing, a version belonging to a different Entity, conflicting canonical keys, or a composition
+   * the M4 context constructor rejects.
+   */
+  INVALID_COMPOSITION: "RULESET_RESOLUTION.INVALID_COMPOSITION",
+} as const;
+
+export type RulesetResolutionErrorCode = (typeof RULESET_RESOLUTION_ERROR_CODES)[keyof typeof RULESET_RESOLUTION_ERROR_CODES];

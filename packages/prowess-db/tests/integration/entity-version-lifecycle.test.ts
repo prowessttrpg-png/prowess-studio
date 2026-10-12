@@ -278,6 +278,8 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     // function, and no raw Prisma update payload type, ever gets added
     // without this test failing first.
     const exportedNames = Object.keys(DbPackage).sort();
+    // M4-WO2 added resolveRulesetContextFromManifest / resolveRulesetContextFromRelease: exact-id, read-only builders of
+    // the M4 RulesetContext (SELECTs only — proven by the table fingerprints in ruleset-context.test.ts). No mutation.
     // M3-WO6 added reviewImportCandidate (the ONLY Candidate status change: an explicit, append-only, atomic decision),
     // completeImportReview (REVIEWING -> COMPLETED) and reads. No generic setter; nothing is materialized.
     // M3-WO4 added analyzeImportBatchMatches (idempotent, insert-only identity analysis) and five reads. Matching never
@@ -437,6 +439,8 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "removeKeywordFromEntityVersion",
         "removeSourceReference",
         "resolveEffectiveEntityVersion",
+        "resolveRulesetContextFromManifest",
+        "resolveRulesetContextFromRelease",
         "resolveSourceAuthority",
         "resolveEntityVersionFromManifest",
         "transitionEntityVersionStatus",

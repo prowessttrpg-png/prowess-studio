@@ -27,6 +27,7 @@ import {
   IMPORT_MATCH_ERROR_CODES,
   IMPORT_DECISION_ERROR_CODES,
   IMPORT_REVIEW_ERROR_CODES,
+  RULESET_RESOLUTION_ERROR_CODES,
   type EntityAliasErrorCode,
   type EntityErrorCode,
   type EntityVersionErrorCode,
@@ -54,6 +55,7 @@ import {
   type ImportMatchErrorCode,
   type ImportDecisionErrorCode,
   type ImportReviewErrorCode,
+  type RulesetResolutionErrorCode,
 } from "@prowess/model";
 import { NextResponse } from "next/server";
 
@@ -130,7 +132,8 @@ type KnownDomainErrorCode =
   | ExtractionCandidateErrorCode
   | ImportMatchErrorCode
   | ImportDecisionErrorCode
-  | ImportReviewErrorCode;
+  | ImportReviewErrorCode
+  | RulesetResolutionErrorCode;
 
 /**
  * Centralized `DomainError.code` -> HTTP status mapping (PAS-10 M1-WO8
@@ -408,6 +411,11 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [IMPORT_REVIEW_ERROR_CODES.BATCH_NOT_FOUND]: 404,
   [IMPORT_REVIEW_ERROR_CODES.NOT_READY]: 409,
   [IMPORT_REVIEW_ERROR_CODES.INCOMPLETE]: 409,
+  // Ruleset resolution (M4-WO2): no Rules route exists yet (M4-WO10 owns the Rules API); these mappings exist because
+  // the map is exhaustive. Both mean stored data cannot be trusted for evaluation — integrity conflicts, like
+  // MIGRATION_PLAN.MANIFEST_INTEGRITY_FAILURE and IMPORT_MATCH.CATALOG_INTEGRITY_FAILURE, so 409.
+  [RULESET_RESOLUTION_ERROR_CODES.RELEASE_INTEGRITY_FAILURE]: 409,
+  [RULESET_RESOLUTION_ERROR_CODES.INVALID_COMPOSITION]: 409,
 } satisfies Record<KnownDomainErrorCode, number>;
 
 /**

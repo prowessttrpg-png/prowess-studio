@@ -1,7 +1,7 @@
 # M4 Rules Engine Core — `@prowess/rules` (M4-WO1)
 
-**Status:** M4-WO1 — Rules Engine Core & Evaluation Contracts. This document begins the permanent M4 invariant
-catalog; later M4 Work Orders append to it.
+**Status:** M4-WO1 — Rules Engine Core & Evaluation Contracts. This document holds the permanent M4 invariant
+catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25).
 
 ## Purpose
 
@@ -47,7 +47,7 @@ Validation / Trace Engines
 ### Dependency boundary
 
 ```
-@prowess/model  ←  @prowess/rules  ←  (future) application services / HTTP API (M4-WO10) / Studio (M4-WO11)
+@prowess/model  ←  @prowess/rules  ←  @prowess/db (exact Ruleset resolver, M4-WO2)  ←  (future) HTTP API (M4-WO10) / Studio (M4-WO11)
 ```
 
 `@prowess/rules` depends on `@prowess/model` only. It must never import `@prowess/db`, `@prowess/import`,
@@ -61,8 +61,8 @@ child processes) or any AI / web service. Enforced three ways:
 As a compile-time backstop, the package's `tsconfig.json` loads **no** Node or DOM type definitions (`types: []`,
 `lib: ["ES2022"]`): engine code that names `fetch`, `process`, `setTimeout` or a Node module does not typecheck.
 
-No lower package depends on `@prowess/rules`, and nothing in `apps/studio` imports it yet (M4-WO10 is the first
-consumer).
+No lower package depends on `@prowess/rules`. Its first consumer is `@prowess/db`'s exact Ruleset resolver (M4-WO2);
+nothing in `apps/studio` imports it yet (M4-WO10).
 
 ## Pure evaluation model
 
@@ -132,6 +132,12 @@ Identity is always the immutable ids; `canonicalKey` is explanatory, never relat
 
 The context deliberately has **no** Canon, authority, status, "latest" or "current" field — supplying one is rejected
 as an unknown field.
+
+*M4-WO2 refinement:* a context also rejects two rules sharing one canonical key, so exact canonical-key lookup is
+never ambiguous. Pure lookups inside an already-resolved context: `findResolvedRule(context, entityId)` and
+`findResolvedRuleByCanonicalKey(context, canonicalKey)` — exact comparison only (no alias, display-name, case-folding
+or fuzzy matching); `null` means "not part of this Ruleset", never a fallback. Exact contexts are produced from M2 data
+by `@prowess/db`'s resolver (`m4-exact-ruleset-resolver.md`).
 
 ### ActorContext
 
@@ -368,7 +374,7 @@ route or UI was added.
 | Work Order | Scope |
 | --- | --- |
 | M4-WO1 | Rules Engine Core & Evaluation Contracts (this document) |
-| M4-WO2 | Exact Ruleset Resolver |
+| M4-WO2 | Exact Ruleset Resolver (`m4-exact-ruleset-resolver.md`) |
 | M4-WO3 | Formula Engine |
 | M4-WO4 | Keyword Resolution Foundation |
 | M4-WO5 | Requirement Engine |
@@ -403,6 +409,27 @@ route or UI was added.
   values are separate slots.
 - **M4-I15** Runtime Mutation Is Outside Pure Evaluation — evaluation is preview only; it never commits runtime state.
 
+Appended by M4-WO2 (Exact Ruleset Resolver — see `m4-exact-ruleset-resolver.md`):
+
+- **M4-I16** Exact Manifest Resolution — an exact Manifest id resolves to exactly one RulesetContext identifying that
+  Manifest.
+- **M4-I17** Exact Release Resolution — an exact Release id resolves to exactly one RulesetContext carrying that
+  Release's identity and verbatim manifest hash.
+- **M4-I18** Effective Manifest Reuses M2 Inheritance — Manifest mode uses M2's effective-manifest resolver; M4 has no
+  inheritance algorithm of its own.
+- **M4-I19** Release Context Uses Frozen Composition — Release mode uses the Release's own frozen composition, never
+  what any Manifest resolves to now.
+- **M4-I20** Release Integrity Verified Before Evaluation — M2's hash verifier runs first; a failure yields no context.
+- **M4-I21** One Entity → One Resolved EntityVersion — a context holds at most one version per Entity, owned by that
+  Entity, and no canonical key twice; ambiguity fails closed.
+- **M4-I22** Resolver Never Uses Implicit Latest — no latest / newest / current selection and no descending ordering
+  anywhere in resolution; a Ruleset id alone resolves nothing.
+- **M4-I23** Historical Manifest Resolution Is Reproducible — later versions and parent manifests never change an
+  existing Manifest's context.
+- **M4-I24** Historical Release Resolution Is Reproducible — later versions, manifests and releases never change an
+  existing Release's context.
+- **M4-I25** Ruleset Resolution Is Read-Only — resolution writes nothing; every table is byte-identical afterwards.
+
 ## Test coverage map (M4-WO1)
 
 Every invariant has at least one automated guard; the guard files cite the invariant id. The static audit verifies
@@ -425,6 +452,18 @@ this table.
 | M4-I13 | Engine Does Not Mutate Rules | `evaluate.test.ts` |
 | M4-I14 | Listed Cost and Payment Remain Distinct Concepts | `context.test.ts`, `m4-wo1-static.test.ts` |
 | M4-I15 | Runtime Mutation Is Outside Pure Evaluation | `evaluate.test.ts`, `m4-wo1-static.test.ts` |
+| M4-I16 | Exact Manifest Resolution | `ruleset-context.test.ts`, `m4-wo2-static.test.ts` |
+| M4-I17 | Exact Release Resolution | `ruleset-context.test.ts`, `m4-wo2-static.test.ts` |
+| M4-I18 | Effective Manifest Reuses M2 Inheritance | `ruleset-context.test.ts`, `m4-wo2-static.test.ts` |
+| M4-I19 | Release Context Uses Frozen Composition | `ruleset-context.test.ts`, `m4-wo2-static.test.ts` |
+| M4-I20 | Release Integrity Verified Before Evaluation | `ruleset-context.test.ts`, `m4-wo2-static.test.ts` |
+| M4-I21 | One Entity → One Resolved EntityVersion | `ruleset-context-composition.test.ts`, `lookup.test.ts`, `ruleset-context.test.ts` |
+| M4-I22 | Resolver Never Uses Implicit Latest | `m4-wo2-static.test.ts` |
+| M4-I23 | Historical Manifest Resolution Is Reproducible | `ruleset-context.test.ts` |
+| M4-I24 | Historical Release Resolution Is Reproducible | `ruleset-context.test.ts` |
+| M4-I25 | Ruleset Resolution Is Read-Only | `ruleset-context.test.ts`, `m4-wo2-static.test.ts` |
 
-Test files: `packages/prowess-rules/src/{context,response,trace,evaluate,public-surface}.test.ts` and
-`apps/studio/tests/unit/m4-wo1-static.test.ts`.
+Test files: `packages/prowess-rules/src/{context,response,trace,evaluate,public-surface,lookup}.test.ts`,
+`packages/prowess-db/tests/unit/ruleset-context-composition.test.ts`,
+`packages/prowess-db/tests/integration/ruleset-context.test.ts`, and
+`apps/studio/tests/unit/m4-wo{1,2}-static.test.ts`.

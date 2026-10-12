@@ -26,6 +26,7 @@ export type { ContextOutcome, ContextScalar, EntityVersionReference } from "./co
 export {
   createRulesetContext,
   findResolvedRule,
+  findResolvedRuleByCanonicalKey,
   type ResolvedRuleReference,
   type RulesetContext,
   type RulesetReleaseIdentity,

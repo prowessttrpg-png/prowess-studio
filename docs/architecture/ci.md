@@ -128,7 +128,7 @@ extend). Two things are checked:
 | Package | May depend on | Must never import |
 | --- | --- | --- |
 | `@prowess/model` | nothing framework-specific | `next`, `react`, `react-dom`, `@prisma/client`, `@prisma/adapter-pg`, `prisma`, `pg`, `@prowess/db`, `@prowess/ui` |
-| `@prowess/db` | Prisma, `@prowess/model` (not yet a real dependency, but permitted) | `react`, `react-dom`, `next`, `@prowess/ui` |
+| `@prowess/db` | Prisma, `@prowess/model`, `@prowess/import` (M3-WO2), `@prowess/rules` (M4-WO2: the exact Ruleset resolver builds its `RulesetContext`) | `react`, `react-dom`, `next`, `@prowess/ui` |
 | `@prowess/import` (M3-WO2) | `@prowess/model`, Node's standard library (`node:crypto`) | `@prowess/db`, `@prisma/client`, `@prisma/adapter-pg`, `prisma`, `pg`, `next`, `react`, `react-dom`, `@prowess/ui`, anything under `apps/studio` or `generated/prisma` |
 | `@prowess/rules` (M4-WO1) | `@prowess/model` only | `@prowess/db`, `@prowess/import`, `@prowess/ui`, `@prowess/studio`, `@prowess/test-fixtures`, Prisma, `pg`, `next`, `react`, `react-dom`, Node built-ins (`node:*`, `fs`, `path`, `crypto`, `http`, `https`, `net`, `vm`, `child_process`, `worker_threads`), anything under `apps/studio`, `generated/prisma`, `prowess-db`, `prowess-import` or `prowess-ui`. Its purity rules (no clock, randomness, network, `eval`, game vocabulary or hidden-latest operations) are enforced separately by `apps/studio/tests/unit/m4-wo1-static.test.ts` |
 | `@prowess/ui` | React | `@prisma/client`, `@prisma/adapter-pg`, `prisma`, `pg`, `@prowess/db` |

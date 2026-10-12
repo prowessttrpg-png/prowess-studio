@@ -29,6 +29,7 @@ describe("@prowess/rules public surface", () => {
         "deriveResponseStatus",
         "evaluate",
         "findResolvedRule",
+        "findResolvedRuleByCanonicalKey",
         "flattenTrace",
         "identifierValue",
         "isRuleEngineErrorCode",

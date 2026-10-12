@@ -4,8 +4,8 @@
  * Centralized PostgreSQL persistence boundary. Owns the Prisma schema,
  * migrations, and the single shared PrismaClient instance.
  *
- * Framework-independent domain packages (@prowess/model, and later
- * @prowess/rules, @prowess/canon) must never import from this package or
+ * Framework-independent domain packages (@prowess/model, @prowess/rules and
+ * later @prowess/canon) must never import from this package or
  * from Prisma directly — the dependency direction is:
  *
  *   prowess-model  <-  this package (@prowess/db)  <-  application
@@ -148,6 +148,8 @@ export {
   resolveEntityVersionFromManifest,
 } from "./ruleset-manifest/index.js";
 export { getEffectiveManifestEntries, resolveEffectiveEntityVersion } from "./ruleset-inheritance/index.js";
+// M4-WO2: exact Manifest / Release → the M4 RulesetContext consumed by pure evaluation. No Ruleset-id-only resolver exists.
+export { resolveRulesetContextFromManifest, resolveRulesetContextFromRelease } from "./ruleset-context/index.js";
 export {
   createCanonPolicy,
   getCanonPolicy,
