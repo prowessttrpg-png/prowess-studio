@@ -1,7 +1,7 @@
 # M4 Rules Engine Core — `@prowess/rules` (M4-WO1)
 
 **Status:** M4-WO1 — Rules Engine Core & Evaluation Contracts. This document holds the permanent M4 invariant
-catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25; M4-WO3: M4-I26 – M4-I39; M4-WO4: M4-I40 – M4-I50; M4-WO5: M4-I51 – M4-I64).
+catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25; M4-WO3: M4-I26 – M4-I39; M4-WO4: M4-I40 – M4-I50; M4-WO5: M4-I51 – M4-I64; M4-WO6: M4-I65 – M4-I79).
 
 ## Purpose
 
@@ -379,7 +379,7 @@ route or UI was added.
 | M4-WO3 | Formula Engine (`m4-formula-engine.md`) |
 | M4-WO4 | Keyword Resolution Foundation (`m4-keyword-resolution.md`) |
 | M4-WO5 | Requirement Engine (`m4-requirement-engine.md`) |
-| M4-WO6 | Modifier Engine |
+| M4-WO6 | Modifier Engine (`m4-modifier-engine.md`) |
 | M4-WO7 | Resource Engine Foundation |
 | M4-WO8 | Validation Engine |
 | M4-WO9 | Calculation Trace & Explanation Engine |
@@ -498,6 +498,32 @@ Appended by M4-WO5 (Requirement Engine — see `m4-requirement-engine.md`):
 - **M4-I64** Requirement Trees Are Complexity-Bounded — 2,048 nodes, depth 64, 512 children per group; cycles rejected;
   no stack overflow.
 
+Appended by M4-WO6 (Modifier Engine — see `m4-modifier-engine.md`):
+
+- **M4-I65** Modifiers Transform Explicit Targets Only — every target is supplied; none is created; family mismatches
+  fail closed.
+- **M4-I66** Modifier Ordering Is Explicit And Deterministic — phaseOrder, priority, order, modifierKey; input order
+  never controls application.
+- **M4-I67** Modifier Phases Are Data — caller-defined `{phaseKey, phaseOrder}`; no phase name carries behaviour; one
+  key never has two orders.
+- **M4-I68** Modifier Conditions Reuse Requirement Engine — M4-WO5 validates and evaluates every condition.
+- **M4-I69** False Conditions Skip Without Error — SKIPPED_CONDITION outcome; no error, warning or info.
+- **M4-I70** Numeric Modifiers Never Round Implicitly — each operation is exactly its formula; non-finite fails closed.
+- **M4-I71** Percentage Modifiers Apply Sequentially — each to the running value; never pre-combined.
+- **M4-I72** Modifier Stacking Has No Hidden Winner — STACK applies all; UNIQUE collapses identical duplicates and
+  fails closed on different ones.
+- **M4-I73** Ordered Steps Use Explicit Ladders — caller-supplied steps and an explicit CLAMP / INVALID boundary.
+- **M4-I74** Advantage / Disadvantage Are Signals, Not Roll Semantics — collected and counted; never cancelled,
+  resolved or rolled.
+- **M4-I75** Modifier Evaluation Has No Side Effects — nothing paid, spent, reserved or changed.
+- **M4-I76** Modifier Inputs / Outputs Are Immutable — inputs untouched (caller facts never frozen); outputs
+  deep-frozen and detached.
+- **M4-I77** Modifier Provenance Is Preserved — every outcome keeps source and provenance; condition provenance stays
+  distinct.
+- **M4-I78** Modifier Evaluation Is Deterministic — same request in any array order gives a byte-identical response.
+- **M4-I79** Listed Cost And Runtime Payment Remain Distinct — modifiers compute listed values only; payment is never
+  modelled or applied.
+
 ## Test coverage map (M4-WO1)
 
 Every invariant has at least one automated guard; the guard files cite the invariant id. The static audit verifies
@@ -569,11 +595,26 @@ this table.
 | M4-I62 | Missing Required Context Fails Closed | `requirement-evaluate.test.ts` |
 | M4-I63 | Requirement Provenance Is Preserved | `requirement-evaluate.test.ts` |
 | M4-I64 | Requirement Trees Are Complexity-Bounded | `requirement-definition-facts.test.ts` |
+| M4-I65 | Modifiers Transform Explicit Targets Only | `modifier-evaluate.test.ts`, `m4-wo6-static.test.ts` |
+| M4-I66 | Modifier Ordering Is Explicit And Deterministic | `modifier-evaluate.test.ts`, `m4-wo6-static.test.ts` |
+| M4-I67 | Modifier Phases Are Data | `modifier-evaluate.test.ts`, `m4-wo6-static.test.ts` |
+| M4-I68 | Modifier Conditions Reuse Requirement Engine | `modifier-evaluate.test.ts`, `m4-wo6-static.test.ts` |
+| M4-I69 | False Conditions Skip Without Error | `modifier-evaluate.test.ts` |
+| M4-I70 | Numeric Modifiers Never Round Implicitly | `modifier-evaluate.test.ts`, `m4-wo6-static.test.ts` |
+| M4-I71 | Percentage Modifiers Apply Sequentially | `modifier-evaluate.test.ts`, `m4-wo6-static.test.ts` |
+| M4-I72 | Modifier Stacking Has No Hidden Winner | `modifier-evaluate.test.ts` |
+| M4-I73 | Ordered Steps Use Explicit Ladders | `modifier-evaluate.test.ts` |
+| M4-I74 | Advantage / Disadvantage Are Signals, Not Roll Semantics | `modifier-evaluate.test.ts`, `m4-wo6-static.test.ts` |
+| M4-I75 | Modifier Evaluation Has No Side Effects | `modifier-evaluate.test.ts`, `m4-wo6-static.test.ts` |
+| M4-I76 | Modifier Inputs / Outputs Are Immutable | `modifier-evaluate.test.ts` |
+| M4-I77 | Modifier Provenance Is Preserved | `modifier-evaluate.test.ts` |
+| M4-I78 | Modifier Evaluation Is Deterministic | `modifier-evaluate.test.ts` |
+| M4-I79 | Listed Cost And Runtime Payment Remain Distinct | `modifier-evaluate.test.ts`, `m4-wo6-static.test.ts` |
 
 Test files: `packages/prowess-rules/src/{context,response,trace,evaluate,public-surface,lookup}.test.ts`,
 `packages/prowess-rules/src/formula-{parser,evaluate,dependency-security}.test.ts`,
 `packages/prowess-rules/src/keyword-resolution.test.ts`, `packages/prowess-db/tests/integration/m1-keyword-resolution.test.ts`,
-`packages/prowess-rules/src/requirement-{evaluate,definition-facts}.test.ts`,
+`packages/prowess-rules/src/requirement-{evaluate,definition-facts}.test.ts`, `packages/prowess-rules/src/modifier-evaluate.test.ts`,
 `packages/prowess-db/tests/unit/ruleset-context-composition.test.ts`,
 `packages/prowess-db/tests/integration/ruleset-context.test.ts`, and
-`apps/studio/tests/unit/m4-wo{1,2,3,4,5}-static.test.ts`.
+`apps/studio/tests/unit/m4-wo{1,2,3,4,5,6}-static.test.ts`.

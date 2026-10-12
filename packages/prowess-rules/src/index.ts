@@ -175,3 +175,38 @@ export {
 export { validateRequirement, type RequirementValidation } from "./requirement/validate.js";
 export { createRequirementFacts, type NumericFact, type RankFact, type RequirementFacts, type RequirementFactsOutcome, type SetFact } from "./requirement/facts.js";
 export { REQUIREMENT_EVALUATION_KIND, evaluateRequirement, type EvaluateRequirementOptions } from "./requirement/evaluate.js";
+
+// M4-WO6 Modifier Engine: explicit modifier pipelines over explicit targets — ordered, conditional (via M4-WO5),
+// stacking without hidden winners, no rounding, no payment, Advantage / Disadvantage as signals only.
+export {
+  MODIFIER_BOUNDARY_POLICIES,
+  MODIFIER_DIAGNOSTIC_CODES,
+  MODIFIER_LIMITS,
+  MODIFIER_NUMERIC_OPERATIONS,
+  MODIFIER_OPERATIONS,
+  MODIFIER_OUTCOME_STATUSES,
+  MODIFIER_SIGNAL_OPERATIONS,
+  MODIFIER_STACKING_POLICIES,
+  MODIFIER_STEP_OPERATIONS,
+  MODIFIER_TARGET_KINDS,
+  type ModifierBoundaryPolicy,
+  type ModifierDefinition,
+  type ModifierDiagnostic,
+  type ModifierDiagnosticCode,
+  type ModifierEvaluationResult,
+  type ModifierOperation,
+  type ModifierOutcome,
+  type ModifierOutcomeStatus,
+  type ModifierPhase,
+  type ModifierSource,
+  type ModifierStacking,
+  type ModifierTarget,
+  type ModifierTargetKind,
+  type ModifierTargetState,
+  type ModifierValue,
+  type NumericTarget,
+  type OrderedTarget,
+  type RollSignalTarget,
+} from "./modifier/model.js";
+export { validateModifiers, type ModifierRequest, type ModifierValidation } from "./modifier/validate.js";
+export { MODIFIER_EVALUATION_KIND, evaluateModifiers, type EvaluateModifiersOptions } from "./modifier/evaluate.js";

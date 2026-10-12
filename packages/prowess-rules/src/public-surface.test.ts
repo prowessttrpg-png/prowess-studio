@@ -75,6 +75,20 @@ describe("@prowess/rules public surface", () => {
         "createRequirementFacts",
         "evaluateRequirement",
         "validateRequirement",
+        // M4-WO6 Modifier Engine
+        "MODIFIER_BOUNDARY_POLICIES",
+        "MODIFIER_DIAGNOSTIC_CODES",
+        "MODIFIER_EVALUATION_KIND",
+        "MODIFIER_LIMITS",
+        "MODIFIER_NUMERIC_OPERATIONS",
+        "MODIFIER_OPERATIONS",
+        "MODIFIER_OUTCOME_STATUSES",
+        "MODIFIER_SIGNAL_OPERATIONS",
+        "MODIFIER_STACKING_POLICIES",
+        "MODIFIER_STEP_OPERATIONS",
+        "MODIFIER_TARGET_KINDS",
+        "evaluateModifiers",
+        "validateModifiers",
       ].sort(),
     );
   });
@@ -92,6 +106,8 @@ describe("@prowess/rules public surface", () => {
       expect(name).not.toMatch(/aggregate|KeywordRegistry|merge|remove|suppress|negate|^resolveKeywordStrings$/i);
       // M4-WO5: no engine class, fact index, callback / CUSTOM evaluator or rank ladder is public.
       expect(name).not.toMatch(/RequirementEngine|indexFacts|evaluatePredicate|evaluateNode|CUSTOM|RANK_LADDER|isValidFactKey|isExactLabel/);
+      // M4-WO6: no engine class; the WO5 prepared-facts path and modifier internals stay private.
+      expect(name).not.toMatch(/ModifierEngine|prepareRequirementFacts|evaluateValidatedRequirement|validateModifiersWithIndex|operationFamily|^numeric$/);
     }
   });
 });

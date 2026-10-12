@@ -234,6 +234,12 @@ jobs:
       - name: M4-WO5 audit gate — Requirement evaluation & predicate safety
         run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo5-static.test.ts
 
+      # M4-WO6: the Modifier Engine's static gate (exact formulas only — no rounding or percentage combining; caller-
+      # defined phases / targets / ladders; no dice, cancellation or payment semantics; conditions through M4-WO5).
+      # Its unit suite runs in "Unit tests (packages)" with the rest of @prowess/rules.
+      - name: M4-WO6 audit gate — Modifier ordering, stacking & safety
+        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo6-static.test.ts
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own
