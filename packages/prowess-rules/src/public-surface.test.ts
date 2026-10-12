@@ -44,6 +44,19 @@ describe("@prowess/rules public surface", () => {
         "stringValue",
         "suppliedContextFamilies",
         "validationMessage",
+        // M4-WO3 Formula Engine
+        "FORMULA_DIAGNOSTIC_CODES",
+        "FORMULA_EVALUATION_KIND",
+        "FORMULA_FUNCTIONS",
+        "FORMULA_IDENTIFIER_PATTERN",
+        "FORMULA_LIMITS",
+        "FORMULA_ROUNDING_MODES",
+        "FORMULA_UNIT_PATTERN",
+        "evaluateFormula",
+        "isValidFormulaIdentifier",
+        "orderFormulaDependencies",
+        "parseFormulaExpression",
+        "validateFormulaProgram",
       ].sort(),
     );
   });
@@ -53,6 +66,10 @@ describe("@prowess/rules public surface", () => {
   });
 
   it("exports no engine class, registry or internal helper", () => {
-    for (const name of Object.keys(rules)) expect(name).not.toMatch(/^(RulesEngine|Engine)$|Registry|inspectPlainData|canonicalJson|deepFreeze|assertDeterministic|InputProblems|read[A-Z]/);
+    for (const name of Object.keys(rules)) {
+      expect(name).not.toMatch(/^(RulesEngine|Engine)$|Registry|inspectPlainData|canonicalJson|deepFreeze|assertDeterministic|InputProblems|read[A-Z]/);
+      // M4-WO3: the lexer, AST walker and internal evaluator stay private; there is no mutable Formula class.
+      expect(name).not.toMatch(/tokenize|Lexer|Parser$|analyzeAst|childrenOf|evaluateNode|bindVariables|^Formula[A-Z]?\w*Engine$|^Formula$/);
+    }
   });
 });

@@ -213,6 +213,12 @@ jobs:
       - name: M4-WO2 audit gate — exact Ruleset resolver (database)
         run: pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/ruleset-context.test.ts
 
+      # M4-WO3: the Formula Engine's static gate (no authored-code execution, no hidden rounding / locale / dynamic
+      # lookup, grammar owned by the hand-written lexer and parser, no persistence). Its unit suites run in
+      # "Unit tests (packages)" with the rest of @prowess/rules.
+      - name: M4-WO3 audit gate — Formula Engine safety & determinism
+        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo3-static.test.ts
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own

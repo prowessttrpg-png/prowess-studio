@@ -93,3 +93,39 @@ export {
 } from "./trace/calculation-trace.js";
 
 export { evaluate, type EvaluationDefinition, type EvaluatorOutput } from "./evaluation/evaluate.js";
+
+// M4-WO3 Formula Engine: a restricted, purpose-built expression language evaluated as data — never executed as code.
+export {
+  FORMULA_DIAGNOSTIC_CODES,
+  FORMULA_FUNCTIONS,
+  FORMULA_LIMITS,
+  type FormulaDiagnostic,
+  type FormulaDiagnosticCode,
+  type FormulaFunctionName,
+} from "./formula/diagnostics.js";
+export {
+  FORMULA_IDENTIFIER_PATTERN,
+  isValidFormulaIdentifier,
+  type FormulaBinaryNode,
+  type FormulaCallNode,
+  type FormulaNode,
+  type FormulaNumberNode,
+  type FormulaUnaryNode,
+  type FormulaVariableNode,
+} from "./formula/ast.js";
+export { parseFormulaExpression, type FormulaParseFailure, type FormulaParseResult, type FormulaParseSuccess } from "./formula/parser.js";
+export {
+  FORMULA_EVALUATION_KIND,
+  FORMULA_ROUNDING_MODES,
+  FORMULA_UNIT_PATTERN,
+  evaluateFormula,
+  validateFormulaProgram,
+  type EvaluateFormulaOptions,
+  type FormulaBoundResult,
+  type FormulaProgram,
+  type FormulaProgramValidation,
+  type FormulaResult,
+  type FormulaRoundingMode,
+  type ValidatedFormulaProgram,
+} from "./formula/evaluate.js";
+export { orderFormulaDependencies, type FormulaDependencyNode, type FormulaDependencyOrder } from "./formula/dependency.js";
