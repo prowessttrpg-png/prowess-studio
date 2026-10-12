@@ -204,6 +204,15 @@ jobs:
       - name: M4-WO1 audit gate — Rules Engine boundaries & purity (static)
         run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo1-static.test.ts
 
+      # M4-WO2: the exact Ruleset resolver's static gate (call-graph reuse of M2 inheritance / release integrity, no
+      # hidden latest, read-only) and its database-level suite (historical reproducibility, frozen releases, tamper
+      # refusal, read-only fingerprints, no N+1). Both also run inside the generic suites above.
+      - name: M4-WO2 audit gate — exact Ruleset resolver (static)
+        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo2-static.test.ts
+
+      - name: M4-WO2 audit gate — exact Ruleset resolver (database)
+        run: pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/ruleset-context.test.ts
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own

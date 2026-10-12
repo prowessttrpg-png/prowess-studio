@@ -141,7 +141,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
   >;
   const allCodes = vocabularies.flatMap(([, codes]) => Object.values(codes));
 
-  it("exports the twenty-seven vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5, CanonDecision M2-WO6, ChangeSet M2-WO7, RulesetRelease M2-WO8, MigrationPlan M2-WO11, SourceSnapshot / SourceStructure / SourceAsset / SourceParse M3-WO1, ImportBatch / ExtractionCandidate M3-WO2, ImportMatch M3-WO4, ImportDecision / ImportReview M3-WO6)", () => {
+  it("exports the twenty-eight vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5, CanonDecision M2-WO6, ChangeSet M2-WO7, RulesetRelease M2-WO8, MigrationPlan M2-WO11, SourceSnapshot / SourceStructure / SourceAsset / SourceParse M3-WO1, ImportBatch / ExtractionCandidate M3-WO2, ImportMatch M3-WO4, ImportDecision / ImportReview M3-WO6, RulesetResolution M4-WO2)", () => {
     expect(vocabularies.map(([name]) => name).sort()).toEqual(
       [
         "ENTITY_ALIAS_ERROR_CODES",
@@ -171,6 +171,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
         "IMPORT_MATCH_ERROR_CODES",
         "IMPORT_DECISION_ERROR_CODES",
         "IMPORT_REVIEW_ERROR_CODES",
+        "RULESET_RESOLUTION_ERROR_CODES",
       ].sort(),
     );
   });
@@ -189,7 +190,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
   });
 
   const CONTROLLED_UNIONS =
-    "Entity|EntityVersion|EntityAlias|KeywordCategory|Keyword|KeywordAssignment|Relationship|SourceDocument|SourceReference|ImportBatch|ImportMatch|ImportDecision|ImportReview".split("|").map((n) => `${n}ErrorCode`).join("|");
+    "Entity|EntityVersion|EntityAlias|KeywordCategory|Keyword|KeywordAssignment|Relationship|SourceDocument|SourceReference|ImportBatch|ImportMatch|ImportDecision|ImportReview|RulesetResolution".split("|").map((n) => `${n}ErrorCode`).join("|");
 
   it("every DomainError thrown in @prowess/db uses a controlled constant (or a parameter typed with a controlled union) — never a raw string", () => {
     const files = walk(path.join(ROOT, "packages", "prowess-db", "src"), isSource);
@@ -284,7 +285,8 @@ describe("M1 audit — workspace layering (§29)", () => {
     "packages/prowess-ui": [],
     "packages/prowess-test-fixtures": [],
     // M3-WO2: @prowess/db may use @prowess/import's pure helpers; @prowess/import depends only on @prowess/model.
-    "packages/prowess-db": ["@prowess/import", "@prowess/model"],
+    // M4-WO2: @prowess/db's exact Ruleset resolver builds @prowess/rules' RulesetContext.
+    "packages/prowess-db": ["@prowess/import", "@prowess/model", "@prowess/rules"],
     "packages/prowess-import": ["@prowess/model"],
     // M4-WO1: the pure Rules Engine depends on @prowess/model only.
     "packages/prowess-rules": ["@prowess/model"],

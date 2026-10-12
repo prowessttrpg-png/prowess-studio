@@ -99,6 +99,9 @@ importers:
       '@prowess/model':
         specifier: workspace:*
         version: link:../prowess-model
+      '@prowess/rules':
+        specifier: workspace:*
+        version: link:../prowess-rules
       pg:
         specifier: 8.23.0
         version: 8.23.0

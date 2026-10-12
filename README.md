@@ -50,8 +50,8 @@ scripts/                 Repository tooling (architecture check, env loader, dev
 ```
 
 Dependency direction (enforced by `pnpm run test:architecture`):
-`@prowess/model ← @prowess/import ← @prowess/db ← apps/studio`, and `@prowess/model ← @prowess/rules` (the pure Rules
-Engine, M4). Domain packages never depend on Next.js, Prisma or React; no package implements Prowess game mechanics yet —
+`@prowess/model ← @prowess/import ← @prowess/db ← apps/studio`, and `@prowess/model ← @prowess/rules ← @prowess/db`
+(the pure Rules Engine, M4; @prowess/db's exact Ruleset resolver builds its contexts). Domain packages never depend on Next.js, Prisma or React; no package implements Prowess game mechanics yet —
 M4-WO1 established only the engine's generic contracts (see docs/architecture/m4-rules-engine-core.md).
 
 ## Requirements

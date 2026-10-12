@@ -27,6 +27,7 @@ import {
   IMPORT_MATCH_ERROR_CODES,
   IMPORT_DECISION_ERROR_CODES,
   IMPORT_REVIEW_ERROR_CODES,
+  RULESET_RESOLUTION_ERROR_CODES,
 } from "@prowess/model";
 import { describe, expect, it } from "vitest";
 import {
@@ -80,6 +81,7 @@ const ALL_KNOWN_DOMAIN_ERROR_CODES = [
   ...Object.values(IMPORT_MATCH_ERROR_CODES),
   ...Object.values(IMPORT_DECISION_ERROR_CODES),
   ...Object.values(IMPORT_REVIEW_ERROR_CODES),
+  ...Object.values(RULESET_RESOLUTION_ERROR_CODES),
 ];
 
 describe("statusForDomainErrorCode", () => {

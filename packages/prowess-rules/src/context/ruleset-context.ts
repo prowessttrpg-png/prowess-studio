@@ -48,7 +48,8 @@ export interface RulesetReleaseIdentity {
  *  - `manifestHash`  preserved VERBATIM (lowercase hex SHA-256, as M2 publishes it) or null for an unpublished
  *                    manifest; never recomputed here — M2 remains the authority for manifest integrity
  *  - `rules`         the resolved rule versions, a set keyed by Entity: sorted by `entityId`, at most one version per
- *                    Entity, no Version listed twice (the flattened-manifest invariant of M2-WO3)
+ *                    Entity, no Version listed twice (the flattened-manifest invariant of M2-WO3), and no canonical
+ *                    key claimed twice (M4-WO2 — keeps exact canonical-key lookup unambiguous)
  */
 export interface RulesetContext {
   readonly rulesetId: RulesetId;
@@ -117,6 +118,7 @@ export function readRulesetContext(value: unknown, at: readonly PathSegment[], p
     } else {
       const byEntity = new Set<string>();
       const byVersion = new Set<string>();
+      const byCanonicalKey = new Set<string>();
       r.rules.forEach((item: unknown, i: number) => {
         const rule = readRule(item, [...at, "rules", i], p);
         if (rule === null) return;
@@ -128,8 +130,14 @@ export function readRulesetContext(value: unknown, at: readonly PathSegment[], p
           p.invalid([...at, "rules", i, "entityVersionId"], "duplicate EntityVersion");
           return;
         }
+        if (byCanonicalKey.has(rule.canonicalKey)) {
+          // M4-WO2 §26: two rules claiming one canonical key would make key lookup ambiguous — never pick one.
+          p.invalid([...at, "rules", i, "canonicalKey"], "two rules in one RulesetContext share a canonical key");
+          return;
+        }
         byEntity.add(rule.entityId);
         byVersion.add(rule.entityVersionId);
+        byCanonicalKey.add(rule.canonicalKey);
         rules.push(rule);
       });
     }
@@ -155,8 +163,27 @@ export function createRulesetContext(input: unknown): ContextOutcome<RulesetCont
   return finishOutcome(p, () => value as RulesetContext);
 }
 
-/** The rule version an exact context resolves `entityId` to, or null. Lookup by immutable id only. */
+/*
+ * Pure lookups inside an ALREADY-RESOLVED context (PAS-10 M4-WO2 §27–30, §53–54). They never query persistence and
+ * never fall back: `null` means exactly "this rule is not part of this Ruleset context" — not "use the latest / Canon /
+ * a base Ruleset". A resolver malfunction is a thrown resolution error at context-construction time, never a `null`
+ * here. No alias, display-name, case-folding or fuzzy matching exists.
+ */
+
+/** The rule an exact context resolves `entityId` to, or null. UUIDs compare case-insensitively (they are UUIDs). */
 export function findResolvedRule(context: RulesetContext, entityId: string): ResolvedRuleReference | null {
+  if (typeof entityId !== "string") return null;
   const id = entityId.toLowerCase();
   return context.rules.find((rule) => rule.entityId === id) ?? null;
+}
+
+/**
+ * The rule an exact context holds under `canonicalKey`, or null. EXACT string comparison: canonical keys are
+ * lowercase by grammar, so a case-changed key is simply a different (absent) key — it is never folded to match.
+ * The canonical key is a stable semantic handle for lookup and display; the returned reference's `entityId` /
+ * `entityVersionId` remain the identity.
+ */
+export function findResolvedRuleByCanonicalKey(context: RulesetContext, canonicalKey: string): ResolvedRuleReference | null {
+  if (typeof canonicalKey !== "string") return null;
+  return context.rules.find((rule) => rule.canonicalKey === canonicalKey) ?? null;
 }

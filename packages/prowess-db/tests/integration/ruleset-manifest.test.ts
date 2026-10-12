@@ -322,7 +322,8 @@ describe("RulesetManifest (prowess_studio_test only)", () => {
       const surface = await import("../../src/index");
       // M2-WO8's verifyRulesetReleaseManifestHash (/release/) is a read; it is audited in ruleset-release.test.ts.
       const ops = Object.keys(surface).filter((n) => /manifest/i.test(n) && !/release/i.test(n)).sort();
-      // getEffectiveManifestEntries (M2-WO3) also matches /manifest/; it is a read.
+      // getEffectiveManifestEntries (M2-WO3) also matches /manifest/; it is a read. So is M4-WO2's
+      // resolveRulesetContextFromManifest (builds an evaluation context; SELECTs only).
       expect(ops).toEqual([
         "createRulesetManifest",
         "getEffectiveManifestEntries",
@@ -331,6 +332,7 @@ describe("RulesetManifest (prowess_studio_test only)", () => {
         "getRulesetManifest",
         "listRulesetManifests",
         "resolveEntityVersionFromManifest",
+        "resolveRulesetContextFromManifest",
       ]);
     });
   });

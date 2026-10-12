@@ -25,6 +25,7 @@
     "@prisma/client": "7.10.0",
     "@prowess/import": "workspace:*",
     "@prowess/model": "workspace:*",
+    "@prowess/rules": "workspace:*",
     "pg": "8.23.0"
   },
   "devDependencies": {
