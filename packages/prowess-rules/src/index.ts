@@ -129,3 +129,19 @@ export {
   type ValidatedFormulaProgram,
 } from "./formula/evaluate.js";
 export { orderFormulaDependencies, type FormulaDependencyNode, type FormulaDependencyOrder } from "./formula/dependency.js";
+
+// M4-WO4 Keyword Resolution: Keywords are metadata / rule hooks — exact identity, provenance, membership; no mechanics.
+export {
+  KEYWORD_RESOLUTION_DIAGNOSTIC_CODES,
+  KEYWORD_RESOLUTION_KIND,
+  resolveKeywords,
+  type KeywordContribution,
+  type KeywordContributionSource,
+  type KeywordContributor,
+  type KeywordReference,
+  type KeywordResolutionDiagnosticCode,
+  type ResolveKeywordsOptions,
+  type ResolvedKeyword,
+  type ResolvedKeywordSet,
+} from "./keyword/resolve.js";
+export { findResolvedKeywordByCanonicalKey, findResolvedKeywordById, hasKeywordByCanonicalKey, hasKeywordById } from "./keyword/query.js";
