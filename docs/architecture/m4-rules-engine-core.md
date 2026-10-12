@@ -1,7 +1,7 @@
 # M4 Rules Engine Core — `@prowess/rules` (M4-WO1)
 
 **Status:** M4-WO1 — Rules Engine Core & Evaluation Contracts. This document holds the permanent M4 invariant
-catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25).
+catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25; M4-WO3: M4-I26 – M4-I39).
 
 ## Purpose
 
@@ -307,8 +307,8 @@ Enforced by the static audit (source patterns) and by a runtime test that makes 
 - Numbers are JavaScript **finite** numbers. NaN / ±Infinity are rejected at every public boundary with
   `RULE_ENGINE.NON_FINITE_NUMBER`. `-0` is normalized to `0` so in-memory and serialized values agree. No
   arbitrary-precision library is introduced.
-- **Rounding is always explicit.** The engine never silently floors, ceils or rounds; M4-WO3 implements explicit
-  rounding rules.
+- **Rounding is always explicit.** The engine never silently floors, ceils or rounds; M4-WO3 implemented explicit
+  rounding (`floor()` / `ceil()` and the FLOOR / CEIL result modes — see `m4-formula-engine.md`).
 - **Units:** no units engine; a `NUMBER` may carry an optional semantic unit label. No unit is hard-coded.
 - Every public input and result is plain JSON data: no `Map`, `Set`, `Date`, class instance, function, symbol,
   bigint, `undefined`, sparse array, accessor or cycle.
@@ -375,7 +375,7 @@ route or UI was added.
 | --- | --- |
 | M4-WO1 | Rules Engine Core & Evaluation Contracts (this document) |
 | M4-WO2 | Exact Ruleset Resolver (`m4-exact-ruleset-resolver.md`) |
-| M4-WO3 | Formula Engine |
+| M4-WO3 | Formula Engine (`m4-formula-engine.md`) |
 | M4-WO4 | Keyword Resolution Foundation |
 | M4-WO5 | Requirement Engine |
 | M4-WO6 | Modifier Engine |
@@ -430,6 +430,31 @@ Appended by M4-WO2 (Exact Ruleset Resolver — see `m4-exact-ruleset-resolver.md
   existing Release's context.
 - **M4-I25** Ruleset Resolution Is Read-Only — resolution writes nothing; every table is byte-identical afterwards.
 
+Appended by M4-WO3 (Formula Engine — see `m4-formula-engine.md`):
+
+- **M4-I26** Restricted Formula Grammar — only numbers, exact variables, unary `+ -`, binary `+ - * /`, parentheses and
+  floor / ceil / min / max, parsed by a purpose-built lexer and parser with complexity limits.
+- **M4-I27** Authored Formula Text Is Never Executed — no eval, Function, VM, dynamic import or global function lookup;
+  unknown constructs are rejected structurally.
+- **M4-I28** Variable Binding Is Exact — exact, case-sensitive own-property keys; missing or non-numeric bindings fail
+  closed; no defaults, coercion, aliases or fuzzy matching.
+- **M4-I29** Rounding Is Explicit — no rounding unless the Formula says so (floor() / ceil() or FLOOR / CEIL); NONE is the
+  default; floating-point results are never prettified.
+- **M4-I30** Formula Precedence Is Deterministic — unary, then `* /`, then `+ -`, left-associative.
+- **M4-I31** Division By Zero Fails Closed — a zero divisor is a structured failure, never Infinity or NaN.
+- **M4-I32** Non-Finite Values Never Escape Evaluation — every operation is checked; `-0` is normalized to `0`.
+- **M4-I33** Formula AST Is Serializable And Immutable — plain JSON, deep-frozen, reproducible; supplied ASTs are
+  re-validated.
+- **M4-I34** Formula Evaluation Is Deterministic — same Formula, bindings and RulesetContext give byte-identical results,
+  messages and trace.
+- **M4-I35** Formula Dependency Cycles Are Rejected — ordering is deterministic; unknown dependencies and cycles fail
+  explicitly, never broken arbitrarily.
+- **M4-I36** Formula Provenance Is Preserved — supplied provenance reaches the root trace step and failure messages.
+- **M4-I37** Formula Evaluation Is Read-Only — no input (program, AST, bindings, context, provenance) is mutated.
+- **M4-I38** Formula Trace Ordering Is Deterministic — the trace mirrors the AST in authored order, then rounding,
+  minimum, maximum.
+- **M4-I39** Units Have No Implicit Mechanics — a unit is an opaque label: no arithmetic, conversion or compatibility.
+
 ## Test coverage map (M4-WO1)
 
 Every invariant has at least one automated guard; the guard files cite the invariant id. The static audit verifies
@@ -462,8 +487,23 @@ this table.
 | M4-I23 | Historical Manifest Resolution Is Reproducible | `ruleset-context.test.ts` |
 | M4-I24 | Historical Release Resolution Is Reproducible | `ruleset-context.test.ts` |
 | M4-I25 | Ruleset Resolution Is Read-Only | `ruleset-context.test.ts`, `m4-wo2-static.test.ts` |
+| M4-I26 | Restricted Formula Grammar | `formula-parser.test.ts`, `m4-wo3-static.test.ts` |
+| M4-I27 | Authored Formula Text Is Never Executed | `formula-dependency-security.test.ts`, `m4-wo3-static.test.ts` |
+| M4-I28 | Variable Binding Is Exact | `formula-evaluate.test.ts` |
+| M4-I29 | Rounding Is Explicit | `formula-evaluate.test.ts`, `m4-wo3-static.test.ts` |
+| M4-I30 | Formula Precedence Is Deterministic | `formula-parser.test.ts` |
+| M4-I31 | Division By Zero Fails Closed | `formula-evaluate.test.ts` |
+| M4-I32 | Non-Finite Values Never Escape Evaluation | `formula-evaluate.test.ts` |
+| M4-I33 | Formula AST Is Serializable And Immutable | `formula-parser.test.ts` |
+| M4-I34 | Formula Evaluation Is Deterministic | `formula-evaluate.test.ts` |
+| M4-I35 | Formula Dependency Cycles Are Rejected | `formula-dependency-security.test.ts` |
+| M4-I36 | Formula Provenance Is Preserved | `formula-evaluate.test.ts` |
+| M4-I37 | Formula Evaluation Is Read-Only | `formula-evaluate.test.ts`, `m4-wo3-static.test.ts` |
+| M4-I38 | Formula Trace Ordering Is Deterministic | `formula-evaluate.test.ts` |
+| M4-I39 | Units Have No Implicit Mechanics | `formula-evaluate.test.ts`, `m4-wo3-static.test.ts` |
 
 Test files: `packages/prowess-rules/src/{context,response,trace,evaluate,public-surface,lookup}.test.ts`,
+`packages/prowess-rules/src/formula-{parser,evaluate,dependency-security}.test.ts`,
 `packages/prowess-db/tests/unit/ruleset-context-composition.test.ts`,
 `packages/prowess-db/tests/integration/ruleset-context.test.ts`, and
-`apps/studio/tests/unit/m4-wo{1,2}-static.test.ts`.
+`apps/studio/tests/unit/m4-wo{1,2,3}-static.test.ts`.
