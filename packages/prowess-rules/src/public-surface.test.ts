@@ -57,6 +57,14 @@ describe("@prowess/rules public surface", () => {
         "orderFormulaDependencies",
         "parseFormulaExpression",
         "validateFormulaProgram",
+        // M4-WO4 Keyword Resolution
+        "KEYWORD_RESOLUTION_DIAGNOSTIC_CODES",
+        "KEYWORD_RESOLUTION_KIND",
+        "findResolvedKeywordByCanonicalKey",
+        "findResolvedKeywordById",
+        "hasKeywordByCanonicalKey",
+        "hasKeywordById",
+        "resolveKeywords",
       ].sort(),
     );
   });
@@ -70,6 +78,8 @@ describe("@prowess/rules public surface", () => {
       expect(name).not.toMatch(/^(RulesEngine|Engine)$|Registry|inspectPlainData|canonicalJson|deepFreeze|assertDeterministic|InputProblems|read[A-Z]/);
       // M4-WO3: the lexer, AST walker and internal evaluator stay private; there is no mutable Formula class.
       expect(name).not.toMatch(/tokenize|Lexer|Parser$|analyzeAst|childrenOf|evaluateNode|bindVariables|^Formula[A-Z]?\w*Engine$|^Formula$/);
+      // M4-WO4: aggregation internals stay private; no registry, merge, removal or string-only Keyword API.
+      expect(name).not.toMatch(/aggregate|KeywordRegistry|merge|remove|suppress|negate|^resolveKeywordStrings$/i);
     }
   });
 });

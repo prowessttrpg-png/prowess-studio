@@ -1,7 +1,7 @@
 # M4 Rules Engine Core — `@prowess/rules` (M4-WO1)
 
 **Status:** M4-WO1 — Rules Engine Core & Evaluation Contracts. This document holds the permanent M4 invariant
-catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25; M4-WO3: M4-I26 – M4-I39).
+catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25; M4-WO3: M4-I26 – M4-I39; M4-WO4: M4-I40 – M4-I50).
 
 ## Purpose
 
@@ -330,8 +330,9 @@ application / service layer, outside pure evaluation.
 
 ## Keywords
 
-Keywords are metadata / rule hooks with **no implicit mechanics**. M4-WO1 only carries keyword keys in contexts;
-M4-WO4 implements the generic keyword resolution foundation.
+Keywords are metadata / rule hooks with **no implicit mechanics**. The context `keywords` lists are generic key sets,
+not Keyword identity: exact Keyword identity and provenance come from M4-WO4's `resolveKeywords`
+(`m4-keyword-resolution.md`), which never scans contexts to infer Keywords.
 
 ## Example (generic)
 
@@ -376,7 +377,7 @@ route or UI was added.
 | M4-WO1 | Rules Engine Core & Evaluation Contracts (this document) |
 | M4-WO2 | Exact Ruleset Resolver (`m4-exact-ruleset-resolver.md`) |
 | M4-WO3 | Formula Engine (`m4-formula-engine.md`) |
-| M4-WO4 | Keyword Resolution Foundation |
+| M4-WO4 | Keyword Resolution Foundation (`m4-keyword-resolution.md`) |
 | M4-WO5 | Requirement Engine |
 | M4-WO6 | Modifier Engine |
 | M4-WO7 | Resource Engine Foundation |
@@ -455,6 +456,23 @@ Appended by M4-WO3 (Formula Engine — see `m4-formula-engine.md`):
   minimum, maximum.
 - **M4-I39** Units Have No Implicit Mechanics — a unit is an opaque label: no arithmetic, conversion or compatibility.
 
+Appended by M4-WO4 (Keyword Resolution — see `m4-keyword-resolution.md`):
+
+- **M4-I40** Keywords Are Metadata / Rule Hooks Only — resolution answers presence and provenance, nothing else.
+- **M4-I41** Keyword Identity Is Exact — identity is the M1 KeywordDefinition id; one id with different metadata, or one
+  canonical key on different ids, fails closed.
+- **M4-I42** Keyword Aggregation Is Deterministic — Keywords ordered by canonical key then id, contributors by explicit
+  ordinal then source identity; input and property order never matter.
+- **M4-I43** Duplicate Contributions Preserve Provenance — one Keyword from many sources is one entry listing every
+  source; identical contributions collapse, contradictory ones fail closed.
+- **M4-I44** Keywords Have No Implicit Mechanics — no number, cost, stack count, priority, removal or effect.
+- **M4-I45** Keyword Lookup Uses No Alias / Fuzzy Matching — exact id or exact canonical key only.
+- **M4-I46** Keyword Categories Grant No Mechanics — a category is metadata; it implies no Keyword and is never repaired.
+- **M4-I47** Keyword Resolution Is Read-Only — no input or persisted Keyword data changes.
+- **M4-I48** Keyword Inputs / Results Are Immutable — results are deep-frozen, detached, serializable.
+- **M4-I49** Keyword Provenance Is Preserved — every contributor's source id and RuleProvenance are kept and traced.
+- **M4-I50** Keyword Resolution Is Locale-Independent — code-unit ordering; no case conversion or locale API.
+
 ## Test coverage map (M4-WO1)
 
 Every invariant has at least one automated guard; the guard files cite the invariant id. The static audit verifies
@@ -501,9 +519,21 @@ this table.
 | M4-I37 | Formula Evaluation Is Read-Only | `formula-evaluate.test.ts`, `m4-wo3-static.test.ts` |
 | M4-I38 | Formula Trace Ordering Is Deterministic | `formula-evaluate.test.ts` |
 | M4-I39 | Units Have No Implicit Mechanics | `formula-evaluate.test.ts`, `m4-wo3-static.test.ts` |
+| M4-I40 | Keywords Are Metadata / Rule Hooks Only | `keyword-resolution.test.ts`, `m4-wo4-static.test.ts` |
+| M4-I41 | Keyword Identity Is Exact | `keyword-resolution.test.ts` |
+| M4-I42 | Keyword Aggregation Is Deterministic | `keyword-resolution.test.ts` |
+| M4-I43 | Duplicate Contributions Preserve Provenance | `keyword-resolution.test.ts` |
+| M4-I44 | Keywords Have No Implicit Mechanics | `keyword-resolution.test.ts`, `m4-wo4-static.test.ts` |
+| M4-I45 | Keyword Lookup Uses No Alias / Fuzzy Matching | `keyword-resolution.test.ts`, `m4-wo4-static.test.ts` |
+| M4-I46 | Keyword Categories Grant No Mechanics | `keyword-resolution.test.ts`, `m4-wo4-static.test.ts` |
+| M4-I47 | Keyword Resolution Is Read-Only | `keyword-resolution.test.ts`, `m4-wo4-static.test.ts` |
+| M4-I48 | Keyword Inputs / Results Are Immutable | `keyword-resolution.test.ts` |
+| M4-I49 | Keyword Provenance Is Preserved | `keyword-resolution.test.ts` |
+| M4-I50 | Keyword Resolution Is Locale-Independent | `keyword-resolution.test.ts`, `m4-wo4-static.test.ts` |
 
 Test files: `packages/prowess-rules/src/{context,response,trace,evaluate,public-surface,lookup}.test.ts`,
 `packages/prowess-rules/src/formula-{parser,evaluate,dependency-security}.test.ts`,
+`packages/prowess-rules/src/keyword-resolution.test.ts`, `packages/prowess-db/tests/integration/m1-keyword-resolution.test.ts`,
 `packages/prowess-db/tests/unit/ruleset-context-composition.test.ts`,
 `packages/prowess-db/tests/integration/ruleset-context.test.ts`, and
-`apps/studio/tests/unit/m4-wo{1,2,3}-static.test.ts`.
+`apps/studio/tests/unit/m4-wo{1,2,3,4}-static.test.ts`.

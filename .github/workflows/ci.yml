@@ -219,6 +219,15 @@ jobs:
       - name: M4-WO3 audit gate — Formula Engine safety & determinism
         run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo3-static.test.ts
 
+      # M4-WO4: Keyword Resolution's static gate (Keywords are metadata only: no mechanics, game names, alias / display
+      # / fuzzy / locale matching, registry, removal, hierarchy, Canon / import, Formula or persistence coupling) and
+      # its narrow database check (exact M1 Keyword data maps into resolution read-only).
+      - name: M4-WO4 audit gate — Keyword metadata & resolution (static)
+        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo4-static.test.ts
+
+      - name: M4-WO4 audit gate — Keyword metadata & resolution (database)
+        run: pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/m1-keyword-resolution.test.ts
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own
