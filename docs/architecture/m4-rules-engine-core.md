@@ -1,7 +1,7 @@
 # M4 Rules Engine Core — `@prowess/rules` (M4-WO1)
 
 **Status:** M4-WO1 — Rules Engine Core & Evaluation Contracts. This document holds the permanent M4 invariant
-catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25; M4-WO3: M4-I26 – M4-I39; M4-WO4: M4-I40 – M4-I50; M4-WO5: M4-I51 – M4-I64; M4-WO6: M4-I65 – M4-I79).
+catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25; M4-WO3: M4-I26 – M4-I39; M4-WO4: M4-I40 – M4-I50; M4-WO5: M4-I51 – M4-I64; M4-WO6: M4-I65 – M4-I79; M4-WO7: M4-I80 – M4-I98).
 
 ## Purpose
 
@@ -324,6 +324,10 @@ unknown field). M4-WO7 and M5 build on this distinction.
 
 ## Preview vs commit boundary
 
+*M4-WO7 note:* the pure resource transitions `spendResource`, `previewResourcePayment`, `applyResourcePayment` and
+`setResourceCurrent` are an explicit allowlist in the WO1 guards. They return new immutable snapshots and persist
+nothing — "apply" means compute resulting state. Any other spend / pay / apply / commit-style name still fails.
+
 Pure evaluation is **preview / read-only**. `@prowess/rules` computes results; it never commits, pays, spends or
 otherwise mutates actor or runtime state. Any future runtime command that changes state belongs in an
 application / service layer, outside pure evaluation.
@@ -380,7 +384,7 @@ route or UI was added.
 | M4-WO4 | Keyword Resolution Foundation (`m4-keyword-resolution.md`) |
 | M4-WO5 | Requirement Engine (`m4-requirement-engine.md`) |
 | M4-WO6 | Modifier Engine (`m4-modifier-engine.md`) |
-| M4-WO7 | Resource Engine Foundation |
+| M4-WO7 | Resource Engine Foundation (`m4-resource-engine.md`) |
 | M4-WO8 | Validation Engine |
 | M4-WO9 | Calculation Trace & Explanation Engine |
 | M4-WO10 | Rules Evaluation Orchestration & HTTP API |
@@ -524,6 +528,31 @@ Appended by M4-WO6 (Modifier Engine — see `m4-modifier-engine.md`):
 - **M4-I79** Listed Cost And Runtime Payment Remain Distinct — modifiers compute listed values only; payment is never
   modelled or applied.
 
+Appended by M4-WO7 (Resource Engine Foundation — see `m4-resource-engine.md`):
+
+- **M4-I80** Resource State Is Explicit Runtime Data — supplied by the caller, validated strictly, returned as new
+  immutable snapshots; never persisted.
+- **M4-I81** Resource Identity Is Exact — exact case-sensitive resourceKeys; conflicting duplicates fail closed.
+- **M4-I82** Listed Cost Is Immutable During Payment — `listedAmount` is copied through; there is no effective-cost field.
+- **M4-I83** Payment Source Order Is Explicit — `order` then `resourceKey`; input order never decides.
+- **M4-I84** Temporary Pools Have No Automatic Priority — resource kind is metadata; it never orders, refreshes or
+  expires anything.
+- **M4-I85** Insufficient Resources Are A Valid Runtime Outcome — `applied: false` / `canPay: false` with a shortfall,
+  status SUCCESS; never a diagnostic.
+- **M4-I86** Failed Payment Is Atomic — when the total is not covered, the original state is returned unchanged.
+- **M4-I87** Capacity Reservation Does Not Spend — reserve changes reservedCapacity only.
+- **M4-I88** Capacity Release Does Not Restore Current Value — release changes reservedCapacity only.
+- **M4-I89** Reserved Capacity Produces A Distinct Available Maximum — derived, never stored.
+- **M4-I90** Current May Remain Above Available Maximum — preserved exactly; no operation silently lowers it.
+- **M4-I91** Resource Refresh Is Explicit — caller-invoked, to an explicit ceiling, never lowering current.
+- **M4-I92** Resource Operations Never Round Implicitly — finite IEEE-754 values; non-finite fails closed; -0 → 0.
+- **M4-I93** Resource Evaluation Has No External Side Effects — "apply" computes state; nothing is persisted.
+- **M4-I94** Resource Inputs / Outputs Are Immutable — inputs never mutated or frozen; outputs deep-frozen, detached.
+- **M4-I95** Resource Evaluation Is Deterministic — same inputs (any row / source order) give byte-identical results.
+- **M4-I96** Resource Provenance Is Preserved — state, transition, payment and source provenance are kept.
+- **M4-I97** Payment Preview And Apply Share One Allocation Semantics — one algorithm; only the mode differs.
+- **M4-I98** Runtime Payment Never Rewrites Prior Formula / Modifier Results — payment never re-runs or alters them.
+
 ## Test coverage map (M4-WO1)
 
 Every invariant has at least one automated guard; the guard files cite the invariant id. The static audit verifies
@@ -610,11 +639,31 @@ this table.
 | M4-I77 | Modifier Provenance Is Preserved | `modifier-evaluate.test.ts` |
 | M4-I78 | Modifier Evaluation Is Deterministic | `modifier-evaluate.test.ts` |
 | M4-I79 | Listed Cost And Runtime Payment Remain Distinct | `modifier-evaluate.test.ts`, `m4-wo6-static.test.ts` |
+| M4-I80 | Resource State Is Explicit Runtime Data | `resource-engine.test.ts` |
+| M4-I81 | Resource Identity Is Exact | `resource-engine.test.ts` |
+| M4-I82 | Listed Cost Is Immutable During Payment | `resource-engine.test.ts`, `m4-wo7-static.test.ts` |
+| M4-I83 | Payment Source Order Is Explicit | `resource-engine.test.ts` |
+| M4-I84 | Temporary Pools Have No Automatic Priority | `resource-engine.test.ts`, `m4-wo7-static.test.ts` |
+| M4-I85 | Insufficient Resources Are A Valid Runtime Outcome | `resource-engine.test.ts`, `m4-wo7-static.test.ts` |
+| M4-I86 | Failed Payment Is Atomic | `resource-engine.test.ts`, `m4-wo7-static.test.ts` |
+| M4-I87 | Capacity Reservation Does Not Spend | `resource-engine.test.ts`, `m4-wo7-static.test.ts` |
+| M4-I88 | Capacity Release Does Not Restore Current Value | `resource-engine.test.ts`, `m4-wo7-static.test.ts` |
+| M4-I89 | Reserved Capacity Produces A Distinct Available Maximum | `resource-engine.test.ts` |
+| M4-I90 | Current May Remain Above Available Maximum | `resource-engine.test.ts` |
+| M4-I91 | Resource Refresh Is Explicit | `resource-engine.test.ts`, `m4-wo7-static.test.ts` |
+| M4-I92 | Resource Operations Never Round Implicitly | `resource-engine.test.ts`, `m4-wo7-static.test.ts` |
+| M4-I93 | Resource Evaluation Has No External Side Effects | `resource-engine.test.ts`, `m4-wo7-static.test.ts` |
+| M4-I94 | Resource Inputs / Outputs Are Immutable | `resource-engine.test.ts` |
+| M4-I95 | Resource Evaluation Is Deterministic | `resource-engine.test.ts` |
+| M4-I96 | Resource Provenance Is Preserved | `resource-engine.test.ts` |
+| M4-I97 | Payment Preview And Apply Share One Allocation Semantics | `resource-engine.test.ts`, `m4-wo7-static.test.ts` |
+| M4-I98 | Runtime Payment Never Rewrites Prior Formula / Modifier Results | `resource-engine.test.ts`, `m4-wo7-static.test.ts` |
 
 Test files: `packages/prowess-rules/src/{context,response,trace,evaluate,public-surface,lookup}.test.ts`,
 `packages/prowess-rules/src/formula-{parser,evaluate,dependency-security}.test.ts`,
 `packages/prowess-rules/src/keyword-resolution.test.ts`, `packages/prowess-db/tests/integration/m1-keyword-resolution.test.ts`,
 `packages/prowess-rules/src/requirement-{evaluate,definition-facts}.test.ts`, `packages/prowess-rules/src/modifier-evaluate.test.ts`,
+`packages/prowess-rules/src/resource-engine.test.ts`,
 `packages/prowess-db/tests/unit/ruleset-context-composition.test.ts`,
 `packages/prowess-db/tests/integration/ruleset-context.test.ts`, and
-`apps/studio/tests/unit/m4-wo{1,2,3,4,5,6}-static.test.ts`.
+`apps/studio/tests/unit/m4-wo{1,2,3,4,5,6,7}-static.test.ts`.

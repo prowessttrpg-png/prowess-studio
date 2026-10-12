@@ -153,8 +153,12 @@ describe("M4-I08 / M4-I13 / M4-I15 inputs, rules and runtime state are never mut
   });
 
   it("nothing in the public surface commits, pays, spends or mutates runtime state", () => {
-    const names = Object.keys(rules);
+    // M4-WO7 adds an explicit, closed allowlist of PURE resource transitions: each returns a new immutable snapshot and
+    // persists nothing ("apply" computes resulting state — PAS-10 M4-WO7 §81). Any other such name still fails.
+    const PURE_RESOURCE_TRANSITIONS = ["spendResource", "previewResourcePayment", "applyResourcePayment", "PAYMENT_MODES", "setResourceCurrent"];
+    const names = Object.keys(rules).filter((n) => !PURE_RESOURCE_TRANSITIONS.includes(n));
     expect(names.filter((n) => /commit|pay|spend|deduct|consume|apply|mutate|persist|save|latest|current|canon(?!ical)/i.test(n))).toEqual([]);
+    for (const name of PURE_RESOURCE_TRANSITIONS) expect(Object.keys(rules), name).toContain(name);
   });
 });
 
