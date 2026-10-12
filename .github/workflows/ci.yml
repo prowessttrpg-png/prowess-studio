@@ -228,6 +228,12 @@ jobs:
       - name: M4-WO4 audit gate — Keyword metadata & resolution (database)
         run: pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/m1-keyword-resolution.test.ts
 
+      # M4-WO5: the Requirement Engine's static gate (explicit facts only, no callbacks / prose / Formula execution,
+      # no rank ladder or game keys, every group child evaluated — no short-circuit — and Keyword presence through
+      # M4-WO4). Its unit suites run in "Unit tests (packages)" with the rest of @prowess/rules.
+      - name: M4-WO5 audit gate — Requirement evaluation & predicate safety
+        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo5-static.test.ts
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own

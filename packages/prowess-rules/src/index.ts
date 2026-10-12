@@ -145,3 +145,33 @@ export {
   type ResolvedKeywordSet,
 } from "./keyword/resolve.js";
 export { findResolvedKeywordByCanonicalKey, findResolvedKeywordById, hasKeywordByCanonicalKey, hasKeywordById } from "./keyword/query.js";
+
+// M4-WO5 Requirement Engine: explicit Requirement trees over explicit facts — satisfied, unsatisfied (a normal result)
+// or invalid; ALL / ANY / NONE always evaluate every child.
+export {
+  REQUIREMENT_DIAGNOSTIC_CODES,
+  REQUIREMENT_GROUP_KINDS,
+  REQUIREMENT_LIMITS,
+  REQUIREMENT_NUMERIC_OPERATORS,
+  REQUIREMENT_PREDICATE_KINDS,
+  type EntityOwnedPredicate,
+  type KeywordPresentPredicate,
+  type NumericComparePredicate,
+  type RankAtLeastPredicate,
+  type RequirementDiagnostic,
+  type RequirementDiagnosticCode,
+  type RequirementEvaluation,
+  type RequirementGroup,
+  type RequirementGroupKind,
+  type RequirementGroupOutcome,
+  type RequirementLeafOutcome,
+  type RequirementNode,
+  type RequirementNumericOperator,
+  type RequirementOutcome,
+  type RequirementPredicate,
+  type RequirementPredicateKind,
+  type SetContainsPredicate,
+} from "./requirement/model.js";
+export { validateRequirement, type RequirementValidation } from "./requirement/validate.js";
+export { createRequirementFacts, type NumericFact, type RankFact, type RequirementFacts, type RequirementFactsOutcome, type SetFact } from "./requirement/facts.js";
+export { REQUIREMENT_EVALUATION_KIND, evaluateRequirement, type EvaluateRequirementOptions } from "./requirement/evaluate.js";
