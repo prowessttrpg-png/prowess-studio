@@ -95,7 +95,7 @@ function evaluatePredicate(
 ): NodeResult {
   const operation = OPERATIONS[node.kind];
   const unusable = (code: RequirementDiagnostic["code"], message: string): NodeResult => {
-    diagnostics.push({ code, message, path: jsonPointer(["requirement", ...at]), nodePath, provenance: node.provenance });
+    diagnostics.push({ code, message, path: jsonPointer(at), nodePath, provenance: node.provenance });
     return { outcome: null, step: { key, operation, output: null, provenance: node.provenance } };
   };
   const kindHolding = (factKey: string) => (index.numeric.has(factKey) ? "numeric" : index.ranks.has(factKey) ? "rank" : index.sets.has(factKey) ? "set" : null);
@@ -210,21 +210,54 @@ export const REQUIREMENT_EVALUATION_KIND = "requirement.evaluate";
  * problems, then fact problems, then unusable nodes) and, when the tree and facts were well-formed, a trace of what was
  * inspected. Malformed authored data and incomplete facts are never engine errors.
  */
+/**
+ * Facts prepared once — normalized by `createRequirementFacts` and indexed — so many Requirement trees can be evaluated
+ * against them without re-normalizing per tree (used by M4-WO6 Modifier conditions). Internal to @prowess/rules.
+ */
+export interface PreparedRequirementFacts {
+  readonly index: FactIndex;
+}
+
+export function prepareRequirementFacts(
+  facts: unknown,
+  base: readonly (string | number)[],
+): { readonly ok: true; readonly prepared: PreparedRequirementFacts } | { readonly ok: false; readonly diagnostics: readonly RequirementDiagnostic[] } {
+  const normalized = createRequirementFacts(facts, base);
+  return normalized.ok ? { ok: true, prepared: { index: indexFacts(normalized.facts) } } : { ok: false, diagnostics: normalized.diagnostics };
+}
+
+/**
+ * Evaluates an already-validated tree (from `validateRequirement`) against prepared facts. `base` is the JSON-Pointer
+ * location of the tree in the caller's input. The single evaluation path behind `evaluateRequirement` and M4-WO6.
+ */
+export function evaluateValidatedRequirement(
+  tree: RequirementNode,
+  prepared: PreparedRequirementFacts,
+  base: readonly (string | number)[],
+): { readonly evaluation: RequirementEvaluation | null; readonly diagnostics: readonly RequirementDiagnostic[]; readonly step: TraceStepInput } {
+  const diagnostics: RequirementDiagnostic[] = [];
+  const result = evaluateNode(tree, "requirement", "root", base, prepared.index, diagnostics);
+  return {
+    evaluation: result.outcome === null ? null : { satisfied: result.outcome.satisfied, outcome: result.outcome },
+    diagnostics,
+    step: result.step,
+  };
+}
+
 export function evaluateRequirement(requirement: unknown, facts: unknown, options: EvaluateRequirementOptions = {}): RuleEngineResponse<RequirementEvaluation> {
   return evaluate<RequirementEvaluation | null>(
     {
       kind: REQUIREMENT_EVALUATION_KIND,
       evaluate: () => {
         const tree = validateRequirement(requirement, ["requirement"]);
-        const normalized = createRequirementFacts(facts, ["facts"]);
-        const early = [...(tree.ok ? [] : tree.diagnostics), ...(normalized.ok ? [] : normalized.diagnostics)];
-        if (!tree.ok || !normalized.ok) return { data: null, messages: toMessages(early) };
+        const prepared = prepareRequirementFacts(facts, ["facts"]);
+        const early = [...(tree.ok ? [] : tree.diagnostics), ...(prepared.ok ? [] : prepared.diagnostics)];
+        if (!tree.ok || !prepared.ok) return { data: null, messages: toMessages(early) };
 
-        const diagnostics: RequirementDiagnostic[] = [];
-        const result = evaluateNode(tree.requirement, "requirement", "root", [], indexFacts(normalized.facts), diagnostics);
+        const result = evaluateValidatedRequirement(tree.requirement, prepared.prepared, ["requirement"]);
         const trace = [result.step];
-        if (result.outcome === null) return { data: null, messages: toMessages(diagnostics), trace };
-        return { data: { satisfied: result.outcome.satisfied, outcome: result.outcome }, trace };
+        if (result.evaluation === null) return { data: null, messages: toMessages(result.diagnostics), trace };
+        return { data: result.evaluation, trace };
       },
     },
     { kind: REQUIREMENT_EVALUATION_KIND, ruleset: options.ruleset ?? null },
