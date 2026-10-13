@@ -108,6 +108,12 @@ describe("@prowess/rules public surface", () => {
         "restoreResource",
         "setResourceCurrent",
         "spendResource",
+        // M4-WO8 Validation Engine
+        "VALIDATION_CHECK_OUTCOMES",
+        "VALIDATION_DIAGNOSTIC_CODES",
+        "VALIDATION_EVALUATION_KIND",
+        "VALIDATION_LIMITS",
+        "evaluateValidation",
       ].sort(),
     );
   });
@@ -129,6 +135,8 @@ describe("@prowess/rules public surface", () => {
       expect(name).not.toMatch(/ModifierEngine|prepareRequirementFacts|evaluateValidatedRequirement|validateModifiersWithIndex|operationFamily|^numeric$/);
       // M4-WO7: no engine class, allocation internals or effective-cost helper is public.
       expect(name).not.toMatch(/ResourceEngine|allocatePayment|replaceResource|runTransition|effectiveCost|effective_cost/i);
+      // M4-WO8: no engine class, validator registry or source-reading internals are public.
+      expect(name).not.toMatch(/ValidationEngine|ValidatorRegistry|registerValidator|readSourceResponse/);
     }
   });
 });

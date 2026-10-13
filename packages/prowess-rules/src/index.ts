@@ -249,3 +249,19 @@ export {
   type ResourceRefreshTarget,
 } from "./resource/transition.js";
 export { applyResourcePayment, previewResourcePayment } from "./resource/payment.js";
+
+// M4-WO8 Validation Engine: combines exact subsystem responses and explicit caller-decided checks into one M4-WO1
+// response. Consumes results; never recalculates, reclassifies or auto-corrects them.
+export {
+  VALIDATION_CHECK_OUTCOMES,
+  VALIDATION_DIAGNOSTIC_CODES,
+  VALIDATION_LIMITS,
+  type ValidationCheck,
+  type ValidationCheckOutcome,
+  type ValidationCheckResult,
+  type ValidationDiagnosticCode,
+  type ValidationSource,
+  type ValidationSourceResult,
+  type ValidationSummary,
+} from "./validation-engine/model.js";
+export { VALIDATION_EVALUATION_KIND, evaluateValidation, type EvaluateValidationOptions } from "./validation-engine/evaluate.js";

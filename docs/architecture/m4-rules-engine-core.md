@@ -1,7 +1,7 @@
 # M4 Rules Engine Core — `@prowess/rules` (M4-WO1)
 
 **Status:** M4-WO1 — Rules Engine Core & Evaluation Contracts. This document holds the permanent M4 invariant
-catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25; M4-WO3: M4-I26 – M4-I39; M4-WO4: M4-I40 – M4-I50; M4-WO5: M4-I51 – M4-I64; M4-WO6: M4-I65 – M4-I79; M4-WO7: M4-I80 – M4-I98).
+catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25; M4-WO3: M4-I26 – M4-I39; M4-WO4: M4-I40 – M4-I50; M4-WO5: M4-I51 – M4-I64; M4-WO6: M4-I65 – M4-I79; M4-WO7: M4-I80 – M4-I98; M4-WO8: M4-I99 – M4-I115).
 
 ## Purpose
 
@@ -385,7 +385,7 @@ route or UI was added.
 | M4-WO5 | Requirement Engine (`m4-requirement-engine.md`) |
 | M4-WO6 | Modifier Engine (`m4-modifier-engine.md`) |
 | M4-WO7 | Resource Engine Foundation (`m4-resource-engine.md`) |
-| M4-WO8 | Validation Engine |
+| M4-WO8 | Validation Engine (`m4-validation-engine.md`) |
 | M4-WO9 | Calculation Trace & Explanation Engine |
 | M4-WO10 | Rules Evaluation Orchestration & HTTP API |
 | M4-WO11 | Rules Inspector & Calculation Lab UI |
@@ -553,6 +553,31 @@ Appended by M4-WO7 (Resource Engine Foundation — see `m4-resource-engine.md`):
 - **M4-I97** Payment Preview And Apply Share One Allocation Semantics — one algorithm; only the mode differs.
 - **M4-I98** Runtime Payment Never Rewrites Prior Formula / Modifier Results — payment never re-runs or alters them.
 
+Appended by M4-WO8 (Validation Engine — see `m4-validation-engine.md`):
+
+- **M4-I99** Validation Consumes Exact Results; It Does Not Recalculate Mechanics — sources are never re-run; no
+  Formula, Requirement, Modifier, Resource, Keyword or Ruleset logic exists in validation.
+- **M4-I100** Validation Errors Are Distinct From Engine Errors — failed checks are VALIDATION findings (INVALID); a
+  source's ENGINE errors make the combination an engine failure (ERROR), never a finding.
+- **M4-I101** Explicit Validation Checks Are Plain Data — outcomes are declared; no callbacks, scripts or expressions.
+- **M4-I102** Check Failure Severity Is Explicit — the check's declared severity, never derived from category.
+- **M4-I103** PASS Emits No Finding.
+- **M4-I104** NOT_APPLICABLE Is Non-Blocking — it emits nothing.
+- **M4-I105** Validation Collects All Discoverable Findings — no first-error short-circuit; a malformed item never
+  hides another.
+- **M4-I106** Validation Source Identity Is Exact — exact sourceKey; conflicting duplicates fail closed.
+- **M4-I107** Validation Check Identity Is Exact — exact checkKey; conflicting duplicates fail closed.
+- **M4-I108** Validation Ordering Is Explicit And Deterministic — order then key across sources and checks; message
+  ordinals re-assigned once, globally unique.
+- **M4-I109** False Requirement Does Not Automatically Become A Validation Error.
+- **M4-I110** Resource Insufficiency Does Not Automatically Become A Validation Error.
+- **M4-I111** Skipped Modifier Does Not Automatically Become A Validation Error.
+- **M4-I112** Existing Subsystem Diagnostics Preserve Their Meaning — code, severity, category, path, provenance and
+  details unchanged; original ordinals kept in the trace.
+- **M4-I113** Validation Inputs / Outputs Are Immutable — inputs never mutated or frozen; outputs deep-frozen, detached.
+- **M4-I114** Validation Evaluation Is Deterministic — same request in any array order gives a byte-identical response.
+- **M4-I115** Validation Provenance Is Preserved — check provenance and each source diagnostic's own provenance.
+
 ## Test coverage map (M4-WO1)
 
 Every invariant has at least one automated guard; the guard files cite the invariant id. The static audit verifies
@@ -658,12 +683,29 @@ this table.
 | M4-I96 | Resource Provenance Is Preserved | `resource-engine.test.ts` |
 | M4-I97 | Payment Preview And Apply Share One Allocation Semantics | `resource-engine.test.ts`, `m4-wo7-static.test.ts` |
 | M4-I98 | Runtime Payment Never Rewrites Prior Formula / Modifier Results | `resource-engine.test.ts`, `m4-wo7-static.test.ts` |
+| M4-I99 | Validation Consumes Exact Results; It Does Not Recalculate Mechanics | `validation-engine.test.ts`, `m4-wo8-static.test.ts` |
+| M4-I100 | Validation Errors Are Distinct From Engine Errors | `validation-engine.test.ts` |
+| M4-I101 | Explicit Validation Checks Are Plain Data | `validation-engine.test.ts`, `m4-wo8-static.test.ts` |
+| M4-I102 | Check Failure Severity Is Explicit | `validation-engine.test.ts`, `m4-wo8-static.test.ts` |
+| M4-I103 | PASS Emits No Finding | `validation-engine.test.ts`, `m4-wo8-static.test.ts` |
+| M4-I104 | NOT_APPLICABLE Is Non-Blocking | `validation-engine.test.ts` |
+| M4-I105 | Validation Collects All Discoverable Findings | `validation-engine.test.ts`, `m4-wo8-static.test.ts` |
+| M4-I106 | Validation Source Identity Is Exact | `validation-engine.test.ts` |
+| M4-I107 | Validation Check Identity Is Exact | `validation-engine.test.ts` |
+| M4-I108 | Validation Ordering Is Explicit And Deterministic | `validation-engine.test.ts` |
+| M4-I109 | False Requirement Does Not Automatically Become A Validation Error | `validation-engine.test.ts`, `m4-wo8-static.test.ts` |
+| M4-I110 | Resource Insufficiency Does Not Automatically Become A Validation Error | `validation-engine.test.ts`, `m4-wo8-static.test.ts` |
+| M4-I111 | Skipped Modifier Does Not Automatically Become A Validation Error | `validation-engine.test.ts`, `m4-wo8-static.test.ts` |
+| M4-I112 | Existing Subsystem Diagnostics Preserve Their Meaning | `validation-engine.test.ts`, `m4-wo8-static.test.ts` |
+| M4-I113 | Validation Inputs / Outputs Are Immutable | `validation-engine.test.ts` |
+| M4-I114 | Validation Evaluation Is Deterministic | `validation-engine.test.ts` |
+| M4-I115 | Validation Provenance Is Preserved | `validation-engine.test.ts` |
 
 Test files: `packages/prowess-rules/src/{context,response,trace,evaluate,public-surface,lookup}.test.ts`,
 `packages/prowess-rules/src/formula-{parser,evaluate,dependency-security}.test.ts`,
 `packages/prowess-rules/src/keyword-resolution.test.ts`, `packages/prowess-db/tests/integration/m1-keyword-resolution.test.ts`,
 `packages/prowess-rules/src/requirement-{evaluate,definition-facts}.test.ts`, `packages/prowess-rules/src/modifier-evaluate.test.ts`,
-`packages/prowess-rules/src/resource-engine.test.ts`,
+`packages/prowess-rules/src/resource-engine.test.ts`, `packages/prowess-rules/src/validation-engine.test.ts`,
 `packages/prowess-db/tests/unit/ruleset-context-composition.test.ts`,
 `packages/prowess-db/tests/integration/ruleset-context.test.ts`, and
-`apps/studio/tests/unit/m4-wo{1,2,3,4,5,6,7}-static.test.ts`.
+`apps/studio/tests/unit/m4-wo{1,2,3,4,5,6,7,8}-static.test.ts`.
