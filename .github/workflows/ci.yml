@@ -253,6 +253,12 @@ jobs:
       - name: M4-WO8 audit gate — Validation aggregation & diagnostic safety
         run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo8-static.test.ts
 
+      # M4-WO9: the Explanation Engine's static gate (describes exact results — no WO2–WO8 evaluator, rounding,
+      # arithmetic on results, effective cost, randomness, AI / network, templates or game rules; WO1 trace is the
+      # authority; summary only filters the canonical detailed document). Its unit suite runs in "Unit tests (packages)".
+      - name: M4-WO9 audit gate — Trace composition & explanation integrity
+        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo9-static.test.ts
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own

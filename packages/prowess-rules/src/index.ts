@@ -265,3 +265,25 @@ export {
   type ValidationSummary,
 } from "./validation-engine/model.js";
 export { VALIDATION_EVALUATION_KIND, evaluateValidation, type EvaluateValidationOptions } from "./validation-engine/evaluate.js";
+
+// M4-WO9 Calculation Trace & Explanation Engine: a deterministic, machine-readable VIEW over exact completed results
+// and their WO1 traces. Explanation describes calculation; it never performs it.
+export {
+  EXPLANATION_CONTRIBUTION_KINDS,
+  EXPLANATION_DIAGNOSTIC_CODES,
+  EXPLANATION_LEVELS,
+  EXPLANATION_LIMITS,
+  EXPLANATION_STATUSES,
+  EXPLANATION_STATUS_LABELS,
+  type ExplanationContribution,
+  type ExplanationContributionKind,
+  type ExplanationDocument,
+  type ExplanationFact,
+  type ExplanationInput,
+  type ExplanationLevel,
+  type ExplanationNode,
+  type ExplanationSection,
+  type ExplanationStatus,
+} from "./explanation/model.js";
+export { EXPLANATION_BUILD_KIND, buildExplanation, type BuildExplanationOptions } from "./explanation/build.js";
+export { EXPLANATION_PROJECT_KIND, projectExplanation } from "./explanation/project.js";
