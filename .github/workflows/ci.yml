@@ -247,6 +247,12 @@ jobs:
       - name: M4-WO7 audit gate — Resource state, payment & capacity safety
         run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo7-static.test.ts
 
+      # M4-WO8: the Validation Engine's static gate (consumes exact results — no Formula / Requirement / Modifier /
+      # Resource / Keyword / Ruleset re-implementation or reclassification; explicit severities; no short-circuit;
+      # WO1 vocabularies and envelope reused). Its unit suite runs in "Unit tests (packages)".
+      - name: M4-WO8 audit gate — Validation aggregation & diagnostic safety
+        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo8-static.test.ts
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own
