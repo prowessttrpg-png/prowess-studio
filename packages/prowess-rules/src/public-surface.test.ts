@@ -114,6 +114,17 @@ describe("@prowess/rules public surface", () => {
         "VALIDATION_EVALUATION_KIND",
         "VALIDATION_LIMITS",
         "evaluateValidation",
+        // M4-WO9 Calculation Trace & Explanation Engine
+        "EXPLANATION_BUILD_KIND",
+        "EXPLANATION_CONTRIBUTION_KINDS",
+        "EXPLANATION_DIAGNOSTIC_CODES",
+        "EXPLANATION_LEVELS",
+        "EXPLANATION_LIMITS",
+        "EXPLANATION_PROJECT_KIND",
+        "EXPLANATION_STATUSES",
+        "EXPLANATION_STATUS_LABELS",
+        "buildExplanation",
+        "projectExplanation",
       ].sort(),
     );
   });
@@ -137,6 +148,8 @@ describe("@prowess/rules public surface", () => {
       expect(name).not.toMatch(/ResourceEngine|allocatePayment|replaceResource|runTransition|effectiveCost|effective_cost/i);
       // M4-WO8: no engine class, validator registry or source-reading internals are public.
       expect(name).not.toMatch(/ValidationEngine|ValidatorRegistry|registerValidator|readSourceResponse/);
+      // M4-WO9: no engine class, builder, template language or trace internals are public.
+      expect(name).not.toMatch(/ExplanationEngine|ExplanationBuilder|projectTrace|factsOf|nodeStatus|template|renderText/i);
     }
   });
 });

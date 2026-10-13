@@ -1,7 +1,7 @@
 # M4 Rules Engine Core — `@prowess/rules` (M4-WO1)
 
 **Status:** M4-WO1 — Rules Engine Core & Evaluation Contracts. This document holds the permanent M4 invariant
-catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25; M4-WO3: M4-I26 – M4-I39; M4-WO4: M4-I40 – M4-I50; M4-WO5: M4-I51 – M4-I64; M4-WO6: M4-I65 – M4-I79; M4-WO7: M4-I80 – M4-I98; M4-WO8: M4-I99 – M4-I115).
+catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25; M4-WO3: M4-I26 – M4-I39; M4-WO4: M4-I40 – M4-I50; M4-WO5: M4-I51 – M4-I64; M4-WO6: M4-I65 – M4-I79; M4-WO7: M4-I80 – M4-I98; M4-WO8: M4-I99 – M4-I115; M4-WO9: M4-I116 – M4-I134).
 
 ## Purpose
 
@@ -386,7 +386,7 @@ route or UI was added.
 | M4-WO6 | Modifier Engine (`m4-modifier-engine.md`) |
 | M4-WO7 | Resource Engine Foundation (`m4-resource-engine.md`) |
 | M4-WO8 | Validation Engine (`m4-validation-engine.md`) |
-| M4-WO9 | Calculation Trace & Explanation Engine |
+| M4-WO9 | Calculation Trace & Explanation Engine (`m4-calculation-trace-explanation.md`) |
 | M4-WO10 | Rules Evaluation Orchestration & HTTP API |
 | M4-WO11 | Rules Inspector & Calculation Lab UI |
 | M4-WO12 | Final M4 Integration & Reproducibility Audit |
@@ -578,6 +578,31 @@ Appended by M4-WO8 (Validation Engine — see `m4-validation-engine.md`):
 - **M4-I114** Validation Evaluation Is Deterministic — same request in any array order gives a byte-identical response.
 - **M4-I115** Validation Provenance Is Preserved — check provenance and each source diagnostic's own provenance.
 
+Appended by M4-WO9 (Calculation Trace & Explanation Engine — see `m4-calculation-trace-explanation.md`):
+
+- **M4-I116** Explanation Describes Exact Results; It Does Not Recalculate Mechanics — no WO2–WO8 evaluator is called;
+  facts are copied from result fields.
+- **M4-I117** Explanation Uses Existing CalculationTrace As Authority — nodes project WO1 trace steps; source path and
+  ordinal are kept verbatim.
+- **M4-I118** Explanation Contribution Identity Is Exact — exact contributionKey; conflicting duplicates fail closed;
+  kind is explicit and must match the response's evaluationKind.
+- **M4-I119** Explanation Ordering Is Explicit And Deterministic — order, then contributionKey.
+- **M4-I120** Summary And Detailed Views Share One Source Of Truth — SUMMARY is a projection of the DETAILED document.
+- **M4-I121** Summary Projection Cannot Invent Mechanics — it only filters (same node ids, same fields).
+- **M4-I122** Explanation Preserves Source Trace Order — including modifier application and payment source order.
+- **M4-I123** Explanation Preserves Rule Provenance — per node and per contribution, never merged.
+- **M4-I124** Explanation Preserves Ruleset Provenance — the document's and each contribution's, verbatim.
+- **M4-I125** Requirement False Is Explained As Unsatisfied, Not Invalid.
+- **M4-I126** Skipped Modifiers Are Explained As Skipped — and deduplicated ones as deduplicated.
+- **M4-I127** Resource Insufficiency Is Explained As Runtime Insufficiency, Not Engine Failure.
+- **M4-I128** Listed Cost And Runtime Payment Remain Visibly Distinct — no effective-cost fact exists.
+- **M4-I129** Explanation Never Rewrites Prior Formula / Modifier / Resource Results.
+- **M4-I130** Explanation Inputs / Outputs Are Immutable — inputs never mutated or frozen; outputs deep-frozen, detached.
+- **M4-I131** Explanation Is JSON-Serializable.
+- **M4-I132** Explanation Evaluation Is Deterministic — detailed and summary, in any contribution order.
+- **M4-I133** Explanation Node Identity Contains No Randomness — `contributionKey#sourceTracePath`.
+- **M4-I134** Explanation Has No Database, Canon, Import Or Latest Lookup.
+
 ## Test coverage map (M4-WO1)
 
 Every invariant has at least one automated guard; the guard files cite the invariant id. The static audit verifies
@@ -700,12 +725,31 @@ this table.
 | M4-I113 | Validation Inputs / Outputs Are Immutable | `validation-engine.test.ts` |
 | M4-I114 | Validation Evaluation Is Deterministic | `validation-engine.test.ts` |
 | M4-I115 | Validation Provenance Is Preserved | `validation-engine.test.ts` |
+| M4-I116 | Explanation Describes Exact Results; It Does Not Recalculate Mechanics | `explanation-engine.test.ts`, `m4-wo9-static.test.ts` |
+| M4-I117 | Explanation Uses Existing CalculationTrace As Authority | `explanation-engine.test.ts`, `m4-wo9-static.test.ts` |
+| M4-I118 | Explanation Contribution Identity Is Exact | `explanation-engine.test.ts` |
+| M4-I119 | Explanation Ordering Is Explicit And Deterministic | `explanation-engine.test.ts` |
+| M4-I120 | Summary And Detailed Views Share One Source Of Truth | `explanation-engine.test.ts` |
+| M4-I121 | Summary Projection Cannot Invent Mechanics | `explanation-engine.test.ts`, `m4-wo9-static.test.ts` |
+| M4-I122 | Explanation Preserves Source Trace Order | `explanation-engine.test.ts` |
+| M4-I123 | Explanation Preserves Rule Provenance | `explanation-engine.test.ts` |
+| M4-I124 | Explanation Preserves Ruleset Provenance | `explanation-engine.test.ts` |
+| M4-I125 | Requirement False Is Explained As Unsatisfied, Not Invalid | `explanation-engine.test.ts` |
+| M4-I126 | Skipped Modifiers Are Explained As Skipped | `explanation-engine.test.ts` |
+| M4-I127 | Resource Insufficiency Is Explained As Runtime Insufficiency, Not Engine Failure | `explanation-engine.test.ts` |
+| M4-I128 | Listed Cost And Runtime Payment Remain Visibly Distinct | `explanation-engine.test.ts`, `m4-wo9-static.test.ts` |
+| M4-I129 | Explanation Never Rewrites Prior Formula / Modifier / Resource Results | `explanation-engine.test.ts`, `m4-wo9-static.test.ts` |
+| M4-I130 | Explanation Inputs / Outputs Are Immutable | `explanation-engine.test.ts` |
+| M4-I131 | Explanation Is JSON-Serializable | `explanation-engine.test.ts` |
+| M4-I132 | Explanation Evaluation Is Deterministic | `explanation-engine.test.ts` |
+| M4-I133 | Explanation Node Identity Contains No Randomness | `explanation-engine.test.ts`, `m4-wo9-static.test.ts` |
+| M4-I134 | Explanation Has No Database, Canon, Import Or Latest Lookup | `m4-wo9-static.test.ts` |
 
 Test files: `packages/prowess-rules/src/{context,response,trace,evaluate,public-surface,lookup}.test.ts`,
 `packages/prowess-rules/src/formula-{parser,evaluate,dependency-security}.test.ts`,
 `packages/prowess-rules/src/keyword-resolution.test.ts`, `packages/prowess-db/tests/integration/m1-keyword-resolution.test.ts`,
 `packages/prowess-rules/src/requirement-{evaluate,definition-facts}.test.ts`, `packages/prowess-rules/src/modifier-evaluate.test.ts`,
-`packages/prowess-rules/src/resource-engine.test.ts`, `packages/prowess-rules/src/validation-engine.test.ts`,
+`packages/prowess-rules/src/resource-engine.test.ts`, `packages/prowess-rules/src/validation-engine.test.ts`, `packages/prowess-rules/src/explanation-engine.test.ts`,
 `packages/prowess-db/tests/unit/ruleset-context-composition.test.ts`,
 `packages/prowess-db/tests/integration/ruleset-context.test.ts`, and
-`apps/studio/tests/unit/m4-wo{1,2,3,4,5,6,7,8}-static.test.ts`.
+`apps/studio/tests/unit/m4-wo{1,2,3,4,5,6,7,8,9}-static.test.ts`.
