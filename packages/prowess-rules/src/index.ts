@@ -287,3 +287,30 @@ export {
 } from "./explanation/model.js";
 export { EXPLANATION_BUILD_KIND, buildExplanation, type BuildExplanationOptions } from "./explanation/build.js";
 export { EXPLANATION_PROJECT_KIND, projectExplanation } from "./explanation/project.js";
+
+// M4-WO10 Rules Evaluation Orchestration: runs an explicit plain-data EvaluationPlan of existing primitives under one
+// exact set of contexts, copying exact values between steps. Adds no mechanics.
+export {
+  EVALUATION_BLOCK_REASONS,
+  EVALUATION_CONTEXT_FAMILIES,
+  EVALUATION_OPERATIONS,
+  EVALUATION_OPERATION_INPUT_FIELDS,
+  EVALUATION_RUN_EXECUTION_STATUSES,
+  EVALUATION_STEP_EXECUTION_STATUSES,
+  ORCHESTRATION_DIAGNOSTIC_CODES,
+  ORCHESTRATION_LIMITS,
+  type EvaluationBinding,
+  type EvaluationBlockReason,
+  type EvaluationBlockedBinding,
+  type EvaluationContextFamily,
+  type EvaluationOperation,
+  type EvaluationPlan,
+  type EvaluationReference,
+  type EvaluationRun,
+  type EvaluationRunExecutionStatus,
+  type EvaluationStep,
+  type EvaluationStepExecutionStatus,
+  type EvaluationStepResult,
+  type OrchestrationDiagnosticCode,
+} from "./orchestration/model.js";
+export { ORCHESTRATION_EVALUATION_KIND, orchestrateRulesEvaluation, type OrchestrateRulesEvaluationInput } from "./orchestration/orchestrate.js";

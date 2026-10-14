@@ -136,7 +136,9 @@ describe("M4-WO3 boundaries (§5–7, §114)", () => {
     expect(read("packages", "prowess-db", "prisma", "schema.prisma")).not.toMatch(/model\s+Formula\w*|formula_(definitions|programs|dependencies|results)/i);
     expect(readdirSync(path.join(ROOT, "packages", "prowess-db", "prisma", "migrations")).filter((e) => /^\d{14}_/.test(e))).toHaveLength(22);
     for (const f of walk(path.join(ROOT, "apps", "studio")).filter((file) => /\.(ts|tsx)$/.test(file) && !rel(file).includes("/tests/"))) {
-      expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/evaluateFormula|parseFormulaExpression|@prowess\/rules/);
+      // M4-WO10: only its application service imports @prowess/rules — and even it never calls this primitive directly.
+      expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/evaluateFormula|parseFormulaExpression/);
+      if (rel(f) !== "apps/studio/src/rules-evaluation/service.ts") expect(readFileSync(f, "utf8"), rel(f)).not.toContain("@prowess/rules");
     }
     expect(walk(path.join(ROOT, "apps", "studio", "app")).map(rel).filter((f) => /\/formula/i.test(f))).toEqual([]);
     for (const f of walk(path.join(ROOT, "packages", "prowess-db", "src")).filter((file) => file.endsWith(".ts"))) {

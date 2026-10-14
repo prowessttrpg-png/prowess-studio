@@ -131,7 +131,9 @@ describe("M4-WO4 boundaries (§5–7, §84, §97)", () => {
     expect(read("packages", "prowess-db", "prisma", "schema.prisma")).not.toMatch(/keyword_(sets|contributions|resolutions)|model\s+(ResolvedKeyword|KeywordContribution|KeywordSet)\b/);
     expect(readdirSync(path.join(ROOT, "packages", "prowess-db", "prisma", "migrations")).filter((e) => /^\d{14}_/.test(e))).toHaveLength(22);
     for (const f of walk(path.join(ROOT, "apps", "studio")).filter((file) => /\.(ts|tsx)$/.test(file) && !rel(file).includes("/tests/"))) {
-      expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/resolveKeywords|hasKeywordBy|@prowess\/rules/);
+      // M4-WO10: only its application service imports @prowess/rules — and even it never calls this primitive directly.
+      expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/resolveKeywords|hasKeywordBy/);
+      if (rel(f) !== "apps/studio/src/rules-evaluation/service.ts") expect(readFileSync(f, "utf8"), rel(f)).not.toContain("@prowess/rules");
     }
   });
 

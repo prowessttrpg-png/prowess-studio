@@ -290,7 +290,9 @@ describe("M1 audit — workspace layering (§29)", () => {
     "packages/prowess-import": ["@prowess/model"],
     // M4-WO1: the pure Rules Engine depends on @prowess/model only.
     "packages/prowess-rules": ["@prowess/model"],
-    "apps/studio": ["@prowess/db", "@prowess/model", "@prowess/ui"],
+    // M4-WO10: the Studio rules-evaluation application service calls the pure orchestrator in @prowess/rules
+    // after resolving the exact RulesetContext through @prowess/db.
+    "apps/studio": ["@prowess/db", "@prowess/model", "@prowess/rules", "@prowess/ui"],
   };
 
   it.each(Object.entries(ALLOWED))("%s depends only on its permitted workspace packages", (dir, allowed) => {

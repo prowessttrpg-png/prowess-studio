@@ -18,6 +18,7 @@
   "dependencies": {
     "@prowess/db": "workspace:*",
     "@prowess/model": "workspace:*",
+    "@prowess/rules": "workspace:*",
     "@prowess/ui": "workspace:*",
     "dotenv": "18.0.4",
     "next": "16.3.6",
