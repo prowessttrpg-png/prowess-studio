@@ -50,8 +50,10 @@ describe("WO11 editor — M4-I167–I170 / I184", () => {
     expect(screen.getByRole("button", { name: "Run Evaluation" })).toBeDisabled();
     await waitFor(() => expect(screen.getByLabelText("Ruleset")).toHaveTextContent("Fixture"));
     expect(screen.getByLabelText("Ruleset")).toHaveValue("");
+    expect((screen.getByLabelText("Ruleset") as HTMLSelectElement).labels?.[0]?.textContent).toBe("Ruleset");
     fireEvent.click(screen.getByRole("button", { name: "Release" }));
     expect(screen.getByLabelText("Exact Release")).toHaveValue("");
+    expect((screen.getByLabelText("Exact Release") as HTMLSelectElement).labels?.[0]?.textContent).toBe("Exact Release");
     for (const family of ["actor", "build", "runtime"]) expect(screen.getByLabelText(`${family} JSON`)).toHaveValue("null");
     fireEvent.change(screen.getByLabelText("actor context mode"), { target: { value: "ENABLED" } });
     expect(screen.getByLabelText("actor JSON")).toHaveValue("{}");
