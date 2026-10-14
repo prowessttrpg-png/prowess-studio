@@ -124,3 +124,8 @@ Run `38641049231` at commit `126ed2cddbd5023394d4cd85d456fd36dc988781` passed mi
 ## CI verification follow-up — second run
 
 Run `38642356235` at commit `602fc53fde7a332dfcc12a4169b3c25d2897fa70` again passed every gate through production build, with 39 existing Playwright workflows passing. All five Inspector workflows failed at the exact Ruleset label lookup (zero matching options). The cause was reproduced locally using Playwright 1.63’s actual injected selector implementation: a wrapping label includes its select option text, so an exact label match fails. Ruleset and exact-record selectors now use explicit `htmlFor`/`id` associations; the same selector reproduction returns one match. The component regression asserts that each label contains only its stable label text. Verification remains pending a green rerun.
+
+
+## CI verification follow-up — third run
+
+Run `38643777938` at commit `5fb188a44ac7a5054faffa36e77d8ab107bcdd73` passed all earlier gates and 43 Playwright workflows, including the neutral projection/read-only flow, business outcomes, partial/blocked flow and mobile layout. Only the historical fixture failed: a second Release must use the prior Release’s published manifest as its base. The browser fixture now follows that existing contract and asserts Release 2 was created. The matching HTTP history regression also now asserts publication succeeds, preventing a rejected publication from masquerading as historical coverage. No publication service behavior changed. Verification remains pending a green rerun.

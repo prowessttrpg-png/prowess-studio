@@ -14,7 +14,7 @@ async function fixture(request: APIRequestContext) {
   await post(request, `/api/rulesets/${ruleset.id}/submit-review`); await post(request, `/api/rulesets/${ruleset.id}/approve`);
   const manifest = await post<Id>(request, `/api/rulesets/${ruleset.id}/manifests`, { entries: [] });
   const policy = await post<Id>(request, `/api/rulesets/${ruleset.id}/canon-policies`, { name: "Lab policy", authorities: [] });
-  const release = await post<Id>(request, `/api/rulesets/${ruleset.id}/releases`, { baseManifestId: manifest.id, canonPolicyId: policy.id, versionLabel: "lab-r1" });
+  const release = await post<Id & { manifestId: string; releaseNumber: number }>(request, `/api/rulesets/${ruleset.id}/releases`, { baseManifestId: manifest.id, canonPolicyId: policy.id, versionLabel: "lab-r1" });
   return { ruleset, manifest, release, policy };
 }
 async function choose(page: Page, rulesetId: string, id: string, mode: "Manifest" | "Release" = "Manifest") {
@@ -113,8 +113,8 @@ test.describe("M4-WO11 Rules Inspector — real HTTP and exact Rulesets", () => 
     const { ruleset, release, policy } = await fixture(request); await choose(page, ruleset.id, release.id, "Release");
     await page.getByRole("button", { name: "Load neutral sample" }).click(); await run(page);
     const first = await page.getByRole("region", { name: "DETAILED explanation" }).textContent();
-    const later = await post<Id>(request, `/api/rulesets/${ruleset.id}/manifests`, { entries: [] });
-    await post(request, `/api/rulesets/${ruleset.id}/releases`, { baseManifestId: later.id, canonPolicyId: policy.id, versionLabel: "lab-r2" });
+    const later = await post<Id & { releaseNumber: number }>(request, `/api/rulesets/${ruleset.id}/releases`, { baseManifestId: release.manifestId, canonPolicyId: policy.id, versionLabel: "lab-r2" });
+    expect(later.releaseNumber).toBe(2); expect(later.id).not.toBe(release.id);
     await run(page); expect(await page.getByRole("region", { name: "DETAILED explanation" }).textContent()).toBe(first);
     await expect(page.getByLabel("Exact Release", { exact: true })).toHaveValue(release.id);
   });

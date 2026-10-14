@@ -157,8 +157,11 @@ describe("M4-WO10 API — POST /api/rules/evaluate (prowess_studio_test only)", 
     expect(await fingerprint(tables)).toEqual(before);
     expect(first.status).toBe(200);
     expect(first.data.ruleset).toMatchObject({ manifestId: rel.manifestId, manifestHash: rel.manifestHash, release: { releaseId: rel.id, releaseNumber: rel.releaseNumber, versionLabel: "r1" } });
-    const later = await apiManifest(rulesetId, [{ entityId: a.entity.id, entityVersionId: a.versions[1]!.id }]);
-    await call(R.Releases.POST, "POST", "", { rulesetId }, { baseManifestId: later.id, canonPolicyId: policy.id, versionLabel: "r2" });
+    await apiManifest(rulesetId, [{ entityId: a.entity.id, entityVersionId: a.versions[1]!.id }]);
+    const later = await call(R.Releases.POST, "POST", "", { rulesetId }, { baseManifestId: rel.manifestId, canonPolicyId: policy.id, versionLabel: "r2" });
+    expect(later.status).toBe(201);
+    expect(later.data.releaseNumber).toBe(2);
+    expect(later.data.id).not.toBe(rel.id);
     expect((await evaluate(body)).data).toEqual(first.data);
     // Manifest and Release modes keep their own exact provenance.
     const manifestMode = await evaluate({ ...body, ruleset: { kind: "MANIFEST", manifestId: manifest.id } });
