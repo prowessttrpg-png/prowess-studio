@@ -32,6 +32,9 @@ importers:
       '@prowess/model':
         specifier: workspace:*
         version: link:../../packages/prowess-model
+      '@prowess/rules':
+        specifier: workspace:*
+        version: link:../../packages/prowess-rules
       '@prowess/ui':
         specifier: workspace:*
         version: link:../../packages/prowess-ui

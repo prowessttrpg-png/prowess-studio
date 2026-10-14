@@ -1,7 +1,7 @@
 # M4 Rules Engine Core — `@prowess/rules` (M4-WO1)
 
 **Status:** M4-WO1 — Rules Engine Core & Evaluation Contracts. This document holds the permanent M4 invariant
-catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25; M4-WO3: M4-I26 – M4-I39; M4-WO4: M4-I40 – M4-I50; M4-WO5: M4-I51 – M4-I64; M4-WO6: M4-I65 – M4-I79; M4-WO7: M4-I80 – M4-I98; M4-WO8: M4-I99 – M4-I115; M4-WO9: M4-I116 – M4-I134).
+catalog; later M4 Work Orders append to it (M4-WO2: M4-I16 – M4-I25; M4-WO3: M4-I26 – M4-I39; M4-WO4: M4-I40 – M4-I50; M4-WO5: M4-I51 – M4-I64; M4-WO6: M4-I65 – M4-I79; M4-WO7: M4-I80 – M4-I98; M4-WO8: M4-I99 – M4-I115; M4-WO9: M4-I116 – M4-I134; M4-WO10: M4-I135 – M4-I162).
 
 ## Purpose
 
@@ -387,7 +387,7 @@ route or UI was added.
 | M4-WO7 | Resource Engine Foundation (`m4-resource-engine.md`) |
 | M4-WO8 | Validation Engine (`m4-validation-engine.md`) |
 | M4-WO9 | Calculation Trace & Explanation Engine (`m4-calculation-trace-explanation.md`) |
-| M4-WO10 | Rules Evaluation Orchestration & HTTP API |
+| M4-WO10 | Rules Evaluation Orchestration & HTTP API (`m4-rules-evaluation-orchestration-api.md`) |
 | M4-WO11 | Rules Inspector & Calculation Lab UI |
 | M4-WO12 | Final M4 Integration & Reproducibility Audit |
 
@@ -603,6 +603,37 @@ Appended by M4-WO9 (Calculation Trace & Explanation Engine — see `m4-calculati
 - **M4-I133** Explanation Node Identity Contains No Randomness — `contributionKey#sourceTracePath`.
 - **M4-I134** Explanation Has No Database, Canon, Import Or Latest Lookup.
 
+Appended by M4-WO10 (Rules Evaluation Orchestration & HTTP API — see `m4-rules-evaluation-orchestration-api.md`):
+
+- **M4-I135** Rules Evaluation Orchestration Adds No New Mechanics — every operation is a direct call of one existing primitive.
+- **M4-I136** One Evaluation Run Uses One Exact Ruleset Context — required, validated once by WO1, passed to every step.
+- **M4-I137** Steps Cannot Override Ruleset / Actor / Build / Runtime Context — a step has no context field.
+- **M4-I138** Evaluation Step Identity Is Exact — exact stepKey; conflicting duplicates fail closed.
+- **M4-I139** Evaluation Step Ordering Is Explicit And Deterministic — order, then stepKey.
+- **M4-I140** Operation Dispatch Is Closed And Static — 14 operations, one switch, no registry.
+- **M4-I141** Bindings Copy Exact Values And Perform No Calculation — no arithmetic, rounding or transform.
+- **M4-I142** Binding Targets Are Exact — safe pointers into existing positions; no equal or nested targets.
+- **M4-I143** Step References May Only Target Earlier Steps.
+- **M4-I144** Evaluation Plans Cannot Contain Dependency Cycles — impossible by construction.
+- **M4-I145** Child Evaluation Invalidity Does Not Mean Orchestration Invalidity.
+- **M4-I146** Requirement False Does Not Automatically Block Orchestration.
+- **M4-I147** Resource Insufficiency Does Not Automatically Block Orchestration.
+- **M4-I148** Skipped Modifiers Do Not Automatically Block Orchestration.
+- **M4-I149** Blocked Steps Do Not Execute Primitive Engines.
+- **M4-I150** Independent Steps Continue After Unrelated Failure.
+- **M4-I151** Exact Child RuleEngineResponses Are Preserved — deep-equal to a direct primitive call.
+- **M4-I152** Validation Is An Explicit Operation — never inferred from step statuses.
+- **M4-I153** Explanation Is An Explicit Operation.
+- **M4-I154** Resource Apply Produces Projected State Only.
+- **M4-I155** HTTP Evaluation Is Stateless — no history, no commit route.
+- **M4-I156** HTTP Ruleset Selection Requires Exact Manifest Or Release Identity.
+- **M4-I157** HTTP Callers Cannot Forge Resolved Ruleset Context — resolved server-side via WO2.
+- **M4-I158** Rules Evaluation Performs No Database Writes — whole-database fingerprints unchanged.
+- **M4-I159** Orchestration Inputs / Outputs Are Immutable.
+- **M4-I160** Orchestration Is Deterministic.
+- **M4-I161** Evaluation History Is Reproducible From Exact Inputs.
+- **M4-I162** Listed Cost And Runtime Payment Remain Distinct Across Orchestration.
+
 ## Test coverage map (M4-WO1)
 
 Every invariant has at least one automated guard; the guard files cite the invariant id. The static audit verifies
@@ -744,12 +775,41 @@ this table.
 | M4-I132 | Explanation Evaluation Is Deterministic | `explanation-engine.test.ts` |
 | M4-I133 | Explanation Node Identity Contains No Randomness | `explanation-engine.test.ts`, `m4-wo9-static.test.ts` |
 | M4-I134 | Explanation Has No Database, Canon, Import Or Latest Lookup | `m4-wo9-static.test.ts` |
+| M4-I135 | Rules Evaluation Orchestration Adds No New Mechanics | `orchestration.test.ts`, `m4-wo10-static.test.ts` |
+| M4-I136 | One Evaluation Run Uses One Exact Ruleset Context | `orchestration.test.ts`, `m4-wo10-static.test.ts`, `m4-rules-evaluation-api.test.ts` |
+| M4-I137 | Steps Cannot Override Ruleset / Actor / Build / Runtime Context | `orchestration.test.ts`, `m4-wo10-static.test.ts` |
+| M4-I138 | Evaluation Step Identity Is Exact | `orchestration.test.ts` |
+| M4-I139 | Evaluation Step Ordering Is Explicit And Deterministic | `orchestration.test.ts` |
+| M4-I140 | Operation Dispatch Is Closed And Static | `orchestration.test.ts`, `m4-wo10-static.test.ts` |
+| M4-I141 | Bindings Copy Exact Values And Perform No Calculation | `orchestration.test.ts`, `m4-wo10-static.test.ts` |
+| M4-I142 | Binding Targets Are Exact | `orchestration.test.ts` |
+| M4-I143 | Step References May Only Target Earlier Steps | `orchestration.test.ts`, `m4-wo10-static.test.ts` |
+| M4-I144 | Evaluation Plans Cannot Contain Dependency Cycles | `orchestration.test.ts`, `m4-wo10-static.test.ts` |
+| M4-I145 | Child Evaluation Invalidity Does Not Mean Orchestration Invalidity | `orchestration.test.ts`, `m4-rules-evaluation-api.test.ts` |
+| M4-I146 | Requirement False Does Not Automatically Block Orchestration | `orchestration.test.ts`, `m4-wo10-static.test.ts` |
+| M4-I147 | Resource Insufficiency Does Not Automatically Block Orchestration | `orchestration.test.ts`, `m4-wo10-static.test.ts` |
+| M4-I148 | Skipped Modifiers Do Not Automatically Block Orchestration | `orchestration.test.ts`, `m4-wo10-static.test.ts` |
+| M4-I149 | Blocked Steps Do Not Execute Primitive Engines | `orchestration.test.ts` |
+| M4-I150 | Independent Steps Continue After Unrelated Failure | `orchestration.test.ts` |
+| M4-I151 | Exact Child RuleEngineResponses Are Preserved | `orchestration.test.ts` |
+| M4-I152 | Validation Is An Explicit Operation | `orchestration.test.ts` |
+| M4-I153 | Explanation Is An Explicit Operation | `orchestration.test.ts` |
+| M4-I154 | Resource Apply Produces Projected State Only | `orchestration.test.ts` |
+| M4-I155 | HTTP Evaluation Is Stateless | `m4-wo10-static.test.ts`, `m4-rules-evaluation-api.test.ts` |
+| M4-I156 | HTTP Ruleset Selection Requires Exact Manifest Or Release Identity | `m4-wo10-static.test.ts`, `m4-rules-evaluation-api.test.ts` |
+| M4-I157 | HTTP Callers Cannot Forge Resolved Ruleset Context | `m4-wo10-static.test.ts`, `m4-rules-evaluation-api.test.ts` |
+| M4-I158 | Rules Evaluation Performs No Database Writes | `m4-wo10-static.test.ts`, `m4-rules-evaluation-api.test.ts` |
+| M4-I159 | Orchestration Inputs / Outputs Are Immutable | `orchestration.test.ts` |
+| M4-I160 | Orchestration Is Deterministic | `orchestration.test.ts` |
+| M4-I161 | Evaluation History Is Reproducible From Exact Inputs | `m4-rules-evaluation-api.test.ts` |
+| M4-I162 | Listed Cost And Runtime Payment Remain Distinct Across Orchestration | `orchestration.test.ts`, `m4-rules-evaluation-api.test.ts` |
 
 Test files: `packages/prowess-rules/src/{context,response,trace,evaluate,public-surface,lookup}.test.ts`,
 `packages/prowess-rules/src/formula-{parser,evaluate,dependency-security}.test.ts`,
 `packages/prowess-rules/src/keyword-resolution.test.ts`, `packages/prowess-db/tests/integration/m1-keyword-resolution.test.ts`,
 `packages/prowess-rules/src/requirement-{evaluate,definition-facts}.test.ts`, `packages/prowess-rules/src/modifier-evaluate.test.ts`,
-`packages/prowess-rules/src/resource-engine.test.ts`, `packages/prowess-rules/src/validation-engine.test.ts`, `packages/prowess-rules/src/explanation-engine.test.ts`,
+`packages/prowess-rules/src/resource-engine.test.ts`, `packages/prowess-rules/src/validation-engine.test.ts`, `packages/prowess-rules/src/explanation-engine.test.ts`, `packages/prowess-rules/src/orchestration.test.ts`,
+`apps/studio/tests/integration/m4-rules-evaluation-api.test.ts`,
 `packages/prowess-db/tests/unit/ruleset-context-composition.test.ts`,
 `packages/prowess-db/tests/integration/ruleset-context.test.ts`, and
-`apps/studio/tests/unit/m4-wo{1,2,3,4,5,6,7,8,9}-static.test.ts`.
+`apps/studio/tests/unit/m4-wo{1,2,3,4,5,6,7,8,9,10}-static.test.ts`.

@@ -165,10 +165,13 @@ describe("M4-WO1 boundaries elsewhere in the repository", () => {
     }
   });
 
-  it("adds no Rules HTTP route and no Rules UI (M4-WO10 / M4-WO11 own those)", () => {
+  it("adds no Rules UI; the only Rules HTTP route is M4-WO10's POST /api/rules/evaluate (M4-WO11 owns the UI)", () => {
     const studio = walk(path.join(ROOT, "apps", "studio", "app")).map(rel);
-    expect(studio.filter((f) => /\/(rules|rules-engine|rules-inspector|calculation-lab)\//.test(f))).toEqual([]);
+    // M4-WO10 adds exactly one rules route; any other rules route, or any rules UI, still fails here.
+    expect(studio.filter((f) => /\/(rules|rules-engine|rules-inspector|calculation-lab)\//.test(f))).toEqual(["apps/studio/app/api/rules/evaluate/route.ts"]);
     for (const f of walk(path.join(ROOT, "apps", "studio")).filter((file) => /\.(ts|tsx)$/.test(file) && !rel(file).includes("/tests/"))) {
+      // Only the M4-WO10 application service may import the pure engine (it calls orchestrateRulesEvaluation).
+      if (rel(f) === "apps/studio/src/rules-evaluation/service.ts") continue;
       expect(readFileSync(f, "utf8"), rel(f)).not.toContain("@prowess/rules");
     }
   });

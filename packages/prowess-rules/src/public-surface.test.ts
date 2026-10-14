@@ -125,6 +125,17 @@ describe("@prowess/rules public surface", () => {
         "EXPLANATION_STATUS_LABELS",
         "buildExplanation",
         "projectExplanation",
+        // M4-WO10 Rules Evaluation Orchestration
+        "EVALUATION_BLOCK_REASONS",
+        "EVALUATION_CONTEXT_FAMILIES",
+        "EVALUATION_OPERATIONS",
+        "EVALUATION_OPERATION_INPUT_FIELDS",
+        "EVALUATION_RUN_EXECUTION_STATUSES",
+        "EVALUATION_STEP_EXECUTION_STATUSES",
+        "ORCHESTRATION_DIAGNOSTIC_CODES",
+        "ORCHESTRATION_EVALUATION_KIND",
+        "ORCHESTRATION_LIMITS",
+        "orchestrateRulesEvaluation",
       ].sort(),
     );
   });
@@ -150,6 +161,8 @@ describe("@prowess/rules public surface", () => {
       expect(name).not.toMatch(/ValidationEngine|ValidatorRegistry|registerValidator|readSourceResponse/);
       // M4-WO9: no engine class, builder, template language or trace internals are public.
       expect(name).not.toMatch(/ExplanationEngine|ExplanationBuilder|projectTrace|factsOf|nodeStatus|template|renderText/i);
+      // M4-WO10: no orchestrator class, operation registry, dispatch internals or pointer helpers are public.
+      expect(name).not.toMatch(/RulesOrchestrator|registerOperation|OperationRegistry|^dispatch$|validatePlan|parsePointer|readAt|writeAt/);
     }
   });
 });

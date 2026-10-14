@@ -259,6 +259,18 @@ jobs:
       - name: M4-WO9 audit gate — Trace composition & explanation integrity
         run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo9-static.test.ts
 
+      # M4-WO10: the orchestration static gate (closed static dispatch, one exact context set per run, bindings that
+      # only copy, no automatic blocking, no game operations; a thin read-only route with an exact Manifest / Release
+      # selector) and the exact-Ruleset HTTP evaluation flow against the test database. Both suites also run in the
+      # generic suites above; these named steps report the milestone separately.
+      - name: M4-WO10 audit gate — Rules orchestration integrity
+        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo10-static.test.ts
+
+      - name: M4-WO10 integration gate — Exact Ruleset evaluation HTTP flow
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+        run: pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m4-rules-evaluation-api.test.ts
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own
