@@ -14,14 +14,14 @@ async function fixture(request: APIRequestContext) {
   await post(request, `/api/rulesets/${ruleset.id}/submit-review`); await post(request, `/api/rulesets/${ruleset.id}/approve`);
   const manifest = await post<Id>(request, `/api/rulesets/${ruleset.id}/manifests`, { entries: [] });
   const policy = await post<Id>(request, `/api/rulesets/${ruleset.id}/canon-policies`, { name: "Lab policy", authorities: [] });
-  const release = await post<Id & { manifestId: string }>(request, `/api/rulesets/${ruleset.id}/releases`, { baseManifestId: manifest.id, canonPolicyId: policy.id, versionLabel: "lab-r1" });
+  const release = await post<Id>(request, `/api/rulesets/${ruleset.id}/releases`, { baseManifestId: manifest.id, canonPolicyId: policy.id, versionLabel: "lab-r1" });
   return { ruleset, manifest, release, policy };
 }
 async function choose(page: Page, rulesetId: string, id: string, mode: "Manifest" | "Release" = "Manifest") {
   await page.goto("/developer/rules");
   if (mode === "Release") await page.getByRole("button", { name: "Release", exact: true }).click();
   const selector = page.getByLabel("Ruleset", { exact: true });
-  await expect(selector.locator("option")).not.toHaveCount(1);
+  await expect.poll(() => selector.locator("option").count()).toBeGreaterThan(1);
   while (await selector.locator(`option[value="${rulesetId}"]`).count() === 0) {
     const count = await selector.locator("option").count();
     await page.getByRole("button", { name: "Load more Rulesets" }).click();
@@ -113,7 +113,7 @@ test.describe("M4-WO11 Rules Inspector — real HTTP and exact Rulesets", () => 
     const { ruleset, release, policy } = await fixture(request); await choose(page, ruleset.id, release.id, "Release");
     await page.getByRole("button", { name: "Load neutral sample" }).click(); await run(page);
     const first = await page.getByRole("region", { name: "DETAILED explanation" }).textContent();
-    const later = await post<Id>(request, `/api/rulesets/${ruleset.id}/manifests`, { parentManifestId: release.manifestId, entries: [] });
+    const later = await post<Id>(request, `/api/rulesets/${ruleset.id}/manifests`, { entries: [] });
     await post(request, `/api/rulesets/${ruleset.id}/releases`, { baseManifestId: later.id, canonPolicyId: policy.id, versionLabel: "lab-r2" });
     await run(page); expect(await page.getByRole("region", { name: "DETAILED explanation" }).textContent()).toBe(first);
     await expect(page.getByLabel("Exact Release", { exact: true })).toHaveValue(release.id);

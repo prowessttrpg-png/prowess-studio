@@ -114,3 +114,8 @@ Removed: none.
 ## Final acceptance
 
 No FINAL PASS is claimed. Permanent CI must prove the pending DB/browser gates. Publication to `prowessttrpg-png/prowess-studio` was explicitly authorized on October 14, 2026, including the WO10A/WO11 source, tests, documentation and GitHub Actions changes, branch `m4-wo11`, a draft PR against `main`, and CI verification. The earlier automatic approval-review rejection is resolved by that authorization. CI verification remains pending; merge is not authorized. Do not start WO12 automatically.
+
+
+## CI verification follow-up — first run
+
+Run `38641049231` at commit `126ed2cddbd5023394d4cd85d456fd36dc988781` passed migrations, the blocking drift gate, quality checks, all unit/integration/audit gates, resets and production build. Database integration: 497 passed; API integration: 89 passed; WO10/WO10A HTTP integration: 9 passed. Playwright: 39 existing workflows passed, five new Inspector workflows timed out at the selector helper before evaluating. Root cause: negating an option count of one also accepts zero options before hydration. The helper now explicitly waits for populated options. Separately, the historical Release fixture was corrected to create a development Manifest without `parentManifestId`, which represents Ruleset inheritance rather than revision history. No production semantics were changed by these test-only corrections. Verification remains pending a green rerun.
