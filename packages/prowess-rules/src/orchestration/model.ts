@@ -27,6 +27,7 @@ export const EVALUATION_OPERATIONS = [
   "RESOURCE_PAYMENT_APPLY",
   "VALIDATION",
   "EXPLANATION",
+  "EXPLANATION_PROJECT",
 ] as const;
 export type EvaluationOperation = (typeof EVALUATION_OPERATIONS)[number];
 
@@ -46,6 +47,7 @@ export const EVALUATION_OPERATION_INPUT_FIELDS: Readonly<Record<EvaluationOperat
   RESOURCE_PAYMENT_APPLY: ["snapshot", "payment"],
   VALIDATION: ["request"],
   EXPLANATION: ["input"],
+  EXPLANATION_PROJECT: ["document", "level"],
 };
 
 /** The four WO1 context families a binding may read from. */

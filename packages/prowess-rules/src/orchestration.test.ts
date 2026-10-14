@@ -11,6 +11,7 @@ import {
   ORCHESTRATION_LIMITS,
   orchestrateRulesEvaluation,
   previewResourcePayment,
+  projectExplanation,
   refreshResource,
   releaseResourceCapacity,
   reserveResourceCapacity,
@@ -96,6 +97,53 @@ const pipeline = (): Step[] => [
   ]),
 ];
 const actor = { stats: { divisor: 4 } };
+
+describe("M4-I162A — exact existing explanation projection (WO10A)", () => {
+  const projection = (pointer = "/data") => step("summary", 70, "EXPLANATION_PROJECT", { document: null, level: "SUMMARY" }, [fromStep("/document", "explanation", pointer)]);
+  it("preserves canonical DETAILED and equals WO9 SUMMARY directly, including listed 17, derived 4 and payment 6+11", () => {
+    const baseline = ok(orchestrate(pipeline(), { explanationStepKey: "explanation" }, { actor }));
+    const run = ok(orchestrate([...pipeline(), projection()], { explanationStepKey: "explanation" }, { actor }));
+    expect(run.steps.slice(0, 6)).toEqual(baseline.steps);
+    const detailed = stepOf(run, "explanation").response!.data;
+    expect(data(run, "explanation").level).toBe("DETAILED");
+    expect(stepOf(run, "summary").response).toEqual(projectExplanation(detailed, "SUMMARY"));
+    const summary = data(run, "summary");
+    expect(summary.level).toBe("SUMMARY");
+    expect((summary.sections as Array<{ facts: unknown }>).map(s => s.facts)).toEqual((data(run, "explanation").sections as Array<{ facts: unknown }>).map(s => s.facts));
+    expect(run.explanationStepKey).toBe("explanation");
+    expect(ok(orchestrate([...pipeline(), projection()].reverse(), { explanationStepKey: "explanation" }, { actor }))).toEqual(run);
+  });
+  it("contribution input order is deterministic before projection", () => {
+    const contributions = [
+      { contributionKey: "z", order: 20, kind: "FORMULA", response: evaluateFormula({ expression: "17" }, {}, { ruleset: ctx }) },
+      { contributionKey: "a", order: 10, kind: "FORMULA", response: evaluateFormula({ expression: "17 / 4", rounding: "FLOOR" }, {}, { ruleset: ctx }) },
+    ];
+    const run = (cs: unknown[]) => orchestrate([step("explanation", 60, "EXPLANATION", { input: { explanationKey: "ordered", contributions: cs } }), projection()]);
+    expect(run(contributions)).toEqual(run([...contributions].reverse()));
+  });
+  it("forward, self references and projection as canonical designation fail before dispatch", () => {
+    expect(codes(orchestrate([step("summary", 1, "EXPLANATION_PROJECT", { document: null, level: "SUMMARY" }, [fromStep("/document", "explanation", "/data")]), step("explanation", 2, "EXPLANATION", { input: { explanationKey: "x", contributions: [] } })]))).toContain("ORCHESTRATION.INVALID_REFERENCE");
+    expect(codes(orchestrate([step("summary", 1, "EXPLANATION_PROJECT", { document: null, level: "SUMMARY" }, [fromStep("/document", "summary", "/data")])]))).toContain("ORCHESTRATION.INVALID_REFERENCE");
+    expect(codes(orchestrate([...pipeline(), projection()], { explanationStepKey: "summary" }, { actor }))).toContain("ORCHESTRATION.INVALID_DESIGNATION");
+  });
+  it("unavailable document path and blocked source use normal dependency blocking", () => {
+    expect(stepOf(ok(orchestrate([...pipeline(), projection("/data/missing")], {}, { actor })), "summary").executionStatus).toBe("BLOCKED");
+    const steps = pipeline();
+    steps[5] = step("explanation", 60, "EXPLANATION", { input: null }, [fromContext("/input", "BUILD", "")]);
+    const run = ok(orchestrate([...steps, projection()], {}, { actor }));
+    expect(stepOf(run, "summary").blockedBy[0]?.reason).toBe("DEPENDENCY_BLOCKED");
+  });
+  it("existing null is copied and handled by WO9; invalid level/document never rebuilds", () => {
+    for (const [document, level] of [[null, "SUMMARY"], [{ level: "SUMMARY" }, "SUMMARY"], [{}, "UNKNOWN"]]) {
+      const run = ok(orchestrate([step("summary", 1, "EXPLANATION_PROJECT", { document, level })]));
+      expect(stepOf(run, "summary").response).toEqual(projectExplanation(document, level as "SUMMARY"));
+      expect(stepOf(run, "summary").response?.status).toBe("INVALID");
+    }
+    const run = ok(orchestrate([step("explanation", 60, "EXPLANATION", { input: {} }), projection()]));
+    expect(stepOf(run, "summary").executionStatus).toBe("EXECUTED");
+    expect(stepOf(run, "summary").response).toEqual(projectExplanation(null, "SUMMARY"));
+  });
+});
 
 describe("M4-I162 / M4-I141 the 17 → 4 → 6 + 11 pipeline, wired only by bindings", () => {
   it("listed 17, derived floor(17 / 4) = 4, payment 6 + 11, primary left 9, listed still 17 — COMPLETE", () => {
@@ -297,7 +345,7 @@ describe("M4-I139 ordering and determinism", () => {
 });
 
 describe("M4-I140 / M4-I135 every operation adapter calls exactly its primitive", () => {
-  it("each of the 14 operations returns exactly what its primitive returns", () => {
+  it("each of the 15 operations returns exactly what its primitive returns", () => {
     const resourceRequest = { resourceKey: "r.temp", amount: 1 };
     const cases: [string, Record<string, unknown>, () => RuleEngineResponse<unknown>][] = [
       ["FORMULA", { program: { expression: "2" }, variables: {} }, () => evaluateFormula({ expression: "2" }, {}, { ruleset: ctx })],
@@ -315,6 +363,8 @@ describe("M4-I140 / M4-I135 every operation adapter calls exactly its primitive"
       ["VALIDATION", { request: {} }, () => evaluateValidation({}, { ruleset: ctx })],
       ["EXPLANATION", { input: { explanationKey: "x", contributions: [] } }, () => buildExplanation({ explanationKey: "x", contributions: [] }, { ruleset: ctx })],
     ];
+    const document = buildExplanation({ explanationKey: "projection", contributions: [] }, { ruleset: ctx }).data;
+    cases.push(["EXPLANATION_PROJECT", { document, level: "SUMMARY" }, () => projectExplanation(document, "SUMMARY")]);
     expect(cases.map((c) => c[0])).toEqual([...EVALUATION_OPERATIONS]);
     for (const [operation, input, direct] of cases) {
       const run = ok(orchestrate([step("s", 1, operation, input)]));

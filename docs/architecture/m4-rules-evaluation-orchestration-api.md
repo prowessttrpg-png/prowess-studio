@@ -359,3 +359,24 @@ M4-WO10 does not implement: Prowess-specific rule compilation; Spell, Affinity, 
 Concentration semantics; Character building; Weapon, Maneuver or Summoning calculations; persistent runtime state;
 evaluation history; combat sequencing; automatic Ruleset selection; automatic Validation or Explanation policy; the
 Rules Inspector or Calculation Lab UI; public player tools. No schema change, no migration.
+
+
+## M4-WO10A — Explanation Projection
+
+Approved prerequisite amendment for WO11; existing EXPLANATION behavior is unchanged.
+
+- EXPLANATION invokes WO9 buildExplanation and returns the canonical DETAILED document.
+- EXPLANATION_PROJECT invokes only WO9 projectExplanation(document, level). Named inputs are `document` and `level`; the level is explicit and validated by WO9. The closed vocabulary now has 15 operations.
+- The sample binds the prior EXPLANATION response at `/data` to `/document`; it requests SUMMARY. No hidden connection, transformed pointer, or reevaluation exists.
+- `explanationStepKey` still designates EXPLANATION only. Projections are separate exact steps.
+- Projection receives the exact copied document and preserves WO9's own response contract verbatim, including its null response-level Ruleset provenance. Exact document/section provenance is retained; the run still carries its exact resolved Ruleset. No provenance is invented or overwritten by the adapter.
+- An unavailable path or BLOCKED source uses existing dependency blocking. An existing `null` is a real copied value and is rejected by WO9 as INVALID; it is not treated as a missing path.
+- M4-I162A is guarded by orchestration unit regressions and the WO11 static gate. Every projection dispatcher control must match the one direct primitive call.
+
+This amendment adds no mechanics, route, schema, migration, persistence, or new response envelope.
+
+```mermaid
+flowchart TD
+  A["EXPLANATION: DETAILED"] -->|"Exact /data binding"| B["EXPLANATION_PROJECT"]
+  B --> C["WO9 SUMMARY projection"]
+```

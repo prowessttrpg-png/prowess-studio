@@ -48,6 +48,7 @@ const OPERATIONS = [
   "RESOURCE_PAYMENT_APPLY",
   "VALIDATION",
   "EXPLANATION",
+  "EXPLANATION_PROJECT",
 ];
 
 /** Pure-orchestrator rules. */
@@ -137,7 +138,7 @@ describe("M4-WO10 static audit — the pure orchestrator", () => {
     (_n, f) => expect(audit(readFileSync(f, "utf8"))).toEqual([]),
   );
 
-  it("M4-I140: the operation vocabulary is exactly the 14 primitives, and dispatch is one closed switch over them", () => {
+  it("M4-I140: the operation vocabulary is exactly the 15 primitives, and dispatch is one closed switch over them", () => {
     expect(orc("model.ts")).toContain(`export const EVALUATION_OPERATIONS = [\n  ${OPERATIONS.map((o) => `"${o}"`).join(",\n  ")},\n] as const;`);
     const cases = [...orc("orchestrate.ts").matchAll(/\bcase\s+"([A-Z_]+)":/g)].map((m) => m[1]);
     expect(cases).toEqual(OPERATIONS);
@@ -146,7 +147,9 @@ describe("M4-WO10 static audit — the pure orchestrator", () => {
   it("M4-I136 / M4-I137: every adapter receives the one shared options object built from the run's single RulesetContext", () => {
     const o = orc("orchestrate.ts");
     expect(o.match(/const options = \{ ruleset \};/g)).toHaveLength(1);
-    expect(o.match(/return \w+\([^;]*, options\);/g)).toHaveLength(OPERATIONS.length);
+    expect(o.match(/return \w+\([^;]*, options\);/g)).toHaveLength(OPERATIONS.length - 1);
+    // WO10A copies a canonical document; WO9 projection preserves document provenance, with no context override.
+    expect(o).toContain("return projectExplanation(input.document, input.level as ExplanationLevel);");
     expect(o).toMatch(/const ruleset = request\.ruleset as RulesetContext;/);
     expect(o).toMatch(/requires: \["RULESET"\]/);
     expect(orc("plan.ts")).toContain('const STEP_FIELDS = ["stepKey", "order", "operation", "input", "bindings"];');
@@ -190,10 +193,10 @@ describe("M4-WO10 static audit — the Studio HTTP / application layer", () => {
     }
   });
 
-  it("no evaluation persistence, migration or schema change; no UI page", () => {
+  it("no evaluation persistence, migration or schema change; only the WO11 UI page", () => {
     expect(read("packages", "prowess-db", "prisma", "schema.prisma")).not.toMatch(/model\s+(EvaluationRun|RulesEvaluation|EvaluationPlan)\w*|evaluation_(runs|plans|results)/i);
     expect(readdirSync(path.join(ROOT, "packages", "prowess-db", "prisma", "migrations")).filter((e) => /^\d{14}_/.test(e))).toHaveLength(22);
-    expect(existsSync(path.join(ROOT, "apps", "studio", "app", "developer", "rules"))).toBe(false);
+    expect(existsSync(path.join(ROOT, "apps", "studio", "app", "developer", "rules", "page.tsx"))).toBe(true);
     for (const f of walk(path.join(ROOT, "apps", "studio", "app")).filter((x) => /\.tsx$/.test(x))) expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/\/api\/rules\/evaluate|orchestrateRulesEvaluation/);
   });
 

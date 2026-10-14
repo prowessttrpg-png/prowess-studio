@@ -1,0 +1,199 @@
+[
+  {
+    "id": "M4-I163",
+    "title": "Rules Inspector Is A Presentation Layer Over WO10",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I164",
+    "title": "Rules Inspector Performs No Game Calculation",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I165",
+    "title": "Rules Inspector Requires Explicit Exact Ruleset Selection",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I166",
+    "title": "Rules Inspector Cannot Forge RulesetContext",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I167",
+    "title": "Context Editing Is Generic",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I168",
+    "title": "EvaluationPlan Editing Is Generic",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I169",
+    "title": "Plan Step Order Display Matches WO10 Order",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I170",
+    "title": "Binding UI Performs No Transform",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I171",
+    "title": "Rule Invalidity Is Distinct From Request Failure",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I172",
+    "title": "PARTIAL Runs Are First-Class UI Outcomes",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I173",
+    "title": "Requirement False Is Displayed As Not Satisfied",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I174",
+    "title": "Skipped Modifiers Are Displayed As Skipped",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I175",
+    "title": "Resource Insufficiency Is Displayed As Insufficiency",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I176",
+    "title": "Listed Values Remain Distinct From Runtime Payment",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I177",
+    "title": "Reservation Is Displayed Separately From Spending",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I178",
+    "title": "Validation Findings Preserve Exact Severity / Category / Code",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I179",
+    "title": "Explanation UI Renders WO9 Output",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I180",
+    "title": "Trace UI Preserves WO1 Trace Order",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I181",
+    "title": "Rule Provenance Is Displayed Without Reinterpretation",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I182",
+    "title": "Ruleset Provenance Is Displayed Without Latest/Current Reinterpretation",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I183",
+    "title": "Result Data Is Never Recalculated For Presentation",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I184",
+    "title": "Edited Inputs Mark Existing Results Stale",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I185",
+    "title": "Rules Inspector Evaluation Is Read-Only Against Persistence",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I186",
+    "title": "Rules Inspector Remains Developer-Only",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I187",
+    "title": "Rules Inspector Supports Narrow/Mobile Layout Without Losing Actions",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I188",
+    "title": "Rules Inspector Uses Existing Studio Accessibility Conventions",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  }
+]

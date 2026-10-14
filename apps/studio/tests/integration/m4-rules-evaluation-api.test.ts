@@ -11,6 +11,8 @@ import * as Evaluate from "../../app/api/rules/evaluate/route";
 import { call, cleanupM2Api, entityWithVersions, fingerprint } from "./m2-api-harness";
 import { apiManifest, apiPolicy, apiRuleset } from "./m2-flow";
 import * as R from "./m2-routes";
+import { projectExplanation } from "@prowess/rules";
+import { samplePlan } from "../../app/developer/rules/_lib/sample";
 
 const evaluate = (body: unknown) => call(Evaluate.POST, "POST", "/api/rules/evaluate", {}, body);
 
@@ -97,6 +99,20 @@ describe("M4-WO10 API — POST /api/rules/evaluate (prowess_studio_test only)", 
   beforeAll(() => assertRunningAgainstTestDatabase(process.env.DATABASE_URL!));
   afterAll(cleanupM2Api);
 
+  it("M4-I162A / M4-I185: WO11 sample returns server SUMMARY equal to WO9 projection, preserving DETAILED and the whole database", async () => {
+    const { manifest } = await manifestFixture("projection");
+    const before = await fingerprint(await allTables());
+    const r = await evaluate({ ruleset: { kind: "MANIFEST", manifestId: manifest.id }, evaluationKey: "projection", actor, plan: samplePlan() });
+    expect(r.status).toBe(200);
+    expect(await fingerprint(await allTables())).toEqual(before);
+    const run = r.data.data as Run;
+    const detailed = stepData(run, "explanation");
+    expect(detailed.level).toBe("DETAILED");
+    expect(run.steps.find(step => step.stepKey === "summary")?.response).toEqual(projectExplanation(detailed, "SUMMARY"));
+    expect(stepData(run, "payment").listedAmount).toBe(17);
+    expect(stepData(run, "derived").finalValue).toBe(4);
+  });
+
   it("vertical slice on an exact Manifest: 17 → 4, payment 6 + 11, primary left 9, listed still 17 — no database write", async () => {
     const { manifest } = await manifestFixture("slice");
     const tables = await allTables();
@@ -141,8 +157,11 @@ describe("M4-WO10 API — POST /api/rules/evaluate (prowess_studio_test only)", 
     expect(await fingerprint(tables)).toEqual(before);
     expect(first.status).toBe(200);
     expect(first.data.ruleset).toMatchObject({ manifestId: rel.manifestId, manifestHash: rel.manifestHash, release: { releaseId: rel.id, releaseNumber: rel.releaseNumber, versionLabel: "r1" } });
-    const later = await apiManifest(rulesetId, [{ entityId: a.entity.id, entityVersionId: a.versions[1]!.id }]);
-    await call(R.Releases.POST, "POST", "", { rulesetId }, { baseManifestId: later.id, canonPolicyId: policy.id, versionLabel: "r2" });
+    await apiManifest(rulesetId, [{ entityId: a.entity.id, entityVersionId: a.versions[1]!.id }]);
+    const later = await call(R.Releases.POST, "POST", "", { rulesetId }, { baseManifestId: rel.manifestId, canonPolicyId: policy.id, versionLabel: "r2" });
+    expect(later.status).toBe(201);
+    expect(later.data.releaseNumber).toBe(2);
+    expect(later.data.id).not.toBe(rel.id);
     expect((await evaluate(body)).data).toEqual(first.data);
     // Manifest and Release modes keep their own exact provenance.
     const manifestMode = await evaluate({ ...body, ruleset: { kind: "MANIFEST", manifestId: manifest.id } });
