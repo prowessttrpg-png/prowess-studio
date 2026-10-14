@@ -388,7 +388,7 @@ route or UI was added.
 | M4-WO8 | Validation Engine (`m4-validation-engine.md`) |
 | M4-WO9 | Calculation Trace & Explanation Engine (`m4-calculation-trace-explanation.md`) |
 | M4-WO10 | Rules Evaluation Orchestration & HTTP API (`m4-rules-evaluation-orchestration-api.md`) |
-| M4-WO11 | Rules Inspector & Calculation Lab UI |
+| M4-WO11 | Rules Inspector & Calculation Lab UI (`m4-rules-inspector-calculation-lab.md`) |
 | M4-WO12 | Final M4 Integration & Reproducibility Audit |
 
 ## M4 invariant catalog
@@ -633,6 +633,33 @@ Appended by M4-WO10 (Rules Evaluation Orchestration & HTTP API — see `m4-rules
 - **M4-I160** Orchestration Is Deterministic.
 - **M4-I161** Evaluation History Is Reproducible From Exact Inputs.
 - **M4-I162** Listed Cost And Runtime Payment Remain Distinct Across Orchestration.
+- **M4-I162A** Explanation Projection Uses An Exact Existing ExplanationDocument And Performs No Rule Recalculation.
+- **M4-I163** Rules Inspector Is A Presentation Layer Over WO10.
+- **M4-I164** Rules Inspector Performs No Game Calculation.
+- **M4-I165** Rules Inspector Requires Explicit Exact Ruleset Selection.
+- **M4-I166** Rules Inspector Cannot Forge RulesetContext.
+- **M4-I167** Context Editing Is Generic.
+- **M4-I168** EvaluationPlan Editing Is Generic.
+- **M4-I169** Plan Step Order Display Matches WO10 Order.
+- **M4-I170** Binding UI Performs No Transform.
+- **M4-I171** Rule Invalidity Is Distinct From Request Failure.
+- **M4-I172** PARTIAL Runs Are First-Class UI Outcomes.
+- **M4-I173** Requirement False Is Displayed As Not Satisfied.
+- **M4-I174** Skipped Modifiers Are Displayed As Skipped.
+- **M4-I175** Resource Insufficiency Is Displayed As Insufficiency.
+- **M4-I176** Listed Values Remain Distinct From Runtime Payment.
+- **M4-I177** Reservation Is Displayed Separately From Spending.
+- **M4-I178** Validation Findings Preserve Exact Severity / Category / Code.
+- **M4-I179** Explanation UI Renders WO9 Output.
+- **M4-I180** Trace UI Preserves WO1 Trace Order.
+- **M4-I181** Rule Provenance Is Displayed Without Reinterpretation.
+- **M4-I182** Ruleset Provenance Is Displayed Without Latest/Current Reinterpretation.
+- **M4-I183** Result Data Is Never Recalculated For Presentation.
+- **M4-I184** Edited Inputs Mark Existing Results Stale.
+- **M4-I185** Rules Inspector Evaluation Is Read-Only Against Persistence.
+- **M4-I186** Rules Inspector Remains Developer-Only.
+- **M4-I187** Rules Inspector Supports Narrow/Mobile Layout Without Losing Actions.
+- **M4-I188** Rules Inspector Uses Existing Studio Accessibility Conventions.
 
 ## Test coverage map (M4-WO1)
 
@@ -813,3 +840,38 @@ Test files: `packages/prowess-rules/src/{context,response,trace,evaluate,public-
 `packages/prowess-db/tests/unit/ruleset-context-composition.test.ts`,
 `packages/prowess-db/tests/integration/ruleset-context.test.ts`, and
 `apps/studio/tests/unit/m4-wo{1,2,3,4,5,6,7,8,9,10}-static.test.ts`.
+
+
+## WO10A / WO11 invariant coverage
+
+| Invariant | Guard |
+| --- | --- |
+| M4-I162A | `orchestration.test.ts`, `m4-wo11-static.test.ts` |
+| M4-I163 | `m4-wo11-static.test.ts` |
+| M4-I164 | `m4-wo11-static.test.ts` |
+| M4-I165 | `m4-wo11-static.test.ts` |
+| M4-I166 | `m4-wo11-static.test.ts` |
+| M4-I167 | `m4-wo11-static.test.ts` |
+| M4-I168 | `m4-wo11-static.test.ts` |
+| M4-I169 | `m4-wo11-static.test.ts` |
+| M4-I170 | `m4-wo11-static.test.ts` |
+| M4-I171 | `m4-rules-lab.test.tsx`, `m4-wo11-static.test.ts` |
+| M4-I172 | `m4-rules-lab.test.tsx`, `m4-wo11-static.test.ts` |
+| M4-I173 | `m4-rules-lab.test.tsx`, `m4-wo11-static.test.ts` |
+| M4-I174 | `m4-rules-lab.test.tsx`, `m4-wo11-static.test.ts` |
+| M4-I175 | `m4-rules-lab.test.tsx`, `m4-wo11-static.test.ts` |
+| M4-I176 | `m4-rules-lab.test.tsx`, `m4-wo11-static.test.ts` |
+| M4-I177 | `m4-rules-lab.test.tsx`, `m4-wo11-static.test.ts` |
+| M4-I178 | `m4-rules-lab.test.tsx`, `m4-wo11-static.test.ts` |
+| M4-I179 | `m4-rules-lab.test.tsx`, `m4-wo11-static.test.ts` |
+| M4-I180 | `m4-rules-lab.test.tsx`, `m4-wo11-static.test.ts` |
+| M4-I181 | `m4-rules-lab.test.tsx`, `m4-wo11-static.test.ts` |
+| M4-I182 | `m4-rules-lab.test.tsx`, `m4-wo11-static.test.ts` |
+| M4-I183 | `m4-wo11-static.test.ts` |
+| M4-I184 | `m4-rules-lab.test.tsx`, `m4-wo11-static.test.ts` |
+| M4-I185 | `m4-wo11-static.test.ts` |
+| M4-I186 | `m4-wo11-static.test.ts` |
+| M4-I187 | `m4-rules-lab.test.tsx`, `m4-wo11-static.test.ts` |
+| M4-I188 | `m4-rules-lab.test.tsx`, `m4-wo11-static.test.ts` |
+
+The machine-readable coverage map is `m4-wo11-invariants.json`; the WO11 gate checks all 26 identifiers and their test files. Existing invariants remain numbered unchanged. WO11 permits public contract types and the two closed vocabulary constants in its UI; no browser evaluator is permitted.

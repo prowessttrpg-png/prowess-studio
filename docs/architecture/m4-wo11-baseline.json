@@ -1,0 +1,28 @@
+{
+  "baseCommit": "53aa50067bb2cc9508a73e690e432cf19cd37d8f",
+  "schemaHash": "26013a80863d5f884ed5cb3ef239eae89a2257bb5e19e7c1b0a999e6fe1c601a",
+  "migrations": {
+    "packages/prowess-db/prisma/migrations/20260930235722_init/migration.sql": "e53c493a022e483c2bb4b9dcea5a5a600b8af44e4b434f54e1db4bf7d561eb59",
+    "packages/prowess-db/prisma/migrations/20261001045349_add_entity/migration.sql": "115e875462d4bf7821a10a4d7efd72dd79c785c308c283cdc1008df9eda41acf",
+    "packages/prowess-db/prisma/migrations/20261001212804_add_entity_version/migration.sql": "61d5ab1ad075e1f80681a5ff3d74c408fe8743aa7c075630c24bf733eb065c68",
+    "packages/prowess-db/prisma/migrations/20261001215241_add_entity_version_updated_at/migration.sql": "bef8e61bb81336e2b6e86d11fd61d4fe8881a9584e9081c1b807e5db08117307",
+    "packages/prowess-db/prisma/migrations/20261002022400_add_entity_alias/migration.sql": "fa21a62cf2bfd8ec8ac390cd4ce034060b63ae2acf5c9492209b446fae571beb",
+    "packages/prowess-db/prisma/migrations/20261002025218_add_keyword_foundation/migration.sql": "67fba78240cb615ddedebc583c15008bbcfb1b30c91db35dd3df323618775543",
+    "packages/prowess-db/prisma/migrations/20261002225710_add_entity_relationship/migration.sql": "3ba841c4b649a298c47e254ff65f6e995556d69e52a1c7488d305dd891cdd717",
+    "packages/prowess-db/prisma/migrations/20261002231523_add_source_provenance/migration.sql": "75392f571ba230dae4c14ec555dc7962803978b6288cf8ecc6072d9432a53a70",
+    "packages/prowess-db/prisma/migrations/20261004233000_add_ruleset_foundation/migration.sql": "a081c52eb2e3760520b488613136e0c08294633cba9386ed68998056ac54a8a6",
+    "packages/prowess-db/prisma/migrations/20261005001500_add_ruleset_manifest/migration.sql": "31f2aa6c695444d75150c90299d6dbd9b302cc6e87a0dd60c821196a3d1dc14c",
+    "packages/prowess-db/prisma/migrations/20261005120000_add_manifest_inheritance/migration.sql": "5fb2a0707fcffe93357b5e489af594db51ec2aabc0082893cd53230debbe4ea0",
+    "packages/prowess-db/prisma/migrations/20261005220000_add_canon_policy/migration.sql": "82d4a44f2caa1bb3f3ac88aaac2bdf18e95448787e32372a45a38398a919fc3c",
+    "packages/prowess-db/prisma/migrations/20261006010000_add_rule_conflicts/migration.sql": "5befce6a128a2e730998dad6ccef68484b06282060f5a354c7ad93b204cb8cad",
+    "packages/prowess-db/prisma/migrations/20261007010000_add_canon_decisions/migration.sql": "62ed605803a83093c91462ff18d4379016f3815a52d2143734c58017c08c6d7e",
+    "packages/prowess-db/prisma/migrations/20261008010000_add_change_sets/migration.sql": "2f11f6f86dfd4591304f415ab7ed8a9fe8c131cb6e90d05a9c620161b9c4d442",
+    "packages/prowess-db/prisma/migrations/20261009010000_add_ruleset_releases/migration.sql": "813c659816bd767a99e5f39626dde3c0f4d817cc92276886b9a63e43535ab0f7",
+    "packages/prowess-db/prisma/migrations/20261010010000_add_migration_plans/migration.sql": "6a4624ffeb062144c5825917177c6eef2599b3376c62c96ee0e595bdcef2253e",
+    "packages/prowess-db/prisma/migrations/20261011010000_add_source_structure/migration.sql": "edd72da496f3fe5ea1d8b499b8ff69278f80bf41fe363b2cc8cfe64dc74faba7",
+    "packages/prowess-db/prisma/migrations/20261012010000_add_import_batches_candidates/migration.sql": "6fdc2a4faadd2bc6c1d76ee330c3c6f5d8a6049e62d983301481b51a32db0624",
+    "packages/prowess-db/prisma/migrations/20261013010000_add_import_batch_extraction_output/migration.sql": "4a2297e981e62ccc28fd3332792cd606de06f6bf0068f97b6adc45468a2fa473",
+    "packages/prowess-db/prisma/migrations/20261014010000_add_import_entity_matching/migration.sql": "fe3ca1beb64a1aac21d3e378cc68f8dac8974768f122a6c5dbbefe2ef78d66b4",
+    "packages/prowess-db/prisma/migrations/20261015010000_add_import_decisions/migration.sql": "0246fbbd42c8f4dd54e0c136473037db44834241d94d60ef03cffaed39807b91"
+  }
+}

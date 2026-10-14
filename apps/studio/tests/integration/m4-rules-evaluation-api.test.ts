@@ -11,6 +11,8 @@ import * as Evaluate from "../../app/api/rules/evaluate/route";
 import { call, cleanupM2Api, entityWithVersions, fingerprint } from "./m2-api-harness";
 import { apiManifest, apiPolicy, apiRuleset } from "./m2-flow";
 import * as R from "./m2-routes";
+import { projectExplanation } from "@prowess/rules";
+import { samplePlan } from "../../app/developer/rules/_lib/sample";
 
 const evaluate = (body: unknown) => call(Evaluate.POST, "POST", "/api/rules/evaluate", {}, body);
 
@@ -96,6 +98,20 @@ async function manifestFixture(label: string) {
 describe("M4-WO10 API — POST /api/rules/evaluate (prowess_studio_test only)", () => {
   beforeAll(() => assertRunningAgainstTestDatabase(process.env.DATABASE_URL!));
   afterAll(cleanupM2Api);
+
+  it("M4-I162A / M4-I185: WO11 sample returns server SUMMARY equal to WO9 projection, preserving DETAILED and the whole database", async () => {
+    const { manifest } = await manifestFixture("projection");
+    const before = await fingerprint(await allTables());
+    const r = await evaluate({ ruleset: { kind: "MANIFEST", manifestId: manifest.id }, evaluationKey: "projection", actor, plan: samplePlan() });
+    expect(r.status).toBe(200);
+    expect(await fingerprint(await allTables())).toEqual(before);
+    const run = r.data.data as Run;
+    const detailed = stepData(run, "explanation");
+    expect(detailed.level).toBe("DETAILED");
+    expect(run.steps.find(step => step.stepKey === "summary")?.response).toEqual(projectExplanation(detailed, "SUMMARY"));
+    expect(stepData(run, "payment").listedAmount).toBe(17);
+    expect(stepData(run, "derived").finalValue).toBe(4);
+  });
 
   it("vertical slice on an exact Manifest: 17 → 4, payment 6 + 11, primary left 9, listed still 17 — no database write", async () => {
     const { manifest } = await manifestFixture("slice");

@@ -48,7 +48,8 @@ describe("M2-WO10 — the governance UI stays on the API side of the boundary (�
   it("no governance logic is reimplemented client-side (§1, §85)", () => {
     const FORBIDDEN = /\b(canonicalManifestText|computeManifestHash|createHash|sha256|planChangeSetApplication|translateDecisionToOperations|resolveAuthorityFromDeclarations|diffCompositions|ChangeSetImpactCollector|ruleConflictStatusForDisposition|resolutionDepth\s*\+)\b|\.sort\(/;
     for (const c of ["computeManifestHash(x)", "items.sort((a, b) => a - b)", "translateDecisionToOperations(f)"]) expect(c).toMatch(FORBIDDEN);
-    for (const f of ALL) expect(strip(readFileSync(f, "utf8")), rel(f)).not.toMatch(FORBIDDEN);
+    for (const f of ALL.filter(f => !f.includes("developer/rules/"))) expect(strip(readFileSync(f, "utf8")), rel(f)).not.toMatch(FORBIDDEN);
+    // WO11 order preview is guarded separately; it does not implement governance sorting.
     // Inheritance is never walked in the browser: parentManifestId is only displayed or linked, never followed in a loop.
     for (const f of UI) expect(strip(readFileSync(f, "utf8")), rel(f)).not.toMatch(/\b(while|for)\s*\([^)]*parentManifestId/);
   });
@@ -71,6 +72,7 @@ describe("M2-WO10 — the governance UI stays on the API side of the boundary (�
     expect(pages).toEqual(
       [
         "developer",
+        "developer/rules",
         "developer/rulesets",
         "developer/rulesets/[rulesetId]",
         // M3-WO8 Import Studio (audited by m3-import-ui-static)

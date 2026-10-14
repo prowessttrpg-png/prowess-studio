@@ -1,6 +1,8 @@
 import type { JsonValue } from "@prowess/model";
 import type { RulesetContext } from "../context/ruleset-context.js";
 import { evaluate } from "../evaluation/evaluate.js";
+import { projectExplanation } from "../explanation/project.js";
+import type { ExplanationLevel } from "../explanation/model.js";
 import { buildExplanation } from "../explanation/build.js";
 import { evaluateFormula } from "../formula/evaluate.js";
 import { clonePlainData, isPlainObject, jsonPointer } from "../internal/plain-data.js";
@@ -74,6 +76,8 @@ function dispatch(operation: EvaluationOperation, input: Readonly<Record<string,
       return evaluateValidation(input.request, options);
     case "EXPLANATION":
       return buildExplanation(input.input, options);
+    case "EXPLANATION_PROJECT":
+      return projectExplanation(input.document, input.level as ExplanationLevel);
   }
 }
 

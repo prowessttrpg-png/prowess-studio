@@ -138,7 +138,7 @@ describe("M4-WO3 boundaries (§5–7, §114)", () => {
     for (const f of walk(path.join(ROOT, "apps", "studio")).filter((file) => /\.(ts|tsx)$/.test(file) && !rel(file).includes("/tests/"))) {
       // M4-WO10: only its application service imports @prowess/rules — and even it never calls this primitive directly.
       expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/evaluateFormula|parseFormulaExpression/);
-      if (rel(f) !== "apps/studio/src/rules-evaluation/service.ts") expect(readFileSync(f, "utf8"), rel(f)).not.toContain("@prowess/rules");
+      if (rel(f) !== "apps/studio/src/rules-evaluation/service.ts" && !rel(f).startsWith("apps/studio/app/developer/rules/") && rel(f) !== "apps/studio/src/api-client/rules.ts") expect(readFileSync(f, "utf8"), rel(f)).not.toContain("@prowess/rules");
     }
     expect(walk(path.join(ROOT, "apps", "studio", "app")).map(rel).filter((f) => /\/formula/i.test(f))).toEqual([]);
     for (const f of walk(path.join(ROOT, "packages", "prowess-db", "src")).filter((file) => file.endsWith(".ts"))) {

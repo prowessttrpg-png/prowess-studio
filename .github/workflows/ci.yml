@@ -266,6 +266,9 @@ jobs:
       - name: M4-WO10 audit gate — Rules orchestration integrity
         run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo10-static.test.ts
 
+      - name: M4-WO11 audit gate — Rules Inspector presentation integrity
+        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo11-static.test.ts tests/unit/m4-rules-api-client.test.ts tests/unit/m4-rules-lab.test.tsx
+
       - name: M4-WO10 integration gate — Exact Ruleset evaluation HTTP flow
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test

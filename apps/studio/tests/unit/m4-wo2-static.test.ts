@@ -185,7 +185,7 @@ describe("M4-WO2 public surface and boundaries (§32, §63–64, §67)", () => {
     expect(migrations).toHaveLength(22);
     for (const f of walk(path.join(ROOT, "apps", "studio")).filter((file) => /\.(ts|tsx)$/.test(file) && !rel(file).includes("/tests/"))) {
       // M4-WO10: only its application service resolves a context (through this resolver) and calls @prowess/rules.
-      if (rel(f) === "apps/studio/src/rules-evaluation/service.ts") continue;
+      if (rel(f) === "apps/studio/src/rules-evaluation/service.ts" || rel(f).startsWith("apps/studio/app/developer/rules/") || rel(f) === "apps/studio/src/api-client/rules.ts") continue;
       expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/resolveRulesetContextFrom|@prowess\/rules/);
     }
   });
