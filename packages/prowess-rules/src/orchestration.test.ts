@@ -233,6 +233,7 @@ describe("M4-I145 / M4-I149 / M4-I150 partial runs: blocked dependencies, indepe
       ]),
     );
     expect([data(run, "req").satisfied, data(run, "pay").canPay, (data(run, "mod").outcomes as { status: string }[])[0]?.status]).toEqual([false, false, "SKIPPED_CONDITION"]);
+    expect(stepOf(run, "after").executionStatus).toBe("EXECUTED");
     expect([run.executionStatus, data(run, "after").finalValue]).toEqual(["COMPLETE", 1 + 993 + 1]);
   });
 });

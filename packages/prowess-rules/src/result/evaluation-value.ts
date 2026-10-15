@@ -1,7 +1,7 @@
 import { isValidContextKey } from "../context/context-key.js";
 import { RULE_ENGINE_ERROR_CODES, RulesEngineError } from "../errors/engine-error.js";
 import { InputProblems, MAX_TEXT_LENGTH, readContextKey, readFiniteNumber, readRecord } from "../internal/input-reader.js";
-import { isPlainObject, type PathSegment } from "../internal/plain-data.js";
+import { deepFreeze, isPlainObject, type PathSegment } from "../internal/plain-data.js";
 
 /**
  * A minimal typed value for trace inputs and outputs (PAS-10 M4-WO1 §35–36). It only fixes the SHAPE later systems
@@ -12,7 +12,7 @@ import { isPlainObject, type PathSegment } from "../internal/plain-data.js";
  *  - Numbers are finite; `-0` is normalized to `0`. No rounding is ever applied implicitly — rounding is always an
  *    explicit rule (§34, implemented by M4-WO3).
  */
-export const EVALUATION_VALUE_TYPES = ["NUMBER", "BOOLEAN", "STRING", "IDENTIFIER", "LIST"] as const;
+export const EVALUATION_VALUE_TYPES = deepFreeze(["NUMBER", "BOOLEAN", "STRING", "IDENTIFIER", "LIST"] as const);
 export type EvaluationValueType = (typeof EVALUATION_VALUE_TYPES)[number];
 
 export type EvaluationValue =

@@ -1,4 +1,4 @@
-import { FORBIDDEN_OBJECT_KEYS } from "../internal/plain-data.js";
+import { deepFreeze, FORBIDDEN_OBJECT_KEYS } from "../internal/plain-data.js";
 
 /**
  * The grammar of every caller-chosen key inside an evaluation context: stat / rank / resource / property keys,
@@ -10,7 +10,9 @@ import { FORBIDDEN_OBJECT_KEYS } from "../internal/plain-data.js";
  * keyword is known to the engine (PAS-10 M4-WO1 §11, §46). `__proto__`, `constructor` and `prototype` are rejected so a
  * keyed collection can never reach an object prototype.
  */
-export const CONTEXT_KEY_PATTERN = /^[a-z0-9_]+(\.[a-z0-9_]+)*$/;
+const CONTEXT_KEY_PATTERN_INTERNAL = /^[a-z0-9_]+(\.[a-z0-9_]+)*$/;
+/** Read-only grammar metadata; validation keeps a separate private matcher. */
+export const CONTEXT_KEY_PATTERN = deepFreeze(new RegExp(CONTEXT_KEY_PATTERN_INTERNAL));
 
 /** Upper bound on a context key's length — a structural sanity limit, not a semantic one. */
 export const MAX_CONTEXT_KEY_LENGTH = 200;
@@ -19,7 +21,7 @@ export function isValidContextKey(value: unknown): value is string {
   return (
     typeof value === "string" &&
     value.length <= MAX_CONTEXT_KEY_LENGTH &&
-    CONTEXT_KEY_PATTERN.test(value) &&
+    CONTEXT_KEY_PATTERN_INTERNAL.test(value) &&
     !FORBIDDEN_OBJECT_KEYS.includes(value)
   );
 }

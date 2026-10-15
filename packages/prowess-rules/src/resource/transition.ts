@@ -253,7 +253,7 @@ export function releaseResourceCapacity(snapshot: unknown, request: unknown, opt
   }, options, true);
 }
 
-export const RESOURCE_REFRESH_TARGETS = ["TO_NOMINAL_MAXIMUM", "TO_AVAILABLE_MAXIMUM"] as const;
+export const RESOURCE_REFRESH_TARGETS = deepFreeze(["TO_NOMINAL_MAXIMUM", "TO_AVAILABLE_MAXIMUM"] as const);
 export type ResourceRefreshTarget = (typeof RESOURCE_REFRESH_TARGETS)[number];
 
 /**

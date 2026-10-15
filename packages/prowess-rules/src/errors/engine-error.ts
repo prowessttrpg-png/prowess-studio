@@ -18,7 +18,7 @@ import { clonePlainData, deepFreeze, inspectPlainData, isPlainObject } from "../
  * Only the codes M4-WO1 actually raises exist. Later Work Orders append their own (e.g. an unsupported formula
  * operation in M4-WO3).
  */
-export const RULE_ENGINE_ERROR_CODES = {
+export const RULE_ENGINE_ERROR_CODES = deepFreeze({
   /** The evaluation input is malformed: wrong shape, unknown field, invalid identifier or key, duplicate set member. */
   INVALID_INPUT: "RULE_ENGINE.INVALID_INPUT",
   /** A number at the public boundary is NaN, Infinity or -Infinity. */
@@ -27,7 +27,7 @@ export const RULE_ENGINE_ERROR_CODES = {
   MISSING_CONTEXT: "RULE_ENGINE.MISSING_CONTEXT",
   /** An internal engine invariant broke — e.g. an evaluator produced malformed or non-serializable output. A defect. */
   INVARIANT_VIOLATION: "RULE_ENGINE.INVARIANT_VIOLATION",
-} as const;
+} as const);
 
 export type RuleEngineErrorCode = (typeof RULE_ENGINE_ERROR_CODES)[keyof typeof RULE_ENGINE_ERROR_CODES];
 

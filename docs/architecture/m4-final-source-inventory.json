@@ -1,0 +1,1866 @@
+{
+  "scope": [
+    "apps/studio/app/developer/rules/_components/lab.tsx",
+    "apps/studio/app/developer/rules/_components/views.tsx",
+    "apps/studio/app/developer/rules/_lib/editor.ts",
+    "apps/studio/app/developer/rules/_lib/sample.ts",
+    "apps/studio/app/developer/rules/page.tsx",
+    "apps/studio/src/rules-evaluation/service.ts",
+    "packages/prowess-db/src/ruleset-context/composition.ts",
+    "packages/prowess-db/src/ruleset-context/index.ts",
+    "packages/prowess-db/src/ruleset-context/repository.ts",
+    "packages/prowess-db/src/ruleset-context/service.ts",
+    "packages/prowess-rules/src/context/context-key.ts",
+    "packages/prowess-rules/src/context/evaluation-contexts.ts",
+    "packages/prowess-rules/src/context/evaluation-request.ts",
+    "packages/prowess-rules/src/context/ruleset-context.ts",
+    "packages/prowess-rules/src/context/shared.ts",
+    "packages/prowess-rules/src/contract-version.ts",
+    "packages/prowess-rules/src/errors/engine-error.ts",
+    "packages/prowess-rules/src/evaluation/evaluate.ts",
+    "packages/prowess-rules/src/explanation/build.ts",
+    "packages/prowess-rules/src/explanation/model.ts",
+    "packages/prowess-rules/src/explanation/project.ts",
+    "packages/prowess-rules/src/formula/ast.ts",
+    "packages/prowess-rules/src/formula/dependency.ts",
+    "packages/prowess-rules/src/formula/diagnostics.ts",
+    "packages/prowess-rules/src/formula/evaluate.ts",
+    "packages/prowess-rules/src/formula/lexer.ts",
+    "packages/prowess-rules/src/formula/parser.ts",
+    "packages/prowess-rules/src/index.ts",
+    "packages/prowess-rules/src/internal/canonical-json.ts",
+    "packages/prowess-rules/src/internal/input-reader.ts",
+    "packages/prowess-rules/src/internal/plain-data.ts",
+    "packages/prowess-rules/src/keyword/query.ts",
+    "packages/prowess-rules/src/keyword/resolve.ts",
+    "packages/prowess-rules/src/modifier/evaluate.ts",
+    "packages/prowess-rules/src/modifier/model.ts",
+    "packages/prowess-rules/src/modifier/validate.ts",
+    "packages/prowess-rules/src/orchestration/model.ts",
+    "packages/prowess-rules/src/orchestration/orchestrate.ts",
+    "packages/prowess-rules/src/orchestration/plan.ts",
+    "packages/prowess-rules/src/orchestration/pointer.ts",
+    "packages/prowess-rules/src/requirement/evaluate.ts",
+    "packages/prowess-rules/src/requirement/facts.ts",
+    "packages/prowess-rules/src/requirement/model.ts",
+    "packages/prowess-rules/src/requirement/validate.ts",
+    "packages/prowess-rules/src/resource/model.ts",
+    "packages/prowess-rules/src/resource/payment.ts",
+    "packages/prowess-rules/src/resource/snapshot.ts",
+    "packages/prowess-rules/src/resource/transition.ts",
+    "packages/prowess-rules/src/result/evaluation-value.ts",
+    "packages/prowess-rules/src/result/provenance.ts",
+    "packages/prowess-rules/src/result/rule-engine-response.ts",
+    "packages/prowess-rules/src/trace/calculation-trace.ts",
+    "packages/prowess-rules/src/validation/validation-message.ts",
+    "packages/prowess-rules/src/validation-engine/evaluate.ts",
+    "packages/prowess-rules/src/validation-engine/model.ts",
+    "packages/prowess-rules/src/validation-engine/source.ts"
+  ],
+  "occurrences": [
+    {
+      "file": "apps/studio/app/developer/rules/_components/lab.tsx",
+      "line": 139,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "if (inFlight.current) return;"
+    },
+    {
+      "file": "apps/studio/app/developer/rules/_components/lab.tsx",
+      "line": 142,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "inFlight.current = true; setBusy(true); setRequestError(null); setEditorError(null);"
+    },
+    {
+      "file": "apps/studio/app/developer/rules/_components/lab.tsx",
+      "line": 152,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "finally { inFlight.current = false; setBusy(false); }"
+    },
+    {
+      "file": "apps/studio/app/developer/rules/_components/lab.tsx",
+      "line": 156,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "setSteps(drafts); nextId.current = drafts.length;"
+    },
+    {
+      "file": "apps/studio/app/developer/rules/_components/lab.tsx",
+      "line": 195,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "setSteps(drafts); nextId.current = drafts.length; setEditingId(drafts[0]?.editorId ?? null);"
+    },
+    {
+      "file": "apps/studio/app/developer/rules/_components/lab.tsx",
+      "line": 215,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "<button type=\"button\" onClick={() => { const id = nextId.current++; const draft: DraftStep = { editorId: id, stepKey: `step-${id + 1}`, order: 10, operation: \"FORMULA\", inputText: \"{}\", bindings: [] }; setSteps(old => [."
+    },
+    {
+      "file": "apps/studio/app/developer/rules/_components/lab.tsx",
+      "line": 222,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "<button type=\"button\" onClick={() => { const id = nextId.current++; setSteps(old => [...old, { ...editing, editorId: id, stepKey: `step-${id + 1}`, bindings: editing.bindings.map(binding => ({ ...binding, source: { ...bi"
+    },
+    {
+      "file": "apps/studio/app/developer/rules/_components/views.tsx",
+      "line": 28,
+      "category": "selection",
+      "matches": [
+        "currentTarget"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return <details open={expanded} onToggle={event => setExpanded(event.currentTarget.open)}><summary>{text(node.kind)} \u00b7 {node.satisfied === true ? \"SATISFIED\" : \"NOT SATISFIED\"} \u00b7 {text(node.nodePath)}</summary>"
+    },
+    {
+      "file": "apps/studio/app/developer/rules/_components/views.tsx",
+      "line": 62,
+      "category": "selection",
+      "matches": [
+        "currentBefore",
+        "currentAfter"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "{rows(data.allocations).map((allocation, index) => <tr key={index}><td>{text(allocation.resourceKey)}</td><td>{text(allocation.currentBefore)}</td><td>{text(allocation.amountPaid)}</td><td>{text(allocation.currentAfter)}"
+    },
+    {
+      "file": "apps/studio/app/developer/rules/_components/views.tsx",
+      "line": 64,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "<div className=\"lab-scroll\"><table data-testid=\"resulting-resources\"><caption>Resulting resource state</caption><thead><tr><th>Source</th><th>Remaining</th></tr></thead><tbody>{rows(record(data.resultingResources).resour"
+    },
+    {
+      "file": "apps/studio/app/developer/rules/_lib/sample.ts",
+      "line": 17,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "{ resourceKey: \"r.temp\", kind: \"TEMPORARY_POOL\", current: 6, minimum: 0, maximum: 10, reservedCapacity: 0 },"
+    },
+    {
+      "file": "apps/studio/app/developer/rules/_lib/sample.ts",
+      "line": 18,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "{ resourceKey: \"r.primary\", kind: \"POOL\", current: 20, minimum: 0, maximum: 20, reservedCapacity: 0 },"
+    },
+    {
+      "file": "apps/studio/app/developer/rules/page.tsx",
+      "line": 3,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "export default function RulesInspectorPage() {"
+    },
+    {
+      "file": "apps/studio/src/rules-evaluation/service.ts",
+      "line": 16,
+      "category": "selection",
+      "matches": [
+        "current",
+        "latest",
+        "active",
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "*     orchestration). There is no \"current\", \"latest\", active or default Ruleset, and a network caller can never supply"
+    },
+    {
+      "file": "apps/studio/src/rules-evaluation/service.ts",
+      "line": 34,
+      "category": "selection",
+      "matches": [
+        "latest"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "/** The accepted top-level body fields. Anything else (latest, persist, commit, resolvedRuleset, status \u2026) is a 400. */"
+    },
+    {
+      "file": "packages/prowess-db/src/ruleset-context/repository.ts",
+      "line": 8,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "* Exactly two queries per resolution regardless of composition size (no N+1): the pinned Entities' identity"
+    },
+    {
+      "file": "packages/prowess-db/src/ruleset-context/service.ts",
+      "line": 55,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "// M2 reported. One header read per distinct supplying manifest (bounded by inheritance depth, not entry count)."
+    },
+    {
+      "file": "packages/prowess-rules/src/context/evaluation-contexts.ts",
+      "line": 32,
+      "category": "selection",
+      "matches": [
+        "CURRENT"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "*  - `resources`      keyed authored/derived resource values of the actor (e.g. a pool's capacity). The CURRENT value"
+    },
+    {
+      "file": "packages/prowess-rules/src/context/evaluation-contexts.ts",
+      "line": 56,
+      "category": "game-vocabulary",
+      "matches": [
+        "Spell"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "* The object being constructed or evaluated \u2014 a future Spell, Maneuver, Equipment or Summon build (\u00a712). No builder"
+    },
+    {
+      "file": "packages/prowess-rules/src/context/evaluation-contexts.ts",
+      "line": 73,
+      "category": "selection",
+      "matches": [
+        "active"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "/** One active runtime effect instance, addressed by a key unique within the runtime context. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/context/evaluation-contexts.ts",
+      "line": 84,
+      "category": "selection",
+      "matches": [
+        "CURRENT"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "*  - `resourceValues`    keyed CURRENT resource values"
+    },
+    {
+      "file": "packages/prowess-rules/src/context/evaluation-contexts.ts",
+      "line": 85,
+      "category": "selection",
+      "matches": [
+        "currently"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "*  - `reservedCapacity`  keyed currently reserved amounts"
+    },
+    {
+      "file": "packages/prowess-rules/src/context/evaluation-contexts.ts",
+      "line": 86,
+      "category": "selection",
+      "matches": [
+        "activeEffects"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "*  - `activeEffects`     EXPLICITLY ORDERED (application order may carry meaning later); keys unique"
+    },
+    {
+      "file": "packages/prowess-rules/src/context/evaluation-contexts.ts",
+      "line": 93,
+      "category": "selection",
+      "matches": [
+        "activeEffects"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "readonly activeEffects: readonly RuntimeEffect[];"
+    },
+    {
+      "file": "packages/prowess-rules/src/context/evaluation-contexts.ts",
+      "line": 149,
+      "category": "selection",
+      "matches": [
+        "activeEffects"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "const fields = [\"resourceValues\", \"reservedCapacity\", \"activeEffects\", \"conditions\", \"state\"];"
+    },
+    {
+      "file": "packages/prowess-rules/src/context/evaluation-contexts.ts",
+      "line": 155,
+      "category": "selection",
+      "matches": [
+        "activeEffects",
+        "activeEffects",
+        "activeEffects"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "activeEffects: readOrderedKeyedList(r.activeEffects, [...at, \"activeEffects\"], p, readEffect),"
+    },
+    {
+      "file": "packages/prowess-rules/src/context/evaluation-contexts.ts",
+      "line": 168,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "/** Validates and normalizes a caller-supplied BuildContext. `buildKind` is required; collections default to empty. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/context/ruleset-context.ts",
+      "line": 45,
+      "category": "selection",
+      "matches": [
+        "latest"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "* \"is latest\" field: those governance decisions were made before evaluation (M2) and the engine cannot see or change"
+    },
+    {
+      "file": "packages/prowess-rules/src/context/ruleset-context.ts",
+      "line": 50,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "*  - `rules`         the resolved rule versions, a set keyed by Entity: sorted by `entityId`, at most one version per"
+    },
+    {
+      "file": "packages/prowess-rules/src/context/ruleset-context.ts",
+      "line": 158,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "* version per Entity. It does NOT check that the Ruleset or Manifest exists, is published, is Canon or is current."
+    },
+    {
+      "file": "packages/prowess-rules/src/context/ruleset-context.ts",
+      "line": 158,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "* version per Entity. It does NOT check that the Ruleset or Manifest exists, is published, is Canon or is current."
+    },
+    {
+      "file": "packages/prowess-rules/src/context/ruleset-context.ts",
+      "line": 168,
+      "category": "selection",
+      "matches": [
+        "latest"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "* never fall back: `null` means exactly \"this rule is not part of this Ruleset context\" \u2014 not \"use the latest / Canon /"
+    },
+    {
+      "file": "packages/prowess-rules/src/explanation/build.ts",
+      "line": 29,
+      "category": "game-vocabulary",
+      "matches": [
+        "Per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "* Per contribution, in explicit order (order, then contributionKey \u2014 input array order never matters):"
+    },
+    {
+      "file": "packages/prowess-rules/src/explanation/build.ts",
+      "line": 239,
+      "category": "selection",
+      "matches": [
+        "currentKey"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "if (k === \"ORDERED\") return field(t, \"currentKey\");"
+    },
+    {
+      "file": "packages/prowess-rules/src/explanation/build.ts",
+      "line": 251,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "const resultingCurrent = new Map(list(resulting, \"resources\").map((r) => [String(field(r, \"resourceKey\")), num(r, \"current\")]));"
+    },
+    {
+      "file": "packages/prowess-rules/src/explanation/build.ts",
+      "line": 259,
+      "category": "selection",
+      "matches": [
+        "Current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "...allocations.map((a) => fact(`resultingCurrent:${String(field(a, \"resourceKey\"))}`, \"Current after payment\", resultingCurrent.get(String(field(a, \"resourceKey\"))) ?? null)),"
+    },
+    {
+      "file": "packages/prowess-rules/src/explanation/build.ts",
+      "line": 272,
+      "category": "selection",
+      "matches": [
+        "currentAboveCeiling",
+        "Current",
+        "currentAboveCeiling"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "fact(\"currentAboveCeiling\", \"Current above ceiling\", bool(data, \"currentAboveCeiling\")),"
+    },
+    {
+      "file": "packages/prowess-rules/src/explanation/build.ts",
+      "line": 274,
+      "category": "selection",
+      "matches": [
+        "currentBefore",
+        "Current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "fact(\"currentBefore\", \"Current before\", num(before, \"current\")),"
+    },
+    {
+      "file": "packages/prowess-rules/src/explanation/build.ts",
+      "line": 275,
+      "category": "selection",
+      "matches": [
+        "currentAfter",
+        "Current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "fact(\"currentAfter\", \"Current after\", num(after, \"current\")),"
+    },
+    {
+      "file": "packages/prowess-rules/src/explanation/build.ts",
+      "line": 282,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "default:"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/ast.ts",
+      "line": 57,
+      "category": "game-vocabulary",
+      "matches": [
+        "PRO"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "* by further `.`-separated segments of letters / digits / `_` \u2014 `power`, `final_mp`, `actor.prowess`, `PRO`. Exact and"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/ast.ts",
+      "line": 58,
+      "category": "game-vocabulary",
+      "matches": [
+        "PRO",
+        "pro"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "* case-sensitive: `PRO`, `pro` and `Prowess` are three different keys. No empty segment, no trailing dot, no"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/dependency.ts",
+      "line": 93,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "let current = [...unresolved].sort(byCodeUnit)[0] as string;"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/dependency.ts",
+      "line": 94,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "while (!index.has(current)) {"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/dependency.ts",
+      "line": 95,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "index.set(current, path.length);"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/dependency.ts",
+      "line": 96,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "path.push(current);"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/dependency.ts",
+      "line": 97,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "current = [...(deps.get(current) as Set<string>)].filter((d) => unresolved.has(d)).sort(byCodeUnit)[0] as string;"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/dependency.ts",
+      "line": 99,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "const cycle = [...path.slice(index.get(current) as number), current];"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/diagnostics.ts",
+      "line": 24,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "/** A referenced variable has no binding. Never replaced by a default. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/evaluate.ts",
+      "line": 32,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "* There is no default rounding, no implicit clamp at zero, no prettifying of floating-point results and no unit"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/evaluate.ts",
+      "line": 52,
+      "category": "selection",
+      "matches": [
+        "Defaults",
+        "defaults"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "/** Defaults to NONE: no rounding. Never defaults to FLOOR or CEIL. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/evaluate.ts",
+      "line": 126,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "default: {"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/evaluate.ts",
+      "line": 259,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "default:"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/evaluate.ts",
+      "line": 267,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "default: {"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/evaluate.ts",
+      "line": 273,
+      "category": "rounding",
+      "matches": [
+        "Math.floor"
+      ],
+      "classification": "Explicit Formula floor/ceil behavior, or prohibitive comment. AST guards reject other sites.",
+      "excerpt": "value = Math.floor(xs[0] as number);"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/evaluate.ts",
+      "line": 276,
+      "category": "rounding",
+      "matches": [
+        "Math.ceil"
+      ],
+      "classification": "Explicit Formula floor/ceil behavior, or prohibitive comment. AST guards reject other sites.",
+      "excerpt": "value = Math.ceil(xs[0] as number);"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/evaluate.ts",
+      "line": 281,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "default:"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/evaluate.ts",
+      "line": 375,
+      "category": "rounding",
+      "matches": [
+        "Math.floor",
+        "Math.ceil"
+      ],
+      "classification": "Explicit Formula floor/ceil behavior, or prohibitive comment. AST guards reject other sites.",
+      "excerpt": "const rounded = zero(p.rounding === \"FLOOR\" ? Math.floor(expressionValue) : p.rounding === \"CEIL\" ? Math.ceil(expressionValue) : expressionValue);"
+    },
+    {
+      "file": "packages/prowess-rules/src/formula/parser.ts",
+      "line": 164,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "default:"
+    },
+    {
+      "file": "packages/prowess-rules/src/internal/canonical-json.ts",
+      "line": 26,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "default:"
+    },
+    {
+      "file": "packages/prowess-rules/src/internal/input-reader.ts",
+      "line": 13,
+      "category": "selection",
+      "matches": [
+        "active"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "*  - explicitly ordered lists (build components, active runtime effects) keep the caller's order;"
+    },
+    {
+      "file": "packages/prowess-rules/src/keyword/resolve.ts",
+      "line": 210,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "// Aggregate: one entry per keywordId; identical (keyword, source) contributions collapse into one contributor."
+    },
+    {
+      "file": "packages/prowess-rules/src/keyword/resolve.ts",
+      "line": 229,
+      "category": "game-vocabulary",
+      "matches": [
+        "per",
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "/** A machine-readable trace: one step per resolved Keyword (set order), one child per contributor (contributor order). */"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 29,
+      "category": "selection",
+      "matches": [
+        "latest"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "*     are a STACKING_CONFLICT; there is no strongest / highest / latest winner"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 64,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "function numeric(operation: ModifierOperation, current: number, operand: number): number {"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 67,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return current + operand;"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 69,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return current - operand;"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 71,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return current * operand;"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 73,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return current / operand;"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 77,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return Math.min(current, operand);"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 79,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return Math.max(current, operand);"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 81,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return current * (1 + operand / 100);"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 82,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "default:"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 83,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return current * (1 - operand / 100);"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 87,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "/** Mutable per-target working state \u2014 internal to one evaluation, never exposed. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 196,
+      "category": "selection",
+      "matches": [
+        "currentKey"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "? [t.targetKey, { kind: \"ORDERED\", position: t.steps.indexOf(t.currentKey), steps: t.steps, boundaryPolicy: t.boundaryPolicy, failed: false }]"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 248,
+      "category": "selection",
+      "matches": [
+        "currentKey"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "if (w.kind === \"ORDERED\") return { targetKey: t.targetKey, kind: \"ORDERED\", currentKey: w.steps[w.position] as string, position: w.position };"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 258,
+      "category": "game-vocabulary",
+      "matches": [
+        "per",
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "/** Trace: per target (targetKey order) \u2192 per phase (phase order) \u2192 modifiers in exact application order. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 278,
+      "category": "selection",
+      "matches": [
+        "currentKey"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "const initial: ModifierValue = t.kind === \"NUMERIC\" ? t.value : t.kind === \"ORDERED\" ? t.currentKey : { advantage: 0, disadvantage: 0 };"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/evaluate.ts",
+      "line": 279,
+      "category": "selection",
+      "matches": [
+        "currentKey"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "const finalValue: ModifierValue = final.kind === \"NUMERIC\" ? final.value : final.kind === \"ORDERED\" ? final.currentKey : { advantage: final.advantage.length, disadvantage: final.disadvantage.length };"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/model.ts",
+      "line": 17,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "/** What happens when a step would leave an ORDERED ladder. Always explicit \u2014 there is no default. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/model.ts",
+      "line": 27,
+      "category": "selection",
+      "matches": [
+        "currentKey"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "/** A caller-supplied ladder of unique exact step keys; `currentKey` appears in it exactly once. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/model.ts",
+      "line": 31,
+      "category": "selection",
+      "matches": [
+        "currentKey"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "readonly currentKey: string;"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/model.ts",
+      "line": 61,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "* STACK: every applicable modifier applies, in the explicit order. UNIQUE: at most one distinct applicable modifier per"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/model.ts",
+      "line": 95,
+      "category": "selection",
+      "matches": [
+        "currentKey"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "| { readonly targetKey: string; readonly kind: \"ORDERED\"; readonly currentKey: string; readonly position: number }"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/validate.ts",
+      "line": 65,
+      "category": "selection",
+      "matches": [
+        "currentKey"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "ORDERED: [\"targetKey\", \"kind\", \"currentKey\", \"steps\", \"boundaryPolicy\"],"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/validate.ts",
+      "line": 121,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "return void report(MODIFIER_DIAGNOSTIC_CODES.LIMIT_EXCEEDED, `at most ${MODIFIER_LIMITS.MAX_STEPS_PER_TARGET} steps per target`, [...at, \"steps\"]);"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/validate.ts",
+      "line": 126,
+      "category": "selection",
+      "matches": [
+        "currentKey",
+        "currentKey"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "if (!isExactLabel(t.currentKey) || !steps.includes(t.currentKey)) {"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/validate.ts",
+      "line": 127,
+      "category": "selection",
+      "matches": [
+        "currentKey",
+        "currentKey"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return void report(MODIFIER_DIAGNOSTIC_CODES.INVALID_TARGET, \"currentKey must be exactly one of the steps\", [...at, \"currentKey\"]);"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/validate.ts",
+      "line": 130,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return void report(MODIFIER_DIAGNOSTIC_CODES.INVALID_TARGET, \"boundaryPolicy must be CLAMP or INVALID (no default)\", [...at, \"boundaryPolicy\"]);"
+    },
+    {
+      "file": "packages/prowess-rules/src/modifier/validate.ts",
+      "line": 132,
+      "category": "selection",
+      "matches": [
+        "currentKey",
+        "currentKey"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "targets.push({ targetKey, kind, currentKey: t.currentKey, steps: [...(steps as string[])], boundaryPolicy: t.boundaryPolicy as \"CLAMP\" });"
+    },
+    {
+      "file": "packages/prowess-rules/src/orchestration/model.ts",
+      "line": 14,
+      "category": "game-vocabulary",
+      "matches": [
+        "spell",
+        "affinity",
+        "mana",
+        "weapon"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "* (no spell cost, affinity, mana lock, weapon damage \u2026); those will be compiled INTO plans of these operations."
+    },
+    {
+      "file": "packages/prowess-rules/src/orchestration/orchestrate.ts",
+      "line": 47,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "/** The static, closed dispatch: one adapter per operation, each a direct call of one public primitive. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/orchestration/pointer.ts",
+      "line": 49,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "let current: unknown = root;"
+    },
+    {
+      "file": "packages/prowess-rules/src/orchestration/pointer.ts",
+      "line": 51,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "const next = child(current, token);"
+    },
+    {
+      "file": "packages/prowess-rules/src/orchestration/pointer.ts",
+      "line": 53,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "current = next.value;"
+    },
+    {
+      "file": "packages/prowess-rules/src/orchestration/pointer.ts",
+      "line": 55,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return { found: true, value: current };"
+    },
+    {
+      "file": "packages/prowess-rules/src/requirement/evaluate.ts",
+      "line": 46,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "/** Internal fact indexes, built once per evaluation from the normalized facts; never exposed. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/requirement/evaluate.ts",
+      "line": 83,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "default:"
+    },
+    {
+      "file": "packages/prowess-rules/src/requirement/evaluate.ts",
+      "line": 157,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "default: {"
+    },
+    {
+      "file": "packages/prowess-rules/src/requirement/evaluate.ts",
+      "line": 215,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "* against them without re-normalizing per tree (used by M4-WO6 Modifier conditions). Internal to @prowess/rules."
+    },
+    {
+      "file": "packages/prowess-rules/src/requirement/facts.ts",
+      "line": 117,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "// 1. Structure, in input order per collection."
+    },
+    {
+      "file": "packages/prowess-rules/src/requirement/model.ts",
+      "line": 129,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "/** Node, depth or children-per-group limit exceeded. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/requirement/validate.ts",
+      "line": 24,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "* Phase 1 walks the caller's tree ITERATIVELY with an explicit stack: shape, limits (nodes, depth, children per group)"
+    },
+    {
+      "file": "packages/prowess-rules/src/requirement/validate.ts",
+      "line": 119,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "default: {"
+    },
+    {
+      "file": "packages/prowess-rules/src/requirement/validate.ts",
+      "line": 132,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "let current: { nodePath: string; provenance: RuleProvenance | null } = { nodePath: \"root\", provenance: null };"
+    },
+    {
+      "file": "packages/prowess-rules/src/requirement/validate.ts",
+      "line": 134,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "diagnostics.push({ code, message, path: jsonPointer([...base, ...path]), nodePath: current.nodePath, provenance: current.provenance });"
+    },
+    {
+      "file": "packages/prowess-rules/src/requirement/validate.ts",
+      "line": 148,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "current = { nodePath: frame.nodePath, provenance: null };"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/model.ts",
+      "line": 9,
+      "category": "effective-cost",
+      "matches": [
+        "effective cost"
+      ],
+      "classification": "Prohibitive contract commentary; no derivation.",
+      "excerpt": "* amount comes from. No payment result carries an \"effective cost\", and nothing here re-runs a Formula or Modifier."
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/model.ts",
+      "line": 24,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "*  - `current`           minimum \u2264 current \u2264 maximum \u2014 it MAY exceed the available maximum (reservation never spends)"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/model.ts",
+      "line": 30,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "readonly current: number;"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/model.ts",
+      "line": 67,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "/** REFRESH / RESTORE: true when current already sat above the selected ceiling \u2014 it is never lowered. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/model.ts",
+      "line": 68,
+      "category": "selection",
+      "matches": [
+        "currentAboveCeiling"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "readonly currentAboveCeiling: boolean;"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/model.ts",
+      "line": 102,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "/** current \u2212 minimum: what this source could pay before any limit. Reserved capacity does not reduce it. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/model.ts",
+      "line": 106,
+      "category": "selection",
+      "matches": [
+        "currentBefore"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "readonly currentBefore: number;"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/model.ts",
+      "line": 108,
+      "category": "selection",
+      "matches": [
+        "currentAfter"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "readonly currentAfter: number;"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/model.ts",
+      "line": 159,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "/** RFC 6901 JSON Pointer into the input (`/resources/2/current`, `/payment/sources/1/limit`). */"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/payment.ts",
+      "line": 28,
+      "category": "effective-cost",
+      "matches": [
+        "effective cost"
+      ],
+      "classification": "Prohibitive contract commentary; no derivation.",
+      "excerpt": "* produces an \"effective cost\", and never re-runs a Formula or Modifier."
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/payment.ts",
+      "line": 31,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "* in code-unit order \u2014 input order and resource kind are irrelevant); each pays `min(remaining, current \u2212 minimum,"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/payment.ts",
+      "line": 90,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "const available = zero(state.current - state.minimum);"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/payment.ts",
+      "line": 102,
+      "category": "selection",
+      "matches": [
+        "currentBefore",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "currentBefore: state.current,"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/payment.ts",
+      "line": 103,
+      "category": "selection",
+      "matches": [
+        "currentAfter",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "currentAfter: zero(state.current - amountPaid),"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/payment.ts",
+      "line": 110,
+      "category": "selection",
+      "matches": [
+        "current",
+        "currentAfter"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "for (const a of allocations) if (a.amountPaid !== 0) resulting = replaceResource(resulting, { ...(byKey.get(a.resourceKey) as ResourceState), current: a.currentAfter });"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/payment.ts",
+      "line": 145,
+      "category": "selection",
+      "matches": [
+        "current_before",
+        "currentBefore"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "{ name: \"current_before\", value: numberValue(a.currentBefore) },"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/payment.ts",
+      "line": 147,
+      "category": "selection",
+      "matches": [
+        "current_after",
+        "currentAfter"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "{ name: \"current_after\", value: numberValue(a.currentAfter) },"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/snapshot.ts",
+      "line": 51,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "const STATE_FIELDS = [\"resourceKey\", \"kind\", \"current\", \"minimum\", \"maximum\", \"reservedCapacity\", \"provenance\"];"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/snapshot.ts",
+      "line": 54,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "export function stateProblem(s: Pick<ResourceState, \"current\" | \"minimum\" | \"maximum\" | \"reservedCapacity\">): { code: ResourceDiagnosticCode; message: string } | null {"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/snapshot.ts",
+      "line": 56,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "if (s.current < s.minimum) return { code: RESOURCE_DIAGNOSTIC_CODES.INVALID_STATE, message: \"current is below minimum\" };"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/snapshot.ts",
+      "line": 57,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "if (s.maximum !== null && s.current > s.maximum) return { code: RESOURCE_DIAGNOSTIC_CODES.INVALID_STATE, message: \"current is above the nominal maximum\" };"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/snapshot.ts",
+      "line": 89,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "for (const field of [\"current\", \"minimum\"] as const) {"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/snapshot.ts",
+      "line": 100,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "current: zero(r.current as number),"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 27,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "*   SPEND             changes current only; never below minimum; insufficient \u2192 applied:false + shortfall (valid)"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 28,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "*   RESTORE           adds to current up to an explicit ceiling with an explicit overflow policy; never lowers current"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 29,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "*   SET_CURRENT       explicit value within minimum and the chosen ceiling (nominal by default)"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 30,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "*   RESERVE_CAPACITY  changes reservedCapacity only \u2014 current is untouched, even if it now exceeds availableMaximum"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 31,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "*   RELEASE_CAPACITY  changes reservedCapacity only \u2014 current is NOT restored"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 32,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "*   REFRESH           raises current to an explicit ceiling; never lowers it (no hidden clamp)"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 37,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "/** What a transition computes: the new current / reservation, or a diagnostic. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 41,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "readonly current: number;"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 48,
+      "category": "selection",
+      "matches": [
+        "currentAboveCeiling"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "readonly currentAboveCeiling: boolean;"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 60,
+      "category": "selection",
+      "matches": [
+        "currentAboveCeiling"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "const nothing = { shortfall: 0, overflow: 0, currentAboveCeiling: false };"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 126,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "if (!Number.isFinite(c.current) || !Number.isFinite(c.reservedCapacity)) {"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 130,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "const after: ResourceState = { ...before, current: zero(c.current), reservedCapacity: zero(c.reservedCapacity) };"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 131,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "const resultingResources = after.current === before.current && after.reservedCapacity === before.reservedCapacity ? snapshot.snapshot : deepFreeze(replaceResource(snapshot.snapshot, after));"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 140,
+      "category": "selection",
+      "matches": [
+        "currentAboveCeiling",
+        "currentAboveCeiling"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "currentAboveCeiling: c.currentAboveCeiling,"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 157,
+      "category": "selection",
+      "matches": [
+        "current_before",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "{ name: \"current_before\", value: numberValue(before.current) },"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 169,
+      "category": "selection",
+      "matches": [
+        "current_after",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "{ name: \"current_after\", value: numberValue(after.current) },"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 171,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "output: numberValue(after.current),"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 187,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "/** Spends `amount` from current. Never crosses minimum: insufficient \u2192 applied:false, shortfall, no change. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 191,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "const available = s.current - s.minimum;"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 192,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "if (a <= available) return { ...nothing, current: s.current - a, reservedCapacity: s.reservedCapacity, applied: true, requestedAmount: a, actualAmount: a };"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 193,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return { ...nothing, current: s.current, reservedCapacity: s.reservedCapacity, applied: false, requestedAmount: a, actualAmount: 0, shortfall: a - available };"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 199,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "* policy (`CLAMP` restores up to the ceiling; `INVALID` refuses with OUT_OF_BOUNDS). Never lowers current: when current"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 209,
+      "category": "selection",
+      "matches": [
+        "currentAboveCeiling",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "const currentAboveCeiling = ceiling !== null && s.current > ceiling;"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 210,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "const restorable = ceiling === null ? Number.POSITIVE_INFINITY : Math.max(0, ceiling - s.current);"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 211,
+      "category": "selection",
+      "matches": [
+        "currentAboveCeiling"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "const base = { reservedCapacity: s.reservedCapacity, requestedAmount: a, shortfall: 0, currentAboveCeiling };"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 212,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "if (a <= restorable) return { ...base, current: s.current + a, applied: true, actualAmount: a, overflow: 0 };"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 216,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return { ...base, current: s.current + restorable, applied: true, actualAmount: restorable, overflow: a - restorable };"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 220,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "/** Sets current to an explicit value within [minimum, ceiling] \u2014 the nominal maximum unless AVAILABLE_MAXIMUM is requested. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 231,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return { ...nothing, current: r.value, reservedCapacity: s.reservedCapacity, applied: true, requestedAmount: r.value, actualAmount: r.value };"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 235,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "/** Reserves capacity. Changes reservedCapacity only \u2014 current is never touched, even if it now exceeds availableMaximum. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 243,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return { ...nothing, current: s.current, reservedCapacity: s.reservedCapacity + a, applied: true, requestedAmount: a, actualAmount: a };"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 247,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "/** Releases reserved capacity. Changes reservedCapacity only \u2014 current is NOT restored. */"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 252,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "return { ...nothing, current: s.current, reservedCapacity: s.reservedCapacity - a, applied: true, requestedAmount: a, actualAmount: a };"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 260,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "* Explicit, caller-triggered refresh: raises current to the chosen ceiling. Never lowers current \u2014 when current already"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 261,
+      "category": "selection",
+      "matches": [
+        "currentAboveCeiling"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "* sits at or above the ceiling nothing changes (`currentAboveCeiling` reports the latter). Needs a finite maximum."
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 268,
+      "category": "selection",
+      "matches": [
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "const raise = Math.max(0, ceiling - s.current);"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 270,
+      "category": "selection",
+      "matches": [
+        "current",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "current: s.current + raise,"
+    },
+    {
+      "file": "packages/prowess-rules/src/resource/transition.ts",
+      "line": 277,
+      "category": "selection",
+      "matches": [
+        "currentAboveCeiling",
+        "current"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "currentAboveCeiling: s.current > ceiling,"
+    },
+    {
+      "file": "packages/prowess-rules/src/result/evaluation-value.ts",
+      "line": 94,
+      "category": "selection",
+      "matches": [
+        "default"
+      ],
+      "classification": "Resource state, traversal cursor, structural default, React state/ref, export syntax, or prohibitive comment; no implicit content selection.",
+      "excerpt": "default:"
+    },
+    {
+      "file": "packages/prowess-rules/src/validation-engine/model.ts",
+      "line": 21,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "* One explicit check. `checkKey` is exact identity (unique per request); `order` then `checkKey` place it. The"
+    },
+    {
+      "file": "packages/prowess-rules/src/validation-engine/model.ts",
+      "line": 45,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "/** Concise per-check outcome (no copied context). */"
+    },
+    {
+      "file": "packages/prowess-rules/src/validation-engine/model.ts",
+      "line": 55,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "/** Concise per-source contribution (no copied data, messages or trace). */"
+    },
+    {
+      "file": "packages/prowess-rules/src/validation-engine/model.ts",
+      "line": 67,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "* per M4-WO1, data is null \u2014 counts remain derivable from the message arrays, attribution from the trace."
+    },
+    {
+      "file": "packages/prowess-rules/src/validation-engine/model.ts",
+      "line": 75,
+      "category": "game-vocabulary",
+      "matches": [
+        "per"
+      ],
+      "classification": "Prohibitive comment or generic key/type/unit example; no game-specific executable branch.",
+      "excerpt": "/** Findings per category, derived from the emitted messages; categories with none are omitted. */"
+    }
+  ],
+  "legacy_selection": "M1 latest-Version authoring; M2 latest Manifest/Release/Canon authoring and linear publication validation; M3 exact import snapshots. These existing services are outside M4 selection and are never called by an evaluation entry point."
+}

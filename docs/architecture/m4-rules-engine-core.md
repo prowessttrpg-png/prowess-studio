@@ -606,11 +606,11 @@ Appended by M4-WO9 (Calculation Trace & Explanation Engine — see `m4-calculati
 Appended by M4-WO10 (Rules Evaluation Orchestration & HTTP API — see `m4-rules-evaluation-orchestration-api.md`):
 
 - **M4-I135** Rules Evaluation Orchestration Adds No New Mechanics — every operation is a direct call of one existing primitive.
-- **M4-I136** One Evaluation Run Uses One Exact Ruleset Context — required, validated once by WO1, passed to every step.
+- **M4-I136** One Evaluation Run Uses One Exact Ruleset Context — required, validated once by WO1 and shared by evaluation primitives. WO10A projection takes an exact existing document and preserves its provenance; it does not evaluate another context.
 - **M4-I137** Steps Cannot Override Ruleset / Actor / Build / Runtime Context — a step has no context field.
 - **M4-I138** Evaluation Step Identity Is Exact — exact stepKey; conflicting duplicates fail closed.
 - **M4-I139** Evaluation Step Ordering Is Explicit And Deterministic — order, then stepKey.
-- **M4-I140** Operation Dispatch Is Closed And Static — 14 operations, one switch, no registry.
+- **M4-I140** Operation Dispatch Is Closed And Static — 15 operations after the approved WO10A amendment, one switch, no registry.
 - **M4-I141** Bindings Copy Exact Values And Perform No Calculation — no arithmetic, rounding or transform.
 - **M4-I142** Binding Targets Are Exact — safe pointers into existing positions; no equal or nested targets.
 - **M4-I143** Step References May Only Target Earlier Steps.
@@ -875,3 +875,10 @@ Test files: `packages/prowess-rules/src/{context,response,trace,evaluate,public-
 | M4-I188 | `m4-rules-lab.test.tsx`, `m4-wo11-static.test.ts` |
 
 The machine-readable coverage map is `m4-wo11-invariants.json`; the WO11 gate checks all 26 identifiers and their test files. Existing invariants remain numbered unchanged. WO11 permits public contract types and the two closed vocabulary constants in its UI; no browser evaluator is permitted.
+
+
+## M4-WO12 final audit
+
+The authoritative final coverage map is `m4-final-invariants.json`: M4-I01–M4-I188 plus the intentionally inserted M4-I162A, 189 unique identifiers. It resolves each guard to a full test path and verifies configured suite discovery. The final audit supplements, rather than replaces, WO1–WO11 guards. See `m4-final-audit.md` for results, defect records, limits, negative controls and the M5 handoff.
+
+WO12 descriptor validation rejects getters, setters, custom array prototypes, sparse arrays and caller-supplied array iteration methods before reading or invoking them. Optional undefined input fields retain their existing normalization. Structured failures replace caller callback execution; no mechanics, HTTP route or persistence is added.

@@ -103,7 +103,8 @@ export function evaluate<T>(definition: EvaluationDefinition<T>, input: unknown)
   const problems = new InputProblems();
   const request = readEvaluationRequest(input, [], problems);
   if (problems.count > 0 || request === null) {
-    const rawKind = isPlainObject(input) && isValidContextKey(input.kind) ? input.kind : null;
+    const descriptor = isPlainObject(input) ? Object.getOwnPropertyDescriptor(input, "kind") : undefined;
+    const rawKind = descriptor !== undefined && "value" in descriptor && isValidContextKey(descriptor.value) ? descriptor.value : null;
     return engineFailure<T>(problems.list, rawKind, null);
   }
 

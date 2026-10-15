@@ -274,6 +274,14 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
         run: pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m4-rules-evaluation-api.test.ts
 
+      # WO12 retains earlier gates and adds the cross-system audit, exact-history HTTP fixture,
+      # full invariant traceability, purity controls and descriptor-safety regressions.
+      - name: M4-WO12 final audit — M4 integration & reproducibility
+        run: |
+          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-final-static.test.ts tests/unit/m4-final-engine.test.ts tests/unit/m4-final-ui.test.tsx tests/unit/m4-final-limits.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m4-final-api.test.ts
+          node scripts/m4-final-negative-controls.mjs
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own

@@ -1,5 +1,5 @@
 import { canonicalJson } from "../internal/canonical-json.js";
-import { clonePlainData, inspectPlainData, isPlainObject } from "../internal/plain-data.js";
+import { clonePlainData, hasUnsafeDataProperties, inspectPlainData, isPlainObject } from "../internal/plain-data.js";
 import { isExactLabel } from "../requirement/validate.js";
 import {
   EVALUATION_CONTEXT_FAMILIES,
@@ -63,7 +63,7 @@ export const byCodeUnit = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0)
 
 /** A plain object whose keys are all own data properties within `allowed` (getters are never invoked). */
 function ownRecord(value: unknown, allowed: readonly string[]): value is Record<string, unknown> {
-  if (!isPlainObject(value) || Object.getOwnPropertySymbols(value).length > 0) return false;
+  if (!isPlainObject(value) || hasUnsafeDataProperties(value) || Object.getOwnPropertySymbols(value).length > 0) return false;
   const disallowed = Object.keys(value).filter((k) => {
     const d = Object.getOwnPropertyDescriptor(value, k);
     return !allowed.includes(k) || d === undefined || d.get !== undefined || d.set !== undefined;
@@ -95,6 +95,10 @@ export function validatePlan(plan: unknown): { ok: true; plan: ValidatedPlan } |
     report(ORCHESTRATION_DIAGNOSTIC_CODES.LIMIT_EXCEEDED, `a plan may have at most ${ORCHESTRATION_LIMITS.MAX_STEPS} steps`, ["plan", "steps"]);
     return fail();
   }
+  if (hasUnsafeDataProperties(plan.steps)) {
+    report(ORCHESTRATION_DIAGNOSTIC_CODES.INVALID_PLAN, "step arrays require own plain data entries only", ["plan", "steps"]);
+    return fail();
+  }
   let totalBindings = 0;
   const read: (PlannedStep & { signature: string; at: (string | number)[] })[] = [];
 
@@ -118,6 +122,9 @@ export function validatePlan(plan: unknown): { ok: true; plan: ValidatedPlan } |
     }
     totalBindings += rawBindings.length;
 
+    if (hasUnsafeDataProperties(rawBindings)) {
+      return void report(ORCHESTRATION_DIAGNOSTIC_CODES.INVALID_BINDING, "binding arrays require own plain data entries only", [...at, "bindings"]);
+    }
     const bindings: PlannedBinding[] = [];
     let stepOk = true;
     rawBindings.forEach((b: unknown, j: number) => {

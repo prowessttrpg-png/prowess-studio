@@ -1,3 +1,4 @@
+import { deepFreeze } from "../internal/plain-data.js";
 import { RULES_ENGINE_CONTRACT_VERSION, type RulesEngineContractVersion } from "../contract-version.js";
 import type { EngineError } from "../errors/engine-error.js";
 import type { CalculationTrace } from "../trace/calculation-trace.js";
@@ -15,7 +16,7 @@ import type { RulesetProvenance } from "./provenance.js";
  * The api-contract draft's CONFLICT status is intentionally absent: the engine does not resolve or report Canon
  * conflicts (M2 decided them before evaluation). A later ruleset-integrity finding is a RULESET-category message.
  */
-export const RULE_ENGINE_RESPONSE_STATUSES = ["SUCCESS", "VALID_WITH_WARNINGS", "INVALID", "ERROR"] as const;
+export const RULE_ENGINE_RESPONSE_STATUSES = deepFreeze(["SUCCESS", "VALID_WITH_WARNINGS", "INVALID", "ERROR"] as const);
 export type RuleEngineResponseStatus = (typeof RULE_ENGINE_RESPONSE_STATUSES)[number];
 
 /** Any message a response can carry. `kind` distinguishes an engine failure from a rule (validation) outcome. */

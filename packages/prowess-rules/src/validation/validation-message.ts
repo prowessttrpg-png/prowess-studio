@@ -15,11 +15,11 @@ import { readProvenance, type RuleProvenance } from "../result/provenance.js";
  * Machine contract: `code`, `category`, `severity` and structured `details`. The human-readable `message` is useful
  * but is NOT the contract — tests and clients must not depend on its wording (§22).
  */
-export const VALIDATION_SEVERITIES = ["ERROR", "WARNING", "INFO"] as const;
+export const VALIDATION_SEVERITIES = deepFreeze(["ERROR", "WARNING", "INFO"] as const);
 export type ValidationSeverity = (typeof VALIDATION_SEVERITIES)[number];
 
 /** The approved generic categories (§21). None has a validator in M4-WO1. */
-export const VALIDATION_CATEGORIES = [
+export const VALIDATION_CATEGORIES = deepFreeze([
   "STRUCTURE",
   "COMPATIBILITY",
   "REQUIREMENT",
@@ -29,7 +29,7 @@ export const VALIDATION_CATEGORIES = [
   "FORMULA",
   "RULESET",
   "RUNTIME",
-] as const;
+] as const);
 export type ValidationCategory = (typeof VALIDATION_CATEGORIES)[number];
 
 /**
@@ -37,10 +37,12 @@ export type ValidationCategory = (typeof VALIDATION_CATEGORIES)[number];
  * `EXAMPLE.RULE.FAILED`). The `RULE_ENGINE.` namespace is reserved for engine errors and is rejected here, so the two
  * kinds of failure can never be confused (§19).
  */
-export const VALIDATION_CODE_PATTERN = /^[A-Z][A-Z0-9_]*(\.[A-Z][A-Z0-9_]*)+$/;
+const VALIDATION_CODE_PATTERN_INTERNAL = /^[A-Z][A-Z0-9_]*(\.[A-Z][A-Z0-9_]*)+$/;
+/** Read-only grammar metadata; validation keeps a separate private matcher. */
+export const VALIDATION_CODE_PATTERN = deepFreeze(new RegExp(VALIDATION_CODE_PATTERN_INTERNAL));
 
 export function isValidValidationCode(value: unknown): value is string {
-  return typeof value === "string" && VALIDATION_CODE_PATTERN.test(value) && !value.startsWith(`${RULE_ENGINE_ERROR_NAMESPACE}.`);
+  return typeof value === "string" && VALIDATION_CODE_PATTERN_INTERNAL.test(value) && !value.startsWith(`${RULE_ENGINE_ERROR_NAMESPACE}.`);
 }
 
 /**

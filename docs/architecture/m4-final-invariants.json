@@ -1,0 +1,1618 @@
+[
+  {
+    "id": "M4-I01",
+    "title": "Exact Ruleset Context",
+    "group": "Core",
+    "guards": [
+      "packages/prowess-rules/src/context.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I02",
+    "title": "No Hidden Latest",
+    "group": "Core",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo1-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I03",
+    "title": "Pure Deterministic Evaluation",
+    "group": "Core",
+    "guards": [
+      "packages/prowess-rules/src/evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo1-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I04",
+    "title": "No Arbitrary Code Execution",
+    "group": "Core",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo1-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I05",
+    "title": "No Wall-Clock Dependency",
+    "group": "Core",
+    "guards": [
+      "packages/prowess-rules/src/evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo1-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I06",
+    "title": "No Randomness",
+    "group": "Core",
+    "guards": [
+      "packages/prowess-rules/src/evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo1-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I07",
+    "title": "No Network Dependency",
+    "group": "Core",
+    "guards": [
+      "packages/prowess-rules/src/evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo1-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I08",
+    "title": "Inputs Are Not Mutated",
+    "group": "Core",
+    "guards": [
+      "packages/prowess-rules/src/evaluate.test.ts",
+      "packages/prowess-rules/src/context.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I09",
+    "title": "Structured Validation Messages",
+    "group": "Core",
+    "guards": [
+      "packages/prowess-rules/src/response.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I10",
+    "title": "Deterministic Trace Ordering",
+    "group": "Core",
+    "guards": [
+      "packages/prowess-rules/src/trace.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I11",
+    "title": "Rule Provenance Preserved",
+    "group": "Core",
+    "guards": [
+      "packages/prowess-rules/src/context.test.ts",
+      "packages/prowess-rules/src/trace.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I12",
+    "title": "Engine Does Not Choose Canon",
+    "group": "Core",
+    "guards": [
+      "packages/prowess-rules/src/context.test.ts",
+      "apps/studio/tests/unit/m4-wo1-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I13",
+    "title": "Engine Does Not Mutate Rules",
+    "group": "Core",
+    "guards": [
+      "packages/prowess-rules/src/evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I14",
+    "title": "Listed Cost and Payment Remain Distinct Concepts",
+    "group": "Core",
+    "guards": [
+      "packages/prowess-rules/src/context.test.ts",
+      "apps/studio/tests/unit/m4-wo1-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I15",
+    "title": "Runtime Mutation Is Outside Pure Evaluation",
+    "group": "Core",
+    "guards": [
+      "packages/prowess-rules/src/evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo1-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I16",
+    "title": "Exact Manifest Resolution",
+    "group": "Resolver",
+    "guards": [
+      "packages/prowess-db/tests/integration/ruleset-context.test.ts",
+      "apps/studio/tests/unit/m4-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I17",
+    "title": "Exact Release Resolution",
+    "group": "Resolver",
+    "guards": [
+      "packages/prowess-db/tests/integration/ruleset-context.test.ts",
+      "apps/studio/tests/unit/m4-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I18",
+    "title": "Effective Manifest Reuses M2 Inheritance",
+    "group": "Resolver",
+    "guards": [
+      "packages/prowess-db/tests/integration/ruleset-context.test.ts",
+      "apps/studio/tests/unit/m4-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I19",
+    "title": "Release Context Uses Frozen Composition",
+    "group": "Resolver",
+    "guards": [
+      "packages/prowess-db/tests/integration/ruleset-context.test.ts",
+      "apps/studio/tests/unit/m4-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I20",
+    "title": "Release Integrity Verified Before Evaluation",
+    "group": "Resolver",
+    "guards": [
+      "packages/prowess-db/tests/integration/ruleset-context.test.ts",
+      "apps/studio/tests/unit/m4-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I21",
+    "title": "One Entity \u2192 One Resolved EntityVersion",
+    "group": "Resolver",
+    "guards": [
+      "packages/prowess-db/tests/unit/ruleset-context-composition.test.ts",
+      "packages/prowess-rules/src/lookup.test.ts",
+      "packages/prowess-db/tests/integration/ruleset-context.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I22",
+    "title": "Resolver Never Uses Implicit Latest",
+    "group": "Resolver",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I23",
+    "title": "Historical Manifest Resolution Is Reproducible",
+    "group": "Resolver",
+    "guards": [
+      "packages/prowess-db/tests/integration/ruleset-context.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I24",
+    "title": "Historical Release Resolution Is Reproducible",
+    "group": "Resolver",
+    "guards": [
+      "packages/prowess-db/tests/integration/ruleset-context.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I25",
+    "title": "Ruleset Resolution Is Read-Only",
+    "group": "Resolver",
+    "guards": [
+      "packages/prowess-db/tests/integration/ruleset-context.test.ts",
+      "apps/studio/tests/unit/m4-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I26",
+    "title": "Restricted Formula Grammar",
+    "group": "Formula",
+    "guards": [
+      "packages/prowess-rules/src/formula-parser.test.ts",
+      "apps/studio/tests/unit/m4-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I27",
+    "title": "Authored Formula Text Is Never Executed",
+    "group": "Formula",
+    "guards": [
+      "packages/prowess-rules/src/formula-dependency-security.test.ts",
+      "apps/studio/tests/unit/m4-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I28",
+    "title": "Variable Binding Is Exact",
+    "group": "Formula",
+    "guards": [
+      "packages/prowess-rules/src/formula-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I29",
+    "title": "Rounding Is Explicit",
+    "group": "Formula",
+    "guards": [
+      "packages/prowess-rules/src/formula-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I30",
+    "title": "Formula Precedence Is Deterministic",
+    "group": "Formula",
+    "guards": [
+      "packages/prowess-rules/src/formula-parser.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I31",
+    "title": "Division By Zero Fails Closed",
+    "group": "Formula",
+    "guards": [
+      "packages/prowess-rules/src/formula-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I32",
+    "title": "Non-Finite Values Never Escape Evaluation",
+    "group": "Formula",
+    "guards": [
+      "packages/prowess-rules/src/formula-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I33",
+    "title": "Formula AST Is Serializable And Immutable",
+    "group": "Formula",
+    "guards": [
+      "packages/prowess-rules/src/formula-parser.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I34",
+    "title": "Formula Evaluation Is Deterministic",
+    "group": "Formula",
+    "guards": [
+      "packages/prowess-rules/src/formula-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I35",
+    "title": "Formula Dependency Cycles Are Rejected",
+    "group": "Formula",
+    "guards": [
+      "packages/prowess-rules/src/formula-dependency-security.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I36",
+    "title": "Formula Provenance Is Preserved",
+    "group": "Formula",
+    "guards": [
+      "packages/prowess-rules/src/formula-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I37",
+    "title": "Formula Evaluation Is Read-Only",
+    "group": "Formula",
+    "guards": [
+      "packages/prowess-rules/src/formula-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I38",
+    "title": "Formula Trace Ordering Is Deterministic",
+    "group": "Formula",
+    "guards": [
+      "packages/prowess-rules/src/formula-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I39",
+    "title": "Units Have No Implicit Mechanics",
+    "group": "Formula",
+    "guards": [
+      "packages/prowess-rules/src/formula-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I40",
+    "title": "Keywords Are Metadata / Rule Hooks Only",
+    "group": "Keyword",
+    "guards": [
+      "packages/prowess-rules/src/keyword-resolution.test.ts",
+      "apps/studio/tests/unit/m4-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I41",
+    "title": "Keyword Identity Is Exact",
+    "group": "Keyword",
+    "guards": [
+      "packages/prowess-rules/src/keyword-resolution.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I42",
+    "title": "Keyword Aggregation Is Deterministic",
+    "group": "Keyword",
+    "guards": [
+      "packages/prowess-rules/src/keyword-resolution.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I43",
+    "title": "Duplicate Contributions Preserve Provenance",
+    "group": "Keyword",
+    "guards": [
+      "packages/prowess-rules/src/keyword-resolution.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I44",
+    "title": "Keywords Have No Implicit Mechanics",
+    "group": "Keyword",
+    "guards": [
+      "packages/prowess-rules/src/keyword-resolution.test.ts",
+      "apps/studio/tests/unit/m4-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I45",
+    "title": "Keyword Lookup Uses No Alias / Fuzzy Matching",
+    "group": "Keyword",
+    "guards": [
+      "packages/prowess-rules/src/keyword-resolution.test.ts",
+      "apps/studio/tests/unit/m4-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I46",
+    "title": "Keyword Categories Grant No Mechanics",
+    "group": "Keyword",
+    "guards": [
+      "packages/prowess-rules/src/keyword-resolution.test.ts",
+      "apps/studio/tests/unit/m4-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I47",
+    "title": "Keyword Resolution Is Read-Only",
+    "group": "Keyword",
+    "guards": [
+      "packages/prowess-rules/src/keyword-resolution.test.ts",
+      "apps/studio/tests/unit/m4-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I48",
+    "title": "Keyword Inputs / Results Are Immutable",
+    "group": "Keyword",
+    "guards": [
+      "packages/prowess-rules/src/keyword-resolution.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I49",
+    "title": "Keyword Provenance Is Preserved",
+    "group": "Keyword",
+    "guards": [
+      "packages/prowess-rules/src/keyword-resolution.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I50",
+    "title": "Keyword Resolution Is Locale-Independent",
+    "group": "Keyword",
+    "guards": [
+      "packages/prowess-rules/src/keyword-resolution.test.ts",
+      "apps/studio/tests/unit/m4-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I51",
+    "title": "Unmet Requirement Is A Valid Evaluation Result",
+    "group": "Requirement",
+    "guards": [
+      "packages/prowess-rules/src/requirement-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I52",
+    "title": "Invalid Requirement Is Distinct From Unsatisfied",
+    "group": "Requirement",
+    "guards": [
+      "packages/prowess-rules/src/requirement-evaluate.test.ts",
+      "packages/prowess-rules/src/requirement-definition-facts.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I53",
+    "title": "Requirement Predicates Consume Explicit Facts Only",
+    "group": "Requirement",
+    "guards": [
+      "packages/prowess-rules/src/requirement-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo5-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I54",
+    "title": "Requirement Facts Use Exact Identity",
+    "group": "Requirement",
+    "guards": [
+      "packages/prowess-rules/src/requirement-definition-facts.test.ts",
+      "packages/prowess-rules/src/requirement-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I55",
+    "title": "Requirement Groups Support ALL / ANY / NONE",
+    "group": "Requirement",
+    "guards": [
+      "packages/prowess-rules/src/requirement-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I56",
+    "title": "Requirement Groups Evaluate Every Child",
+    "group": "Requirement",
+    "guards": [
+      "packages/prowess-rules/src/requirement-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo5-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I57",
+    "title": "Rank Ordering Is Data, Not Hard-Coded Mechanics",
+    "group": "Requirement",
+    "guards": [
+      "packages/prowess-rules/src/requirement-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo5-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I58",
+    "title": "Keyword Requirements Reuse Exact WO4 Membership",
+    "group": "Requirement",
+    "guards": [
+      "packages/prowess-rules/src/requirement-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo5-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I59",
+    "title": "Requirements Have No Side Effects",
+    "group": "Requirement",
+    "guards": [
+      "packages/prowess-rules/src/requirement-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo5-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I60",
+    "title": "Requirement Evaluation Is Deterministic",
+    "group": "Requirement",
+    "guards": [
+      "packages/prowess-rules/src/requirement-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I61",
+    "title": "Requirement Inputs / Outputs Are Immutable",
+    "group": "Requirement",
+    "guards": [
+      "packages/prowess-rules/src/requirement-evaluate.test.ts",
+      "packages/prowess-rules/src/requirement-definition-facts.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I62",
+    "title": "Missing Required Context Fails Closed",
+    "group": "Requirement",
+    "guards": [
+      "packages/prowess-rules/src/requirement-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I63",
+    "title": "Requirement Provenance Is Preserved",
+    "group": "Requirement",
+    "guards": [
+      "packages/prowess-rules/src/requirement-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I64",
+    "title": "Requirement Trees Are Complexity-Bounded",
+    "group": "Requirement",
+    "guards": [
+      "packages/prowess-rules/src/requirement-definition-facts.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I65",
+    "title": "Modifiers Transform Explicit Targets Only",
+    "group": "Modifier",
+    "guards": [
+      "packages/prowess-rules/src/modifier-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo6-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I66",
+    "title": "Modifier Ordering Is Explicit And Deterministic",
+    "group": "Modifier",
+    "guards": [
+      "packages/prowess-rules/src/modifier-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo6-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I67",
+    "title": "Modifier Phases Are Data",
+    "group": "Modifier",
+    "guards": [
+      "packages/prowess-rules/src/modifier-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo6-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I68",
+    "title": "Modifier Conditions Reuse Requirement Engine",
+    "group": "Modifier",
+    "guards": [
+      "packages/prowess-rules/src/modifier-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo6-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I69",
+    "title": "False Conditions Skip Without Error",
+    "group": "Modifier",
+    "guards": [
+      "packages/prowess-rules/src/modifier-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I70",
+    "title": "Numeric Modifiers Never Round Implicitly",
+    "group": "Modifier",
+    "guards": [
+      "packages/prowess-rules/src/modifier-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo6-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I71",
+    "title": "Percentage Modifiers Apply Sequentially",
+    "group": "Modifier",
+    "guards": [
+      "packages/prowess-rules/src/modifier-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo6-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I72",
+    "title": "Modifier Stacking Has No Hidden Winner",
+    "group": "Modifier",
+    "guards": [
+      "packages/prowess-rules/src/modifier-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I73",
+    "title": "Ordered Steps Use Explicit Ladders",
+    "group": "Modifier",
+    "guards": [
+      "packages/prowess-rules/src/modifier-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I74",
+    "title": "Advantage / Disadvantage Are Signals, Not Roll Semantics",
+    "group": "Modifier",
+    "guards": [
+      "packages/prowess-rules/src/modifier-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo6-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I75",
+    "title": "Modifier Evaluation Has No Side Effects",
+    "group": "Modifier",
+    "guards": [
+      "packages/prowess-rules/src/modifier-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo6-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I76",
+    "title": "Modifier Inputs / Outputs Are Immutable",
+    "group": "Modifier",
+    "guards": [
+      "packages/prowess-rules/src/modifier-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I77",
+    "title": "Modifier Provenance Is Preserved",
+    "group": "Modifier",
+    "guards": [
+      "packages/prowess-rules/src/modifier-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I78",
+    "title": "Modifier Evaluation Is Deterministic",
+    "group": "Modifier",
+    "guards": [
+      "packages/prowess-rules/src/modifier-evaluate.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I79",
+    "title": "Listed Cost And Runtime Payment Remain Distinct",
+    "group": "Modifier",
+    "guards": [
+      "packages/prowess-rules/src/modifier-evaluate.test.ts",
+      "apps/studio/tests/unit/m4-wo6-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I80",
+    "title": "Resource State Is Explicit Runtime Data",
+    "group": "Modifier",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I81",
+    "title": "Resource Identity Is Exact",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I82",
+    "title": "Listed Cost Is Immutable During Payment",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo7-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I83",
+    "title": "Payment Source Order Is Explicit",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I84",
+    "title": "Temporary Pools Have No Automatic Priority",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo7-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I85",
+    "title": "Insufficient Resources Are A Valid Runtime Outcome",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo7-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I86",
+    "title": "Failed Payment Is Atomic",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo7-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I87",
+    "title": "Capacity Reservation Does Not Spend",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo7-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I88",
+    "title": "Capacity Release Does Not Restore Current Value",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo7-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I89",
+    "title": "Reserved Capacity Produces A Distinct Available Maximum",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I90",
+    "title": "Current May Remain Above Available Maximum",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I91",
+    "title": "Resource Refresh Is Explicit",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo7-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I92",
+    "title": "Resource Operations Never Round Implicitly",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo7-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I93",
+    "title": "Resource Evaluation Has No External Side Effects",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo7-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I94",
+    "title": "Resource Inputs / Outputs Are Immutable",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I95",
+    "title": "Resource Evaluation Is Deterministic",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I96",
+    "title": "Resource Provenance Is Preserved",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I97",
+    "title": "Payment Preview And Apply Share One Allocation Semantics",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo7-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I98",
+    "title": "Runtime Payment Never Rewrites Prior Formula / Modifier Results",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/resource-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo7-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I99",
+    "title": "Validation Consumes Exact Results; It Does Not Recalculate Mechanics",
+    "group": "Resource",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo8-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I100",
+    "title": "Validation Errors Are Distinct From Engine Errors",
+    "group": "Validation",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I101",
+    "title": "Explicit Validation Checks Are Plain Data",
+    "group": "Validation",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo8-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I102",
+    "title": "Check Failure Severity Is Explicit",
+    "group": "Validation",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo8-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I103",
+    "title": "PASS Emits No Finding",
+    "group": "Validation",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo8-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I104",
+    "title": "NOT_APPLICABLE Is Non-Blocking",
+    "group": "Validation",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I105",
+    "title": "Validation Collects All Discoverable Findings",
+    "group": "Validation",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo8-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I106",
+    "title": "Validation Source Identity Is Exact",
+    "group": "Validation",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I107",
+    "title": "Validation Check Identity Is Exact",
+    "group": "Validation",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I108",
+    "title": "Validation Ordering Is Explicit And Deterministic",
+    "group": "Validation",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I109",
+    "title": "False Requirement Does Not Automatically Become A Validation Error",
+    "group": "Validation",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo8-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I110",
+    "title": "Resource Insufficiency Does Not Automatically Become A Validation Error",
+    "group": "Validation",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo8-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I111",
+    "title": "Skipped Modifier Does Not Automatically Become A Validation Error",
+    "group": "Validation",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo8-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I112",
+    "title": "Existing Subsystem Diagnostics Preserve Their Meaning",
+    "group": "Validation",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo8-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I113",
+    "title": "Validation Inputs / Outputs Are Immutable",
+    "group": "Validation",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I114",
+    "title": "Validation Evaluation Is Deterministic",
+    "group": "Validation",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I115",
+    "title": "Validation Provenance Is Preserved",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/validation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I116",
+    "title": "Explanation Describes Exact Results; It Does Not Recalculate Mechanics",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo9-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I117",
+    "title": "Explanation Uses Existing CalculationTrace As Authority",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo9-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I118",
+    "title": "Explanation Contribution Identity Is Exact",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I119",
+    "title": "Explanation Ordering Is Explicit And Deterministic",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I120",
+    "title": "Summary And Detailed Views Share One Source Of Truth",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I121",
+    "title": "Summary Projection Cannot Invent Mechanics",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo9-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I122",
+    "title": "Explanation Preserves Source Trace Order",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I123",
+    "title": "Explanation Preserves Rule Provenance",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I124",
+    "title": "Explanation Preserves Ruleset Provenance",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I125",
+    "title": "Requirement False Is Explained As Unsatisfied, Not Invalid",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I126",
+    "title": "Skipped Modifiers Are Explained As Skipped",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I127",
+    "title": "Resource Insufficiency Is Explained As Runtime Insufficiency, Not Engine Failure",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I128",
+    "title": "Listed Cost And Runtime Payment Remain Visibly Distinct",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo9-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I129",
+    "title": "Explanation Never Rewrites Prior Formula / Modifier / Resource Results",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo9-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I130",
+    "title": "Explanation Inputs / Outputs Are Immutable",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I131",
+    "title": "Explanation Is JSON-Serializable",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I132",
+    "title": "Explanation Evaluation Is Deterministic",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I133",
+    "title": "Explanation Node Identity Contains No Randomness",
+    "group": "Explanation",
+    "guards": [
+      "packages/prowess-rules/src/explanation-engine.test.ts",
+      "apps/studio/tests/unit/m4-wo9-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I134",
+    "title": "Explanation Has No Database, Canon, Import Or Latest Lookup",
+    "group": "Explanation",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo9-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I135",
+    "title": "Rules Evaluation Orchestration Adds No New Mechanics",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts",
+      "apps/studio/tests/unit/m4-wo10-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I136",
+    "title": "One Evaluation Run Uses One Exact Ruleset Context",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts",
+      "apps/studio/tests/unit/m4-wo10-static.test.ts",
+      "apps/studio/tests/integration/m4-rules-evaluation-api.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I137",
+    "title": "Steps Cannot Override Ruleset / Actor / Build / Runtime Context",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts",
+      "apps/studio/tests/unit/m4-wo10-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I138",
+    "title": "Evaluation Step Identity Is Exact",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I139",
+    "title": "Evaluation Step Ordering Is Explicit And Deterministic",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I140",
+    "title": "Operation Dispatch Is Closed And Static",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts",
+      "apps/studio/tests/unit/m4-wo10-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I141",
+    "title": "Bindings Copy Exact Values And Perform No Calculation",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts",
+      "apps/studio/tests/unit/m4-wo10-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I142",
+    "title": "Binding Targets Are Exact",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I143",
+    "title": "Step References May Only Target Earlier Steps",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts",
+      "apps/studio/tests/unit/m4-wo10-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I144",
+    "title": "Evaluation Plans Cannot Contain Dependency Cycles",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts",
+      "apps/studio/tests/unit/m4-wo10-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I145",
+    "title": "Child Evaluation Invalidity Does Not Mean Orchestration Invalidity",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts",
+      "apps/studio/tests/integration/m4-rules-evaluation-api.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I146",
+    "title": "Requirement False Does Not Automatically Block Orchestration",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts",
+      "apps/studio/tests/unit/m4-wo10-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I147",
+    "title": "Resource Insufficiency Does Not Automatically Block Orchestration",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts",
+      "apps/studio/tests/unit/m4-wo10-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I148",
+    "title": "Skipped Modifiers Do Not Automatically Block Orchestration",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts",
+      "apps/studio/tests/unit/m4-wo10-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I149",
+    "title": "Blocked Steps Do Not Execute Primitive Engines",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I150",
+    "title": "Independent Steps Continue After Unrelated Failure",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I151",
+    "title": "Exact Child RuleEngineResponses Are Preserved",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I152",
+    "title": "Validation Is An Explicit Operation",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I153",
+    "title": "Explanation Is An Explicit Operation",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I154",
+    "title": "Resource Apply Produces Projected State Only",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I155",
+    "title": "HTTP Evaluation Is Stateless",
+    "group": "Orchestration",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo10-static.test.ts",
+      "apps/studio/tests/integration/m4-rules-evaluation-api.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I156",
+    "title": "HTTP Ruleset Selection Requires Exact Manifest Or Release Identity",
+    "group": "Orchestration",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo10-static.test.ts",
+      "apps/studio/tests/integration/m4-rules-evaluation-api.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I157",
+    "title": "HTTP Callers Cannot Forge Resolved Ruleset Context",
+    "group": "Orchestration",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo10-static.test.ts",
+      "apps/studio/tests/integration/m4-rules-evaluation-api.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I158",
+    "title": "Rules Evaluation Performs No Database Writes",
+    "group": "Orchestration",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo10-static.test.ts",
+      "apps/studio/tests/integration/m4-rules-evaluation-api.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I159",
+    "title": "Orchestration Inputs / Outputs Are Immutable",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I160",
+    "title": "Orchestration Is Deterministic",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I161",
+    "title": "Evaluation History Is Reproducible From Exact Inputs",
+    "group": "Orchestration",
+    "guards": [
+      "apps/studio/tests/integration/m4-rules-evaluation-api.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I162",
+    "title": "Listed Cost And Runtime Payment Remain Distinct Across Orchestration",
+    "group": "Orchestration",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts",
+      "apps/studio/tests/integration/m4-rules-evaluation-api.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I162A",
+    "title": "Explanation Projection Uses An Exact Existing ExplanationDocument And Performs No Rule Recalculation",
+    "group": "Explanation Projection",
+    "guards": [
+      "packages/prowess-rules/src/orchestration.test.ts",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ]
+  },
+  {
+    "id": "M4-I163",
+    "title": "Rules Inspector Is A Presentation Layer Over WO10",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I164",
+    "title": "Rules Inspector Performs No Game Calculation",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I165",
+    "title": "Rules Inspector Requires Explicit Exact Ruleset Selection",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I166",
+    "title": "Rules Inspector Cannot Forge RulesetContext",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I167",
+    "title": "Context Editing Is Generic",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I168",
+    "title": "EvaluationPlan Editing Is Generic",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I169",
+    "title": "Plan Step Order Display Matches WO10 Order",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I170",
+    "title": "Binding UI Performs No Transform",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I171",
+    "title": "Rule Invalidity Is Distinct From Request Failure",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I172",
+    "title": "PARTIAL Runs Are First-Class UI Outcomes",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I173",
+    "title": "Requirement False Is Displayed As Not Satisfied",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I174",
+    "title": "Skipped Modifiers Are Displayed As Skipped",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I175",
+    "title": "Resource Insufficiency Is Displayed As Insufficiency",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I176",
+    "title": "Listed Values Remain Distinct From Runtime Payment",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I177",
+    "title": "Reservation Is Displayed Separately From Spending",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I178",
+    "title": "Validation Findings Preserve Exact Severity / Category / Code",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I179",
+    "title": "Explanation UI Renders WO9 Output",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I180",
+    "title": "Trace UI Preserves WO1 Trace Order",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I181",
+    "title": "Rule Provenance Is Displayed Without Reinterpretation",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I182",
+    "title": "Ruleset Provenance Is Displayed Without Latest/Current Reinterpretation",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I183",
+    "title": "Result Data Is Never Recalculated For Presentation",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I184",
+    "title": "Edited Inputs Mark Existing Results Stale",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I185",
+    "title": "Rules Inspector Evaluation Is Read-Only Against Persistence",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I186",
+    "title": "Rules Inspector Remains Developer-Only",
+    "guards": [
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I187",
+    "title": "Rules Inspector Supports Narrow/Mobile Layout Without Losing Actions",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  },
+  {
+    "id": "M4-I188",
+    "title": "Rules Inspector Uses Existing Studio Accessibility Conventions",
+    "guards": [
+      "apps/studio/tests/unit/m4-rules-lab.test.tsx",
+      "apps/studio/tests/unit/m4-wo11-static.test.ts"
+    ],
+    "group": "Inspector"
+  }
+]

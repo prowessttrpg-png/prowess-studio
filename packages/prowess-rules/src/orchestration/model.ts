@@ -1,3 +1,4 @@
+import { deepFreeze } from "../internal/plain-data.js";
 import type { JsonObject, JsonValue } from "@prowess/model";
 import type { RuleEngineResponse } from "../result/rule-engine-response.js";
 
@@ -12,7 +13,7 @@ import type { RuleEngineResponse } from "../result/rule-engine-response.js";
  * The closed operation vocabulary — each maps to exactly one public primitive. No M5 / Prowess operation exists here
  * (no spell cost, affinity, mana lock, weapon damage …); those will be compiled INTO plans of these operations.
  */
-export const EVALUATION_OPERATIONS = [
+export const EVALUATION_OPERATIONS = deepFreeze([
   "FORMULA",
   "KEYWORD",
   "REQUIREMENT",
@@ -28,11 +29,11 @@ export const EVALUATION_OPERATIONS = [
   "VALIDATION",
   "EXPLANATION",
   "EXPLANATION_PROJECT",
-] as const;
+] as const);
 export type EvaluationOperation = (typeof EVALUATION_OPERATIONS)[number];
 
 /** The named arguments each operation's input may carry — the primitive's own parameters, nothing else. */
-export const EVALUATION_OPERATION_INPUT_FIELDS: Readonly<Record<EvaluationOperation, readonly string[]>> = {
+export const EVALUATION_OPERATION_INPUT_FIELDS: Readonly<Record<EvaluationOperation, readonly string[]>> = deepFreeze({
   FORMULA: ["program", "variables"],
   KEYWORD: ["contributions"],
   REQUIREMENT: ["requirement", "facts"],
@@ -48,10 +49,10 @@ export const EVALUATION_OPERATION_INPUT_FIELDS: Readonly<Record<EvaluationOperat
   VALIDATION: ["request"],
   EXPLANATION: ["input"],
   EXPLANATION_PROJECT: ["document", "level"],
-};
+});
 
 /** The four WO1 context families a binding may read from. */
-export const EVALUATION_CONTEXT_FAMILIES = ["RULESET", "ACTOR", "BUILD", "RUNTIME"] as const;
+export const EVALUATION_CONTEXT_FAMILIES = deepFreeze(["RULESET", "ACTOR", "BUILD", "RUNTIME"] as const);
 export type EvaluationContextFamily = (typeof EVALUATION_CONTEXT_FAMILIES)[number];
 
 /**
@@ -86,15 +87,15 @@ export interface EvaluationPlan {
 }
 
 /** Whether a step RAN — not whether its rule evaluation was valid (its response says that). */
-export const EVALUATION_STEP_EXECUTION_STATUSES = ["EXECUTED", "BLOCKED"] as const;
+export const EVALUATION_STEP_EXECUTION_STATUSES = deepFreeze(["EXECUTED", "BLOCKED"] as const);
 export type EvaluationStepExecutionStatus = (typeof EVALUATION_STEP_EXECUTION_STATUSES)[number];
 
 /** Whether every step ran. Not a rule-validity status. */
-export const EVALUATION_RUN_EXECUTION_STATUSES = ["COMPLETE", "PARTIAL"] as const;
+export const EVALUATION_RUN_EXECUTION_STATUSES = deepFreeze(["COMPLETE", "PARTIAL"] as const);
 export type EvaluationRunExecutionStatus = (typeof EVALUATION_RUN_EXECUTION_STATUSES)[number];
 
 /** Why a binding's value was unavailable at run time. */
-export const EVALUATION_BLOCK_REASONS = ["CONTEXT_UNAVAILABLE", "REFERENCE_NOT_FOUND", "DEPENDENCY_BLOCKED", "DEPENDENCY_VALUE_UNAVAILABLE"] as const;
+export const EVALUATION_BLOCK_REASONS = deepFreeze(["CONTEXT_UNAVAILABLE", "REFERENCE_NOT_FOUND", "DEPENDENCY_BLOCKED", "DEPENDENCY_VALUE_UNAVAILABLE"] as const);
 export type EvaluationBlockReason = (typeof EVALUATION_BLOCK_REASONS)[number];
 
 export interface EvaluationBlockedBinding {
@@ -125,7 +126,7 @@ export interface EvaluationRun {
 }
 
 /** The orchestrator's OWN plan / request diagnostics. A child's INVALID response is never one of these. */
-export const ORCHESTRATION_DIAGNOSTIC_CODES = {
+export const ORCHESTRATION_DIAGNOSTIC_CODES = deepFreeze({
   INVALID_REQUEST: "ORCHESTRATION.INVALID_REQUEST",
   INVALID_PLAN: "ORCHESTRATION.INVALID_PLAN",
   INVALID_STEP: "ORCHESTRATION.INVALID_STEP",
@@ -138,14 +139,14 @@ export const ORCHESTRATION_DIAGNOSTIC_CODES = {
   INVALID_REFERENCE: "ORCHESTRATION.INVALID_REFERENCE",
   INVALID_DESIGNATION: "ORCHESTRATION.INVALID_DESIGNATION",
   LIMIT_EXCEEDED: "ORCHESTRATION.LIMIT_EXCEEDED",
-} as const;
+} as const);
 export type OrchestrationDiagnosticCode = (typeof ORCHESTRATION_DIAGNOSTIC_CODES)[keyof typeof ORCHESTRATION_DIAGNOSTIC_CODES];
 
 /** Deterministic limits — exceeding one fails closed; nothing is ignored or truncated. */
-export const ORCHESTRATION_LIMITS = {
+export const ORCHESTRATION_LIMITS = deepFreeze({
   MAX_STEPS: 4096,
   MAX_BINDINGS_PER_STEP: 4096,
   MAX_TOTAL_BINDINGS: 32_768,
   MAX_POINTER_LENGTH: 2048,
   MAX_POINTER_TOKENS: 64,
-} as const;
+} as const);

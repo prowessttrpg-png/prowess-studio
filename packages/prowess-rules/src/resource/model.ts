@@ -1,3 +1,4 @@
+import { deepFreeze } from "../internal/plain-data.js";
 import type { RuleProvenance } from "../result/provenance.js";
 
 /**
@@ -12,7 +13,7 @@ import type { RuleProvenance } from "../result/provenance.js";
  * The broader architecture's ResourceDefinition categories. METADATA ONLY: no kind is ever spent first, refreshed,
  * expired, clamped or ordered automatically — every behaviour is an explicit operation or explicit payment order.
  */
-export const RESOURCE_KINDS = ["POOL", "ACTION", "CAPACITY", "SLOT", "TRACKER", "TEMPORARY_POOL", "RESERVED_CAPACITY"] as const;
+export const RESOURCE_KINDS = deepFreeze(["POOL", "ACTION", "CAPACITY", "SLOT", "TRACKER", "TEMPORARY_POOL", "RESERVED_CAPACITY"] as const);
 export type ResourceKind = (typeof RESOURCE_KINDS)[number];
 
 /**
@@ -39,14 +40,14 @@ export interface ResourceSnapshot {
 }
 
 /** Ceiling for restoration and refresh. AVAILABLE_MAXIMUM needs a finite maximum. */
-export const RESOURCE_CEILINGS = ["NOMINAL_MAXIMUM", "AVAILABLE_MAXIMUM"] as const;
+export const RESOURCE_CEILINGS = deepFreeze(["NOMINAL_MAXIMUM", "AVAILABLE_MAXIMUM"] as const);
 export type ResourceCeiling = (typeof RESOURCE_CEILINGS)[number];
 
 /** What a restoration that exceeds its ceiling does. Always explicit. */
-export const RESOURCE_OVERFLOW_POLICIES = ["CLAMP", "INVALID"] as const;
+export const RESOURCE_OVERFLOW_POLICIES = deepFreeze(["CLAMP", "INVALID"] as const);
 export type ResourceOverflowPolicy = (typeof RESOURCE_OVERFLOW_POLICIES)[number];
 
-export const RESOURCE_TRANSITIONS = ["SPEND", "RESTORE", "SET_CURRENT", "RESERVE_CAPACITY", "RELEASE_CAPACITY", "REFRESH"] as const;
+export const RESOURCE_TRANSITIONS = deepFreeze(["SPEND", "RESTORE", "SET_CURRENT", "RESERVE_CAPACITY", "RELEASE_CAPACITY", "REFRESH"] as const);
 export type ResourceTransition = (typeof RESOURCE_TRANSITIONS)[number];
 
 /**
@@ -108,7 +109,7 @@ export interface PaymentAllocation {
   readonly provenance: RuleProvenance | null;
 }
 
-export const PAYMENT_MODES = ["PREVIEW", "APPLY"] as const;
+export const PAYMENT_MODES = deepFreeze(["PREVIEW", "APPLY"] as const);
 export type PaymentMode = (typeof PAYMENT_MODES)[number];
 
 /**
@@ -132,7 +133,7 @@ export interface PaymentResult {
  * Resource diagnostics: malformed input or a request the caller explicitly declared invalid. Never used for
  * insufficient resources — that is `applied: false` / `canPay: false` with a shortfall.
  */
-export const RESOURCE_DIAGNOSTIC_CODES = {
+export const RESOURCE_DIAGNOSTIC_CODES = deepFreeze({
   INVALID_STATE: "RESOURCE.INVALID_STATE",
   DUPLICATE_KEY: "RESOURCE.DUPLICATE_KEY",
   NOT_FOUND: "RESOURCE.NOT_FOUND",
@@ -149,7 +150,7 @@ export const RESOURCE_DIAGNOSTIC_CODES = {
   DUPLICATE_PAYMENT_SOURCE: "RESOURCE.DUPLICATE_PAYMENT_SOURCE",
   NON_FINITE_RESULT: "RESOURCE.NON_FINITE_RESULT",
   LIMIT_EXCEEDED: "RESOURCE.LIMIT_EXCEEDED",
-} as const;
+} as const);
 export type ResourceDiagnosticCode = (typeof RESOURCE_DIAGNOSTIC_CODES)[keyof typeof RESOURCE_DIAGNOSTIC_CODES];
 
 export interface ResourceDiagnostic {
@@ -161,7 +162,7 @@ export interface ResourceDiagnostic {
 }
 
 /** Deterministic complexity limits. */
-export const RESOURCE_LIMITS = {
+export const RESOURCE_LIMITS = deepFreeze({
   MAX_RESOURCES: 4096,
   MAX_PAYMENT_SOURCES: 4096,
-} as const;
+} as const);

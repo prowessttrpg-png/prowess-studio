@@ -33,11 +33,13 @@ import { analyzeAst, childrenOf, parseFormulaExpression } from "./parser.js";
  * arithmetic. Arithmetic is IEEE-754 JavaScript number arithmetic on finite values only: every operation's result is
  * checked, division by zero and non-finite results fail closed, and `-0` is normalized to `0` at public boundaries.
  */
-export const FORMULA_ROUNDING_MODES = ["NONE", "FLOOR", "CEIL"] as const;
+export const FORMULA_ROUNDING_MODES = deepFreeze(["NONE", "FLOOR", "CEIL"] as const);
 export type FormulaRoundingMode = (typeof FORMULA_ROUNDING_MODES)[number];
 
 /** Opaque unit label grammar: a letter, then letters / digits / `_` / `.` / `-`, at most 64 characters. */
-export const FORMULA_UNIT_PATTERN = /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/;
+const FORMULA_UNIT_PATTERN_INTERNAL = /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/;
+/** Read-only grammar metadata; validation keeps a separate private matcher. */
+export const FORMULA_UNIT_PATTERN = deepFreeze(new RegExp(FORMULA_UNIT_PATTERN_INTERNAL));
 
 /**
  * The pure Formula program a caller supplies (§31). Exactly one of `expression` (authored source, never rewritten)
@@ -188,7 +190,7 @@ export function validateFormulaProgram(program: unknown): FormulaProgramValidati
   }
 
   const unit = program.unit ?? null;
-  if (unit !== null && (typeof unit !== "string" || !FORMULA_UNIT_PATTERN.test(unit))) {
+  if (unit !== null && (typeof unit !== "string" || !FORMULA_UNIT_PATTERN_INTERNAL.test(unit))) {
     out.push(diagnostic(FORMULA_DIAGNOSTIC_CODES.INVALID_DEFINITION, "unit must be a short label (a letter, then letters, digits, _ . -; at most 64)", { path: "/unit" }));
   }
 
