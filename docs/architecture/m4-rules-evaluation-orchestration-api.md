@@ -79,7 +79,7 @@ The run's contexts are the M4-WO1 ones, reused unchanged and normalized once by 
 - `ActorContext | null`, `BuildContext | null` and `RuntimeContext | null`.
 
 Every step uses that same set: a step has no context field, so it cannot override the Ruleset or any other context.
-Every executed child receives the same exact `RulesetContext` and records the same provenance.
+Evaluation primitives receive the same exact `RulesetContext`. WO10A projection preserves its exact existing document and the direct WO9 response, including null envelope provenance; document and section provenance remain intact.
 
 Context keys mean nothing to WO10: `ACTOR /stats/divisor` is just a path.
 
@@ -93,7 +93,7 @@ EvaluationStep { stepKey, order, operation, input, bindings[] }
 - **Identity:** `stepKey` is exact. An identical duplicate collapses; a conflicting one is `DUPLICATE_STEP`.
 - **Order:** `order` ascending, then `stepKey` in UTF-16 code units. Input array order and binding array order never
   matter, and steps may share an order.
-- **Operations:** a closed, static set of 14, dispatched through one exhaustive `switch`. There is no registry,
+- **Operations:** a closed, static set of 15 after WO10A, dispatched through one exhaustive `switch`. There is no registry,
   dynamic import, string lookup or callback.
 
 | Operation | Primitive | Input fields |
@@ -287,7 +287,7 @@ route. Body fields: `ruleset`, `evaluationKey`, `actor`, `build`, `runtime`, `pl
   authentication system is introduced.
 - **Request ids:** HTTP request ids remain transport metadata and never enter Rules Engine identity. `evaluationKey`
   comes from the caller, and no time, duration or random id appears in the engine output.
-- **API client:** no Studio API client is added now. WO11 is its first consumer and will add one alongside the UI
+- **API client:** WO10 originally added no Studio API client. The merged WO11 Inspector now consumes the endpoint through its dedicated API client alongside the UI
   under the existing `src/api-client` conventions.
 
 ## Listed cost / payment across the full flow (M4-I14, M4-I162)

@@ -5,7 +5,7 @@ import { projectExplanation } from "../explanation/project.js";
 import type { ExplanationLevel } from "../explanation/model.js";
 import { buildExplanation } from "../explanation/build.js";
 import { evaluateFormula } from "../formula/evaluate.js";
-import { clonePlainData, isPlainObject, jsonPointer } from "../internal/plain-data.js";
+import { clonePlainData, hasUnsafeDataProperties, isPlainObject, jsonPointer } from "../internal/plain-data.js";
 import { resolveKeywords } from "../keyword/resolve.js";
 import { evaluateModifiers } from "../modifier/evaluate.js";
 import { evaluateRequirement } from "../requirement/evaluate.js";
@@ -104,7 +104,7 @@ const ownValue = (value: unknown, key: string): unknown => {
 
 export function orchestrateRulesEvaluation(input: unknown): RuleEngineResponse<EvaluationRun> {
   const contexts = ownValue(input, "contexts");
-  const shapeOk = isPlainObject(input) && Object.keys(input).every((k) => ["evaluationKey", "contexts", "plan"].includes(k)) && isPlainObject(contexts);
+  const shapeOk = isPlainObject(input) && !hasUnsafeDataProperties(input) && Object.keys(input).every((k) => ["evaluationKey", "contexts", "plan"].includes(k)) && isPlainObject(contexts) && !hasUnsafeDataProperties(contexts);
   return evaluate<EvaluationRun | null>(
     {
       kind: ORCHESTRATION_EVALUATION_KIND,

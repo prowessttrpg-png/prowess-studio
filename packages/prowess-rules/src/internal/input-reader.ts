@@ -17,7 +17,7 @@ import { isEntityType, isValidCanonicalKey, isUuidString, type CanonicalKey, typ
 import { isValidContextKey, MAX_CONTEXT_KEY_LENGTH } from "../context/context-key.js";
 import type { ContextScalar, EntityVersionReference } from "../context/shared.js";
 import { RULE_ENGINE_ERROR_CODES, type EngineErrorInput } from "../errors/engine-error.js";
-import { isPlainObject, jsonPointer, type PathSegment, type PlainDataProblem } from "./plain-data.js";
+import { hasUnsafeDataProperties, isPlainObject, jsonPointer, type PathSegment, type PlainDataProblem } from "./plain-data.js";
 
 export const MAX_TEXT_LENGTH = 10_000;
 
@@ -64,6 +64,10 @@ export function readRecord(
 ): Record<string, unknown> | null {
   if (!isPlainObject(value)) {
     p.invalid(at, `expected an object, got ${describe(value)}`);
+    return null;
+  }
+  if (hasUnsafeDataProperties(value, true)) {
+    p.invalid(at, "accessors or non-plain array properties are not plain data");
     return null;
   }
   for (const key of Object.keys(value).sort()) {

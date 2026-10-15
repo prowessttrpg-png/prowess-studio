@@ -1,3 +1,4 @@
+import { deepFreeze } from "../internal/plain-data.js";
 import type { EntityId, JsonObject, KeywordDefinitionId } from "@prowess/model";
 import type { RuleProvenance } from "../result/provenance.js";
 
@@ -17,13 +18,13 @@ import type { RuleProvenance } from "../result/provenance.js";
  */
 
 /** Numeric comparison operators: standard comparison of finite numbers, no epsilon. */
-export const REQUIREMENT_NUMERIC_OPERATORS = ["==", "!=", "<", "<=", ">", ">="] as const;
+export const REQUIREMENT_NUMERIC_OPERATORS = deepFreeze(["==", "!=", "<", "<=", ">", ">="] as const);
 export type RequirementNumericOperator = (typeof REQUIREMENT_NUMERIC_OPERATORS)[number];
 
-export const REQUIREMENT_PREDICATE_KINDS = ["NUMERIC_COMPARE", "RANK_AT_LEAST", "KEYWORD_PRESENT", "SET_CONTAINS", "ENTITY_OWNED"] as const;
+export const REQUIREMENT_PREDICATE_KINDS = deepFreeze(["NUMERIC_COMPARE", "RANK_AT_LEAST", "KEYWORD_PRESENT", "SET_CONTAINS", "ENTITY_OWNED"] as const);
 export type RequirementPredicateKind = (typeof REQUIREMENT_PREDICATE_KINDS)[number];
 
-export const REQUIREMENT_GROUP_KINDS = ["ALL", "ANY", "NONE"] as const;
+export const REQUIREMENT_GROUP_KINDS = deepFreeze(["ALL", "ANY", "NONE"] as const);
 export type RequirementGroupKind = (typeof REQUIREMENT_GROUP_KINDS)[number];
 
 /** A numeric fact compared with a finite expected value. */
@@ -120,7 +121,7 @@ export interface RequirementEvaluation {
  * Requirement diagnostics: the Requirement or the facts cannot be evaluated. Never used for a normal false result —
  * there is deliberately no "not met" code.
  */
-export const REQUIREMENT_DIAGNOSTIC_CODES = {
+export const REQUIREMENT_DIAGNOSTIC_CODES = deepFreeze({
   /** Malformed node: unknown field, bad key, non-finite threshold, empty group, cyclic or non-plain data. */
   INVALID_DEFINITION: "REQUIREMENT.INVALID_DEFINITION",
   /** A predicate kind the engine does not execute — including CUSTOM, which never runs code. */
@@ -135,7 +136,7 @@ export const REQUIREMENT_DIAGNOSTIC_CODES = {
   MISSING_FACT: "REQUIREMENT.MISSING_FACT",
   /** A predicate reads a fact key that exists as a different fact kind. */
   TYPE_MISMATCH: "REQUIREMENT.TYPE_MISMATCH",
-} as const;
+} as const);
 
 export type RequirementDiagnosticCode = (typeof REQUIREMENT_DIAGNOSTIC_CODES)[keyof typeof REQUIREMENT_DIAGNOSTIC_CODES];
 
@@ -150,8 +151,8 @@ export interface RequirementDiagnostic {
 }
 
 /** Deterministic complexity limits (§90). */
-export const REQUIREMENT_LIMITS = {
+export const REQUIREMENT_LIMITS = deepFreeze({
   MAX_NODES: 2048,
   MAX_DEPTH: 64,
   MAX_CHILDREN_PER_GROUP: 512,
-} as const;
+} as const);

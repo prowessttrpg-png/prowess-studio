@@ -1,3 +1,4 @@
+import { deepFreeze } from "../internal/plain-data.js";
 import type { JsonObject } from "@prowess/model";
 import type { RuleProvenance } from "../result/provenance.js";
 import type { RuleEngineResponseStatus } from "../result/rule-engine-response.js";
@@ -13,7 +14,7 @@ import type { ValidationCategory, ValidationSeverity } from "../validation/valid
  */
 
 /** PASS and NOT_APPLICABLE emit nothing; FAIL emits the check's declared finding. Outcomes are data, never callbacks. */
-export const VALIDATION_CHECK_OUTCOMES = ["PASS", "FAIL", "NOT_APPLICABLE"] as const;
+export const VALIDATION_CHECK_OUTCOMES = deepFreeze(["PASS", "FAIL", "NOT_APPLICABLE"] as const);
 export type ValidationCheckOutcome = (typeof VALIDATION_CHECK_OUTCOMES)[number];
 
 /**
@@ -78,7 +79,7 @@ export interface ValidationSummary {
 }
 
 /** The Validation Engine's OWN input / contract failures. Domain findings keep their caller-owned codes. */
-export const VALIDATION_DIAGNOSTIC_CODES = {
+export const VALIDATION_DIAGNOSTIC_CODES = deepFreeze({
   INVALID_REQUEST: "VALIDATION.INVALID_REQUEST",
   INVALID_CHECK: "VALIDATION.INVALID_CHECK",
   DUPLICATE_CHECK: "VALIDATION.DUPLICATE_CHECK",
@@ -87,12 +88,12 @@ export const VALIDATION_DIAGNOSTIC_CODES = {
   INVALID_CODE: "VALIDATION.INVALID_CODE",
   INVALID_PATH: "VALIDATION.INVALID_PATH",
   LIMIT_EXCEEDED: "VALIDATION.LIMIT_EXCEEDED",
-} as const;
+} as const);
 export type ValidationDiagnosticCode = (typeof VALIDATION_DIAGNOSTIC_CODES)[keyof typeof VALIDATION_DIAGNOSTIC_CODES];
 
 /** Deterministic limits. Exceeding one fails closed — findings are never silently dropped. */
-export const VALIDATION_LIMITS = {
+export const VALIDATION_LIMITS = deepFreeze({
   MAX_SOURCES: 4096,
   MAX_CHECKS: 10_000,
   MAX_FINDINGS: 20_000,
-} as const;
+} as const);

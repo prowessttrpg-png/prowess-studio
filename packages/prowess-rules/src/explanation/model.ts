@@ -1,3 +1,4 @@
+import { deepFreeze } from "../internal/plain-data.js";
 import type { JsonValue } from "@prowess/model";
 import type { EvaluationValue } from "../result/evaluation-value.js";
 import type { RuleProvenance, RulesetProvenance } from "../result/provenance.js";
@@ -13,11 +14,11 @@ import type { TraceInput } from "../trace/calculation-trace.js";
  * There is one canonical DETAILED document; SUMMARY is a filter over it.
  */
 
-export const EXPLANATION_LEVELS = ["DETAILED", "SUMMARY"] as const;
+export const EXPLANATION_LEVELS = deepFreeze(["DETAILED", "SUMMARY"] as const);
 export type ExplanationLevel = (typeof EXPLANATION_LEVELS)[number];
 
 /** Which engine layer produced a contribution. Always explicit; never guessed from the object's shape. */
-export const EXPLANATION_CONTRIBUTION_KINDS = ["FORMULA", "KEYWORD", "REQUIREMENT", "MODIFIER", "RESOURCE", "VALIDATION", "GENERIC"] as const;
+export const EXPLANATION_CONTRIBUTION_KINDS = deepFreeze(["FORMULA", "KEYWORD", "REQUIREMENT", "MODIFIER", "RESOURCE", "VALIDATION", "GENERIC"] as const);
 export type ExplanationContributionKind = (typeof EXPLANATION_CONTRIBUTION_KINDS)[number];
 
 /**
@@ -25,7 +26,7 @@ export type ExplanationContributionKind = (typeof EXPLANATION_CONTRIBUTION_KINDS
  * shape). A valid false Requirement is NOT_SATISFIED (not INVALID); a skipped modifier is SKIPPED (not failed); an
  * unaffordable payment is PAYMENT_UNAVAILABLE (not an engine failure).
  */
-export const EXPLANATION_STATUSES = [
+export const EXPLANATION_STATUSES = deepFreeze([
   "EVALUATED",
   "RESOLVED",
   "SATISFIED",
@@ -43,11 +44,11 @@ export const EXPLANATION_STATUSES = [
   "VALID_WITH_WARNINGS",
   "INVALID",
   "ENGINE_FAILURE",
-] as const;
+] as const);
 export type ExplanationStatus = (typeof EXPLANATION_STATUSES)[number];
 
 /** Short canonical phrases — deterministic labels, not narrative. Localization belongs to the UI. */
-export const EXPLANATION_STATUS_LABELS: Readonly<Record<ExplanationStatus, string>> = {
+export const EXPLANATION_STATUS_LABELS: Readonly<Record<ExplanationStatus, string>> = deepFreeze({
   EVALUATED: "Evaluated",
   RESOLVED: "Resolved",
   SATISFIED: "Requirement satisfied",
@@ -65,7 +66,7 @@ export const EXPLANATION_STATUS_LABELS: Readonly<Record<ExplanationStatus, strin
   VALID_WITH_WARNINGS: "Valid with warnings",
   INVALID: "Invalid evaluation",
   ENGINE_FAILURE: "Engine failure",
-};
+});
 
 /** One exact completed result to explain, with caller-supplied presentation metadata (never mechanics). */
 export interface ExplanationContribution {
@@ -165,19 +166,19 @@ export interface ExplanationDocument {
   readonly sections: readonly ExplanationSection[];
 }
 
-export const EXPLANATION_DIAGNOSTIC_CODES = {
+export const EXPLANATION_DIAGNOSTIC_CODES = deepFreeze({
   INVALID_INPUT: "EXPLANATION.INVALID_INPUT",
   INVALID_CONTRIBUTION: "EXPLANATION.INVALID_CONTRIBUTION",
   UNSUPPORTED_CONTRIBUTION: "EXPLANATION.UNSUPPORTED_CONTRIBUTION",
   DUPLICATE_CONTRIBUTION: "EXPLANATION.DUPLICATE_CONTRIBUTION",
   INVALID_TRACE_REFERENCE: "EXPLANATION.INVALID_TRACE_REFERENCE",
   LIMIT_EXCEEDED: "EXPLANATION.LIMIT_EXCEEDED",
-} as const;
+} as const);
 
 /** Deterministic limits; exceeding one fails closed — nothing is silently omitted. */
-export const EXPLANATION_LIMITS = {
+export const EXPLANATION_LIMITS = deepFreeze({
   MAX_CONTRIBUTIONS: 4096,
   MAX_TRACE_NODES_PER_CONTRIBUTION: 50_000,
   MAX_TOTAL_NODES: 100_000,
   MAX_TRACE_DEPTH: 512,
-} as const;
+} as const);

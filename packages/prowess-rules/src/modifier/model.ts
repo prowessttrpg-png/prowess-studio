@@ -1,3 +1,4 @@
+import { deepFreeze } from "../internal/plain-data.js";
 import type { RuleProvenance } from "../result/provenance.js";
 import type { RequirementNode } from "../requirement/model.js";
 
@@ -10,11 +11,11 @@ import type { RequirementNode } from "../requirement/model.js";
  */
 
 /** The three generic target families. Not game identities. */
-export const MODIFIER_TARGET_KINDS = ["NUMERIC", "ORDERED", "ROLL_SIGNAL"] as const;
+export const MODIFIER_TARGET_KINDS = deepFreeze(["NUMERIC", "ORDERED", "ROLL_SIGNAL"] as const);
 export type ModifierTargetKind = (typeof MODIFIER_TARGET_KINDS)[number];
 
 /** What happens when a step would leave an ORDERED ladder. Always explicit — there is no default. */
-export const MODIFIER_BOUNDARY_POLICIES = ["CLAMP", "INVALID"] as const;
+export const MODIFIER_BOUNDARY_POLICIES = deepFreeze(["CLAMP", "INVALID"] as const);
 export type ModifierBoundaryPolicy = (typeof MODIFIER_BOUNDARY_POLICIES)[number];
 
 export interface NumericTarget {
@@ -44,10 +45,10 @@ export type ModifierTarget = NumericTarget | OrderedTarget | RollSignalTarget;
  * The PAS-02 RuleModifier operation vocabulary, complete. Numeric operations need a NUMERIC target, steps an ORDERED
  * target, signals a ROLL_SIGNAL target.
  */
-export const MODIFIER_NUMERIC_OPERATIONS = ["ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "SET", "MIN", "MAX", "INCREASE_PERCENT", "REDUCE_PERCENT"] as const;
-export const MODIFIER_STEP_OPERATIONS = ["STEP_UP", "STEP_DOWN"] as const;
-export const MODIFIER_SIGNAL_OPERATIONS = ["ADVANTAGE", "DISADVANTAGE"] as const;
-export const MODIFIER_OPERATIONS = [...MODIFIER_NUMERIC_OPERATIONS, ...MODIFIER_STEP_OPERATIONS, ...MODIFIER_SIGNAL_OPERATIONS] as const;
+export const MODIFIER_NUMERIC_OPERATIONS = deepFreeze(["ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "SET", "MIN", "MAX", "INCREASE_PERCENT", "REDUCE_PERCENT"] as const);
+export const MODIFIER_STEP_OPERATIONS = deepFreeze(["STEP_UP", "STEP_DOWN"] as const);
+export const MODIFIER_SIGNAL_OPERATIONS = deepFreeze(["ADVANTAGE", "DISADVANTAGE"] as const);
+export const MODIFIER_OPERATIONS = deepFreeze([...MODIFIER_NUMERIC_OPERATIONS, ...MODIFIER_STEP_OPERATIONS, ...MODIFIER_SIGNAL_OPERATIONS] as const);
 export type ModifierOperation = (typeof MODIFIER_OPERATIONS)[number];
 
 /** An explicit pipeline phase: lower `phaseOrder` applies first. Phase names carry no behaviour. */
@@ -60,7 +61,7 @@ export interface ModifierPhase {
  * STACK: every applicable modifier applies, in the explicit order. UNIQUE: at most one distinct applicable modifier per
  * `stackingKey` — identical duplicates collapse, different ones are a STACKING_CONFLICT. There is no "strongest wins".
  */
-export const MODIFIER_STACKING_POLICIES = ["STACK", "UNIQUE"] as const;
+export const MODIFIER_STACKING_POLICIES = deepFreeze(["STACK", "UNIQUE"] as const);
 export type ModifierStacking = { readonly policy: "STACK" } | { readonly policy: "UNIQUE"; readonly stackingKey: string };
 
 /** Generic origin of a modifier. `sourceType` is never interpreted. */
@@ -103,7 +104,7 @@ export type ModifierTargetState =
 /** A value as seen by one outcome: a number, an ordered step key, or the signal counts so far. */
 export type ModifierValue = number | string | { readonly advantage: number; readonly disadvantage: number };
 
-export const MODIFIER_OUTCOME_STATUSES = ["APPLIED", "SKIPPED_CONDITION", "DEDUPLICATED"] as const;
+export const MODIFIER_OUTCOME_STATUSES = deepFreeze(["APPLIED", "SKIPPED_CONDITION", "DEDUPLICATED"] as const);
 export type ModifierOutcomeStatus = (typeof MODIFIER_OUTCOME_STATUSES)[number];
 
 /** One modifier's outcome, in application order. `before` === `after` unless APPLIED. */
@@ -135,7 +136,7 @@ export interface ModifierEvaluationResult {
   readonly outcomes: readonly ModifierOutcome[];
 }
 
-export const MODIFIER_DIAGNOSTIC_CODES = {
+export const MODIFIER_DIAGNOSTIC_CODES = deepFreeze({
   INVALID_DEFINITION: "MODIFIER.INVALID_DEFINITION",
   INVALID_TARGET: "MODIFIER.INVALID_TARGET",
   TARGET_TYPE_MISMATCH: "MODIFIER.TARGET_TYPE_MISMATCH",
@@ -148,7 +149,7 @@ export const MODIFIER_DIAGNOSTIC_CODES = {
   STEP_OUT_OF_RANGE: "MODIFIER.STEP_OUT_OF_RANGE",
   INVALID_CONDITION: "MODIFIER.INVALID_CONDITION",
   LIMIT_EXCEEDED: "MODIFIER.LIMIT_EXCEEDED",
-} as const;
+} as const);
 export type ModifierDiagnosticCode = (typeof MODIFIER_DIAGNOSTIC_CODES)[keyof typeof MODIFIER_DIAGNOSTIC_CODES];
 
 export interface ModifierDiagnostic {
@@ -163,8 +164,8 @@ export interface ModifierDiagnostic {
 }
 
 /** Deterministic complexity limits. Condition trees keep M4-WO5's own limits. */
-export const MODIFIER_LIMITS = {
+export const MODIFIER_LIMITS = deepFreeze({
   MAX_TARGETS: 2048,
   MAX_MODIFIERS: 10_000,
   MAX_STEPS_PER_TARGET: 2048,
-} as const;
+} as const);

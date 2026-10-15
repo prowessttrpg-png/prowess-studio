@@ -7,7 +7,7 @@
  */
 
 /** Keys that are never accepted in caller-supplied keyed collections (prototype-pollution guard). */
-export const FORBIDDEN_OBJECT_KEYS: readonly string[] = ["__proto__", "constructor", "prototype"];
+export const FORBIDDEN_OBJECT_KEYS: readonly string[] = deepFreeze(["__proto__", "constructor", "prototype"]);
 
 export type PlainDataProblemKind = "NON_FINITE_NUMBER" | "NOT_PLAIN_DATA";
 
@@ -28,6 +28,26 @@ export function isPlainObject(value: unknown): value is Record<string, unknown> 
   if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
   const proto: unknown = Object.getPrototypeOf(value);
   return proto === Object.prototype || proto === null;
+}
+
+/** Reject accessors and non-plain arrays before any caller-overridable method is used. Cycles are visited once. */
+export function hasUnsafeDataProperties(value: unknown, deep = false): boolean {
+  const pending: unknown[] = [value];
+  const seen = new Set<object>();
+  while (pending.length > 0) {
+    const item = pending.pop();
+    if (item === null || typeof item !== "object" || seen.has(item)) continue;
+    seen.add(item);
+    if (Array.isArray(item)) {
+      const names = Object.getOwnPropertyNames(item);
+      if (Object.getPrototypeOf(item) !== Array.prototype || Object.getOwnPropertySymbols(item).length > 0 || names.length !== item.length + 1 || names.some(key => key !== "length" && (!/^(0|[1-9]\d*)$/.test(key) || Number(key) >= item.length))) return true;
+    }
+    for (const descriptor of Object.values(Object.getOwnPropertyDescriptors(item))) {
+      if (!("value" in descriptor)) return true;
+      if (deep) pending.push(descriptor.value);
+    }
+  }
+  return false;
 }
 
 /**
@@ -55,18 +75,22 @@ export function inspectPlainData(value: unknown, path: readonly PathSegment[] = 
       return;
     }
     if (Array.isArray(v)) {
+      if (hasUnsafeDataProperties(v)) {
+        problems.push({ kind: "NOT_PLAIN_DATA", path: jsonPointer(at), reason: "accessors or non-plain array properties are not plain data" });
+        return;
+      }
       ancestors.push(v);
       for (let i = 0; i < v.length; i += 1) {
-        if (!(i in v)) problems.push({ kind: "NOT_PLAIN_DATA", path: jsonPointer([...at, i]), reason: "sparse array hole" });
-        else visit(v[i], [...at, i]);
+        const descriptor = Object.getOwnPropertyDescriptor(v, String(i));
+        if (descriptor === undefined) problems.push({ kind: "NOT_PLAIN_DATA", path: jsonPointer([...at, i]), reason: "sparse array hole" });
+        else if (!("value" in descriptor)) problems.push({ kind: "NOT_PLAIN_DATA", path: jsonPointer([...at, i]), reason: "accessor properties are not plain data" });
+        else visit(descriptor.value, [...at, i]);
       }
       ancestors.pop();
       return;
     }
     if (!isPlainObject(v)) {
-      const ctor: unknown = (v as { constructor?: unknown }).constructor;
-      const name = typeof ctor === "function" && typeof ctor.name === "string" && ctor.name.length > 0 ? ctor.name : "non-plain";
-      problems.push({ kind: "NOT_PLAIN_DATA", path: jsonPointer(at), reason: `${name} object is not plain data` });
+      problems.push({ kind: "NOT_PLAIN_DATA", path: jsonPointer(at), reason: "non-plain object is not plain data" });
       return;
     }
     if (Object.getOwnPropertySymbols(v).length > 0) {

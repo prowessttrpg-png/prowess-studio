@@ -139,7 +139,7 @@ describe("M4-WO10 static audit — the pure orchestrator", () => {
   );
 
   it("M4-I140: the operation vocabulary is exactly the 15 primitives, and dispatch is one closed switch over them", () => {
-    expect(orc("model.ts")).toContain(`export const EVALUATION_OPERATIONS = [\n  ${OPERATIONS.map((o) => `"${o}"`).join(",\n  ")},\n] as const;`);
+    expect(orc("model.ts")).toContain(`export const EVALUATION_OPERATIONS = deepFreeze([\n  ${OPERATIONS.map((o) => `"${o}"`).join(",\n  ")},\n] as const);`);
     const cases = [...orc("orchestrate.ts").matchAll(/\bcase\s+"([A-Z_]+)":/g)].map((m) => m[1]);
     expect(cases).toEqual(OPERATIONS);
   });

@@ -112,7 +112,7 @@ describe("M4-WO3 static audit — the Formula implementation", () => {
   });
 
   it("M4-I27: functions are a closed switch over four exact names, never looked up dynamically", () => {
-    expect(read("packages", "prowess-rules", "src", "formula", "diagnostics.ts")).toContain('export const FORMULA_FUNCTIONS = ["floor", "ceil", "min", "max"] as const;');
+    expect(read("packages", "prowess-rules", "src", "formula", "diagnostics.ts")).toContain('export const FORMULA_FUNCTIONS = deepFreeze(["floor", "ceil", "min", "max"] as const);');
     const evaluator = strip(read("packages", "prowess-rules", "src", "formula", "evaluate.ts"));
     for (const name of ["floor", "ceil", "min"]) expect(evaluator).toContain(`case "${name}":`);
   });

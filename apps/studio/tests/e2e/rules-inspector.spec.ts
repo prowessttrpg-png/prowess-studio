@@ -60,6 +60,12 @@ test.describe("M4-WO11 Rules Inspector — real HTTP and exact Rulesets", () => 
     page.on("request", req => { if (req.method() !== "GET") writes.push(new URL(req.url()).pathname); });
     await run(page);
     await expect(page.getByText("COMPLETE", { exact: true }).last()).toBeVisible();
+    await inspect(page, "listed", "MODIFIER");
+    await expect(page.getByTestId("overview-listed")).toContainText("Final Targets");
+    await expect(page.getByTestId("overview-listed")).toContainText("17");
+    await inspect(page, "validation", "VALIDATION");
+    await expect(page.getByTestId("overview-validation")).toContainText("Error Count0");
+    await expect(page.getByRole("region", {name: "DETAILED explanation"})).toBeVisible();
     await inspect(page, "payment", "RESOURCE_PAYMENT_APPLY");
     await expect(page.getByTestId("listed-value")).toContainText("17");
     await expect(page.getByTestId("payment-allocation")).toContainText("r.temp66");
@@ -118,9 +124,32 @@ test.describe("M4-WO11 Rules Inspector — real HTTP and exact Rulesets", () => 
     await run(page); expect(await page.getByRole("region", { name: "DETAILED explanation" }).textContent()).toBe(first);
     await expect(page.getByLabel("Exact Release", { exact: true })).toHaveValue(release.id);
   });
+  test("WO12: a tampered Release clears prior output and shows that evaluation never ran", async ({page, request}) => {
+    const {ruleset, release} = await fixture(request); await choose(page, ruleset.id, release.id, "Release");
+    await page.getByRole("button", {name: "Load neutral sample"}).click(); await run(page);
+    const {prisma, assertRunningAgainstTestDatabase} = await import("@prowess/db");
+    assertRunningAgainstTestDatabase(process.env.DATABASE_URL!);
+    const saved = await prisma.rulesetRelease.findUniqueOrThrow({where: {id: release.id}});
+    try {
+      await prisma.rulesetRelease.update({where: {id: release.id}, data: {manifestHash: "0".repeat(64)}});
+      const before = await fingerprint(ruleset.id);
+      await page.getByRole("button", {name: "Run Evaluation", exact: true}).click();
+      await expect(page.getByRole("heading", {name: /Request Error — evaluation did not run/})).toBeVisible();
+      await expect(page.getByRole("alert")).toContainText("RULESET_RESOLUTION.RELEASE_INTEGRITY_FAILURE");
+      await expect(page.getByRole("list", {name: "Executed step timeline"})).toHaveCount(0);
+      expect(await fingerprint(ruleset.id)).toBe(before);
+    } finally {await prisma.rulesetRelease.update({where: {id: release.id}, data: {manifestHash: saved.manifestHash}});}
+  });
   test("mobile panes retain controls and contain long JSON without page overflow", async ({ page, request }) => {
     const { ruleset, manifest } = await fixture(request); await page.setViewportSize({ width: 390, height: 844 }); await choose(page, ruleset.id, manifest.id);
-    await page.getByRole("button", { name: "Load neutral sample" }).click(); await run(page);
+    await page.getByRole("button", { name: "Load neutral sample" }).click();
+    await page.getByText("RUNTIME · NULL", {exact: true}).click();
+    await page.getByLabel("runtime context mode").selectOption("ENABLED");
+    await page.getByLabel("runtime JSON").fill(JSON.stringify({state: {long: "x".repeat(5000)}}));
+    await run(page);
+    await page.getByText("Evaluated request snapshot", {exact: true}).click();
+    await expect(page.getByLabel("Evaluated request snapshot", {exact: true})).toContainText("x".repeat(5000));
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await expect(page.getByRole("tab", { name: "RUN", exact: true })).toHaveAttribute("aria-selected", "true");
     await inspect(page, "payment", "RESOURCE_PAYMENT_APPLY"); await expect(page.getByRole("tab", { name: "DETAILS", exact: true })).toHaveAttribute("aria-selected", "true");
     await page.getByRole("tab", { name: "RAW", exact: true }).click();

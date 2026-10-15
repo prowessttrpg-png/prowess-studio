@@ -1,7 +1,7 @@
 import type { JsonObject } from "@prowess/model";
 import { RULES_ENGINE_CONTRACT_VERSION, type RulesEngineContractVersion } from "../contract-version.js";
 import { InputProblems, readContextKey, readRecord } from "../internal/input-reader.js";
-import { clonePlainData, inspectPlainData, isPlainObject, type PathSegment } from "../internal/plain-data.js";
+import { deepFreeze, clonePlainData, inspectPlainData, isPlainObject, type PathSegment } from "../internal/plain-data.js";
 import {
   readActorContext,
   readBuildContext,
@@ -14,7 +14,7 @@ import { readRulesetContext, type RulesetContext } from "./ruleset-context.js";
 import { finishOutcome, type ContextOutcome } from "./shared.js";
 
 /** The four approved context families (PAS-10 M4-WO1 §8). */
-export const CONTEXT_FAMILIES = ["RULESET", "ACTOR", "BUILD", "RUNTIME"] as const;
+export const CONTEXT_FAMILIES = deepFreeze(["RULESET", "ACTOR", "BUILD", "RUNTIME"] as const);
 export type ContextFamily = (typeof CONTEXT_FAMILIES)[number];
 
 /**

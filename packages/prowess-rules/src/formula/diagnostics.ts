@@ -1,3 +1,4 @@
+import { deepFreeze } from "../internal/plain-data.js";
 /**
  * Formula diagnostics, limits and function vocabulary (PAS-10 M4-WO3 §17–18, §59–61).
  *
@@ -5,7 +6,7 @@
  * zero. It is a rule outcome, surfaced as a VALIDATION message (category FORMULA) — never an engine error. The
  * `RULE_ENGINE.*` vocabulary stays reserved for genuine engine / invariant failures (§60).
  */
-export const FORMULA_DIAGNOSTIC_CODES = {
+export const FORMULA_DIAGNOSTIC_CODES = deepFreeze({
   /** The text is not a well-formed expression (incl. trailing input and non-finite literals). */
   INVALID_SYNTAX: "FORMULA.INVALID_SYNTAX",
   /** A character that begins no token of the grammar (e.g. `^`, `%`, `÷`, `×`, `−`, a quote). */
@@ -32,7 +33,7 @@ export const FORMULA_DIAGNOSTIC_CODES = {
   UNKNOWN_DEPENDENCY: "FORMULA.UNKNOWN_DEPENDENCY",
   /** The dependency graph contains a cycle. Never broken arbitrarily. */
   DEPENDENCY_CYCLE: "FORMULA.DEPENDENCY_CYCLE",
-} as const;
+} as const);
 
 export type FormulaDiagnosticCode = (typeof FORMULA_DIAGNOSTIC_CODES)[keyof typeof FORMULA_DIAGNOSTIC_CODES];
 
@@ -50,7 +51,7 @@ export interface FormulaDiagnostic {
 }
 
 /** Deterministic complexity limits (§61, §63). Constants, tested at their boundaries. */
-export const FORMULA_LIMITS = {
+export const FORMULA_LIMITS = deepFreeze({
   /** Maximum expression length in UTF-16 code units. */
   MAX_SOURCE_LENGTH: 8192,
   /** Maximum number of tokens. */
@@ -64,10 +65,10 @@ export const FORMULA_LIMITS = {
    * do deepen the tree; this bounds evaluation recursion regardless of how depth arose.
    */
   MAX_AST_DEPTH: 512,
-} as const;
+} as const);
 
 /** The only callable functions (§17, §49), with their arity rules (§18). Exact lowercase names. */
-export const FORMULA_FUNCTIONS = ["floor", "ceil", "min", "max"] as const;
+export const FORMULA_FUNCTIONS = deepFreeze(["floor", "ceil", "min", "max"] as const);
 export type FormulaFunctionName = (typeof FORMULA_FUNCTIONS)[number];
 
 export function isFormulaFunctionName(value: unknown): value is FormulaFunctionName {

@@ -3,7 +3,7 @@ import { isValidContextKey } from "../context/context-key.js";
 import { evaluate } from "../evaluation/evaluate.js";
 import { canonicalJson } from "../internal/canonical-json.js";
 import { InputProblems, readUuid } from "../internal/input-reader.js";
-import { inspectPlainData, isPlainObject, jsonPointer } from "../internal/plain-data.js";
+import { deepFreeze, inspectPlainData, isPlainObject, jsonPointer } from "../internal/plain-data.js";
 import { stringValue } from "../result/evaluation-value.js";
 import { readProvenance, type RuleProvenance } from "../result/provenance.js";
 import type { RuleEngineResponse } from "../result/rule-engine-response.js";
@@ -79,7 +79,7 @@ export interface ResolvedKeywordSet {
  * Keyword-resolution diagnostics: malformed or contradictory caller input, surfaced as VALIDATION messages (category
  * STRUCTURE). Namespaced `KEYWORD_RESOLUTION.*` so they can never be confused with M1's `KEYWORD.*` DomainError codes.
  */
-export const KEYWORD_RESOLUTION_DIAGNOSTIC_CODES = {
+export const KEYWORD_RESOLUTION_DIAGNOSTIC_CODES = deepFreeze({
   /** A Keyword reference is malformed: missing / non-UUID id, invalid canonical key, invalid category id. */
   INVALID_REFERENCE: "KEYWORD_RESOLUTION.INVALID_REFERENCE",
   /** A contribution or its source is malformed, or one source is described / contributes inconsistently. */
@@ -88,7 +88,7 @@ export const KEYWORD_RESOLUTION_DIAGNOSTIC_CODES = {
   IDENTITY_CONFLICT: "KEYWORD_RESOLUTION.IDENTITY_CONFLICT",
   /** Two different keywordIds claim one canonical key. */
   CANONICAL_KEY_CONFLICT: "KEYWORD_RESOLUTION.CANONICAL_KEY_CONFLICT",
-} as const;
+} as const);
 
 export type KeywordResolutionDiagnosticCode = (typeof KEYWORD_RESOLUTION_DIAGNOSTIC_CODES)[keyof typeof KEYWORD_RESOLUTION_DIAGNOSTIC_CODES];
 
