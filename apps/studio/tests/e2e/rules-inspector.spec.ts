@@ -135,7 +135,7 @@ test.describe("M4-WO11 Rules Inspector — real HTTP and exact Rulesets", () => 
       const before = await fingerprint(ruleset.id);
       await page.getByRole("button", {name: "Run Evaluation", exact: true}).click();
       await expect(page.getByRole("heading", {name: /Request Error — evaluation did not run/})).toBeVisible();
-      await expect(page.getByRole("alert")).toContainText("RULESET_RESOLUTION.RELEASE_INTEGRITY_FAILURE");
+      await expect(page.getByRole("alert").filter({hasText: "Request Error — evaluation did not run"})).toContainText("RULESET_RESOLUTION.RELEASE_INTEGRITY_FAILURE");
       await expect(page.getByRole("list", {name: "Executed step timeline"})).toHaveCount(0);
       expect(await fingerprint(ruleset.id)).toBe(before);
     } finally {await prisma.rulesetRelease.update({where: {id: release.id}, data: {manifestHash: saved.manifestHash}});}

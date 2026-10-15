@@ -315,6 +315,8 @@ Local PostgreSQL is unavailable. Deployment, live drift, all database/API integr
 
 Publish `m4-wo12`, open a draft PR against `main`, and run the permanent workflow. Inspect migrations on fresh dev/test databases, blocking Prisma drift, prior and final integration gates, reset checks, production build and all 45 browser workflows. A green branch/PR run permits review; final M4 acceptance requires green permanent CI on the approved merged result. This report authorizes no merge or repository-setting change.
 
+CI follow-up: draft PR #37 was published after explicit user authorization. Run 100 passed migrations, blocking drift, all database/API integrations, all earlier audit gates, the WO12 final audit, reset safety and the production build. Playwright passed 44 of 45 workflows. The new tamper test correctly displayed the controlled integrity refusal, but its generic `alert` locator also matched Next.js's route announcer. The assertion now selects the alert containing the exact request-failure heading; no application or engine behavior changed. Full permanent CI must be rerun on this correction before branch verification is accepted.
+
 ## 60. Final Acceptance Status
 
 **M4 FINAL AUDIT — READY FOR CI VERIFICATION.** Local implementation and available checks are complete. **Not FINAL PASS.** Do not declare **M4 COMPLETE — READY FOR M5** until permanent GitHub CI is green on the merged WO12 result. Do not begin M5 automatically.
