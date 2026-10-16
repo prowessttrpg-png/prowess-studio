@@ -1,0 +1,103 @@
+import { describe, expect, it } from "vitest";
+import {
+  ABILITY_SLOT_KINDS,
+  CANONICAL_AFFINITIES,
+  COMPONENT_COMPILERS,
+  COST_CURRENCIES,
+  PROWESS_DEFINITION_KINDS,
+  PROWESS_DEFINITION_KIND_NAMES,
+  PROWESS_SYSTEM_FAMILIES,
+  TERMINOLOGY_CATEGORIES,
+  TERMINOLOGY_INVENTORY,
+  legacyTermFor,
+} from "./index.js";
+
+/**
+ * Vocabulary and terminology inventory (§81–83, §150–151). Invariants: M5-I001 Core Playtest is the primary source ·
+ * M5-I002 unresolved ambiguity is preserved, not normalized · M5-I026 Summoning grants no unauthored capability ·
+ * M5-I035 shared concepts with branch-specific content · M5-I037 Evocation canonical, Emission legacy.
+ */
+const byTerm = (term: string) => TERMINOLOGY_INVENTORY.filter((e) => e.term === term);
+
+describe("terminology inventory", () => {
+  it("covers every required category (§150) with at least one entry", () => {
+    for (const category of TERMINOLOGY_CATEGORIES) {
+      expect(TERMINOLOGY_INVENTORY.some((e) => e.category === category), category).toBe(true);
+    }
+  });
+
+  it("M5-I037 Evocation is CANONICAL by designer clarification; Emission is LEGACY with canonical Evocation", () => {
+    expect(byTerm("Evocation")).toEqual([expect.objectContaining({ status: "CANONICAL", token: "EVOCATION", authority: "DESIGNER_CLARIFICATION", conflictKey: "M5-SC-001" })]);
+    expect(byTerm("Emission")).toEqual([expect.objectContaining({ status: "LEGACY", canonicalTerm: "Evocation", token: null, conflictKey: "M5-SC-001" })]);
+    expect(legacyTermFor("EMISSION")).toEqual({ term: "Emission", canonicalTerm: "Evocation" });
+    expect(legacyTermFor("Evocation")).toBeNull();
+    expect(CANONICAL_AFFINITIES).toEqual(["EVOCATION", "CONJURATION", "TRANSMUTATION", "DIVINATION", "ENHANCEMENT", "MANIPULATION"]);
+    expect(CANONICAL_AFFINITIES as readonly string[]).not.toContain("EMISSION");
+  });
+
+  it("M5-I002 Player Dice / Character Die is audited and left UNRESOLVED — never silently normalized", () => {
+    for (const term of ["Player Dice", "Player Die"]) {
+      expect(byTerm(term)).toEqual([expect.objectContaining({ status: "UNRESOLVED", token: null, canonicalTerm: null, conflictKey: "M5-SC-002" })]);
+    }
+    expect(byTerm("Character Die")[0]?.status).toBe("CANONICAL");
+    // Context-specific dice stay SYSTEM_SPECIFIC rather than being merged.
+    for (const term of ["Summon Dice", "Commitment Die", "Bound Dice"]) expect(byTerm(term)[0]?.status, term).toBe("SYSTEM_SPECIFIC");
+  });
+
+  it("other unresolved source inconsistencies stay unresolved (Dodge / Evasion, Arcane / Arcana Rank, Advantage)", () => {
+    for (const term of ["Dodge", "Evasion", "Arcane Rank", "Arcana Rank", "Advantage", "Maneuver Traits"]) {
+      expect(byTerm(term)[0]?.status, term).toBe("UNRESOLVED");
+      expect(byTerm(term)[0]?.conflictKey, term).toMatch(/^M5-SC-\d{3}$/);
+    }
+  });
+
+  it("every LEGACY entry names a CANONICAL replacement and every UNRESOLVED entry cites a conflict", () => {
+    for (const e of TERMINOLOGY_INVENTORY) {
+      if (e.status === "LEGACY") expect(byTerm(e.canonicalTerm ?? "").some((c) => c.status === "CANONICAL"), e.term).toBe(true);
+      if (e.status === "UNRESOLVED") expect(e.conflictKey, e.term).not.toBeNull();
+      if (e.status !== "LEGACY") expect(e.canonicalTerm, e.term).toBeNull();
+    }
+  });
+
+  it("is deep-frozen plain data", () => {
+    expect(Object.isFrozen(TERMINOLOGY_INVENTORY) && Object.isFrozen(TERMINOLOGY_INVENTORY[0])).toBe(true);
+    expect(JSON.parse(JSON.stringify(TERMINOLOGY_INVENTORY))).toEqual(TERMINOLOGY_INVENTORY);
+  });
+});
+
+describe("system families and Definition kinds", () => {
+  it("every kind belongs to a known family, and branch kinds belong to their branch family", () => {
+    for (const kind of PROWESS_DEFINITION_KIND_NAMES) {
+      const spec = PROWESS_DEFINITION_KINDS[kind];
+      expect(PROWESS_SYSTEM_FAMILIES, kind).toContain(spec.family);
+      if (spec.branch !== null) expect(spec.family, kind).toBe(spec.branch);
+      expect(spec.entityTypes.length, kind).toBeGreaterThan(0);
+    }
+  });
+
+  it("M5-I035 / M5-I036 every Ability slot has a distinct kind per branch, implementing the same shared contract", () => {
+    for (const slot of ["targeting", "effects", "traits", "duration", "conditions"] as const) {
+      const [spell, maneuver] = [ABILITY_SLOT_KINDS.SPELL[slot], ABILITY_SLOT_KINDS.MANEUVER[slot]];
+      expect(spell).not.toBe(maneuver);
+      expect(PROWESS_DEFINITION_KINDS[spell].contract).toBe(PROWESS_DEFINITION_KINDS[maneuver].contract);
+      expect([PROWESS_DEFINITION_KINDS[spell].branch, PROWESS_DEFINITION_KINDS[maneuver].branch]).toEqual(["SPELL", "MANEUVER"]);
+    }
+    expect(ABILITY_SLOT_KINDS.SPELL.foundation).toBeNull();
+  });
+
+  it("M5-I026 Summoning grants no unauthored capability: summon kinds are reserved, with no payload contract and no compiler", () => {
+    for (const kind of ["SUMMON_TYPE", "SUMMON_TRAIT", "SUMMON_ACTION_MODEL"] as const) {
+      expect(PROWESS_DEFINITION_KINDS[kind].schemaVersions).toEqual([]);
+      expect(COMPONENT_COMPILERS[kind]).toBeNull();
+    }
+  });
+
+  it("Mana Efficiency is never a cost currency (M5-I023)", () => {
+    expect(COST_CURRENCIES as readonly string[]).not.toContain("ME");
+  });
+
+  it("M5-I001 the vocabulary is sourced from the Core Playtest audit (authority recorded on every entry)", () => {
+    expect(new Set(TERMINOLOGY_INVENTORY.map((e) => e.authority))).toEqual(new Set(["CORE_PLAYTEST_V0_1", "DESIGNER_CLARIFICATION", "SOURCE_AUDIT"]));
+    expect(TERMINOLOGY_INVENTORY.filter((e) => e.authority === "DESIGNER_CLARIFICATION").map((e) => e.term).sort()).toEqual(["Emission", "Evocation"]);
+  });
+});

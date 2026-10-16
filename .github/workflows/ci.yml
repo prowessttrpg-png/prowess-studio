@@ -149,7 +149,7 @@ jobs:
       # later, which needs application config env vars this step doesn't
       # have.
       - name: Build workspace packages
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
 
       - name: Lint
         run: pnpm lint
@@ -164,7 +164,7 @@ jobs:
       # UI) rather than one big "pnpm test" step, so a failure's layer is
       # immediately obvious from the Actions UI without opening logs.
       - name: Unit tests (packages)
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/db" --filter "@prowess/test-fixtures" run test:unit
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run test:unit
 
       - name: Database integration tests
         run: pnpm --filter "@prowess/db" run test:integration
@@ -281,6 +281,20 @@ jobs:
           pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-final-static.test.ts tests/unit/m4-final-engine.test.ts tests/unit/m4-final-ui.test.tsx tests/unit/m4-final-limits.test.ts
           pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m4-final-api.test.ts
           node scripts/m4-final-negative-controls.mjs
+
+      # M5-WO1: the Prowess domain & shared Ability Construction boundary — @prowess/game's own suites (contracts,
+      # catalogs, bundles, compilation contract), the static architecture audit with in-memory controls, legacy source
+      # terminology preservation, exact Definition materialization through the real M4-WO2 resolver, and the
+      # behavioural negative controls (each mutates real source, must be caught, and is restored byte-for-byte).
+      - name: M5-WO1 audit — Prowess domain & shared ability construction boundary
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+        run: |
+          pnpm --filter "@prowess/game" run test:unit
+          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo1-static.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-source-terminology.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-definition-materialization.test.ts
+          node scripts/m5-wo1-negative-controls.mjs
 
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the

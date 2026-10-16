@@ -718,3 +718,21 @@ export const RULESET_RESOLUTION_ERROR_CODES = {
 } as const;
 
 export type RulesetResolutionErrorCode = (typeof RULESET_RESOLUTION_ERROR_CODES)[keyof typeof RULESET_RESOLUTION_ERROR_CODES];
+
+/**
+ * Exact Prowess Definition materialization error codes (PAS-10 M5-WO1 §88–92) — the server-side loader that turns an
+ * exact RulesetContext's pinned EntityVersions into an @prowess/game ProwessDefinitionBundle. Resolution failures keep
+ * their M4-WO2 codes (RULESET_RESOLUTION.*); these cover only what happens after an exact context exists. Every code
+ * means persisted content cannot be trusted as an exact Definition set; materialization fails closed.
+ */
+export const PROWESS_MATERIALIZATION_ERROR_CODES = {
+  /** A version the exact context pins could not be loaded by exact id, or belongs to a different Entity. */
+  PINNED_VERSION_MISSING: "PROWESS_MATERIALIZATION.PINNED_VERSION_MISSING",
+  /** A pinned version's stored Prowess Definition is malformed, unsupported, uses legacy terminology as canonical, or
+   *  is stored under an EntityType its Definition kind may not use. */
+  INVALID_STORED_DEFINITION: "PROWESS_MATERIALIZATION.INVALID_STORED_DEFINITION",
+  /** The loaded Definitions do not form a valid exact bundle for the context. */
+  INVALID_BUNDLE: "PROWESS_MATERIALIZATION.INVALID_BUNDLE",
+} as const;
+
+export type ProwessMaterializationErrorCode = (typeof PROWESS_MATERIALIZATION_ERROR_CODES)[keyof typeof PROWESS_MATERIALIZATION_ERROR_CODES];

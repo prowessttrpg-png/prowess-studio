@@ -28,6 +28,7 @@ import {
   IMPORT_DECISION_ERROR_CODES,
   IMPORT_REVIEW_ERROR_CODES,
   RULESET_RESOLUTION_ERROR_CODES,
+  PROWESS_MATERIALIZATION_ERROR_CODES,
   type EntityAliasErrorCode,
   type EntityErrorCode,
   type EntityVersionErrorCode,
@@ -56,6 +57,7 @@ import {
   type ImportDecisionErrorCode,
   type ImportReviewErrorCode,
   type RulesetResolutionErrorCode,
+  type ProwessMaterializationErrorCode,
 } from "@prowess/model";
 import { NextResponse } from "next/server";
 
@@ -133,7 +135,8 @@ type KnownDomainErrorCode =
   | ImportMatchErrorCode
   | ImportDecisionErrorCode
   | ImportReviewErrorCode
-  | RulesetResolutionErrorCode;
+  | RulesetResolutionErrorCode
+  | ProwessMaterializationErrorCode;
 
 /**
  * Centralized `DomainError.code` -> HTTP status mapping (PAS-10 M1-WO8
@@ -416,6 +419,11 @@ const DOMAIN_ERROR_STATUS_MAP = {
   // MIGRATION_PLAN.MANIFEST_INTEGRITY_FAILURE and IMPORT_MATCH.CATALOG_INTEGRITY_FAILURE, so 409.
   [RULESET_RESOLUTION_ERROR_CODES.RELEASE_INTEGRITY_FAILURE]: 409,
   [RULESET_RESOLUTION_ERROR_CODES.INVALID_COMPOSITION]: 409,
+  // Prowess Definition materialization (M5-WO1): no route uses it yet; mapped because the map is exhaustive. Each code
+  // means stored content cannot be trusted as an exact Definition set — an integrity conflict, so 409.
+  [PROWESS_MATERIALIZATION_ERROR_CODES.PINNED_VERSION_MISSING]: 409,
+  [PROWESS_MATERIALIZATION_ERROR_CODES.INVALID_STORED_DEFINITION]: 409,
+  [PROWESS_MATERIALIZATION_ERROR_CODES.INVALID_BUNDLE]: 409,
 } satisfies Record<KnownDomainErrorCode, number>;
 
 /**

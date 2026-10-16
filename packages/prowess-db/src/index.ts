@@ -150,6 +150,13 @@ export {
 export { getEffectiveManifestEntries, resolveEffectiveEntityVersion } from "./ruleset-inheritance/index.js";
 // M4-WO2: exact Manifest / Release → the M4 RulesetContext consumed by pure evaluation. No Ruleset-id-only resolver exists.
 export { resolveRulesetContextFromManifest, resolveRulesetContextFromRelease } from "./ruleset-context/index.js";
+
+// M5-WO1: exact Prowess Definition materialization — loads the exact pinned versions of an exact RulesetContext.
+export {
+  materializeProwessDefinitionBundle,
+  materializeProwessDefinitionsFromManifest,
+  materializeProwessDefinitionsFromRelease,
+} from "./prowess-definition/index.js";
 export {
   createCanonPolicy,
   getCanonPolicy,

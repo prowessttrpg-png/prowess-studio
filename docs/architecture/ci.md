@@ -61,6 +61,19 @@ Any step failing stops the run there with a non-zero exit, and GitHub
 marks the whole workflow run failed — there is no step that swallows a
 real failure.
 
+**M5-WO1 additions.** `@prowess/game` is built and unit-tested with the other workspace packages. A permanent named
+step, **"M5-WO1 audit — Prowess domain & shared ability construction boundary"**, runs after the M4-WO12 final audit.
+It re-runs and separately reports:
+
+- `@prowess/game`'s suites;
+- the static audit `apps/studio/tests/unit/m5-wo1-static.test.ts`;
+- the legacy-terminology preservation unit test;
+- exact Definition materialization against `prowess_studio_test`;
+- `node scripts/m5-wo1-negative-controls.mjs`, which mutates real source for controls §214–§230, requires each one to
+  be caught, and restores every file byte-for-byte.
+
+Every M0–M4 gate is unchanged.
+
 ## Local quality commands
 
 | Command | What it does | Needs Postgres? |
@@ -128,9 +141,10 @@ extend). Two things are checked:
 | Package | May depend on | Must never import |
 | --- | --- | --- |
 | `@prowess/model` | nothing framework-specific | `next`, `react`, `react-dom`, `@prisma/client`, `@prisma/adapter-pg`, `prisma`, `pg`, `@prowess/db`, `@prowess/ui` |
-| `@prowess/db` | Prisma, `@prowess/model`, `@prowess/import` (M3-WO2), `@prowess/rules` (M4-WO2: the exact Ruleset resolver builds its `RulesetContext`) | `react`, `react-dom`, `next`, `@prowess/ui` |
+| `@prowess/db` | Prisma, `@prowess/model`, `@prowess/import` (M3-WO2), `@prowess/rules` (M4-WO2: the exact Ruleset resolver builds its `RulesetContext`), `@prowess/game` (M5-WO1: exact Prowess Definition materialization) | `react`, `react-dom`, `next`, `@prowess/ui` |
 | `@prowess/import` (M3-WO2) | `@prowess/model`, Node's standard library (`node:crypto`) | `@prowess/db`, `@prisma/client`, `@prisma/adapter-pg`, `prisma`, `pg`, `next`, `react`, `react-dom`, `@prowess/ui`, anything under `apps/studio` or `generated/prisma` |
 | `@prowess/rules` (M4-WO1) | `@prowess/model` only | `@prowess/db`, `@prowess/import`, `@prowess/ui`, `@prowess/studio`, `@prowess/test-fixtures`, Prisma, `pg`, `next`, `react`, `react-dom`, Node built-ins (`node:*`, `fs`, `path`, `crypto`, `http`, `https`, `net`, `vm`, `child_process`, `worker_threads`), anything under `apps/studio`, `generated/prisma`, `prowess-db`, `prowess-import` or `prowess-ui`. Its purity rules (no clock, randomness, network, `eval`, game vocabulary or hidden-latest operations) are enforced separately by `apps/studio/tests/unit/m4-wo1-static.test.ts` |
+| `@prowess/game` (M5-WO1) | `@prowess/model`, `@prowess/rules` (public entry points only) | `@prowess/db`, `@prowess/import`, `@prowess/ui`, `@prowess/studio`, `@prowess/test-fixtures`, Prisma, `pg`, `next`, `react`, `react-dom`, Node built-ins, deep imports into `@prowess/rules` / `@prowess/model`. Its purity and Prowess-boundary rules (no hidden math, latest lookup, randomness, clock, cross-branch coercion, Emission as canonical …) are enforced by `apps/studio/tests/unit/m5-wo1-static.test.ts` and `scripts/m5-wo1-negative-controls.mjs` |
 | `@prowess/ui` | React | `@prisma/client`, `@prisma/adapter-pg`, `prisma`, `pg`, `@prowess/db` |
 | `apps/studio` (`app/`) | the packages below it | `@prisma/client`, `@prisma/adapter-pg`, `prisma` directly (must always go through `@prowess/db`) |
 | `apps/studio` (`src/`) | the packages below it | same as `app/` — application-level modules (config, navigation) are held to the same standard |

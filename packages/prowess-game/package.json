@@ -1,0 +1,31 @@
+{
+  "name": "@prowess/game",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Prowess-specific pure domain layer (PAS-10 M5-WO1): Prowess Definition envelopes and exact references, the shared modular Ability Construction contracts (Spell / Maneuver branches), exact Definition bundles and the Prowess → M4 compilation contract. Sits ABOVE the generic @prowess/rules engine and emits M4 EvaluationPlans; never re-implements it. No persistence, no import layer, no UI, no framework, no clock, no randomness, no network.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src --max-warnings=0",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "pnpm run test:unit",
+    "test:unit": "vitest run",
+    "test:integration": "echo \"@prowess/game: no integration tests (pure package)\" && exit 0"
+  },
+  "dependencies": {
+    "@prowess/model": "workspace:*",
+    "@prowess/rules": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vitest": "5.0.2"
+  }
+}

@@ -2,7 +2,7 @@
   "name": "@prowess/db",
   "version": "0.1.0",
   "private": true,
-  "description": "Centralized PostgreSQL persistence boundary (Prisma). Framework-independent domain packages such as @prowess/model must never depend on this package — dependencies point the other way.",
+  "description": "Centralized PostgreSQL persistence boundary (Prisma). Framework-independent domain packages such as @prowess/model must never depend on this package \u2014 dependencies point the other way.",
   "type": "module",
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
@@ -23,6 +23,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",
     "@prisma/client": "7.10.0",
+    "@prowess/game": "workspace:*",
     "@prowess/import": "workspace:*",
     "@prowess/model": "workspace:*",
     "@prowess/rules": "workspace:*",
