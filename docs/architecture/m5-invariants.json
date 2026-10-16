@@ -1,0 +1,357 @@
+[
+  {
+    "id": "M5-I001",
+    "title": "Core Playtest V0.1 Is The Primary Mechanical Source For M5 Except Where Explicit Approved Designer Or Canon Clarification Supersedes It",
+    "group": "Source authority",
+    "guards": [
+      "packages/prowess-game/src/vocabulary.test.ts",
+      "apps/studio/tests/unit/m5-wo1-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I002",
+    "title": "Unresolved Source Ambiguity Is Preserved Rather Than Silently Reconciled",
+    "group": "Source authority",
+    "guards": [
+      "packages/prowess-game/src/vocabulary.test.ts",
+      "apps/studio/tests/unit/m5-wo1-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I003",
+    "title": "Prowess-Specific Mechanics Do Not Enter The Generic @prowess/rules Package",
+    "group": "Boundary",
+    "guards": [
+      "apps/studio/tests/unit/m5-wo1-static.test.ts",
+      "scripts/m5-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I004",
+    "title": "Prowess Domain Semantics Live In A Dedicated Pure Domain Layer",
+    "group": "Boundary",
+    "guards": [
+      "apps/studio/tests/unit/m5-wo1-static.test.ts",
+      "scripts/m5-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I005",
+    "title": "Every Canonical Structured Prowess Definition Carries Exact EntityVersion Identity",
+    "group": "Definition",
+    "guards": [
+      "packages/prowess-game/src/definition-envelope.test.ts",
+      "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I006",
+    "title": "Definition Payload Schema Version Is Explicit And Independent Of EntityVersion",
+    "group": "Definition",
+    "guards": [
+      "packages/prowess-game/src/definition-envelope.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I007",
+    "title": "Ruleset Provenance Is Preserved Through Exact Prowess Definition Materialization",
+    "group": "Materialization",
+    "guards": [
+      "packages/prowess-game/src/definition-bundle.test.ts",
+      "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I008",
+    "title": "Definition Bundles Contain Only Versions Pinned By Their Exact RulesetContext",
+    "group": "Materialization",
+    "guards": [
+      "packages/prowess-game/src/definition-bundle.test.ts",
+      "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts",
+      "scripts/m5-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I009",
+    "title": "Definitions From Different Exact Rulesets Are Never Silently Mixed",
+    "group": "Materialization",
+    "guards": [
+      "packages/prowess-game/src/definition-bundle.test.ts",
+      "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts",
+      "scripts/m5-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I010",
+    "title": "Compilation Uses Exact Definition Versions And Never Latest/Current Lookup",
+    "group": "Compilation",
+    "guards": [
+      "packages/prowess-game/src/compilation.test.ts",
+      "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I011",
+    "title": "Prowess Compilation Emits M4 EvaluationPlans Rather Than Reimplementing The M4 Rules Engine",
+    "group": "Compilation",
+    "guards": [
+      "packages/prowess-game/src/compilation.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I012",
+    "title": "Compilation Performs No Hidden Gameplay Calculation",
+    "group": "Compilation",
+    "guards": [
+      "packages/prowess-game/src/compilation.test.ts",
+      "apps/studio/tests/unit/m5-wo1-static.test.ts",
+      "scripts/m5-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I013",
+    "title": "Compiled Step Identity And Ordering Are Deterministic",
+    "group": "Compilation",
+    "guards": [
+      "packages/prowess-game/src/compilation.test.ts",
+      "scripts/m5-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I014",
+    "title": "Compilation Preserves A Domain-To-Evaluation-Step Source Map",
+    "group": "Compilation",
+    "guards": [
+      "packages/prowess-game/src/compilation.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I015",
+    "title": "Definition And Composition Are Separate Layers",
+    "group": "Layers",
+    "guards": [
+      "packages/prowess-game/src/ability-construction.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I016",
+    "title": "Composition And Runtime State Are Separate Layers",
+    "group": "Layers",
+    "guards": [
+      "packages/prowess-game/src/ability-construction.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I017",
+    "title": "Presentation Does Not Own Or Duplicate Prowess Mechanics",
+    "group": "Layers",
+    "guards": [
+      "apps/studio/tests/unit/m5-wo1-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I018",
+    "title": "Source Prose Is Never Parsed As Runtime Rule Logic",
+    "group": "Source authority",
+    "guards": [
+      "apps/studio/tests/unit/m5-wo1-static.test.ts",
+      "packages/prowess-db/tests/unit/m5-source-terminology.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I019",
+    "title": "Import Review Does Not Automatically Create Canonical Executable Prowess Rules",
+    "group": "Source authority",
+    "guards": [
+      "apps/studio/tests/unit/m5-wo1-static.test.ts",
+      "packages/prowess-db/tests/unit/m5-source-terminology.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I020",
+    "title": "Canon Governance Is Explicit And Is Never Inferred By A Compiler",
+    "group": "Boundary",
+    "guards": [
+      "apps/studio/tests/unit/m5-wo1-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I021",
+    "title": "Spell Composition Supports Multiple Compatible Spell Effect Branches",
+    "group": "Ability Construction",
+    "guards": [
+      "packages/prowess-game/src/ability-construction.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I022",
+    "title": "Targeting Defines Delivery Geometry And Legal Placement; It Does Not Determine The Applied Effect Or Resolution",
+    "group": "Ability Construction",
+    "guards": [
+      "packages/prowess-game/src/ability-construction.test.ts",
+      "scripts/m5-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I023",
+    "title": "Mana Efficiency Payment Never Rewrites Listed Cost",
+    "group": "Resources",
+    "guards": [
+      "packages/prowess-game/src/compilation.test.ts",
+      "packages/prowess-game/src/vocabulary.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I024",
+    "title": "Mana Lock Represents Reserved Capacity Rather Than Resource Spending",
+    "group": "Resources",
+    "guards": [
+      "packages/prowess-game/src/compilation.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I025",
+    "title": "Spell And Maneuver Construction Share The Prowess Modular Ability Construction Framework While Retaining Branch-Specific Rules And Catalogs",
+    "group": "Ability Construction",
+    "guards": [
+      "packages/prowess-game/src/ability-construction.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I026",
+    "title": "Summoning Grants No Unauthored Capability",
+    "group": "Ability Construction",
+    "guards": [
+      "packages/prowess-game/src/vocabulary.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I027",
+    "title": "Historical Prowess Definitions Never Resolve Through Latest Or Current Selection",
+    "group": "Materialization",
+    "guards": [
+      "packages/prowess-game/src/definition-bundle.test.ts",
+      "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts",
+      "apps/studio/tests/unit/m5-wo1-static.test.ts",
+      "scripts/m5-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I028",
+    "title": "Prowess Domain Inputs And Outputs Are Immutable Detached Plain Data",
+    "group": "Purity",
+    "guards": [
+      "packages/prowess-game/src/definition-envelope.test.ts",
+      "packages/prowess-game/src/ability-construction.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I029",
+    "title": "Prowess Compilation Is Deterministic",
+    "group": "Purity",
+    "guards": [
+      "packages/prowess-game/src/definition-envelope.test.ts",
+      "packages/prowess-game/src/compilation.test.ts",
+      "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I030",
+    "title": "Changes To The Frozen M4 Foundation Require Explicit Approval",
+    "group": "Boundary",
+    "guards": [
+      "apps/studio/tests/unit/m5-wo1-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I031",
+    "title": "Spell And Maneuver Targeting Use Common Targeting Semantics Where Applicable Without Requiring Shared Canonical Targeting Definitions",
+    "group": "Ability Construction",
+    "guards": [
+      "packages/prowess-game/src/ability-construction.test.ts",
+      "scripts/m5-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I032",
+    "title": "Equivalent AoE Geometry Has The Same Spatial Meaning Across Spell And Maneuver Construction; Attached Effects Determine The Outcome",
+    "group": "Ability Construction",
+    "guards": [
+      "packages/prowess-game/src/ability-construction.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I033",
+    "title": "Spell Effects And Maneuver Effects Implement A Common Effect Contract But Remain Separate Definition Families",
+    "group": "Ability Construction",
+    "guards": [
+      "packages/prowess-game/src/ability-construction.test.ts",
+      "scripts/m5-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I034",
+    "title": "Spell Traits And Maneuver Traits Implement A Common Trait Contract But Remain Separate Definition Families",
+    "group": "Ability Construction",
+    "guards": [
+      "packages/prowess-game/src/ability-construction.test.ts",
+      "scripts/m5-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I035",
+    "title": "Duration, Conditions, Affinity And Resolution Are Shared Ability-Construction Concepts Whose Legal Content And Consequences May Be Branch-Specific",
+    "group": "Ability Construction",
+    "guards": [
+      "packages/prowess-game/src/ability-construction.test.ts",
+      "packages/prowess-game/src/vocabulary.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I036",
+    "title": "AbilityKind Determines Legal Definition Catalogs And Branch-Specific Rules; It Does Not Replace The Shared Construction Framework",
+    "group": "Ability Construction",
+    "guards": [
+      "packages/prowess-game/src/ability-construction.test.ts",
+      "packages/prowess-game/src/vocabulary.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I037",
+    "title": "Evocation Is The Canonical Affinity Name; Emission Is Preserved Only As Historical / Legacy Source Terminology",
+    "group": "Terminology",
+    "guards": [
+      "packages/prowess-game/src/definition-envelope.test.ts",
+      "packages/prowess-game/src/vocabulary.test.ts",
+      "packages/prowess-db/tests/unit/m5-source-terminology.test.ts",
+      "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts",
+      "scripts/m5-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I038",
+    "title": "A Shared Component Contract Never Makes Cross-Branch Definitions Automatically Interchangeable",
+    "group": "Ability Construction",
+    "guards": [
+      "packages/prowess-game/src/ability-construction.test.ts",
+      "scripts/m5-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I039",
+    "title": "An Affinity-Assisted Maneuver Remains A Maneuver Unless An Explicit Rule Changes Its AbilityKind",
+    "group": "Ability Construction",
+    "guards": [
+      "packages/prowess-game/src/ability-construction.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I040",
+    "title": "Ability Conditions And Target Conditions Are Distinct Concepts: Construction Restrictions Do Not Automatically Become Status Effects",
+    "group": "Ability Construction",
+    "guards": [
+      "packages/prowess-game/src/ability-construction.test.ts",
+      "scripts/m5-wo1-negative-controls.mjs"
+    ]
+  }
+]

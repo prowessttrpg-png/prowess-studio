@@ -141,7 +141,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
   >;
   const allCodes = vocabularies.flatMap(([, codes]) => Object.values(codes));
 
-  it("exports the twenty-eight vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5, CanonDecision M2-WO6, ChangeSet M2-WO7, RulesetRelease M2-WO8, MigrationPlan M2-WO11, SourceSnapshot / SourceStructure / SourceAsset / SourceParse M3-WO1, ImportBatch / ExtractionCandidate M3-WO2, ImportMatch M3-WO4, ImportDecision / ImportReview M3-WO6, RulesetResolution M4-WO2)", () => {
+  it("exports the twenty-nine vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5, CanonDecision M2-WO6, ChangeSet M2-WO7, RulesetRelease M2-WO8, MigrationPlan M2-WO11, SourceSnapshot / SourceStructure / SourceAsset / SourceParse M3-WO1, ImportBatch / ExtractionCandidate M3-WO2, ImportMatch M3-WO4, ImportDecision / ImportReview M3-WO6, RulesetResolution M4-WO2, ProwessMaterialization M5-WO1)", () => {
     expect(vocabularies.map(([name]) => name).sort()).toEqual(
       [
         "ENTITY_ALIAS_ERROR_CODES",
@@ -172,6 +172,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
         "IMPORT_DECISION_ERROR_CODES",
         "IMPORT_REVIEW_ERROR_CODES",
         "RULESET_RESOLUTION_ERROR_CODES",
+        "PROWESS_MATERIALIZATION_ERROR_CODES",
       ].sort(),
     );
   });
@@ -286,10 +287,13 @@ describe("M1 audit — workspace layering (§29)", () => {
     "packages/prowess-test-fixtures": [],
     // M3-WO2: @prowess/db may use @prowess/import's pure helpers; @prowess/import depends only on @prowess/model.
     // M4-WO2: @prowess/db's exact Ruleset resolver builds @prowess/rules' RulesetContext.
-    "packages/prowess-db": ["@prowess/import", "@prowess/model", "@prowess/rules"],
+    // M5-WO1: @prowess/db's exact Prowess Definition materializer builds @prowess/game's ProwessDefinitionBundle.
+    "packages/prowess-db": ["@prowess/game", "@prowess/import", "@prowess/model", "@prowess/rules"],
     "packages/prowess-import": ["@prowess/model"],
     // M4-WO1: the pure Rules Engine depends on @prowess/model only.
     "packages/prowess-rules": ["@prowess/model"],
+    // M5-WO1: the pure Prowess domain layer sits above M4 and depends on @prowess/model and @prowess/rules only.
+    "packages/prowess-game": ["@prowess/model", "@prowess/rules"],
     // M4-WO10: the Studio rules-evaluation application service calls the pure orchestrator in @prowess/rules
     // after resolving the exact RulesetContext through @prowess/db.
     "apps/studio": ["@prowess/db", "@prowess/model", "@prowess/rules", "@prowess/ui"],

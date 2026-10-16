@@ -383,6 +383,10 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "listSourceAssets",
         "listSourceSectionChildren",
         "listSourceSnapshots",
+        // M5-WO1: exact Prowess Definition materialization — read-only loads of an exact RulesetContext's pinned versions.
+        "materializeProwessDefinitionBundle",
+        "materializeProwessDefinitionsFromManifest",
+        "materializeProwessDefinitionsFromRelease",
         "parseDocxStructure",
         "findEntitiesByAlias",
         "findEntitiesByKeyword",
