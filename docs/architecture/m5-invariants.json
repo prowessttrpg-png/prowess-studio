@@ -353,5 +353,340 @@
       "packages/prowess-game/src/ability-construction.test.ts",
       "scripts/m5-wo1-negative-controls.mjs"
     ]
+  },
+  {
+    "id": "M5-I041",
+    "title": "Character Die Is The Canonical Identity For Player Dice And Player Die Legacy Terminology",
+    "group": "Terminology",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "packages/prowess-game/src/core-contracts.test.ts",
+      "packages/prowess-game/src/vocabulary.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I042",
+    "title": "Standard Character Die Progression Is Exact By Level And Is Structured Data, Not Scattered Hard-Coded Branches",
+    "group": "Core Resolution",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "packages/prowess-game/src/core-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I043",
+    "title": "Dice Evaluation Consumes Explicit Runtime Roll Results And Introduces No Randomness Into The Deterministic Rules Layer",
+    "group": "Core Resolution",
+    "guards": [
+      "packages/prowess-game/src/core-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I044",
+    "title": "Half Character Die Uses Half The Die's Maximum Face As A Static Value",
+    "group": "Core Resolution",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I045",
+    "title": "Prowess Uses Exactly Six Canonical Core Ability Scores: STR, AGI, CON, PER, RES, PRO",
+    "group": "Character Core",
+    "guards": [
+      "packages/prowess-game/src/core-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I046",
+    "title": "Standard Ability Scores Are Bounded From 1 Through 10 Unless An Exact Rule Explicitly Overrides The Bound",
+    "group": "Character Core",
+    "guards": [
+      "packages/prowess-game/src/core-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I047",
+    "title": "Rank Ordering And Rank Numeric Effects Are Separate Concepts",
+    "group": "Ranks",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "packages/prowess-game/src/core-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I048",
+    "title": "Base Skill Rank Bonuses Are Untrained 0, Trained +2, Expert +4, Master +6",
+    "group": "Ranks",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I049",
+    "title": "Skill Checks Use The Stat Chosen For The Character's Approach Rather Than A Stat Permanently Owned By The Skill",
+    "group": "Ranks",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I050",
+    "title": "Core Roll Arithmetic Is Executed By M4 Formula And Threshold Resolution By M4 Requirement Rather Than By Hidden Compiler Math",
+    "group": "Compilation",
+    "guards": [
+      "packages/prowess-game/src/core-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs",
+      "packages/prowess-db/tests/integration/prowess-core-resolution-history.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I051",
+    "title": "Advantage Selects The Higher Of Two Natural Character Die Results And Adds Modifiers Once",
+    "group": "Core Resolution",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I052",
+    "title": "Disadvantage Selects The Lower Of Two Natural Character Die Results And Adds Modifiers Once",
+    "group": "Core Resolution",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I053",
+    "title": "Selected Natural Die Result Is Preserved Separately From Final Roll Total",
+    "group": "Core Resolution",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I054",
+    "title": "Attack Rolls Use Character Die + PER + Prowess Accuracy + Explicit Bonuses Unless An Exact Rule Specifies Otherwise",
+    "group": "Core Resolution",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I055",
+    "title": "Prowess Accuracy Bonus Is floor(PRO / 3) And Remains An Explicit To-Hit Contribution",
+    "group": "Core Resolution",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I056",
+    "title": "Dodge Is The Canonical Defense Term; Evasion Is Legacy Terminology For The Same Defense",
+    "group": "Terminology",
+    "guards": [
+      "packages/prowess-game/src/core-contracts.test.ts",
+      "packages/prowess-game/src/vocabulary.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I057",
+    "title": "Base Dodge Is Half Character Die + AGI + floor(PER / 3) Before Other Explicit Modifiers",
+    "group": "Derived Statistics",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I058",
+    "title": "A Maximum Natural Character Die Result Creates A Critical Threat But Does Not Automatically Hit",
+    "group": "Core Resolution",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I059",
+    "title": "Critical Hit Requires Both A Critical Threat And A Successful Attack",
+    "group": "Core Resolution",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I060",
+    "title": "Saving Throws Use Character Die + Explicit Save Stat + Explicit Bonuses",
+    "group": "Core Resolution",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I061",
+    "title": "Targeting Never Selects A Saving Throw; The Applicable Effect Or Rule Does",
+    "group": "Core Resolution",
+    "guards": [
+      "packages/prowess-game/src/core-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I062",
+    "title": "Character DC Is Half Character Die + PRO + floor(RES / 3) + Explicit Bonuses",
+    "group": "Derived Statistics",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I063",
+    "title": "Maximum HP Is Base HP From Race Plus CON Before Other Explicit Bonuses",
+    "group": "Derived Statistics",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I064",
+    "title": "Maximum MP Is Base MP From Race Plus RES Before Other Explicit Bonuses",
+    "group": "Derived Statistics",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I065",
+    "title": "Base HP And Base MP Are Racial Starting Values Rather Than Multipliers",
+    "group": "Derived Statistics",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I066",
+    "title": "Strength Grants floor(STR / 3) Natural Armor Before Other Armor Sources",
+    "group": "Derived Statistics",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I067",
+    "title": "Agility Grants floor(AGI / 3) Additional AP Capacity Above The Base 3 AP",
+    "group": "Derived Statistics",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I068",
+    "title": "Base Range Is 15 Feet Times PER",
+    "group": "Derived Statistics",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I069",
+    "title": "Base Mana Efficiency Equals PRO And Remains A Payment Resource Rather Than A Listed-Cost Modifier",
+    "group": "Derived Statistics",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I070",
+    "title": "Base Signature Ability Capacity Equals PRO",
+    "group": "Derived Statistics",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I071",
+    "title": "Skill Automatic Success Uses Ability Score + Skill Rank Bonus Against DC Without Requiring A Character Die Roll",
+    "group": "Core Resolution",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I072",
+    "title": "Stat Mastery At Level 10 And Stat 10 Produces Advantage On Applicable Rolls Rather Than A Numeric Modifier",
+    "group": "Core Resolution",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I073",
+    "title": "Unresolved Movement Formula Conflict M5-SC-006 Must Not Produce Executable Canonical Movement Math",
+    "group": "Source Conflicts",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "packages/prowess-game/src/core-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "scripts/m5-wo2-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I074",
+    "title": "WO2 Derived Character Statistics Calculate Through M4 Primitives While Runtime Resource Mutation Remains Deferred To The Resource / Action-Economy Work",
+    "group": "Derived Statistics",
+    "guards": [
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "packages/prowess-db/tests/integration/prowess-core-resolution-history.test.ts"
+    ]
   }
 ]

@@ -74,6 +74,7 @@ const L = "LEGACY" as const;
 const U = "UNRESOLVED" as const;
 const SS = "SYSTEM_SPECIFIC" as const;
 const audit = { authority: "SOURCE_AUDIT" as const };
+const designer = { authority: "DESIGNER_CLARIFICATION" as const };
 
 export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   // ---- Ability Stats (Core Playtest §ABILITY SCORES) -------------------------------------------------------------
@@ -87,8 +88,9 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   // ---- Core resolution ---------------------------------------------------------------------------------------------
   entry("Character Die", "CORE_RESOLUTION", C, "CORE", "CHARACTER_DIE"),
   entry("Character Dice", "CORE_RESOLUTION", C, "CORE", "CHARACTER_DIE", { conflictKey: "M5-SC-002" }),
-  entry("Player Dice", "CORE_RESOLUTION", U, "CORE", null, { ...audit, conflictKey: "M5-SC-002" }),
-  entry("Player Die", "CORE_RESOLUTION", U, "CORE", null, { ...audit, conflictKey: "M5-SC-002" }),
+  // M5-SC-002 (designer ruling, M5-WO2): "Player Dice / Player Die" is a LEGACY synonym of Character Dice / Die.
+  entry("Player Dice", "CORE_RESOLUTION", L, "CORE", null, { ...designer, canonicalTerm: "Character Dice", conflictKey: "M5-SC-002" }),
+  entry("Player Die", "CORE_RESOLUTION", L, "CORE", null, { ...designer, canonicalTerm: "Character Die", conflictKey: "M5-SC-002" }),
   entry("Summon Dice", "CORE_RESOLUTION", SS, "SUMMON", "SUMMON_DIE"),
   entry("Bound Dice", "CORE_RESOLUTION", SS, "SUMMON", "BOUND_DIE"),
   entry("Commitment Die", "CORE_RESOLUTION", SS, "MANEUVER", "COMMITMENT_DIE"),
@@ -98,10 +100,16 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   entry("Automatic", "RESOLUTION", C, "CORE", "AUTOMATIC"),
   entry("Initiative", "CORE_RESOLUTION", C, "CORE", "INITIATIVE"),
   entry("Critical Hit", "CORE_RESOLUTION", C, "CORE", "CRITICAL_HIT"),
-  entry("Advantage", "CORE_RESOLUTION", U, "CORE", null, { ...audit, conflictKey: "M5-SC-010" }),
-  entry("Disadvantage", "CORE_RESOLUTION", U, "CORE", null, { ...audit, conflictKey: "M5-SC-010" }),
-  entry("Dodge", "DERIVED_STAT", U, "CHARACTER", null, { ...audit, conflictKey: "M5-SC-005" }),
-  entry("Evasion", "DERIVED_STAT", U, "CHARACTER", null, { ...audit, conflictKey: "M5-SC-005" }),
+  // M5-SC-010 (designer ruling, M5-WO2): Advantage = max of two naturals, Disadvantage = min; no stacking.
+  entry("Advantage", "CORE_RESOLUTION", C, "CORE", "ADVANTAGE", { ...designer, conflictKey: "M5-SC-010" }),
+  entry("Disadvantage", "CORE_RESOLUTION", C, "CORE", "DISADVANTAGE", { ...designer, conflictKey: "M5-SC-010" }),
+  // M5-SC-005 (designer ruling, M5-WO2): Dodge is canonical; Evasion is its LEGACY name.
+  entry("Dodge", "DERIVED_STAT", C, "CHARACTER", "DODGE", { ...designer, conflictKey: "M5-SC-005" }),
+  entry("Evasion", "DERIVED_STAT", L, "CHARACTER", null, { ...designer, canonicalTerm: "Dodge", conflictKey: "M5-SC-005" }),
+  // M5-SC-009 (designer ruling, M5-WO2): Accuracy is +1 per 3 PRO (content Formula), a named Attack Roll contribution.
+  entry("Accuracy", "DERIVED_STAT", C, "CORE", "ACCURACY", { ...designer, conflictKey: "M5-SC-009" }),
+  // M5-SC-006 stays UNRESOLVED (M5-WO2): Base Movement is DEFERRED_PENDING_CANON — no executable formula exists.
+  entry("Base Movement", "DERIVED_STAT", U, "CHARACTER", null, { ...audit, conflictKey: "M5-SC-006" }),
 
   // ---- Skill ranks ------------------------------------------------------------------------------------------------
   entry("Untrained", "SKILL_RANK", C, "SKILL", "UNTRAINED"),
@@ -231,8 +239,12 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   ),
 ]);
 
-/** The LEGACY entry `candidate` names (case-insensitive on the whole term, e.g. "Emission", "EMISSION"), or null. */
+/**
+ * The LEGACY entry `candidate` names, or null. Case-insensitive on the whole term, and spaces, hyphens and underscores
+ * are one separator — so "Emission", "EMISSION", "Player Die" and "PLAYER_DIE" are all recognised.
+ */
+const termToken = (value: string): string => value.toUpperCase().replace(/[ _-]+/g, "_");
 export function legacyTermFor(candidate: string): { term: string; canonicalTerm: string } | null {
-  const hit = TERMINOLOGY_INVENTORY.find((e) => e.status === "LEGACY" && e.term.toUpperCase() === candidate.toUpperCase());
+  const hit = TERMINOLOGY_INVENTORY.find((e) => e.status === "LEGACY" && termToken(e.term) === termToken(candidate));
   return hit === undefined || hit.canonicalTerm === null ? null : { term: hit.term, canonicalTerm: hit.canonicalTerm };
 }

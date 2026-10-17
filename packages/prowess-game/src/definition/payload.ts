@@ -18,6 +18,7 @@ import {
 } from "../vocabulary/construction.js";
 import { legacyTermFor } from "../vocabulary/terminology.js";
 import { DEFINITION_ERROR_CODES } from "./codes.js";
+import { isCorePayloadKind, readCorePayload } from "./core-payload.js";
 
 /**
  * Version-1 payload contracts of the SHARED Ability Construction components (PAS-10 M5-WO1 §25–53, §83).
@@ -332,6 +333,7 @@ export function readDefinitionPayload(kind: ProwessDefinitionKind, contract: Abi
   }
   let payload: JsonObject | null = null;
   if (contract !== null) payload = readComponentPayload(contract, value, at, p);
+  else if (isCorePayloadKind(kind)) payload = readCorePayload(kind, value, at, p);
   else if (kind === "AFFINITY") {
     const r = readRecord(value, at, p, C.INVALID_PAYLOAD, ["affinity"], ["affinity"]);
     const affinity = r === null ? null : own(r, "affinity");

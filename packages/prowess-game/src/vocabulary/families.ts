@@ -68,6 +68,8 @@ const reserved = (family: ProwessSystemFamily, entityTypes: readonly EntityType[
   entityTypes,
   schemaVersions: [],
 });
+/** A non-Ability kind with a version-1 payload contract (M5-WO2 core kinds). */
+const active = (family: ProwessSystemFamily): DefinitionKindSpec => ({ family, branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1] });
 const component = (family: "SPELL" | "MANEUVER", contract: AbilityComponentContract, entityTypes: readonly EntityType[]): DefinitionKindSpec => ({
   family,
   branch: family,
@@ -77,13 +79,16 @@ const component = (family: "SPELL" | "MANEUVER", contract: AbilityComponentContr
 });
 
 const DEFINITION_KIND_TABLE = {
-  // Core / character / skill / resource — payloads arrive in M5-WO2 / M5-WO3.
-  CORE_RESOLUTION: reserved("CORE"),
-  STAT: reserved("CHARACTER"),
-  DERIVED_STAT: reserved("CHARACTER"),
+  // Core resolution / character core / rank primitives — v1 payloads defined by M5-WO2 (definition/core-payload.ts).
+  CORE_RESOLUTION: active("CORE"),
+  CHARACTER_DIE_PROGRESSION: active("CORE"),
+  STAT: active("CHARACTER"),
+  DERIVED_STAT: active("CHARACTER"),
+  RANK_LADDER: active("SKILL"),
+  SKILL_RANK: active("SKILL"),
+  // Ancestry / Skills / resources / actions — payloads arrive in M5-WO3.
   ANCESTRY: reserved("ANCESTRY"),
   SKILL: reserved("SKILL"),
-  SKILL_RANK: reserved("SKILL"),
   RESOURCE: reserved("RESOURCE", ["RESOURCE"]),
   ACTION: reserved("ACTION_ECONOMY"),
 

@@ -20,10 +20,12 @@ import type { CompilationFragment, ProwessCompiledPlan } from "./model.js";
 type ComponentCompiler = (use: ComponentUse, composition: AbilityComposition, bundle: ProwessDefinitionBundle) => readonly CompilationFragment[];
 export const COMPONENT_COMPILERS: Readonly<Record<ProwessDefinitionKind, ComponentCompiler | null>> = deepFreeze({
   CORE_RESOLUTION: null,
+  CHARACTER_DIE_PROGRESSION: null,
   STAT: null,
   DERIVED_STAT: null,
   ANCESTRY: null,
   SKILL: null,
+  RANK_LADDER: null,
   SKILL_RANK: null,
   RESOURCE: null,
   ACTION: null,

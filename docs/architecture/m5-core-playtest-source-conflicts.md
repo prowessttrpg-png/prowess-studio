@@ -1,4 +1,4 @@
-# M5 — Core Playtest Source Conflicts (M5-WO1)
+# M5 — Core Playtest Source Conflicts (M5-WO1, updated M5-WO2)
 
 **Source audited:** Prowess Core Playtest Packet V0.1. The designer's local copy (98,897,516 bytes, SHA-256 prefix
 `21fa6771…`) was verified byte-identical to the source identity recorded in
@@ -11,6 +11,9 @@ title path. Wording is quoted only as far as needed to identify the rule. The DO
 **Authority precedence (M5-WO1 §6):** (1) explicit designer clarifications in M5-WO1, (2) approved CanonDecisions,
 (3) Core Playtest V0.1, (4) older supporting sources. Lower-authority text is never rewritten; structured M5
 architecture follows the higher authority.
+
+**M5-WO2 update.** Designer rulings resolve M5-SC-002, 003, 005, 008, 009 and 010 (each entry records the ruling;
+source locators are unchanged). M5-SC-006 stays UNRESOLVED (Movement `DEFERRED_PENDING_CANON`). M5-SC-032 is new.
 
 **Statuses:** `UNRESOLVED` · `RESOLVED_BY_DESIGNER` · `RESOLVED_BY_CANON_DECISION` · `SUPERSEDED`.
 
@@ -58,11 +61,9 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **mechanical consequence**: in the skill-check and attack formulas, Player Dice reads as a legacy synonym for
   Character Die. In the Summon / Bound / Commitment contexts it names "the caster's own die" in contrast with a
   system-specific die. In the True Damage costs it is unclear whether one die is rolled at the Character Die size.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none. WO1 §9 forbids normalizing this.
-- **notes**: audit classification: skill-check / attack usages = likely LEGACY synonym; Summon / Bound / Commitment
-  usages = CONTEXT_SPECIFIC contrast with a system die; True Damage usages = UNRESOLVED. No true separate concept was
-  found. Terminology inventory: "Player Dice" / "Player Die" = `UNRESOLVED`. Needs a ruling before M5-WO2.
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: M5-WO2 §5, §27 (designer ruling)
+- **notes**: canonical: Character Die / Character Dice (`CHARACTER_DIE`, `CHARACTER_DICE`) · legacy: Player Die / Player Dice. The two are mechanically interchangeable: "1 Player Die" means one roll of the character's current Character Die. There is one progression (`core.character_die.progression`); no Player Die size exists. Source text keeps "Player Dice" verbatim. Summon / Bound / Commitment Dice stay SYSTEM_SPECIFIC. Guarded by M5-I041 and negative control §183.
 
 ### M5-SC-003 — HP and MP formulas
 
@@ -74,10 +75,9 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   with worked examples (s95: Human 8 + 4 = 12 HP; s156: Orcani 10 + 4 = 14 HP). Races list "Base HP Modifier".
 - **mechanical consequence**: multiplicative and additive formulas give very different values (e.g. CON 4 × 10 = 40
   against 10 + 4 = 14).
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
-- **notes**: Character Creation and its examples consistently use the additive form. The Ability Score chapter uses
-  the multiplicative form. WO1 does not choose. M5-WO2 needs a ruling.
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: M5-WO2 §6 (designer ruling)
+- **notes**: Race supplies fixed starting values Base HP and Base MP. Canonical: Maximum HP = Base HP + CON; Maximum MP = Base MP + RES (`core.derived.maximum_hp`, `core.derived.maximum_mp`). The multiplicative wording ("CON × Racial HP Modifier", "RES × Racial MP Modifier") is superseded for structured mechanics; the source text is not rewritten. Guarded by M5-I063–I065 and negative controls §191–§192.
 
 ### M5-SC-004 — Mana Efficiency: payment, not discount
 
@@ -111,9 +111,9 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   formula under another name); s370 Parry ("+1 Evasion per Martial Rank").
 - **mechanical consequence**: it is unclear whether Evasion is a separate defense value (a PER bonus to something),
   a synonym for Dodge, or a defense used only by magic and Maneuvers. This affects every Attack Roll.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
-- **notes**: both are recorded as `UNRESOLVED` in the terminology inventory. Neither is normalized.
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: M5-WO2 §7–§8 (designer ruling)
+- **notes**: canonical: Dodge (`DODGE`) · legacy: Evasion — one defense, never a second value. "+1 Evasion per 3 PER" is the named term Dodge Bonus From PER = floor(PER / 3) (`core.derived.dodge_perception_bonus`). Dodge = Half Character Die + AGI + floor(PER / 3) + explicit Dodge bonuses. Guarded by M5-I056, M5-I057 and negative controls §188–§189.
 
 ### M5-SC-006 — Movement formula
 
@@ -125,7 +125,7 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **mechanical consequence**: the multiplier is doubled. The example also adds an unexplained Athletics bonus.
 - **status**: `UNRESOLVED`
 - **resolution authority**: none
-- **notes**: probably an error in the example. It is still recorded and not repaired (§10).
+- **notes**: probably an error in the example. It is still recorded and not repaired (§10). **M5-WO2:** still UNRESOLVED. Movement calculation is `DEFERRED_PENDING_CANON`: both source formulas are preserved, no executable Movement Formula exists, and a DERIVED_STAT for MOVEMENT / BASE_MOVEMENT / MOVEMENT_SPEED is refused (`PROWESS_DEFINITION.DEFERRED_PENDING_CANON`). Only a designer ruling that changes this status may activate it. Guarded by M5-I073 and negative control §198.
 
 ### M5-SC-007 — Concentration capacity
 
@@ -152,9 +152,9 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   Rank, Affinity Rank …".
 - **mechanical consequence**: it is unclear whether the RES term belongs in the base formula or is an optional feature
   bonus.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
-- **notes**: M5-WO2.
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: M5-WO2 §9 (designer ruling)
+- **notes**: Character DC = Half Character Die + PRO + Resolve DC Bonus + explicit bonuses, with Resolve DC Bonus = floor(RES / 3) (RES 1–2 +0, 3–5 +1, 6–8 +2, 9–10 +3) as its own named term (`core.derived.character_dc_resolve_bonus`). Static: no die is rolled. Guarded by M5-I062 and negative control §190.
 
 ### M5-SC-009 — Prowess bonus to Attack Rolls
 
@@ -165,9 +165,9 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   all base attack rolls".
 - **source B**: s27 Prowess: "Attack Rolls: +1 per 3 PRO".
 - **mechanical consequence**: it is unclear whether a standing PRO-derived bonus applies to every Attack Roll.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
-- **notes**: M5-WO2.
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: M5-WO2 §10 (designer ruling)
+- **notes**: Prowess grants an inherent Accuracy (To-Hit) bonus = floor(PRO / 3) (PRO 1–2 +0, 3–5 +1, 6–8 +2, 9–10 +3), canonical term `ACCURACY` (`core.derived.accuracy`). It is a named Attack Roll contribution, never merged into PER and never an Ability Score. Guarded by M5-I054, M5-I055 and negative controls §186–§187.
 
 ### M5-SC-010 — Advantage / Disadvantage undefined
 
@@ -178,9 +178,9 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source B**: only stacking statements (s990 / s991 "does not stack", s1041). No rule defines what Advantage does
   to a roll.
 - **mechanical consequence**: there is no executable definition (roll twice? a flat bonus? a die step?).
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
-- **notes**: M4 already models Advantage / Disadvantage as roll SIGNALS only (M4-WO6). M5-WO2 needs a source ruling.
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: M5-WO2 §11–§13 (designer ruling)
+- **notes**: Advantage: roll the Character Die twice and keep the higher natural; Disadvantage: keep the lower. Bonuses are added once, after selection; Advantage on an Attack Roll does not affect damage dice. Only NORMAL / ADVANTAGE / DISADVANTAGE exist — no stacking (no double Advantage). Criticals read the selected natural only. Advantage and Disadvantage together are NOT defined by this ruling: that narrow question is recorded as M5-SC-032 and fails closed (`PROWESS_CORE.ROLL_MODE_CONFLICT`). Guarded by M5-I051–I053 and negative controls §193–§194.
 
 ### M5-SC-011 — Arcane Rank vs Arcana Rank
 
@@ -472,7 +472,7 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **mechanical consequence**: Skill identity for checks and contests is incomplete.
 - **status**: `UNRESOLVED`
 - **resolution authority**: none
-- **notes**: M5-WO2.
+- **notes**: M5-WO2. M5-WO2 does not need the Skill list: a Skill Check names an exact Skill canonical key and the Stat chosen by the approach; the Skill catalog arrives with M5-WO3. Still unresolved.
 
 ### M5-SC-031 — Orcani Stat Bonus
 
@@ -486,3 +486,17 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **status**: `UNRESOLVED`
 - **resolution authority**: none
 - **notes**: minor; recorded for completeness.
+
+### M5-SC-032 — Advantage and Disadvantage on the same roll
+
+- **conflictKey**: `M5-SC-032`
+- **systemFamily**: `CORE`
+- **concept**: What happens when Advantage and Disadvantage both apply to one roll
+- **source A**: M5-WO2 §11 designer ruling defines Advantage (higher of two) and Disadvantage (lower of two) separately.
+- **source B**: the Core Playtest uses both terms about 114 times (s162, s371, s990, s991, s1041 …) and states only
+  that each "does not stack"; no rule says whether they cancel, net, or which wins. M5-WO2 §13.
+- **mechanical consequence**: a roll with both signals has no defined natural selection.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none
+- **notes**: recorded by M5-WO2 as a narrow runtime-rule question. `resolveRollMode` fails closed with
+  `PROWESS_CORE.ROLL_MODE_CONFLICT`; nothing cancels, nets or picks a winner. Guarded by M5-I051 / M5-I052 tests.
