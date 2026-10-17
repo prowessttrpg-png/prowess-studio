@@ -72,6 +72,20 @@ It re-runs and separately reports:
 - `node scripts/m5-wo1-negative-controls.mjs`, which mutates real source for controls §214–§230, requires each one to
   be caught, and restores every file byte-for-byte.
 
+**M5-WO2 additions.** A second permanent named step, **"M5-WO2 audit — Core resolution, stats, dice & ranks"**, runs
+right after the M5-WO1 gate. It runs:
+
+- the WO2 golden fixtures (§123–§142) and contracts in `@prowess/game`;
+- the static audit `apps/studio/tests/unit/m5-wo2-static.test.ts` (AST rules over `@prowess/game` and
+  `@prowess/rules`, structural rules over the canonical core content, the conflict register, terminology, invariants
+  M5-I041–I074, documentation, the frozen M4 source-tree hash and the API route inventory in
+  `docs/architecture/m5-wo2-baseline.json`, plus in-memory controls);
+- the database test `prowess-core-resolution-history.test.ts` (exact Release R1 / R2 history and isolation);
+- `node scripts/m5-wo2-negative-controls.mjs`, which mutates real source and content for controls §183–§200,
+  requires each to be caught, and restores every file byte-for-byte.
+
+No M0–M5-WO1 gate was replaced.
+
 Every M0–M4 gate is unchanged.
 
 ## Local quality commands

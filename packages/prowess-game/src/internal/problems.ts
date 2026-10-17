@@ -83,8 +83,13 @@ const MAX_LABEL_LENGTH = 200;
 
 /** Lowercase UUID only — exact identity is never case-folded or trimmed into shape. */
 export const isExactUuid = (value: unknown): value is string => typeof value === "string" && UUID_PATTERN.test(value);
-/** The @prowess/model canonical-key grammar, matched exactly (no case folding). */
-export const isExactCanonicalKey = (value: unknown): value is string => typeof value === "string" && CANONICAL_KEY_PATTERN.test(value);
+const PROTOTYPE_SEGMENTS: readonly string[] = ["__proto__", "constructor", "prototype"];
+/**
+ * The @prowess/model canonical-key grammar, matched exactly (no case folding). A segment that names an object prototype
+ * is never a key (the M4-WO1 prototype-safety policy), so a key can never address one when used as a context key.
+ */
+export const isExactCanonicalKey = (value: unknown): value is string =>
+  typeof value === "string" && CANONICAL_KEY_PATTERN.test(value) && !value.split(".").some((segment) => PROTOTYPE_SEGMENTS.includes(segment));
 /** A non-empty, untrimmed-free label (the @prowess/rules "exact label" rule). */
 export const isExactLabel = (value: unknown): value is string =>
   typeof value === "string" && value.length > 0 && value.length <= MAX_LABEL_LENGTH && value.trim() === value;

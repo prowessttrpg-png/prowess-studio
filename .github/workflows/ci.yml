@@ -296,6 +296,21 @@ jobs:
           pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-definition-materialization.test.ts
           node scripts/m5-wo1-negative-controls.mjs
 
+      # M5-WO2: core resolution, Ability Scores, Character Dice & rank primitives — the golden fixtures and contracts in
+      # @prowess/game, the static audit over @prowess/game / @prowess/rules / the canonical core content with in-memory
+      # controls, exact Release history and cross-Ruleset isolation against the real database, and the behavioural
+      # negative controls §183–§200 (each mutates real source or content, must be caught, and is restored byte-for-byte).
+      - name: M5-WO2 audit — Core resolution, stats, dice & ranks
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+        run: |
+          pnpm --filter "@prowess/game" exec vitest run src/core-resolution-golden.test.ts src/core-contracts.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo2-static.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo2-inspector-fixture.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-core-resolution-history.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo2-core-api.test.ts
+          node scripts/m5-wo2-negative-controls.mjs
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own

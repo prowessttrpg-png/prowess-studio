@@ -1,4 +1,4 @@
-# M5 Invariant Catalog (M5-WO1)
+# M5 Invariant Catalog (M5-WO1, extended by M5-WO2)
 
 Machine-readable twin: `m5-invariants.json` (ids, titles, groups, guards). The permanent M5-WO1 audit
 (`apps/studio/tests/unit/m5-wo1-static.test.ts`) requires every id below, each with executing automated guards.
@@ -243,3 +243,209 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 - **Group:** Ability Construction
 - **Meaning:** Ability Condition payloads may not apply statuses (control §230).
 - **Guards:** `packages/prowess-game/src/ability-construction.test.ts`, `scripts/m5-wo1-negative-controls.mjs`
+
+## M5-WO2 — Core Resolution, Ability Scores, Character Dice & Rank Primitives
+
+### M5-I041 — Character Die Is The Canonical Identity For Player Dice And Player Die Legacy Terminology
+
+- **Group:** Terminology
+- **Meaning:** Player Die / Player Dice are LEGACY synonyms of Character Die / Dice (M5-SC-002); one progression, no Player Die size (golden §142, control §183).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `packages/prowess-game/src/core-contracts.test.ts`, `packages/prowess-game/src/vocabulary.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I042 — Standard Character Die Progression Is Exact By Level And Is Structured Data, Not Scattered Hard-Coded Branches
+
+- **Group:** Core Resolution
+- **Meaning:** Level 1–10 → d4…d12 comes from the CHARACTER_DIE_PROGRESSION Definition; no level branch exists in code (golden §123).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `packages/prowess-game/src/core-contracts.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`
+
+### M5-I043 — Dice Evaluation Consumes Explicit Runtime Roll Results And Introduces No Randomness Into The Deterministic Rules Layer
+
+- **Group:** Core Resolution
+- **Meaning:** ProwessDieRollInput is validated against the exact die; no RNG anywhere in @prowess/game or @prowess/rules (control §184).
+- **Guards:** `packages/prowess-game/src/core-contracts.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I044 — Half Character Die Uses Half The Die's Maximum Face As A Static Value
+
+- **Group:** Core Resolution
+- **Meaning:** HALF_CHARACTER_DIE = faces / 2 as an M4 Formula; no roll (golden §124).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`
+
+### M5-I045 — Prowess Uses Exactly Six Canonical Core Ability Scores: STR, AGI, CON, PER, RES, PRO
+
+- **Group:** Character Core
+- **Meaning:** Six STAT Definitions; identities owned by @prowess/game, never by @prowess/rules.
+- **Guards:** `packages/prowess-game/src/core-contracts.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`
+
+### M5-I046 — Standard Ability Scores Are Bounded From 1 Through 10 Unless An Exact Rule Explicitly Overrides The Bound
+
+- **Group:** Character Core
+- **Meaning:** STAT Definitions carry minimum 1 / maximum 10; a CharacterCore outside them fails closed, never clamped.
+- **Guards:** `packages/prowess-game/src/core-contracts.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`
+
+### M5-I047 — Rank Ordering And Rank Numeric Effects Are Separate Concepts
+
+- **Group:** Ranks
+- **Meaning:** RANK_LADDER holds explicit order; SKILL_RANK holds Skill bonuses; rank requirements compile to M4 RANK_AT_LEAST (control §197).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `packages/prowess-game/src/core-contracts.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I048 — Base Skill Rank Bonuses Are Untrained 0, Trained +2, Expert +4, Master +6
+
+- **Group:** Ranks
+- **Meaning:** SKILL_RANK content; UNTRAINED has attemptAllowed false, separately from its rank (golden §133, control §197).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I049 — Skill Checks Use The Stat Chosen For The Character's Approach Rather Than A Stat Permanently Owned By The Skill
+
+- **Group:** Ranks
+- **Meaning:** A Skill Check names its Stat explicitly; no Skill → Stat table exists (control §196).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I050 — Core Roll Arithmetic Is Executed By M4 Formula And Threshold Resolution By M4 Requirement Rather Than By Hidden Compiler Math
+
+- **Group:** Compilation
+- **Meaning:** Totals, selections and statistics are FORMULA steps; comparisons are REQUIREMENT steps; the plan holds no results (control §185).
+- **Guards:** `packages/prowess-game/src/core-contracts.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`, `packages/prowess-db/tests/integration/prowess-core-resolution-history.test.ts`
+
+### M5-I051 — Advantage Selects The Higher Of Two Natural Character Die Results And Adds Modifiers Once
+
+- **Group:** Core Resolution
+- **Meaning:** max(r1, r2) selects the natural; bonuses enter only the total (golden §131, control §193). Both signals fail closed (M5-SC-032).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I052 — Disadvantage Selects The Lower Of Two Natural Character Die Results And Adds Modifiers Once
+
+- **Group:** Core Resolution
+- **Meaning:** min(r1, r2) selects the natural; bonuses added once (golden §132).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`
+
+### M5-I053 — Selected Natural Die Result Is Preserved Separately From Final Roll Total
+
+- **Group:** Core Resolution
+- **Meaning:** The natural-selection step is its own M4 step, named in plan outputs; criticals read it (control §194).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I054 — Attack Rolls Use Character Die + PER + Prowess Accuracy + Explicit Bonuses Unless An Exact Rule Specifies Otherwise
+
+- **Group:** Core Resolution
+- **Meaning:** ATTACK_ROLL content total (golden §129, control §186).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I055 — Prowess Accuracy Bonus Is floor(PRO / 3) And Remains An Explicit To-Hit Contribution
+
+- **Group:** Core Resolution
+- **Meaning:** ACCURACY is its own DERIVED_STAT step and named Formula term (golden §128, control §187).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I056 — Dodge Is The Canonical Defense Term; Evasion Is Legacy Terminology For The Same Defense
+
+- **Group:** Terminology
+- **Meaning:** Evasion is LEGACY for Dodge (M5-SC-005); no second defense value (control §188).
+- **Guards:** `packages/prowess-game/src/core-contracts.test.ts`, `packages/prowess-game/src/vocabulary.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I057 — Base Dodge Is Half Character Die + AGI + floor(PER / 3) Before Other Explicit Modifiers
+
+- **Group:** Derived Statistics
+- **Meaning:** DODGE content; the PER term is its own statistic (golden §126, control §189).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I058 — A Maximum Natural Character Die Result Creates A Critical Threat But Does Not Automatically Hit
+
+- **Group:** Core Resolution
+- **Meaning:** Threat = selected natural == faces via M4 Requirement; success is separate (golden §130, control §195).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I059 — Critical Hit Requires Both A Critical Threat And A Successful Attack
+
+- **Group:** Core Resolution
+- **Meaning:** Critical Hit is an M4 ALL Requirement of threat and hit; damage deferred (golden §130, control §195).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I060 — Saving Throws Use Character Die + Explicit Save Stat + Explicit Bonuses
+
+- **Group:** Core Resolution
+- **Meaning:** SAVING_THROW content; any of the six Stats, always explicit (golden §135).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`
+
+### M5-I061 — Targeting Never Selects A Saving Throw; The Applicable Effect Or Rule Does
+
+- **Group:** Core Resolution
+- **Meaning:** Targeting payloads may not carry save keys (M5-I022 carried forward, control §200).
+- **Guards:** `packages/prowess-game/src/core-contracts.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I062 — Character DC Is Half Character Die + PRO + floor(RES / 3) + Explicit Bonuses
+
+- **Group:** Derived Statistics
+- **Meaning:** CHARACTER_DC content with a named Resolve DC Bonus (golden §127, control §190).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I063 — Maximum HP Is Base HP From Race Plus CON Before Other Explicit Bonuses
+
+- **Group:** Derived Statistics
+- **Meaning:** MAXIMUM_HP = base_hp + con (golden §125, control §191).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I064 — Maximum MP Is Base MP From Race Plus RES Before Other Explicit Bonuses
+
+- **Group:** Derived Statistics
+- **Meaning:** MAXIMUM_MP = base_mp + res (golden §125, control §192).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I065 — Base HP And Base MP Are Racial Starting Values Rather Than Multipliers
+
+- **Group:** Derived Statistics
+- **Meaning:** Base HP / MP are CharacterCore inputs added, never multiplied (M5-SC-003).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I066 — Strength Grants floor(STR / 3) Natural Armor Before Other Armor Sources
+
+- **Group:** Derived Statistics
+- **Meaning:** STRENGTH_ARMOR content (golden §136).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`
+
+### M5-I067 — Agility Grants floor(AGI / 3) Additional AP Capacity Above The Base 3 AP
+
+- **Group:** Derived Statistics
+- **Meaning:** AP_AGILITY_BONUS and BASE_AP_CAPACITY content (golden §137).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`
+
+### M5-I068 — Base Range Is 15 Feet Times PER
+
+- **Group:** Derived Statistics
+- **Meaning:** BASE_RANGE content, unit ft (golden §138).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`
+
+### M5-I069 — Base Mana Efficiency Equals PRO And Remains A Payment Resource Rather Than A Listed-Cost Modifier
+
+- **Group:** Derived Statistics
+- **Meaning:** BASE_MANA_EFFICIENCY = pro; nothing subtracts ME from a listed cost (golden §139, control §199).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I070 — Base Signature Ability Capacity Equals PRO
+
+- **Group:** Derived Statistics
+- **Meaning:** SIGNATURE_ABILITY_SLOTS content (golden §140).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`
+
+### M5-I071 — Skill Automatic Success Uses Ability Score + Skill Rank Bonus Against DC Without Requiring A Character Die Roll
+
+- **Group:** Core Resolution
+- **Meaning:** SKILL_AUTOMATIC_SUCCESS is a dieless, separate plan fragment (golden §134).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`
+
+### M5-I072 — Stat Mastery At Level 10 And Stat 10 Produces Advantage On Applicable Rolls Rather Than A Numeric Modifier
+
+- **Group:** Core Resolution
+- **Meaning:** An M4 MODIFIER ROLL_SIGNAL with a level / Stat condition; never a number (golden §141).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`
+
+### M5-I073 — Unresolved Movement Formula Conflict M5-SC-006 Must Not Produce Executable Canonical Movement Math
+
+- **Group:** Source Conflicts
+- **Meaning:** Movement is DEFERRED_PENDING_CANON; a Movement DERIVED_STAT is refused (control §198).
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `packages/prowess-game/src/core-contracts.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
+
+### M5-I074 — WO2 Derived Character Statistics Calculate Through M4 Primitives While Runtime Resource Mutation Remains Deferred To The Resource / Action-Economy Work
+
+- **Group:** Derived Statistics
+- **Meaning:** Statistics are M4 FORMULA steps; no Resource transition is compiled; exact Release history reproduces them.
+- **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `packages/prowess-db/tests/integration/prowess-core-resolution-history.test.ts`
