@@ -20,7 +20,8 @@ export const STAT_CONTEXT_KEYS = deepFreeze({ STR: "str", AGI: "agi", CON: "con"
 
 /**
  * The only roll states that exist (M5-SC-010, designer ruling): NORMAL, ADVANTAGE, DISADVANTAGE. There is no
- * double Advantage, no stacking and no cancellation. Both signals present is fail-closed (M5-SC-032).
+ * double Advantage and no stacking. Advantage and Disadvantage together resolve NORMAL — presence-based cancellation,
+ * never arithmetic netting (M5-SC-032, designer ruling in M5-WO3; M5-WO2 failed closed while it was unresolved).
  */
 export const ROLL_MODES = deepFreeze(["NORMAL", "ADVANTAGE", "DISADVANTAGE"] as const);
 export type RollMode = (typeof ROLL_MODES)[number];
@@ -54,16 +55,26 @@ export const CHARACTER_PROPERTY_KEYS = deepFreeze({
 export type CharacterField = Exclude<keyof typeof CHARACTER_PROPERTY_KEYS, "CHARACTER_DIE_FACES">;
 export const CHARACTER_FIELDS = deepFreeze(["LEVEL", "BASE_HP", "BASE_MP"] as const satisfies readonly CharacterField[]);
 
-/** The core-resolution procedures a CORE_RESOLUTION Definition may define (one Definition per procedure). */
-export const CORE_PROCEDURES = deepFreeze(["CORE_ROLL", "SKILL_CHECK", "SKILL_AUTOMATIC_SUCCESS", "SAVING_THROW", "ATTACK_ROLL", "STAT_MASTERY"] as const);
+/**
+ * The core-resolution procedures a CORE_RESOLUTION Definition may define (one Definition per procedure). INITIATIVE is
+ * added by M5-WO3 (s52, s425): a side roll whose total is compared with other sides' totals, never with a DC.
+ */
+export const CORE_PROCEDURES = deepFreeze(["CORE_ROLL", "SKILL_CHECK", "SKILL_AUTOMATIC_SUCCESS", "SAVING_THROW", "ATTACK_ROLL", "STAT_MASTERY", "INITIATIVE"] as const);
 export type CoreProcedure = (typeof CORE_PROCEDURES)[number];
-/** Procedures that are rolls (have a total and a comparison). STAT_MASTERY is a roll-mode signal, not a roll. */
-export const ROLL_PROCEDURES = deepFreeze(["CORE_ROLL", "SKILL_CHECK", "SKILL_AUTOMATIC_SUCCESS", "SAVING_THROW", "ATTACK_ROLL"] as const satisfies readonly CoreProcedure[]);
+/** Procedures that are rolls (have a total). STAT_MASTERY is a roll-mode signal, not a roll. */
+export const ROLL_PROCEDURES = deepFreeze(["CORE_ROLL", "SKILL_CHECK", "SKILL_AUTOMATIC_SUCCESS", "SAVING_THROW", "ATTACK_ROLL", "INITIATIVE"] as const satisfies readonly CoreProcedure[]);
 export type RollProcedure = (typeof ROLL_PROCEDURES)[number];
+/**
+ * Initiative tie-break steps (s425), in the order the INITIATIVE Definition lists them: compare the highest value of a
+ * Stat among each tied side's creatures, or require an explicit reroll (new runtime die input — never generated).
+ */
+export const INITIATIVE_TIEBREAK_KINDS = deepFreeze(["HIGHEST_STAT", "REROLL"] as const);
+export type InitiativeTiebreakKind = (typeof INITIATIVE_TIEBREAK_KINDS)[number];
 
 /**
- * The derived statistics M5-WO2 defines (designer rulings M5-SC-003 / 005 / 008 / 009). MOVEMENT is deliberately
- * absent: M5-SC-006 is UNRESOLVED and DEFERRED_PENDING_CANON, so no Movement formula may exist (M5-I060).
+ * The derived statistics (designer rulings M5-SC-003 / 005 / 008 / 009). BASE_MOVEMENT and FINAL_MOVEMENT are added by
+ * M5-WO3 after the designer resolved M5-SC-006 (Base Movement = 5 ft × AGI). M5-WO2 deliberately had no Movement
+ * statistic while M5-SC-006 was unresolved (historical M5-I073, superseded by M5-I075).
  */
 export const DERIVED_STATISTICS = deepFreeze([
   "HALF_CHARACTER_DIE",
@@ -81,17 +92,23 @@ export const DERIVED_STATISTICS = deepFreeze([
   "BASE_RANGE",
   "BASE_MANA_EFFICIENCY",
   "SIGNATURE_ABILITY_SLOTS",
+  "BASE_MOVEMENT",
+  "FINAL_MOVEMENT",
 ] as const);
 export type DerivedStatistic = (typeof DERIVED_STATISTICS)[number];
 
-/** Statistic keys that are deferred pending canon: refused as executable content (M5-SC-006, M5-I060). */
-export const DEFERRED_STATISTICS = deepFreeze(["MOVEMENT", "BASE_MOVEMENT", "MOVEMENT_SPEED"] as const);
+/**
+ * Statistic keys deferred pending canon, refused as executable content. M5-WO2 deferred MOVEMENT / BASE_MOVEMENT /
+ * MOVEMENT_SPEED (M5-SC-006). M5-SC-006 is RESOLVED_BY_DESIGNER in M5-WO3, so nothing is deferred here any more; the
+ * Size movement adjustment (M5-SC-033) is deferred at the CREATURE_SIZE payload instead.
+ */
+export const DEFERRED_STATISTICS = deepFreeze([] as const satisfies readonly string[]);
 
 /**
  * Where an explicit, named bonus applies. A bonus is never folded into a Stat or a base value; it is its own named
  * Formula term on the roll or statistic it targets.
  */
-export const BONUS_TARGETS = deepFreeze(["CORE_ROLL", "SKILL_CHECK", "SAVING_THROW", "ATTACK_ROLL", "DODGE", "CHARACTER_DC"] as const);
+export const BONUS_TARGETS = deepFreeze(["CORE_ROLL", "SKILL_CHECK", "SAVING_THROW", "ATTACK_ROLL", "DODGE", "CHARACTER_DC", "INITIATIVE", "MOVEMENT"] as const);
 export type BonusTarget = (typeof BONUS_TARGETS)[number];
 /** ActorContext `properties` key segment of each bonus target (`bonus.<segment>.<bonusKey>`). */
 export const BONUS_CONTEXT_SEGMENTS = deepFreeze({
@@ -101,6 +118,8 @@ export const BONUS_CONTEXT_SEGMENTS = deepFreeze({
   ATTACK_ROLL: "attack_roll",
   DODGE: "dodge",
   CHARACTER_DC: "character_dc",
+  INITIATIVE: "initiative",
+  MOVEMENT: "movement",
 } as const satisfies Record<BonusTarget, string>);
 
 /** Variable sources a DERIVED_STAT or CORE_RESOLUTION Formula may declare. Every Formula variable names exactly one. */
@@ -108,6 +127,13 @@ export const VARIABLE_SOURCE_KINDS = deepFreeze(["STAT", "CHOSEN_STAT", "CHARACT
 export type VariableSourceKind = (typeof VARIABLE_SOURCE_KINDS)[number];
 /** Sources legal in a DERIVED_STAT (a statistic never reads a roll, a chosen Stat or a Skill rank). */
 export const DERIVED_VARIABLE_SOURCE_KINDS = deepFreeze(["STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "EXPLICIT_BONUSES"] as const satisfies readonly VariableSourceKind[]);
+/**
+ * M5-WO3 runtime Formula sources: an ACTION's movement grant reads only DERIVED statistics (Final Movement); a TERRAIN's
+ * allowance cost reads only the MOVEMENT_DISTANCE moved (runtime input). Never a Stat directly, never a roll.
+ */
+export const RUNTIME_VARIABLE_SOURCE_KINDS = deepFreeze(["DERIVED", "MOVEMENT_DISTANCE"] as const);
+export type RuntimeVariableSourceKind = (typeof RUNTIME_VARIABLE_SOURCE_KINDS)[number];
+export type FormulaSourceKind = VariableSourceKind | RuntimeVariableSourceKind;
 
 /** The Critical rule vocabulary (Core Playtest s59). Damage on a critical hit is deferred to the damage Work Order. */
 export const CRITICAL_THREAT_RULES = deepFreeze(["NATURAL_EQUALS_DIE_FACES"] as const);

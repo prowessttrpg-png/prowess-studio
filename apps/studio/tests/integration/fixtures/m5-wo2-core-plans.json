@@ -70,7 +70,7 @@
         },
         {
           "stepKey": "prowess:DERIVED_STATISTICS:inspector:derived.CHARACTER_DC_RESOLVE_BONUS",
-          "order": 5,
+          "order": 6,
           "operation": "FORMULA",
           "input": {
             "program": {
@@ -99,7 +99,7 @@
         },
         {
           "stepKey": "prowess:DERIVED_STATISTICS:inspector:derived.HALF_CHARACTER_DIE",
-          "order": 8,
+          "order": 10,
           "operation": "FORMULA",
           "input": {
             "program": {
@@ -128,7 +128,7 @@
         },
         {
           "stepKey": "prowess:DERIVED_STATISTICS:inspector:derived.CHARACTER_DC",
-          "order": 9,
+          "order": 11,
           "operation": "FORMULA",
           "input": {
             "program": {
@@ -295,7 +295,7 @@
         },
         {
           "stepKey": "prowess:DERIVED_STATISTICS:inspector:derived.CHARACTER_DC_RESOLVE_BONUS",
-          "order": 5,
+          "order": 6,
           "operation": "FORMULA",
           "role": "derived-statistic:CHARACTER_DC_RESOLVE_BONUS",
           "componentKeys": [
@@ -321,7 +321,7 @@
         },
         {
           "stepKey": "prowess:DERIVED_STATISTICS:inspector:derived.HALF_CHARACTER_DIE",
-          "order": 8,
+          "order": 10,
           "operation": "FORMULA",
           "role": "derived-statistic:HALF_CHARACTER_DIE",
           "componentKeys": [
@@ -347,7 +347,7 @@
         },
         {
           "stepKey": "prowess:DERIVED_STATISTICS:inspector:derived.CHARACTER_DC",
-          "order": 9,
+          "order": 11,
           "operation": "FORMULA",
           "role": "derived-statistic:CHARACTER_DC",
           "componentKeys": [

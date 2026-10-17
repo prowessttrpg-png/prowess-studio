@@ -126,13 +126,14 @@ const controls = [
     mutate: content((defs) => def(defs, (d) => d.definitionKind === "SKILL_RANK").payload.entries.forEach((e, i) => (e.bonus = i))),
     guard: golden("UNTRAINED \\+0 · TRAINED \\+2"),
   },
+  // §198 originally proved Movement stayed DEFERRED_PENDING_CANON (M5-I073). M5-WO3 resolved M5-SC-006 by designer ruling
+  // and superseded M5-I073 with M5-I075, so the control now pins the superseded state: the contradictory 10 × AGI example
+  // is never canonical (the WO3 golden must fail). The M5-WO3 script owns the full Movement controls §174–§176.
   {
-    name: "§198 Movement = 5 × AGI as executable canonical WO2 math",
+    name: "§198 (M5-I073 superseded by M5-I075) canonical Base Movement replaced by 10 × AGI",
     file: CONTENT,
-    mutate: content((defs) =>
-      defs.push({ canonicalKey: "core.derived.base_movement", definitionKind: "DERIVED_STAT", payload: { statistic: "BASE_MOVEMENT", formula: { expression: "5 * agi", rounding: "NONE", variables: [{ variable: "agi", source: { kind: "STAT", stat: "AGI" } }] }, bonusTarget: null, source: { locators: ["s23"], conflicts: ["M5-SC-006"] } } }),
-    ),
-    guard: staticWo2("canonical core content passes"),
+    mutate: content((defs) => void (def(defs, statistic("BASE_MOVEMENT")).payload.formula.expression = "10 * agi")),
+    guard: vitest("packages/prowess-game", ["src/runtime-resources-golden.test.ts", "-t", "AGI 4 → 20 ft"]),
   },
   { name: "§199 listedMpAfterMe = listedMp - ME", file: G("core/compile.ts"), mutate: append("export const listedMpAfterMe = (listedMp: number, me: number) => listedMp - me;"), guard: staticWo2("core/compile.ts passes") },
   { name: "§200 Radius Targeting selects an AGI Save", file: G("definition/payload.ts"), mutate: replaceOnce('  "save",\n  "saves",\n  "saveStat",\n', ""), guard: contracts("M5-I061 Targeting never selects a Saving Throw") },

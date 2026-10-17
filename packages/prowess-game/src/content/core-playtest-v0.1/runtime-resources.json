@@ -1,0 +1,829 @@
+{
+  "contentKey": "prowess.core_playtest.v0_1.runtime_resources",
+  "workOrder": "M5-WO3",
+  "schemaVersion": 1,
+  "source": {
+    "title": "Prowess Core Playtest Packet V0.1",
+    "sha256Prefix": "21fa6771",
+    "parser": "prowess-docx-structure@1.0.0",
+    "structureHashPrefix": "3d9a429c"
+  },
+  "designerRulings": [
+    "M5-SC-004",
+    "M5-SC-006",
+    "M5-SC-032"
+  ],
+  "deferred": [
+    {
+      "conflictKey": "M5-SC-033",
+      "concept": "Size-based movement adjustment values",
+      "status": "DEFERRED_PENDING_CANON"
+    },
+    {
+      "conflictKey": "M5-SC-034",
+      "concept": "Repeated Sprint and the Sprint movement basis (Base vs Total Movement)",
+      "status": "UNRESOLVED_DOCUMENTED"
+    }
+  ],
+  "definitions": [
+    {
+      "canonicalKey": "resource.hp",
+      "definitionKind": "RESOURCE",
+      "payload": {
+        "resourceKey": "HP",
+        "m4Kind": "POOL",
+        "minimum": 0,
+        "maximum": {
+          "source": "DERIVED",
+          "statistic": "MAXIMUM_HP"
+        },
+        "refresh": [],
+        "expiry": [],
+        "spending": "DIRECT",
+        "restoration": {
+          "ceiling": "NOMINAL_MAXIMUM",
+          "overflow": "CLAMP"
+        },
+        "supportsReservation": false,
+        "payment": [],
+        "usageRestrictions": [],
+        "exposesDepletion": true,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s101",
+            "s102"
+          ],
+          "conflicts": [
+            "M5-SC-003"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "resource.mp",
+      "definitionKind": "RESOURCE",
+      "payload": {
+        "resourceKey": "MP",
+        "m4Kind": "POOL",
+        "minimum": 0,
+        "maximum": {
+          "source": "DERIVED",
+          "statistic": "MAXIMUM_MP"
+        },
+        "refresh": [],
+        "expiry": [],
+        "spending": "DIRECT",
+        "restoration": {
+          "ceiling": "AVAILABLE_MAXIMUM",
+          "overflow": "CLAMP"
+        },
+        "supportsReservation": true,
+        "payment": [
+          {
+            "policy": "MAGICAL_COST",
+            "order": 0
+          },
+          {
+            "policy": "ME_ELIGIBLE_MAGICAL_COST",
+            "order": 1
+          }
+        ],
+        "usageRestrictions": [],
+        "exposesDepletion": false,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s103",
+            "s643",
+            "s644",
+            "s646",
+            "s647",
+            "s648",
+            "s649"
+          ],
+          "conflicts": [
+            "M5-SC-003",
+            "M5-SC-004"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "resource.me",
+      "definitionKind": "RESOURCE",
+      "payload": {
+        "resourceKey": "ME",
+        "m4Kind": "TEMPORARY_POOL",
+        "minimum": 0,
+        "maximum": {
+          "source": "DERIVED",
+          "statistic": "BASE_MANA_EFFICIENCY"
+        },
+        "refresh": [
+          {
+            "timing": "START_OF_ROUND",
+            "target": "TO_NOMINAL_MAXIMUM"
+          }
+        ],
+        "expiry": [],
+        "spending": "DIRECT",
+        "restoration": null,
+        "supportsReservation": false,
+        "payment": [
+          {
+            "policy": "ME_ELIGIBLE_MAGICAL_COST",
+            "order": 0
+          }
+        ],
+        "usageRestrictions": [],
+        "exposesDepletion": false,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s27",
+            "s107",
+            "s646",
+            "s647"
+          ],
+          "conflicts": [
+            "M5-SC-004"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "resource.ap",
+      "definitionKind": "RESOURCE",
+      "payload": {
+        "resourceKey": "AP",
+        "m4Kind": "ACTION",
+        "minimum": 0,
+        "maximum": {
+          "source": "DERIVED",
+          "statistic": "BASE_AP_CAPACITY"
+        },
+        "refresh": [
+          {
+            "timing": "START_OF_TURN",
+            "target": "TO_NOMINAL_MAXIMUM"
+          }
+        ],
+        "expiry": [
+          {
+            "timing": "END_OF_TURN",
+            "setTo": "MINIMUM",
+            "preservableByExplicitRule": true
+          }
+        ],
+        "spending": "DIRECT",
+        "restoration": null,
+        "supportsReservation": false,
+        "payment": [
+          {
+            "policy": "ACTION_POINT_COST",
+            "order": 0
+          }
+        ],
+        "usageRestrictions": [],
+        "exposesDepletion": false,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s43",
+            "s45",
+            "s110",
+            "s431"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "resource.counter_action",
+      "definitionKind": "RESOURCE",
+      "payload": {
+        "resourceKey": "COUNTER_ACTION",
+        "m4Kind": "SLOT",
+        "minimum": 0,
+        "maximum": {
+          "source": "DERIVED",
+          "statistic": "COUNTER_ACTION_CAPACITY"
+        },
+        "refresh": [
+          {
+            "timing": "START_OF_ROUND",
+            "target": "TO_NOMINAL_MAXIMUM"
+          }
+        ],
+        "expiry": [],
+        "spending": "PAYMENT_ONLY",
+        "restoration": null,
+        "supportsReservation": false,
+        "payment": [
+          {
+            "policy": "COUNTER_ACTION_COST",
+            "order": 0
+          }
+        ],
+        "usageRestrictions": [
+          {
+            "restrictionKey": "SURPRISED",
+            "throughRound": 1
+          }
+        ],
+        "exposesDepletion": false,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s47",
+            "s48",
+            "s51",
+            "s111",
+            "s424",
+            "s428",
+            "s434",
+            "s435"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "resource.movement_allowance",
+      "definitionKind": "RESOURCE",
+      "payload": {
+        "resourceKey": "MOVEMENT_ALLOWANCE",
+        "m4Kind": "TRACKER",
+        "minimum": 0,
+        "maximum": {
+          "source": "UNBOUNDED"
+        },
+        "refresh": [],
+        "expiry": [
+          {
+            "timing": "END_OF_TURN",
+            "setTo": "MINIMUM",
+            "preservableByExplicitRule": true
+          }
+        ],
+        "spending": "DIRECT",
+        "restoration": {
+          "ceiling": "NOMINAL_MAXIMUM",
+          "overflow": "CLAMP"
+        },
+        "supportsReservation": false,
+        "payment": [],
+        "usageRestrictions": [],
+        "exposesDepletion": false,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s45",
+            "s69",
+            "s436",
+            "s437"
+          ],
+          "conflicts": [
+            "M5-SC-006"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "action.move",
+      "definitionKind": "ACTION",
+      "payload": {
+        "actionKey": "MOVE",
+        "timing": "OWN_TURN",
+        "actionPointCost": {
+          "model": "FIXED",
+          "amount": 1
+        },
+        "otherCosts": [],
+        "movementGrant": {
+          "formula": {
+            "expression": "final_movement",
+            "rounding": "NONE",
+            "unit": "ft",
+            "variables": [
+              {
+                "variable": "final_movement",
+                "source": {
+                  "kind": "DERIVED",
+                  "statistic": "FINAL_MOVEMENT"
+                }
+              }
+            ]
+          }
+        },
+        "requiresTrigger": false,
+        "costOverridableByExplicitRule": true,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s44",
+            "s432",
+            "s436",
+            "s437"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "action.sprint",
+      "definitionKind": "ACTION",
+      "payload": {
+        "actionKey": "SPRINT",
+        "timing": "OWN_TURN",
+        "actionPointCost": {
+          "model": "FIXED",
+          "amount": 3
+        },
+        "otherCosts": [],
+        "movementGrant": {
+          "formula": {
+            "expression": "final_movement * 4",
+            "rounding": "NONE",
+            "unit": "ft",
+            "variables": [
+              {
+                "variable": "final_movement",
+                "source": {
+                  "kind": "DERIVED",
+                  "statistic": "FINAL_MOVEMENT"
+                }
+              }
+            ]
+          }
+        },
+        "requiresTrigger": false,
+        "costOverridableByExplicitRule": true,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s44",
+            "s71",
+            "s228",
+            "s432",
+            "s438",
+            "s485"
+          ],
+          "conflicts": [
+            "M5-SC-034"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "action.attack.light",
+      "definitionKind": "ACTION",
+      "payload": {
+        "actionKey": "LIGHT_ATTACK",
+        "timing": "OWN_TURN",
+        "actionPointCost": {
+          "model": "FIXED",
+          "amount": 1
+        },
+        "otherCosts": [],
+        "movementGrant": null,
+        "requiresTrigger": false,
+        "costOverridableByExplicitRule": true,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s44",
+            "s432"
+          ],
+          "conflicts": [
+            "M5-SC-026"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "action.attack.balanced",
+      "definitionKind": "ACTION",
+      "payload": {
+        "actionKey": "BALANCED_ATTACK",
+        "timing": "OWN_TURN",
+        "actionPointCost": {
+          "model": "FIXED",
+          "amount": 2
+        },
+        "otherCosts": [],
+        "movementGrant": null,
+        "requiresTrigger": false,
+        "costOverridableByExplicitRule": true,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s44",
+            "s46",
+            "s432"
+          ],
+          "conflicts": [
+            "M5-SC-026"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "action.attack.heavy",
+      "definitionKind": "ACTION",
+      "payload": {
+        "actionKey": "HEAVY_ATTACK",
+        "timing": "OWN_TURN",
+        "actionPointCost": {
+          "model": "FIXED",
+          "amount": 3
+        },
+        "otherCosts": [],
+        "movementGrant": null,
+        "requiresTrigger": false,
+        "costOverridableByExplicitRule": true,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s44",
+            "s432"
+          ],
+          "conflicts": [
+            "M5-SC-026"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "action.block",
+      "definitionKind": "ACTION",
+      "payload": {
+        "actionKey": "BLOCK",
+        "timing": "OWN_TURN",
+        "actionPointCost": {
+          "model": "FIXED",
+          "amount": 2
+        },
+        "otherCosts": [],
+        "movementGrant": null,
+        "requiresTrigger": false,
+        "costOverridableByExplicitRule": true,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s44",
+            "s432"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "action.dodge",
+      "definitionKind": "ACTION",
+      "payload": {
+        "actionKey": "DODGE_ACTION",
+        "timing": "OWN_TURN",
+        "actionPointCost": {
+          "model": "FIXED",
+          "amount": 3
+        },
+        "otherCosts": [],
+        "movementGrant": null,
+        "requiresTrigger": false,
+        "costOverridableByExplicitRule": true,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s44",
+            "s432"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "action.reload",
+      "definitionKind": "ACTION",
+      "payload": {
+        "actionKey": "RELOAD",
+        "timing": "OWN_TURN",
+        "actionPointCost": {
+          "model": "FIXED",
+          "amount": 1
+        },
+        "otherCosts": [],
+        "movementGrant": null,
+        "requiresTrigger": false,
+        "costOverridableByExplicitRule": true,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s432"
+          ],
+          "conflicts": [
+            "M5-SC-027"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "action.interact",
+      "definitionKind": "ACTION",
+      "payload": {
+        "actionKey": "INTERACT",
+        "timing": "OWN_TURN",
+        "actionPointCost": {
+          "model": "MINIMUM",
+          "minimum": 1
+        },
+        "otherCosts": [],
+        "movementGrant": null,
+        "requiresTrigger": false,
+        "costOverridableByExplicitRule": true,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s44",
+            "s432"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "action.grapple",
+      "definitionKind": "ACTION",
+      "payload": {
+        "actionKey": "GRAPPLE",
+        "timing": "OWN_TURN",
+        "actionPointCost": {
+          "model": "RANGE",
+          "minimum": 1,
+          "maximum": 2
+        },
+        "otherCosts": [],
+        "movementGrant": null,
+        "requiresTrigger": false,
+        "costOverridableByExplicitRule": true,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s44",
+            "s432"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "action.cast_spell",
+      "definitionKind": "ACTION",
+      "payload": {
+        "actionKey": "CAST_SPELL",
+        "timing": "OWN_TURN",
+        "actionPointCost": {
+          "model": "VARIABLE",
+          "determinedBy": "SPELL"
+        },
+        "otherCosts": [],
+        "movementGrant": null,
+        "requiresTrigger": false,
+        "costOverridableByExplicitRule": true,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s44",
+            "s432",
+            "s644"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "action.use_skill",
+      "definitionKind": "ACTION",
+      "payload": {
+        "actionKey": "USE_SKILL_ACTION",
+        "timing": "OWN_TURN",
+        "actionPointCost": {
+          "model": "VARIABLE",
+          "determinedBy": "SKILL_ACTION"
+        },
+        "otherCosts": [],
+        "movementGrant": null,
+        "requiresTrigger": false,
+        "costOverridableByExplicitRule": true,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s44",
+            "s432"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "action.counter_reaction",
+      "definitionKind": "ACTION",
+      "payload": {
+        "actionKey": "COUNTER_REACTION",
+        "timing": "OUTSIDE_OWN_TURN",
+        "actionPointCost": {
+          "model": "NONE"
+        },
+        "otherCosts": [
+          {
+            "costKey": "COUNTER_ACTION",
+            "policy": "COUNTER_ACTION_COST",
+            "amount": 1
+          }
+        ],
+        "movementGrant": null,
+        "requiresTrigger": true,
+        "costOverridableByExplicitRule": true,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s47",
+            "s48",
+            "s434",
+            "s435"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "creature_size.small",
+      "definitionKind": "CREATURE_SIZE",
+      "payload": {
+        "sizeKey": "SMALL",
+        "occupiedSpaceFeet": [
+          5
+        ],
+        "orLarger": false,
+        "movementAdjustment": null,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s441",
+            "s442"
+          ],
+          "conflicts": [
+            "M5-SC-033"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "creature_size.medium",
+      "definitionKind": "CREATURE_SIZE",
+      "payload": {
+        "sizeKey": "MEDIUM",
+        "occupiedSpaceFeet": [
+          5
+        ],
+        "orLarger": false,
+        "movementAdjustment": null,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s441",
+            "s442"
+          ],
+          "conflicts": [
+            "M5-SC-033"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "creature_size.large",
+      "definitionKind": "CREATURE_SIZE",
+      "payload": {
+        "sizeKey": "LARGE",
+        "occupiedSpaceFeet": [
+          10,
+          10
+        ],
+        "orLarger": false,
+        "movementAdjustment": null,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s441",
+            "s442"
+          ],
+          "conflicts": [
+            "M5-SC-033"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "creature_size.huge",
+      "definitionKind": "CREATURE_SIZE",
+      "payload": {
+        "sizeKey": "HUGE",
+        "occupiedSpaceFeet": [
+          15,
+          15
+        ],
+        "orLarger": false,
+        "movementAdjustment": null,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s441",
+            "s442"
+          ],
+          "conflicts": [
+            "M5-SC-033"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "creature_size.massive",
+      "definitionKind": "CREATURE_SIZE",
+      "payload": {
+        "sizeKey": "MASSIVE",
+        "occupiedSpaceFeet": [
+          20,
+          20
+        ],
+        "orLarger": true,
+        "movementAdjustment": null,
+        "rules": {},
+        "source": {
+          "locators": [
+            "s441",
+            "s442"
+          ],
+          "conflicts": [
+            "M5-SC-033"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "terrain.normal",
+      "definitionKind": "TERRAIN",
+      "payload": {
+        "terrainKey": "NORMAL",
+        "allowanceCost": {
+          "expression": "distance",
+          "rounding": "NONE",
+          "unit": "ft",
+          "variables": [
+            {
+              "variable": "distance",
+              "source": {
+                "kind": "MOVEMENT_DISTANCE"
+              }
+            }
+          ]
+        },
+        "rules": {},
+        "source": {
+          "locators": [
+            "s436",
+            "s437"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "terrain.difficult",
+      "definitionKind": "TERRAIN",
+      "payload": {
+        "terrainKey": "DIFFICULT",
+        "allowanceCost": {
+          "expression": "distance * 2",
+          "rounding": "NONE",
+          "unit": "ft",
+          "variables": [
+            {
+              "variable": "distance",
+              "source": {
+                "kind": "MOVEMENT_DISTANCE"
+              }
+            }
+          ]
+        },
+        "rules": {},
+        "source": {
+          "locators": [
+            "s439"
+          ],
+          "conflicts": []
+        }
+      }
+    }
+  ]
+}

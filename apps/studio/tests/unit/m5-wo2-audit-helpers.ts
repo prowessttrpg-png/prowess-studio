@@ -6,6 +6,9 @@ import ts from "typescript";
  *   auditWo2Source  — TypeScript AST rules over production source (comments and prose never trip a rule);
  *   auditCoreContent — structural rules over the canonical core content document (the Definitions WO2 executes).
  *
+ * The WO2 "movement-formula" rule (M5-I073, Movement DEFERRED_PENDING_CANON) was retired by M5-WO3 when the designer
+ * resolved M5-SC-006; M5-I073 is SUPERSEDED by M5-I075 and its replacement rules are in m5-wo3-audit-helpers.ts.
+ *
  * Both return sorted, de-duplicated finding names so negative controls can assert the exact rule that fires.
  */
 export type Wo2Layer = "game" | "rules";
@@ -53,7 +56,6 @@ export function auditWo2Source(source: string, file: string, layer: Wo2Layer): s
       if (RANK_NUMERIC.test(node.text)) add("rank-numeric-collapse");
       if (ME_DISCOUNT.test(node.text)) add("me-discount");
       if (LATEST.test(node.text)) add("latest-or-current");
-      if (declares && /movement/i.test(node.text)) add("movement-formula");
       if (declares && /^(playerDie|playerDice|evasion)$/i.test(node.text)) add("legacy-canonical");
     }
 
@@ -61,7 +63,6 @@ export function auditWo2Source(source: string, file: string, layer: Wo2Layer): s
     if (text !== null) {
       if (layer === "rules" && M4_CORE_TERMS.test(text)) add("prowess-in-m4");
       if (layer === "game" && !vocabulary && LEGACY_VALUES.test(text)) add("legacy-canonical");
-      if (layer === "game" && !vocabulary && (/^[A-Z_]*MOVEMENT[A-Z_]*$/.test(text) || /movement[^"]*[*+]|[*+][^"]*movement/i.test(text))) add("movement-formula");
       if (layer === "game" && /^(floor|ceil|max|min)\(|\b[a-z_]+ [-+*/] [a-z0-9_]+\b/i.test(text) && !/^[a-z]+:\/\//.test(text) && !/[{}$]/.test(text) && /\b(per|pro|agi|str|con|res|r1|r2|natural|faces|bonus\w*|accuracy)\b/i.test(text)) add("formula-in-code");
     }
     if (ts.isTemplateExpression(node) && layer === "game" && /^\s*(floor|ceil|max|min)\(/.test(node.head.text)) add("formula-in-code");
@@ -138,8 +139,8 @@ export function auditCoreContent(content: { definitions: ContentDefinition[] }):
   if (/evasion/i.test(text)) add("evasion-duplicate");
   if (byStatistic(defs, "DODGE").length !== 1) add("evasion-duplicate");
 
-  // Movement stays DEFERRED_PENDING_CANON (M5-SC-006).
-  if (/movement/i.test(text)) add("movement-formula");
+  // M5-WO2 kept Movement DEFERRED_PENDING_CANON here (M5-SC-006, M5-I073). M5-WO3 resolved M5-SC-006 by designer
+  // ruling and superseded M5-I073 with M5-I075: the Movement rules now live in the M5-WO3 audit (m5-wo3-audit-helpers.ts).
 
   // Dodge = half die + AGI + named PER term (+ bonuses).
   const dodge = byStatistic(defs, "DODGE")[0]?.payload.formula as Formula | undefined;

@@ -29,6 +29,8 @@ export const COMPONENT_COMPILERS: Readonly<Record<ProwessDefinitionKind, Compone
   SKILL_RANK: null,
   RESOURCE: null,
   ACTION: null,
+  CREATURE_SIZE: null,
+  TERRAIN: null,
   AFFINITY: null,
   SPELL_TARGETING: null,
   SPELL_EFFECT: null,

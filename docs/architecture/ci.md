@@ -88,6 +88,26 @@ No M0–M5-WO1 gate was replaced.
 
 Every M0–M4 gate is unchanged.
 
+**M5-WO3 additions.** A third permanent named step, **"M5-WO3 audit — Runtime resources, action economy & movement"**,
+runs right after the M5-WO2 gate. It runs:
+
+- the WO3 golden fixtures (§105–§125, §61) and runtime contracts in `@prowess/game`
+  (`runtime-resources-golden.test.ts`, `runtime-contracts.test.ts`);
+- the static audit `apps/studio/tests/unit/m5-wo3-static.test.ts` (AST rules over `@prowess/game` and
+  `@prowess/rules`, structural rules over the canonical core and runtime content, the conflict register, terminology,
+  invariants M5-I075–I110 and the superseded M5-I073, documentation, the frozen M4 source-tree hash and the API route
+  inventory in `docs/architecture/m5-wo3-baseline.json`, plus in-memory controls);
+- the fixture regeneration test `m5-wo3-inspector-fixture.test.ts`;
+- the database test `prowess-runtime-resources-history.test.ts` (exact Release R1 / R2 history, isolation, and no
+  persistence by evaluation);
+- the API test `m5-wo3-runtime-api.test.ts` (WO3 plans and M4 explanations through the existing
+  `POST /api/rules/evaluate`);
+- `node scripts/m5-wo3-negative-controls.mjs`, which mutates real source, content and documentation for controls
+  §174–§194, requires each to be caught, and restores every file byte-for-byte.
+
+The M5-WO2 gate stays in place. Its Movement rule (M5-I073) is recorded as SUPERSEDED by M5-I075, and the WO2 control
+§198 now pins the superseded state (10 × AGI is never canonical) instead of the old deferral. No gate was removed.
+
 ## Local quality commands
 
 | Command | What it does | Needs Postgres? |

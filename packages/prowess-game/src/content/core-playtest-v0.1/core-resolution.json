@@ -12,17 +12,13 @@
     "M5-SC-002",
     "M5-SC-003",
     "M5-SC-005",
+    "M5-SC-006",
     "M5-SC-008",
     "M5-SC-009",
-    "M5-SC-010"
+    "M5-SC-010",
+    "M5-SC-032"
   ],
-  "deferred": [
-    {
-      "conflictKey": "M5-SC-006",
-      "concept": "Base Movement",
-      "status": "DEFERRED_PENDING_CANON"
-    }
-  ],
+  "deferred": [],
   "definitions": [
     {
       "canonicalKey": "core.stat.str",
@@ -1084,6 +1080,159 @@
           ]
         }
       }
+    },
+    {
+      "canonicalKey": "core.derived.base_movement",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "BASE_MOVEMENT",
+        "formula": {
+          "expression": "5 * agi",
+          "rounding": "NONE",
+          "unit": "ft",
+          "variables": [
+            {
+              "variable": "agi",
+              "source": {
+                "kind": "STAT",
+                "stat": "AGI"
+              }
+            }
+          ]
+        },
+        "bonusTarget": null,
+        "source": {
+          "locators": [
+            "s23",
+            "s69",
+            "s70",
+            "s104",
+            "s436"
+          ],
+          "conflicts": [
+            "M5-SC-006"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.derived.final_movement",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "FINAL_MOVEMENT",
+        "formula": {
+          "expression": "base_movement + bonuses",
+          "rounding": "NONE",
+          "unit": "ft",
+          "variables": [
+            {
+              "variable": "base_movement",
+              "source": {
+                "kind": "DERIVED",
+                "statistic": "BASE_MOVEMENT"
+              }
+            },
+            {
+              "variable": "bonuses",
+              "source": {
+                "kind": "EXPLICIT_BONUSES"
+              }
+            }
+          ]
+        },
+        "bonusTarget": "MOVEMENT",
+        "source": {
+          "locators": [
+            "s69",
+            "s436",
+            "s442"
+          ],
+          "conflicts": [
+            "M5-SC-006",
+            "M5-SC-033"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.resolution.initiative",
+      "definitionKind": "CORE_RESOLUTION",
+      "payload": {
+        "procedure": "INITIATIVE",
+        "naturalSelection": {
+          "NORMAL": {
+            "expression": "r1"
+          },
+          "ADVANTAGE": {
+            "expression": "max(r1, r2)"
+          },
+          "DISADVANTAGE": {
+            "expression": "min(r1, r2)"
+          }
+        },
+        "total": {
+          "expression": "natural + per / 2 + agi / 2 + bonuses",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "natural",
+              "source": {
+                "kind": "NATURAL"
+              }
+            },
+            {
+              "variable": "per",
+              "source": {
+                "kind": "STAT",
+                "stat": "PER"
+              }
+            },
+            {
+              "variable": "agi",
+              "source": {
+                "kind": "STAT",
+                "stat": "AGI"
+              }
+            },
+            {
+              "variable": "bonuses",
+              "source": {
+                "kind": "EXPLICIT_BONUSES"
+              }
+            }
+          ]
+        },
+        "bonusTarget": "INITIATIVE",
+        "tiebreak": [
+          {
+            "kind": "HIGHEST_STAT",
+            "stat": "PER"
+          },
+          {
+            "kind": "HIGHEST_STAT",
+            "stat": "AGI"
+          },
+          {
+            "kind": "REROLL"
+          }
+        ],
+        "source": {
+          "locators": [
+            "s50",
+            "s52",
+            "s425"
+          ],
+          "conflicts": [
+            "M5-SC-032"
+          ]
+        }
+      }
+    }
+  ],
+  "revisions": [
+    {
+      "workOrder": "M5-WO3",
+      "change": "M5-SC-006 RESOLVED_BY_DESIGNER: BASE_MOVEMENT (5 ft x AGI) and FINAL_MOVEMENT added; INITIATIVE procedure added (s52, s425)."
     }
   ]
 }

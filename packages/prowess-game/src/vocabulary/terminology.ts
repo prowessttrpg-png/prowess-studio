@@ -34,6 +34,8 @@ export const TERMINOLOGY_CATEGORIES = deepFreeze([
   "SUMMON_TYPE",
   "CORE_RESOLUTION",
   "DERIVED_STAT",
+  "ACTION",
+  "TACTICAL",
 ] as const);
 export type TerminologyCategory = (typeof TERMINOLOGY_CATEGORIES)[number];
 
@@ -108,8 +110,10 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   entry("Evasion", "DERIVED_STAT", L, "CHARACTER", null, { ...designer, canonicalTerm: "Dodge", conflictKey: "M5-SC-005" }),
   // M5-SC-009 (designer ruling, M5-WO2): Accuracy is +1 per 3 PRO (content Formula), a named Attack Roll contribution.
   entry("Accuracy", "DERIVED_STAT", C, "CORE", "ACCURACY", { ...designer, conflictKey: "M5-SC-009" }),
-  // M5-SC-006 stays UNRESOLVED (M5-WO2): Base Movement is DEFERRED_PENDING_CANON — no executable formula exists.
-  entry("Base Movement", "DERIVED_STAT", U, "CHARACTER", null, { ...audit, conflictKey: "M5-SC-006" }),
+  // M5-SC-006 (designer ruling, M5-WO3): Base Movement = 5 ft × AGI. (M5-WO2 recorded it UNRESOLVED and deferred it.)
+  entry("Base Movement", "DERIVED_STAT", C, "CHARACTER", "BASE_MOVEMENT", { ...designer, conflictKey: "M5-SC-006" }),
+  // Base Movement → Size adjustment (values pending, M5-SC-033) → explicit modifiers → Final Movement.
+  entry("Final Movement", "DERIVED_STAT", C, "CHARACTER", "FINAL_MOVEMENT", { ...designer, conflictKey: "M5-SC-033" }),
 
   // ---- Skill ranks ------------------------------------------------------------------------------------------------
   entry("Untrained", "SKILL_RANK", C, "SKILL", "UNTRAINED"),
@@ -127,11 +131,20 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   entry("HP", "RESOURCE", C, "RESOURCE", "HP", { conflictKey: "M5-SC-003" }),
   entry("MP", "RESOURCE", C, "RESOURCE", "MP", { conflictKey: "M5-SC-003" }),
   entry("AP", "RESOURCE", C, "ACTION_ECONOMY", "AP"),
+  entry("Action Points", "RESOURCE", C, "ACTION_ECONOMY", "AP"),
   entry("Counter Action", "RESOURCE", C, "ACTION_ECONOMY", "COUNTER_ACTION"),
   entry("Mana Efficiency", "RESOURCE", C, "RESOURCE", "ME", { conflictKey: "M5-SC-004" }),
+  entry("Mana Points", "RESOURCE", C, "RESOURCE", "MP", { conflictKey: "M5-SC-003" }),
+  // M5-WO3: the runtime allowance a Move / Sprint buys; never a change to the Movement statistic (M5-I098).
+  entry("Movement Allowance", "RESOURCE", C, "ACTION_ECONOMY", "MOVEMENT_ALLOWANCE", { ...designer }),
   entry("Mana Lock", "RESOURCE", C, "RESOURCE", "MANA_LOCK"),
   entry("Concentration", "RESOURCE", C, "RESOURCE", "CONCENTRATION", { conflictKey: "M5-SC-007" }),
   entry("Signature Ability Slots", "RESOURCE", C, "CHARACTER", "SIGNATURE_ABILITY_SLOTS"),
+
+  // ---- Actions and tactical identities (M5-WO3) — the Dodge ACTION (3 AP) is not the Dodge defense ---------------
+  entry("Dodge Action", "ACTION", C, "ACTION_ECONOMY", "DODGE_ACTION"),
+  entry("Creature Size", "TACTICAL", C, "CHARACTER", "CREATURE_SIZE", { conflictKey: "M5-SC-033" }),
+  entry("Difficult Terrain", "TACTICAL", C, "ACTION_ECONOMY", "DIFFICULT"),
 
   // ---- Affinities — Evocation is canonical by designer clarification (WO1 §5A); Emission is legacy -----------
   entry("Evocation", "AFFINITY", C, "AFFINITY", "EVOCATION", { authority: "DESIGNER_CLARIFICATION", conflictKey: "M5-SC-001" }),

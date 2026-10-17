@@ -13,6 +13,7 @@ import {
   DEFERRED_STATISTICS,
   DERIVED_STATISTICS,
   DERIVED_VARIABLE_SOURCE_KINDS,
+  INITIATIVE_TIEBREAK_KINDS,
   PROWESS_STATS,
   ROLL_COMPARISON_OPERATORS,
   ROLL_MODES,
@@ -26,9 +27,9 @@ import {
   type ComparisonAgainst,
   type CoreProcedure,
   type DerivedStatistic,
+  type FormulaSourceKind,
   type ProwessStat,
   type RollMode,
-  type VariableSourceKind,
 } from "../vocabulary/core.js";
 import { DEFINITION_ERROR_CODES as C } from "./codes.js";
 
@@ -109,7 +110,9 @@ export type FormulaVariableSource =
   | { readonly kind: "DERIVED"; readonly statistic: DerivedStatistic }
   | { readonly kind: "NATURAL" }
   | { readonly kind: "SKILL_RANK_BONUS" }
-  | { readonly kind: "EXPLICIT_BONUSES" };
+  | { readonly kind: "EXPLICIT_BONUSES" }
+  /** M5-WO3: the distance moved in one movement segment (runtime input), read only by a TERRAIN allowance cost. */
+  | { readonly kind: "MOVEMENT_DISTANCE" };
 
 export interface FormulaVariableDeclaration {
   readonly variable: string;
@@ -154,13 +157,32 @@ export interface StatMasteryPayload {
   readonly source: CoreDefinitionSource;
 }
 
-export type CoreResolutionPayload = CoreRollPayload | StatMasteryPayload;
+/** One Initiative tie-break step (s425): the highest value of a Stat among a tied side's creatures, or a reroll. */
+export type InitiativeTiebreak = { readonly kind: "HIGHEST_STAT"; readonly stat: ProwessStat } | { readonly kind: "REROLL" };
+
+/**
+ * Initiative (s52, s425; M5-WO3): one chosen creature per side rolls the Character Die; the total is compared with the
+ * other sides' totals — never with a DC — so there is no comparison and no critical. The total Formula declares its own
+ * rounding (the source states none, so content says NONE and fractional totals are valid). Ties follow `tiebreak` in
+ * order; the last step is always an explicit REROLL requirement (new runtime die input, never generated).
+ */
+export interface InitiativePayload {
+  readonly procedure: "INITIATIVE";
+  readonly naturalSelection: Readonly<Record<RollMode, { readonly expression: string }>>;
+  readonly total: CoreFormula;
+  readonly bonusTarget: BonusTarget | null;
+  readonly tiebreak: readonly InitiativeTiebreak[];
+  readonly source: CoreDefinitionSource;
+}
+
+export type CoreResolutionPayload = CoreRollPayload | StatMasteryPayload | InitiativePayload;
 
 const ROLL_FIELDS = ["procedure", "naturalSelection", "total", "bonusTarget", "comparison", "critical", "requiresSkill", "source"];
 const MASTERY_FIELDS = ["procedure", "mastery", "appliesTo", "source"];
+const INITIATIVE_FIELDS = ["procedure", "naturalSelection", "total", "bonusTarget", "tiebreak", "source"];
 const FORMULA_FIELDS = ["expression", "rounding", "minimum", "maximum", "unit", "variables"];
 
-function readSource(value: unknown, at: readonly PathSegment[], p: Problems): CoreDefinitionSource | null {
+export function readSource(value: unknown, at: readonly PathSegment[], p: Problems): CoreDefinitionSource | null {
   const r = readRecord(value, at, p, C.INVALID_PAYLOAD, ["locators", "conflicts"], ["locators", "conflicts"]);
   if (r === null) return null;
   const list = (field: string, pattern: RegExp, what: string): string[] | null => {
@@ -296,7 +318,7 @@ function readSkillRank(r: Record<string, unknown>, at: readonly PathSegment[], p
   return p.count > before || source === null ? null : { ladderKey: ladderKey as string, entries, source };
 }
 
-function readVariableSource(value: unknown, at: readonly PathSegment[], p: Problems, allowed: readonly VariableSourceKind[]): FormulaVariableSource | null {
+function readVariableSource(value: unknown, at: readonly PathSegment[], p: Problems, allowed: readonly FormulaSourceKind[]): FormulaVariableSource | null {
   if (!isPlainObject(value)) {
     p.add(C.INVALID_PAYLOAD, at, "a variable source is { kind, … }");
     return null;
@@ -324,10 +346,13 @@ function readVariableSource(value: unknown, at: readonly PathSegment[], p: Probl
   }
 }
 
-/** A derived statistic key. A deferred statistic (Movement — M5-SC-006) is refused with its own diagnostic. */
+/**
+ * A derived statistic key. A deferred statistic is refused with its own diagnostic. (M5-WO2 deferred Movement under
+ * M5-SC-006; the M5-WO3 designer ruling resolved it, so DEFERRED_STATISTICS is now empty.)
+ */
 function readStatistic(value: unknown, at: readonly PathSegment[], p: Problems): DerivedStatistic | null {
   if (typeof value === "string" && (DEFERRED_STATISTICS as readonly string[]).includes(value)) {
-    p.add(C.DEFERRED_PENDING_CANON, at, `${value} is DEFERRED_PENDING_CANON (M5-SC-006 is unresolved): no executable formula may exist for it`);
+    p.add(C.DEFERRED_PENDING_CANON, at, `${value} is DEFERRED_PENDING_CANON: no executable formula may exist for it`);
     return null;
   }
   return readEnum(value, DERIVED_STATISTICS, at, p, C.INVALID_PAYLOAD, "derived statistic");
@@ -337,7 +362,7 @@ function readStatistic(value: unknown, at: readonly PathSegment[], p: Problems):
  * An authored Formula, validated by M4 itself. The declared variables must be EXACTLY the expression's variables —
  * no undeclared input, no unused declaration — so every value entering the Formula has a named, explicit source.
  */
-function readFormula(value: unknown, at: readonly PathSegment[], p: Problems, allowed: readonly VariableSourceKind[]): CoreFormula | null {
+export function readFormula(value: unknown, at: readonly PathSegment[], p: Problems, allowed: readonly FormulaSourceKind[]): CoreFormula | null {
   const r = readRecord(value, at, p, C.INVALID_PAYLOAD, FORMULA_FIELDS, ["expression", "rounding", "variables"]);
   if (r === null) return null;
   const before = p.count;
@@ -424,29 +449,12 @@ function readCoreResolution(value: unknown, at: readonly PathSegment[], p: Probl
     return { procedure, mastery: { levelAtLeast, statAtLeast, signal }, appliesTo: [...appliesTo].sort(), source };
   }
 
+  if (procedure === "INITIATIVE") return readInitiative(value, at, p);
+
   const r = readRecord(value, at, p, C.INVALID_PAYLOAD, ROLL_FIELDS, ROLL_FIELDS);
   if (r === null) return null;
-  let naturalSelection: CoreRollPayload["naturalSelection"] = null;
   const rawSelection = own(r, "naturalSelection");
-  if (rawSelection !== null) {
-    const s = readRecord(rawSelection, [...at, "naturalSelection"], p, C.INVALID_PAYLOAD, ROLL_MODES, ROLL_MODES);
-    if (s !== null) {
-      const out: Partial<Record<RollMode, { expression: string }>> = {};
-      for (const mode of ROLL_MODES) {
-        const mat = [...at, "naturalSelection", mode];
-        const e = readRecord(own(s, mode), mat, p, C.INVALID_PAYLOAD, ["expression"], ["expression"]);
-        if (e === null) continue;
-        const expression = own(e, "expression");
-        const program = validateFormulaProgram({ expression });
-        const expected: readonly string[] = ROLL_MODE_VARIABLES[mode];
-        if (typeof expression !== "string" || !program.ok) p.add(C.INVALID_FORMULA, [...mat, "expression"], "natural selection is a valid M4 Formula expression");
-        else if (program.program.variables.length !== expected.length || !expected.every((v) => program.program.variables.includes(v))) {
-          p.add(C.INVALID_FORMULA, [...mat, "expression"], `${mode} selects from exactly the natural rolls ${expected.join(", ")}`);
-        } else out[mode] = { expression };
-      }
-      if (ROLL_MODES.every((m) => out[m] !== undefined)) naturalSelection = out as Record<RollMode, { expression: string }>;
-    }
-  }
+  const naturalSelection = rawSelection === null ? null : readNaturalSelection(rawSelection, [...at, "naturalSelection"], p);
   const total = readFormula(own(r, "total"), [...at, "total"], p, VARIABLE_SOURCE_KINDS);
   if (total !== null && (rawSelection !== null) !== total.variables.some((v) => v.source.kind === "NATURAL")) {
     p.add(C.INVALID_PAYLOAD, [...at, "total"], "a roll that selects a natural result adds it to its total (NATURAL), and a dieless procedure never does");
@@ -477,6 +485,67 @@ function readCoreResolution(value: unknown, at: readonly PathSegment[], p: Probl
   const source = readSource(own(r, "source"), [...at, "source"], p);
   if (p.count > before || total === null || operator === null || against === null || source === null || typeof requiresSkill !== "boolean") return null;
   return { procedure, naturalSelection, total, bonusTarget, comparison: { operator, against }, critical, requiresSkill, source };
+}
+
+/** The three natural-selection programs of a die-rolling procedure, each reading exactly its mode's natural rolls. */
+function readNaturalSelection(value: unknown, at: readonly PathSegment[], p: Problems): Record<RollMode, { expression: string }> | null {
+  const s = readRecord(value, at, p, C.INVALID_PAYLOAD, ROLL_MODES, ROLL_MODES);
+  if (s === null) return null;
+  const out: Partial<Record<RollMode, { expression: string }>> = {};
+  for (const mode of ROLL_MODES) {
+    const mat = [...at, mode];
+    const e = readRecord(own(s, mode), mat, p, C.INVALID_PAYLOAD, ["expression"], ["expression"]);
+    if (e === null) continue;
+    const expression = own(e, "expression");
+    const program = validateFormulaProgram({ expression });
+    const expected: readonly string[] = ROLL_MODE_VARIABLES[mode];
+    if (typeof expression !== "string" || !program.ok) p.add(C.INVALID_FORMULA, [...mat, "expression"], "natural selection is a valid M4 Formula expression");
+    else if (program.program.variables.length !== expected.length || !expected.every((v) => program.program.variables.includes(v))) {
+      p.add(C.INVALID_FORMULA, [...mat, "expression"], `${mode} selects from exactly the natural rolls ${expected.join(", ")}`);
+    } else out[mode] = { expression };
+  }
+  return ROLL_MODES.every((m) => out[m] !== undefined) ? (out as Record<RollMode, { expression: string }>) : null;
+}
+
+/**
+ * INITIATIVE (s52, s425): natural selection + a total over NATURAL / STAT / EXPLICIT_BONUSES; no comparison, no
+ * critical, no Skill. The tie-break lists distinct HIGHEST_STAT steps and ends with exactly one REROLL.
+ */
+function readInitiative(value: unknown, at: readonly PathSegment[], p: Problems): InitiativePayload | null {
+  const r = readRecord(value, at, p, C.INVALID_PAYLOAD, INITIATIVE_FIELDS, INITIATIVE_FIELDS);
+  if (r === null) return null;
+  const before = p.count;
+  const naturalSelection = readNaturalSelection(own(r, "naturalSelection"), [...at, "naturalSelection"], p);
+  const total = readFormula(own(r, "total"), [...at, "total"], p, ["NATURAL", "STAT", "EXPLICIT_BONUSES"]);
+  if (total !== null && total.variables.filter((v) => v.source.kind === "NATURAL").length !== 1) p.add(C.INVALID_PAYLOAD, [...at, "total"], "the Initiative total adds the selected natural exactly once");
+  const rawTarget = own(r, "bonusTarget");
+  const bonusTarget = rawTarget === null ? null : readEnum(rawTarget, BONUS_TARGETS, [...at, "bonusTarget"], p, C.INVALID_PAYLOAD, "bonus target");
+  if (total !== null && (bonusTarget !== null) !== total.variables.some((v) => v.source.kind === "EXPLICIT_BONUSES")) {
+    p.add(C.INVALID_PAYLOAD, [...at, "bonusTarget"], "Initiative names a bonusTarget exactly when its total declares an EXPLICIT_BONUSES variable");
+  }
+  const rawTiebreak = own(r, "tiebreak");
+  const tiebreak: InitiativeTiebreak[] = [];
+  if (!Array.isArray(rawTiebreak) || rawTiebreak.length === 0) p.add(C.INVALID_PAYLOAD, [...at, "tiebreak"], "tiebreak is a non-empty ordered array ending in REROLL");
+  else
+    rawTiebreak.forEach((v: unknown, i: number) => {
+      const tat = [...at, "tiebreak", i];
+      const kind = isPlainObject(v) ? readEnum(own(v, "kind"), INITIATIVE_TIEBREAK_KINDS, [...tat, "kind"], p, C.INVALID_PAYLOAD, "Initiative tie-break") : (p.add(C.INVALID_PAYLOAD, tat, "a tie-break step is { kind, … }"), null);
+      if (kind === "REROLL") {
+        if (readRecord(v, tat, p, C.INVALID_PAYLOAD, ["kind"], ["kind"]) !== null) tiebreak.push({ kind });
+      } else if (kind === "HIGHEST_STAT") {
+        const t = readRecord(v, tat, p, C.INVALID_PAYLOAD, ["kind", "stat"], ["kind", "stat"]);
+        const stat = t === null ? null : readEnum(own(t, "stat"), PROWESS_STATS, [...tat, "stat"], p, C.INVALID_PAYLOAD, "Stat");
+        if (stat !== null && tiebreak.some((x) => x.kind === "HIGHEST_STAT" && x.stat === stat)) p.add(C.INVALID_PAYLOAD, tat, `${stat} is compared once`);
+        else if (stat !== null) tiebreak.push({ kind, stat });
+      }
+    });
+  const rerolls = tiebreak.filter((t) => t.kind === "REROLL");
+  if (Array.isArray(rawTiebreak) && rawTiebreak.length > 0 && (rerolls.length !== 1 || tiebreak.at(-1)?.kind !== "REROLL")) {
+    p.add(C.INVALID_PAYLOAD, [...at, "tiebreak"], "the tie-break ends with exactly one explicit REROLL step");
+  }
+  const source = readSource(own(r, "source"), [...at, "source"], p);
+  if (p.count > before || naturalSelection === null || total === null || source === null) return null;
+  return { procedure: "INITIATIVE", naturalSelection, total, bonusTarget, tiebreak, source };
 }
 
 /** Kind → v1 payload reader for the M5-WO2 core kinds. Static, closed table (no registration). */

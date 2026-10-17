@@ -3,12 +3,14 @@ import type { ProwessDefinitionBundle } from "../bundle/bundle.js";
 import { createProwessDefinitionBundle } from "../bundle/bundle.js";
 import { PROWESS_DEFINITION_KINDS, type ProwessDefinitionKind } from "../vocabulary/families.js";
 import content from "../content/core-playtest-v0.1/core-resolution.json";
+import runtimeContent from "../content/core-playtest-v0.1/runtime-resources.json";
 import { uuid } from "./fixtures.js";
 
 /**
- * Test fixtures for the M5-WO2 core Definitions. The Definitions come from the canonical content file
- * `src/content/core-playtest-v0.1/core-resolution.json` (never from TypeScript), pinned under fixed test identities.
- * Not part of the public surface.
+ * Test fixtures for the canonical Core Playtest Definitions: the M5-WO2 core Definitions
+ * (`src/content/core-playtest-v0.1/core-resolution.json`) and the M5-WO3 runtime Definitions
+ * (`src/content/core-playtest-v0.1/runtime-resources.json`) — content files, never TypeScript — pinned under fixed test
+ * identities. Not part of the public surface.
  */
 export interface CoreContentDefinition {
   readonly canonicalKey: string;
@@ -17,6 +19,10 @@ export interface CoreContentDefinition {
 }
 export const CORE_CONTENT = content as unknown as { readonly definitions: readonly CoreContentDefinition[]; readonly [k: string]: unknown };
 export const CORE_DEFINITIONS: readonly CoreContentDefinition[] = CORE_CONTENT.definitions;
+export const RUNTIME_CONTENT = runtimeContent as unknown as { readonly definitions: readonly CoreContentDefinition[]; readonly [k: string]: unknown };
+export const RUNTIME_DEFINITIONS: readonly CoreContentDefinition[] = RUNTIME_CONTENT.definitions;
+/** Every canonical Core Playtest Definition, core first (WO2 identities are unchanged by WO3 additions). */
+export const PLAYTEST_DEFINITIONS: readonly CoreContentDefinition[] = [...CORE_DEFINITIONS, ...RUNTIME_DEFINITIONS];
 
 export const CORE_RULESET = uuid(7001);
 export const CORE_MANIFEST = uuid(7002);
@@ -37,7 +43,7 @@ export interface CoreFixtureOptions {
 }
 
 export function coreCatalog(options: CoreFixtureOptions = {}): CoreContentDefinition[] {
-  const defs = CORE_DEFINITIONS.filter((d) => !(options.omit ?? []).includes(d.canonicalKey)).map((d) => ({
+  const defs = PLAYTEST_DEFINITIONS.filter((d) => !(options.omit ?? []).includes(d.canonicalKey)).map((d) => ({
     ...d,
     payload: JSON.parse(JSON.stringify(options.revise?.[d.canonicalKey] ?? d.payload)) as Record<string, unknown>,
   }));
@@ -49,7 +55,7 @@ export function coreRuleset(options: CoreFixtureOptions = {}): { ruleset: Rulese
   const manifestId = options.manifestId ?? CORE_MANIFEST;
   const catalog = coreCatalog(options);
   const index = (d: CoreContentDefinition) => {
-    const i = CORE_DEFINITIONS.findIndex((x) => x.canonicalKey === d.canonicalKey);
+    const i = PLAYTEST_DEFINITIONS.findIndex((x) => x.canonicalKey === d.canonicalKey);
     return i === -1 ? 90 + (options.extra ?? []).indexOf(d) : i;
   };
   const revision = (d: CoreContentDefinition) => (options.revise?.[d.canonicalKey] === undefined ? 0 : 1);

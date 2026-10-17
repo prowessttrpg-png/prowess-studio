@@ -138,3 +138,16 @@ export function deepFreeze<T>(value: T): T {
   }
   return value;
 }
+
+/**
+ * Canonical JSON of plain data: object keys in code-unit order at every depth, arrays in their own order. Used to
+ * compare two plain values for exact equality (a receipt's Ruleset provenance and Resource state), never to hash.
+ */
+export function canonicalJsonOf(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map((v: unknown) => canonicalJsonOf(v)).join(",")}]`;
+  if (isPlainObject(value)) {
+    const keys = Object.keys(value).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    return `{${keys.map((k) => `${JSON.stringify(k)}:${canonicalJsonOf(value[k])}`).join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
+}

@@ -1,6 +1,7 @@
-# M5 Invariant Catalog (M5-WO1, extended by M5-WO2)
+# M5 Invariant Catalog (M5-WO1, extended by M5-WO2 and M5-WO3)
 
-Machine-readable twin: `m5-invariants.json` (ids, titles, groups, guards). The permanent M5-WO1 audit
+Machine-readable twin: `m5-invariants.json` (ids, titles, groups, guards, and — since M5-WO3 — the optional `status` /
+`supersededBy` metadata of a superseded invariant; an entry without `status` is ACTIVE). The permanent M5-WO1 audit
 (`apps/studio/tests/unit/m5-wo1-static.test.ts`) requires every id below, each with executing automated guards.
 M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbered or rewritten here.
 
@@ -440,6 +441,7 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 
 ### M5-I073 — Unresolved Movement Formula Conflict M5-SC-006 Must Not Produce Executable Canonical Movement Math
 
+- **Status:** SUPERSEDED by M5-I075 (M5-WO3). Valid when authored in M5-WO2; the M5-WO3 designer ruling resolved M5-SC-006, so Movement is now executable as 5 ft × AGI. Kept for history — not deleted, not renumbered.
 - **Group:** Source Conflicts
 - **Meaning:** Movement is DEFERRED_PENDING_CANON; a Movement DERIVED_STAT is refused (control §198).
 - **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `packages/prowess-game/src/core-contracts.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `scripts/m5-wo2-negative-controls.mjs`
@@ -449,3 +451,219 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 - **Group:** Derived Statistics
 - **Meaning:** Statistics are M4 FORMULA steps; no Resource transition is compiled; exact Release history reproduces them.
 - **Guards:** `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `packages/prowess-db/tests/integration/prowess-core-resolution-history.test.ts`
+
+### M5-I075 — Base Movement Equals 5 Feet Times AGI Before Size Or Other Explicit Movement Modifiers
+
+- **Group:** Movement
+- **Meaning:** core.derived.base_movement is the M4 Formula `5 * agi` (ft); Final Movement = Base Movement + explicit modifiers; 10 × AGI is never canonical (M5-SC-006 designer ruling; golden §61, controls §174–§175).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `packages/prowess-game/src/core-resolution-golden.test.ts`, `packages/prowess-game/src/vocabulary.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I076 — Size-Based Movement Adjustments Are Explicit Structured Rules And Are Never Inferred From Occupied Space
+
+- **Group:** Movement
+- **Meaning:** CREATURE_SIZE carries occupied space only and movementAdjustment must be null until M5-SC-033 is resolved (control §176).
+- **Guards:** `packages/prowess-game/src/runtime-contracts.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I077 — Advantage And Disadvantage Are Non-Stacking Presence Signals
+
+- **Group:** Roll State
+- **Meaning:** Any number of Advantage signals is ADVANTAGE; any number of Disadvantage is DISADVANTAGE; no stronger state exists (control §177).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I078 — If At Least One Advantage And At Least One Disadvantage Apply To The Same Roll, The Roll Resolves Normally Regardless Of Duplicate Counts
+
+- **Group:** Roll State
+- **Meaning:** resolveRollSignals resolves by presence, never by netting counts; the WO2 ROLL_MODE_CONFLICT is superseded (controls §178–§179).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I079 — Roll-State Resolution Preserves Every Contributing Advantage And Disadvantage Source For Provenance And Explanation
+
+- **Group:** Roll State
+- **Meaning:** RollSignalResolution lists every Advantage and Disadvantage source key and whether cancellation happened (golden §120, control §180).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I080 — HP, MP, ME, AP And Counter Action Are Distinct Runtime Resources
+
+- **Group:** Resources
+- **Meaning:** One RESOURCE Definition each (plus the movement-allowance tracker), each its own M4 resource key; nothing stores a combined value.
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `packages/prowess-game/src/runtime-contracts.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`
+
+### M5-I081 — Resource Maximum Or Capacity Is Distinct From Current Resource Amount
+
+- **Group:** Resources
+- **Meaning:** Maxima are WO2 capacity statistics evaluated by M4 in every plan; current values are runtime input; Definitions hold no current value.
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `packages/prowess-game/src/runtime-contracts.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`
+
+### M5-I082 — HP Does Not Refresh Automatically On Turn Or Round Boundaries
+
+- **Group:** Resources
+- **Meaning:** resource.hp has no refresh and no expiry; no timing plan touches HP; healing is an explicit RESTORE.
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`
+
+### M5-I083 — MP Does Not Refresh Automatically On Turn Or Round Boundaries
+
+- **Group:** Resources
+- **Meaning:** resource.mp has no refresh and no expiry; MP restoration requires an explicit rule.
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`
+
+### M5-I084 — AP Refreshes To Current AP Capacity At The Start Of The Creature's Turn
+
+- **Group:** Action Economy
+- **Meaning:** resource.ap REFRESH TO_NOMINAL_MAXIMUM at START_OF_TURN, maximum = BASE_AP_CAPACITY (golden §105).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`
+
+### M5-I085 — Unused AP Expires At End Of Turn Unless An Explicit Rule Preserves It
+
+- **Group:** Action Economy
+- **Meaning:** resource.ap SET_CURRENT to its minimum at END_OF_TURN; an explicit preservation rule keeps it (golden §108, control §181).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I086 — Default Counter Action Capacity Is One And Refreshes At The Start Of Each Round
+
+- **Group:** Action Economy
+- **Meaning:** COUNTER_ACTION_CAPACITY = 1 (content); REFRESH TO_NOMINAL_MAXIMUM at START_OF_ROUND (golden §109).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`
+
+### M5-I087 — Counter Actions Never Accumulate Across Rounds By Default
+
+- **Group:** Action Economy
+- **Meaning:** Refresh raises to Capacity and never above; the Counter Action has no generic restoration (control §182).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I088 — Counter Action And AP Are Separate Resources And Are Not Implicitly Interchangeable
+
+- **Group:** Action Economy
+- **Meaning:** Separate payment policies (ACTION_POINT_COST / COUNTER_ACTION_COST); a reaction spends no AP and AP spends no reaction.
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`
+
+### M5-I089 — Mana Efficiency Maximum Equals PRO And Current ME Refreshes To That Maximum At The Start Of Each Round
+
+- **Group:** Mana
+- **Meaning:** resource.me maximum = BASE_MANA_EFFICIENCY (= pro); REFRESH at START_OF_ROUND (golden §110, control §183).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I090 — Mana Efficiency Is Used Before MP Only For Costs Explicitly Declared ME-Eligible
+
+- **Group:** Mana
+- **Meaning:** ME pays ME_ELIGIBLE_MAGICAL_COST at order 0, MP at order 1; a MAGICAL_COST is MP only; meEligible is required (golden §111, control §185).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `packages/prowess-game/src/runtime-contracts.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I091 — Mana Efficiency Payment Never Alters The Listed Cost Being Paid
+
+- **Group:** Mana
+- **Meaning:** The listed amount is a literal of the M4 payment and is echoed unchanged; nothing binds into it (control §184; extends M5-I023).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `packages/prowess-game/src/runtime-contracts.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I092 — Prowess Multi-Resource Payment Is Atomic On Insufficient Resources
+
+- **Group:** Mana
+- **Meaning:** M4 payment canPay:false leaves the state unchanged; confirmation returns the original state (golden §107 / §112, control §186).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `packages/prowess-game/src/runtime-contracts.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I093 — Reserved MP Capacity Reduces Available Maximum Without Spending Current MP
+
+- **Group:** Mana
+- **Meaning:** RESERVE_CAPACITY on resource.mp only changes reservedCapacity (golden §113, control §187).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I094 — Releasing Reserved MP Capacity Restores Capacity But Never Refills Current MP
+
+- **Group:** Mana
+- **Meaning:** RELEASE_CAPACITY changes reservedCapacity only (golden §114, control §188).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I095 — Core Runtime Resource Transitions Compile Through M4 Resource Operations And Do Not Reimplement Resource Arithmetic
+
+- **Group:** Compilation
+- **Meaning:** Runtime plans contain only FORMULA, REQUIREMENT and RESOURCE_* steps; @prowess/rules is byte-identical to the WO2 baseline.
+- **Guards:** `packages/prowess-game/src/runtime-contracts.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`
+
+### M5-I096 — Prowess AP Is A Spendable Resource Rather Than A Fixed Number Of Action Slots
+
+- **Group:** Action Economy
+- **Meaning:** Actions pay their authored AP cost from one AP pool in any order (golden, control §189).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I097 — Core Action Costs Are Versioned Structured Definitions And May Be Overridden Only By Explicit Rules
+
+- **Group:** Action Economy
+- **Meaning:** ACTION Definitions hold FIXED / RANGE / MINIMUM / VARIABLE / NONE costs; an override names its source rule; no action-name switch (control §190).
+- **Guards:** `packages/prowess-game/src/runtime-contracts.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`, `packages/prowess-db/tests/integration/prowess-runtime-resources-history.test.ts`
+
+### M5-I098 — Move Costs One AP And Provides Movement Allowance Rather Than Permanently Changing Movement
+
+- **Group:** Movement
+- **Meaning:** Move pays 1 AP; its PAID follow-on restores the movement-allowance tracker by Final Movement (golden §116).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`
+
+### M5-I099 — Movement Allowance May Be Split Around Other Actions Until The Purchased Allowance Is Exhausted
+
+- **Group:** Movement
+- **Meaning:** MOVEMENT segments spend the allowance; no Move cost is repeated (golden §117).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`
+
+### M5-I100 — Difficult Terrain Consumes Movement Allowance At Double The Normal Rate Unless An Explicit Rule Overrides It
+
+- **Group:** Movement
+- **Meaning:** terrain.difficult allowance cost `distance * 2` (golden §118).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`
+
+### M5-I101 — Combat Uses Side Initiative And The Player Side Does Not Default To Individual Character Initiative Slots
+
+- **Group:** Combat
+- **Meaning:** Initiative orders sides; a side phase is a set the side orders itself (golden §124, control §191).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I102 — Initiative Uses Character Die + Half PER + Half AGI + Explicit Bonuses With No Implicit Rounding
+
+- **Group:** Combat
+- **Meaning:** core.resolution.initiative total `natural + per / 2 + agi / 2 + bonuses`, rounding NONE (golden §121, control §192).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I103 — Initiative Ties Resolve By Highest PER, Then Highest AGI, Then Explicit Reroll Requirement
+
+- **Group:** Combat
+- **Meaning:** The INITIATIVE Definition's tie-break is applied by comparison; a full tie is REROLL_REQUIRED, never generated (golden §122–§123, control §193).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `packages/prowess-game/src/runtime-contracts.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I104 — Surprise Prevents Counter Action Use During The First Round Without Inventing A Fixed AP Penalty
+
+- **Group:** Combat
+- **Meaning:** A SURPRISED usage restriction (throughRound 1) on resource.counter_action; AP has none (golden §125, control §194).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I105 — Runtime Rules Evaluation Never Persists Current Combat Resource State As A Side Effect
+
+- **Group:** Boundary
+- **Meaning:** No schema change, no endpoint, no persistence path; runtime state is input and output only.
+- **Guards:** `packages/prowess-game/src/runtime-contracts.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `packages/prowess-db/tests/integration/prowess-runtime-resources-history.test.ts`
+
+### M5-I106 — Resource And Action-Economy Steps Preserve Exact Prowess Definition And Ruleset Provenance
+
+- **Group:** Provenance
+- **Meaning:** One source-map entry per step citing exact RESOURCE / ACTION / TERRAIN / derived Definitions; M4 provenance names exact versions.
+- **Guards:** `packages/prowess-game/src/runtime-contracts.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `packages/prowess-db/tests/integration/prowess-runtime-resources-history.test.ts`, `packages/prowess-db/tests/unit/m5-wo3-inspector-fixture.test.ts`
+
+### M5-I107 — Zero HP Is Exposed As Resource Depletion But Full Downed And Death-Save Resolution Remains A Separate Later Subsystem
+
+- **Group:** Resources
+- **Meaning:** A REQUIREMENT reports HP at its minimum; no Downed or Death Save logic exists in WO3.
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`
+
+### M5-I108 — Creature Occupied Space And Creature Movement Speed Are Separate Mechanical Concepts
+
+- **Group:** Movement
+- **Meaning:** Occupied space is CREATURE_SIZE data; Final Movement never reads it (control §176).
+- **Guards:** `packages/prowess-game/src/runtime-contracts.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `scripts/m5-wo3-negative-controls.mjs`
+
+### M5-I109 — Repeated Sprint Execution Must Never Exponentially Multiply Movement
+
+- **Group:** Movement
+- **Meaning:** Each Sprint grant reads Final Movement, never the accumulated allowance (golden: two Sprints → 2 × 4 × Movement).
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`
+
+### M5-I110 — Ordinary Action Costs Are Atomic And Do Not Become Multi-Turn Commitments Unless The Action Explicitly Supports Such A Rule
+
+- **Group:** Action Economy
+- **Meaning:** A cost the creature cannot fully pay is CANNOT_PAY with the original state; no channeling or debt exists in WO3.
+- **Guards:** `packages/prowess-game/src/runtime-resources-golden.test.ts`, `packages/prowess-game/src/runtime-contracts.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`
