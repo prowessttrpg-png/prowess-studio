@@ -5,6 +5,10 @@
  * the six Ability Scores, the Character Die progression, rank primitives and derived statistics — all compiled into
  * M4 FORMULA / REQUIREMENT / MODIFIER steps. See docs/architecture/m5-core-resolution-stats-dice-ranks.md.
  *
+ * M5-WO3 adds runtime Resources (HP, MP, ME, AP, Counter Action, movement allowance), the action economy, Base
+ * Movement, Initiative and roll-signal resolution — compiled into chains of M4 RESOURCE operations. See
+ * docs/architecture/m5-runtime-resources-action-economy.md.
+ *
  * Owns Prowess Definition contracts, the shared modular Ability Construction grammar (Spell / Maneuver branches),
  * exact Definition bundles and the Prowess → M4 compilation contract. Depends on @prowess/model and @prowess/rules
  * only. It never re-implements the M4 engine: Prowess compiles INTO M4 EvaluationPlans. See
@@ -61,7 +65,15 @@ export {
   type TerminologyStatus,
 } from "./vocabulary/terminology.js";
 
-export { BUNDLE_ERROR_CODES, COMPILATION_ERROR_CODES, COMPOSITION_ERROR_CODES, CORE_ERROR_CODES, DEFINITION_ERROR_CODES, MATERIALIZATION_ERROR_CODES } from "./definition/codes.js";
+export {
+  BUNDLE_ERROR_CODES,
+  COMPILATION_ERROR_CODES,
+  COMPOSITION_ERROR_CODES,
+  CORE_ERROR_CODES,
+  DEFINITION_ERROR_CODES,
+  MATERIALIZATION_ERROR_CODES,
+  RUNTIME_ERROR_CODES,
+} from "./definition/codes.js";
 export {
   createProwessDefinitionEnvelope,
   definitionRefOf,
@@ -117,6 +129,7 @@ export {
   CORE_PROCEDURES,
   DEFERRED_STATISTICS,
   DERIVED_STATISTICS,
+  INITIATIVE_TIEBREAK_KINDS,
   PROWESS_STATS,
   ROLL_MODES,
   ROLL_MODE_VARIABLES,
@@ -127,6 +140,7 @@ export {
   type BonusTarget,
   type CoreProcedure,
   type DerivedStatistic,
+  type InitiativeTiebreakKind,
   type ProwessStat,
   type RollMode,
   type RollProcedure,
@@ -142,6 +156,8 @@ export type {
   DerivedStatPayload,
   FormulaVariableDeclaration,
   FormulaVariableSource,
+  InitiativePayload,
+  InitiativeTiebreak,
   RankLadderPayload,
   SkillRankPayload,
   StatDefinitionPayload,
@@ -160,7 +176,7 @@ export {
   type ValidatedCharacterCore,
 } from "./core/character.js";
 export { rankAtLeastRequirement, rankFact } from "./core/ranks.js";
-export { buildRollRuntimeContext, resolveRollMode, validateDieRollInput, type ProwessDieRollInput } from "./core/dice.js";
+export { buildRollRuntimeContext, resolveRollMode, resolveRollSignals, validateDieRollInput, type ProwessDieRollInput, type RollSignalResolution } from "./core/dice.js";
 export {
   CORE_SUBJECT_KINDS,
   buildCoreResolutionContexts,
@@ -173,6 +189,98 @@ export {
   type DerivedStatisticsSubject,
   type ProwessCoreCompiledPlan,
 } from "./core/compile.js";
+
+// ---- M5-WO3: runtime Resources, action economy, movement and roll-state resolution -----------------------------------
+export {
+  ACTION_COST_MODELS,
+  ACTION_TIMINGS,
+  COMBAT_ROUND_SEQUENCE,
+  COMBAT_TIMING_EVENTS,
+  CREATURE_SIZES,
+  PAYMENT_POLICIES,
+  RESOURCE_CONTEXT_KEYS,
+  RESOURCE_EXPIRY_TARGETS,
+  RESOURCE_MAXIMUM_SOURCES,
+  RESOURCE_SPENDING,
+  RESOURCE_TRANSITION_OPERATIONS,
+  RESOURCE_USAGE_RESTRICTIONS,
+  ROLL_SIGNAL_RULING,
+  RUNTIME_RESOURCE_KEYS,
+  RUNTIME_STATE_KEYS,
+  SIDE_PHASE_ORDER_POLICY,
+  TERRAIN_KINDS,
+  VARIABLE_COST_DETERMINERS,
+  type ActionCostModel,
+  type ActionTiming,
+  type CombatRoundStep,
+  type CombatTimingEvent,
+  type CreatureSize,
+  type PaymentPolicy,
+  type ResourceTransitionOperation,
+  type RuntimeResourceKey,
+  type TerrainKind,
+} from "./vocabulary/runtime.js";
+export type {
+  ActionDefinitionPayload,
+  ActionPointCost,
+  ActionResourceCost,
+  CreatureSizeDefinitionPayload,
+  ResourceDefinitionPayload,
+  ResourceExpiryRule,
+  ResourceMaximum,
+  ResourcePaymentEligibility,
+  ResourceRefreshRule,
+  ResourceRestoration,
+  ResourceUsageRestrictionRule,
+  TerrainDefinitionPayload,
+} from "./definition/runtime-payload.js";
+export { indexRuntimeDefinitions, type RuntimeDefinitionIndex } from "./runtime/definitions.js";
+export {
+  buildRuntimeContext,
+  runtimeResourcesFromSnapshots,
+  validateCombatTiming,
+  validateRuntimeResources,
+  type CombatTiming,
+  type ProwessRuntimeResourceState,
+  type ProwessRuntimeResources,
+} from "./runtime/resources.js";
+export {
+  RUNTIME_SUBJECT_KINDS,
+  buildRuntimeContexts,
+  compileRuntime,
+  type ActionFollowOnSubject,
+  type ActionPaymentReceipt,
+  type ActionPaymentSubject,
+  type MagicalPaymentSubject,
+  type MovementSubject,
+  type ProwessRuntimeCompiledPlan,
+  type ResourceStateSubject,
+  type ResourceTimingSubject,
+  type ResourceTransitionsSubject,
+  type RuntimeCompilationRequest,
+  type RuntimeCompilationSubject,
+  type RuntimeCompiledOutputs,
+  type RuntimeCompiledPayment,
+  type RuntimeSubjectKind,
+} from "./runtime/compile.js";
+export {
+  confirmActionPayment,
+  readRuntimeRun,
+  type ActionPaymentConfirmation,
+  type RuntimePaymentReading,
+  type RuntimeRunReading,
+  type RuntimeTransitionReading,
+} from "./runtime/results.js";
+export {
+  createSidePhase,
+  resolveInitiativeOrder,
+  validateActingSequence,
+  type InitiativeDecision,
+  type InitiativeRequest,
+  type InitiativeResolution,
+  type InitiativeSideInput,
+  type SidePhase,
+} from "./runtime/combat.js";
 
 export { COMPONENT_COMPILERS, compileProwessAbility } from "./compilation/compile.js";
 export { compiledStepKey } from "./compilation/assemble.js";

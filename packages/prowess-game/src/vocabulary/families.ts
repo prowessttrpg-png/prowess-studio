@@ -68,8 +68,8 @@ const reserved = (family: ProwessSystemFamily, entityTypes: readonly EntityType[
   entityTypes,
   schemaVersions: [],
 });
-/** A non-Ability kind with a version-1 payload contract (M5-WO2 core kinds). */
-const active = (family: ProwessSystemFamily): DefinitionKindSpec => ({ family, branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1] });
+/** A non-Ability kind with a version-1 payload contract (M5-WO2 core kinds, M5-WO3 runtime kinds). */
+const active = (family: ProwessSystemFamily, entityTypes: readonly EntityType[] = ["GENERIC_RULE"]): DefinitionKindSpec => ({ family, branch: null, contract: null, entityTypes, schemaVersions: [1] });
 const component = (family: "SPELL" | "MANEUVER", contract: AbilityComponentContract, entityTypes: readonly EntityType[]): DefinitionKindSpec => ({
   family,
   branch: family,
@@ -86,11 +86,17 @@ const DEFINITION_KIND_TABLE = {
   DERIVED_STAT: active("CHARACTER"),
   RANK_LADDER: active("SKILL"),
   SKILL_RANK: active("SKILL"),
-  // Ancestry / Skills / resources / actions — payloads arrive in M5-WO3.
+  // Ancestry / Skill catalogs — known, reserved for a later M5 Work Order.
   ANCESTRY: reserved("ANCESTRY"),
   SKILL: reserved("SKILL"),
-  RESOURCE: reserved("RESOURCE", ["RESOURCE"]),
-  ACTION: reserved("ACTION_ECONOMY"),
+  // Runtime resources, the action catalog and the tactical movement identities — v1 payloads defined by M5-WO3
+  // (definition/runtime-payload.ts). RESOURCE keeps the M1 RESOURCE storage type it was reserved under in WO1.
+  RESOURCE: active("RESOURCE", ["RESOURCE"]),
+  ACTION: active("ACTION_ECONOMY"),
+  /** A creature Size's tactical identity: occupied space only — its movement adjustment is pending canon (M5-SC-033). */
+  CREATURE_SIZE: active("CHARACTER"),
+  /** A terrain kind's Movement-allowance cost (Difficult Terrain, s439). Hazard effects are later Effect / Condition work. */
+  TERRAIN: active("ACTION_ECONOMY"),
 
   // Affinity — WO1 owns only its canonical identity (Evocation, never Emission); rules arrive in M5-WO4.
   AFFINITY: { family: "AFFINITY", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1] },

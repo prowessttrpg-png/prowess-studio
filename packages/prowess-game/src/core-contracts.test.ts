@@ -25,7 +25,7 @@ import { codes, compileWith, roll, runCore } from "./testing/core-run.js";
  *
  * Guards: M5-I041 Player Die legacy · M5-I042 progression is data · M5-I043 runtime dice, no randomness · M5-I045 six
  * Stats · M5-I046 Stat bounds · M5-I047 rank order vs meaning · M5-I050 arithmetic in M4 (no hidden math) ·
- * M5-I056 Dodge canonical / Evasion legacy · M5-I061 Targeting never selects a Save · M5-I073 Movement deferred;
+ * M5-I056 Dodge canonical / Evasion legacy · M5-I061 Targeting never selects a Save · M5-I073 Movement deferred (SUPERSEDED by M5-I075 in M5-WO3 — no MOVEMENT core subject exists);
  * plus WO2 security, immutability, serialization, determinism, source-map and exact-Ruleset guarantees.
  */
 const fixture = coreBundle();
@@ -38,16 +38,18 @@ const payloadOf = (key: string) => JSON.parse(JSON.stringify(CORE_DEFINITIONS.fi
 describe("canonical core content", () => {
   it("is one versioned content document, every Definition valid under its v1 contract and pinned in one bundle", () => {
     expect(CORE_CONTENT.contentKey).toBe("prowess.core_playtest.v0_1.core_resolution");
-    expect(CORE_DEFINITIONS).toHaveLength(30);
-    expect(fixture.bundle.definitions).toHaveLength(30);
-    expect(new Set(CORE_DEFINITIONS.map((d) => d.canonicalKey)).size).toBe(30);
+    // WO2 shipped 30 core Definitions; M5-WO3 appended BASE_MOVEMENT, FINAL_MOVEMENT and INITIATIVE (33). The test
+    // bundle also pins the 26 WO3 runtime Definitions (runtime-resources.json); WO2 identities are unchanged.
+    expect(CORE_DEFINITIONS).toHaveLength(33);
+    expect(fixture.bundle.definitions).toHaveLength(59);
+    expect(new Set(CORE_DEFINITIONS.map((d) => d.canonicalKey)).size).toBe(33);
   });
 
   it("every Definition cites source sections, and the rulings it applies", () => {
     for (const d of CORE_DEFINITIONS) {
       const source = d.payload.source as { locators: string[]; conflicts: string[] };
       expect(source.locators.length, d.canonicalKey).toBeGreaterThan(0);
-      for (const key of source.conflicts) expect(["M5-SC-002", "M5-SC-003", "M5-SC-004", "M5-SC-005", "M5-SC-008", "M5-SC-009", "M5-SC-010"], d.canonicalKey).toContain(key);
+      for (const key of source.conflicts) expect(["M5-SC-002", "M5-SC-003", "M5-SC-004", "M5-SC-005", "M5-SC-006", "M5-SC-008", "M5-SC-009", "M5-SC-010", "M5-SC-032", "M5-SC-033"], d.canonicalKey).toContain(key);
     }
   });
 
@@ -62,9 +64,9 @@ describe("canonical core content", () => {
     }
   });
 
-  it("the WO2 kinds have v1 contracts; Skill / Ancestry / Resource / Action stay reserved for M5-WO3", () => {
-    for (const kind of ["STAT", "CHARACTER_DIE_PROGRESSION", "RANK_LADDER", "SKILL_RANK", "DERIVED_STAT", "CORE_RESOLUTION"] as const) expect(PROWESS_DEFINITION_KINDS[kind].schemaVersions, kind).toEqual([1]);
-    for (const kind of ["SKILL", "ANCESTRY", "RESOURCE", "ACTION"] as const) expect(PROWESS_DEFINITION_KINDS[kind].schemaVersions, kind).toEqual([]);
+  it("the WO2 kinds have v1 contracts; M5-WO3 activates Resource / Action; Skill / Ancestry stay reserved", () => {
+    for (const kind of ["STAT", "CHARACTER_DIE_PROGRESSION", "RANK_LADDER", "SKILL_RANK", "DERIVED_STAT", "CORE_RESOLUTION", "RESOURCE", "ACTION"] as const) expect(PROWESS_DEFINITION_KINDS[kind].schemaVersions, kind).toEqual([1]);
+    for (const kind of ["SKILL", "ANCESTRY"] as const) expect(PROWESS_DEFINITION_KINDS[kind].schemaVersions, kind).toEqual([]);
   });
 });
 

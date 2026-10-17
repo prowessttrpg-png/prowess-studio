@@ -122,15 +122,18 @@ const REQUEST_FIELDS = ["contractVersion", "subject", "definitions", "ruleset", 
 const FACT = deepFreeze({ NATURAL: "roll.natural", TOTAL: "roll.total", LEVEL: "character.level", STAT: "stat.score" });
 const SIGNAL_TARGET = "roll.mode_signal";
 
-const pointer = (...tokens: string[]): string => tokens.map((t) => `/${t.replace(/~/g, "~0").replace(/\//g, "~1")}`).join("");
-const fromContext = (target: string, context: EvaluationContextFamily, path: string): CompilationFragmentBinding => ({ target, source: { kind: "CONTEXT", context, pointer: path } });
-const fromFragment = (target: string, fragmentKey: string, path = "/data/finalValue"): CompilationFragmentBinding => ({ target, source: { kind: "FRAGMENT", fragmentKey, pointer: path } });
+export const pointer = (...tokens: string[]): string => tokens.map((t) => `/${t.replace(/~/g, "~0").replace(/\//g, "~1")}`).join("");
+export const fromContext = (target: string, context: EvaluationContextFamily, path: string): CompilationFragmentBinding => ({ target, source: { kind: "CONTEXT", context, pointer: path } });
+export const fromFragment = (target: string, fragmentKey: string, path = "/data/finalValue"): CompilationFragmentBinding => ({ target, source: { kind: "FRAGMENT", fragmentKey, pointer: path } });
 const derivedFragmentKey = (statistic: DerivedStatistic): string => `derived.${statistic}`;
 const bonusFragmentKey = (target: BonusTarget): string => `bonuses.${target}`;
 const statComponent = (stat: ProwessStat): string => `stat.${stat}`;
 
-/** One compilation's working state: the fragments emitted so far and the subject's components. */
-class Emitter {
+/**
+ * One compilation's working state: the fragments emitted so far and the subject's components. Shared with the M5-WO3
+ * runtime compiler, which reuses `derived` to bind a Resource's maximum to the exact WO2 capacity statistic.
+ */
+export class Emitter {
   readonly fragments: CompilationFragment[] = [];
   readonly components = new Map<string, ProwessDefinitionRef[]>();
   constructor(readonly core: CoreDefinitionIndex, readonly character: ValidatedCharacterCore, readonly p: Problems) {}
@@ -256,7 +259,7 @@ class Emitter {
   }
 }
 
-function program(f: CoreFormula, provenance: RuleProvenance): JsonObject {
+export function program(f: CoreFormula, provenance: RuleProvenance): JsonObject {
   return {
     expression: f.expression,
     rounding: f.rounding,
@@ -267,8 +270,8 @@ function program(f: CoreFormula, provenance: RuleProvenance): JsonObject {
   };
 }
 
-const compare = (factKey: string, operator: ">=" | "==", provenance: RuleProvenance): JsonObject => ({ kind: "NUMERIC_COMPARE", factKey, operator, expected: 0, provenance: provenance as unknown as JsonObject });
-const numericFacts = (...keys: string[]): JsonObject => ({ numeric: keys.map((key) => ({ key, value: 0 })) });
+export const compare = (factKey: string, operator: ">=" | "==" | "<=", provenance: RuleProvenance): JsonObject => ({ kind: "NUMERIC_COMPARE", factKey, operator, expected: 0, provenance: provenance as unknown as JsonObject });
+export const numericFacts = (...keys: string[]): JsonObject => ({ numeric: keys.map((key) => ({ key, value: 0 })) });
 
 /** The single Stat a roll uses: the chosen Stat, else the one STAT its total reads (an Attack Roll reads PER). */
 function rollStat(total: CoreFormula, chosen: ProwessStat | null): ProwessStat | null {
@@ -284,6 +287,10 @@ function emitRoll(e: Emitter, subject: CoreResolutionSubject, procedure: Exclude
     return;
   }
   const payload = entry.payload;
+  // INITIATIVE (M5-WO3) is a roll with no comparison, no critical and no Skill: its total is compared with other sides'.
+  const comparison = (payload as Partial<CoreRollPayload>).comparison ?? null;
+  const critical = (payload as Partial<CoreRollPayload>).critical ?? null;
+  const requiresSkill = (payload as Partial<CoreRollPayload>).requiresSkill ?? false;
   const owner = e.component(`procedure.${procedure}`, [entry]);
   const key = (k: string) => `${prefix}${k}`;
   const usesChosenStat = payload.total.variables.some((v) => v.source.kind === "CHOSEN_STAT");
@@ -294,7 +301,7 @@ function emitRoll(e: Emitter, subject: CoreResolutionSubject, procedure: Exclude
 
   // Skill rank → its bonus and attempt policy, read from the exact SKILL_RANK Definition.
   let rankBonus: number | null = null;
-  if (payload.requiresSkill) {
+  if (requiresSkill) {
     if (subject.skillKey === undefined) {
       e.p.add(K.INVALID_CORE_REQUEST, ["subject", "skillKey"], `${procedure} requires an exact Skill canonical key`);
       return;
@@ -349,22 +356,23 @@ function emitRoll(e: Emitter, subject: CoreResolutionSubject, procedure: Exclude
     definitions: vars.definitions,
   });
 
-  const against = pointer("state", COMPARISON_STATE_KEYS[payload.comparison.against]);
+  outputs[payload.naturalSelection === null ? "automaticTotal" : "total"] = total;
+  outputs.natural = natural ?? outputs.natural ?? null;
+  if (comparison === null) return;
+  const against = pointer("state", COMPARISON_STATE_KEYS[comparison.against]);
   const success = e.emit({
     fragmentKey: key("success"),
     order: ORDER.SUCCESS,
     operation: "REQUIREMENT",
-    input: { requirement: compare(FACT.TOTAL, payload.comparison.operator, entry.provenance), facts: numericFacts(FACT.TOTAL) },
+    input: { requirement: compare(FACT.TOTAL, comparison.operator, entry.provenance), facts: numericFacts(FACT.TOTAL) },
     bindings: [fromContext("/requirement/expected", "RUNTIME", against), fromFragment("/facts/numeric/0/value", total)],
-    role: `meets-or-exceeds:${payload.comparison.against}`,
+    role: `meets-or-exceeds:${comparison.against}`,
     componentKeys: [owner],
     definitions: [entry.ref],
   });
-  outputs[payload.naturalSelection === null ? "automaticTotal" : "total"] = total;
   outputs[payload.naturalSelection === null ? "automaticSuccess" : "success"] = success;
-  outputs.natural = natural ?? outputs.natural ?? null;
 
-  if (payload.critical !== null && natural !== null) {
+  if (critical !== null && natural !== null) {
     const die = e.component("character-die", [e.core.progression]);
     const faces = pointer("properties", CHARACTER_PROPERTY_KEYS.CHARACTER_DIE_FACES);
     outputs.criticalThreat = e.emit({
@@ -382,7 +390,7 @@ function emitRoll(e: Emitter, subject: CoreResolutionSubject, procedure: Exclude
       order: ORDER.CRITICAL_HIT,
       operation: "REQUIREMENT",
       input: {
-        requirement: { kind: "ALL", children: [compare(FACT.NATURAL, "==", entry.provenance), compare(FACT.TOTAL, payload.comparison.operator, entry.provenance)], provenance: entry.provenance as unknown as JsonObject },
+        requirement: { kind: "ALL", children: [compare(FACT.NATURAL, "==", entry.provenance), compare(FACT.TOTAL, comparison.operator, entry.provenance)], provenance: entry.provenance as unknown as JsonObject },
         facts: numericFacts(FACT.NATURAL, FACT.TOTAL),
       },
       bindings: [
@@ -481,7 +489,7 @@ function readSubject(value: unknown, p: Problems): CoreCompilationSubject | null
 }
 
 /** Re-validates the request's bundle against its exact RulesetContext and indexes the core Definitions. */
-function readCoreBundle(r: Record<string, unknown>, p: Problems): { bundle: ProwessDefinitionBundle; core: CoreDefinitionIndex } | null {
+export function readCoreBundle(r: Record<string, unknown>, p: Problems): { bundle: ProwessDefinitionBundle; core: CoreDefinitionIndex } | null {
   const ruleset = createRulesetContext(own(r, "ruleset"));
   if (!ruleset.ok) {
     p.add(X.INVALID_REQUEST, ["ruleset"], "an exact, valid M4 RulesetContext is required");
@@ -557,7 +565,7 @@ export function compileCoreResolution(request: unknown): ProwessOutcome<ProwessC
       // A Skill Check also exposes its automatic-success fragments (s31, s36): both are evaluated, nothing is skipped.
       if (subject.procedure === "SKILL_CHECK") emitRoll(e, subject, "SKILL_AUTOMATIC_SUCCESS", "automatic.", outputs, subject.attemptPermitted === true);
       if (p.count === 0) emitRoll(e, subject, subject.procedure, "", outputs, subject.attemptPermitted === true);
-      primary = outputs.success ?? outputs.automaticSuccess ?? null;
+      primary = outputs.success ?? outputs.automaticSuccess ?? outputs.total ?? null;
     }
   }
   if (p.count > 0) return finish(p, () => null as never);

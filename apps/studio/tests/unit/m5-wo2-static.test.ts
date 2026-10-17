@@ -20,7 +20,8 @@ import { auditCoreContent, auditWo2Source, type Wo2Layer } from "./m5-wo2-audit-
  * M5-I056 Dodge / Evasion · M5-I057 Dodge formula · M5-I058 threat never auto-hits · M5-I059 critical hit · M5-I060 Saving
  * Throws · M5-I061 Targeting never selects a Save · M5-I062 Character DC · M5-I063 HP · M5-I064 MP · M5-I065 racial base
  * values · M5-I066 Strength Armor · M5-I067 AP · M5-I068 Base Range · M5-I069 Mana Efficiency · M5-I070 Signature
- * capacity · M5-I071 automatic success · M5-I072 Stat Mastery · M5-I073 Movement deferred · M5-I074 statistics via M4.
+ * capacity · M5-I071 automatic success · M5-I072 Stat Mastery · M5-I073 Movement deferred (SUPERSEDED by M5-I075 in
+ * M5-WO3 — this gate now checks that the supersession is recorded) · M5-I074 statistics via M4.
  */
 const ROOT = path.resolve(process.cwd(), "..", "..");
 const read = (file: string) => readFileSync(path.join(ROOT, file), "utf8");
@@ -47,14 +48,15 @@ describe("M5-WO2 audit — Core resolution, stats, dice & ranks", () => {
   it("covers @prowess/game (with the WO2 core modules), @prowess/rules and the canonical content", () => {
     for (const f of ["core/compile.ts", "core/character.ts", "core/dice.ts", "core/definitions.ts", "core/ranks.ts", "definition/core-payload.ts", "vocabulary/core.ts"]) expect(GAME).toContain(`packages/prowess-game/src/${f}`);
     expect(RULES.length).toBeGreaterThan(20);
-    expect(content().definitions).toHaveLength(30);
+    // WO2 shipped 30; M5-WO3 appended BASE_MOVEMENT, FINAL_MOVEMENT and INITIATIVE.
+    expect(content().definitions).toHaveLength(33);
   });
 
-  it.each(inventory)("%s passes the WO2 %s rules (no randomness, hidden math, Stat / level / die branches, legacy values, Movement, M4 Prowess terms)", (file, layer) => {
+  it.each(inventory)("%s passes the WO2 %s rules (no randomness, hidden math, Stat / level / die branches, legacy values, M4 Prowess terms)", (file, layer) => {
     expect(auditWo2Source(read(file), file, layer)).toEqual([]);
   });
 
-  it("canonical core content passes every designer-ruling rule (M5-I041 · M5-I047–I049 · M5-I051 · M5-I054–I057 · M5-I062–I065 · M5-I069 · M5-I072 · M5-I073)", () => {
+  it("canonical core content passes every designer-ruling rule (M5-I041 · M5-I047–I049 · M5-I051 · M5-I054–I057 · M5-I062–I065 · M5-I069 · M5-I072)", () => {
     expect(auditCoreContent(content())).toEqual([]);
   });
 
@@ -121,7 +123,7 @@ describe("M5-WO2 audit — Core resolution, stats, dice & ranks", () => {
     expect(t).toMatch(/entry\("Character Dice", "CORE_RESOLUTION", C,/);
   });
 
-  it("source-conflict register: the six designer rulings are RESOLVED_BY_DESIGNER; M5-SC-006 (M5-I073), 007, 011 and 032 stay UNRESOLVED", () => {
+  it("source-conflict register: the six WO2 designer rulings are RESOLVED_BY_DESIGNER; 007 and 011 stay UNRESOLVED; 006 / 032 record their WO2 state and the M5-WO3 ruling", () => {
     const register = read("docs/architecture/m5-core-playtest-source-conflicts.md");
     for (const key of ["M5-SC-002", "M5-SC-003", "M5-SC-005", "M5-SC-008", "M5-SC-009", "M5-SC-010"]) {
       const s = section(register, key);
@@ -129,16 +131,21 @@ describe("M5-WO2 audit — Core resolution, stats, dice & ranks", () => {
       expect(s, key).toMatch(/\*\*resolution authority\*\*: M5-WO2 §/);
       expect(s, key).toMatch(/\*\*source A\*\*:[\s\S]*\*\*source B\*\*:/); // provenance preserved
     }
-    for (const key of ["M5-SC-006", "M5-SC-007", "M5-SC-011", "M5-SC-032"]) expect(section(register, key), key).toMatch(/\*\*status\*\*: `UNRESOLVED`/);
+    for (const key of ["M5-SC-007", "M5-SC-011"]) expect(section(register, key), key).toMatch(/\*\*status\*\*: `UNRESOLVED`/);
+    // M5-WO3 designer rulings: the WO2 history (deferral, fail-closed) is kept, not rewritten.
+    for (const key of ["M5-SC-006", "M5-SC-032"]) {
+      expect(section(register, key), key).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`/);
+      expect(section(register, key), key).toMatch(/\*\*resolution authority\*\*: M5-WO3 §/);
+    }
     expect(section(register, "M5-SC-006")).toMatch(/DEFERRED_PENDING_CANON/);
     expect(section(register, "M5-SC-006")).toMatch(/5 × AGI[\s\S]*10 × AGI/);
     expect(section(register, "M5-SC-032")).toMatch(/ROLL_MODE_CONFLICT/);
   });
 
-  it("the M5 invariant catalog defines M5-I041–I074 with guards, appended after the untouched M5-I001–I040", () => {
+  it("the M5 invariant catalog defines M5-I041–I074 with guards, appended after the untouched M5-I001–I040 (M5-WO3 appends I075–I110)", () => {
     const catalog = JSON.parse(read("docs/architecture/m5-invariants.json")) as Array<{ id: string; guards: string[] }>;
-    expect(catalog.map((x) => x.id)).toEqual(Array.from({ length: 74 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
-    for (const entry of catalog.slice(40)) {
+    expect(catalog.map((x) => x.id).slice(0, 74)).toEqual(Array.from({ length: 74 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
+    for (const entry of catalog.slice(40, 74)) {
       expect(entry.guards, entry.id).toContain("apps/studio/tests/unit/m5-wo2-static.test.ts");
       expect(read("apps/studio/tests/unit/m5-wo2-static.test.ts"), entry.id).toContain(entry.id);
     }
@@ -183,7 +190,6 @@ const sourceControls: Array<[string, string, string, Wo2Layer, string]> = [
   ["§197 TRAINED=1 / EXPERT=2 / MASTER=3", G("core/compile.ts"), "export const SKILL_BONUS = { TRAINED: 1, EXPERT: 2, MASTER: 3 };", "game", "rank-numeric-collapse"],
   ["§197 global rankValue", G("core/ranks.ts"), "export const rankValue = (rankKey: string) => rankKey.length;", "game", "rank-numeric-collapse"],
   ["rank alphabetical order", G("core/ranks.ts"), "export const before = (a: { rankKey: string }, b: { rankKey: string }) => a.rankKey < b.rankKey;", "game", "rank-alphabetical"],
-  ["§198 Movement = 5 × AGI", G("core/compile.ts"), 'export const movement = { statistic: "MOVEMENT", expression: "5 * agi" };', "game", "movement-formula"],
   ["§199 listedMpAfterMe = listedMp - ME", G("core/compile.ts"), "export const listedMpAfterMe = (listedMp: number, me: number) => listedMp - me;", "game", "me-discount"],
   ["level branch", G("core/character.ts"), 'export const dieFor = (level: number) => (level <= 2 ? "D4" : "D6");', "game", "level-branch"],
   ["Stat branch", G("core/compile.ts"), 'export const isPer = (stat: string) => stat === "PER";', "game", "stat-branch"],
@@ -257,7 +263,6 @@ const contentControls: Array<[string, () => Content, string]> = [
     l.ranks = ["EXPERT", "MASTER", "TRAINED", "UNTRAINED"].map((rankKey, order) => ({ rankKey, order }));
   }), "rank-alphabetical"],
   ["UNTRAINED freely attempts", () => mutate((d) => void ((d.find((x) => x.definitionKind === "SKILL_RANK")!.payload.entries as Array<{ attemptAllowed: boolean }>)[0]!.attemptAllowed = true)), "untrained-access"],
-  ["§198 Movement = 5 × AGI as content", () => mutate((d) => d.push({ canonicalKey: "core.derived.base_movement", definitionKind: "DERIVED_STAT", payload: { statistic: "BASE_MOVEMENT", formula: { expression: "5 * agi", rounding: "NONE", variables: [] }, bonusTarget: null } })), "movement-formula"],
   ["§199 ME as a listed-cost discount", () => mutate((d) => void (formulaOf(d, "BASE_MANA_EFFICIENCY").expression = "listed_mp - pro")), "me-discount"],
   ["Stat Mastery as a numeric bonus", () => mutate((d) => void ((d.find((x) => x.payload.procedure === "STAT_MASTERY")!.payload.mastery as Record<string, unknown>).bonus = 2)), "stat-mastery-bonus"],
 ];
@@ -275,6 +280,6 @@ describe("M5-WO2 permanent negative controls — mutated real source and content
 
   it("documentation comments mentioning forbidden ideas are not findings (AST, not grep)", () => {
     const file = G("core/compile.ts");
-    expect(auditWo2Source(`${read(file)}\n// Math.random() + Movement = 5 × AGI; Player Die; Evasion; rankValue\n`, file, "game")).toEqual([]);
+    expect(auditWo2Source(`${read(file)}\n// Math.random() + Movement = 10 × AGI; Player Die; Evasion; rankValue\n`, file, "game")).toEqual([]);
   });
 });

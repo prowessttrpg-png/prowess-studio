@@ -25,7 +25,9 @@ import type { CharacterDieProgressionPayload } from "./definition/core-payload.j
  * M5-I053 natural preserved · M5-I054 Attack Roll · M5-I055 Accuracy · M5-I057 Dodge · M5-I058 threat ≠ hit ·
  * M5-I059 critical hit · M5-I060 Saving Throws · M5-I062 Character DC · M5-I063 HP · M5-I064 MP · M5-I065 racial base
  * values · M5-I066 Strength Armor · M5-I067 AP · M5-I068 Base Range · M5-I069 Mana Efficiency · M5-I070 Signature
- * capacity · M5-I071 automatic success · M5-I072 Stat Mastery · M5-I073 Movement deferred · M5-I074 derived via M4.
+ * capacity · M5-I071 automatic success · M5-I072 Stat Mastery · M5-I073 Movement deferred (SUPERSEDED by M5-I075 in
+ * M5-WO3) · M5-I074 derived via M4. M5-WO3 regressions pinned here: M5-I075 (Base Movement) and M5-I078 (Advantage +
+ * Disadvantage resolve NORMAL — the WO2 fail-closed behaviour is superseded).
  */
 type Stats = { STR: number; AGI: number; CON: number; PER: number; RES: number; PRO: number };
 const DIE: Record<number, [string, number]> = { 1: ["D4", 4], 2: ["D4", 4], 3: ["D6", 6], 4: ["D6", 6], 5: ["D8", 8], 6: ["D8", 8], 7: ["D10", 10], 8: ["D10", 10], 9: ["D12", 12], 10: ["D12", 12] };
@@ -174,11 +176,14 @@ describe("§131–§132 CORE GOLDEN — Advantage / Disadvantage (M5-I051 / M5-I
     expect(total?.bindings.filter((b) => b.source.kind === "STEP" && b.source.stepKey === r.plan.outputs.natural)).toHaveLength(1);
   });
 
-  it("only NORMAL / ADVANTAGE / DISADVANTAGE exist; duplicate signals collapse; Advantage + Disadvantage fails closed", () => {
+  // M5-WO2 failed closed on Advantage + Disadvantage while M5-SC-032 was unresolved. The M5-WO3 designer ruling
+  // superseded that temporary behaviour: both present → NORMAL (presence cancellation, never netting — M5-I078).
+  it("only NORMAL / ADVANTAGE / DISADVANTAGE exist; duplicate signals collapse; Advantage + Disadvantage resolve NORMAL (M5-SC-032, M5-WO3)", () => {
     expect(resolveRollMode({ advantage: [], disadvantage: [] })).toEqual({ ok: true, value: "NORMAL" });
     expect(resolveRollMode({ advantage: ["a", "b", "c"], disadvantage: [] })).toEqual({ ok: true, value: "ADVANTAGE" });
     expect(resolveRollMode({ advantage: [], disadvantage: ["x", "y"] })).toEqual({ ok: true, value: "DISADVANTAGE" });
-    expect(codes(resolveRollMode({ advantage: ["a"], disadvantage: ["d"] }))).toEqual([K.ROLL_MODE_CONFLICT]);
+    expect(resolveRollMode({ advantage: ["a"], disadvantage: ["d"] })).toEqual({ ok: true, value: "NORMAL" });
+    expect(Object.keys(K)).not.toContain("ROLL_MODE_CONFLICT");
     for (const mode of ["DOUBLE_ADVANTAGE", "TRIPLE_ADVANTAGE", "DOUBLE_DISADVANTAGE", "advantage"]) {
       expect(codes(compileWith({ kind: "CORE_RESOLUTION", subjectKey: "a", procedure: "ATTACK_ROLL", mode }, c)), mode).toEqual(["PROWESS_COMPILATION.INVALID_REQUEST"]);
     }
@@ -328,18 +333,29 @@ describe("§142 PLAYER DICE LEGACY GOLDEN (M5-I041)", () => {
   });
 });
 
-describe("Movement is DEFERRED_PENDING_CANON (M5-SC-006 stays UNRESOLVED; M5-I073)", () => {
-  it("no Movement Definition exists in canonical content and no plan computes Movement", () => {
-    expect(CORE_DEFINITIONS.some((d) => /movement/i.test(JSON.stringify(d)))).toBe(false);
-    expect(sheet(character(5)).plan.sourceMap.entries.some((e) => /movement/i.test(e.role))).toBe(false);
+/**
+ * M5-I073 (SUPERSEDED by M5-I075 in M5-WO3). WO2 kept Movement DEFERRED_PENDING_CANON while M5-SC-006 was unresolved:
+ * no Movement Definition existed and a Movement DERIVED_STAT was refused. The M5-WO3 designer ruling resolved
+ * M5-SC-006 (Base Movement = 5 ft × AGI). These tests now pin the superseded state: exactly the two canonical Movement
+ * statistics exist, the contradictory 10 × AGI example is not canonical, and other Movement names are still refused.
+ */
+describe("Movement after M5-SC-006 (M5-I073 superseded by M5-I075)", () => {
+  it("the only Movement statistics are BASE_MOVEMENT = 5 * agi and FINAL_MOVEMENT; nothing computes 10 × AGI", () => {
+    const movement = CORE_DEFINITIONS.filter((d) => /movement/i.test(JSON.stringify(d.payload.statistic ?? "")));
+    expect(movement.map((d) => [d.payload.statistic, (d.payload.formula as { expression: string }).expression])).toEqual([
+      ["BASE_MOVEMENT", "5 * agi"],
+      ["FINAL_MOVEMENT", "base_movement + bonuses"],
+    ]);
+    expect(JSON.stringify(CORE_DEFINITIONS)).not.toMatch(/10 \* agi/);
+    expect(sheet(character(5)).plan.sourceMap.entries.filter((e) => /movement/i.test(e.role)).map((e) => e.role)).toEqual(["explicit-bonuses:MOVEMENT", "derived-statistic:BASE_MOVEMENT", "derived-statistic:FINAL_MOVEMENT"]);
   });
 
-  it("a DERIVED_STAT Definition for Movement is refused with DEFERRED_PENDING_CANON", () => {
-    for (const statistic of ["MOVEMENT", "BASE_MOVEMENT", "MOVEMENT_SPEED"]) {
+  it("a Movement statistic other than the canonical two is still refused (MOVEMENT, MOVEMENT_SPEED are not derived statistics)", () => {
+    for (const statistic of ["MOVEMENT", "MOVEMENT_SPEED"]) {
       const { ruleset, definitions } = coreRuleset({
-        extra: [{ canonicalKey: "core.derived.movement", definitionKind: "DERIVED_STAT", payload: { statistic, formula: { expression: "5 * agi", rounding: "NONE", variables: [{ variable: "agi", source: { kind: "STAT", stat: "AGI" } }] }, bonusTarget: null, source: { locators: ["s23"], conflicts: ["M5-SC-006"] } } }],
+        extra: [{ canonicalKey: "core.derived.movement", definitionKind: "DERIVED_STAT", payload: { statistic, formula: { expression: "10 * agi", rounding: "NONE", variables: [{ variable: "agi", source: { kind: "STAT", stat: "AGI" } }] }, bonusTarget: null, source: { locators: ["s156"], conflicts: ["M5-SC-006"] } } }],
       });
-      expect(codes(createProwessDefinitionBundle({ ruleset, definitions })), statistic).toContain(C.DEFERRED_PENDING_CANON);
+      expect(codes(createProwessDefinitionBundle({ ruleset, definitions })), statistic).toContain(C.INVALID_PAYLOAD);
     }
   });
 });

@@ -3,6 +3,7 @@ import { deepFreeze, isPlainObject } from "../internal/plain-data.js";
 import { Problems, checkPlainData, finish, isToken, own, readEnum, readRecord, readSafeInteger, type ProwessOutcome } from "../internal/problems.js";
 import { CORE_ERROR_CODES as K, DEFINITION_ERROR_CODES as C } from "../definition/codes.js";
 import { COMPARISON_STATE_KEYS, ROLL_MODES, ROLL_MODE_VARIABLES, ROLL_STATE_KEYS, type RollMode } from "../vocabulary/core.js";
+import { ROLL_SIGNAL_RULING } from "../vocabulary/runtime.js";
 import type { CharacterDie } from "./character.js";
 
 /**
@@ -46,33 +47,62 @@ export function validateDieRollInput(value: unknown, expected: CharacterDie): Pr
 }
 
 /**
- * The roll mode a set of collected M4 roll signals produces (designer ruling M5-SC-010): no signal → NORMAL; one or
- * more Advantage signals → ADVANTAGE; one or more Disadvantage → DISADVANTAGE (duplicates collapse — there is no
- * double Advantage). Advantage AND Disadvantage together fail closed with ROLL_MODE_CONFLICT: there is no canon ruling
- * (recorded as M5-SC-032), so nothing cancels, nets or picks a winner.
- *
- * Accepts the M4 ROLL_SIGNAL target state `{ advantage: modifierKey[], disadvantage: modifierKey[] }` (M4-I74).
+ * The resolution of a roll's collected Advantage / Disadvantage signals (designer rulings M5-SC-010 and M5-SC-032):
+ * signals are PRESENCE-based and never stack. Every contributing source key is preserved for provenance and
+ * explanation, even when duplicates collapse mechanically or the two signals cancel (M5-I079).
  */
-export function resolveRollMode(signals: unknown): ProwessOutcome<RollMode> {
+export interface RollSignalResolution {
+  readonly mode: RollMode;
+  /** Every Advantage source (M4 modifier key), in code-unit order — none dropped, none merged. */
+  readonly advantage: readonly string[];
+  /** Every Disadvantage source, in code-unit order. */
+  readonly disadvantage: readonly string[];
+  /** True when at least one of each was present, so the roll resolved NORMAL by cancellation (never by netting). */
+  readonly cancelled: boolean;
+  /** The designer ruling that governs presence cancellation. */
+  readonly ruling: typeof ROLL_SIGNAL_RULING;
+}
+
+const byCodeUnit = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+
+/**
+ * Resolves the M4 ROLL_SIGNAL target state `{ advantage: modifierKey[], disadvantage: modifierKey[] }` (M4-I74) under
+ * Prowess canon:
+ *
+ *   no Advantage, no Disadvantage           → NORMAL
+ *   ≥ 1 Advantage, no Disadvantage          → ADVANTAGE      (duplicates never strengthen it — M5-I077)
+ *   no Advantage, ≥ 1 Disadvantage          → DISADVANTAGE
+ *   ≥ 1 Advantage AND ≥ 1 Disadvantage      → NORMAL         (cancellation by presence, regardless of counts — M5-I078)
+ *
+ * Counts are never compared or subtracted: 2 Advantage + 1 Disadvantage is NORMAL, not "net Advantage". M4 only collects
+ * the symbolic signals; this pure domain function interprets them (M5-WO3 §14, §173). M5-WO2 failed closed here while
+ * M5-SC-032 was unresolved; the M5-WO3 designer ruling superseded that temporary behaviour.
+ */
+export function resolveRollSignals(signals: unknown): ProwessOutcome<RollSignalResolution> {
   const p = new Problems();
   if (!checkPlainData(signals, [], p, C.NOT_PLAIN_DATA)) return finish(p, () => null as never);
   if (!isPlainObject(signals)) {
     p.add(K.INVALID_ROLL_INPUT, [], "roll signals are { advantage: string[], disadvantage: string[] }");
     return finish(p, () => null as never);
   }
-  const list = (field: "advantage" | "disadvantage"): readonly unknown[] => {
+  const list = (field: "advantage" | "disadvantage"): string[] => {
     const v = own(signals, field);
-    if (Array.isArray(v) && v.every((x: unknown) => typeof x === "string")) return v;
-    p.add(K.INVALID_ROLL_INPUT, [field], `${field} is an array of signal keys`);
+    if (Array.isArray(v) && v.every((x: unknown) => typeof x === "string" && x.length > 0)) return [...(v as string[])].sort(byCodeUnit);
+    p.add(K.INVALID_ROLL_INPUT, [field], `${field} is an array of signal source keys`);
     return [];
   };
-  const advantage = list("advantage").length > 0;
-  const disadvantage = list("disadvantage").length > 0;
-  if (advantage && disadvantage) {
-    p.add(K.ROLL_MODE_CONFLICT, [], "Advantage and Disadvantage are both present; their interaction is unresolved (M5-SC-032), so the roll fails closed");
-  }
-  const mode: RollMode = advantage ? "ADVANTAGE" : disadvantage ? "DISADVANTAGE" : "NORMAL";
-  return finish(p, () => mode);
+  const advantage = list("advantage");
+  const disadvantage = list("disadvantage");
+  const hasAdvantage = advantage.length > 0;
+  const hasDisadvantage = disadvantage.length > 0;
+  const mode: RollMode = hasAdvantage === hasDisadvantage ? "NORMAL" : hasAdvantage ? "ADVANTAGE" : "DISADVANTAGE";
+  return finish(p, () => ({ mode, advantage, disadvantage, cancelled: hasAdvantage && hasDisadvantage, ruling: ROLL_SIGNAL_RULING }));
+}
+
+/** The roll mode alone (the M5-WO2 API), resolved by `resolveRollSignals` — Advantage + Disadvantage is NORMAL. */
+export function resolveRollMode(signals: unknown): ProwessOutcome<RollMode> {
+  const resolved = resolveRollSignals(signals);
+  return resolved.ok ? finish(new Problems(), () => resolved.value.mode) : resolved;
 }
 
 /**

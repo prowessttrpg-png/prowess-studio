@@ -311,6 +311,22 @@ jobs:
           pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo2-core-api.test.ts
           node scripts/m5-wo2-negative-controls.mjs
 
+      # M5-WO3: runtime Resources, action economy, movement & roll-state resolution — the golden fixtures and runtime
+      # contracts in @prowess/game, the static audit over @prowess/game / @prowess/rules / the canonical core + runtime
+      # content with in-memory controls, the regenerated Rules Inspector fixture, exact Release history / isolation / no
+      # persistence against the real database, WO3 plans through the existing evaluate endpoint, and the behavioural
+      # negative controls §174–§194 (each mutates real source, content or docs, must be caught, and is restored).
+      - name: M5-WO3 audit — Runtime resources, action economy & movement
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+        run: |
+          pnpm --filter "@prowess/game" exec vitest run src/runtime-resources-golden.test.ts src/runtime-contracts.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo3-static.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo3-inspector-fixture.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-runtime-resources-history.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo3-runtime-api.test.ts
+          node scripts/m5-wo3-negative-controls.mjs
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own

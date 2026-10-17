@@ -1,4 +1,4 @@
-# M5 — Core Playtest Source Conflicts (M5-WO1, updated M5-WO2)
+# M5 — Core Playtest Source Conflicts (M5-WO1, updated M5-WO2 and M5-WO3)
 
 **Source audited:** Prowess Core Playtest Packet V0.1. The designer's local copy (98,897,516 bytes, SHA-256 prefix
 `21fa6771…`) was verified byte-identical to the source identity recorded in
@@ -14,6 +14,14 @@ architecture follows the higher authority.
 
 **M5-WO2 update.** Designer rulings resolve M5-SC-002, 003, 005, 008, 009 and 010 (each entry records the ruling;
 source locators are unchanged). M5-SC-006 stays UNRESOLVED (Movement `DEFERRED_PENDING_CANON`). M5-SC-032 is new.
+
+**M5-WO3 update.** Designer rulings in M5-WO3 resolve M5-SC-006 (Base Movement = 5 ft × AGI, §4) and M5-SC-032
+(Advantage and Disadvantage are presence-based, non-stacking signals; both present → NORMAL, §8–§12). Each entry keeps
+its M5-WO2 state verbatim and adds the ruling — the WO2 history (Movement deferred, both signals fail closed) is not
+rewritten. M5-SC-033 (Size-based movement adjustment values) is new and UNRESOLVED (§7). M5-SC-034 (Sprint movement
+basis and repeated Sprint) is new and UNRESOLVED: it was found by the WO3 source audit (re-parsed from the verified
+Core Playtest bytes, same structure hash). M5-SC-026 and M5-SC-027 stay UNRESOLVED: WO3 stores only the core default
+costs (s432) the work order directs (§55); weapon-specific costs remain Equipment work.
 
 **Statuses:** `UNRESOLVED` · `RESOLVED_BY_DESIGNER` · `RESOLVED_BY_CANON_DECISION` · `SUPERSEDED`.
 
@@ -123,9 +131,9 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source A**: s23 / s69 / s104: "Movement = 5 × AGI" (example s70: AGI 4 → 20 ft).
 - **source B**: s156 Character Creation Example: "Movement: 10 × AGI 2 = 20 ft (+5 Athletics)".
 - **mechanical consequence**: the multiplier is doubled. The example also adds an unexplained Athletics bonus.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
-- **notes**: probably an error in the example. It is still recorded and not repaired (§10). **M5-WO2:** still UNRESOLVED. Movement calculation is `DEFERRED_PENDING_CANON`: both source formulas are preserved, no executable Movement Formula exists, and a DERIVED_STAT for MOVEMENT / BASE_MOVEMENT / MOVEMENT_SPEED is refused (`PROWESS_DEFINITION.DEFERRED_PENDING_CANON`). Only a designer ruling that changes this status may activate it. Guarded by M5-I073 and negative control §198.
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: M5-WO3 §4–§6 (designer ruling)
+- **notes**: probably an error in the example. It is still recorded and not repaired (§10). **M5-WO2:** still UNRESOLVED. Movement calculation is `DEFERRED_PENDING_CANON`: both source formulas are preserved, no executable Movement Formula exists, and a DERIVED_STAT for MOVEMENT / BASE_MOVEMENT / MOVEMENT_SPEED is refused (`PROWESS_DEFINITION.DEFERRED_PENDING_CANON`). Only a designer ruling that changes this status may activate it. Guarded by M5-I073 and negative control §198. **M5-WO3 (designer ruling):** canonical Base Movement = 5 ft × AGI (`core.derived.base_movement`, expression `5 * agi`, unit ft). The 10 × AGI character example (s156) is superseded for canonical structured mechanics; the source text is unchanged. Movement may depend on Size: Base Movement → Size adjustment (values pending, M5-SC-033) → other explicit modifiers → Final Movement (`core.derived.final_movement`). M5-I073 is SUPERSEDED by M5-I075; guarded by M5-I075 and M5-WO3 negative controls §174–§175.
 
 ### M5-SC-007 — Concentration capacity
 
@@ -496,7 +504,52 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source B**: the Core Playtest uses both terms about 114 times (s162, s371, s990, s991, s1041 …) and states only
   that each "does not stack"; no rule says whether they cancel, net, or which wins. M5-WO2 §13.
 - **mechanical consequence**: a roll with both signals has no defined natural selection.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: M5-WO3 §8–§15 (designer ruling)
 - **notes**: recorded by M5-WO2 as a narrow runtime-rule question. `resolveRollMode` fails closed with
   `PROWESS_CORE.ROLL_MODE_CONFLICT`; nothing cancels, nets or picks a winner. Guarded by M5-I051 / M5-I052 tests.
+  **M5-WO3 (designer ruling):** Advantage and Disadvantage are presence-based, non-stacking signals. No signal → NORMAL;
+  one or more Advantage only → ADVANTAGE; one or more Disadvantage only → DISADVANTAGE; at least one of each → NORMAL,
+  regardless of counts (no arithmetic netting: 2 Advantage + 1 Disadvantage is NORMAL). Every source key is preserved
+  for provenance (`resolveRollSignals`). The WO2 fail-closed behaviour and the `ROLL_MODE_CONFLICT` code were correct
+  while unresolved and are superseded; M4 Modifier semantics are unchanged. Guarded by M5-I077–I079 and M5-WO3 negative
+  controls §177–§180.
+
+### M5-SC-033 — Size-Based Movement Adjustment Values
+
+- **conflictKey**: `M5-SC-033`
+- **systemFamily**: `CHARACTER`
+- **concept**: How a creature's Size adjusts its Movement
+- **source A**: M5-WO3 §5 designer ruling: Movement may depend on creature Size (Base Movement → Size adjustment →
+  other explicit modifiers → Final Movement).
+- **source B**: s441–s442 GRID SCALE AND OCCUPIED SPACE / Creature Space: Small 5 ft · Medium 5 ft · Large 10 ft × 10 ft
+  · Huge 15 ft × 15 ft · Massive 20 ft × 20 ft or larger — OCCUPIED SPACE values only; no movement value is given
+  anywhere for any Size.
+- **mechanical consequence**: unknown adjustment per Size; unknown whether it is additive or multiplicative; unknown
+  whether Small and Medium share one; unknown whether Massive has a fixed rule or a creature-specific one.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none
+- **notes**: recorded by M5-WO3 §7. `CREATURE_SIZE` Definitions carry occupied space only; `movementAdjustment` must be
+  null (any value is refused as `PROWESS_DEFINITION.DEFERRED_PENDING_CANON`); occupied space is never read as speed.
+  Final Movement currently = Base Movement + explicit Movement modifiers. Guarded by M5-I076 / M5-I108 and M5-WO3
+  negative control §176.
+
+### M5-SC-034 — Sprint movement basis and repeated Sprint
+
+- **conflictKey**: `M5-SC-034`
+- **systemFamily**: `ACTION_ECONOMY`
+- **concept**: What Sprint quadruples, and how repeated Sprints combine
+- **source A**: s71 MOVEMENT / Sprint: "Quadruples your Base Movement this round"; s228 (Athletics) "Move 4 × your Base
+  Movement".
+- **source B**: s438 Sprint: "Gain Quadruple your Total Movement this round. A creature may Sprint more than once if it
+  has enough AP"; s485 "Move up to Quadruple your Movement".
+- **mechanical consequence**: Base vs Total (Final) Movement differs once explicit Movement modifiers or a Size
+  adjustment exist; the source does not state how a second Sprint's movement combines with the first.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none
+- **notes**: found by the M5-WO3 source audit. WO3 implements the rule as M5-WO3 §73 states it ("quadruple Total
+  Movement for the round": `final_movement * 4`, s438) and, per §75, treats each Sprint as a separate execution whose
+  grant is computed from Final Movement — never from the accumulated allowance — so repeated Sprint is linear and
+  never exponential. Today Final Movement equals Base Movement unless an explicit Movement modifier is supplied
+  (M5-SC-033 has no values), so the two readings only diverge with such a modifier. Each execution's grant is a
+  separate output. Designer confirmation is requested; nothing else depends on the choice. Guarded by M5-I109.

@@ -677,7 +677,9 @@
       "packages/prowess-game/src/core-contracts.test.ts",
       "apps/studio/tests/unit/m5-wo2-static.test.ts",
       "scripts/m5-wo2-negative-controls.mjs"
-    ]
+    ],
+    "status": "SUPERSEDED",
+    "supersededBy": "M5-I075"
   },
   {
     "id": "M5-I074",
@@ -687,6 +689,364 @@
       "packages/prowess-game/src/core-resolution-golden.test.ts",
       "apps/studio/tests/unit/m5-wo2-static.test.ts",
       "packages/prowess-db/tests/integration/prowess-core-resolution-history.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I075",
+    "title": "Base Movement Equals 5 Feet Times AGI Before Size Or Other Explicit Movement Modifiers",
+    "group": "Movement",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "packages/prowess-game/src/vocabulary.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I076",
+    "title": "Size-Based Movement Adjustments Are Explicit Structured Rules And Are Never Inferred From Occupied Space",
+    "group": "Movement",
+    "guards": [
+      "packages/prowess-game/src/runtime-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I077",
+    "title": "Advantage And Disadvantage Are Non-Stacking Presence Signals",
+    "group": "Roll State",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I078",
+    "title": "If At Least One Advantage And At Least One Disadvantage Apply To The Same Roll, The Roll Resolves Normally Regardless Of Duplicate Counts",
+    "group": "Roll State",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I079",
+    "title": "Roll-State Resolution Preserves Every Contributing Advantage And Disadvantage Source For Provenance And Explanation",
+    "group": "Roll State",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I080",
+    "title": "HP, MP, ME, AP And Counter Action Are Distinct Runtime Resources",
+    "group": "Resources",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "packages/prowess-game/src/runtime-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I081",
+    "title": "Resource Maximum Or Capacity Is Distinct From Current Resource Amount",
+    "group": "Resources",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "packages/prowess-game/src/runtime-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I082",
+    "title": "HP Does Not Refresh Automatically On Turn Or Round Boundaries",
+    "group": "Resources",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I083",
+    "title": "MP Does Not Refresh Automatically On Turn Or Round Boundaries",
+    "group": "Resources",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I084",
+    "title": "AP Refreshes To Current AP Capacity At The Start Of The Creature's Turn",
+    "group": "Action Economy",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I085",
+    "title": "Unused AP Expires At End Of Turn Unless An Explicit Rule Preserves It",
+    "group": "Action Economy",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I086",
+    "title": "Default Counter Action Capacity Is One And Refreshes At The Start Of Each Round",
+    "group": "Action Economy",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I087",
+    "title": "Counter Actions Never Accumulate Across Rounds By Default",
+    "group": "Action Economy",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I088",
+    "title": "Counter Action And AP Are Separate Resources And Are Not Implicitly Interchangeable",
+    "group": "Action Economy",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I089",
+    "title": "Mana Efficiency Maximum Equals PRO And Current ME Refreshes To That Maximum At The Start Of Each Round",
+    "group": "Mana",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I090",
+    "title": "Mana Efficiency Is Used Before MP Only For Costs Explicitly Declared ME-Eligible",
+    "group": "Mana",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "packages/prowess-game/src/runtime-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I091",
+    "title": "Mana Efficiency Payment Never Alters The Listed Cost Being Paid",
+    "group": "Mana",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "packages/prowess-game/src/runtime-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I092",
+    "title": "Prowess Multi-Resource Payment Is Atomic On Insufficient Resources",
+    "group": "Mana",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "packages/prowess-game/src/runtime-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I093",
+    "title": "Reserved MP Capacity Reduces Available Maximum Without Spending Current MP",
+    "group": "Mana",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I094",
+    "title": "Releasing Reserved MP Capacity Restores Capacity But Never Refills Current MP",
+    "group": "Mana",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I095",
+    "title": "Core Runtime Resource Transitions Compile Through M4 Resource Operations And Do Not Reimplement Resource Arithmetic",
+    "group": "Compilation",
+    "guards": [
+      "packages/prowess-game/src/runtime-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I096",
+    "title": "Prowess AP Is A Spendable Resource Rather Than A Fixed Number Of Action Slots",
+    "group": "Action Economy",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I097",
+    "title": "Core Action Costs Are Versioned Structured Definitions And May Be Overridden Only By Explicit Rules",
+    "group": "Action Economy",
+    "guards": [
+      "packages/prowess-game/src/runtime-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs",
+      "packages/prowess-db/tests/integration/prowess-runtime-resources-history.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I098",
+    "title": "Move Costs One AP And Provides Movement Allowance Rather Than Permanently Changing Movement",
+    "group": "Movement",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I099",
+    "title": "Movement Allowance May Be Split Around Other Actions Until The Purchased Allowance Is Exhausted",
+    "group": "Movement",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I100",
+    "title": "Difficult Terrain Consumes Movement Allowance At Double The Normal Rate Unless An Explicit Rule Overrides It",
+    "group": "Movement",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I101",
+    "title": "Combat Uses Side Initiative And The Player Side Does Not Default To Individual Character Initiative Slots",
+    "group": "Combat",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I102",
+    "title": "Initiative Uses Character Die + Half PER + Half AGI + Explicit Bonuses With No Implicit Rounding",
+    "group": "Combat",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I103",
+    "title": "Initiative Ties Resolve By Highest PER, Then Highest AGI, Then Explicit Reroll Requirement",
+    "group": "Combat",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "packages/prowess-game/src/runtime-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I104",
+    "title": "Surprise Prevents Counter Action Use During The First Round Without Inventing A Fixed AP Penalty",
+    "group": "Combat",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I105",
+    "title": "Runtime Rules Evaluation Never Persists Current Combat Resource State As A Side Effect",
+    "group": "Boundary",
+    "guards": [
+      "packages/prowess-game/src/runtime-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "packages/prowess-db/tests/integration/prowess-runtime-resources-history.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I106",
+    "title": "Resource And Action-Economy Steps Preserve Exact Prowess Definition And Ruleset Provenance",
+    "group": "Provenance",
+    "guards": [
+      "packages/prowess-game/src/runtime-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "packages/prowess-db/tests/integration/prowess-runtime-resources-history.test.ts",
+      "packages/prowess-db/tests/unit/m5-wo3-inspector-fixture.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I107",
+    "title": "Zero HP Is Exposed As Resource Depletion But Full Downed And Death-Save Resolution Remains A Separate Later Subsystem",
+    "group": "Resources",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I108",
+    "title": "Creature Occupied Space And Creature Movement Speed Are Separate Mechanical Concepts",
+    "group": "Movement",
+    "guards": [
+      "packages/prowess-game/src/runtime-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "scripts/m5-wo3-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I109",
+    "title": "Repeated Sprint Execution Must Never Exponentially Multiply Movement",
+    "group": "Movement",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I110",
+    "title": "Ordinary Action Costs Are Atomic And Do Not Become Multi-Turn Commitments Unless The Action Explicitly Supports Such A Rule",
+    "group": "Action Economy",
+    "guards": [
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "packages/prowess-game/src/runtime-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts"
     ]
   }
 ]
