@@ -1,0 +1,1089 @@
+{
+  "contentKey": "prowess.core_playtest.v0_1.core_resolution",
+  "workOrder": "M5-WO2",
+  "schemaVersion": 1,
+  "source": {
+    "title": "Prowess Core Playtest Packet V0.1",
+    "sha256Prefix": "21fa6771",
+    "parser": "prowess-docx-structure@1.0.0",
+    "structureHashPrefix": "3d9a429c"
+  },
+  "designerRulings": [
+    "M5-SC-002",
+    "M5-SC-003",
+    "M5-SC-005",
+    "M5-SC-008",
+    "M5-SC-009",
+    "M5-SC-010"
+  ],
+  "deferred": [
+    {
+      "conflictKey": "M5-SC-006",
+      "concept": "Base Movement",
+      "status": "DEFERRED_PENDING_CANON"
+    }
+  ],
+  "definitions": [
+    {
+      "canonicalKey": "core.stat.str",
+      "definitionKind": "STAT",
+      "payload": {
+        "stat": "STR",
+        "minimum": 1,
+        "maximum": 10,
+        "source": {
+          "locators": [
+            "s20",
+            "s21",
+            "s22"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.stat.agi",
+      "definitionKind": "STAT",
+      "payload": {
+        "stat": "AGI",
+        "minimum": 1,
+        "maximum": 10,
+        "source": {
+          "locators": [
+            "s20",
+            "s21",
+            "s23"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.stat.con",
+      "definitionKind": "STAT",
+      "payload": {
+        "stat": "CON",
+        "minimum": 1,
+        "maximum": 10,
+        "source": {
+          "locators": [
+            "s20",
+            "s21",
+            "s24"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.stat.per",
+      "definitionKind": "STAT",
+      "payload": {
+        "stat": "PER",
+        "minimum": 1,
+        "maximum": 10,
+        "source": {
+          "locators": [
+            "s20",
+            "s21",
+            "s25"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.stat.res",
+      "definitionKind": "STAT",
+      "payload": {
+        "stat": "RES",
+        "minimum": 1,
+        "maximum": 10,
+        "source": {
+          "locators": [
+            "s20",
+            "s21",
+            "s26"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.stat.pro",
+      "definitionKind": "STAT",
+      "payload": {
+        "stat": "PRO",
+        "minimum": 1,
+        "maximum": 10,
+        "source": {
+          "locators": [
+            "s20",
+            "s21",
+            "s27"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.character_die.progression",
+      "definitionKind": "CHARACTER_DIE_PROGRESSION",
+      "payload": {
+        "levels": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "dice": [
+          {
+            "dieKey": "D4",
+            "faces": 4
+          },
+          {
+            "dieKey": "D6",
+            "faces": 6
+          },
+          {
+            "dieKey": "D8",
+            "faces": 8
+          },
+          {
+            "dieKey": "D10",
+            "faces": 10
+          },
+          {
+            "dieKey": "D12",
+            "faces": 12
+          }
+        ],
+        "progression": [
+          {
+            "levelMinimum": 1,
+            "levelMaximum": 2,
+            "dieKey": "D4"
+          },
+          {
+            "levelMinimum": 3,
+            "levelMaximum": 4,
+            "dieKey": "D6"
+          },
+          {
+            "levelMinimum": 5,
+            "levelMaximum": 6,
+            "dieKey": "D8"
+          },
+          {
+            "levelMinimum": 7,
+            "levelMaximum": 8,
+            "dieKey": "D10"
+          },
+          {
+            "levelMinimum": 9,
+            "levelMaximum": 10,
+            "dieKey": "D12"
+          }
+        ],
+        "source": {
+          "locators": [
+            "s159",
+            "s16",
+            "s17"
+          ],
+          "conflicts": [
+            "M5-SC-002"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.rank_ladder.skill",
+      "definitionKind": "RANK_LADDER",
+      "payload": {
+        "ladderKey": "SKILL",
+        "ranks": [
+          {
+            "rankKey": "UNTRAINED",
+            "order": 0
+          },
+          {
+            "rankKey": "TRAINED",
+            "order": 1
+          },
+          {
+            "rankKey": "EXPERT",
+            "order": 2
+          },
+          {
+            "rankKey": "MASTER",
+            "order": 3
+          }
+        ],
+        "source": {
+          "locators": [
+            "s160",
+            "s29"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.skill_rank.bonuses",
+      "definitionKind": "SKILL_RANK",
+      "payload": {
+        "ladderKey": "SKILL",
+        "entries": [
+          {
+            "rankKey": "UNTRAINED",
+            "bonus": 0,
+            "attemptAllowed": false
+          },
+          {
+            "rankKey": "TRAINED",
+            "bonus": 2,
+            "attemptAllowed": true
+          },
+          {
+            "rankKey": "EXPERT",
+            "bonus": 4,
+            "attemptAllowed": true
+          },
+          {
+            "rankKey": "MASTER",
+            "bonus": 6,
+            "attemptAllowed": true
+          }
+        ],
+        "source": {
+          "locators": [
+            "s29",
+            "s30"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.derived.half_character_die",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "HALF_CHARACTER_DIE",
+        "formula": {
+          "expression": "die_faces / 2",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "die_faces",
+              "source": {
+                "kind": "CHARACTER_DIE_FACES"
+              }
+            }
+          ]
+        },
+        "bonusTarget": null,
+        "source": {
+          "locators": [
+            "s23",
+            "s43"
+          ],
+          "conflicts": [
+            "M5-SC-002"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.derived.maximum_hp",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "MAXIMUM_HP",
+        "formula": {
+          "expression": "base_hp + con",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "base_hp",
+              "source": {
+                "kind": "CHARACTER",
+                "field": "BASE_HP"
+              }
+            },
+            {
+              "variable": "con",
+              "source": {
+                "kind": "STAT",
+                "stat": "CON"
+              }
+            }
+          ]
+        },
+        "bonusTarget": null,
+        "source": {
+          "locators": [
+            "s102",
+            "s163",
+            "s94"
+          ],
+          "conflicts": [
+            "M5-SC-003"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.derived.maximum_mp",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "MAXIMUM_MP",
+        "formula": {
+          "expression": "base_mp + res",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "base_mp",
+              "source": {
+                "kind": "CHARACTER",
+                "field": "BASE_MP"
+              }
+            },
+            {
+              "variable": "res",
+              "source": {
+                "kind": "STAT",
+                "stat": "RES"
+              }
+            }
+          ]
+        },
+        "bonusTarget": null,
+        "source": {
+          "locators": [
+            "s103",
+            "s163",
+            "s94"
+          ],
+          "conflicts": [
+            "M5-SC-003"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.derived.accuracy",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "ACCURACY",
+        "formula": {
+          "expression": "floor(pro / 3)",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "pro",
+              "source": {
+                "kind": "STAT",
+                "stat": "PRO"
+              }
+            }
+          ]
+        },
+        "bonusTarget": null,
+        "source": {
+          "locators": [
+            "s27"
+          ],
+          "conflicts": [
+            "M5-SC-009"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.derived.dodge_perception_bonus",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "DODGE_PERCEPTION_BONUS",
+        "formula": {
+          "expression": "floor(per / 3)",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "per",
+              "source": {
+                "kind": "STAT",
+                "stat": "PER"
+              }
+            }
+          ]
+        },
+        "bonusTarget": null,
+        "source": {
+          "locators": [
+            "s25"
+          ],
+          "conflicts": [
+            "M5-SC-005"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.derived.dodge",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "DODGE",
+        "formula": {
+          "expression": "half_character_die + agi + perception_bonus + bonuses",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "half_character_die",
+              "source": {
+                "kind": "DERIVED",
+                "statistic": "HALF_CHARACTER_DIE"
+              }
+            },
+            {
+              "variable": "agi",
+              "source": {
+                "kind": "STAT",
+                "stat": "AGI"
+              }
+            },
+            {
+              "variable": "perception_bonus",
+              "source": {
+                "kind": "DERIVED",
+                "statistic": "DODGE_PERCEPTION_BONUS"
+              }
+            },
+            {
+              "variable": "bonuses",
+              "source": {
+                "kind": "EXPLICIT_BONUSES"
+              }
+            }
+          ]
+        },
+        "bonusTarget": "DODGE",
+        "source": {
+          "locators": [
+            "s105",
+            "s23",
+            "s25",
+            "s57"
+          ],
+          "conflicts": [
+            "M5-SC-005"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.derived.character_dc_resolve_bonus",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "CHARACTER_DC_RESOLVE_BONUS",
+        "formula": {
+          "expression": "floor(res / 3)",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "res",
+              "source": {
+                "kind": "STAT",
+                "stat": "RES"
+              }
+            }
+          ]
+        },
+        "bonusTarget": null,
+        "source": {
+          "locators": [
+            "s26"
+          ],
+          "conflicts": [
+            "M5-SC-008"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.derived.character_dc",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "CHARACTER_DC",
+        "formula": {
+          "expression": "half_character_die + pro + resolve_bonus + bonuses",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "half_character_die",
+              "source": {
+                "kind": "DERIVED",
+                "statistic": "HALF_CHARACTER_DIE"
+              }
+            },
+            {
+              "variable": "pro",
+              "source": {
+                "kind": "STAT",
+                "stat": "PRO"
+              }
+            },
+            {
+              "variable": "resolve_bonus",
+              "source": {
+                "kind": "DERIVED",
+                "statistic": "CHARACTER_DC_RESOLVE_BONUS"
+              }
+            },
+            {
+              "variable": "bonuses",
+              "source": {
+                "kind": "EXPLICIT_BONUSES"
+              }
+            }
+          ]
+        },
+        "bonusTarget": "CHARACTER_DC",
+        "source": {
+          "locators": [
+            "s26",
+            "s43",
+            "s637"
+          ],
+          "conflicts": [
+            "M5-SC-008"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.derived.strength_armor",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "STRENGTH_ARMOR",
+        "formula": {
+          "expression": "floor(str / 3)",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "str",
+              "source": {
+                "kind": "STAT",
+                "stat": "STR"
+              }
+            }
+          ]
+        },
+        "bonusTarget": null,
+        "source": {
+          "locators": [
+            "s22"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.derived.ap_agility_bonus",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "AP_AGILITY_BONUS",
+        "formula": {
+          "expression": "floor(agi / 3)",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "agi",
+              "source": {
+                "kind": "STAT",
+                "stat": "AGI"
+              }
+            }
+          ]
+        },
+        "bonusTarget": null,
+        "source": {
+          "locators": [
+            "s23",
+            "s43"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.derived.base_ap_capacity",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "BASE_AP_CAPACITY",
+        "formula": {
+          "expression": "3 + agility_bonus",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "agility_bonus",
+              "source": {
+                "kind": "DERIVED",
+                "statistic": "AP_AGILITY_BONUS"
+              }
+            }
+          ]
+        },
+        "bonusTarget": null,
+        "source": {
+          "locators": [
+            "s43",
+            "s46"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.derived.counter_action_capacity",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "COUNTER_ACTION_CAPACITY",
+        "formula": {
+          "expression": "1",
+          "rounding": "NONE",
+          "variables": []
+        },
+        "bonusTarget": null,
+        "source": {
+          "locators": [
+            "s47"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.derived.base_range",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "BASE_RANGE",
+        "formula": {
+          "expression": "15 * per",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "per",
+              "source": {
+                "kind": "STAT",
+                "stat": "PER"
+              }
+            }
+          ],
+          "unit": "ft"
+        },
+        "bonusTarget": null,
+        "source": {
+          "locators": [
+            "s25"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.derived.base_mana_efficiency",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "BASE_MANA_EFFICIENCY",
+        "formula": {
+          "expression": "pro",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "pro",
+              "source": {
+                "kind": "STAT",
+                "stat": "PRO"
+              }
+            }
+          ]
+        },
+        "bonusTarget": null,
+        "source": {
+          "locators": [
+            "s27",
+            "s646"
+          ],
+          "conflicts": [
+            "M5-SC-004"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.derived.signature_ability_slots",
+      "definitionKind": "DERIVED_STAT",
+      "payload": {
+        "statistic": "SIGNATURE_ABILITY_SLOTS",
+        "formula": {
+          "expression": "pro",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "pro",
+              "source": {
+                "kind": "STAT",
+                "stat": "PRO"
+              }
+            }
+          ]
+        },
+        "bonusTarget": null,
+        "source": {
+          "locators": [
+            "s108",
+            "s163"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.resolution.core_roll",
+      "definitionKind": "CORE_RESOLUTION",
+      "payload": {
+        "procedure": "CORE_ROLL",
+        "naturalSelection": {
+          "NORMAL": {
+            "expression": "r1"
+          },
+          "ADVANTAGE": {
+            "expression": "max(r1, r2)"
+          },
+          "DISADVANTAGE": {
+            "expression": "min(r1, r2)"
+          }
+        },
+        "total": {
+          "expression": "natural + stat_score + bonuses",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "natural",
+              "source": {
+                "kind": "NATURAL"
+              }
+            },
+            {
+              "variable": "stat_score",
+              "source": {
+                "kind": "CHOSEN_STAT"
+              }
+            },
+            {
+              "variable": "bonuses",
+              "source": {
+                "kind": "EXPLICIT_BONUSES"
+              }
+            }
+          ]
+        },
+        "bonusTarget": "CORE_ROLL",
+        "comparison": {
+          "operator": ">=",
+          "against": "DIFFICULTY_CLASS"
+        },
+        "critical": null,
+        "requiresSkill": false,
+        "source": {
+          "locators": [
+            "s13",
+            "s14",
+            "s15",
+            "s17"
+          ],
+          "conflicts": [
+            "M5-SC-002",
+            "M5-SC-010"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.resolution.skill_check",
+      "definitionKind": "CORE_RESOLUTION",
+      "payload": {
+        "procedure": "SKILL_CHECK",
+        "naturalSelection": {
+          "NORMAL": {
+            "expression": "r1"
+          },
+          "ADVANTAGE": {
+            "expression": "max(r1, r2)"
+          },
+          "DISADVANTAGE": {
+            "expression": "min(r1, r2)"
+          }
+        },
+        "total": {
+          "expression": "natural + stat_score + rank_bonus + bonuses",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "natural",
+              "source": {
+                "kind": "NATURAL"
+              }
+            },
+            {
+              "variable": "stat_score",
+              "source": {
+                "kind": "CHOSEN_STAT"
+              }
+            },
+            {
+              "variable": "rank_bonus",
+              "source": {
+                "kind": "SKILL_RANK_BONUS"
+              }
+            },
+            {
+              "variable": "bonuses",
+              "source": {
+                "kind": "EXPLICIT_BONUSES"
+              }
+            }
+          ]
+        },
+        "bonusTarget": "SKILL_CHECK",
+        "comparison": {
+          "operator": ">=",
+          "against": "DIFFICULTY_CLASS"
+        },
+        "critical": null,
+        "requiresSkill": true,
+        "source": {
+          "locators": [
+            "s29",
+            "s30",
+            "s32",
+            "s37"
+          ],
+          "conflicts": [
+            "M5-SC-002",
+            "M5-SC-010"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.resolution.skill_automatic_success",
+      "definitionKind": "CORE_RESOLUTION",
+      "payload": {
+        "procedure": "SKILL_AUTOMATIC_SUCCESS",
+        "naturalSelection": null,
+        "total": {
+          "expression": "stat_score + rank_bonus",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "stat_score",
+              "source": {
+                "kind": "CHOSEN_STAT"
+              }
+            },
+            {
+              "variable": "rank_bonus",
+              "source": {
+                "kind": "SKILL_RANK_BONUS"
+              }
+            }
+          ]
+        },
+        "bonusTarget": null,
+        "comparison": {
+          "operator": ">=",
+          "against": "DIFFICULTY_CLASS"
+        },
+        "critical": null,
+        "requiresSkill": true,
+        "source": {
+          "locators": [
+            "s31",
+            "s32",
+            "s36"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.resolution.saving_throw",
+      "definitionKind": "CORE_RESOLUTION",
+      "payload": {
+        "procedure": "SAVING_THROW",
+        "naturalSelection": {
+          "NORMAL": {
+            "expression": "r1"
+          },
+          "ADVANTAGE": {
+            "expression": "max(r1, r2)"
+          },
+          "DISADVANTAGE": {
+            "expression": "min(r1, r2)"
+          }
+        },
+        "total": {
+          "expression": "natural + stat_score + bonuses",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "natural",
+              "source": {
+                "kind": "NATURAL"
+              }
+            },
+            {
+              "variable": "stat_score",
+              "source": {
+                "kind": "CHOSEN_STAT"
+              }
+            },
+            {
+              "variable": "bonuses",
+              "source": {
+                "kind": "EXPLICIT_BONUSES"
+              }
+            }
+          ]
+        },
+        "bonusTarget": "SAVING_THROW",
+        "comparison": {
+          "operator": ">=",
+          "against": "DIFFICULTY_CLASS"
+        },
+        "critical": null,
+        "requiresSkill": false,
+        "source": {
+          "locators": [
+            "s38",
+            "s39",
+            "s40"
+          ],
+          "conflicts": [
+            "M5-SC-002",
+            "M5-SC-010"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.resolution.attack_roll",
+      "definitionKind": "CORE_RESOLUTION",
+      "payload": {
+        "procedure": "ATTACK_ROLL",
+        "naturalSelection": {
+          "NORMAL": {
+            "expression": "r1"
+          },
+          "ADVANTAGE": {
+            "expression": "max(r1, r2)"
+          },
+          "DISADVANTAGE": {
+            "expression": "min(r1, r2)"
+          }
+        },
+        "total": {
+          "expression": "natural + per + accuracy + bonuses",
+          "rounding": "NONE",
+          "variables": [
+            {
+              "variable": "natural",
+              "source": {
+                "kind": "NATURAL"
+              }
+            },
+            {
+              "variable": "per",
+              "source": {
+                "kind": "STAT",
+                "stat": "PER"
+              }
+            },
+            {
+              "variable": "accuracy",
+              "source": {
+                "kind": "DERIVED",
+                "statistic": "ACCURACY"
+              }
+            },
+            {
+              "variable": "bonuses",
+              "source": {
+                "kind": "EXPLICIT_BONUSES"
+              }
+            }
+          ]
+        },
+        "bonusTarget": "ATTACK_ROLL",
+        "comparison": {
+          "operator": ">=",
+          "against": "TARGET_DODGE"
+        },
+        "critical": {
+          "threat": "NATURAL_EQUALS_DIE_FACES",
+          "hit": "THREAT_AND_SUCCESS",
+          "damage": "DEFERRED"
+        },
+        "requiresSkill": false,
+        "source": {
+          "locators": [
+            "s25",
+            "s56",
+            "s57",
+            "s59"
+          ],
+          "conflicts": [
+            "M5-SC-002",
+            "M5-SC-005",
+            "M5-SC-009",
+            "M5-SC-010"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "core.resolution.stat_mastery",
+      "definitionKind": "CORE_RESOLUTION",
+      "payload": {
+        "procedure": "STAT_MASTERY",
+        "mastery": {
+          "levelAtLeast": 10,
+          "statAtLeast": 10,
+          "signal": "ADVANTAGE"
+        },
+        "appliesTo": [
+          "ATTACK_ROLL",
+          "CORE_ROLL",
+          "SAVING_THROW",
+          "SKILL_CHECK"
+        ],
+        "source": {
+          "locators": [
+            "s159",
+            "s162"
+          ],
+          "conflicts": [
+            "M5-SC-010"
+          ]
+        }
+      }
+    }
+  ]
+}

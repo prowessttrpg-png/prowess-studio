@@ -13,8 +13,20 @@ import type { CompilationFragment, ProwessCompiledPlan, ProwessSourceMapEntry } 
  * Deterministic step identity (PAS-10 M5-WO1 §102, M5-I013): derived only from the AbilityKind, the Composition key and
  * the fragment's local key — never a random suffix, a clock value or an object identity.
  */
-export function compiledStepKey(abilityKind: string, compositionKey: string, fragmentKey: string): string {
-  return ["prowess", abilityKind, compositionKey, fragmentKey].join(":");
+export function compiledStepKey(subjectKind: string, subjectKey: string, fragmentKey: string): string {
+  return ["prowess", subjectKind, subjectKey, fragmentKey].join(":");
+}
+
+/**
+ * The domain origin a fragment may cite: each component key of the subject and the exact Definition(s) it uses. For an
+ * Ability this is the Composition's component uses; for a core-resolution subject (M5-WO2) it is the role-indexed
+ * core Definitions the compiler resolved.
+ */
+export type SubjectComponents = ReadonlyMap<string, readonly ProwessDefinitionRef[]>;
+
+export interface AssembledSteps {
+  readonly steps: EvaluationStep[];
+  readonly entries: ProwessSourceMapEntry[];
 }
 
 const FRAGMENT_FIELDS = ["fragmentKey", "order", "operation", "input", "bindings", "role", "componentKeys", "definitions"];
@@ -32,11 +44,32 @@ export function assembleCompiledPlan(input: {
   readonly bundle: ProwessDefinitionBundle;
   readonly fragments: readonly unknown[];
 }): ProwessOutcome<ProwessCompiledPlan> {
-  const p = new Problems();
   const { composition, bundle } = input;
-  if (!checkPlainData(input.fragments, ["fragments"], p, C.NOT_PLAIN_DATA)) return finish(p, () => null as never);
+  const components: SubjectComponents = new Map(compositionComponents(composition).map((c) => [c.use.componentKey, [c.use.definition]]));
+  const p = new Problems();
+  const assembled = assembleFragments({ subjectKind: composition.abilityKind, subjectKey: composition.compositionKey, components, bundle, fragments: input.fragments }, p);
+  return finish(p, () => ({
+    contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION,
+    subject: { kind: composition.abilityKind, compositionKey: composition.compositionKey },
+    rulesetProvenance: bundle.rulesetProvenance,
+    evaluationPlan: { steps: assembled.steps, primaryStepKey: null, validationStepKey: null, explanationStepKey: null },
+    sourceMap: { entries: assembled.entries },
+  }));
+}
 
-  const uses = new Map(compositionComponents(composition).map((c) => [c.use.componentKey, c.use]));
+/**
+ * Subject-neutral assembly shared by every Prowess compiler (Abilities in WO1, core resolution in WO2): validates the
+ * fragments, maps every one to the subject's components and exact Definitions, rewrites fragment references to
+ * deterministic step keys and orders steps exactly as M4 executes them. Problems are recorded in `p`.
+ */
+export function assembleFragments(
+  input: { readonly subjectKind: string; readonly subjectKey: string; readonly components: SubjectComponents; readonly bundle: ProwessDefinitionBundle; readonly fragments: readonly unknown[] },
+  p: Problems,
+): AssembledSteps {
+  const { bundle } = input;
+  if (!checkPlainData(input.fragments, ["fragments"], p, C.NOT_PLAIN_DATA)) return { steps: [], entries: [] };
+
+  const uses = input.components;
   const fragments: CompilationFragment[] = [];
   const keys = new Map<string, number>();
 
@@ -66,7 +99,7 @@ export function assembleCompiledPlan(input: {
       rawDefinitions.forEach((d: unknown, j: number) => {
         const ref = readDefinitionRef(d, [...at, "definitions", j], p, X.INVALID_FRAGMENT);
         if (ref === null) return;
-        const usedBy = Array.isArray(componentKeys) && componentKeys.some((k: unknown) => typeof k === "string" && uses.has(k) && isSameExactDefinition((uses.get(k) as { definition: ProwessDefinitionRef }).definition, ref));
+        const usedBy = Array.isArray(componentKeys) && componentKeys.some((k: unknown) => typeof k === "string" && (uses.get(k) ?? []).some((used) => isSameExactDefinition(used, ref)));
         if (!usedBy || findBundleDefinition(bundle, ref) === null) {
           p.add(X.UNMAPPED_SOURCE, [...at, "definitions", j], "a step may only cite exact bundle Definitions used by its own components");
           return;
@@ -108,7 +141,7 @@ export function assembleCompiledPlan(input: {
     });
   });
 
-  const stepKey = (fragmentKey: string) => compiledStepKey(composition.abilityKind, composition.compositionKey, fragmentKey);
+  const stepKey = (fragmentKey: string) => compiledStepKey(input.subjectKind, input.subjectKey, fragmentKey);
   fragments.forEach((f, i) =>
     f.bindings.forEach((b, j) => {
       if (b.source.kind !== "FRAGMENT") return;
@@ -144,11 +177,5 @@ export function assembleCompiledPlan(input: {
     definitions: f.definitions,
   }));
 
-  return finish(p, () => ({
-    contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION,
-    subject: { kind: composition.abilityKind, compositionKey: composition.compositionKey },
-    rulesetProvenance: bundle.rulesetProvenance,
-    evaluationPlan: { steps, primaryStepKey: null, validationStepKey: null, explanationStepKey: null },
-    sourceMap: { entries },
-  }));
+  return { steps, entries };
 }

@@ -35,17 +35,20 @@ describe("terminology inventory", () => {
     expect(CANONICAL_AFFINITIES as readonly string[]).not.toContain("EMISSION");
   });
 
-  it("M5-I002 Player Dice / Character Die is audited and left UNRESOLVED — never silently normalized", () => {
-    for (const term of ["Player Dice", "Player Die"]) {
-      expect(byTerm(term)).toEqual([expect.objectContaining({ status: "UNRESOLVED", token: null, canonicalTerm: null, conflictKey: "M5-SC-002" })]);
-    }
+  it("M5-I002 / M5-I041 Player Dice / Die is LEGACY for Character Dice / Die (designer ruling M5-SC-002, M5-WO2) — never canonical", () => {
+    expect(byTerm("Player Dice")).toEqual([expect.objectContaining({ status: "LEGACY", token: null, canonicalTerm: "Character Dice", conflictKey: "M5-SC-002" })]);
+    expect(byTerm("Player Die")).toEqual([expect.objectContaining({ status: "LEGACY", token: null, canonicalTerm: "Character Die", conflictKey: "M5-SC-002" })]);
     expect(byTerm("Character Die")[0]?.status).toBe("CANONICAL");
     // Context-specific dice stay SYSTEM_SPECIFIC rather than being merged.
     for (const term of ["Summon Dice", "Commitment Die", "Bound Dice"]) expect(byTerm(term)[0]?.status, term).toBe("SYSTEM_SPECIFIC");
   });
 
-  it("other unresolved source inconsistencies stay unresolved (Dodge / Evasion, Arcane / Arcana Rank, Advantage)", () => {
-    for (const term of ["Dodge", "Evasion", "Arcane Rank", "Arcana Rank", "Advantage", "Maneuver Traits"]) {
+  it("other unresolved source inconsistencies stay unresolved (Arcane / Arcana Rank, Base Movement, Maneuver Traits); WO2 rulings resolve Dodge / Evasion (M5-I056) and Advantage", () => {
+    expect(byTerm("Dodge")[0]?.status).toBe("CANONICAL");
+    expect(byTerm("Evasion")[0]).toEqual(expect.objectContaining({ status: "LEGACY", canonicalTerm: "Dodge" }));
+    expect(byTerm("Advantage")[0]?.status).toBe("CANONICAL");
+    expect(byTerm("Accuracy")[0]?.status).toBe("CANONICAL");
+    for (const term of ["Arcane Rank", "Arcana Rank", "Base Movement", "Maneuver Traits"]) {
       expect(byTerm(term)[0]?.status, term).toBe("UNRESOLVED");
       expect(byTerm(term)[0]?.conflictKey, term).toMatch(/^M5-SC-\d{3}$/);
     }
@@ -98,6 +101,6 @@ describe("system families and Definition kinds", () => {
 
   it("M5-I001 the vocabulary is sourced from the Core Playtest audit (authority recorded on every entry)", () => {
     expect(new Set(TERMINOLOGY_INVENTORY.map((e) => e.authority))).toEqual(new Set(["CORE_PLAYTEST_V0_1", "DESIGNER_CLARIFICATION", "SOURCE_AUDIT"]));
-    expect(TERMINOLOGY_INVENTORY.filter((e) => e.authority === "DESIGNER_CLARIFICATION").map((e) => e.term).sort()).toEqual(["Emission", "Evocation"]);
+    expect(TERMINOLOGY_INVENTORY.filter((e) => e.authority === "DESIGNER_CLARIFICATION").map((e) => e.term).sort()).toEqual(["Accuracy", "Advantage", "Disadvantage", "Dodge", "Emission", "Evasion", "Evocation", "Player Dice", "Player Die"]);
   });
 });
