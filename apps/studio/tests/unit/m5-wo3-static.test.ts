@@ -115,13 +115,15 @@ describe("M5-WO3 audit — Runtime resources, action economy & movement", () => 
 
   it("M5-I076 / M5-I108 / M5-I075 terminology: Base Movement canonical by designer ruling; Dodge Action ≠ Dodge; Size identity", () => {
     const t = read("packages/prowess-game/src/vocabulary/terminology.ts");
-    expect(t).toContain('entry("Base Movement", "DERIVED_STAT", C, "CHARACTER", "BASE_MOVEMENT", { ...designer, conflictKey: "M5-SC-006" })');
-    for (const term of ["Final Movement", "Movement Allowance", "Creature Size", "Action Points", "Counter Action", "Mana Efficiency", "Mana Points", "Dodge Action"]) expect(t, term).toContain(`entry("${term}"`);
+    // Post-WO3 amendment (M5-WO4): Base Movement is the authored creature value; Movement = Base Movement × AGI.
+    expect(t).toContain('entry("Base Movement", "DERIVED_STAT", C, "CHARACTER", "BASE_MOVEMENT", { ...designer, conflictKey: "M5-SC-033" })');
+    expect(t).toContain('entry("Movement", "DERIVED_STAT", C, "CHARACTER", "MOVEMENT", { ...designer, conflictKey: "M5-SC-006" })');
+    for (const term of ["Movement Allowance", "Creature Size", "Action Points", "Counter Action", "Mana Efficiency", "Mana Points", "Dodge Action"]) expect(t, term).toContain(`entry("${term}"`);
     expect(t).toMatch(/entry\("Dodge Action", "ACTION", C, "ACTION_ECONOMY", "DODGE_ACTION"\)/);
     expect(t).toMatch(/entry\("Dodge", "DERIVED_STAT", C, "CHARACTER", "DODGE"/);
   });
 
-  it("source-conflict register: M5-SC-006 and M5-SC-032 RESOLVED_BY_DESIGNER (history kept); M5-SC-033 UNRESOLVED; M5-SC-034 recorded", () => {
+  it("source-conflict register: M5-SC-006 and M5-SC-032 RESOLVED_BY_DESIGNER (history kept); M5-SC-033 UNRESOLVED; M5-SC-034 recorded (resolved post-WO3)", () => {
     const register = read("docs/architecture/m5-core-playtest-source-conflicts.md");
     for (const key of ["M5-SC-006", "M5-SC-032"]) {
       const s = section(register, key);
@@ -133,24 +135,26 @@ describe("M5-WO3 audit — Runtime resources, action economy & movement", () => 
     expect(section(register, "M5-SC-032")).toMatch(/ROLL_MODE_CONFLICT[\s\S]*NORMAL/);
     expect(section(register, "M5-SC-033")).toMatch(/\*\*status\*\*: `UNRESOLVED`/);
     expect(section(register, "M5-SC-033")).toMatch(/occupied space/i);
-    expect(section(register, "M5-SC-034")).toMatch(/\*\*status\*\*: `UNRESOLVED`/);
+    // M5-WO4 applied the post-WO3 designer ruling: M5-SC-034 is RESOLVED_BY_DESIGNER (WO3 history kept in the entry).
+    expect(section(register, "M5-SC-034")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`/);
+    expect(section(register, "M5-SC-034")).toMatch(/WO3 status above was `UNRESOLVED`/);
     expect(section(register, "M5-SC-034")).toMatch(/s71[\s\S]*s438/);
     expect(runtime().deferred).toEqual(expect.arrayContaining([expect.objectContaining({ conflictKey: "M5-SC-033", status: "DEFERRED_PENDING_CANON" })]));
     expect(core().deferred).toEqual([]);
   });
 
-  it("the M5 invariant catalog defines M5-I075–I110 with guards; M5-I073 is SUPERSEDED by M5-I075, not deleted", () => {
+  it("the M5 invariant catalog defines M5-I075–I110 with guards; M5-I073 is SUPERSEDED by M5-I075, not deleted (M5-WO4 later supersedes M5-I075 by M5-I111)", () => {
     const catalog = JSON.parse(read("docs/architecture/m5-invariants.json")) as Array<{ id: string; title: string; guards: string[]; status?: string; supersededBy?: string }>;
-    expect(catalog.map((x) => x.id)).toEqual(Array.from({ length: 110 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
-    for (const entry of catalog.slice(74)) {
+    expect(catalog.map((x) => x.id).slice(0, 110)).toEqual(Array.from({ length: 110 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
+    for (const entry of catalog.slice(74, 110)) {
       expect(entry.guards, entry.id).toContain("apps/studio/tests/unit/m5-wo3-static.test.ts");
       expect(read("apps/studio/tests/unit/m5-wo3-static.test.ts"), entry.id).toContain(entry.id);
-      expect(entry.status ?? "ACTIVE", entry.id).toBe("ACTIVE");
+      expect(entry.status ?? "ACTIVE", entry.id).toBe(entry.id === "M5-I075" ? "SUPERSEDED" : "ACTIVE");
     }
     const superseded = catalog.find((x) => x.id === "M5-I073");
     expect([superseded?.status, superseded?.supersededBy]).toEqual(["SUPERSEDED", "M5-I075"]);
     expect(superseded?.title).toBe("Unresolved Movement Formula Conflict M5-SC-006 Must Not Produce Executable Canonical Movement Math");
-    expect(catalog.filter((x) => x.status === "SUPERSEDED").map((x) => x.id)).toEqual(["M5-I073"]);
+    expect(catalog.filter((x) => x.status === "SUPERSEDED").map((x) => x.id)).toEqual(["M5-I073", "M5-I075"]);
     const md = read("docs/architecture/m5-invariants.md");
     expect(section(md, "M5-I073")).toMatch(/\*\*Status:\*\* SUPERSEDED by M5-I075/);
     expect(section(md, "M5-I075")).toContain("Base Movement Equals 5 Feet Times AGI");
@@ -218,8 +222,8 @@ const res = (d: Docs, key: string) => d.runtime.definitions.find((x) => x.payloa
 const act = (d: Docs, key: string) => d.runtime.definitions.find((x) => x.payload.actionKey === key)!.payload;
 const contentControls: Array<[string, () => Docs, string]> = [
   ["§175 Base Movement = 10 × AGI", () => mutate((d) => void ((d.core.definitions.find((x) => x.payload.statistic === "BASE_MOVEMENT")!.payload.formula as { expression: string }).expression = "10 * agi")), "movement-not-canonical"],
-  ["§176 Large Size grants movement", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "LARGE")!.payload.movementAdjustment = { feet: 10 })), "size-speed-inference"],
-  ["§176 Final Movement reads a Size term", () => mutate((d) => void ((d.core.definitions.find((x) => x.payload.statistic === "FINAL_MOVEMENT")!.payload.formula as { variables: unknown[] }).variables.push({ variable: "size", source: { kind: "DERIVED", statistic: "STRENGTH_ARMOR" } }))), "size-speed-inference"],
+  ["§176 Large Size grants movement", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "LARGE")!.payload.baseMovement = { feet: 10 })), "size-speed-inference"],
+  ["§176 Movement reads a Size term", () => mutate((d) => void ((d.core.definitions.find((x) => x.payload.statistic === "MOVEMENT")!.payload.formula as { variables: unknown[] }).variables.push({ variable: "size", source: { kind: "DERIVED", statistic: "STRENGTH_ARMOR" } }))), "size-speed-inference"],
   ["§177 DOUBLE_ADVANTAGE in content", () => mutate((d) => void ((d.core.definitions.find((x) => x.payload.procedure === "INITIATIVE")!.payload.naturalSelection as Record<string, unknown>).DOUBLE_ADVANTAGE = { expression: "max(r1, r2)" })), "advantage-stacking"],
   ["§181 AP carries over (no END_OF_TURN expiry)", () => mutate((d) => void (res(d, "AP").expiry = [])), "ap-banking"],
   ["§182 Counter Actions accumulate (restorable, no refresh)", () => mutate((d) => {
@@ -237,7 +241,7 @@ const contentControls: Array<[string, () => Docs, string]> = [
   ["AP reserves capacity", () => mutate((d) => void (res(d, "AP").supportsReservation = true)), "reservation-boundary"],
   ["Counter Action paid with AP", () => mutate((d) => void ((res(d, "AP").payment as unknown[]).push({ policy: "COUNTER_ACTION_COST", order: 1 }))), "counter-ap-interchange"],
   ["Heavy Attack costs 2 in content", () => mutate((d) => void (act(d, "HEAVY_ATTACK").actionPointCost = { model: "FIXED", amount: 2 })), "action-cost"],
-  ["Sprint compounds (×16)", () => mutate((d) => void ((act(d, "SPRINT").movementGrant as { formula: { expression: string } }).formula.expression = "final_movement * 4 * 4")), "movement-grant"],
+  ["Sprint compounds (×16)", () => mutate((d) => void ((act(d, "SPRINT").movementGrant as { formula: { expression: string } }).formula.expression = "movement * 4 * 4")), "movement-grant"],
   ["Difficult Terrain at normal cost", () => mutate((d) => void ((d.runtime.definitions.find((x) => x.payload.terrainKey === "DIFFICULT")!.payload.allowanceCost as { expression: string }).expression = "distance")), "difficult-terrain"],
   ["§192 Initiative floors PER / 2 and AGI / 2", () => mutate((d) => void ((d.core.definitions.find((x) => x.payload.procedure === "INITIATIVE")!.payload.total as { expression: string }).expression = "natural + floor(per / 2) + floor(agi / 2) + bonuses")), "initiative-rounding"],
   ["Initiative ties skip PER", () => mutate((d) => void (d.core.definitions.find((x) => x.payload.procedure === "INITIATIVE")!.payload.tiebreak = [{ kind: "HIGHEST_STAT", stat: "AGI" }, { kind: "REROLL" }])), "initiative-tiebreak"],

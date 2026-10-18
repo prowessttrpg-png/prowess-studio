@@ -20,6 +20,7 @@ import { legacyTermFor } from "../vocabulary/terminology.js";
 import { DEFINITION_ERROR_CODES } from "./codes.js";
 import { isCorePayloadKind, readCorePayload } from "./core-payload.js";
 import { isRuntimePayloadKind, readRuntimePayload } from "./runtime-payload.js";
+import { isAffinityPayloadKind, readAffinityDefinitionPayload, readAffinityPayload } from "./affinity-payload.js";
 
 /**
  * Version-1 payload contracts of the SHARED Ability Construction components (PAS-10 M5-WO1 §25–53, §83).
@@ -326,7 +327,7 @@ function readComponentPayload(contract: AbilityComponentContract, value: unknown
  * Validates `value` as the version-`schemaVersion` payload of `kind`. The caller has already checked that the kind
  * supports that version. Legacy terminology anywhere in a canonical payload is rejected (M5-I037).
  */
-export function readDefinitionPayload(kind: ProwessDefinitionKind, contract: AbilityComponentContract | null, value: unknown, at: readonly PathSegment[], p: Problems): JsonObject | null {
+export function readDefinitionPayload(kind: ProwessDefinitionKind, contract: AbilityComponentContract | null, value: unknown, at: readonly PathSegment[], p: Problems, schemaVersion = 1): JsonObject | null {
   if (!isProwessDefinitionKind(kind)) return null;
   const before = p.count;
   for (const use of legacyTermUses(value, at)) {
@@ -336,7 +337,13 @@ export function readDefinitionPayload(kind: ProwessDefinitionKind, contract: Abi
   if (contract !== null) payload = readComponentPayload(contract, value, at, p);
   else if (isCorePayloadKind(kind)) payload = readCorePayload(kind, value, at, p);
   else if (isRuntimePayloadKind(kind)) payload = readRuntimePayload(kind, value, at, p);
-  else if (kind === "AFFINITY") {
+  else if (isAffinityPayloadKind(kind)) payload = readAffinityPayload(kind, value, at, p);
+  else if (kind === "AFFINITY" && schemaVersion === 2) {
+    // M5-WO4: the full Affinity rule content. Legacy terminology was already refused above (M5-I115).
+    const affinity = readAffinityDefinitionPayload(value, at, p);
+    if (affinity !== null) payload = affinity as unknown as JsonObject;
+  } else if (kind === "AFFINITY") {
+    // Version 1 (M5-WO1): the identity-only payload, kept valid so WO1 history is never rewritten.
     const r = readRecord(value, at, p, C.INVALID_PAYLOAD, ["affinity"], ["affinity"]);
     const affinity = r === null ? null : own(r, "affinity");
     if (r !== null && legacyTermFor(String(affinity)) === null) {

@@ -107,6 +107,38 @@ export const RUNTIME_ERROR_CODES = deepFreeze({
   INTERLEAVING_REQUIRES_APPROVAL: "PROWESS_RUNTIME.INTERLEAVING_REQUIRES_APPROVAL",
 } as const);
 
+/** M5-WO4 Affinity diagnostics. Structural / identity failures only — a not-satisfied Requirement is never one of these. */
+export const AFFINITY_ERROR_CODES = deepFreeze({
+  /** The bundle lacks a role Affinity evaluation needs (the rank rule, a version-2 Affinity, the progression). */
+  MISSING_AFFINITY_DEFINITION: "PROWESS_AFFINITY.MISSING_AFFINITY_DEFINITION",
+  /** Two Definitions claim one Affinity role (two rank rules; two version-2 Definitions of one canonical Affinity). */
+  AMBIGUOUS_AFFINITY_DEFINITION: "PROWESS_AFFINITY.AMBIGUOUS_AFFINITY_DEFINITION",
+  /** A version-1 (identity-only) AFFINITY Definition was used where executable rule content is required. */
+  AFFINITY_NOT_EXECUTABLE: "PROWESS_AFFINITY.AFFINITY_NOT_EXECUTABLE",
+  INVALID_AFFINITY_REQUEST: "PROWESS_AFFINITY.INVALID_AFFINITY_REQUEST",
+  INVALID_AFFINITY_PROFILE: "PROWESS_AFFINITY.INVALID_AFFINITY_PROFILE",
+  /** One exact Affinity owned twice with conflicting rank / role / acquisition (identical duplicates collapse). */
+  DUPLICATE_AFFINITY_OWNERSHIP: "PROWESS_AFFINITY.DUPLICATE_AFFINITY_OWNERSHIP",
+  /** A profile / request ref is not an exact Definition of the bundle's Ruleset, or mixes two versions of one Entity. */
+  AFFINITY_NOT_IN_RULESET: "PROWESS_AFFINITY.AFFINITY_NOT_IN_RULESET",
+  /** Executable cost / Authority evaluation needs one explicit governing Affinity — none is ever auto-selected. */
+  GOVERNING_AFFINITY_REQUIRED: "PROWESS_AFFINITY.GOVERNING_AFFINITY_REQUIRED",
+  /** The governing Affinity is not the character's exact owned Affinity Version. */
+  GOVERNING_AFFINITY_NOT_OWNED: "PROWESS_AFFINITY.GOVERNING_AFFINITY_NOT_OWNED",
+  /** A contributed or matched Keyword canonical key has no exact M1 Keyword reference in the supplied catalog. */
+  UNKNOWN_KEYWORD: "PROWESS_AFFINITY.UNKNOWN_KEYWORD",
+  INVALID_KEYWORD_CATALOG: "PROWESS_AFFINITY.INVALID_KEYWORD_CATALOG",
+  /** Spell MP Affinity economics are never applied to a Maneuver (or any non-Spell) cost (§8, M5-I144). */
+  SPELL_AFFINITY_COST_SPELL_ONLY: "PROWESS_AFFINITY.SPELL_AFFINITY_COST_SPELL_ONLY",
+  /** Spell construction names no explicit Authority (Authority is never inferred, §106). */
+  AUTHORITY_REQUIRED: "PROWESS_AFFINITY.AUTHORITY_REQUIRED",
+  /** Arcane Authority capacity belongs to the later Spell Creation Work Order (§113); WO4 does not rebuild Arcana. */
+  ARCANE_AUTHORITY_NOT_IN_SCOPE: "PROWESS_AFFINITY.ARCANE_AUTHORITY_NOT_IN_SCOPE",
+  INVALID_PROGRESSION_REQUEST: "PROWESS_AFFINITY.INVALID_PROGRESSION_REQUEST",
+  /** An evaluated run does not belong to the plan, or a step it names did not execute successfully. */
+  INCOMPLETE_RUN: "PROWESS_AFFINITY.INCOMPLETE_RUN",
+} as const);
+
 /**
  * The server-side materializer's DomainError codes. The vocabulary lives in @prowess/model (the platform's single
  * error-code home, with HTTP mappings) and is re-exported here for convenience — never redefined.

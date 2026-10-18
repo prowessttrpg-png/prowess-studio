@@ -11,18 +11,14 @@
   "designerRulings": [
     "M5-SC-004",
     "M5-SC-006",
-    "M5-SC-032"
+    "M5-SC-032",
+    "M5-SC-034"
   ],
   "deferred": [
     {
       "conflictKey": "M5-SC-033",
-      "concept": "Size-based movement adjustment values",
+      "concept": "Base Movement values by Creature Size",
       "status": "DEFERRED_PENDING_CANON"
-    },
-    {
-      "conflictKey": "M5-SC-034",
-      "concept": "Repeated Sprint and the Sprint movement basis (Base vs Total Movement)",
-      "status": "UNRESOLVED_DOCUMENTED"
     }
   ],
   "definitions": [
@@ -303,15 +299,15 @@
         "otherCosts": [],
         "movementGrant": {
           "formula": {
-            "expression": "final_movement",
+            "expression": "movement",
             "rounding": "NONE",
             "unit": "ft",
             "variables": [
               {
-                "variable": "final_movement",
+                "variable": "movement",
                 "source": {
                   "kind": "DERIVED",
-                  "statistic": "FINAL_MOVEMENT"
+                  "statistic": "MOVEMENT"
                 }
               }
             ]
@@ -344,15 +340,15 @@
         "otherCosts": [],
         "movementGrant": {
           "formula": {
-            "expression": "final_movement * 4",
+            "expression": "movement * 4",
             "rounding": "NONE",
             "unit": "ft",
             "variables": [
               {
-                "variable": "final_movement",
+                "variable": "movement",
                 "source": {
                   "kind": "DERIVED",
-                  "statistic": "FINAL_MOVEMENT"
+                  "statistic": "MOVEMENT"
                 }
               }
             ]
@@ -666,7 +662,7 @@
           5
         ],
         "orLarger": false,
-        "movementAdjustment": null,
+        "baseMovement": null,
         "rules": {},
         "source": {
           "locators": [
@@ -688,7 +684,7 @@
           5
         ],
         "orLarger": false,
-        "movementAdjustment": null,
+        "baseMovement": null,
         "rules": {},
         "source": {
           "locators": [
@@ -711,7 +707,7 @@
           10
         ],
         "orLarger": false,
-        "movementAdjustment": null,
+        "baseMovement": null,
         "rules": {},
         "source": {
           "locators": [
@@ -734,7 +730,7 @@
           15
         ],
         "orLarger": false,
-        "movementAdjustment": null,
+        "baseMovement": null,
         "rules": {},
         "source": {
           "locators": [
@@ -757,7 +753,7 @@
           20
         ],
         "orLarger": true,
-        "movementAdjustment": null,
+        "baseMovement": null,
         "rules": {},
         "source": {
           "locators": [
@@ -824,6 +820,12 @@
           "conflicts": []
         }
       }
+    }
+  ],
+  "revisions": [
+    {
+      "workOrder": "M5-WO4",
+      "change": "Post-WO3 canon amendment: M5-SC-034 RESOLVED_BY_DESIGNER (Sprint Allowance = Movement x 4, each Sprint independently); Move / Sprint read the MOVEMENT statistic (no Total Movement); CREATURE_SIZE.movementAdjustment renamed baseMovement (null: M5-SC-033 Base Movement values by Creature Size remain unresolved)."
     }
   ]
 }

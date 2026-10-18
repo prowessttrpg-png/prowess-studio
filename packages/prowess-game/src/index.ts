@@ -9,6 +9,11 @@
  * Movement, Initiative and roll-signal resolution — compiled into chains of M4 RESOURCE operations. See
  * docs/architecture/m5-runtime-resources-action-economy.md.
  *
+ * M5-WO4 adds Affinity as executable structured content: the six canonical Affinities, Affinity Rank, ownership,
+ * standard progression, exact Keyword alignment (Strength / Weakness), the reusable Spell MP Affinity modifier
+ * fragment, Affinity Authority and Affinity access prerequisites — compiled into M4 KEYWORD / REQUIREMENT / MODIFIER
+ * steps. See docs/architecture/m5-affinity-structured-rules.md.
+ *
  * Owns Prowess Definition contracts, the shared modular Ability Construction grammar (Spell / Maneuver branches),
  * exact Definition bundles and the Prowess → M4 compilation contract. Depends on @prowess/model and @prowess/rules
  * only. It never re-implements the M4 engine: Prowess compiles INTO M4 EvaluationPlans. See
@@ -66,6 +71,7 @@ export {
 } from "./vocabulary/terminology.js";
 
 export {
+  AFFINITY_ERROR_CODES,
   BUNDLE_ERROR_CODES,
   COMPILATION_ERROR_CODES,
   COMPOSITION_ERROR_CODES,
@@ -281,6 +287,77 @@ export {
   type InitiativeSideInput,
   type SidePhase,
 } from "./runtime/combat.js";
+
+export {
+  AFFINITY_ADVANCEMENT_ACTIONS,
+  AFFINITY_ALIGNMENTS,
+  AFFINITY_COST_TARGETS,
+  AFFINITY_PROGRESSION_MODES,
+  AFFINITY_RANKS,
+  AFFINITY_RANK_UP_TARGETS,
+  AFFINITY_ROLES,
+  AFFINITY_SUBJECT_KINDS,
+  AFFINITY_WEAKNESS_SEVERITIES,
+  SPELL_CONSTRUCTION_AUTHORITIES,
+  type AffinityAdvancementAction,
+  type AffinityAlignment,
+  type AffinityCostTarget,
+  type AffinityProgressionMode,
+  type AffinityRank,
+  type AffinityRankUpTarget,
+  type AffinityRole,
+  type AffinitySubjectKind,
+  type AffinityWeaknessSeverity,
+  type SpellConstructionAuthority,
+} from "./vocabulary/affinity.js";
+export type {
+  AffinityAdvancementOption,
+  AffinityDefinitionV2Payload,
+  AffinityProgressionLevel,
+  AffinityProgressionPayload,
+  AffinityRankEntry,
+  AffinityRankRulePayload,
+  AffinityStrengthRule,
+  AffinityWeaknessRule,
+  AffinityWeaknessSeverityPayload,
+} from "./definition/affinity-payload.js";
+export { indexAffinityDefinitions, type AffinityDefinitionIndex, type AffinityEntry, type AffinityKeywordReference } from "./affinity/definitions.js";
+export {
+  ownedAffinity,
+  validateAffinityProfile,
+  validateAffinityProgression,
+  type AffinityProgressionResult,
+  type AffinityProgressionStatus,
+  type CharacterAffinityProfile,
+  type OwnedAffinity,
+} from "./affinity/profile.js";
+export {
+  compileAffinity,
+  type AffinityAccessSubject,
+  type AffinityAlignmentSubject,
+  type AffinityAuthoritySubject,
+  type AffinityCompilationRequest,
+  type AffinityCompilationSubject,
+  type AffinityCompiledOutputs,
+  type AffinityCompiledRule,
+  type AffinityCompiledWeakness,
+  type AffinityKeywordContributor,
+  type ProwessAffinityCompiledPlan,
+  type SpellAffinityCostSubject,
+} from "./affinity/compile.js";
+export {
+  readAffinityRun,
+  type AffinityAccessReading,
+  type AffinityAlignmentResult,
+  type AffinityAuthorityReading,
+  type AffinityCostReading,
+  type AffinityCostStage,
+  type AffinityKeywordSource,
+  type AffinityMatchedKeyword,
+  type AffinityRuleMatch,
+  type AffinityRunReading,
+  type AffinityWeaknessMatch,
+} from "./affinity/results.js";
 
 export { COMPONENT_COMPILERS, compileProwessAbility } from "./compilation/compile.js";
 export { compiledStepKey } from "./compilation/assemble.js";

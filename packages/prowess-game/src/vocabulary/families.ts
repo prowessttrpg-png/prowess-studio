@@ -98,8 +98,16 @@ const DEFINITION_KIND_TABLE = {
   /** A terrain kind's Movement-allowance cost (Difficult Terrain, s439). Hazard effects are later Effect / Condition work. */
   TERRAIN: active("ACTION_ECONOMY"),
 
-  // Affinity — WO1 owns only its canonical identity (Evocation, never Emission); rules arrive in M5-WO4.
-  AFFINITY: { family: "AFFINITY", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1] },
+  // Affinity — WO1 owned only its canonical identity (Evocation, never Emission): payload version 1 `{ affinity }`.
+  // M5-WO4 adds payload version 2 (identity + exact Strength / Weakness rules) and the versioned Affinity rule kinds
+  // (definition/affinity-payload.ts). Version 1 stays readable; only version 2 is executable.
+  AFFINITY: { family: "AFFINITY", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1, 2] },
+  /** The Affinity Rank table: explicit order, Strength discount and Authority capacity per rank (§33–§38). */
+  AFFINITY_RANK_RULE: active("AFFINITY"),
+  /** The standard Minor / Moderate / Major Weakness reference scale (s686) — reference only (§57). */
+  AFFINITY_WEAKNESS_SEVERITY: active("AFFINITY"),
+  /** Standard Affinity advancement (s161): explicit authored choices per Level (§39–§52). */
+  AFFINITY_PROGRESSION: active("AFFINITY"),
 
   // Spell branch — separate canonical catalogs implementing the shared contracts.
   SPELL_TARGETING: component("SPELL", "TARGETING", ["TARGETING"]),

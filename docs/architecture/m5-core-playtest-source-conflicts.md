@@ -1,4 +1,4 @@
-# M5 — Core Playtest Source Conflicts (M5-WO1, updated M5-WO2 and M5-WO3)
+# M5 — Core Playtest Source Conflicts (M5-WO1, updated M5-WO2, M5-WO3 and M5-WO4)
 
 **Source audited:** Prowess Core Playtest Packet V0.1. The designer's local copy (98,897,516 bytes, SHA-256 prefix
 `21fa6771…`) was verified byte-identical to the source identity recorded in
@@ -22,6 +22,13 @@ rewritten. M5-SC-033 (Size-based movement adjustment values) is new and UNRESOLV
 basis and repeated Sprint) is new and UNRESOLVED: it was found by the WO3 source audit (re-parsed from the verified
 Core Playtest bytes, same structure hash). M5-SC-026 and M5-SC-027 stay UNRESOLVED: WO3 stores only the core default
 costs (s432) the work order directs (§55); weapon-specific costs remain Equipment work.
+
+**M5-WO4 update.** After WO3 the designer clarified Movement terminology: Movement = Base Movement × AGI, where Base
+Movement is the creature's authored value (5 ft for the current standard character), and resolved M5-SC-034: Sprint
+Allowance = Movement × 4, each Sprint independently. M5-SC-034 is `RESOLVED_BY_DESIGNER`; M5-SC-033 stays `UNRESOLVED`,
+reframed as "Base Movement Values By Creature Size"; M5-SC-035 (starting Rank of a new Level 9 Affinity) is new and
+`UNRESOLVED`. The WO3 entries keep their WO3 text verbatim; each WO4 change is appended as a dated amendment, so the WO3
+history (Final Movement, `final_movement * 4`) stays readable. Source locators are unchanged.
 
 **Statuses:** `UNRESOLVED` · `RESOLVED_BY_DESIGNER` · `RESOLVED_BY_CANON_DECISION` · `SUPERSEDED`.
 
@@ -515,11 +522,11 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   while unresolved and are superseded; M4 Modifier semantics are unchanged. Guarded by M5-I077–I079 and M5-WO3 negative
   controls §177–§180.
 
-### M5-SC-033 — Size-Based Movement Adjustment Values
+### M5-SC-033 — Base Movement Values By Creature Size
 
 - **conflictKey**: `M5-SC-033`
 - **systemFamily**: `CHARACTER`
-- **concept**: How a creature's Size adjusts its Movement
+- **concept**: Whether different Creature Sizes have different Base Movement values, and what those values are (WO3 wording: how a creature's Size adjusts its Movement)
 - **source A**: M5-WO3 §5 designer ruling: Movement may depend on creature Size (Base Movement → Size adjustment →
   other explicit modifiers → Final Movement).
 - **source B**: s441–s442 GRID SCALE AND OCCUPIED SPACE / Creature Space: Small 5 ft · Medium 5 ft · Large 10 ft × 10 ft
@@ -533,6 +540,13 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   null (any value is refused as `PROWESS_DEFINITION.DEFERRED_PENDING_CANON`); occupied space is never read as speed.
   Final Movement currently = Base Movement + explicit Movement modifiers. Guarded by M5-I076 / M5-I108 and M5-WO3
   negative control §176.
+- **M5-WO4 amendment (post-WO3 designer clarification, reframed — still UNRESOLVED)**: known — Movement = Base Movement ×
+  AGI, and the standard current character's Base Movement is 5 ft (`core.derived.base_movement`, expression `5`;
+  `core.derived.movement`, expression `base_movement * agi + bonuses`). Unknown — whether different Creature Sizes have
+  different Base Movement values, and what those values are. The `CREATURE_SIZE` field is renamed `baseMovement` (was
+  `movementAdjustment`) and must be null; any value is refused as `PROWESS_DEFINITION.DEFERRED_PENDING_CANON`. Occupied
+  space (Large 10 × 10 ft) never implies Base Movement (Large Base Movement ≠ 10 ft). No Size value is invented. Guarded by
+  M5-I113 and the M5-WO4 audit.
 
 ### M5-SC-034 — Sprint movement basis and repeated Sprint
 
@@ -545,11 +559,35 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   has enough AP"; s485 "Move up to Quadruple your Movement".
 - **mechanical consequence**: Base vs Total (Final) Movement differs once explicit Movement modifiers or a Size
   adjustment exist; the source does not state how a second Sprint's movement combines with the first.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: M5-WO4 §12–§14 (designer ruling, applied post-WO3)
 - **notes**: found by the M5-WO3 source audit. WO3 implements the rule as M5-WO3 §73 states it ("quadruple Total
   Movement for the round": `final_movement * 4`, s438) and, per §75, treats each Sprint as a separate execution whose
   grant is computed from Final Movement — never from the accumulated allowance — so repeated Sprint is linear and
   never exponential. Today Final Movement equals Base Movement unless an explicit Movement modifier is supplied
   (M5-SC-033 has no values), so the two readings only diverge with such a modifier. Each execution's grant is a
   separate output. Designer confirmation is requested; nothing else depends on the choice. Guarded by M5-I109.
+- **M5-WO4 ruling (WO3 status above was `UNRESOLVED`, resolution authority none)**: canonical Sprint Allowance =
+  Movement × 4, where Movement = Base Movement × AGI (Base Movement 5 ft, AGI 4 → Movement 20 ft → Sprint 80 ft). Each
+  Sprint execution independently grants Movement × 4; two Sprints never produce Movement × 4 × 4. There is no separate
+  Total Movement (or WO3 "Final Movement") statistic: Move grants `movement`, Sprint grants `movement * 4` (both read the
+  MOVEMENT statistic). The WO3 implementation (`final_movement * 4`, linear) was numerically identical for the standard
+  character; only the terminology changed. Guarded by M5-I112 and the M5-WO4 audit.
+
+### M5-SC-035 — Starting Rank Of New Level 9 Affinity
+
+- **conflictKey**: `M5-SC-035`
+- **systemFamily**: `AFFINITY`
+- **concept**: The Affinity Rank at which a newly gained Level 9 Affinity begins
+- **source A**: s161 Affinity Advancement: "At Level 9, choose one: Upgrade an Affinity Rank · Promote an Expert Affinity
+  to Master · Gain a new Affinity" — no Rank is stated for the new Affinity.
+- **source B**: s161 Level 6: "Gain a Secondary Affinity at Trained" states a Rank for the Level 6 option only; s118
+  states the Level 1 Primary is chosen "but does not yet gain the full benefits of Affinity Rank".
+- **mechanical consequence**: NONE, TRAINED, EXPERT and MASTER are all conceivable starting Ranks; Strength discount,
+  Authority capacity and access differ by Rank.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none
+- **notes**: recorded by M5-WO4 §48. The `affinity.standard_progression` Definition exposes the Level 9 option
+  `GAIN_NEW_AFFINITY` structurally with `startingRank: null` and `conflictKey: "M5-SC-035"`; it is never executed
+  automatically. A profile that reaches it validates as `REQUIRES_CANON`, never `VALID`, whatever Rank it claims. Guarded
+  by M5-I119 and M5-WO4 negative control §260.

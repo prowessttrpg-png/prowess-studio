@@ -701,7 +701,9 @@
       "packages/prowess-game/src/vocabulary.test.ts",
       "apps/studio/tests/unit/m5-wo3-static.test.ts",
       "scripts/m5-wo3-negative-controls.mjs"
-    ]
+    ],
+    "status": "SUPERSEDED",
+    "supersededBy": "M5-I111"
   },
   {
     "id": "M5-I076",
@@ -1047,6 +1049,409 @@
       "packages/prowess-game/src/runtime-resources-golden.test.ts",
       "packages/prowess-game/src/runtime-contracts.test.ts",
       "apps/studio/tests/unit/m5-wo3-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I111",
+    "title": "Movement Equals Base Movement Multiplied By AGI; Base Movement Is A Separate Authored Creature Value",
+    "group": "Movement",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "packages/prowess-game/src/vocabulary.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I112",
+    "title": "Sprint Grants Four Times The Creature's Movement And Does Not Require A Separate Total Movement Statistic",
+    "group": "Movement",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "packages/prowess-game/src/core-resolution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I113",
+    "title": "Creature Size May Alter Base Movement Only Through An Explicit Structured Rule; Occupied Space Never Implies Base Movement",
+    "group": "Movement",
+    "guards": [
+      "packages/prowess-game/src/runtime-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I114",
+    "title": "Prowess Has Exactly Six Canonical Affinity Identities: Evocation, Conjuration, Transmutation, Divination, Enhancement And Manipulation",
+    "group": "Affinity Identity",
+    "guards": [
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I115",
+    "title": "Evocation Is Canonical And Emission Is Historical Legacy Terminology Only",
+    "group": "Affinity Identity",
+    "guards": [
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I116",
+    "title": "Affinity Ownership And Affinity Rank Are Separate Concepts",
+    "group": "Affinity Ownership",
+    "guards": [
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I117",
+    "title": "A Level 1 Primary Affinity Is Owned At Rank NONE And Becomes Trained At Level 3 Under Standard Progression",
+    "group": "Affinity Ownership",
+    "guards": [
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I118",
+    "title": "At Level 6 Standard Affinity Advancement Is Either Primary Trained To Expert Or A Secondary Affinity At Trained",
+    "group": "Affinity Ownership",
+    "guards": [
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I119",
+    "title": "The Starting Rank Of A New Level 9 Affinity Remains Unresolved Until Explicit Canon Resolves M5-SC-035",
+    "group": "Affinity Ownership",
+    "guards": [
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I120",
+    "title": "Affinity Rank Order Is NONE, TRAINED, EXPERT, MASTER And Is Distinct From Other Rank Systems' Numeric Effects",
+    "group": "Affinity Rank",
+    "guards": [
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I121",
+    "title": "Affinity Strength Discount Is 0%, 10%, 20%, 30% For NONE, TRAINED, EXPERT, MASTER Respectively",
+    "group": "Affinity Rank",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I122",
+    "title": "Multiple Strength Keyword Matches From One Governing Affinity Apply The Rank Discount Only Once",
+    "group": "Affinity Alignment",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I123",
+    "title": "Affinity Strength And Weakness Matching Uses Exact Structured Keyword Identity And Never Fuzzy Text Matching",
+    "group": "Affinity Alignment",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I124",
+    "title": "Every Affinity Weakness Owns An Exact Authored Percentage Penalty Rather Than Requiring Severity Inference",
+    "group": "Affinity Weakness",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I125",
+    "title": "When Multiple Weaknesses Of The Same Governing Affinity Match, Only The Highest Applicable Penalty Is Applied Unless An Explicit Rule Says Otherwise",
+    "group": "Affinity Weakness",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I126",
+    "title": "All Matched Weaknesses Remain Visible For Provenance Even When Only The Highest Penalty Is Applied",
+    "group": "Affinity Weakness",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I127",
+    "title": "When An Ability Matches Both A Strength And A Weakness, Both Modifiers Apply",
+    "group": "Affinity Cost",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I128",
+    "title": "Affinity Strength Discount Applies Before Affinity Weakness Penalty",
+    "group": "Affinity Cost",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I129",
+    "title": "Affinity Modifier Arithmetic Does Not Round; Final Rounding Belongs To The Later Branch Cost Pipeline",
+    "group": "Affinity Cost",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I130",
+    "title": "An Affinity Weakness Normally Changes Cost Rather Than Prohibiting Ability Construction",
+    "group": "Affinity Cost",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I131",
+    "title": "Affinity-Relevant Keywords May Be Contributed By Explicit Targeting, Effects, Traits And Other Valid Ability Components",
+    "group": "Keyword Contributions",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I132",
+    "title": "Affinity Does Not Infer Mechanical Keywords From Component Display Names Or Targeting Geometry",
+    "group": "Keyword Contributions",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I133",
+    "title": "One Explicit Governing Affinity Is Required For WO4 Executable Affinity Cost Evaluation; No Affinity Is Auto-Selected",
+    "group": "Governing Affinity",
+    "guards": [
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I134",
+    "title": "WO4 Does Not Stack Discounts From Multiple Owned Affinities Without An Explicit Future Multi-Affinity Rule",
+    "group": "Governing Affinity",
+    "guards": [
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I135",
+    "title": "The Governing Affinity Must Be An Exact Affinity Owned By The Character Under The Same Exact Ruleset",
+    "group": "Governing Affinity",
+    "guards": [
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I136",
+    "title": "Affinity Authority Requires At Least Trained Rank",
+    "group": "Affinity Authority",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I137",
+    "title": "Affinity Authority Effect Capacity Is One, Two, Three At Trained, Expert, Master",
+    "group": "Affinity Authority",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I138",
+    "title": "Affinity Authority Base Trait Capacity Is One, Two, Three At Trained, Expert, Master",
+    "group": "Affinity Authority",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I139",
+    "title": "Arcane And Affinity Authority Capacities Do Not Add Together Unless An Explicit Feature Says Otherwise",
+    "group": "Affinity Authority",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I140",
+    "title": "Affinity Authority Access And Affinity Cost Modification Are Separate Mechanical Concepts",
+    "group": "Affinity Authority",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I141",
+    "title": "Qualifying For A Trait Through Affinity Rank Never Removes That Trait's Cost Or Other Requirements",
+    "group": "Affinity Authority",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I142",
+    "title": "Spell Affinity Strengths And Weaknesses Modify Listed MP Rather Than Runtime Mana Payment",
+    "group": "Branch Boundaries",
+    "guards": [
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I143",
+    "title": "Affinity Never Directly Modifies Spell AP Unless An Explicit Rule Says So; Its Normal AP Effect Occurs Indirectly Through Later MP-Based AP Derivation",
+    "group": "Branch Boundaries",
+    "guards": [
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I144",
+    "title": "Spell Affinity MP Economics Are Never Automatically Applied To Maneuver AP Or Other Maneuver Costs",
+    "group": "Branch Boundaries",
+    "guards": [
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I145",
+    "title": "Affinity Alignment Semantics Are Shared Across Ability Construction While Branch-Specific Cost And Access Rules Remain Explicit",
+    "group": "Branch Boundaries",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I146",
+    "title": "Affinity Definitions, Rank Rules And Keyword Contributions Preserve Exact Ruleset And EntityVersion Provenance",
+    "group": "Provenance",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "packages/prowess-db/tests/integration/prowess-affinity-history.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I147",
+    "title": "Historical Affinity Evaluation Never Resolves Through Latest Or Current Content",
+    "group": "Provenance",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs",
+      "packages/prowess-db/tests/integration/prowess-affinity-history.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I148",
+    "title": "Affinity Compilation Uses Existing M4 Keyword, Requirement And Modifier Primitives Rather Than Reimplementing Them",
+    "group": "Compilation",
+    "guards": [
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts"
+    ]
+  },
+  {
+    "id": "M5-I149",
+    "title": "Affinity Cost Compilation Performs No Hidden Percentage Arithmetic In The Prowess Compiler",
+    "group": "Compilation",
+    "guards": [
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I150",
+    "title": "Affinity Evaluation Is Deterministic, Immutable, JSON-Safe And Free Of Global Mutable Affinity State",
+    "group": "Compilation",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "packages/prowess-game/src/affinity-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts"
     ]
   }
 ]

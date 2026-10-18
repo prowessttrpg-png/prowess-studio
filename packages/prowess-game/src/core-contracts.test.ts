@@ -38,7 +38,8 @@ const payloadOf = (key: string) => JSON.parse(JSON.stringify(CORE_DEFINITIONS.fi
 describe("canonical core content", () => {
   it("is one versioned content document, every Definition valid under its v1 contract and pinned in one bundle", () => {
     expect(CORE_CONTENT.contentKey).toBe("prowess.core_playtest.v0_1.core_resolution");
-    // WO2 shipped 30 core Definitions; M5-WO3 appended BASE_MOVEMENT, FINAL_MOVEMENT and INITIATIVE (33). The test
+    // WO2 shipped 30 core Definitions; M5-WO3 appended BASE_MOVEMENT, FINAL_MOVEMENT (renamed MOVEMENT by the post-WO3
+    // amendment applied in M5-WO4) and INITIATIVE (33). The test
     // bundle also pins the 26 WO3 runtime Definitions (runtime-resources.json); WO2 identities are unchanged.
     expect(CORE_DEFINITIONS).toHaveLength(33);
     expect(fixture.bundle.definitions).toHaveLength(59);

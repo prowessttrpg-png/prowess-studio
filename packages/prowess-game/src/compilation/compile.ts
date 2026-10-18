@@ -31,7 +31,11 @@ export const COMPONENT_COMPILERS: Readonly<Record<ProwessDefinitionKind, Compone
   ACTION: null,
   CREATURE_SIZE: null,
   TERRAIN: null,
+  // M5-WO4 compiles Affinity through its own subjects (affinity/compile.ts), not as an Ability component compiler.
   AFFINITY: null,
+  AFFINITY_RANK_RULE: null,
+  AFFINITY_WEAKNESS_SEVERITY: null,
+  AFFINITY_PROGRESSION: null,
   SPELL_TARGETING: null,
   SPELL_EFFECT: null,
   SPELL_TRAIT: null,

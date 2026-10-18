@@ -110,10 +110,14 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   entry("Evasion", "DERIVED_STAT", L, "CHARACTER", null, { ...designer, canonicalTerm: "Dodge", conflictKey: "M5-SC-005" }),
   // M5-SC-009 (designer ruling, M5-WO2): Accuracy is +1 per 3 PRO (content Formula), a named Attack Roll contribution.
   entry("Accuracy", "DERIVED_STAT", C, "CORE", "ACCURACY", { ...designer, conflictKey: "M5-SC-009" }),
-  // M5-SC-006 (designer ruling, M5-WO3): Base Movement = 5 ft × AGI. (M5-WO2 recorded it UNRESOLVED and deferred it.)
-  entry("Base Movement", "DERIVED_STAT", C, "CHARACTER", "BASE_MOVEMENT", { ...designer, conflictKey: "M5-SC-006" }),
-  // Base Movement → Size adjustment (values pending, M5-SC-033) → explicit modifiers → Final Movement.
-  entry("Final Movement", "DERIVED_STAT", C, "CHARACTER", "FINAL_MOVEMENT", { ...designer, conflictKey: "M5-SC-033" }),
+  // M5-SC-006 (designer ruling, M5-WO3) as clarified after WO3 (applied in M5-WO4, M5-I111): Base Movement is the
+  // creature's authored value (5 ft for the standard character); Movement = Base Movement × AGI. Size-based Base
+  // Movement values are M5-SC-033 (UNRESOLVED).
+  entry("Base Movement", "DERIVED_STAT", C, "CHARACTER", "BASE_MOVEMENT", { ...designer, conflictKey: "M5-SC-033" }),
+  entry("Movement", "DERIVED_STAT", C, "CHARACTER", "MOVEMENT", { ...designer, conflictKey: "M5-SC-006" }),
+  // WO3's interim "Final Movement" name and the "Total Movement" basis question (M5-SC-034) are not statistics (M5-I112).
+  entry("Final Movement", "DERIVED_STAT", L, "CHARACTER", null, { ...designer, canonicalTerm: "Movement", conflictKey: "M5-SC-034" }),
+  entry("Total Movement", "DERIVED_STAT", L, "CHARACTER", null, { ...designer, canonicalTerm: "Movement", conflictKey: "M5-SC-034" }),
 
   // ---- Skill ranks ------------------------------------------------------------------------------------------------
   entry("Untrained", "SKILL_RANK", C, "SKILL", "UNTRAINED"),
@@ -137,6 +141,8 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   entry("Mana Points", "RESOURCE", C, "RESOURCE", "MP", { conflictKey: "M5-SC-003" }),
   // M5-WO3: the runtime allowance a Move / Sprint buys; never a change to the Movement statistic (M5-I098).
   entry("Movement Allowance", "RESOURCE", C, "ACTION_ECONOMY", "MOVEMENT_ALLOWANCE", { ...designer }),
+  // M5-SC-034 RESOLVED_BY_DESIGNER (applied in M5-WO4): each Sprint grants Movement × 4 (M5-I112).
+  entry("Sprint Allowance", "RESOURCE", C, "ACTION_ECONOMY", "SPRINT_ALLOWANCE", { ...designer, conflictKey: "M5-SC-034" }),
   entry("Mana Lock", "RESOURCE", C, "RESOURCE", "MANA_LOCK"),
   entry("Concentration", "RESOURCE", C, "RESOURCE", "CONCENTRATION", { conflictKey: "M5-SC-007" }),
   entry("Signature Ability Slots", "RESOURCE", C, "CHARACTER", "SIGNATURE_ABILITY_SLOTS"),
@@ -154,6 +160,16 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   entry("Divination", "AFFINITY", C, "AFFINITY", "DIVINATION"),
   entry("Enhancement", "AFFINITY", C, "AFFINITY", "ENHANCEMENT"),
   entry("Manipulation", "AFFINITY", C, "AFFINITY", "MANIPULATION"),
+  // M5-WO4: Affinity structured-rule terms (s118, s161, s624, s680–s687). Tokens name structured concepts only.
+  entry("Primary Affinity", "AFFINITY", C, "AFFINITY", "PRIMARY"),
+  entry("Secondary Affinity", "AFFINITY", C, "AFFINITY", "SECONDARY"),
+  entry("Affinity Rank", "AFFINITY", C, "AFFINITY", "AFFINITY_RANK"),
+  entry("Affinity Strength", "AFFINITY", C, "AFFINITY", "AFFINITY_STRENGTH"),
+  entry("Affinity Weakness", "AFFINITY", C, "AFFINITY", "AFFINITY_WEAKNESS"),
+  entry("Affinity Authority", "AFFINITY", C, "AFFINITY", "AFFINITY_AUTHORITY"),
+  entry("Arcane Authority", "AFFINITY", C, "SPELL", "ARCANE_AUTHORITY"),
+  entry("Governing Affinity", "AFFINITY", C, "AFFINITY", "GOVERNING_AFFINITY", { ...designer }),
+  entry("Affinity Alignment", "AFFINITY", C, "AFFINITY", "AFFINITY_ALIGNMENT", { ...designer }),
 
   // ---- Ability kinds ----------------------------------------------------------------------------------------------
   entry("Spell", "ABILITY_KIND", C, "ABILITY", "SPELL"),

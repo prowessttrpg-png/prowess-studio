@@ -24,7 +24,7 @@ const ROUND = (round: number, surprised = false) => ({ round, surprised });
 const timing = (event: string, inputs: { character: unknown; resources: unknown; combat?: unknown }, extra: Record<string, unknown> = {}) =>
   runRuntime({ kind: "RESOURCE_TIMING", subjectKey: "tick", event, ...extra }, { combat: ROUND(1), ...inputs });
 
-describe("§60–§61 / §115 BASE MOVEMENT = 5 ft × AGI (M5-SC-006 RESOLVED_BY_DESIGNER — M5-I075)", () => {
+describe("§60–§61 / §115 MOVEMENT = BASE MOVEMENT (5 ft) × AGI (M5-SC-006; terminology amended post-WO3 — M5-I111 supersedes M5-I075)", () => {
   it.each([
     [1, 5],
     [2, 10],
@@ -32,14 +32,14 @@ describe("§60–§61 / §115 BASE MOVEMENT = 5 ft × AGI (M5-SC-006 RESOLVED_BY
     [6, 30],
     [10, 50],
   ])("AGI %i → %i ft (M4 FORMULA over canonical content)", (agi, feet) => {
-    const r = runCore({ kind: "DERIVED_STATISTICS", subjectKey: "move", statistics: ["BASE_MOVEMENT", "FINAL_MOVEMENT"] }, { ...runtimeCharacter({ AGI: agi }) });
-    expect(r.derived("BASE_MOVEMENT")).toBe(feet);
-    expect(r.derived("FINAL_MOVEMENT")).toBe(feet); // no Size value exists (M5-SC-033) and no explicit modifier was supplied
+    const r = runCore({ kind: "DERIVED_STATISTICS", subjectKey: "move", statistics: ["BASE_MOVEMENT", "MOVEMENT"] }, { ...runtimeCharacter({ AGI: agi }) });
+    expect(r.derived("BASE_MOVEMENT")).toBe(5); // the standard creature's authored Base Movement — never × AGI itself
+    expect(r.derived("MOVEMENT")).toBe(feet); // Base Movement × AGI; no Size value exists (M5-SC-033), no modifier supplied
   });
 
-  it("explicit Movement modifiers apply after Base Movement; Size never does (M5-I076)", () => {
-    const r = runCore({ kind: "DERIVED_STATISTICS", subjectKey: "move", statistics: ["FINAL_MOVEMENT"] }, runtimeCharacter({ AGI: 4 }, { explicitBonuses: [{ bonusKey: "haste", appliesTo: "MOVEMENT", value: 10 }] }));
-    expect([r.derived("BASE_MOVEMENT"), r.derived("FINAL_MOVEMENT")]).toEqual([20, 30]);
+  it("explicit Movement modifiers apply to Movement; Size never does (M5-I076)", () => {
+    const r = runCore({ kind: "DERIVED_STATISTICS", subjectKey: "move", statistics: ["MOVEMENT"] }, runtimeCharacter({ AGI: 4 }, { explicitBonuses: [{ bonusKey: "haste", appliesTo: "MOVEMENT", value: 10 }] }));
+    expect([r.derived("BASE_MOVEMENT"), r.derived("MOVEMENT")]).toEqual([5, 30]);
   });
 });
 
@@ -248,14 +248,14 @@ describe("§116–§118 MOVE, SPLIT MOVEMENT, DIFFICULT TERRAIN, SPRINT (M5-I098
     expect([r.reading.movementCosts, r.current("MOVEMENT_ALLOWANCE")]).toEqual([[10], 10]);
   });
 
-  it("§73–§75 Sprint costs 3 AP and grants 4 × Final Movement (AGI 4 → 80 ft)", () => {
+  it("§73–§75 Sprint costs 3 AP and grants Sprint Allowance = Movement × 4 (AGI 4 → 80 ft; M5-SC-034 RESOLVED_BY_DESIGNER, M5-I112)", () => {
     const { confirmation } = payForAction({ actionKey: "SPRINT", window: "OWN_TURN" }, { character: agi4, resources: resources(["AP", 4], ["MOVEMENT_ALLOWANCE", 0]) });
     expect(confirmation.payments[0]?.listedAmount).toBe(3);
     const after = followOn(confirmation, confirmation.resources);
     expect([after.reading.movementGrant, after.current("AP"), after.current("MOVEMENT_ALLOWANCE")]).toEqual([80, 1, 80]);
   });
 
-  it("§75 a second Sprint is another execution — each grants 4 × Final Movement, linear, never ×4 ×4 (AGI 9: 6 AP, 45 ft)", () => {
+  it("§75 a second Sprint is another execution — each grants Movement × 4, linear, never ×4 ×4 (AGI 9: 6 AP, 45 ft)", () => {
     const agi9 = runtimeCharacter({ AGI: 9 });
     let state: unknown = resources(["AP", 6], ["MOVEMENT_ALLOWANCE", 0]);
     const grants: number[] = [];
@@ -273,8 +273,8 @@ describe("§116–§118 MOVE, SPLIT MOVEMENT, DIFFICULT TERRAIN, SPRINT (M5-I098
   it("movement allowance expires at END_OF_TURN; it never becomes permanent Movement", () => {
     const r = timing("END_OF_TURN", { character: agi4, resources: resources(["AP", 0], ["MOVEMENT_ALLOWANCE", 15]) });
     expect(r.current("MOVEMENT_ALLOWANCE")).toBe(0);
-    const sheet = runCore({ kind: "DERIVED_STATISTICS", subjectKey: "m", statistics: ["FINAL_MOVEMENT"] }, agi4);
-    expect(sheet.derived("FINAL_MOVEMENT")).toBe(20);
+    const sheet = runCore({ kind: "DERIVED_STATISTICS", subjectKey: "m", statistics: ["MOVEMENT"] }, agi4);
+    expect(sheet.derived("MOVEMENT")).toBe(20);
   });
 });
 

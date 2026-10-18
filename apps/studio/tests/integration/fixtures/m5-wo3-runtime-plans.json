@@ -501,7 +501,7 @@
         },
         {
           "stepKey": "prowess:MAGICAL_PAYMENT:inspector:derived.MAXIMUM_MP",
-          "order": 14,
+          "order": 13,
           "operation": "FORMULA",
           "input": {
             "program": {
@@ -871,7 +871,7 @@
         },
         {
           "stepKey": "prowess:MAGICAL_PAYMENT:inspector:derived.MAXIMUM_MP",
-          "order": 14,
+          "order": 13,
           "operation": "FORMULA",
           "role": "derived-statistic:MAXIMUM_MP",
           "componentKeys": [

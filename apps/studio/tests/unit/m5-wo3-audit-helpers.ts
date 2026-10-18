@@ -125,16 +125,19 @@ export function auditWo3Content(core: { definitions: ContentDefinition[] }, runt
   const add = (f: string) => findings.add(f);
   const text = JSON.stringify(defs);
 
-  // Base Movement = 5 × AGI exactly (M5-I075); 10 × AGI is never canonical; Final Movement = Base + explicit modifiers.
+  // Movement (M5-SC-006). Amended by the post-WO3 designer clarification applied in M5-WO4 (M5-I111 supersedes M5-I075):
+  // Base Movement is the authored creature value (5 ft standard) and Movement = Base Movement × AGI (+ explicit bonuses).
+  // 10 × AGI is never canonical; no Size term ever enters Movement (M5-SC-033).
   const base = statistic(defs, "BASE_MOVEMENT");
   const baseFormula = base[0]?.payload.formula as Formula | undefined;
-  if (base.length !== 1 || baseFormula?.expression !== "5 * agi" || baseFormula.rounding !== "NONE" || baseFormula.variables.length !== 1 || baseFormula.variables[0]?.source.stat !== "AGI") add("movement-not-canonical");
+  if (base.length !== 1 || baseFormula?.expression !== "5" || baseFormula.rounding !== "NONE" || baseFormula.variables.length !== 0) add("movement-not-canonical");
   if (/10 \* agi|agi \* 10/i.test(text)) add("movement-not-canonical");
-  const final = statistic(defs, "FINAL_MOVEMENT")[0]?.payload.formula as Formula | undefined;
-  if (final === undefined || final.variables.some((v) => !(v.source.kind === "EXPLICIT_BONUSES" || (v.source.kind === "DERIVED" && v.source.statistic === "BASE_MOVEMENT")))) add("size-speed-inference");
+  const movement = statistic(defs, "MOVEMENT")[0]?.payload.formula as Formula | undefined;
+  if (movement === undefined || movement.expression !== "base_movement * agi + bonuses") add("movement-not-canonical");
+  if (movement === undefined || movement.variables.some((v) => !(v.source.kind === "EXPLICIT_BONUSES" || (v.source.kind === "STAT" && v.source.stat === "AGI") || (v.source.kind === "DERIVED" && v.source.statistic === "BASE_MOVEMENT")))) add("size-speed-inference");
 
-  // Size: occupied space only; never a movement value (M5-I076, M5-I108, M5-SC-033).
-  for (const d of kind(defs, "CREATURE_SIZE")) if (d.payload.movementAdjustment !== null || Object.keys(d.payload).some((k) => /speed|movement(?!Adjustment)/i.test(k))) add("size-speed-inference");
+  // Size: occupied space only; never a Base Movement value (M5-I076, M5-I108, M5-I113, M5-SC-033).
+  for (const d of kind(defs, "CREATURE_SIZE")) if (d.payload.baseMovement !== null || Object.keys(d.payload).some((k) => /speed|movement(?!$)/i.test(k) && k !== "baseMovement")) add("size-speed-inference");
   if (kind(defs, "CREATURE_SIZE").length !== 5) add("size-speed-inference");
 
   // Distinct Resources with separate maxima; current never authored (M5-I080, M5-I081).
@@ -190,10 +193,11 @@ export function auditWo3Content(core: { definitions: ContentDefinition[] }, runt
   if (kind(defs, "ACTION").some((d) => d.payload.costOverridableByExplicitRule !== true)) add("action-cost");
   if (kind(defs, "ACTION").some((d) => d.canonicalKey === "core.derived.dodge") || actionOf(defs, "DODGE_ACTION") === undefined) add("dodge-identity");
 
-  // Move / Sprint grant allowance from Final Movement (never a change to Movement; Sprint never compounds) (M5-I098, M5-I109).
+  // Move / Sprint grant allowance from Movement (never a change to Movement; Sprint never compounds) (M5-I098, M5-I109;
+  // M5-SC-034 RESOLVED_BY_DESIGNER in M5-WO4: Sprint Allowance = Movement × 4, M5-I112).
   const grant = (key: string) => (actionOf(defs, key)?.movementGrant as { formula: Formula } | null | undefined)?.formula;
-  if (grant("MOVE")?.expression !== "final_movement" || grant("SPRINT")?.expression !== "final_movement * 4") add("movement-grant");
-  for (const key of ["MOVE", "SPRINT"]) if (grant(key)?.variables.some((v) => v.source.kind !== "DERIVED" || v.source.statistic !== "FINAL_MOVEMENT")) add("movement-grant");
+  if (grant("MOVE")?.expression !== "movement" || grant("SPRINT")?.expression !== "movement * 4") add("movement-grant");
+  for (const key of ["MOVE", "SPRINT"]) if (grant(key)?.variables.some((v) => v.source.kind !== "DERIVED" || v.source.statistic !== "MOVEMENT")) add("movement-grant");
 
   // Difficult Terrain costs double (M5-I100).
   const terrain = (key: string) => (kind(defs, "TERRAIN").find((d) => d.payload.terrainKey === key)?.payload.allowanceCost as Formula | undefined)?.expression;
