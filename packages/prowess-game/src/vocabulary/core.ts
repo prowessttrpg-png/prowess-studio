@@ -101,8 +101,8 @@ export type DerivedStatistic = (typeof DERIVED_STATISTICS)[number];
 
 /**
  * Statistic keys deferred pending canon, refused as executable content. M5-WO2 deferred MOVEMENT / BASE_MOVEMENT /
- * MOVEMENT_SPEED (M5-SC-006). M5-SC-006 is RESOLVED_BY_DESIGNER in M5-WO3, so nothing is deferred here any more; Base
- * Movement values by Creature Size (M5-SC-033) are deferred at the CREATURE_SIZE payload instead.
+ * MOVEMENT_SPEED (M5-SC-006). M5-SC-006 is RESOLVED_BY_DESIGNER in M5-WO3, so nothing is deferred here any more. Base
+ * Movement by Creature Size (M5-SC-033) is CREATURE_SIZE content; only Massive's value is still pending (M5-SC-036).
  */
 export const DEFERRED_STATISTICS = deepFreeze([] as const satisfies readonly string[]);
 
@@ -125,10 +125,13 @@ export const BONUS_CONTEXT_SEGMENTS = deepFreeze({
 } as const satisfies Record<BonusTarget, string>);
 
 /** Variable sources a DERIVED_STAT or CORE_RESOLUTION Formula may declare. Every Formula variable names exactly one. */
-export const VARIABLE_SOURCE_KINDS = deepFreeze(["STAT", "CHOSEN_STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "NATURAL", "SKILL_RANK_BONUS", "EXPLICIT_BONUSES"] as const);
+export const VARIABLE_SOURCE_KINDS = deepFreeze(["STAT", "CHOSEN_STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "NATURAL", "SKILL_RANK_BONUS", "EXPLICIT_BONUSES", "CREATURE_SIZE_BASE_MOVEMENT"] as const);
 export type VariableSourceKind = (typeof VARIABLE_SOURCE_KINDS)[number];
-/** Sources legal in a DERIVED_STAT (a statistic never reads a roll, a chosen Stat or a Skill rank). */
-export const DERIVED_VARIABLE_SOURCE_KINDS = deepFreeze(["STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "EXPLICIT_BONUSES"] as const satisfies readonly VariableSourceKind[]);
+/**
+ * Sources legal in a DERIVED_STAT (a statistic never reads a roll, a chosen Stat or a Skill rank). CREATURE_SIZE_BASE_MOVEMENT
+ * (post-WO4 designer ruling M5-SC-033) copies the `baseMovement` of the character's exact CREATURE_SIZE Definition.
+ */
+export const DERIVED_VARIABLE_SOURCE_KINDS = deepFreeze(["STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "EXPLICIT_BONUSES", "CREATURE_SIZE_BASE_MOVEMENT"] as const satisfies readonly VariableSourceKind[]);
 /**
  * M5-WO3 runtime Formula sources: an ACTION's movement grant reads only DERIVED statistics (Final Movement); a TERRAIN's
  * allowance cost reads only the MOVEMENT_DISTANCE moved (runtime input). Never a Stat directly, never a roll.

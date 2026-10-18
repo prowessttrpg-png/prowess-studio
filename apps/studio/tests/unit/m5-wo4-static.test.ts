@@ -118,33 +118,34 @@ describe("M5-WO4 audit — Affinity identity, rank, authority & keyword alignmen
     for (const term of ["Total Movement", "Final Movement"]) expect(t, term).toMatch(new RegExp(`entry\\("${term}", "DERIVED_STAT", L, "CHARACTER", null, \\{ \\.\\.\\.designer, canonicalTerm: "Movement"`));
   });
 
-  it("source-conflict register: M5-SC-034 RESOLVED_BY_DESIGNER; M5-SC-033 reframed and UNRESOLVED; M5-SC-035 new and UNRESOLVED", () => {
+  it("source-conflict register: M5-SC-034 RESOLVED_BY_DESIGNER; M5-SC-033 reframed (later resolved, M5-I152); M5-SC-035 recorded (later resolved, M5-I151)", () => {
     const register = read("docs/architecture/m5-core-playtest-source-conflicts.md");
     expect(register).toMatch(/^### M5-SC-033 — Base Movement Values By Creature Size$/m);
-    expect(section(register, "M5-SC-033")).toMatch(/\*\*status\*\*: `UNRESOLVED`/);
-    expect(section(register, "M5-SC-033")).toMatch(/Large Base Movement ≠ 10 ft/);
+    expect(section(register, "M5-SC-033")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`/);
+    expect(section(register, "M5-SC-033")).toMatch(/Large Base Movement ≠ 10 ft[\s\S]*Post-WO4 designer ruling/); // WO4 history kept
     expect(section(register, "M5-SC-034")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`/);
     expect(section(register, "M5-SC-034")).toMatch(/Movement × 4[\s\S]*never produce Movement × 4 × 4/);
     expect(register).toMatch(/^### M5-SC-035 — Starting Rank Of New Level 9 Affinity$/m);
-    expect(section(register, "M5-SC-035")).toMatch(/\*\*status\*\*: `UNRESOLVED`[\s\S]*\*\*resolution authority\*\*: none/);
-    expect(affinity().deferred).toEqual([expect.objectContaining({ conflictKey: "M5-SC-035" })]);
+    expect(section(register, "M5-SC-035")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`[\s\S]*WO4 status was `UNRESOLVED`/);
+    expect(affinity().deferred).toEqual([]);
   });
 
-  it("the invariant catalog has M5-I001–I150; M5-I111–I150 are guarded here; M5-I073 → M5-I075 → M5-I111 supersession is traceable", () => {
+  it("the invariant catalog has M5-I001–I152; M5-I111–I152 are guarded here; M5-I073 → M5-I075 → M5-I111 and M5-I119 → M5-I151 supersession is traceable", () => {
     const catalog = JSON.parse(read("docs/architecture/m5-invariants.json")) as Array<{ id: string; title: string; guards: string[]; status?: string; supersededBy?: string }>;
-    expect(catalog.map((x) => x.id)).toEqual(Array.from({ length: 150 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
+    expect(catalog.map((x) => x.id)).toEqual(Array.from({ length: 152 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
     const self = read("apps/studio/tests/unit/m5-wo4-static.test.ts");
     for (const entry of catalog.slice(110)) {
       expect(entry.guards, entry.id).toContain("apps/studio/tests/unit/m5-wo4-static.test.ts");
       expect(self, entry.id).toContain(entry.id);
-      expect(entry.status ?? "ACTIVE", entry.id).toBe("ACTIVE");
+      expect(entry.status ?? "ACTIVE", entry.id).toBe(entry.id === "M5-I119" ? "SUPERSEDED" : "ACTIVE");
       for (const guard of entry.guards) expect(existsSync(path.join(ROOT, guard)), `${entry.id} → ${guard}`).toBe(true);
     }
-    expect(catalog.filter((x) => x.status === "SUPERSEDED").map((x) => [x.id, x.supersededBy])).toEqual([["M5-I073", "M5-I075"], ["M5-I075", "M5-I111"]]);
+    expect(catalog.filter((x) => x.status === "SUPERSEDED").map((x) => [x.id, x.supersededBy])).toEqual([["M5-I073", "M5-I075"], ["M5-I075", "M5-I111"], ["M5-I119", "M5-I151"]]);
     expect(catalog.find((x) => x.id === "M5-I075")?.title).toBe("Base Movement Equals 5 Feet Times AGI Before Size Or Other Explicit Movement Modifiers");
     const md = read("docs/architecture/m5-invariants.md");
     expect(section(md, "M5-I075")).toMatch(/\*\*Status:\*\* SUPERSEDED by M5-I111/);
     expect(section(md, "M5-I111")).toContain("Movement Equals Base Movement Multiplied By AGI");
+    expect(section(md, "M5-I119")).toMatch(/\*\*Status:\*\* SUPERSEDED by M5-I151/);
   });
 
   it("documents WO4 with all 37 required sections and the §286–§291 diagrams; WO3 history is amended, not rewritten", () => {
@@ -218,11 +219,15 @@ const contentControls: Array<[string, () => Docs, string]> = [
   ["§243 canonical Emission Affinity", () => mutate((d) => d.affinity.definitions.push({ canonicalKey: "affinity.emission", definitionKind: "AFFINITY", schemaVersion: 2, payload: { ...aff(d, "EVOCATION"), affinity: "EMISSION" } })), "emission-canonical"],
   ["§251 NONE grants a 10% Strength discount", () => mutate((d) => void (rankRule(d).ranks[0]!.strengthDiscountPercent = 10)), "rank-rule"],
   ["Expert discount drifts to 25%", () => mutate((d) => void (rankRule(d).ranks[2]!.strengthDiscountPercent = 25)), "rank-rule"],
-  ["§260 Level 9 new Affinity guessed TRAINED", () => mutate((d) => {
+  ["§260 / M5-I151 Level 9 new Affinity starts at EXPERT, contrary to the M5-SC-035 ruling", () => mutate((d) => {
+    const prog = d.affinity.definitions.find((x) => x.definitionKind === "AFFINITY_PROGRESSION")!.payload as { levels: { level: number; options: Record<string, unknown>[] }[] };
+    prog.levels.find((l) => l.level === 9)!.options.find((o) => o.optionKey === "GAIN_NEW_AFFINITY")!.startingRank = "EXPERT";
+  }), "level9-rank-guess"],
+  ["M5-I151 Level 9 new Affinity reverted to unresolved (null)", () => mutate((d) => {
     const prog = d.affinity.definitions.find((x) => x.definitionKind === "AFFINITY_PROGRESSION")!.payload as { levels: { level: number; options: Record<string, unknown>[] }[] };
     const gain = prog.levels.find((l) => l.level === 9)!.options.find((o) => o.optionKey === "GAIN_NEW_AFFINITY")!;
-    gain.startingRank = "TRAINED";
-    gain.conflictKey = null;
+    gain.startingRank = null;
+    gain.conflictKey = "M5-SC-035";
   }), "level9-rank-guess"],
   ["§261 Divination +15% coerced to Moderate +20%", () => mutate((d) => {
     const w = (aff(d, "DIVINATION").weaknesses as { weaknessKey: string; activationPenaltyPercent: number; severity: string | null }[]).find((x) => x.weaknessKey === "PERSISTENT_EFFECT")!;
@@ -243,6 +248,15 @@ const contentControls: Array<[string, () => Docs, string]> = [
   }), "total-movement-stat"],
   ["Sprint compounds × 4 × 4", () => mutate((d) => void ((d.runtime.definitions.find((x) => x.payload.actionKey === "SPRINT")!.payload.movementGrant as { formula: { expression: string } }).formula.expression = "movement * 4 * 4")), "sprint-allowance"],
   ["Large occupied space read as Base Movement", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "LARGE")!.payload.baseMovement = 10)), "size-base-movement"],
+  ["M5-I152 Huge Base Movement drifts to 20 ft", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "HUGE")!.payload.baseMovement = { feet: 20 })), "size-base-movement"],
+  ["M5-I152 Small Base Movement drifts to 0 ft (null)", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "SMALL")!.payload.baseMovement = null)), "size-base-movement"],
+  ["M5-I152 Massive Base Movement guessed 20 ft (M5-SC-036)", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "MASSIVE")!.payload.baseMovement = { feet: 20 })), "size-base-movement"],
+  ["M5-I152 Base Movement hard-coded 5 ft again (Size ignored)", () => mutate((d) => {
+    const f = d.core.definitions.find((x) => x.payload.statistic === "BASE_MOVEMENT")!.payload.formula as { expression: string; variables: unknown[] };
+    f.expression = "5";
+    f.variables = [];
+  }), "old-movement-term"],
+  ["M5-SC-036 dropped from the deferred list", () => mutate((d) => void (d.runtime.deferred = [])), "movement-conflicts"],
 ];
 
 describe("M5-WO4 permanent negative controls — mutated real source and content snapshots", () => {

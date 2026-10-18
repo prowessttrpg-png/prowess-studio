@@ -70,6 +70,13 @@ Golden: Base Movement 5 ft, AGI 4 → Movement 20 ft → Sprint 80 ft. Each Spri
 and "Total Movement" are LEGACY terms → Movement). Occupied space never implies Base Movement (Large 10 × 10 ft ≠ 10 ft
 Base Movement). M5-I075 → SUPERSEDED by M5-I111; M5-I112 and M5-I113 are new.
 
+**Post-WO4 canon rulings (M5-SC-033).** The designer later ruled that Base Movement depends on Creature Size: Small 5 ft,
+Medium 5 ft, Large 10 ft, Huge 15 ft (each × AGI); Massive is TBD (new M5-SC-036, `baseMovement: null`, fails closed with
+`PROWESS_CORE.SIZE_BASE_MOVEMENT_PENDING_CANON`). `core.derived.base_movement` now reads the character's exact
+CREATURE_SIZE Definition (`size_base_movement`, source `CREATURE_SIZE_BASE_MOVEMENT`); a character with no Size named is
+MEDIUM, so the golden above (5 ft, AGI 4 → 20 ft → Sprint 80 ft) is unchanged. A Large character with AGI 4 has Movement
+40 ft. Occupied space is still never read; the values are authored (M5-I152).
+
 ```
 Creature Base Movement
         │
@@ -160,7 +167,8 @@ Skill Trained).
 
 `affinity.standard_progression` (s161): Level 1 REQUIRED `CHOOSE_PRIMARY` at NONE; Level 3 REQUIRED Primary NONE →
 TRAINED; Level 6 CHOOSE_ONE Primary TRAINED → EXPERT or `GAIN_SECONDARY_TRAINED`; Level 9 CHOOSE_ONE
-`UPGRADE_AFFINITY_RANK` (TRAINED → EXPERT), `PROMOTE_EXPERT_TO_MASTER`, `GAIN_NEW_AFFINITY` (start rank unresolved).
+`UPGRADE_AFFINITY_RANK` (TRAINED → EXPERT), `PROMOTE_EXPERT_TO_MASTER`, `GAIN_NEW_AFFINITY` (start rank TRAINED since
+the post-WO4 canon rulings; WO4 shipped it unresolved).
 `validateAffinityProgression` applies the authored Levels in order, branching on every option, and reports VALID when
 some path reaches exactly the profile's (role, rank) slots. Progression is never inferred from Level (§52): the result
 only says whether the explicit profile is reachable, and exposes the next Level's options structurally. Explicit,
@@ -172,6 +180,13 @@ provenance-backed overrides (`{ overrideKey, affinity, rank, sourceKey }`) remov
 The Level 9 "Gain a new Affinity" option states no starting rank. It is recorded `UNRESOLVED`; the option has
 `startingRank: null` and `conflictKey: "M5-SC-035"`; any profile reaching it validates as `REQUIRES_CANON` (never
 VALID) whatever rank it claims; it is never auto-executed (M5-I119).
+
+**Post-WO4 canon rulings (M5-SC-035 RESOLVED_BY_DESIGNER).** "If you gain a new Affinity at 9, it is Trained." Every
+Affinity ranks independently. `GAIN_NEW_AFFINITY` now has `startingRank: "TRAINED"` and `conflictKey: null`. The three
+standard Level 9 outcomes validate VALID: Primary Trained → Expert → Master; Primary Expert plus one Secondary Trained;
+three Affinities all Trained. A new Level 9 Affinity at NONE, EXPERT or MASTER is INVALID. The interpreter keeps its
+fail-closed contract: an option whose authored starting rank is null still yields `REQUIRES_CANON`. M5-I119 is
+SUPERSEDED by M5-I151.
 
 ## 14. Strength Keywords
 
@@ -382,8 +397,11 @@ Definition and rank rule. There is no latest / current lookup, registry or cache
 
 ## 37. Remaining Conflicts
 
-- **M5-SC-033** Base Movement values by Creature Size — UNRESOLVED (reframed in WO4).
-- **M5-SC-035** Starting rank of a new Level 9 Affinity — UNRESOLVED (new in WO4).
+- **M5-SC-033** Base Movement values by Creature Size — UNRESOLVED in WO4 (reframed); RESOLVED_BY_DESIGNER by the
+  post-WO4 canon rulings (Small 5 · Medium 5 · Large 10 · Huge 15 ft).
+- **M5-SC-035** Starting rank of a new Level 9 Affinity — UNRESOLVED in WO4; RESOLVED_BY_DESIGNER by the post-WO4 canon
+  rulings (TRAINED).
+- **M5-SC-036** Base Movement of Massive creatures — UNRESOLVED (new in the post-WO4 canon rulings).
 - **M5-SC-028** Rounding of percentage cost modifiers — UNRESOLVED; the later Spell cost pipeline owns final rounding.
 - **M5-SC-011** Arcane Rank vs Arcana Rank terminology — UNRESOLVED; Arcane Authority capacity is out of WO4 scope.
 - Keyword granularity (authoring note, not a conflict): matching is exact with no Keyword implication, so a component

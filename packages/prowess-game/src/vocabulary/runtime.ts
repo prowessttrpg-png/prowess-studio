@@ -77,9 +77,18 @@ export type VariableCostDeterminer = (typeof VARIABLE_COST_DETERMINERS)[number];
 export const ACTION_TIMINGS = deepFreeze(["OWN_TURN", "OUTSIDE_OWN_TURN"] as const);
 export type ActionTiming = (typeof ACTION_TIMINGS)[number];
 
-/** Creature Sizes (s442). Tactical identity and occupied space only — never a movement value (M5-I108, M5-SC-033). */
+/**
+ * Creature Sizes (s442). A Size's occupied space is never read as movement (M5-I108). Its Base Movement is the explicit
+ * `baseMovement` content of its CREATURE_SIZE Definition (designer ruling M5-SC-033: Small / Medium 5 ft, Large 10 ft,
+ * Huge 15 ft; Massive pending M5-SC-036).
+ */
 export const CREATURE_SIZES = deepFreeze(["SMALL", "MEDIUM", "LARGE", "HUGE", "MASSIVE"] as const);
 export type CreatureSize = (typeof CREATURE_SIZES)[number];
+/**
+ * The Size of a CharacterCore that names none: the standard character is Medium (designer rulings M5-WO4 §10 — standard
+ * Base Movement 5 ft — and M5-SC-033 — Medium is 5 ft × AGI). An explicit `creatureSize` always wins.
+ */
+export const STANDARD_CREATURE_SIZE: CreatureSize = "MEDIUM";
 
 /** Terrain kinds with an authored Movement-allowance cost. HAZARDOUS effects (s440) are later Effect / Condition work. */
 export const TERRAIN_KINDS = deepFreeze(["NORMAL", "DIFFICULT"] as const);

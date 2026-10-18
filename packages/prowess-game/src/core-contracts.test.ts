@@ -50,7 +50,7 @@ describe("canonical core content", () => {
     for (const d of CORE_DEFINITIONS) {
       const source = d.payload.source as { locators: string[]; conflicts: string[] };
       expect(source.locators.length, d.canonicalKey).toBeGreaterThan(0);
-      for (const key of source.conflicts) expect(["M5-SC-002", "M5-SC-003", "M5-SC-004", "M5-SC-005", "M5-SC-006", "M5-SC-008", "M5-SC-009", "M5-SC-010", "M5-SC-032", "M5-SC-033"], d.canonicalKey).toContain(key);
+      for (const key of source.conflicts) expect(["M5-SC-002", "M5-SC-003", "M5-SC-004", "M5-SC-005", "M5-SC-006", "M5-SC-008", "M5-SC-009", "M5-SC-010", "M5-SC-032", "M5-SC-033", "M5-SC-036"], d.canonicalKey).toContain(key);
     }
   });
 

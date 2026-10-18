@@ -4,7 +4,7 @@ import { resolveRollMode, resolveRollSignals } from "./core/dice.js";
 import { createSidePhase, resolveInitiativeOrder, validateActingSequence } from "./runtime/combat.js";
 import { compileRuntime } from "./runtime/compile.js";
 import { coreBundle } from "./testing/core-fixtures.js";
-import { codes, roll, runCore } from "./testing/core-run.js";
+import { codes, compileWith, roll, runCore } from "./testing/core-run.js";
 import { payForAction, resources, runRuntime, runtimeCharacter } from "./testing/runtime-run.js";
 
 /**
@@ -34,7 +34,28 @@ describe("§60–§61 / §115 MOVEMENT = BASE MOVEMENT (5 ft) × AGI (M5-SC-006;
   ])("AGI %i → %i ft (M4 FORMULA over canonical content)", (agi, feet) => {
     const r = runCore({ kind: "DERIVED_STATISTICS", subjectKey: "move", statistics: ["BASE_MOVEMENT", "MOVEMENT"] }, { ...runtimeCharacter({ AGI: agi }) });
     expect(r.derived("BASE_MOVEMENT")).toBe(5); // the standard creature's authored Base Movement — never × AGI itself
-    expect(r.derived("MOVEMENT")).toBe(feet); // Base Movement × AGI; no Size value exists (M5-SC-033), no modifier supplied
+    expect(r.derived("MOVEMENT")).toBe(feet); // Base Movement × AGI; a character with no Size named is MEDIUM (5 ft — M5-I152)
+  });
+
+  it.each([
+    ["SMALL", 5, 20],
+    ["MEDIUM", 5, 20],
+    ["LARGE", 10, 40],
+    ["HUGE", 15, 60],
+  ])("M5-I152 designer ruling M5-SC-033: a %s creature has Base Movement %i ft → Movement %i ft at AGI 4 (the Size Definition is cited)", (size, base, feet) => {
+    const r = runCore({ kind: "DERIVED_STATISTICS", subjectKey: "move", statistics: ["BASE_MOVEMENT", "MOVEMENT"] }, { ...runtimeCharacter({ AGI: 4 }), creatureSize: size });
+    expect([r.derived("BASE_MOVEMENT"), r.derived("MOVEMENT")]).toEqual([base, feet]);
+    expect(r.plan.sourceMap.entries.find((e) => e.role === "derived-statistic:BASE_MOVEMENT")?.componentKeys).toContain(`creature-size.${size}`);
+  });
+
+  it("M5-I152 / M5-SC-036 a MASSIVE creature's Base Movement is pending canon: the sheet fails closed, nothing is guessed", () => {
+    const out = compileWith({ kind: "DERIVED_STATISTICS", subjectKey: "move", statistics: ["MOVEMENT"] }, { ...runtimeCharacter({ AGI: 4 }), creatureSize: "MASSIVE" });
+    expect(codes(out)).toEqual(["PROWESS_CORE.SIZE_BASE_MOVEMENT_PENDING_CANON"]);
+  });
+
+  it("an unknown creature Size is refused as an invalid character, never defaulted", () => {
+    const out = compileWith({ kind: "DERIVED_STATISTICS", subjectKey: "move", statistics: ["MOVEMENT"] }, { ...runtimeCharacter({ AGI: 4 }), creatureSize: "GARGANTUAN" });
+    expect(codes(out)).toEqual(["PROWESS_CORE.INVALID_CHARACTER"]);
   });
 
   it("explicit Movement modifiers apply to Movement; Size never does (M5-I076)", () => {

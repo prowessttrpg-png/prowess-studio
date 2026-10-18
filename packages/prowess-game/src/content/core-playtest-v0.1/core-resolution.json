@@ -1087,21 +1087,30 @@
       "payload": {
         "statistic": "BASE_MOVEMENT",
         "formula": {
-          "expression": "5",
+          "expression": "size_base_movement",
           "rounding": "NONE",
           "unit": "ft",
-          "variables": []
+          "variables": [
+            {
+              "variable": "size_base_movement",
+              "source": {
+                "kind": "CREATURE_SIZE_BASE_MOVEMENT"
+              }
+            }
+          ]
         },
         "bonusTarget": null,
         "source": {
           "locators": [
             "s69",
             "s70",
-            "s436"
+            "s436",
+            "s442"
           ],
           "conflicts": [
             "M5-SC-006",
-            "M5-SC-033"
+            "M5-SC-033",
+            "M5-SC-036"
           ]
         }
       }
@@ -1235,6 +1244,10 @@
     {
       "workOrder": "M5-WO4",
       "change": "Post-WO3 canon amendment (designer clarification applied in M5-WO4): BASE_MOVEMENT is the authored standard creature value 5 ft; MOVEMENT = Base Movement x AGI (+ explicit bonuses) replaces the WO3 FINAL_MOVEMENT statistic; no TOTAL_MOVEMENT statistic exists. Standard-character output is numerically unchanged (AGI 4 -> 20 ft)."
+    },
+    {
+      "workOrder": "M5-WO4 canon rulings",
+      "change": "M5-SC-033 RESOLVED_BY_DESIGNER: BASE_MOVEMENT reads the character's exact CREATURE_SIZE Definition's authored Base Movement (Small / Medium 5 ft, Large 10 ft, Huge 15 ft); a CharacterCore naming no Size is the standard Medium character. Movement = Base Movement x AGI is unchanged; the standard character still has 5 ft (AGI 4 -> 20 ft)."
     }
   ]
 }

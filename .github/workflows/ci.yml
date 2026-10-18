@@ -344,6 +344,11 @@ jobs:
           pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo4-affinity-api.test.ts
           node scripts/m5-wo4-negative-controls.mjs
 
+      - name: M5 canon rulings audit — Size Base Movement & Level 9 Affinity rank
+        run: |
+          pnpm --filter "@prowess/game" exec vitest run src/runtime-resources-golden.test.ts src/runtime-contracts.test.ts src/core-resolution-golden.test.ts src/affinity-contracts.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-canon-rulings-static.test.ts
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own

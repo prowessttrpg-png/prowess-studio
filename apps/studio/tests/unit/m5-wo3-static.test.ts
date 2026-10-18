@@ -123,7 +123,7 @@ describe("M5-WO3 audit — Runtime resources, action economy & movement", () => 
     expect(t).toMatch(/entry\("Dodge", "DERIVED_STAT", C, "CHARACTER", "DODGE"/);
   });
 
-  it("source-conflict register: M5-SC-006 and M5-SC-032 RESOLVED_BY_DESIGNER (history kept); M5-SC-033 UNRESOLVED; M5-SC-034 recorded (resolved post-WO3)", () => {
+  it("source-conflict register: M5-SC-006 and M5-SC-032 RESOLVED_BY_DESIGNER (history kept); M5-SC-033 recorded (resolved post-WO4, M5-I152); M5-SC-034 recorded (resolved post-WO3)", () => {
     const register = read("docs/architecture/m5-core-playtest-source-conflicts.md");
     for (const key of ["M5-SC-006", "M5-SC-032"]) {
       const s = section(register, key);
@@ -133,13 +133,15 @@ describe("M5-WO3 audit — Runtime resources, action economy & movement", () => 
     }
     expect(section(register, "M5-SC-006")).toMatch(/5 × AGI[\s\S]*10 × AGI[\s\S]*DEFERRED_PENDING_CANON/);
     expect(section(register, "M5-SC-032")).toMatch(/ROLL_MODE_CONFLICT[\s\S]*NORMAL/);
-    expect(section(register, "M5-SC-033")).toMatch(/\*\*status\*\*: `UNRESOLVED`/);
+    // The post-WO4 designer ruling resolved M5-SC-033 (WO3 history kept in the entry); Massive is M5-SC-036.
+    expect(section(register, "M5-SC-033")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`/);
+    expect(section(register, "M5-SC-033")).toMatch(/WO3 and WO4 status was `UNRESOLVED`/);
     expect(section(register, "M5-SC-033")).toMatch(/occupied space/i);
     // M5-WO4 applied the post-WO3 designer ruling: M5-SC-034 is RESOLVED_BY_DESIGNER (WO3 history kept in the entry).
     expect(section(register, "M5-SC-034")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`/);
     expect(section(register, "M5-SC-034")).toMatch(/WO3 status above was `UNRESOLVED`/);
     expect(section(register, "M5-SC-034")).toMatch(/s71[\s\S]*s438/);
-    expect(runtime().deferred).toEqual(expect.arrayContaining([expect.objectContaining({ conflictKey: "M5-SC-033", status: "DEFERRED_PENDING_CANON" })]));
+    expect(runtime().deferred).toEqual([expect.objectContaining({ conflictKey: "M5-SC-036", status: "DEFERRED_PENDING_CANON" })]);
     expect(core().deferred).toEqual([]);
   });
 
@@ -154,7 +156,7 @@ describe("M5-WO3 audit — Runtime resources, action economy & movement", () => 
     const superseded = catalog.find((x) => x.id === "M5-I073");
     expect([superseded?.status, superseded?.supersededBy]).toEqual(["SUPERSEDED", "M5-I075"]);
     expect(superseded?.title).toBe("Unresolved Movement Formula Conflict M5-SC-006 Must Not Produce Executable Canonical Movement Math");
-    expect(catalog.filter((x) => x.status === "SUPERSEDED").map((x) => x.id)).toEqual(["M5-I073", "M5-I075"]);
+    expect(catalog.filter((x) => x.status === "SUPERSEDED").map((x) => x.id)).toEqual(["M5-I073", "M5-I075", "M5-I119"]); // M5-I119 → M5-I151 (post-WO4)
     const md = read("docs/architecture/m5-invariants.md");
     expect(section(md, "M5-I073")).toMatch(/\*\*Status:\*\* SUPERSEDED by M5-I075/);
     expect(section(md, "M5-I075")).toContain("Base Movement Equals 5 Feet Times AGI");
@@ -222,7 +224,8 @@ const res = (d: Docs, key: string) => d.runtime.definitions.find((x) => x.payloa
 const act = (d: Docs, key: string) => d.runtime.definitions.find((x) => x.payload.actionKey === key)!.payload;
 const contentControls: Array<[string, () => Docs, string]> = [
   ["§175 Base Movement = 10 × AGI", () => mutate((d) => void ((d.core.definitions.find((x) => x.payload.statistic === "BASE_MOVEMENT")!.payload.formula as { expression: string }).expression = "10 * agi")), "movement-not-canonical"],
-  ["§176 Large Size grants movement", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "LARGE")!.payload.baseMovement = { feet: 10 })), "size-speed-inference"],
+  ["§176 Large Size Base Movement drifts from the M5-SC-033 ruling (M5-I152)", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "LARGE")!.payload.baseMovement = { feet: 20 })), "size-speed-inference"],
+  ["M5-I152 Massive Base Movement guessed (M5-SC-036)", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "MASSIVE")!.payload.baseMovement = { feet: 20 })), "size-speed-inference"],
   ["§176 Movement reads a Size term", () => mutate((d) => void ((d.core.definitions.find((x) => x.payload.statistic === "MOVEMENT")!.payload.formula as { variables: unknown[] }).variables.push({ variable: "size", source: { kind: "DERIVED", statistic: "STRENGTH_ARMOR" } }))), "size-speed-inference"],
   ["§177 DOUBLE_ADVANTAGE in content", () => mutate((d) => void ((d.core.definitions.find((x) => x.payload.procedure === "INITIATIVE")!.payload.naturalSelection as Record<string, unknown>).DOUBLE_ADVANTAGE = { expression: "max(r1, r2)" })), "advantage-stacking"],
   ["§181 AP carries over (no END_OF_TURN expiry)", () => mutate((d) => void (res(d, "AP").expiry = [])), "ap-banking"],

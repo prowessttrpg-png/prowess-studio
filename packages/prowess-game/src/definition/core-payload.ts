@@ -112,7 +112,9 @@ export type FormulaVariableSource =
   | { readonly kind: "SKILL_RANK_BONUS" }
   | { readonly kind: "EXPLICIT_BONUSES" }
   /** M5-WO3: the distance moved in one movement segment (runtime input), read only by a TERRAIN allowance cost. */
-  | { readonly kind: "MOVEMENT_DISTANCE" };
+  | { readonly kind: "MOVEMENT_DISTANCE" }
+  /** The character's exact CREATURE_SIZE Definition's authored Base Movement (feet), copied as a literal. */
+  | { readonly kind: "CREATURE_SIZE_BASE_MOVEMENT" };
 
 export interface FormulaVariableDeclaration {
   readonly variable: string;

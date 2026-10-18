@@ -131,6 +131,16 @@ by M5-I111), and its controls now mutate the renamed `CREATURE_SIZE.baseMovement
 fixtures were regenerated: only derived-statistic `order` positions changed (the Movement dependency graph changed).
 No gate was removed.
 
+**Post-WO4 canon rulings additions.** A fifth permanent named step, **"M5 canon rulings audit — Size Base Movement &
+Level 9 Affinity rank"**, runs right after the M5-WO4 gate. It runs the Size Base Movement goldens and contracts
+(`runtime-resources-golden.test.ts`, `runtime-contracts.test.ts`, `core-resolution-golden.test.ts`), the Level 9
+Affinity contracts (`affinity-contracts.test.ts`), and the static audit `apps/studio/tests/unit/m5-canon-rulings-static.test.ts`
+(exact Size values, the M5-SC-033 / M5-SC-035 rulings appended to the register, the new M5-SC-036, the M5-I119 → M5-I151
+supersession, M5-I152, documentation and this CI step). The M5-WO3 and M5-WO4 content rules were amended narrowly to
+the rulings, and `scripts/m5-wo4-negative-controls.mjs` gained the canon-rulings controls (wrong Size values, a guessed
+Massive value, a Size-blind compiler, a non-Trained or unresolved Level 9 Affinity, M5-SC-036 marked resolved). No gate
+was removed.
+
 ## Local quality commands
 
 | Command | What it does | Needs Postgres? |

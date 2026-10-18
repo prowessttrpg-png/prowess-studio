@@ -19,6 +19,8 @@ const vitest = (pkgDir, args) => () =>
 const golden = (pattern) => vitest("packages/prowess-game", ["src/affinity-golden.test.ts", "-t", pattern]);
 const contracts = (pattern) => vitest("packages/prowess-game", ["src/affinity-contracts.test.ts", "-t", pattern]);
 const staticWo4 = (pattern) => vitest("apps/studio", ["tests/unit/m5-wo4-static.test.ts", "-t", pattern]);
+const runtimeGolden = (pattern) => vitest("packages/prowess-game", ["src/runtime-resources-golden.test.ts", "-t", pattern]);
+const staticRulings = (pattern) => vitest("apps/studio", ["tests/unit/m5-canon-rulings-static.test.ts", "-t", pattern]);
 const sourceRules = (file) => staticWo4(`packages/prowess-game/src/${file} passes the WO4`);
 const CONTENT_RULES = "content passes every WO4 rule";
 
@@ -151,14 +153,54 @@ const controls = [
     guard: contracts("M5-I144"),
   },
   {
-    name: "§260 Level 9 new Affinity assigned TRAINED without canon",
+    // Post-WO4 canon rulings: the designer ruled TRAINED (M5-SC-035, M5-I151). Any other starting rank is now the guess.
+    name: "§260 / M5-I151 Level 9 new Affinity starts at EXPERT, contrary to the M5-SC-035 ruling",
+    file: AFFINITY,
+    mutate: content((defs) => void (def(defs, (d) => d.definitionKind === "AFFINITY_PROGRESSION").payload.levels.find((l) => l.level === 9).options.find((o) => o.optionKey === "GAIN_NEW_AFFINITY").startingRank = "EXPERT")),
+    guard: contracts("M5-I151 / M5-SC-035 ruling"),
+  },
+  {
+    name: "M5-I151 Level 9 new Affinity reverted to unresolved after the designer ruled TRAINED",
     file: AFFINITY,
     mutate: content((defs) => {
       const gain = def(defs, (d) => d.definitionKind === "AFFINITY_PROGRESSION").payload.levels.find((l) => l.level === 9).options.find((o) => o.optionKey === "GAIN_NEW_AFFINITY");
-      gain.startingRank = "TRAINED";
-      gain.conflictKey = null;
+      gain.startingRank = null;
+      gain.conflictKey = "M5-SC-035";
     }),
-    guard: contracts("M5-SC-035"),
+    guard: contracts("M5-I151 / M5-SC-035 ruling"),
+  },
+  {
+    name: "M5-I152 Large Base Movement drifts from 10 ft to 20 ft",
+    file: RUNTIME,
+    mutate: content((defs) => void (def(defs, (d) => d.payload.sizeKey === "LARGE").payload.baseMovement = { feet: 20 })),
+    guard: runtimeGolden("M5-I152 designer ruling M5-SC-033"),
+  },
+  {
+    name: "M5-I152 / M5-SC-036 Massive Base Movement guessed as 20 ft",
+    file: RUNTIME,
+    mutate: content((defs) => void (def(defs, (d) => d.payload.sizeKey === "MASSIVE").payload.baseMovement = { feet: 20 })),
+    guard: runtimeGolden("M5-SC-036 a MASSIVE"),
+  },
+  {
+    name: "M5-I152 the compiler ignores the character's Size (every creature reads Medium)",
+    file: G("core/compile.ts"),
+    mutate: replaceOnce("            const size = this.character.creatureSize;\n", '            const size = "MEDIUM" as const;\n'),
+    guard: runtimeGolden("M5-I152 designer ruling M5-SC-033"),
+  },
+  {
+    name: "M5-I152 / M5-SC-036 the compiler guesses a Massive Base Movement instead of failing closed",
+    file: G("core/compile.ts"),
+    mutate: replaceOnce(
+      "            if (entry.payload.baseMovement === null) {\n",
+      "            if (entry.payload.baseMovement === null) {\n              literals[variable] = 20;\n              break;\n",
+    ),
+    guard: runtimeGolden("M5-SC-036 a MASSIVE"),
+  },
+  {
+    name: "M5-SC-036 marked resolved in the register without a designer ruling",
+    file: REGISTER,
+    mutate: replaceOnce("- **status**: `UNRESOLVED`\n- **resolution authority**: none\n- **notes**: recorded by the post-WO4 canon-rulings amendment.", "- **status**: `RESOLVED_BY_DESIGNER`\n- **resolution authority**: none\n- **notes**: recorded by the post-WO4 canon-rulings amendment."),
+    guard: staticRulings("M5-SC-036 new and UNRESOLVED"),
   },
   {
     name: "§261 Divination Persistent Effects +15% coerced to Moderate +20%",

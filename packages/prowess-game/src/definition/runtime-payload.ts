@@ -121,15 +121,16 @@ export interface ActionDefinitionPayload {
 
 /**
  * A Size's tactical identity (s442). `occupiedSpaceFeet` is the space as written (one dimension "5 ft", or two "10 ft ×
- * 10 ft"); `orLarger` marks "or larger". `baseMovement` must be null: whether Sizes have different Base Movement values,
- * and what they are, is M5-SC-033 (UNRESOLVED); occupied space is never read as Base Movement (M5-I076, M5-I108, M5-I113).
- * (M5-WO3 named this field `movementAdjustment`; the post-WO3 terminology amendment applied in M5-WO4 renamed it.)
+ * 10 ft"); `orLarger` marks "or larger". `baseMovement` is the Size's authored Base Movement in feet (designer ruling
+ * M5-SC-033: Small / Medium 5, Large 10, Huge 15), or null where canon has no value yet (Massive — M5-SC-036). It is
+ * explicit content; occupied space is never read as Base Movement (M5-I076, M5-I108, M5-I113). (M5-WO3 named this field
+ * `movementAdjustment` and required null; M5-WO4 renamed it; the post-WO4 ruling gives it values.)
  */
 export interface CreatureSizeDefinitionPayload {
   readonly sizeKey: CreatureSize;
   readonly occupiedSpaceFeet: readonly number[];
   readonly orLarger: boolean;
-  readonly baseMovement: null;
+  readonly baseMovement: { readonly feet: number } | null;
   readonly rules: JsonObject;
   readonly source: CoreDefinitionSource;
 }
@@ -335,14 +336,19 @@ function readCreatureSize(r: Record<string, unknown>, at: readonly PathSegment[]
   });
   if (space !== null && (space.length < 1 || space.length > 2)) p.add(C.INVALID_PAYLOAD, [...at, "occupiedSpaceFeet"], "occupied space is written with one or two dimensions (s442)");
   const orLarger = readBoolean(own(r, "orLarger"), [...at, "orLarger"], p, "orLarger");
-  // M5-SC-033 is UNRESOLVED: no Size Base Movement value exists. Anything but null is refused rather than guessed.
-  if (own(r, "baseMovement") !== null) {
-    p.add(C.DEFERRED_PENDING_CANON, [...at, "baseMovement"], "Base Movement values by Creature Size are DEFERRED_PENDING_CANON (M5-SC-033 is unresolved); occupied space is never Base Movement");
+  // M5-SC-033 RESOLVED_BY_DESIGNER (post-WO4): an explicit positive Base Movement in feet, or null while canon is pending.
+  const rawBase = own(r, "baseMovement");
+  let baseMovement: { feet: number } | null = null;
+  if (rawBase !== null) {
+    const b = readRecord(rawBase, [...at, "baseMovement"], p, C.INVALID_PAYLOAD, ["feet"], ["feet"]);
+    const feet = b === null ? null : readSafeInteger(own(b, "feet"), [...at, "baseMovement", "feet"], p, C.INVALID_PAYLOAD, "baseMovement feet");
+    if (feet !== null && feet < 1) p.add(C.INVALID_PAYLOAD, [...at, "baseMovement", "feet"], "a Base Movement is a positive number of feet");
+    else if (feet !== null) baseMovement = { feet };
   }
   const rules = readRules(own(r, "rules"), [...at, "rules"], p);
   const source = readSource(own(r, "source"), [...at, "source"], p);
   if (p.count > before || sizeKey === null || space === null || orLarger === null || rules === null || source === null) return null;
-  return { sizeKey, occupiedSpaceFeet: space, orLarger, baseMovement: null, rules, source };
+  return { sizeKey, occupiedSpaceFeet: space, orLarger, baseMovement, rules, source };
 }
 
 function readTerrain(r: Record<string, unknown>, at: readonly PathSegment[], p: Problems): TerrainDefinitionPayload | null {

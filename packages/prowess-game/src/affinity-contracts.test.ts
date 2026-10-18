@@ -94,11 +94,11 @@ describe("canonical Affinity content (§22–§28, §70–§75, §142–§147)",
     ]);
   });
 
-  it("M5-I119 the Level 9 new-Affinity starting rank is null and cites M5-SC-035 — never guessed", () => {
+  it("M5-I151 (supersedes M5-I119) a new Level 9 Affinity starts at TRAINED by designer ruling M5-SC-035", () => {
     const levels = payloadOf("affinity.standard_progression").levels as { level: number; options: Record<string, unknown>[] }[];
     expect(levels.map((l) => l.level)).toEqual([1, 3, 6, 9]);
-    expect(levels[3]?.options.find((o) => o.optionKey === "GAIN_NEW_AFFINITY")).toEqual({ optionKey: "GAIN_NEW_AFFINITY", action: "GAIN_AFFINITY", role: "SECONDARY", startingRank: null, conflictKey: "M5-SC-035" });
-    expect(AFFINITY_CONTENT.deferred).toEqual([{ conflictKey: "M5-SC-035", concept: "Starting Rank of a new Level 9 Affinity", status: "DEFERRED_PENDING_CANON" }]);
+    expect(levels[3]?.options.find((o) => o.optionKey === "GAIN_NEW_AFFINITY")).toEqual({ optionKey: "GAIN_NEW_AFFINITY", action: "GAIN_AFFINITY", role: "SECONDARY", startingRank: "TRAINED", conflictKey: null });
+    expect(AFFINITY_CONTENT.deferred).toEqual([]);
   });
 
   it("every Affinity rule Keyword is an exact canonical Keyword listed for the M1 Keyword catalog (§146), descriptive themes are not Keywords (§147)", () => {
@@ -220,20 +220,29 @@ describe("standard Affinity progression (§40–§52, §157–§160 — M5-I117,
     expect(status(3, [P("NONE")])).toBe("INVALID"); // Level 3 makes the Primary Trained (§43)
   });
 
-  it("§160 / M5-SC-035 gaining a new Level 9 Affinity is REQUIRES_CANON at any rank — never VALID by a guessed rank", () => {
-    for (const rank of AFFINITY_RANKS) {
-      const out = check(9, [P("TRAINED"), S("TRAINED"), S(rank, "affinity.divination")]);
-      expect(out.ok && [out.value.status, out.value.unresolvedConflicts], rank).toEqual(["REQUIRES_CANON", ["M5-SC-035"]]);
-    }
+  it("M5-I151 / M5-SC-035 ruling: every Affinity ranks independently — the three standard Level 9 outcomes are VALID, a new Level 9 Affinity is TRAINED only", () => {
+    expect(status(9, [P("MASTER")])).toBe("VALID"); // Trained → Expert → Master
+    expect(status(9, [P("EXPERT"), S("TRAINED")])).toBe("VALID"); // Trained → Expert, plus another Trained
+    expect(status(9, [P("TRAINED"), S("TRAINED"), S("TRAINED", "affinity.divination")])).toBe("VALID"); // three Affinities, all Trained
+    for (const rank of ["NONE", "EXPERT", "MASTER"]) expect(status(9, [P("TRAINED"), S("TRAINED"), S(rank, "affinity.divination")]), rank).toBe("INVALID");
+    expect(status(9, [P("EXPERT"), S("TRAINED"), S("TRAINED", "affinity.divination")])).toBe("INVALID"); // one Level 9 choice only
   });
 
-  it("§52 progression is never inferred from Level: the next Level's options are exposed structurally, the unresolved one with a null rank", () => {
+  it("an option whose starting rank is unresolved content is still REQUIRES_CANON — never guessed (interpreter contract)", () => {
+    const prog = payloadOf("affinity.standard_progression") as { levels: { level: number; options: Record<string, unknown>[] }[] };
+    const levels = prog.levels.map((l) => (l.level !== 9 ? l : { ...l, options: l.options.map((o) => (o.optionKey === "GAIN_NEW_AFFINITY" ? { ...o, startingRank: null, conflictKey: "M5-SC-099" } : o)) }));
+    const f = affinityFixture({ revise: { "affinity.standard_progression": { ...prog, levels, source: { locators: ["s161"], conflicts: ["M5-SC-099"] } } } });
+    const out = validateAffinityProgression({ definitions: f.bundle, profile: profileOf(f, [P("TRAINED"), S("TRAINED"), S("MASTER", "affinity.divination")]), characterLevel: 9 });
+    expect(out.ok && [out.value.status, out.value.unresolvedConflicts]).toEqual(["REQUIRES_CANON", ["M5-SC-099"]]);
+  });
+
+  it("§52 progression is never inferred from Level: the next Level's options are exposed structurally", () => {
     const out = check(8, [P("EXPERT")]);
     expect(out.ok && out.value.nextOptions?.level).toBe(9);
     expect(out.ok && out.value.nextOptions?.options.map((o) => [o.optionKey, "startingRank" in o ? o.startingRank : "-"])).toEqual([
       ["UPGRADE_AFFINITY_RANK", "-"],
       ["PROMOTE_EXPERT_TO_MASTER", "-"],
-      ["GAIN_NEW_AFFINITY", null],
+      ["GAIN_NEW_AFFINITY", "TRAINED"],
     ]);
   });
 
