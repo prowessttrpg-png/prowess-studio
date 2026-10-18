@@ -226,6 +226,23 @@ export class Emitter {
           case "EXPLICIT_BONUSES":
             if (context.bonusTarget !== null) bindings.push(fromFragment(target, this.bonuses(context.bonusTarget, owner, ownerEntry)));
             break;
+          case "CREATURE_SIZE_BASE_MOVEMENT": {
+            // The character's exact CREATURE_SIZE Definition's authored Base Movement — copied, never computed or
+            // inferred from occupied space (post-WO4 designer ruling M5-SC-033, M5-I113, M5-I152).
+            const size = this.character.creatureSize;
+            const entry = this.core.sizes[size];
+            if (entry === undefined) {
+              this.p.add(K.MISSING_CORE_DEFINITION, ["definitions"], `the bundle has no CREATURE_SIZE Definition for ${size}; Base Movement comes from it`);
+              return;
+            }
+            if (entry.payload.baseMovement === null) {
+              this.p.add(K.SIZE_BASE_MOVEMENT_PENDING_CANON, ["character", "creatureSize"], `${size} has no canonical Base Movement yet (${entry.ref.canonicalKey}); it is never guessed`);
+              return;
+            }
+            cite(this.component(`creature-size.${size}`, [entry]));
+            literals[variable] = entry.payload.baseMovement.feet;
+            break;
+          }
         }
       };
       read(source);

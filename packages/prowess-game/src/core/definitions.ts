@@ -12,6 +12,8 @@ import type {
   SkillRankPayload,
   StatDefinitionPayload,
 } from "../definition/core-payload.js";
+import type { CreatureSizeDefinitionPayload } from "../definition/runtime-payload.js";
+import type { CreatureSize } from "../vocabulary/runtime.js";
 import { PROWESS_STATS, SKILL_RANK_LADDER_KEY, type CoreProcedure, type DerivedStatistic, type ProwessStat } from "../vocabulary/core.js";
 
 /**
@@ -36,6 +38,8 @@ export interface CoreDefinitionIndex {
   /** Derived statistics in M4's deterministic dependency order (dependencies first). */
   readonly derivedOrder: readonly DerivedStatistic[];
   readonly procedures: Readonly<Partial<Record<CoreProcedure, CoreEntry<CoreResolutionPayload>>>>;
+  /** CREATURE_SIZE Definitions present in the bundle (their Base Movement feeds BASE_MOVEMENT — post-WO4 M5-SC-033). */
+  readonly sizes: Readonly<Partial<Record<CreatureSize, CoreEntry<CreatureSizeDefinitionPayload>>>>;
 }
 
 function entryOf<P>(bundle: ProwessDefinitionBundle, envelope: ProwessDefinitionEnvelope): CoreEntry<P> {
@@ -79,6 +83,9 @@ export function indexCoreDefinitions(bundle: ProwessDefinitionBundle): ProwessOu
       case "CORE_RESOLUTION":
         claim(`procedure:${String(payload.procedure)}`, envelope);
         break;
+      case "CREATURE_SIZE":
+        claim(`size:${String(payload.sizeKey)}`, envelope);
+        break;
       default:
         break;
     }
@@ -117,6 +124,7 @@ export function indexCoreDefinitions(bundle: ProwessDefinitionBundle): ProwessOu
 
   const derived: Partial<Record<DerivedStatistic, CoreEntry<DerivedStatPayload>>> = {};
   const procedures: Partial<Record<CoreProcedure, CoreEntry<CoreResolutionPayload>>> = {};
+  const sizes: Partial<Record<CreatureSize, CoreEntry<CreatureSizeDefinitionPayload>>> = {};
   for (const role of [...roles.keys()].sort()) {
     const [family, key] = role.split(":") as [string, string];
     if (family === "derived") {
@@ -125,6 +133,9 @@ export function indexCoreDefinitions(bundle: ProwessDefinitionBundle): ProwessOu
     } else if (family === "procedure") {
       const e = one<CoreResolutionPayload>(role, false);
       if (e !== null) procedures[key as CoreProcedure] = e;
+    } else if (family === "size") {
+      const e = one<CreatureSizeDefinitionPayload>(role, false);
+      if (e !== null) sizes[key as CreatureSize] = e;
     }
   }
 
@@ -147,6 +158,7 @@ export function indexCoreDefinitions(bundle: ProwessDefinitionBundle): ProwessOu
       derived,
       derivedOrder: (ordered.ok ? ordered.order : []) as DerivedStatistic[],
       procedures,
+      sizes,
     }),
   );
 }

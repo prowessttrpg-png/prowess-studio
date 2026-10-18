@@ -12,12 +12,13 @@
     "M5-SC-004",
     "M5-SC-006",
     "M5-SC-032",
+    "M5-SC-033",
     "M5-SC-034"
   ],
   "deferred": [
     {
-      "conflictKey": "M5-SC-033",
-      "concept": "Base Movement values by Creature Size",
+      "conflictKey": "M5-SC-036",
+      "concept": "Base Movement of Massive creatures",
       "status": "DEFERRED_PENDING_CANON"
     }
   ],
@@ -662,7 +663,9 @@
           5
         ],
         "orLarger": false,
-        "baseMovement": null,
+        "baseMovement": {
+          "feet": 5
+        },
         "rules": {},
         "source": {
           "locators": [
@@ -684,7 +687,9 @@
           5
         ],
         "orLarger": false,
-        "baseMovement": null,
+        "baseMovement": {
+          "feet": 5
+        },
         "rules": {},
         "source": {
           "locators": [
@@ -707,7 +712,9 @@
           10
         ],
         "orLarger": false,
-        "baseMovement": null,
+        "baseMovement": {
+          "feet": 10
+        },
         "rules": {},
         "source": {
           "locators": [
@@ -730,7 +737,9 @@
           15
         ],
         "orLarger": false,
-        "baseMovement": null,
+        "baseMovement": {
+          "feet": 15
+        },
         "rules": {},
         "source": {
           "locators": [
@@ -761,7 +770,8 @@
             "s442"
           ],
           "conflicts": [
-            "M5-SC-033"
+            "M5-SC-033",
+            "M5-SC-036"
           ]
         }
       }
@@ -826,6 +836,10 @@
     {
       "workOrder": "M5-WO4",
       "change": "Post-WO3 canon amendment: M5-SC-034 RESOLVED_BY_DESIGNER (Sprint Allowance = Movement x 4, each Sprint independently); Move / Sprint read the MOVEMENT statistic (no Total Movement); CREATURE_SIZE.movementAdjustment renamed baseMovement (null: M5-SC-033 Base Movement values by Creature Size remain unresolved)."
+    },
+    {
+      "workOrder": "M5-WO4 canon rulings",
+      "change": "M5-SC-033 RESOLVED_BY_DESIGNER: CREATURE_SIZE.baseMovement Small 5 ft, Medium 5 ft, Large 10 ft, Huge 15 ft (Movement = Base Movement x AGI). Massive stays null pending canon (new M5-SC-036). Occupied space is still never read as Base Movement."
     }
   ]
 }

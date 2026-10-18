@@ -9,16 +9,11 @@
     "structureHashPrefix": "3d9a429c"
   },
   "designerRulings": [
-    "M5-SC-001"
+    "M5-SC-001",
+    "M5-SC-035"
   ],
   "designerContent": "M5-WO4 §22–§75 (designer work order): the six canonical Affinities, Evocation canonical / Emission legacy, the Strength / Weakness tables, Affinity Rank discount / capacity tables and standard advancement. Where the per-Affinity chapters (s716–s733) and the quick reference (s687) list Strengths differently, the work order's explicit tables are structured here; source text is unchanged.",
-  "deferred": [
-    {
-      "conflictKey": "M5-SC-035",
-      "concept": "Starting Rank of a new Level 9 Affinity",
-      "status": "DEFERRED_PENDING_CANON"
-    }
-  ],
+  "deferred": [],
   "keywordCategory": {
     "canonicalKey": "keyword_category.affinity_alignment",
     "name": "Affinity Alignment",
@@ -803,8 +798,8 @@
                 "optionKey": "GAIN_NEW_AFFINITY",
                 "action": "GAIN_AFFINITY",
                 "role": "SECONDARY",
-                "startingRank": null,
-                "conflictKey": "M5-SC-035"
+                "startingRank": "TRAINED",
+                "conflictKey": null
               }
             ]
           }
@@ -814,11 +809,15 @@
             "s118",
             "s161"
           ],
-          "conflicts": [
-            "M5-SC-035"
-          ]
+          "conflicts": []
         }
       }
+    }
+  ],
+  "revisions": [
+    {
+      "workOrder": "M5-WO4 canon rulings",
+      "change": "M5-SC-035 RESOLVED_BY_DESIGNER: an Affinity gained at Level 9 starts at TRAINED. Each Affinity ranks independently: standard Level 10 outcomes are Primary Master; Primary Expert + another Trained; or three Affinities all Trained."
     }
   ]
 }

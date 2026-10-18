@@ -93,6 +93,11 @@ M5-SC-033 is `UNRESOLVED`. Movement may depend on Size, but no values exist. The
 `CREATURE_SIZE.movementAdjustment` must be null. Any other value is refused as
 `PROWESS_DEFINITION.DEFERRED_PENDING_CANON`.
 
+> **Post-WO4 canon rulings amendment.** M5-SC-033 is now `RESOLVED_BY_DESIGNER`: different Sizes have different Base
+> Movement — Small 5 ft, Medium 5 ft, Large 10 ft, Huge 15 ft, each × AGI. The field is `baseMovement` (renamed in WO4)
+> and carries `{ feet }`; Massive is `null` pending M5-SC-036. The WO3 text above is kept as history. See
+> `m5-affinity-structured-rules.md` §4 and M5-I152.
+
 ## 6. Resource Model
 
 | Resource | Definition | M4 kind | Maximum | Refresh | Expiry | Spending |
@@ -334,6 +339,10 @@ Move / Sprint Allowance
 - `BASE_MOVEMENT = 5 * agi`.
 - `FINAL_MOVEMENT = base_movement + bonuses`, where the bonuses are explicit bonuses targeting MOVEMENT.
 - WO3 guarantees the first stage (M5-I075). The Size stage starts working only when M5-SC-033 has values (M5-I076).
+
+> **Post-WO4 canon rulings amendment.** Current canon (M5-I111, M5-I152): `BASE_MOVEMENT = size_base_movement` (the
+> character's CREATURE_SIZE value; MEDIUM when none is named) and `MOVEMENT = base_movement * agi + bonuses`. The diagram
+> above is the WO3 history.
 
 ## 18. Creature Size
 

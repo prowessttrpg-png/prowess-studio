@@ -11,7 +11,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { CreateChangeSetOperationInput } from "@prowess/model";
-import { PROWESS_DEFINITION_STORAGE_KEY, buildCoreResolutionContexts, compileCoreResolution, type ProwessDefinitionBundle } from "@prowess/game";
+import { PROWESS_DEFINITION_KINDS, PROWESS_DEFINITION_STORAGE_KEY, buildCoreResolutionContexts, compileCoreResolution, type ProwessDefinitionBundle } from "@prowess/game";
 import { orchestrateRulesEvaluation, type RulesetContext } from "@prowess/rules";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
@@ -38,8 +38,11 @@ interface ContentDefinition {
   definitionKind: string;
   payload: Record<string, unknown>;
 }
-const CONTENT = JSON.parse(readFileSync(path.resolve(import.meta.dirname, "../../../prowess-game/src/content/core-playtest-v0.1/core-resolution.json"), "utf8")) as { definitions: ContentDefinition[] };
-const FAMILY: Record<string, string> = { STAT: "CHARACTER", DERIVED_STAT: "CHARACTER", CHARACTER_DIE_PROGRESSION: "CORE", CORE_RESOLUTION: "CORE", RANK_LADDER: "SKILL", SKILL_RANK: "SKILL" };
+const contentDoc = (file: string) => JSON.parse(readFileSync(path.resolve(import.meta.dirname, `../../../prowess-game/src/content/core-playtest-v0.1/${file}`), "utf8")) as { definitions: ContentDefinition[] };
+// The core-resolution Definitions plus the CREATURE_SIZE Definitions: since the post-WO4 designer ruling on M5-SC-033,
+// BASE_MOVEMENT reads the character's exact Size Definition (M5-I152), so a core Release pins the Sizes too.
+const CONTENT = { definitions: [...contentDoc("core-resolution.json").definitions, ...contentDoc("runtime-resources.json").definitions.filter((d) => d.definitionKind === "CREATURE_SIZE")] };
+const FAMILY: Record<string, string> = { STAT: "CHARACTER", DERIVED_STAT: "CHARACTER", CHARACTER_DIE_PROGRESSION: "CORE", CORE_RESOLUTION: "CORE", RANK_LADDER: "SKILL", SKILL_RANK: "SKILL", CREATURE_SIZE: PROWESS_DEFINITION_KINDS.CREATURE_SIZE.family };
 
 const tag = `${Date.now()}`;
 let counter = 0;

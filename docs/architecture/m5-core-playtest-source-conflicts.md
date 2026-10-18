@@ -1,4 +1,4 @@
-# M5 — Core Playtest Source Conflicts (M5-WO1, updated M5-WO2, M5-WO3 and M5-WO4)
+# M5 — Core Playtest Source Conflicts (M5-WO1, updated M5-WO2, M5-WO3, M5-WO4 and the post-WO4 canon rulings)
 
 **Source audited:** Prowess Core Playtest Packet V0.1. The designer's local copy (98,897,516 bytes, SHA-256 prefix
 `21fa6771…`) was verified byte-identical to the source identity recorded in
@@ -29,6 +29,12 @@ Allowance = Movement × 4, each Sprint independently. M5-SC-034 is `RESOLVED_BY_
 reframed as "Base Movement Values By Creature Size"; M5-SC-035 (starting Rank of a new Level 9 Affinity) is new and
 `UNRESOLVED`. The WO3 entries keep their WO3 text verbatim; each WO4 change is appended as a dated amendment, so the WO3
 history (Final Movement, `final_movement * 4`) stays readable. Source locators are unchanged.
+
+**Post-WO4 canon rulings update.** After M5-WO4 merged, the designer ruled on M5-SC-033 (different Creature Sizes have
+different Base Movement: Small 5 ft · Medium 5 ft · Large 10 ft · Huge 15 ft, each × AGI; Massive TBD) and on M5-SC-035
+(a new Level 9 Affinity starts at Trained; every Affinity ranks independently). Both are `RESOLVED_BY_DESIGNER`.
+M5-SC-036 (Base Movement of Massive creatures) is new and `UNRESOLVED`. Earlier text is kept verbatim; each ruling is
+appended as an amendment.
 
 **Statuses:** `UNRESOLVED` · `RESOLVED_BY_DESIGNER` · `RESOLVED_BY_CANON_DECISION` · `SUPERSEDED`.
 
@@ -534,8 +540,8 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   anywhere for any Size.
 - **mechanical consequence**: unknown adjustment per Size; unknown whether it is additive or multiplicative; unknown
   whether Small and Medium share one; unknown whether Massive has a fixed rule or a creature-specific one.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer ruling after M5-WO4 (canon-rulings amendment); WO3 and WO4 status was `UNRESOLVED`, resolution authority none
 - **notes**: recorded by M5-WO3 §7. `CREATURE_SIZE` Definitions carry occupied space only; `movementAdjustment` must be
   null (any value is refused as `PROWESS_DEFINITION.DEFERRED_PENDING_CANON`); occupied space is never read as speed.
   Final Movement currently = Base Movement + explicit Movement modifiers. Guarded by M5-I076 / M5-I108 and M5-WO3
@@ -547,6 +553,15 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   `movementAdjustment`) and must be null; any value is refused as `PROWESS_DEFINITION.DEFERRED_PENDING_CANON`. Occupied
   space (Large 10 × 10 ft) never implies Base Movement (Large Base Movement ≠ 10 ft). No Size value is invented. Guarded by
   M5-I113 and the M5-WO4 audit.
+- **Post-WO4 designer ruling (resolves M5-SC-033)**: "different Sized Creatures have different base Size Scaling for
+  Movement. (Medium is 5ft x AGI, Large is 10ft x AGI, Huge is 15 ft x AGI)"; Small is 5 ft; Massive is TBD (recorded as
+  M5-SC-036). Each `CREATURE_SIZE` Definition now authors `baseMovement` explicitly — SMALL `{ feet: 5 }`, MEDIUM
+  `{ feet: 5 }`, LARGE `{ feet: 10 }`, HUGE `{ feet: 15 }`, MASSIVE `null`. `core.derived.base_movement` reads it through
+  the variable source `CREATURE_SIZE_BASE_MOVEMENT` (expression `size_base_movement`), which copies the exact Size
+  Definition's value and cites it; Movement stays `base_movement * agi + bonuses`. A character with no Size named is
+  MEDIUM (`STANDARD_CREATURE_SIZE`), so the standard character is numerically unchanged. The values are authored data:
+  they coincide with occupied space for Large and Huge, but occupied space is still never read as Base Movement.
+  Guarded by M5-I152 and the canon-rulings negative controls.
 
 ### M5-SC-034 — Sprint movement basis and repeated Sprint
 
@@ -585,9 +600,32 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   states the Level 1 Primary is chosen "but does not yet gain the full benefits of Affinity Rank".
 - **mechanical consequence**: NONE, TRAINED, EXPERT and MASTER are all conceivable starting Ranks; Strength discount,
   Authority capacity and access differ by Rank.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer ruling after M5-WO4 (canon-rulings amendment); WO4 status was `UNRESOLVED`, resolution authority none
 - **notes**: recorded by M5-WO4 §48. The `affinity.standard_progression` Definition exposes the Level 9 option
   `GAIN_NEW_AFFINITY` structurally with `startingRank: null` and `conflictKey: "M5-SC-035"`; it is never executed
   automatically. A profile that reaches it validates as `REQUIRES_CANON`, never `VALID`, whatever Rank it claims. Guarded
   by M5-I119 and M5-WO4 negative control §260.
+- **Post-WO4 designer ruling (resolves M5-SC-035)**: "If you gain a new Affinity at 9, it is Trained. All Affinity level
+  from themselves. You become Trained in your Affinity at 3, then Expert, then Master, or Trained - Expert, and another
+  Trained, or three different affinities all trained." `GAIN_NEW_AFFINITY` now has `startingRank: "TRAINED"` and
+  `conflictKey: null`; each Affinity's Rank advances independently. At Level 9 the three standard outcomes validate
+  `VALID`: Primary Master; Primary Expert + one Secondary Trained; three Affinities Trained. A new Level 9 Affinity at any
+  other Rank is `INVALID`. The progression interpreter still returns `REQUIRES_CANON` for any option whose starting Rank is
+  unresolved content (null), so the fail-closed contract is kept for future content. M5-I119 is SUPERSEDED by M5-I151.
+
+### M5-SC-036 — Base Movement Of Massive Creatures
+
+- **conflictKey**: `M5-SC-036`
+- **systemFamily**: `CHARACTER`
+- **concept**: The Base Movement of a Massive creature
+- **source A**: post-WO4 designer ruling on M5-SC-033: Small 5 ft, Medium 5 ft, Large 10 ft, Huge 15 ft (× AGI);
+  Massive "TBD".
+- **source B**: s442 Creature Space: Massive occupies "20 ft × 20 ft or larger" — occupied space only, and open-ended.
+- **mechanical consequence**: a Massive creature's Movement cannot be computed; the pattern (+5 ft per Size above Medium)
+  would suggest 20 ft, but the designer has not said so and Massive is open-ended.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none
+- **notes**: recorded by the post-WO4 canon-rulings amendment. `creature_size.massive` has `baseMovement: null`.
+  Compiling a Massive character's core sheet fails closed with `PROWESS_CORE.SIZE_BASE_MOVEMENT_PENDING_CANON`; no value
+  is guessed. Listed in `runtime-resources.json` `deferred`. Guarded by M5-I152 and the canon-rulings negative controls.

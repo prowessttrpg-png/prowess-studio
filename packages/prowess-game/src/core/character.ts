@@ -13,6 +13,7 @@ import {
   type ProwessStat,
 } from "../vocabulary/core.js";
 import type { CoreDefinitionIndex } from "./definitions.js";
+import { CREATURE_SIZES, STANDARD_CREATURE_SIZE, type CreatureSize } from "../vocabulary/runtime.js";
 
 /**
  * The Character Die a character rolls: one die size and the level band it belongs to (s16). Resolved from the exact
@@ -56,14 +57,17 @@ export interface CharacterCore {
   readonly baseMp: number;
   readonly skillRanks: readonly CharacterSkillRank[];
   readonly explicitBonuses: readonly ExplicitBonus[];
+  /** The creature's Size (s442). Optional: a character naming none is the standard Medium creature (post-WO4 ruling). */
+  readonly creatureSize?: CreatureSize;
 }
 
-/** A CharacterCore checked against exact core Definitions, with its resolved Character Die. */
+/** A CharacterCore checked against exact core Definitions, with its resolved Character Die and Size. */
 export interface ValidatedCharacterCore extends CharacterCore {
   readonly resolvedDie: CharacterDie;
+  readonly creatureSize: CreatureSize;
 }
 
-const CORE_FIELDS = ["level", "characterDie", "stats", "baseHp", "baseMp", "skillRanks", "explicitBonuses"];
+const CORE_FIELDS = ["level", "characterDie", "stats", "baseHp", "baseMp", "skillRanks", "explicitBonuses", "creatureSize"];
 const BONUS_KEY_PATTERN = /^[a-z][a-z0-9_]{0,63}$/;
 
 /** The die band the progression assigns to `level`, or null when `level` is not a declared Character Level. */
@@ -83,7 +87,7 @@ export function resolveCharacterDie(progression: CharacterDieProgressionPayload,
 export function validateCharacterCore(value: unknown, core: CoreDefinitionIndex): ProwessOutcome<ValidatedCharacterCore> {
   const p = new Problems();
   if (!checkPlainData(value, [], p, C.NOT_PLAIN_DATA)) return finish(p, () => null as never);
-  const r = readRecord(value, [], p, K.INVALID_CHARACTER, CORE_FIELDS, CORE_FIELDS);
+  const r = readRecord(value, [], p, K.INVALID_CHARACTER, CORE_FIELDS, CORE_FIELDS.filter((f) => f !== "creatureSize"));
   if (r === null) return finish(p, () => null as never);
 
   const level = readSafeInteger(own(r, "level"), ["level"], p, K.INVALID_CHARACTER, "level");
@@ -155,6 +159,9 @@ export function validateCharacterCore(value: unknown, core: CoreDefinitionIndex)
       if (appliesTo !== null && amount !== null) explicitBonuses.push({ bonusKey, appliesTo, value: amount, category: category as string | null, sourceKey: sourceKey as string | null });
     });
 
+  const rawSize = own(r, "creatureSize");
+  const creatureSize = rawSize === undefined ? STANDARD_CREATURE_SIZE : readEnum(rawSize, CREATURE_SIZES, ["creatureSize"], p, K.INVALID_CHARACTER, "creature Size");
+
   return finish(p, () =>
     deepFreeze({
       level: level as number,
@@ -169,6 +176,7 @@ export function validateCharacterCore(value: unknown, core: CoreDefinitionIndex)
         return ka < kb ? -1 : ka > kb ? 1 : 0;
       }),
       resolvedDie: resolvedDie as CharacterDie,
+      creatureSize: creatureSize as CreatureSize,
     }),
   );
 }

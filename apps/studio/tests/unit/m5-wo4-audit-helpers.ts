@@ -228,13 +228,14 @@ export function auditWo4Content(affinity: Doc, core: Doc, runtime: Doc): string[
   const severities = of("AFFINITY_WEAKNESS_SEVERITY")[0]?.payload.severities;
   if (JSON.stringify(severities) !== JSON.stringify([{ severity: "MINOR", percent: 10 }, { severity: "MODERATE", percent: 20 }, { severity: "MAJOR", percent: 30 }])) add("severity-scale");
 
-  // Progression: Level 1 NONE, Level 3 TRAINED, Level 6 Expert-or-Secondary, Level 9 new Affinity unresolved (M5-SC-035).
+  // Progression: Level 1 NONE, Level 3 TRAINED, Level 6 Expert-or-Secondary, Level 9 new Affinity TRAINED (designer ruling
+  // M5-SC-035, M5-I151 supersedes M5-I119). Any other Level 9 starting rank is a guess.
   const levels = (of("AFFINITY_PROGRESSION")[0]?.payload.levels as { level: number; options: Record<string, unknown>[] }[] | undefined) ?? [];
   const opt = (level: number, key: string) => levels.find((l) => l.level === level)?.options.find((o) => o.optionKey === key);
   if (opt(1, "CHOOSE_PRIMARY")?.startingRank !== "NONE" || opt(3, "PRIMARY_TRAINED")?.to !== "TRAINED" || opt(6, "PRIMARY_EXPERT")?.to !== "EXPERT" || opt(6, "GAIN_SECONDARY_TRAINED")?.startingRank !== "TRAINED") add("progression");
   const gain = opt(9, "GAIN_NEW_AFFINITY");
-  if (gain === undefined || gain.startingRank !== null || gain.conflictKey !== "M5-SC-035") add("level9-rank-guess");
-  if (!(affinity.deferred ?? []).some((x) => x.conflictKey === "M5-SC-035")) add("level9-rank-guess");
+  if (gain === undefined || gain.startingRank !== "TRAINED" || gain.conflictKey !== null) add("level9-rank-guess");
+  if ((affinity.deferred ?? []).some((x) => x.conflictKey === "M5-SC-035")) add("level9-rank-guess");
 
   // Every rule Keyword is listed for the M1 Keyword catalog.
   const listed = new Set((affinity.keywords ?? []).map((k) => k.canonicalKey));
@@ -244,14 +245,17 @@ export function auditWo4Content(affinity: Doc, core: Doc, runtime: Doc): string[
   // = Movement × 4; no Total / Final Movement statistic anywhere.
   const stat = (s: string) => core.definitions.filter((d) => d.definitionKind === "DERIVED_STAT" && d.payload.statistic === s);
   const base = stat("BASE_MOVEMENT")[0]?.payload.formula as Formula | undefined;
-  if (base === undefined || base.expression !== "5" || base.variables.length !== 0) add("old-movement-term");
+  if (base === undefined || base.expression !== "size_base_movement" || base.variables.length !== 1 || base.variables[0]?.source.kind !== "CREATURE_SIZE_BASE_MOVEMENT") add("old-movement-term");
   const movement = stat("MOVEMENT")[0]?.payload.formula as Formula | undefined;
   if (movement === undefined || !/^base_movement \* agi/.test(movement.expression)) add("old-movement-term");
   const all = JSON.stringify([core.definitions, runtime.definitions]);
   if (/TOTAL_MOVEMENT|FINAL_MOVEMENT|total_movement|final_movement/.test(all)) add("total-movement-stat");
   const sprint = runtime.definitions.find((d) => d.definitionKind === "ACTION" && d.payload.actionKey === "SPRINT")?.payload.movementGrant as { formula: Formula } | null | undefined;
   if (sprint?.formula.expression !== "movement * 4" || sprint.formula.variables.some((v) => v.source.statistic !== "MOVEMENT")) add("sprint-allowance");
-  for (const d of runtime.definitions.filter((x) => x.definitionKind === "CREATURE_SIZE")) if (d.payload.baseMovement !== null || "movementAdjustment" in d.payload) add("size-base-movement");
-  if (!(runtime.deferred ?? []).some((x) => x.conflictKey === "M5-SC-033") || (runtime.deferred ?? []).some((x) => x.conflictKey === "M5-SC-034")) add("movement-conflicts");
+  // Size Base Movement (designer ruling M5-SC-033, M5-I152): exact authored values; Massive pending (M5-SC-036).
+  const sizeBase: Record<string, { feet: number } | null> = { SMALL: { feet: 5 }, MEDIUM: { feet: 5 }, LARGE: { feet: 10 }, HUGE: { feet: 15 }, MASSIVE: null };
+  for (const d of runtime.definitions.filter((x) => x.definitionKind === "CREATURE_SIZE")) if (!(String(d.payload.sizeKey) in sizeBase) || JSON.stringify(d.payload.baseMovement) !== JSON.stringify(sizeBase[String(d.payload.sizeKey)]) || "movementAdjustment" in d.payload) add("size-base-movement");
+  const deferredKeys = (runtime.deferred ?? []).map((x) => x.conflictKey);
+  if (JSON.stringify(deferredKeys) !== JSON.stringify(["M5-SC-036"])) add("movement-conflicts");
   return [...findings].sort();
 }

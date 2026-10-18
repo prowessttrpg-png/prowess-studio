@@ -1,4 +1,4 @@
-# M5 Invariant Catalog (M5-WO1, extended by M5-WO2, M5-WO3 and M5-WO4)
+# M5 Invariant Catalog (M5-WO1, extended by M5-WO2, M5-WO3, M5-WO4 and the post-WO4 canon rulings)
 
 Machine-readable twin: `m5-invariants.json` (ids, titles, groups, guards, and — since M5-WO3 — the optional `status` /
 `supersededBy` metadata of a superseded invariant; an entry without `status` is ACTIVE). The permanent M5-WO1 audit
@@ -719,6 +719,7 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 
 ### M5-I119 — The Starting Rank Of A New Level 9 Affinity Remains Unresolved Until Explicit Canon Resolves M5-SC-035
 
+- **Status:** SUPERSEDED by M5-I151 (post-WO4 canon rulings). Valid while M5-SC-035 was unresolved; the designer has since ruled that a new Level 9 Affinity starts at Trained. Kept for history — not deleted, not renumbered.
 - **Group:** Affinity Ownership
 - **Meaning:** GAIN_NEW_AFFINITY has startingRank null and cites M5-SC-035; any profile reaching it is REQUIRES_CANON, never VALID by a guessed rank.
 - **Guards:** `packages/prowess-game/src/affinity-contracts.test.ts`, `apps/studio/tests/unit/m5-wo4-static.test.ts`, `scripts/m5-wo4-negative-controls.mjs`
@@ -908,3 +909,15 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 - **Group:** Compilation
 - **Meaning:** Equal requests give deep-equal plans, runs and readings; inputs are never mutated; interleaved Rulesets never cross-contaminate.
 - **Guards:** `packages/prowess-game/src/affinity-golden.test.ts`, `packages/prowess-game/src/affinity-contracts.test.ts`, `apps/studio/tests/unit/m5-wo4-static.test.ts`
+
+### M5-I151 — A New Level 9 Affinity Starts At Trained And Every Affinity Ranks Independently
+
+- **Group:** Affinity Ownership
+- **Meaning:** Designer ruling M5-SC-035: GAIN_NEW_AFFINITY has startingRank TRAINED and no conflict key; Primary Master, Primary Expert + one Secondary Trained, and three Affinities Trained are the VALID Level 9 outcomes; a new Level 9 Affinity at any other Rank is INVALID. An option whose starting Rank is unresolved content (null) still validates REQUIRES_CANON, never by a guessed Rank.
+- **Guards:** `packages/prowess-game/src/affinity-contracts.test.ts`, `apps/studio/tests/unit/m5-wo4-static.test.ts`, `apps/studio/tests/unit/m5-canon-rulings-static.test.ts`, `scripts/m5-wo4-negative-controls.mjs`
+
+### M5-I152 — Base Movement Is Authored Per Creature Size And Is Never Derived From Occupied Space; Massive Remains Pending Canon
+
+- **Group:** Movement
+- **Meaning:** Designer ruling M5-SC-033: CREATURE_SIZE authors baseMovement Small 5 ft, Medium 5 ft, Large 10 ft, Huge 15 ft; core.derived.base_movement reads the character's exact Size Definition through CREATURE_SIZE_BASE_MOVEMENT and cites it; a character with no Size named is MEDIUM; Movement = Base Movement × AGI + bonuses. Massive is null (M5-SC-036) and fails closed with PROWESS_CORE.SIZE_BASE_MOVEMENT_PENDING_CANON. Occupied space is never read as Base Movement.
+- **Guards:** `packages/prowess-game/src/runtime-contracts.test.ts`, `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `apps/studio/tests/unit/m5-wo4-static.test.ts`, `apps/studio/tests/unit/m5-canon-rulings-static.test.ts`, `scripts/m5-wo4-negative-controls.mjs`
