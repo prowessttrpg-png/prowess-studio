@@ -1087,41 +1087,32 @@
       "payload": {
         "statistic": "BASE_MOVEMENT",
         "formula": {
-          "expression": "5 * agi",
+          "expression": "5",
           "rounding": "NONE",
           "unit": "ft",
-          "variables": [
-            {
-              "variable": "agi",
-              "source": {
-                "kind": "STAT",
-                "stat": "AGI"
-              }
-            }
-          ]
+          "variables": []
         },
         "bonusTarget": null,
         "source": {
           "locators": [
-            "s23",
             "s69",
             "s70",
-            "s104",
             "s436"
           ],
           "conflicts": [
-            "M5-SC-006"
+            "M5-SC-006",
+            "M5-SC-033"
           ]
         }
       }
     },
     {
-      "canonicalKey": "core.derived.final_movement",
+      "canonicalKey": "core.derived.movement",
       "definitionKind": "DERIVED_STAT",
       "payload": {
-        "statistic": "FINAL_MOVEMENT",
+        "statistic": "MOVEMENT",
         "formula": {
-          "expression": "base_movement + bonuses",
+          "expression": "base_movement * agi + bonuses",
           "rounding": "NONE",
           "unit": "ft",
           "variables": [
@@ -1130,6 +1121,13 @@
               "source": {
                 "kind": "DERIVED",
                 "statistic": "BASE_MOVEMENT"
+              }
+            },
+            {
+              "variable": "agi",
+              "source": {
+                "kind": "STAT",
+                "stat": "AGI"
               }
             },
             {
@@ -1144,8 +1142,8 @@
         "source": {
           "locators": [
             "s69",
-            "s436",
-            "s442"
+            "s70",
+            "s436"
           ],
           "conflicts": [
             "M5-SC-006",
@@ -1233,6 +1231,10 @@
     {
       "workOrder": "M5-WO3",
       "change": "M5-SC-006 RESOLVED_BY_DESIGNER: BASE_MOVEMENT (5 ft x AGI) and FINAL_MOVEMENT added; INITIATIVE procedure added (s52, s425)."
+    },
+    {
+      "workOrder": "M5-WO4",
+      "change": "Post-WO3 canon amendment (designer clarification applied in M5-WO4): BASE_MOVEMENT is the authored standard creature value 5 ft; MOVEMENT = Base Movement x AGI (+ explicit bonuses) replaces the WO3 FINAL_MOVEMENT statistic; no TOTAL_MOVEMENT statistic exists. Standard-character output is numerically unchanged (AGI 4 -> 20 ft)."
     }
   ]
 }

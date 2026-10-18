@@ -339,21 +339,21 @@ describe("§142 PLAYER DICE LEGACY GOLDEN (M5-I041)", () => {
  * M5-SC-006 (Base Movement = 5 ft × AGI). These tests now pin the superseded state: exactly the two canonical Movement
  * statistics exist, the contradictory 10 × AGI example is not canonical, and other Movement names are still refused.
  */
-describe("Movement after M5-SC-006 (M5-I073 superseded by M5-I075)", () => {
-  it("the only Movement statistics are BASE_MOVEMENT = 5 * agi and FINAL_MOVEMENT; nothing computes 10 × AGI", () => {
+describe("Movement after M5-SC-006 (M5-I073 superseded by M5-I075, itself superseded by M5-I111 in M5-WO4)", () => {
+  it("the only Movement statistics are BASE_MOVEMENT (authored 5 ft) and MOVEMENT = Base Movement × AGI; nothing computes 10 × AGI", () => {
     const movement = CORE_DEFINITIONS.filter((d) => /movement/i.test(JSON.stringify(d.payload.statistic ?? "")));
     expect(movement.map((d) => [d.payload.statistic, (d.payload.formula as { expression: string }).expression])).toEqual([
-      ["BASE_MOVEMENT", "5 * agi"],
-      ["FINAL_MOVEMENT", "base_movement + bonuses"],
+      ["BASE_MOVEMENT", "5"],
+      ["MOVEMENT", "base_movement * agi + bonuses"],
     ]);
     expect(JSON.stringify(CORE_DEFINITIONS)).not.toMatch(/10 \* agi/);
-    expect(sheet(character(5)).plan.sourceMap.entries.filter((e) => /movement/i.test(e.role)).map((e) => e.role)).toEqual(["explicit-bonuses:MOVEMENT", "derived-statistic:BASE_MOVEMENT", "derived-statistic:FINAL_MOVEMENT"]);
+    expect(sheet(character(5)).plan.sourceMap.entries.filter((e) => /movement/i.test(e.role)).map((e) => e.role)).toEqual(["explicit-bonuses:MOVEMENT", "derived-statistic:BASE_MOVEMENT", "derived-statistic:MOVEMENT"]);
   });
 
-  it("a Movement statistic other than the canonical two is still refused (MOVEMENT, MOVEMENT_SPEED are not derived statistics)", () => {
-    for (const statistic of ["MOVEMENT", "MOVEMENT_SPEED"]) {
+  it("a Movement statistic other than the canonical two is still refused (TOTAL_MOVEMENT, FINAL_MOVEMENT, MOVEMENT_SPEED are not derived statistics — M5-I112)", () => {
+    for (const statistic of ["TOTAL_MOVEMENT", "FINAL_MOVEMENT", "MOVEMENT_SPEED"]) {
       const { ruleset, definitions } = coreRuleset({
-        extra: [{ canonicalKey: "core.derived.movement", definitionKind: "DERIVED_STAT", payload: { statistic, formula: { expression: "10 * agi", rounding: "NONE", variables: [{ variable: "agi", source: { kind: "STAT", stat: "AGI" } }] }, bonusTarget: null, source: { locators: ["s156"], conflicts: ["M5-SC-006"] } } }],
+        extra: [{ canonicalKey: "core.derived.movement_extra", definitionKind: "DERIVED_STAT", payload: { statistic, formula: { expression: "10 * agi", rounding: "NONE", variables: [{ variable: "agi", source: { kind: "STAT", stat: "AGI" } }] }, bonusTarget: null, source: { locators: ["s156"], conflicts: ["M5-SC-006"] } } }],
       });
       expect(codes(createProwessDefinitionBundle({ ruleset, definitions })), statistic).toContain(C.INVALID_PAYLOAD);
     }

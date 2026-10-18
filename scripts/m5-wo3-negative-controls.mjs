@@ -62,7 +62,7 @@ const controls = [
   {
     name: "§176 Movement modifier derived from Large 10 × 10 occupied space",
     file: RUNTIME,
-    mutate: content((defs) => void (def(defs, (d) => d.payload.sizeKey === "LARGE").payload.movementAdjustment = { kind: "ADD", feet: 10, derivedFrom: "occupiedSpaceFeet" })),
+    mutate: content((defs) => void (def(defs, (d) => d.payload.sizeKey === "LARGE").payload.baseMovement = { kind: "ADD", feet: 10, derivedFrom: "occupiedSpaceFeet" })),
     guard: staticWo3(CONTENT_RULES),
   },
   {

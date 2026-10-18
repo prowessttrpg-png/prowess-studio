@@ -147,7 +147,7 @@ export function readEnvelope(input: unknown, at: readonly PathSegment[], p: Prob
   }
 
   const provenance = readProvenance(own(r, "provenance"), [...at, "provenance"], p);
-  const payload = p.count === before && spec !== null ? readDefinitionPayload(kind as ProwessDefinitionKind, spec.contract, own(r, "payload"), [...at, "payload"], p) : null;
+  const payload = p.count === before && spec !== null ? readDefinitionPayload(kind as ProwessDefinitionKind, spec.contract, own(r, "payload"), [...at, "payload"], p, schemaVersion as number) : null;
   if (p.count > before || payload === null || provenance === null) return null;
   return {
     schemaVersion: schemaVersion as number,

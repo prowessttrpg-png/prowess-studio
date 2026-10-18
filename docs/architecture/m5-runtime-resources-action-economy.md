@@ -13,6 +13,15 @@ allocation, Formula and Requirement. Nothing is persisted.
 - Invariants: M5-I075–M5-I110 (`m5-invariants.md`). M5-I073 is SUPERSEDED by M5-I075.
 - Permanent gate: **M5-WO3 audit — Runtime resources, action economy & movement** (`docs/architecture/ci.md`).
 
+> **Post-WO3 canon amendment (applied in M5-WO4 — this WO3 record is otherwise unchanged).** The designer clarified
+> Movement terminology after WO3: Base Movement is the creature's authored value (5 ft for the current standard
+> character) and Movement = Base Movement × AGI; there is no separate Total / Final Movement statistic. M5-SC-034 is
+> `RESOLVED_BY_DESIGNER`: Sprint Allowance = Movement × 4, each Sprint independently. In current content
+> `core.derived.base_movement` is `5`, `core.derived.final_movement` became `core.derived.movement`
+> (`base_movement * agi + bonuses`), Move / Sprint grant `movement` / `movement * 4`, and `CREATURE_SIZE.movementAdjustment`
+> is `baseMovement` (null — M5-SC-033 reframed as Base Movement values by Creature Size). M5-I075 is SUPERSEDED by M5-I111.
+> Standard-character numbers are unchanged. See `m5-affinity-structured-rules.md` §4.
+
 ## 1. Scope
 
 In scope: runtime HP, MP, ME, AP and Counter Action; the movement-allowance tracker; keeping maximum and current

@@ -72,9 +72,11 @@ export const INITIATIVE_TIEBREAK_KINDS = deepFreeze(["HIGHEST_STAT", "REROLL"] a
 export type InitiativeTiebreakKind = (typeof INITIATIVE_TIEBREAK_KINDS)[number];
 
 /**
- * The derived statistics (designer rulings M5-SC-003 / 005 / 008 / 009). BASE_MOVEMENT and FINAL_MOVEMENT are added by
- * M5-WO3 after the designer resolved M5-SC-006 (Base Movement = 5 ft × AGI). M5-WO2 deliberately had no Movement
- * statistic while M5-SC-006 was unresolved (historical M5-I073, superseded by M5-I075).
+ * The derived statistics (designer rulings M5-SC-003 / 005 / 008 / 009). M5-WO3 added the Movement statistics after the
+ * designer resolved M5-SC-006; M5-WO2 deliberately had none (historical M5-I073, superseded by M5-I075). The post-WO3
+ * designer clarification applied in M5-WO4 fixes the terminology (M5-I111, superseding M5-I075): BASE_MOVEMENT is a
+ * separate authored creature value (5 ft for the standard character) and MOVEMENT = Base Movement × AGI. There is no
+ * TOTAL_MOVEMENT / FINAL_MOVEMENT statistic (M5-I112): Sprint reads MOVEMENT directly.
  */
 export const DERIVED_STATISTICS = deepFreeze([
   "HALF_CHARACTER_DIE",
@@ -93,14 +95,14 @@ export const DERIVED_STATISTICS = deepFreeze([
   "BASE_MANA_EFFICIENCY",
   "SIGNATURE_ABILITY_SLOTS",
   "BASE_MOVEMENT",
-  "FINAL_MOVEMENT",
+  "MOVEMENT",
 ] as const);
 export type DerivedStatistic = (typeof DERIVED_STATISTICS)[number];
 
 /**
  * Statistic keys deferred pending canon, refused as executable content. M5-WO2 deferred MOVEMENT / BASE_MOVEMENT /
- * MOVEMENT_SPEED (M5-SC-006). M5-SC-006 is RESOLVED_BY_DESIGNER in M5-WO3, so nothing is deferred here any more; the
- * Size movement adjustment (M5-SC-033) is deferred at the CREATURE_SIZE payload instead.
+ * MOVEMENT_SPEED (M5-SC-006). M5-SC-006 is RESOLVED_BY_DESIGNER in M5-WO3, so nothing is deferred here any more; Base
+ * Movement values by Creature Size (M5-SC-033) are deferred at the CREATURE_SIZE payload instead.
  */
 export const DEFERRED_STATISTICS = deepFreeze([] as const satisfies readonly string[]);
 

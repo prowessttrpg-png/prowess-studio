@@ -1,0 +1,824 @@
+{
+  "contentKey": "prowess.core_playtest.v0_1.affinity",
+  "workOrder": "M5-WO4",
+  "schemaVersion": 1,
+  "source": {
+    "title": "Prowess Core Playtest Packet V0.1",
+    "sha256Prefix": "21fa6771",
+    "parser": "prowess-docx-structure@1.0.0",
+    "structureHashPrefix": "3d9a429c"
+  },
+  "designerRulings": [
+    "M5-SC-001"
+  ],
+  "designerContent": "M5-WO4 §22–§75 (designer work order): the six canonical Affinities, Evocation canonical / Emission legacy, the Strength / Weakness tables, Affinity Rank discount / capacity tables and standard advancement. Where the per-Affinity chapters (s716–s733) and the quick reference (s687) list Strengths differently, the work order's explicit tables are structured here; source text is unchanged.",
+  "deferred": [
+    {
+      "conflictKey": "M5-SC-035",
+      "concept": "Starting Rank of a new Level 9 Affinity",
+      "status": "DEFERRED_PENDING_CANON"
+    }
+  ],
+  "keywordCategory": {
+    "canonicalKey": "keyword_category.affinity_alignment",
+    "name": "Affinity Alignment",
+    "description": "Exact Keywords that Affinity Strength and Weakness rules match. A Keyword is metadata only: it never creates an Effect or a mechanic by itself."
+  },
+  "keywords": [
+    {
+      "canonicalKey": "keyword.aoe_scaling",
+      "name": "Aoe Scaling",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.area_effect",
+      "name": "Area Effect",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.buff",
+      "name": "Buff",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.channeled_output",
+      "name": "Channeled Output",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.construct",
+      "name": "Construct",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.control",
+      "name": "Control",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.damage",
+      "name": "Damage",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.debuff",
+      "name": "Debuff",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.detection",
+      "name": "Detection",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.direct_damage",
+      "name": "Direct Damage",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.elemental_alteration",
+      "name": "Elemental Alteration",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.healing",
+      "name": "Healing",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.illusion",
+      "name": "Illusion",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.instant_effect",
+      "name": "Instant Effect",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.interference",
+      "name": "Interference",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.knowledge",
+      "name": "Knowledge",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.mind_effect",
+      "name": "Mind Effect",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.persistent_creation",
+      "name": "Persistent Creation",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.persistent_effect",
+      "name": "Persistent Effect",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.predictive_effect",
+      "name": "Predictive Effect",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.reactive_effect",
+      "name": "Reactive Effect",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.recovery",
+      "name": "Recovery",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.redirection",
+      "name": "Redirection",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.reinforcement",
+      "name": "Reinforcement",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.resistance",
+      "name": "Resistance",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.summon",
+      "name": "Summon",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.sustained_output",
+      "name": "Sustained Output",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.terrain_alteration",
+      "name": "Terrain Alteration",
+      "category": "keyword_category.affinity_alignment"
+    },
+    {
+      "canonicalKey": "keyword.utility",
+      "name": "Utility",
+      "category": "keyword_category.affinity_alignment"
+    }
+  ],
+  "definitions": [
+    {
+      "canonicalKey": "affinity.evocation",
+      "definitionKind": "AFFINITY",
+      "schemaVersion": 2,
+      "payload": {
+        "affinity": "EVOCATION",
+        "identity": {
+          "text": "Evocation governs projected mana, force, direct output, destructive release, and battlefield pressure.",
+          "themes": [
+            "projection",
+            "force",
+            "direct output",
+            "destructive release",
+            "battlefield pressure"
+          ]
+        },
+        "strengths": [
+          {
+            "strengthKey": "DIRECT_DAMAGE",
+            "matchAny": [
+              "keyword.direct_damage"
+            ]
+          },
+          {
+            "strengthKey": "AREA_EFFECT",
+            "matchAny": [
+              "keyword.area_effect"
+            ]
+          },
+          {
+            "strengthKey": "SUSTAINED_OR_CHANNELED_OUTPUT",
+            "matchAny": [
+              "keyword.sustained_output",
+              "keyword.channeled_output"
+            ]
+          }
+        ],
+        "weaknesses": [
+          {
+            "weaknessKey": "HEALING",
+            "matchAny": [
+              "keyword.healing"
+            ],
+            "activationPenaltyPercent": 30,
+            "severity": "MAJOR"
+          },
+          {
+            "weaknessKey": "BUFF_OR_DEBUFF",
+            "matchAny": [
+              "keyword.buff",
+              "keyword.debuff"
+            ],
+            "activationPenaltyPercent": 20,
+            "severity": "MODERATE"
+          },
+          {
+            "weaknessKey": "SUMMON_OR_CONSTRUCT",
+            "matchAny": [
+              "keyword.summon",
+              "keyword.construct"
+            ],
+            "activationPenaltyPercent": 20,
+            "severity": "MODERATE"
+          }
+        ],
+        "source": {
+          "locators": [
+            "s118",
+            "s679",
+            "s687",
+            "s716",
+            "s717",
+            "s718"
+          ],
+          "conflicts": [
+            "M5-SC-001"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "affinity.conjuration",
+      "definitionKind": "AFFINITY",
+      "schemaVersion": 2,
+      "payload": {
+        "affinity": "CONJURATION",
+        "identity": {
+          "text": "Conjuration governs creation, manifestation, summoning, and persistence.",
+          "themes": [
+            "creation",
+            "manifestation",
+            "summoning",
+            "persistence"
+          ]
+        },
+        "strengths": [
+          {
+            "strengthKey": "SUMMONING",
+            "matchAny": [
+              "keyword.summon"
+            ]
+          },
+          {
+            "strengthKey": "UTILITY",
+            "matchAny": [
+              "keyword.utility"
+            ]
+          },
+          {
+            "strengthKey": "PERSISTENT_CREATION",
+            "matchAny": [
+              "keyword.persistent_creation"
+            ]
+          }
+        ],
+        "weaknesses": [
+          {
+            "weaknessKey": "DAMAGE",
+            "matchAny": [
+              "keyword.damage"
+            ],
+            "activationPenaltyPercent": 20,
+            "severity": "MODERATE"
+          },
+          {
+            "weaknessKey": "HEALING_OR_BUFF",
+            "matchAny": [
+              "keyword.healing",
+              "keyword.buff"
+            ],
+            "activationPenaltyPercent": 30,
+            "severity": "MAJOR"
+          },
+          {
+            "weaknessKey": "INSTANT_EFFECT",
+            "matchAny": [
+              "keyword.instant_effect"
+            ],
+            "activationPenaltyPercent": 20,
+            "severity": "MODERATE"
+          }
+        ],
+        "source": {
+          "locators": [
+            "s118",
+            "s679",
+            "s687",
+            "s719",
+            "s720",
+            "s721"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "affinity.transmutation",
+      "definitionKind": "AFFINITY",
+      "schemaVersion": 2,
+      "payload": {
+        "affinity": "TRANSMUTATION",
+        "identity": {
+          "text": "Transmutation governs alteration, matter, elements, terrain, and environmental change.",
+          "themes": [
+            "alteration",
+            "matter",
+            "elements",
+            "terrain",
+            "environmental change"
+          ]
+        },
+        "strengths": [
+          {
+            "strengthKey": "BUFF",
+            "matchAny": [
+              "keyword.buff"
+            ]
+          },
+          {
+            "strengthKey": "UTILITY",
+            "matchAny": [
+              "keyword.utility"
+            ]
+          },
+          {
+            "strengthKey": "ELEMENTAL_OR_TERRAIN_ALTERATION",
+            "matchAny": [
+              "keyword.elemental_alteration",
+              "keyword.terrain_alteration"
+            ]
+          }
+        ],
+        "weaknesses": [
+          {
+            "weaknessKey": "DIRECT_DAMAGE",
+            "matchAny": [
+              "keyword.direct_damage"
+            ],
+            "activationPenaltyPercent": 10,
+            "severity": "MINOR"
+          },
+          {
+            "weaknessKey": "AOE_SCALING",
+            "matchAny": [
+              "keyword.aoe_scaling"
+            ],
+            "activationPenaltyPercent": 20,
+            "severity": "MODERATE"
+          },
+          {
+            "weaknessKey": "SUMMON",
+            "matchAny": [
+              "keyword.summon"
+            ],
+            "activationPenaltyPercent": 30,
+            "severity": "MAJOR"
+          }
+        ],
+        "source": {
+          "locators": [
+            "s118",
+            "s679",
+            "s687",
+            "s722",
+            "s723",
+            "s724"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "affinity.divination",
+      "definitionKind": "AFFINITY",
+      "schemaVersion": 2,
+      "payload": {
+        "affinity": "DIVINATION",
+        "identity": {
+          "text": "Divination governs perception, prediction, awareness, and knowledge.",
+          "themes": [
+            "perception",
+            "prediction",
+            "awareness",
+            "knowledge"
+          ]
+        },
+        "strengths": [
+          {
+            "strengthKey": "DETECTION",
+            "matchAny": [
+              "keyword.detection"
+            ]
+          },
+          {
+            "strengthKey": "KNOWLEDGE",
+            "matchAny": [
+              "keyword.knowledge"
+            ]
+          },
+          {
+            "strengthKey": "PREDICTIVE_OR_REACTIVE_EFFECT",
+            "matchAny": [
+              "keyword.predictive_effect",
+              "keyword.reactive_effect"
+            ]
+          }
+        ],
+        "weaknesses": [
+          {
+            "weaknessKey": "DAMAGE",
+            "matchAny": [
+              "keyword.damage"
+            ],
+            "activationPenaltyPercent": 30,
+            "severity": "MAJOR"
+          },
+          {
+            "weaknessKey": "HEALING",
+            "matchAny": [
+              "keyword.healing"
+            ],
+            "activationPenaltyPercent": 30,
+            "severity": "MAJOR"
+          },
+          {
+            "weaknessKey": "PERSISTENT_EFFECT",
+            "matchAny": [
+              "keyword.persistent_effect"
+            ],
+            "activationPenaltyPercent": 15,
+            "severity": null
+          }
+        ],
+        "source": {
+          "locators": [
+            "s118",
+            "s679",
+            "s687",
+            "s725",
+            "s726",
+            "s727"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "affinity.enhancement",
+      "definitionKind": "AFFINITY",
+      "schemaVersion": 2,
+      "payload": {
+        "affinity": "ENHANCEMENT",
+        "identity": {
+          "text": "Enhancement governs reinforcement, healing, recovery, resistance, and empowerment.",
+          "themes": [
+            "healing",
+            "reinforcement",
+            "recovery",
+            "resistance"
+          ]
+        },
+        "strengths": [
+          {
+            "strengthKey": "BUFF",
+            "matchAny": [
+              "keyword.buff"
+            ]
+          },
+          {
+            "strengthKey": "HEALING",
+            "matchAny": [
+              "keyword.healing"
+            ]
+          },
+          {
+            "strengthKey": "RESISTANCE",
+            "matchAny": [
+              "keyword.resistance"
+            ]
+          },
+          {
+            "strengthKey": "REINFORCEMENT",
+            "matchAny": [
+              "keyword.reinforcement"
+            ]
+          },
+          {
+            "strengthKey": "RECOVERY",
+            "matchAny": [
+              "keyword.recovery"
+            ]
+          }
+        ],
+        "weaknesses": [
+          {
+            "weaknessKey": "CONTROL",
+            "matchAny": [
+              "keyword.control"
+            ],
+            "activationPenaltyPercent": 10,
+            "severity": "MINOR"
+          },
+          {
+            "weaknessKey": "SUMMON",
+            "matchAny": [
+              "keyword.summon"
+            ],
+            "activationPenaltyPercent": 20,
+            "severity": "MODERATE"
+          },
+          {
+            "weaknessKey": "DAMAGE",
+            "matchAny": [
+              "keyword.damage"
+            ],
+            "activationPenaltyPercent": 30,
+            "severity": "MAJOR"
+          }
+        ],
+        "source": {
+          "locators": [
+            "s118",
+            "s679",
+            "s687",
+            "s728",
+            "s729",
+            "s730"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "affinity.manipulation",
+      "definitionKind": "AFFINITY",
+      "schemaVersion": 2,
+      "payload": {
+        "affinity": "MANIPULATION",
+        "identity": {
+          "text": "Manipulation governs interference, redirection, denial, illusion, and influence.",
+          "themes": [
+            "control",
+            "interference",
+            "redirection",
+            "illusion",
+            "denial"
+          ]
+        },
+        "strengths": [
+          {
+            "strengthKey": "CONTROL",
+            "matchAny": [
+              "keyword.control"
+            ]
+          },
+          {
+            "strengthKey": "ILLUSION",
+            "matchAny": [
+              "keyword.illusion"
+            ]
+          },
+          {
+            "strengthKey": "REDIRECTION",
+            "matchAny": [
+              "keyword.redirection"
+            ]
+          },
+          {
+            "strengthKey": "INTERFERENCE",
+            "matchAny": [
+              "keyword.interference"
+            ]
+          },
+          {
+            "strengthKey": "MIND_EFFECT",
+            "matchAny": [
+              "keyword.mind_effect"
+            ]
+          }
+        ],
+        "weaknesses": [
+          {
+            "weaknessKey": "PERSISTENT_EFFECT",
+            "matchAny": [
+              "keyword.persistent_effect"
+            ],
+            "activationPenaltyPercent": 10,
+            "severity": "MINOR"
+          },
+          {
+            "weaknessKey": "HEALING",
+            "matchAny": [
+              "keyword.healing"
+            ],
+            "activationPenaltyPercent": 20,
+            "severity": "MODERATE"
+          },
+          {
+            "weaknessKey": "DAMAGE",
+            "matchAny": [
+              "keyword.damage"
+            ],
+            "activationPenaltyPercent": 30,
+            "severity": "MAJOR"
+          }
+        ],
+        "source": {
+          "locators": [
+            "s118",
+            "s679",
+            "s687",
+            "s731",
+            "s732",
+            "s733"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "affinity.rank_rule",
+      "definitionKind": "AFFINITY_RANK_RULE",
+      "schemaVersion": 1,
+      "payload": {
+        "ranks": [
+          {
+            "rank": "NONE",
+            "order": 0,
+            "strengthDiscountPercent": 0,
+            "authority": null
+          },
+          {
+            "rank": "TRAINED",
+            "order": 1,
+            "strengthDiscountPercent": 10,
+            "authority": {
+              "effectCapacity": 1,
+              "traitCapacity": 1
+            }
+          },
+          {
+            "rank": "EXPERT",
+            "order": 2,
+            "strengthDiscountPercent": 20,
+            "authority": {
+              "effectCapacity": 2,
+              "traitCapacity": 2
+            }
+          },
+          {
+            "rank": "MASTER",
+            "order": 3,
+            "strengthDiscountPercent": 30,
+            "authority": {
+              "effectCapacity": 3,
+              "traitCapacity": 3
+            }
+          }
+        ],
+        "authorityMinimumRank": "TRAINED",
+        "source": {
+          "locators": [
+            "s118",
+            "s161",
+            "s624",
+            "s626",
+            "s685"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "affinity.weakness_severity",
+      "definitionKind": "AFFINITY_WEAKNESS_SEVERITY",
+      "schemaVersion": 1,
+      "payload": {
+        "severities": [
+          {
+            "severity": "MINOR",
+            "percent": 10
+          },
+          {
+            "severity": "MODERATE",
+            "percent": 20
+          },
+          {
+            "severity": "MAJOR",
+            "percent": 30
+          }
+        ],
+        "source": {
+          "locators": [
+            "s686"
+          ],
+          "conflicts": []
+        }
+      }
+    },
+    {
+      "canonicalKey": "affinity.standard_progression",
+      "definitionKind": "AFFINITY_PROGRESSION",
+      "schemaVersion": 1,
+      "payload": {
+        "levels": [
+          {
+            "level": 1,
+            "mode": "REQUIRED",
+            "options": [
+              {
+                "optionKey": "CHOOSE_PRIMARY",
+                "action": "CHOOSE_PRIMARY_AFFINITY",
+                "startingRank": "NONE"
+              }
+            ]
+          },
+          {
+            "level": 3,
+            "mode": "REQUIRED",
+            "options": [
+              {
+                "optionKey": "PRIMARY_TRAINED",
+                "action": "RANK_UP",
+                "target": "PRIMARY",
+                "from": "NONE",
+                "to": "TRAINED"
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "mode": "CHOOSE_ONE",
+            "options": [
+              {
+                "optionKey": "PRIMARY_EXPERT",
+                "action": "RANK_UP",
+                "target": "PRIMARY",
+                "from": "TRAINED",
+                "to": "EXPERT"
+              },
+              {
+                "optionKey": "GAIN_SECONDARY_TRAINED",
+                "action": "GAIN_AFFINITY",
+                "role": "SECONDARY",
+                "startingRank": "TRAINED",
+                "conflictKey": null
+              }
+            ]
+          },
+          {
+            "level": 9,
+            "mode": "CHOOSE_ONE",
+            "options": [
+              {
+                "optionKey": "UPGRADE_AFFINITY_RANK",
+                "action": "RANK_UP",
+                "target": "ANY_OWNED",
+                "from": "TRAINED",
+                "to": "EXPERT"
+              },
+              {
+                "optionKey": "PROMOTE_EXPERT_TO_MASTER",
+                "action": "RANK_UP",
+                "target": "ANY_OWNED",
+                "from": "EXPERT",
+                "to": "MASTER"
+              },
+              {
+                "optionKey": "GAIN_NEW_AFFINITY",
+                "action": "GAIN_AFFINITY",
+                "role": "SECONDARY",
+                "startingRank": null,
+                "conflictKey": "M5-SC-035"
+              }
+            ]
+          }
+        ],
+        "source": {
+          "locators": [
+            "s118",
+            "s161"
+          ],
+          "conflicts": [
+            "M5-SC-035"
+          ]
+        }
+      }
+    }
+  ]
+}

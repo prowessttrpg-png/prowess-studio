@@ -87,16 +87,17 @@ describe("canonical runtime content (§100–§101, §166)", () => {
     expect(fixture.bundle.definitions.find((d) => d.canonicalKey === "core.derived.dodge")?.definitionKind).toBe("DERIVED_STAT");
   });
 
-  it("M5-I076 / M5-I108 Sizes carry occupied space only; a Size movement value is refused (M5-SC-033)", () => {
-    expect(RUNTIME_DEFINITIONS.filter((d) => d.definitionKind === "CREATURE_SIZE").map((d) => [d.payload.sizeKey, d.payload.occupiedSpaceFeet, d.payload.orLarger, d.payload.movementAdjustment])).toEqual([
+  it("M5-I076 / M5-I108 / M5-I113 Sizes carry occupied space only; a Size Base Movement value is refused (M5-SC-033)", () => {
+    expect(RUNTIME_DEFINITIONS.filter((d) => d.definitionKind === "CREATURE_SIZE").map((d) => [d.payload.sizeKey, d.payload.occupiedSpaceFeet, d.payload.orLarger, d.payload.baseMovement])).toEqual([
       ["SMALL", [5], false, null],
       ["MEDIUM", [5], false, null],
       ["LARGE", [10, 10], false, null],
       ["HUGE", [15, 15], false, null],
       ["MASSIVE", [20, 20], true, null],
     ]);
-    rejects("creature_size.large", { movementAdjustment: { kind: "ADD", feet: 10 } }, C.DEFERRED_PENDING_CANON);
-    rejects("creature_size.large", { movementAdjustment: 10 }, C.DEFERRED_PENDING_CANON);
+    rejects("creature_size.large", { baseMovement: { kind: "ADD", feet: 10 } }, C.DEFERRED_PENDING_CANON);
+    rejects("creature_size.large", { baseMovement: 10 }, C.DEFERRED_PENDING_CANON); // occupied 10 × 10 ft is never Base Movement
+    rejects("creature_size.large", { movementAdjustment: null }); // the WO3 field name is gone (post-WO3 amendment)
     rejects("creature_size.large", { occupiedSpaceFeet: [] });
   });
 });

@@ -108,6 +108,29 @@ runs right after the M5-WO2 gate. It runs:
 The M5-WO2 gate stays in place. Its Movement rule (M5-I073) is recorded as SUPERSEDED by M5-I075, and the WO2 control
 §198 now pins the superseded state (10 × AGI is never canonical) instead of the old deferral. No gate was removed.
 
+**M5-WO4 additions.** A fourth permanent named step, **"M5-WO4 audit — Affinity identity, rank, authority & keyword
+alignment"**, runs right after the M5-WO3 gate. It runs:
+
+- the WO4 golden fixtures (§175–§198) and Affinity contracts in `@prowess/game` (`affinity-golden.test.ts`,
+  `affinity-contracts.test.ts`);
+- the static audit `apps/studio/tests/unit/m5-wo4-static.test.ts` (AST rules over `@prowess/game` and `@prowess/rules`,
+  structural rules over the canonical Affinity content and the amended Movement content, the conflict register,
+  terminology, invariants M5-I111–I150 and the M5-I073 → M5-I075 → M5-I111 supersession chain, documentation, the frozen
+  M4 source-tree hash and the API route inventory in `docs/architecture/m5-wo4-baseline.json`, plus in-memory controls);
+- the fixture regeneration test `m5-wo4-inspector-fixture.test.ts`;
+- the database test `prowess-affinity-history.test.ts` (exact Release R1 / R2 history, isolation, real M1 Keyword
+  identity, and no persistence by evaluation);
+- the API test `m5-wo4-affinity-api.test.ts` (Affinity plans and M4 explanations through the existing
+  `POST /api/rules/evaluate`);
+- `node scripts/m5-wo4-negative-controls.mjs`, which mutates real source, content and documentation for controls
+  §243–§265, requires each to be caught, and restores every file byte-for-byte.
+
+The M5-WO3 gate stays in place. Its Movement content rules were amended narrowly for the post-WO3 designer
+clarification (Base Movement = authored 5 ft, Movement = Base Movement × AGI, Sprint = Movement × 4; M5-I075 SUPERSEDED
+by M5-I111), and its controls now mutate the renamed `CREATURE_SIZE.baseMovement`. The WO2 / WO3 Rules Inspector
+fixtures were regenerated: only derived-statistic `order` positions changed (the Movement dependency graph changed).
+No gate was removed.
+
 ## Local quality commands
 
 | Command | What it does | Needs Postgres? |

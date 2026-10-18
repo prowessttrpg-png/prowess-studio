@@ -121,14 +121,15 @@ export interface ActionDefinitionPayload {
 
 /**
  * A Size's tactical identity (s442). `occupiedSpaceFeet` is the space as written (one dimension "5 ft", or two "10 ft ×
- * 10 ft"); `orLarger` marks "or larger". `movementAdjustment` must be null: Size MAY modify Movement but no values exist
- * (M5-SC-033 UNRESOLVED) and occupied space is never read as speed (M5-I076, M5-I108).
+ * 10 ft"); `orLarger` marks "or larger". `baseMovement` must be null: whether Sizes have different Base Movement values,
+ * and what they are, is M5-SC-033 (UNRESOLVED); occupied space is never read as Base Movement (M5-I076, M5-I108, M5-I113).
+ * (M5-WO3 named this field `movementAdjustment`; the post-WO3 terminology amendment applied in M5-WO4 renamed it.)
  */
 export interface CreatureSizeDefinitionPayload {
   readonly sizeKey: CreatureSize;
   readonly occupiedSpaceFeet: readonly number[];
   readonly orLarger: boolean;
-  readonly movementAdjustment: null;
+  readonly baseMovement: null;
   readonly rules: JsonObject;
   readonly source: CoreDefinitionSource;
 }
@@ -144,7 +145,7 @@ export interface TerrainDefinitionPayload {
 export const RUNTIME_PAYLOAD_FIELDS = Object.freeze({
   RESOURCE: ["resourceKey", "m4Kind", "minimum", "maximum", "refresh", "expiry", "spending", "restoration", "supportsReservation", "payment", "usageRestrictions", "exposesDepletion", "rules", "source"],
   ACTION: ["actionKey", "timing", "actionPointCost", "otherCosts", "movementGrant", "requiresTrigger", "costOverridableByExplicitRule", "rules", "source"],
-  CREATURE_SIZE: ["sizeKey", "occupiedSpaceFeet", "orLarger", "movementAdjustment", "rules", "source"],
+  CREATURE_SIZE: ["sizeKey", "occupiedSpaceFeet", "orLarger", "baseMovement", "rules", "source"],
   TERRAIN: ["terrainKey", "allowanceCost", "rules", "source"],
 } as const);
 export type RuntimePayloadKind = keyof typeof RUNTIME_PAYLOAD_FIELDS;
@@ -334,14 +335,14 @@ function readCreatureSize(r: Record<string, unknown>, at: readonly PathSegment[]
   });
   if (space !== null && (space.length < 1 || space.length > 2)) p.add(C.INVALID_PAYLOAD, [...at, "occupiedSpaceFeet"], "occupied space is written with one or two dimensions (s442)");
   const orLarger = readBoolean(own(r, "orLarger"), [...at, "orLarger"], p, "orLarger");
-  // M5-SC-033 is UNRESOLVED: no Size movement value exists. Anything but null is refused rather than guessed.
-  if (own(r, "movementAdjustment") !== null) {
-    p.add(C.DEFERRED_PENDING_CANON, [...at, "movementAdjustment"], "Size movement adjustment values are DEFERRED_PENDING_CANON (M5-SC-033 is unresolved); occupied space is never a movement value");
+  // M5-SC-033 is UNRESOLVED: no Size Base Movement value exists. Anything but null is refused rather than guessed.
+  if (own(r, "baseMovement") !== null) {
+    p.add(C.DEFERRED_PENDING_CANON, [...at, "baseMovement"], "Base Movement values by Creature Size are DEFERRED_PENDING_CANON (M5-SC-033 is unresolved); occupied space is never Base Movement");
   }
   const rules = readRules(own(r, "rules"), [...at, "rules"], p);
   const source = readSource(own(r, "source"), [...at, "source"], p);
   if (p.count > before || sizeKey === null || space === null || orLarger === null || rules === null || source === null) return null;
-  return { sizeKey, occupiedSpaceFeet: space, orLarger, movementAdjustment: null, rules, source };
+  return { sizeKey, occupiedSpaceFeet: space, orLarger, baseMovement: null, rules, source };
 }
 
 function readTerrain(r: Record<string, unknown>, at: readonly PathSegment[], p: Problems): TerrainDefinitionPayload | null {

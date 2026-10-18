@@ -327,6 +327,23 @@ jobs:
           pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo3-runtime-api.test.ts
           node scripts/m5-wo3-negative-controls.mjs
 
+      # M5-WO4: Affinity identity, rank, authority, keyword alignment & cost modifier foundation (plus the post-WO3
+      # Movement / Sprint amendment) — the golden fixtures and contracts in @prowess/game, the static audit over
+      # @prowess/game / @prowess/rules / the canonical Affinity + amended Movement content with in-memory controls, the
+      # regenerated Rules Inspector fixture, exact Release history / isolation / M1 Keyword identity / no persistence
+      # against the real database, Affinity plans through the existing evaluate endpoint, and the behavioural negative
+      # controls §243–§265 (each mutates real source, content or docs, must be caught, and is restored).
+      - name: M5-WO4 audit — Affinity identity, rank, authority & keyword alignment
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+        run: |
+          pnpm --filter "@prowess/game" exec vitest run src/affinity-golden.test.ts src/affinity-contracts.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo4-static.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo4-inspector-fixture.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-affinity-history.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo4-affinity-api.test.ts
+          node scripts/m5-wo4-negative-controls.mjs
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own

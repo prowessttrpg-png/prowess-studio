@@ -22,3 +22,26 @@ export function chainOrder(index: number, offset = 0): number {
 export function availabilityOrder(index: number): number {
   return RUNTIME_ORDER.AVAILABILITY + index;
 }
+
+/**
+ * M5-WO4 Affinity plan layout. Every step of one block shares the block's position (M4 breaks ties by stepKey), and
+ * every binding reads a strictly earlier block — so no position arithmetic is needed at all.
+ */
+export const AFFINITY_ORDER = Object.freeze({
+  /** The whole Ability's exact Keyword contributions → one M4 KEYWORD step. */
+  KEYWORDS: 100,
+  /** One REQUIREMENT per Strength rule / per Weakness rule of the governing Affinity. */
+  STRENGTHS: 200,
+  WEAKNESSES: 300,
+  /** M4 MAX modifiers select the highest matched Weakness percentage. */
+  WEAKNESS_SELECTION: 400,
+  /** The ordered Strength REDUCE_PERCENT → Weakness INCREASE_PERCENT on the listed cost. */
+  COST: 500,
+  /** Affinity Authority: rank floor and Effect / Trait capacity Requirements. */
+  AUTHORITY: 600,
+  /** Per-Effect Keyword sets for Affinity Authority specialization. */
+  EFFECT_KEYWORDS: 700,
+  EFFECT_ACCESS: 800,
+  /** Affinity access Requirements (Trait / Effect / Maneuver prerequisites). */
+  ACCESS: 900,
+});
