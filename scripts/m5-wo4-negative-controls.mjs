@@ -197,6 +197,18 @@ const controls = [
     guard: runtimeGolden("M5-SC-036 a MASSIVE"),
   },
   {
+    name: "M5-I153 Arcane Rank reverted to UNRESOLVED after the M5-SC-011 ruling",
+    file: G("vocabulary/terminology.ts"),
+    mutate: replaceOnce('entry("Arcane Rank", "SKILL_RANK", C, "SKILL", "ARCANE_RANK", { ...designer, conflictKey: "M5-SC-011" })', 'entry("Arcane Rank", "SKILL_RANK", U, "SPELL", null, { ...audit, conflictKey: "M5-SC-011" })'),
+    guard: vitest("packages/prowess-game", ["src/vocabulary.test.ts", "-t", "M5-I153"]),
+  },
+  {
+    name: "M5-I153 Arcana Rank treated as a separate canonical track",
+    file: G("vocabulary/terminology.ts"),
+    mutate: replaceOnce('entry("Arcana Rank", "SKILL_RANK", L, "SKILL", null, { ...designer, canonicalTerm: "Arcane Rank", conflictKey: "M5-SC-011" })', 'entry("Arcana Rank", "SKILL_RANK", C, "SKILL", "ARCANA_RANK", { ...designer, conflictKey: "M5-SC-011" })'),
+    guard: staticRulings("M5-I153"),
+  },
+  {
     name: "M5-SC-036 marked resolved in the register without a designer ruling",
     file: REGISTER,
     mutate: replaceOnce("- **status**: `UNRESOLVED`\n- **resolution authority**: none\n- **notes**: recorded by the post-WO4 canon-rulings amendment.", "- **status**: `RESOLVED_BY_DESIGNER`\n- **resolution authority**: none\n- **notes**: recorded by the post-WO4 canon-rulings amendment."),

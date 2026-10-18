@@ -140,6 +140,9 @@ supersession, M5-I152, documentation and this CI step). The M5-WO3 and M5-WO4 co
 the rulings, and `scripts/m5-wo4-negative-controls.mjs` gained the canon-rulings controls (wrong Size values, a guessed
 Massive value, a Size-blind compiler, a non-Trained or unresolved Level 9 Affinity, M5-SC-036 marked resolved). No gate
 was removed.
+The follow-up Arcane ruling (M5-SC-011, M5-I153) extends the same step: it also runs `vocabulary.test.ts`, the static
+audit pins the Arcane Rank (CANONICAL) / Arcana Rank (LEGACY) terminology entries, and two more controls revert the
+ruling.
 
 ## Local quality commands
 

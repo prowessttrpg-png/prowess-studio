@@ -403,7 +403,8 @@ Definition and rank rule. There is no latest / current lookup, registry or cache
   rulings (TRAINED).
 - **M5-SC-036** Base Movement of Massive creatures — UNRESOLVED (new in the post-WO4 canon rulings).
 - **M5-SC-028** Rounding of percentage cost modifiers — UNRESOLVED; the later Spell cost pipeline owns final rounding.
-- **M5-SC-011** Arcane Rank vs Arcana Rank terminology — UNRESOLVED; Arcane Authority capacity is out of WO4 scope.
+- **M5-SC-011** Arcane Rank vs Arcana Rank terminology — UNRESOLVED in WO4; RESOLVED_BY_DESIGNER after WO4 (one rank:
+  the Arcana Skill's, named Arcane Rank — M5-I153). Arcane Authority capacity is still out of WO4 scope.
 - Keyword granularity (authoring note, not a conflict): matching is exact with no Keyword implication, so a component
   that is both "direct damage" and "damage" must list both `keyword.direct_damage` and `keyword.damage`. Which Keywords
   each catalog Effect lists belongs to the later Effect catalog Work Orders.

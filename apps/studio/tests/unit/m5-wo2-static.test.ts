@@ -131,7 +131,9 @@ describe("M5-WO2 audit — Core resolution, stats, dice & ranks", () => {
       expect(s, key).toMatch(/\*\*resolution authority\*\*: M5-WO2 §/);
       expect(s, key).toMatch(/\*\*source A\*\*:[\s\S]*\*\*source B\*\*:/); // provenance preserved
     }
-    for (const key of ["M5-SC-007", "M5-SC-011"]) expect(section(register, key), key).toMatch(/\*\*status\*\*: `UNRESOLVED`/);
+    expect(section(register, "M5-SC-007")).toMatch(/\*\*status\*\*: `UNRESOLVED`/);
+    // M5-SC-011 was UNRESOLVED through M5-WO4; the post-WO4 designer ruling resolved it (M5-I153), WO1 history kept.
+    expect(section(register, "M5-SC-011")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`[\s\S]*WO1–WO4 status was `UNRESOLVED`[\s\S]*It is not normalized \(§10\)\.[\s\S]*Post-WO4 designer ruling \(resolves M5-SC-011\)/);
     // M5-WO3 designer rulings: the WO2 history (deferral, fail-closed) is kept, not rewritten.
     for (const key of ["M5-SC-006", "M5-SC-032"]) {
       expect(section(register, key), key).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`/);

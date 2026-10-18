@@ -529,7 +529,7 @@ export function compileAffinity(request: unknown): ProwessOutcome<ProwessAffinit
         break;
       }
       const chosen = readEnum(authority, SPELL_CONSTRUCTION_AUTHORITIES, ["subject", "composition", "authority", "authority"], p, A.AUTHORITY_REQUIRED, "Spell construction Authority");
-      if (chosen === "ARCANE_AUTHORITY") p.add(A.ARCANE_AUTHORITY_NOT_IN_SCOPE, ["subject", "composition", "authority"], "Arcane Authority capacity (Arcana Rank) belongs to the later Spell Creation Work Order (§113)");
+      if (chosen === "ARCANE_AUTHORITY") p.add(A.ARCANE_AUTHORITY_NOT_IN_SCOPE, ["subject", "composition", "authority"], "Arcane Authority capacity (Arcane Rank) belongs to the later Spell Creation Work Order (§113)");
       if (chosen !== "AFFINITY_AUTHORITY") break;
       const g = governingOf(composition, index, profile, p);
       if (g === null) break;

@@ -15,7 +15,8 @@ import { auditWo4Content } from "./m5-wo4-audit-helpers";
  *
  * Invariants guarded here (docs/architecture/m5-invariants.md): M5-I151 a new Level 9 Affinity starts at Trained and
  * every Affinity ranks independently · M5-I152 Base Movement is authored per Creature Size, never derived from occupied
- * space; Massive pending. Historical: M5-I119 is SUPERSEDED by M5-I151 (traceable, not deleted).
+ * space; Massive pending · M5-I153 Arcane Rank is the Arcana Skill's rank; Arcana Rank is its legacy name (M5-SC-011).
+ * Historical: M5-I119 is SUPERSEDED by M5-I151 (traceable, not deleted).
  */
 const ROOT = path.resolve(process.cwd(), "..", "..");
 const read = (file: string) => readFileSync(path.join(ROOT, file), "utf8");
@@ -82,9 +83,24 @@ describe("Post-WO4 canon rulings audit — Size Base Movement & Level 9 Affinity
     expect(section(register, "M5-SC-036")).toMatch(/\*\*status\*\*: `UNRESOLVED`\n- \*\*resolution authority\*\*: none/);
   });
 
+  it("M5-I153 / M5-SC-011 ruling: Arcane Rank is the Arcana Skill's rank — CANONICAL; Arcana Rank is its LEGACY name; the register keeps the history", () => {
+    const terms = read("packages/prowess-game/src/vocabulary/terminology.ts");
+    expect(terms).toContain('entry("Arcane Rank", "SKILL_RANK", C, "SKILL", "ARCANE_RANK", { ...designer, conflictKey: "M5-SC-011" })');
+    expect(terms).toContain('entry("Arcana Rank", "SKILL_RANK", L, "SKILL", null, { ...designer, canonicalTerm: "Arcane Rank", conflictKey: "M5-SC-011" })');
+    const register = read("docs/architecture/m5-core-playtest-source-conflicts.md");
+    expect(register).toMatch(/\*\*Post-WO4 Arcane ruling update\.\*\*/);
+    expect(section(register, "M5-SC-011")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`[\s\S]*Post-WO4 designer ruling \(resolves M5-SC-011\)/);
+    const catalog = JSON.parse(read("docs/architecture/m5-invariants.json")) as Array<{ id: string; guards: string[]; status?: string }>;
+    const i153 = catalog.find((x) => x.id === "M5-I153")!;
+    expect(i153.status ?? "ACTIVE").toBe("ACTIVE");
+    expect(i153.guards).toContain("apps/studio/tests/unit/m5-canon-rulings-static.test.ts");
+    expect(section(read("docs/architecture/m5-invariants.md"), "M5-I153")).toContain("Arcane Rank Is The Arcana Skill's Rank");
+    expect(read("docs/architecture/m5-wo4-canon-rulings-completion-report.md")).toMatch(/^## \d+\. Arcane Rank$/m);
+  });
+
   it("the invariant catalog: M5-I119 SUPERSEDED by M5-I151 (kept); M5-I151 and M5-I152 are ACTIVE and guarded here", () => {
     const catalog = JSON.parse(read("docs/architecture/m5-invariants.json")) as Array<{ id: string; title: string; guards: string[]; status?: string; supersededBy?: string }>;
-    expect(catalog).toHaveLength(152);
+    expect(catalog).toHaveLength(153);
     const by = (id: string) => catalog.find((x) => x.id === id)!;
     expect([by("M5-I119").status, by("M5-I119").supersededBy]).toEqual(["SUPERSEDED", "M5-I151"]);
     for (const id of ["M5-I151", "M5-I152"]) {

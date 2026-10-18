@@ -36,6 +36,9 @@ different Base Movement: Small 5 ft · Medium 5 ft · Large 10 ft · Huge 15 ft,
 M5-SC-036 (Base Movement of Massive creatures) is new and `UNRESOLVED`. Earlier text is kept verbatim; each ruling is
 appended as an amendment.
 
+**Post-WO4 Arcane ruling update.** The designer ruled that Arcane Rank and Arcana Rank are the same rank when referring
+to Skills: the Arcana Skill's rank, named Arcane Rank. M5-SC-011 is `RESOLVED_BY_DESIGNER`; the earlier text is kept.
+
 **Statuses:** `UNRESOLVED` · `RESOLVED_BY_DESIGNER` · `RESOLVED_BY_CANON_DECISION` · `SUPERSEDED`.
 
 `UNRESOLVED` means that no designer or Canon ruling exists. WO1 records the problem and does not choose an answer.
@@ -211,9 +214,13 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source A**: s677 ARCANE RANK; "Arcane Authority" (s624, s680); s783 "Arcane/ Affinity Rank"; s825 "Arcane Rank".
 - **source B**: "Arcana Rank" (17×: s624, s627, s637, s1226 "Arcana: Expert"); the Skill is named "Arcana" (s185).
 - **mechanical consequence**: it is unclear whether Arcane Rank is the Arcana Skill's rank or a separate track.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer ruling after M5-WO4 (Arcane ruling amendment); WO1–WO4 status was `UNRESOLVED`, resolution authority none
 - **notes**: the context strongly suggests the same concept (the Arcana Skill rank). It is not normalized (§10).
+- **Post-WO4 designer ruling (resolves M5-SC-011)**: Arcane Rank and Arcana Rank are the same when referring to
+  Skills (designer answer, confirmed: same rank, named Arcane). Arcane Rank IS the Arcana Skill's rank — one rank, not a separate track. "Arcane Rank" is the canonical term;
+  "Arcana Rank" is its LEGACY spelling (terminology inventory). No Spell mechanic changes: Arcane Authority capacity
+  still belongs to the later Spell Creation Work Order. Guarded by M5-I153.
 
 ### M5-SC-012 — "Condition" names four different concepts
 

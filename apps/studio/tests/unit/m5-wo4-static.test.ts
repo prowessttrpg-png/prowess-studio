@@ -25,7 +25,8 @@ import { auditWo4Content, auditWo4Source, type Wo4Layer } from "./m5-wo4-audit-h
  * capacity · M5-I138 Trait capacity · M5-I139 no capacity addition · M5-I140 Authority ≠ cost · M5-I141 access is not
  * free · M5-I142 listed MP · M5-I143 no direct AP · M5-I144 no Spell economics on Maneuvers · M5-I145 shared alignment ·
  * M5-I146 provenance · M5-I147 no latest / current · M5-I148 M4 primitives · M5-I149 no hidden percent math · M5-I150
- * deterministic, immutable, JSON-safe, stateless. Historical: M5-I073 → M5-I075 → M5-I111 (traceable, not deleted).
+ * deterministic, immutable, JSON-safe, stateless. Post-WO4 rulings: M5-I151 Level 9 Trained · M5-I152 Size Base Movement ·
+ * M5-I153 Arcane Rank is the Arcana Skill's rank. Historical: M5-I073 → M5-I075 → M5-I111 (traceable, not deleted).
  */
 const ROOT = path.resolve(process.cwd(), "..", "..");
 const read = (file: string) => readFileSync(path.join(ROOT, file), "utf8");
@@ -130,9 +131,9 @@ describe("M5-WO4 audit — Affinity identity, rank, authority & keyword alignmen
     expect(affinity().deferred).toEqual([]);
   });
 
-  it("the invariant catalog has M5-I001–I152; M5-I111–I152 are guarded here; M5-I073 → M5-I075 → M5-I111 and M5-I119 → M5-I151 supersession is traceable", () => {
+  it("the invariant catalog has M5-I001–I153; M5-I111–I153 are guarded here; M5-I073 → M5-I075 → M5-I111 and M5-I119 → M5-I151 supersession is traceable", () => {
     const catalog = JSON.parse(read("docs/architecture/m5-invariants.json")) as Array<{ id: string; title: string; guards: string[]; status?: string; supersededBy?: string }>;
-    expect(catalog.map((x) => x.id)).toEqual(Array.from({ length: 152 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
+    expect(catalog.map((x) => x.id)).toEqual(Array.from({ length: 153 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
     const self = read("apps/studio/tests/unit/m5-wo4-static.test.ts");
     for (const entry of catalog.slice(110)) {
       expect(entry.guards, entry.id).toContain("apps/studio/tests/unit/m5-wo4-static.test.ts");

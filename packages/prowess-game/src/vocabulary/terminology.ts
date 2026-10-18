@@ -126,8 +126,10 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   entry("Master", "SKILL_RANK", C, "SKILL", "MASTER"),
   entry("Rank Value", "SKILL_RANK", SS, "MANEUVER", "RANK_VALUE"),
   entry("Rank Bonus", "SKILL_RANK", C, "SKILL", "RANK_BONUS"),
-  entry("Arcane Rank", "SKILL_RANK", U, "SPELL", null, { ...audit, conflictKey: "M5-SC-011" }),
-  entry("Arcana Rank", "SKILL_RANK", U, "SPELL", null, { ...audit, conflictKey: "M5-SC-011" }),
+  // M5-SC-011 (post-WO4 designer ruling): Arcane Rank IS the Arcana Skill's rank — one rank, not a separate track.
+  // "Arcane Rank" is the canonical term; "Arcana Rank" is its LEGACY spelling.
+  entry("Arcane Rank", "SKILL_RANK", C, "SKILL", "ARCANE_RANK", { ...designer, conflictKey: "M5-SC-011" }),
+  entry("Arcana Rank", "SKILL_RANK", L, "SKILL", null, { ...designer, canonicalTerm: "Arcane Rank", conflictKey: "M5-SC-011" }),
   entry("Martial Rank", "SKILL_RANK", SS, "MANEUVER", "MARTIAL_RANK"),
   entry("Summoning Rank Value", "SKILL_RANK", U, "SUMMON", null, { ...audit, conflictKey: "M5-SC-020" }),
 

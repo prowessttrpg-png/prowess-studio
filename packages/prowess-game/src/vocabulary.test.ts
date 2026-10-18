@@ -43,7 +43,7 @@ describe("terminology inventory", () => {
     for (const term of ["Summon Dice", "Commitment Die", "Bound Dice"]) expect(byTerm(term)[0]?.status, term).toBe("SYSTEM_SPECIFIC");
   });
 
-  it("other unresolved source inconsistencies stay unresolved (Arcane / Arcana Rank, Maneuver Traits); WO2 rulings resolve Dodge / Evasion (M5-I056) and Advantage; WO3 resolves Base Movement (terminology amended post-WO3, M5-I111)", () => {
+  it("other unresolved source inconsistencies stay unresolved (Maneuver Traits); Arcane Rank is the Arcana Skill's rank (M5-SC-011 ruling, M5-I153); WO2 rulings resolve Dodge / Evasion (M5-I056) and Advantage; WO3 resolves Base Movement (terminology amended post-WO3, M5-I111)", () => {
     expect(byTerm("Dodge")[0]?.status).toBe("CANONICAL");
     expect(byTerm("Evasion")[0]).toEqual(expect.objectContaining({ status: "LEGACY", canonicalTerm: "Dodge" }));
     expect(byTerm("Advantage")[0]?.status).toBe("CANONICAL");
@@ -55,7 +55,10 @@ describe("terminology inventory", () => {
     for (const term of ["Final Movement", "Total Movement"]) expect(byTerm(term)[0], term).toEqual(expect.objectContaining({ status: "LEGACY", canonicalTerm: "Movement", conflictKey: "M5-SC-034" }));
     for (const term of ["Movement Allowance", "Creature Size", "Action Points", "Counter Action", "Mana Efficiency", "Mana Points", "Dodge Action"]) expect(byTerm(term)[0]?.status, term).toBe("CANONICAL");
     expect(byTerm("Dodge Action")[0]?.token).not.toBe(byTerm("Dodge")[0]?.token);
-    for (const term of ["Arcane Rank", "Arcana Rank", "Maneuver Traits"]) {
+    // M5-SC-011 RESOLVED_BY_DESIGNER after M5-WO4 (M5-I153): one rank — the Arcana Skill's — named Arcane Rank.
+    expect(byTerm("Arcane Rank")).toEqual([expect.objectContaining({ status: "CANONICAL", category: "SKILL_RANK", systemFamily: "SKILL", token: "ARCANE_RANK", authority: "DESIGNER_CLARIFICATION", conflictKey: "M5-SC-011" })]);
+    expect(byTerm("Arcana Rank")).toEqual([expect.objectContaining({ status: "LEGACY", token: null, canonicalTerm: "Arcane Rank", conflictKey: "M5-SC-011" })]);
+    for (const term of ["Maneuver Traits"]) {
       expect(byTerm(term)[0]?.status, term).toBe("UNRESOLVED");
       expect(byTerm(term)[0]?.conflictKey, term).toMatch(/^M5-SC-\d{3}$/);
     }
@@ -108,6 +111,6 @@ describe("system families and Definition kinds", () => {
 
   it("M5-I001 the vocabulary is sourced from the Core Playtest audit (authority recorded on every entry)", () => {
     expect(new Set(TERMINOLOGY_INVENTORY.map((e) => e.authority))).toEqual(new Set(["CORE_PLAYTEST_V0_1", "DESIGNER_CLARIFICATION", "SOURCE_AUDIT"]));
-    expect(TERMINOLOGY_INVENTORY.filter((e) => e.authority === "DESIGNER_CLARIFICATION").map((e) => e.term).sort()).toEqual(["Accuracy", "Advantage", "Affinity Alignment", "Base Movement", "Disadvantage", "Dodge", "Emission", "Evasion", "Evocation", "Final Movement", "Governing Affinity", "Movement", "Movement Allowance", "Player Dice", "Player Die", "Sprint Allowance", "Total Movement"]);
+    expect(TERMINOLOGY_INVENTORY.filter((e) => e.authority === "DESIGNER_CLARIFICATION").map((e) => e.term).sort()).toEqual(["Accuracy", "Advantage", "Affinity Alignment", "Arcana Rank", "Arcane Rank", "Base Movement", "Disadvantage", "Dodge", "Emission", "Evasion", "Evocation", "Final Movement", "Governing Affinity", "Movement", "Movement Allowance", "Player Dice", "Player Die", "Sprint Allowance", "Total Movement"]);
   });
 });

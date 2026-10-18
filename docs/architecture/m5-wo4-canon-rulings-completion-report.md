@@ -62,9 +62,18 @@ The register keeps every earlier entry verbatim. Each ruling is appended as an a
 
 - **M5-SC-036:** Base Movement of Massive creatures is `UNRESOLVED`. It needs a designer value, or a rule for
   "20 ft × 20 ft or larger".
-- Every other conflict listed as open in M5-WO4 §37 keeps its status: M5-SC-028, M5-SC-011, M5-SC-026 and M5-SC-027.
+- Every other conflict listed as open in M5-WO4 §37 keeps its status: M5-SC-028, M5-SC-026 and M5-SC-027. (M5-SC-011
+  is resolved by the follow-up Arcane ruling — §6.)
 
-## 6. Verification
+## 6. Arcane Rank
+
+A follow-up designer ruling resolves M5-SC-011: Arcane Rank and Arcana Rank are the same when referring to Skills.
+Arcane Rank is the Arcana Skill's rank. It is one rank, not a separate track. The terminology inventory now lists
+"Arcane Rank" as CANONICAL (token `ARCANE_RANK`, SKILL family) and "Arcana Rank" as LEGACY, pointing to "Arcane Rank".
+No Spell mechanic changes: Arcane Authority capacity still belongs to the later Spell Creation Work Order. This is
+guarded by the new M5-I153. M5-SC-011 is no longer open.
+
+## 7. Verification
 
 - **Tests:**
   - The game goldens and contracts were updated.

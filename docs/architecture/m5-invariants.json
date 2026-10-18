@@ -1479,5 +1479,17 @@
       "apps/studio/tests/unit/m5-canon-rulings-static.test.ts",
       "scripts/m5-wo4-negative-controls.mjs"
     ]
+  },
+  {
+    "id": "M5-I153",
+    "title": "Arcane Rank Is The Arcana Skill's Rank; Arcana Rank Is Its Legacy Name",
+    "group": "Terminology",
+    "guards": [
+      "packages/prowess-game/src/vocabulary.test.ts",
+      "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "apps/studio/tests/unit/m5-canon-rulings-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
   }
 ]

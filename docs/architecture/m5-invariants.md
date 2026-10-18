@@ -14,7 +14,7 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 ### M5-I002 — Unresolved Source Ambiguity Is Preserved Rather Than Silently Reconciled
 
 - **Group:** Source authority
-- **Meaning:** Conflicts are recorded UNRESOLVED with both sources; terminology without a ruling (Player Dice, Dodge / Evasion, Arcane / Arcana Rank, Advantage) is never normalized.
+- **Meaning:** Conflicts are recorded UNRESOLVED with both sources; terminology without a ruling (Player Dice, Dodge / Evasion, Arcane / Arcana Rank, Advantage) is never normalized; a term is normalized only once a ruling exists (Arcane / Arcana Rank: M5-I153).
 - **Guards:** `packages/prowess-game/src/vocabulary.test.ts`, `apps/studio/tests/unit/m5-wo1-static.test.ts`
 
 ### M5-I003 — Prowess-Specific Mechanics Do Not Enter The Generic @prowess/rules Package
@@ -921,3 +921,9 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 - **Group:** Movement
 - **Meaning:** Designer ruling M5-SC-033: CREATURE_SIZE authors baseMovement Small 5 ft, Medium 5 ft, Large 10 ft, Huge 15 ft; core.derived.base_movement reads the character's exact Size Definition through CREATURE_SIZE_BASE_MOVEMENT and cites it; a character with no Size named is MEDIUM; Movement = Base Movement × AGI + bonuses. Massive is null (M5-SC-036) and fails closed with PROWESS_CORE.SIZE_BASE_MOVEMENT_PENDING_CANON. Occupied space is never read as Base Movement.
 - **Guards:** `packages/prowess-game/src/runtime-contracts.test.ts`, `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `apps/studio/tests/unit/m5-wo4-static.test.ts`, `apps/studio/tests/unit/m5-canon-rulings-static.test.ts`, `scripts/m5-wo4-negative-controls.mjs`
+
+### M5-I153 — Arcane Rank Is The Arcana Skill's Rank; Arcana Rank Is Its Legacy Name
+
+- **Group:** Terminology
+- **Meaning:** Designer ruling M5-SC-011: Arcane Rank and Arcana Rank are one rank — the Arcana Skill's rank. The terminology inventory records "Arcane Rank" CANONICAL (token ARCANE_RANK, SKILL family) and "Arcana Rank" LEGACY with canonical term "Arcane Rank". No separate Arcane track exists; Arcane Authority capacity is still later Spell Creation work.
+- **Guards:** `packages/prowess-game/src/vocabulary.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `apps/studio/tests/unit/m5-wo4-static.test.ts`, `apps/studio/tests/unit/m5-canon-rulings-static.test.ts`, `scripts/m5-wo4-negative-controls.mjs`
