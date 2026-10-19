@@ -1,0 +1,57 @@
+{
+  "contentKey": "prowess.core_playtest.v0_1.ability_construction",
+  "workOrder": "M5-WO5",
+  "schemaVersion": 1,
+  "designerContent": "M5-WO5 locked rulings: Arcane or relevant Affinity Trained grants Spell construction access; Martial Rank is the Martial Skill rank; Arcane/Martial capacities use the existing Skill rank ladder; Spell Casting Condition capacity comes only from Arcane Rank; Spell Effect-to-Trait exchange is one-for-one while retaining at least one Effect; a permanent player-created/known Ability consumes one Signature slot unless explicitly exempted.",
+  "definitions": [
+    {
+      "canonicalKey": "ability.construction_rule",
+      "definitionKind": "ABILITY_CONSTRUCTION_RULE",
+      "payload": {
+        "ranks": [
+          {
+            "rank": "UNTRAINED",
+            "order": 0,
+            "rankValue": 0,
+            "arcane": { "effectCapacity": 0, "traitCapacity": 0, "castingConditionCapacity": 0, "maximumTraitTrades": 0 },
+            "martial": { "effectCapacity": 0, "traitCapacity": 0, "maneuverConditionCapacity": 0 }
+          },
+          {
+            "rank": "TRAINED",
+            "order": 1,
+            "rankValue": 1,
+            "arcane": { "effectCapacity": 1, "traitCapacity": 1, "castingConditionCapacity": 1, "maximumTraitTrades": 0 },
+            "martial": { "effectCapacity": 1, "traitCapacity": 1, "maneuverConditionCapacity": 1 }
+          },
+          {
+            "rank": "EXPERT",
+            "order": 2,
+            "rankValue": 2,
+            "arcane": { "effectCapacity": 2, "traitCapacity": 2, "castingConditionCapacity": 2, "maximumTraitTrades": 1 },
+            "martial": { "effectCapacity": 2, "traitCapacity": 2, "maneuverConditionCapacity": 2 }
+          },
+          {
+            "rank": "MASTER",
+            "order": 3,
+            "rankValue": 3,
+            "arcane": { "effectCapacity": 3, "traitCapacity": 3, "castingConditionCapacity": 3, "maximumTraitTrades": 2 },
+            "martial": { "effectCapacity": 3, "traitCapacity": 3, "maneuverConditionCapacity": 3 }
+          }
+        ],
+        "spellAccess": {
+          "minimumArcaneRank": "TRAINED",
+          "minimumAffinityRank": "TRAINED",
+          "minimumEffects": 1
+        },
+        "signature": {
+          "defaultSlotsPerAbility": 1,
+          "capacityStat": "PRO"
+        },
+        "source": {
+          "locators": ["s121", "s122", "s123", "s624", "s627", "s676", "s1978", "s1980"],
+          "conflicts": []
+        }
+      }
+    }
+  ]
+}
