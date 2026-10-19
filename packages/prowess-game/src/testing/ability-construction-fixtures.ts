@@ -43,12 +43,7 @@ export const CONSTRUCTION_COMPONENTS = {
 } as const satisfies Record<string, ContentDefinition>;
 export type ConstructionComponentKey = keyof typeof CONSTRUCTION_COMPONENTS;
 
-const CATALOG: readonly ContentDefinition[] = [
-  skillLadder,
-  ...CONSTRUCTION.definitions,
-  ...AFFINITY.definitions,
-  ...Object.values(CONSTRUCTION_COMPONENTS),
-];
+const CATALOG: readonly ContentDefinition[] = [skillLadder, ...CONSTRUCTION.definitions, ...AFFINITY.definitions, ...Object.values(CONSTRUCTION_COMPONENTS)];
 
 export const CONSTRUCTION_RULESET = uuid(8401);
 export const CONSTRUCTION_MANIFEST = uuid(8402);
@@ -132,6 +127,7 @@ export function constructionProfile(
     readonly affinities?: readonly { readonly key: string; readonly rank: "NONE" | "TRAINED" | "EXPERT" | "MASTER"; readonly role: "PRIMARY" | "SECONDARY" }[];
   } = {},
 ): Record<string, unknown> {
+  const affinities = options.affinities ?? [];
   return {
     prowess: options.prowess ?? 4,
     signatureSlotsUsed: options.signatureSlotsUsed ?? 0,
@@ -139,9 +135,9 @@ export function constructionProfile(
       { skillKey: "skill.arcana", rank: options.arcane ?? "UNTRAINED" },
       { skillKey: "skill.martial", rank: options.martial ?? "UNTRAINED" },
     ],
-    affinityProfile: {
-      affinities: (options.affinities ?? []).map((a) => ({ affinity: f.ref(a.key), rank: a.rank, role: a.role, acquisition: null })),
-    },
+    affinityProfile: affinities.length === 0
+      ? null
+      : { affinities: affinities.map((a) => ({ affinity: f.ref(a.key), rank: a.rank, role: a.role, acquisition: null })) },
   };
 }
 
