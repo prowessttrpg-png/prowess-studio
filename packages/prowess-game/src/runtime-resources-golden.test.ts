@@ -3,7 +3,7 @@ import { compileCoreResolution } from "./core/compile.js";
 import { resolveRollMode, resolveRollSignals } from "./core/dice.js";
 import { createSidePhase, resolveInitiativeOrder, validateActingSequence } from "./runtime/combat.js";
 import { compileRuntime } from "./runtime/compile.js";
-import { coreBundle } from "./testing/core-fixtures.js";
+import { coreBundle, RUNTIME_DEFINITIONS } from "./testing/core-fixtures.js";
 import { codes, compileWith, roll, runCore } from "./testing/core-run.js";
 import { payForAction, resources, runRuntime, runtimeCharacter } from "./testing/runtime-run.js";
 
@@ -41,15 +41,18 @@ describe("§60–§61 / §115 MOVEMENT = BASE MOVEMENT (5 ft) × AGI (M5-SC-006;
     ["SMALL", 5, 20],
     ["MEDIUM", 5, 20],
     ["LARGE", 10, 40],
-    ["HUGE", 15, 60],
-  ])("M5-I152 designer ruling M5-SC-033: a %s creature has Base Movement %i ft → Movement %i ft at AGI 4 (the Size Definition is cited)", (size, base, feet) => {
+    ["HUGE", 20, 80],
+    ["MASSIVE", 40, 160],
+  ])("M5-I154 designer rulings M5-SC-033 / M5-SC-036: a %s creature has Base Movement %i ft → Movement %i ft at AGI 4 (the Size Definition is cited)", (size, base, feet) => {
     const r = runCore({ kind: "DERIVED_STATISTICS", subjectKey: "move", statistics: ["BASE_MOVEMENT", "MOVEMENT"] }, { ...runtimeCharacter({ AGI: 4 }), creatureSize: size });
     expect([r.derived("BASE_MOVEMENT"), r.derived("MOVEMENT")]).toEqual([base, feet]);
     expect(r.plan.sourceMap.entries.find((e) => e.role === "derived-statistic:BASE_MOVEMENT")?.componentKeys).toContain(`creature-size.${size}`);
   });
 
-  it("M5-I152 / M5-SC-036 a MASSIVE creature's Base Movement is pending canon: the sheet fails closed, nothing is guessed", () => {
-    const out = compileWith({ kind: "DERIVED_STATISTICS", subjectKey: "move", statistics: ["MOVEMENT"] }, { ...runtimeCharacter({ AGI: 4 }), creatureSize: "MASSIVE" });
+  it("M5-I154 a Size whose Base Movement is unauthored (null) fails closed — nothing is guessed (interpreter contract kept after M5-SC-036)", () => {
+    const massive = RUNTIME_DEFINITIONS.find((d) => d.canonicalKey === "creature_size.massive")!.payload;
+    const fixture = coreBundle({ revise: { "creature_size.massive": { ...massive, baseMovement: null } } });
+    const out = compileWith({ kind: "DERIVED_STATISTICS", subjectKey: "move", statistics: ["MOVEMENT"] }, { ...runtimeCharacter({ AGI: 4 }), creatureSize: "MASSIVE" }, fixture);
     expect(codes(out)).toEqual(["PROWESS_CORE.SIZE_BASE_MOVEMENT_PENDING_CANON"]);
   });
 

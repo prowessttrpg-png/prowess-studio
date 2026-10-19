@@ -198,7 +198,7 @@ describe("M5-WO4 Affinity — exact Release history, isolation and M1 Keyword id
     const before = await fingerprint();
     const r1 = evaluateAffinity(first, g.pins);
     expect(await fingerprint()).toEqual(before); // §173: evaluation persists nothing (no rank, choice, canon or Keyword change)
-    expect(r1.summary).toEqual({ alignment: "STRENGTH_AND_WEAKNESS", cost: 104, discount: 20, weakness: 30 });
+    expect(r1.summary).toEqual({ alignment: "STRENGTH_AND_WEAKNESS", cost: 110, discount: 20, weakness: 30 }); // 100 − 20 + 30 = net 110% (M5-I155)
     expect(r1.plan.rulesetProvenance.release).toEqual({ releaseId: g.r1.id, releaseNumber: 1, versionLabel: "history R1" });
     // M5-I146: the plan cites exact EntityVersions of THIS Release; the matched Keyword names its exact contributor.
     const cited = new Set(r1.plan.sourceMap.entries.flatMap((e) => e.definitions.map((d) => d.entityVersionId as string)));
@@ -228,7 +228,7 @@ describe("M5-WO4 Affinity — exact Release history, isolation and M1 Keyword id
     const release2 = await publishR2(g, { "affinity.evocation": { ...payload, weaknesses } }, "isolation R2");
     const [a, b] = await Promise.all([materializeProwessDefinitionsFromRelease(g.r1.id), materializeProwessDefinitionsFromRelease(release2.id)]);
     const [ra, rb] = [evaluateAffinity(a, g.pins), evaluateAffinity(b, g.pins)];
-    expect([ra.summary.cost, rb.summary.cost]).toEqual([104, 120]);
+    expect([ra.summary.cost, rb.summary.cost]).toEqual([110, 130]); // net percentages (M5-I155): 100 − 20 + 30 · 100 − 20 + 50
     const v2 = b.bundle.definitions.find((d) => d.entityId === pin.entityId)!.entityVersionId as string;
     expect(v2).not.toBe(pin.entityVersionId);
     expect([ra.reading.alignment?.governingAffinity.affinity.entityVersionId, rb.reading.alignment?.governingAffinity.affinity.entityVersionId]).toEqual([pin.entityVersionId, v2]);

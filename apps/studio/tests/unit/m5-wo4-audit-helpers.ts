@@ -252,10 +252,10 @@ export function auditWo4Content(affinity: Doc, core: Doc, runtime: Doc): string[
   if (/TOTAL_MOVEMENT|FINAL_MOVEMENT|total_movement|final_movement/.test(all)) add("total-movement-stat");
   const sprint = runtime.definitions.find((d) => d.definitionKind === "ACTION" && d.payload.actionKey === "SPRINT")?.payload.movementGrant as { formula: Formula } | null | undefined;
   if (sprint?.formula.expression !== "movement * 4" || sprint.formula.variables.some((v) => v.source.statistic !== "MOVEMENT")) add("sprint-allowance");
-  // Size Base Movement (designer ruling M5-SC-033, M5-I152): exact authored values; Massive pending (M5-SC-036).
-  const sizeBase: Record<string, { feet: number } | null> = { SMALL: { feet: 5 }, MEDIUM: { feet: 5 }, LARGE: { feet: 10 }, HUGE: { feet: 15 }, MASSIVE: null };
+  // Size Base Movement (designer rulings M5-SC-033 / M5-SC-036, M5-I154): exact authored values for every Size.
+  const sizeBase: Record<string, { feet: number } | null> = { SMALL: { feet: 5 }, MEDIUM: { feet: 5 }, LARGE: { feet: 10 }, HUGE: { feet: 20 }, MASSIVE: { feet: 40 } };
   for (const d of runtime.definitions.filter((x) => x.definitionKind === "CREATURE_SIZE")) if (!(String(d.payload.sizeKey) in sizeBase) || JSON.stringify(d.payload.baseMovement) !== JSON.stringify(sizeBase[String(d.payload.sizeKey)]) || "movementAdjustment" in d.payload) add("size-base-movement");
   const deferredKeys = (runtime.deferred ?? []).map((x) => x.conflictKey);
-  if (JSON.stringify(deferredKeys) !== JSON.stringify(["M5-SC-036"])) add("movement-conflicts");
+  if (deferredKeys.length !== 0) add("movement-conflicts");
   return [...findings].sort();
 }

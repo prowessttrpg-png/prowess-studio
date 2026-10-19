@@ -143,6 +143,9 @@ was removed.
 The follow-up Arcane ruling (M5-SC-011, M5-I153) extends the same step: it also runs `vocabulary.test.ts`, the static
 audit pins the Arcane Rank (CANONICAL) / Arcana Rank (LEGACY) terminology entries, and two more controls revert the
 ruling.
+The post-WO4 rulings batch (M5-SC-007, M5-SC-013 to M5-SC-031, M5-SC-036; M5-I154, M5-I155) runs in the same step: the
+static audit pins every ruling in the register, the two open follow-ups (M5-SC-037, M5-SC-038), the Size values (Huge
+20, Massive 40) and the net-percentage cost fragment; the WO4 controls now forbid the superseded sequential cost model.
 
 ## Local quality commands
 

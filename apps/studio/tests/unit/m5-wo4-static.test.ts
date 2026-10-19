@@ -26,7 +26,8 @@ import { auditWo4Content, auditWo4Source, type Wo4Layer } from "./m5-wo4-audit-h
  * free · M5-I142 listed MP · M5-I143 no direct AP · M5-I144 no Spell economics on Maneuvers · M5-I145 shared alignment ·
  * M5-I146 provenance · M5-I147 no latest / current · M5-I148 M4 primitives · M5-I149 no hidden percent math · M5-I150
  * deterministic, immutable, JSON-safe, stateless. Post-WO4 rulings: M5-I151 Level 9 Trained · M5-I152 Size Base Movement ·
- * M5-I153 Arcane Rank is the Arcana Skill's rank. Historical: M5-I073 → M5-I075 → M5-I111 (traceable, not deleted).
+ * M5-I153 Arcane Rank is the Arcana Skill's rank · M5-I154 Size values (Huge 20, Massive 40) · M5-I155 one net cost
+ * percentage. Historical: M5-I073 → M5-I075 → M5-I111 (traceable, not deleted).
  */
 const ROOT = path.resolve(process.cwd(), "..", "..");
 const read = (file: string) => readFileSync(path.join(ROOT, file), "utf8");
@@ -78,15 +79,18 @@ describe("M5-WO4 audit — Affinity identity, rank, authority & keyword alignmen
     expect(wo4.baseCommit).toMatch(/^[0-9a-f]{40}$/);
     const compile = read("packages/prowess-game/src/affinity/compile.ts");
     const operations = [...compile.matchAll(/operation: "([A-Z_]+)"/g)].map((m) => m[1]);
-    expect([...new Set(operations)].sort()).toEqual(["ANY", "INCREASE_PERCENT", "KEYWORD", "MAX", "MODIFIER", "REDUCE_PERCENT", "REQUIREMENT"].filter((x) => x !== "ANY"));
+    // M5-I155 (rulings batch, M5-SC-028): the net percentage is M4 SUBTRACT / ADD from 100; the cost is M4 MULTIPLY / DIVIDE.
+    expect([...new Set(operations)].sort()).toEqual(["ADD", "KEYWORD", "MAX", "MODIFIER", "REQUIREMENT", "SUBTRACT"]);
+    expect(compile).toContain('modifiers: [scale(NET_MULTIPLIER, "MULTIPLY", FULL_PRICE_PERCENT, 1), scale(PERCENT_SCALE, "DIVIDE", FULL_PRICE_PERCENT, 2)]');
   });
 
-  it("M5-I149 the Weakness penalty operand is bound to M4's selected maximum; the compiler computes no percentage", () => {
+  it("M5-I149 / M5-I155 the Weakness penalty operand is bound to M4's selected maximum and the cost multiplier to M4's net percentage; the compiler computes no percentage", () => {
     const compile = read("packages/prowess-game/src/affinity/compile.ts");
-    expect(compile).toMatch(/fromFragment\(`\/request\/modifiers\/\$\{String\(modifiers\.indexOf\(weakness\)\)\}\/operand`, selection, "\/data\/finalTargets\/0\/value"\)/);
+    expect(compile).toMatch(/fromFragment\(`\/request\/modifiers\/\$\{String\(netModifiers\.indexOf\(weakness\)\)\}\/operand`, selection, "\/data\/finalTargets\/0\/value"\)/);
+    expect(compile).toContain('bindings: [fromFragment("/request/modifiers/0/operand", netStep, "/data/finalTargets/0/value")]');
     expect(compile).toMatch(/operation: "MAX"/);
-    expect(compile).toMatch(/phaseKey: "affinity\.strength", phaseOrder: 1/);
-    expect(compile).toMatch(/phaseKey: "affinity\.weakness", phaseOrder: 2/);
+    expect(compile).toMatch(/phaseKey: "affinity\.net_percent", phaseOrder: 1/);
+    expect(compile).not.toMatch(/phaseKey: "affinity\.weakness", phaseOrder: 2/); // the superseded sequential model (M5-I128)
   });
 
   it("no schema change, no migration, no new endpoint, no persistence path; @prowess/game stays pure", () => {
@@ -131,22 +135,24 @@ describe("M5-WO4 audit — Affinity identity, rank, authority & keyword alignmen
     expect(affinity().deferred).toEqual([]);
   });
 
-  it("the invariant catalog has M5-I001–I153; M5-I111–I153 are guarded here; M5-I073 → M5-I075 → M5-I111 and M5-I119 → M5-I151 supersession is traceable", () => {
+  it("the invariant catalog has M5-I001–I155; M5-I111–I155 are guarded here; M5-I073 → M5-I075 → M5-I111 and M5-I119 → M5-I151 supersession is traceable", () => {
     const catalog = JSON.parse(read("docs/architecture/m5-invariants.json")) as Array<{ id: string; title: string; guards: string[]; status?: string; supersededBy?: string }>;
-    expect(catalog.map((x) => x.id)).toEqual(Array.from({ length: 153 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
+    expect(catalog.map((x) => x.id)).toEqual(Array.from({ length: 155 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
     const self = read("apps/studio/tests/unit/m5-wo4-static.test.ts");
     for (const entry of catalog.slice(110)) {
       expect(entry.guards, entry.id).toContain("apps/studio/tests/unit/m5-wo4-static.test.ts");
       expect(self, entry.id).toContain(entry.id);
-      expect(entry.status ?? "ACTIVE", entry.id).toBe(entry.id === "M5-I119" ? "SUPERSEDED" : "ACTIVE");
+      expect(entry.status ?? "ACTIVE", entry.id).toBe(["M5-I119", "M5-I128", "M5-I152"].includes(entry.id) ? "SUPERSEDED" : "ACTIVE");
       for (const guard of entry.guards) expect(existsSync(path.join(ROOT, guard)), `${entry.id} → ${guard}`).toBe(true);
     }
-    expect(catalog.filter((x) => x.status === "SUPERSEDED").map((x) => [x.id, x.supersededBy])).toEqual([["M5-I073", "M5-I075"], ["M5-I075", "M5-I111"], ["M5-I119", "M5-I151"]]);
+    expect(catalog.filter((x) => x.status === "SUPERSEDED").map((x) => [x.id, x.supersededBy])).toEqual([["M5-I073", "M5-I075"], ["M5-I075", "M5-I111"], ["M5-I119", "M5-I151"], ["M5-I128", "M5-I155"], ["M5-I152", "M5-I154"]]);
     expect(catalog.find((x) => x.id === "M5-I075")?.title).toBe("Base Movement Equals 5 Feet Times AGI Before Size Or Other Explicit Movement Modifiers");
     const md = read("docs/architecture/m5-invariants.md");
     expect(section(md, "M5-I075")).toMatch(/\*\*Status:\*\* SUPERSEDED by M5-I111/);
     expect(section(md, "M5-I111")).toContain("Movement Equals Base Movement Multiplied By AGI");
     expect(section(md, "M5-I119")).toMatch(/\*\*Status:\*\* SUPERSEDED by M5-I151/);
+    expect(section(md, "M5-I128")).toMatch(/\*\*Status:\*\* SUPERSEDED by M5-I155/);
+    expect(section(md, "M5-I152")).toMatch(/\*\*Status:\*\* SUPERSEDED by M5-I154/);
   });
 
   it("documents WO4 with all 37 required sections and the §286–§291 diagrams; WO3 history is amended, not rewritten", () => {
@@ -249,15 +255,15 @@ const contentControls: Array<[string, () => Docs, string]> = [
   }), "total-movement-stat"],
   ["Sprint compounds × 4 × 4", () => mutate((d) => void ((d.runtime.definitions.find((x) => x.payload.actionKey === "SPRINT")!.payload.movementGrant as { formula: { expression: string } }).formula.expression = "movement * 4 * 4")), "sprint-allowance"],
   ["Large occupied space read as Base Movement", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "LARGE")!.payload.baseMovement = 10)), "size-base-movement"],
-  ["M5-I152 Huge Base Movement drifts to 20 ft", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "HUGE")!.payload.baseMovement = { feet: 20 })), "size-base-movement"],
-  ["M5-I152 Small Base Movement drifts to 0 ft (null)", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "SMALL")!.payload.baseMovement = null)), "size-base-movement"],
-  ["M5-I152 Massive Base Movement guessed 20 ft (M5-SC-036)", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "MASSIVE")!.payload.baseMovement = { feet: 20 })), "size-base-movement"],
-  ["M5-I152 Base Movement hard-coded 5 ft again (Size ignored)", () => mutate((d) => {
+  ["M5-I154 Huge Base Movement reverts to the superseded 15 ft", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "HUGE")!.payload.baseMovement = { feet: 15 })), "size-base-movement"],
+  ["M5-I154 Small Base Movement drifts to 0 ft (null)", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "SMALL")!.payload.baseMovement = null)), "size-base-movement"],
+  ["M5-I154 Massive Base Movement drifts to 20 ft (ruling: 40)", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "MASSIVE")!.payload.baseMovement = { feet: 20 })), "size-base-movement"],
+  ["M5-I154 Base Movement hard-coded 5 ft again (Size ignored)", () => mutate((d) => {
     const f = d.core.definitions.find((x) => x.payload.statistic === "BASE_MOVEMENT")!.payload.formula as { expression: string; variables: unknown[] };
     f.expression = "5";
     f.variables = [];
   }), "old-movement-term"],
-  ["M5-SC-036 dropped from the deferred list", () => mutate((d) => void (d.runtime.deferred = [])), "movement-conflicts"],
+  ["a resolved Size value re-deferred (M5-SC-036)", () => mutate((d) => void (d.runtime.deferred = [{ conflictKey: "M5-SC-036" }])), "movement-conflicts"],
 ];
 
 describe("M5-WO4 permanent negative controls — mutated real source and content snapshots", () => {

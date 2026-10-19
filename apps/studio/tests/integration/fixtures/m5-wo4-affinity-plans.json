@@ -577,8 +577,8 @@
           ]
         },
         {
-          "stepKey": "prowess:SPELL_AFFINITY_COST:inspector:cost",
-          "order": 500,
+          "stepKey": "prowess:SPELL_AFFINITY_COST:inspector:net-percent",
+          "order": 450,
           "operation": "MODIFIER",
           "input": {
             "request": {
@@ -685,10 +685,10 @@
                   },
                   "modifierKey": "affinity.strength_discount",
                   "operand": 20,
-                  "operation": "REDUCE_PERCENT",
+                  "operation": "SUBTRACT",
                   "order": 0,
                   "phase": {
-                    "phaseKey": "affinity.strength",
+                    "phaseKey": "affinity.net_percent",
                     "phaseOrder": 1
                   },
                   "priority": 0,
@@ -708,7 +708,7 @@
                     "policy": "UNIQUE",
                     "stackingKey": "affinity.strength_discount"
                   },
-                  "targetKey": "spell.listed_mp_cost"
+                  "targetKey": "affinity.net_cost_percent"
                 },
                 {
                   "condition": {
@@ -816,11 +816,11 @@
                   },
                   "modifierKey": "affinity.weakness_penalty",
                   "operand": 0,
-                  "operation": "INCREASE_PERCENT",
-                  "order": 0,
+                  "operation": "ADD",
+                  "order": 1,
                   "phase": {
-                    "phaseKey": "affinity.weakness",
-                    "phaseOrder": 2
+                    "phaseKey": "affinity.net_percent",
+                    "phaseOrder": 1
                   },
                   "priority": 0,
                   "provenance": {
@@ -839,14 +839,14 @@
                     "policy": "UNIQUE",
                     "stackingKey": "affinity.weakness_penalty"
                   },
-                  "targetKey": "spell.listed_mp_cost"
+                  "targetKey": "affinity.net_cost_percent"
                 }
               ],
               "targets": [
                 {
                   "kind": "NUMERIC",
-                  "targetKey": "spell.listed_mp_cost",
-                  "value": 20
+                  "targetKey": "affinity.net_cost_percent",
+                  "value": 100
                 }
               ]
             }
@@ -871,6 +871,99 @@
           ]
         },
         {
+          "stepKey": "prowess:SPELL_AFFINITY_COST:inspector:cost",
+          "order": 500,
+          "operation": "MODIFIER",
+          "input": {
+            "request": {
+              "facts": {
+                "keywords": null,
+                "numeric": [],
+                "ownedEntityIds": null,
+                "ranks": [],
+                "sets": []
+              },
+              "modifiers": [
+                {
+                  "condition": null,
+                  "modifierKey": "affinity.net_cost_multiplier",
+                  "operand": 100,
+                  "operation": "MULTIPLY",
+                  "order": 0,
+                  "phase": {
+                    "phaseKey": "affinity.net_cost_multiplier",
+                    "phaseOrder": 1
+                  },
+                  "priority": 0,
+                  "provenance": {
+                    "canonicalKey": "affinity.evocation",
+                    "entityId": "00000000-0000-4000-8000-000000009600",
+                    "entityVersionId": "00000000-0000-4000-8000-000000009700",
+                    "manifestId": "00000000-0000-4000-8000-000000009502",
+                    "rulesetId": "00000000-0000-4000-8000-000000009501"
+                  },
+                  "source": {
+                    "sourceId": "00000000-0000-4000-8000-000000009700",
+                    "sourceKey": "affinity.evocation",
+                    "sourceType": "prowess.affinity"
+                  },
+                  "stacking": {
+                    "policy": "UNIQUE",
+                    "stackingKey": "affinity.net_cost_multiplier"
+                  },
+                  "targetKey": "spell.listed_mp_cost"
+                },
+                {
+                  "condition": null,
+                  "modifierKey": "affinity.percent_scale",
+                  "operand": 100,
+                  "operation": "DIVIDE",
+                  "order": 0,
+                  "phase": {
+                    "phaseKey": "affinity.percent_scale",
+                    "phaseOrder": 2
+                  },
+                  "priority": 0,
+                  "provenance": {
+                    "canonicalKey": "affinity.evocation",
+                    "entityId": "00000000-0000-4000-8000-000000009600",
+                    "entityVersionId": "00000000-0000-4000-8000-000000009700",
+                    "manifestId": "00000000-0000-4000-8000-000000009502",
+                    "rulesetId": "00000000-0000-4000-8000-000000009501"
+                  },
+                  "source": {
+                    "sourceId": "00000000-0000-4000-8000-000000009700",
+                    "sourceKey": "affinity.evocation",
+                    "sourceType": "prowess.affinity"
+                  },
+                  "stacking": {
+                    "policy": "UNIQUE",
+                    "stackingKey": "affinity.percent_scale"
+                  },
+                  "targetKey": "spell.listed_mp_cost"
+                }
+              ],
+              "targets": [
+                {
+                  "kind": "NUMERIC",
+                  "targetKey": "spell.listed_mp_cost",
+                  "value": 20
+                }
+              ]
+            }
+          },
+          "bindings": [
+            {
+              "target": "/request/modifiers/0/operand",
+              "source": {
+                "kind": "STEP",
+                "stepKey": "prowess:SPELL_AFFINITY_COST:inspector:net-percent",
+                "pointer": "/data/finalTargets/0/value"
+              }
+            }
+          ]
+        },
+        {
           "stepKey": "inspector.explanation",
           "order": 1000000,
           "operation": "EXPLANATION",
@@ -885,8 +978,14 @@
                   "response": null
                 },
                 {
-                  "contributionKey": "affinity",
+                  "contributionKey": "affinity-net",
                   "order": 2,
+                  "kind": "MODIFIER",
+                  "response": null
+                },
+                {
+                  "contributionKey": "affinity",
+                  "order": 3,
                   "kind": "MODIFIER",
                   "response": null
                 }
@@ -904,6 +1003,14 @@
             },
             {
               "target": "/input/contributions/1/response",
+              "source": {
+                "kind": "STEP",
+                "stepKey": "prowess:SPELL_AFFINITY_COST:inspector:net-percent",
+                "pointer": ""
+              }
+            },
+            {
+              "target": "/input/contributions/2/response",
               "source": {
                 "kind": "STEP",
                 "stepKey": "prowess:SPELL_AFFINITY_COST:inspector:cost",
@@ -1072,6 +1179,7 @@
         "targetKey": "spell.listed_mp_cost",
         "baseCost": 20,
         "stepKey": "prowess:SPELL_AFFINITY_COST:inspector:cost",
+        "netStepKey": "prowess:SPELL_AFFINITY_COST:inspector:net-percent",
         "strengthDiscountPercent": 20,
         "strengthModifierKey": "affinity.strength_discount",
         "weaknessModifierKey": "affinity.weakness_penalty"
@@ -1246,6 +1354,32 @@
               "entityVersionId": "00000000-0000-4000-8000-000000009700",
               "canonicalKey": "affinity.evocation",
               "definitionKind": "AFFINITY",
+              "systemFamily": "AFFINITY"
+            }
+          ]
+        },
+        {
+          "stepKey": "prowess:SPELL_AFFINITY_COST:inspector:net-percent",
+          "order": 450,
+          "operation": "MODIFIER",
+          "role": "affinity-net-cost-percent",
+          "componentKeys": [
+            "affinity",
+            "affinity.rank_rule"
+          ],
+          "definitions": [
+            {
+              "entityId": "00000000-0000-4000-8000-000000009600",
+              "entityVersionId": "00000000-0000-4000-8000-000000009700",
+              "canonicalKey": "affinity.evocation",
+              "definitionKind": "AFFINITY",
+              "systemFamily": "AFFINITY"
+            },
+            {
+              "entityId": "00000000-0000-4000-8000-000000009606",
+              "entityVersionId": "00000000-0000-4000-8000-000000009706",
+              "canonicalKey": "affinity.rank_rule",
+              "definitionKind": "AFFINITY_RANK_RULE",
               "systemFamily": "AFFINITY"
             }
           ]

@@ -53,7 +53,10 @@ export interface AffinityAlignmentResult {
   readonly issues: readonly string[];
 }
 
-/** One modifier's M4 outcome on the listed cost. */
+/**
+ * One percentage modifier's M4 outcome on the NET cost percentage (designer ruling M5-SC-028): `before` / `after` are
+ * percentages of the listed cost (100 = full price), never MP.
+ */
 export interface AffinityCostStage {
   readonly modifierKey: string;
   readonly operation: string;
@@ -69,6 +72,9 @@ export interface AffinityCostReading {
   readonly baseCost: number;
   readonly strength: AffinityCostStage | null;
   readonly weakness: AffinityCostStage | null;
+  /** The combined Affinity percentage of the listed cost M4 computed (e.g. 90 = a net −10%), applied once (M5-SC-028). */
+  readonly netCostPercent: number;
+  /** Listed cost × net ÷ 100, unrounded — final rounding (normal, once) belongs to the end of Spell creation. */
   readonly affinityAdjustedCost: number;
 }
 
@@ -164,7 +170,9 @@ export function readAffinityRun(input: { readonly plan: ProwessAffinityCompiledP
     if (o.cost !== null) {
       const c = o.cost;
       const d = data(c.stepKey);
-      const outcomes = d === null ? [] : (own(d, "outcomes") as Record<string, unknown>[]);
+      const net = data(c.netStepKey);
+      const outcomes = net === null ? [] : (own(net, "outcomes") as Record<string, unknown>[]);
+      const netTargets = net === null ? [] : (own(net, "finalTargets") as Record<string, unknown>[]);
       const finalTargets = d === null ? [] : (own(d, "finalTargets") as Record<string, unknown>[]);
       const stage = (modifierKey: string | null): AffinityCostStage | null => {
         if (modifierKey === null) return null;
@@ -178,7 +186,8 @@ export function readAffinityRun(input: { readonly plan: ProwessAffinityCompiledP
       effectiveStrengthDiscountPercent = strength !== null && strength.applied ? strength.percent : 0;
       selectedWeaknessPercent = selection === null ? 0 : (own((own(selection, "finalTargets") as Record<string, unknown>[])[0] as Record<string, unknown>, "value") as number);
       const target = finalTargets.find((t) => own(t, "targetKey") === c.targetKey);
-      if (target !== undefined) cost = { costTarget: c.costTarget, baseCost: c.baseCost, strength, weakness, affinityAdjustedCost: own(target, "value") as number };
+      const netTarget = netTargets[0];
+      if (target !== undefined && netTarget !== undefined) cost = { costTarget: c.costTarget, baseCost: c.baseCost, strength, weakness, netCostPercent: own(netTarget, "value") as number, affinityAdjustedCost: own(target, "value") as number };
     }
     alignment = {
       governingAffinity: o.governing,

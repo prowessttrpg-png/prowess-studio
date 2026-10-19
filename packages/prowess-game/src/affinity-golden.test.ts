@@ -14,10 +14,10 @@ import { runAffinity } from "./testing/affinity-run.js";
  *
  * Invariants guarded here (docs/architecture/m5-invariants.md): M5-I111 / M5-I112 Movement and Sprint · M5-I117–I118
  * progression (see contracts) · M5-I121 rank discount · M5-I122 one Strength discount · M5-I123 exact Keywords ·
- * M5-I124 / M5-I125 / M5-I126 Weakness percentages, highest only, all visible · M5-I127 / M5-I128 both, Strength first ·
+ * M5-I124 / M5-I125 / M5-I126 Weakness percentages, highest only, all visible · M5-I127 both apply · M5-I155 netted once (M5-I128 superseded) ·
  * M5-I129 no rounding · M5-I130 Weakness never prohibits · M5-I131 / M5-I132 contributors · M5-I136–I141 Authority and
  * access · M5-I146 / M5-I147 historical reproducibility · M5-I150 determinism and isolation.
- * Guard index (docs/architecture/m5-invariants.json): M5-I111 · M5-I112 · M5-I117 · M5-I121 · M5-I122 · M5-I123 · M5-I124 · M5-I125 · M5-I126 · M5-I127 · M5-I128 · M5-I129 · M5-I130 · M5-I131 · M5-I132 · M5-I136 · M5-I137 · M5-I138 · M5-I139 · M5-I140 · M5-I141 · M5-I145 · M5-I146 · M5-I147 · M5-I150.
+ * Guard index (docs/architecture/m5-invariants.json): M5-I111 · M5-I112 · M5-I117 · M5-I121 · M5-I122 · M5-I123 · M5-I124 · M5-I125 · M5-I126 · M5-I127 · M5-I129 · M5-I130 · M5-I131 · M5-I132 · M5-I136 · M5-I137 · M5-I138 · M5-I139 · M5-I140 · M5-I141 · M5-I145 · M5-I146 · M5-I147 · M5-I150.
  */
 const F = affinityFixture();
 const evocation = (rank: string): ProfileEntry[] => [{ affinity: "affinity.evocation", rank, role: "PRIMARY" }];
@@ -79,7 +79,7 @@ describe("§179–§180 Affinity Authority capacity TRAINED 1 · EXPERT 2 · MAS
   });
 });
 
-describe("§181–§190 Spell MP Affinity fragment (listed cost — Strength once, highest Weakness once, Strength first, no rounding)", () => {
+describe("§181–§190 Spell MP Affinity fragment (listed cost — Strength once, highest Weakness once, netted into one percentage applied once — M5-SC-028 / M5-I155 — no rounding)", () => {
   it("§181 Evocation Expert, DIRECT_DAMAGE, base 20 → 16", () => {
     const r = cost({ effects: ["directDamage"] }, 20, evocation("EXPERT"));
     expect(finalCost(r)).toBe(16);
@@ -91,7 +91,9 @@ describe("§181–§190 Spell MP Affinity fragment (listed cost — Strength onc
     expect(r.reading.alignment?.strengths.filter((s) => s.matched).map((s) => s.ruleKey)).toEqual(["DIRECT_DAMAGE", "AREA_EFFECT"]);
     expect(finalCost(r)).toBe(16);
     expect(finalCost(r)).not.toBe(12.8);
-    expect(r.reading.cost?.strength).toEqual(expect.objectContaining({ operation: "REDUCE_PERCENT", percent: 20, applied: true, before: 20, after: 16 }));
+    // Stages are on the NET percentage of the listed cost (M5-I155): 100% − 20% = 80% → 20 × 80 ÷ 100 = 16.
+    expect(r.reading.cost?.strength).toEqual(expect.objectContaining({ operation: "SUBTRACT", percent: 20, applied: true, before: 100, after: 80 }));
+    expect(r.reading.cost?.netCostPercent).toBe(80);
   });
 
   it("§183 Evocation, HEALING, base 20 → +30% → 26", () => {
@@ -108,16 +110,26 @@ describe("§181–§190 Spell MP Affinity fragment (listed cost — Strength onc
     ]);
     expect(r.reading.alignment?.selectedWeaknessPercent).toBe(30);
     expect(finalCost(r)).toBe(26);
-    expect(r.reading.cost?.weakness).toEqual(expect.objectContaining({ operation: "INCREASE_PERCENT", percent: 30, applied: true, before: 20, after: 26 }));
+    expect(r.reading.cost?.weakness).toEqual(expect.objectContaining({ operation: "ADD", percent: 30, applied: true, before: 100, after: 130 }));
+    expect(r.reading.cost?.netCostPercent).toBe(130);
   });
 
-  it("§185 / §95 Evocation Expert DIRECT_DAMAGE + HEALING, base 100 → 80 → 104 — sequential, never netted to 110 (M5-I127, M5-I128)", () => {
+  it("§185 / M5-I155 Evocation Expert DIRECT_DAMAGE + HEALING, base 100 → −20% + 30% = net +10% → 110, never the sequential 104 (designer ruling M5-SC-028; M5-I127)", () => {
     const r = cost({ effects: ["directDamage", "healing"] }, 100, evocation("EXPERT"));
     expect(r.reading.alignment?.alignment).toBe("STRENGTH_AND_WEAKNESS");
-    expect(r.reading.cost?.strength).toEqual(expect.objectContaining({ before: 100, after: 80 }));
-    expect(r.reading.cost?.weakness).toEqual(expect.objectContaining({ before: 80, after: 104 }));
-    expect(finalCost(r)).toBe(104);
-    expect(finalCost(r)).not.toBe(110);
+    expect(r.reading.cost?.strength).toEqual(expect.objectContaining({ before: 100, after: 80, applied: true }));
+    expect(r.reading.cost?.weakness).toEqual(expect.objectContaining({ before: 80, after: 110, applied: true }));
+    expect(r.reading.cost?.netCostPercent).toBe(110);
+    expect(finalCost(r)).toBe(110);
+    expect(finalCost(r)).not.toBe(104);
+  });
+
+  it("M5-I155 the designer's netting example: 20 MP, a −30% discount and a +20% Weakness net to −10% → 18 MP (never 16.8)", () => {
+    // Evocation Master: DIRECT_DAMAGE Strength −30%, BUFF Weakness +20% → one net percentage 90%, applied once.
+    const r = cost({ effects: ["directDamage", "buff"] }, 20, evocation("MASTER"));
+    expect([r.reading.cost?.strength?.percent, r.reading.alignment?.selectedWeaknessPercent, r.reading.cost?.netCostPercent]).toEqual([30, 20, 90]);
+    expect(finalCost(r)).toBe(18);
+    expect(finalCost(r)).not.toBe(16.8); // 20 × 0.7 × 1.2 — the superseded sequential model
   });
 
   it("§186 base 17, Evocation Trained −10% → 15.3 exactly; the Affinity stage never rounds (M5-I129)", () => {
@@ -129,10 +141,9 @@ describe("§181–§190 Spell MP Affinity fragment (listed cost — Strength onc
     const r = cost({ affinity: "affinity.divination", effects: ["persistent"] }, 100, [{ affinity: "affinity.divination", rank: "TRAINED", role: "PRIMARY" }]);
     expect(r.reading.alignment?.weaknesses.find((w) => w.matched)).toEqual(expect.objectContaining({ ruleKey: "PERSISTENT_EFFECT", activationPenaltyPercent: 15, severity: null }));
     expect(r.reading.alignment?.selectedWeaknessPercent).toBe(15);
-    // M4 percentage arithmetic is IEEE-754 binary floating point: 100 × (1 + 15/100) = 114.99999999999999. The value is
-    // exactly what M4 produced; WO4 rounds nothing (rounding is the later cost pipeline — M5-SC-028).
-    expect(finalCost(r)).toBeCloseTo(115, 10);
-    expect(finalCost(r)).toBe(100 * (1 + 15 / 100));
+    // M4 nets the percentages and applies them once: 100 × 115 ÷ 100 = 115 exactly. WO4 rounds nothing — final rounding
+    // (normal, once, at the end of Spell creation — designer ruling M5-SC-028) is the later cost pipeline.
+    expect(finalCost(r)).toBe(115);
     expect([110, 120]).not.toContain(finalCost(r));
   });
 
@@ -186,12 +197,12 @@ describe("§191 / §54 / §64 exact Keyword identity only (M5-I123, M5-I132)", (
     const weakness = cost({ effects: ["directDamage"], traits: [{ trait: "healingTrait", appliesTo: "effect1" }] }, 100, evocation("EXPERT"));
     expect(finalCost(strength)).toBe(16);
     expect(weakness.reading.alignment?.weaknesses.find((w) => w.matched)?.matchedKeywords[0]?.contributors[0]).toEqual(expect.objectContaining({ componentKey: "trait1", contract: "TRAIT" }));
-    expect(finalCost(weakness)).toBe(104);
+    expect(finalCost(weakness)).toBe(110); // −20% + 30% netted (M5-I155)
   });
 });
 
 describe("§131 / §156 explanation through M4 — no separate Affinity explanation engine", () => {
-  it("base 20 · Evocation Expert · DIRECT_DAMAGE −20% → 16 · HEALING +30% → 20.8, each with its exact source Definition", () => {
+  it("base 20 · Evocation Expert · DIRECT_DAMAGE −20% · HEALING +30% → net 110% → 22, each with its exact source Definition", () => {
     const r = cost({ effects: ["directDamage", "healing"] }, 20, evocation("EXPERT"));
     const a = r.reading.alignment;
     expect(a?.governingAffinity).toEqual(expect.objectContaining({ identity: "EVOCATION", rank: "EXPERT" }));
@@ -201,7 +212,7 @@ describe("§131 / §156 explanation through M4 — no separate Affinity explanat
     expect(a?.weaknesses.find((w) => w.matched)?.matchedKeywords[0]).toEqual(
       expect.objectContaining({ canonicalKey: "keyword.healing", contributors: [expect.objectContaining({ definition: expect.objectContaining({ canonicalKey: "spell.effect.healing" }) })] }),
     );
-    expect([r.reading.cost?.strength?.after, r.reading.cost?.weakness?.after]).toEqual([16, 20.8]);
+    expect([r.reading.cost?.strength?.after, r.reading.cost?.weakness?.after, r.reading.cost?.affinityAdjustedCost]).toEqual([80, 110, 22]);
     const step = (key: string | null) => r.run.steps.find((s) => s.stepKey === key)?.response;
     const explanation = buildExplanation({
       explanationKey: "affinity.cost",
@@ -209,7 +220,8 @@ describe("§131 / §156 explanation through M4 — no separate Affinity explanat
         { contributionKey: "keywords", order: 1, kind: "KEYWORD", response: step(r.plan.outputs.keywords) },
         { contributionKey: "strength", order: 2, kind: "REQUIREMENT", response: step(r.plan.outputs.strengths[0]?.stepKey ?? null) },
         { contributionKey: "weakness", order: 3, kind: "MODIFIER", response: step(r.plan.outputs.weaknessSelection) },
-        { contributionKey: "cost", order: 4, kind: "MODIFIER", response: step(r.plan.outputs.cost?.stepKey ?? null) },
+        { contributionKey: "net", order: 4, kind: "MODIFIER", response: step(r.plan.outputs.cost?.netStepKey ?? null) },
+        { contributionKey: "cost", order: 5, kind: "MODIFIER", response: step(r.plan.outputs.cost?.stepKey ?? null) },
       ],
     });
     expect(explanation.success).toBe(true);

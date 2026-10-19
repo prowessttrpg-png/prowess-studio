@@ -60,10 +60,11 @@ The register keeps every earlier entry verbatim. Each ruling is appended as an a
 
 ## 5. Remaining Conflicts
 
-- **M5-SC-036:** Base Movement of Massive creatures is `UNRESOLVED`. It needs a designer value, or a rule for
-  "20 ft × 20 ft or larger".
-- Every other conflict listed as open in M5-WO4 §37 keeps its status: M5-SC-028, M5-SC-026 and M5-SC-027. (M5-SC-011
-  is resolved by the follow-up Arcane ruling — §6.)
+- **M5-SC-036:** Base Movement of Massive creatures was left `UNRESOLVED` by this amendment; the rulings batch (§7)
+  resolved it (40 ft, with Huge changed to 20 ft).
+- **Open now:** M5-SC-037 (Spell Interference) and M5-SC-038 (Active Effects capacity / Concentration base).
+- Every other conflict listed as open in M5-WO4 §37 was later resolved by the rulings batch (§7). M5-SC-011 is resolved
+  by the Arcane ruling (§6).
 
 ## 6. Arcane Rank
 
@@ -73,7 +74,35 @@ Arcane Rank is the Arcana Skill's rank. It is one rank, not a separate track. Th
 No Spell mechanic changes: Arcane Authority capacity still belongs to the later Spell Creation Work Order. This is
 guarded by the new M5-I153. M5-SC-011 is no longer open.
 
-## 7. Verification
+## 7. Rulings Batch
+
+The designer then ruled on every remaining open conflict (M5-SC-007, M5-SC-013 to M5-SC-031, M5-SC-036). Each ruling is
+appended to its register entry; the earlier text stays. Two follow-ups are new and `UNRESOLVED`: M5-SC-037 (where Spell
+Interference belongs — it was not in the ruling's branch list) and M5-SC-038 (Active Effects capacity and the
+Concentration base).
+
+Rulings that change executable content or code now:
+
+- **M5-SC-036:** Huge Base Movement is 20 ft (replacing 15 ft) and Massive is 40 ft. Every Size authors a value; nothing
+  is deferred. M5-I152 is SUPERSEDED by M5-I154. An unauthored (null) Size still fails closed.
+- **M5-SC-028:** percentage cost modifiers net into one percentage, applied once; rounding is normal, once, at the end of
+  Spell creation. The WO4 Affinity cost fragment now has a `net-percent` step (100 − Strength + Weakness) and a `cost`
+  step (× net ÷ 100). 100 MP at Expert with a Healing Weakness is now 110 (was 104). M5-I128 is SUPERSEDED by M5-I155.
+
+Rulings recorded in terminology:
+
+- **M5-SC-013:** Movement and Cleanse are sub-branches (Utility, Healing); Spell Interference is `UNRESOLVED` (M5-SC-037).
+- **M5-SC-016:** Projectile is a canonical Attack Roll Targeting Type.
+- **M5-SC-017:** Maneuver Traits exist as a family with none authored yet.
+- **M5-SC-020:** Summoning Rank Value is the Summon Tier (1–4).
+
+Rulings recorded for the later Work Orders that implement them (no executable content exists yet): M5-SC-007
+(Concentration), 014 (chain default), 015 / 017 / 018 (Maneuver targeting and radius), 019 (Dependent / Independent
+Summons), 021 (Casting Condition 30% cap and Requirements), 022 (multi-Effect Spells), 023 (Trait price ranges), 024
+(Widen Area), 025 (Maneuver Condition cap), 026 / 027 (attack and reload AP), 029 (Trigger / Glyph add-ons), 030 (Skill
+list), 031 (Orcani).
+
+## 8. Verification
 
 - **Tests:**
   - The game goldens and contracts were updated.

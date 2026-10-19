@@ -234,11 +234,17 @@ One `REDUCE_PERCENT` modifier (UNIQUE `affinity.strength_discount`) whose condit
 operand is the governing rank's authored discount (0 / 10 / 20 / 30). Multiple matched Strengths apply it once
 (§87–§88, golden 20 → 16, never 12.8). At NONE the operand is 0 and the cost is unchanged (§89).
 
+**Post-WO4 rulings batch (M5-SC-028, M5-I155).** The discount is now a `SUBTRACT` on the net cost percentage (start 100),
+still UNIQUE, still once, still the authored rank value.
+
 ## 22. Highest Weakness Rule
 
 One M4 `MAX` modifier per Weakness rule, each conditioned on its own exact Keywords, raises a 0 start value to the
 highest matched percentage. One `INCREASE_PERCENT` (UNIQUE `affinity.weakness_penalty`) applies it, its operand BOUND
 to the MAX step's `/data/finalTargets/0/value` (§91, §126, §130). No foundation change was required.
+
+**Post-WO4 rulings batch (M5-SC-028, M5-I155).** The selected highest Weakness is now an `ADD` on the net cost percentage,
+its operand still BOUND to the MAX step. Selection itself is unchanged.
 
 ```
 Ability Keywords
@@ -274,6 +280,34 @@ Casting Conditions
        │
        ▼
 Final Rounding
+```
+
+**Post-WO4 rulings batch — superseded (M5-SC-028; M5-I128 → M5-I155).** The designer ruled that every percentage cost
+modifier combines into ONE net percentage, applied once, with rounding once at the end of Spell creation (normal, 0.5
+up). The fragment is now two M4 MODIFIER steps: `net-percent` (100 − Strength discount + selected Weakness penalty) and
+`cost` (listed cost × net ÷ 100, the multiplier BOUND to the net step). 100 MP at Expert with Healing → 100 − 20 + 30 =
+110% → 110 (no longer 104). Designer example (Master −30%, Weakness +20%): 90% → 20 MP → 18 (never 16.8). Casting
+Conditions join the same net sum in the Spell cost Work Order, which also rounds.
+
+```
+Constructed Cost              100%
+       │                        │
+       │            − Strength Discount
+       │            + Highest Weakness %
+       │                        │
+       │                        ▼
+       │                 Net Percentage
+       │                        │
+       └──────── × Net ÷ 100 ◄──┘
+                    │
+                    ▼
+          Affinity-Adjusted Cost (unrounded)
+                    │
+                    ▼
+       Later: Casting Conditions join the net sum
+                    │
+                    ▼
+       Final Rounding (normal, once, at the end)
 ```
 
 ## 24. No Rounding
@@ -402,10 +436,15 @@ Definition and rank rule. There is no latest / current lookup, registry or cache
 - **M5-SC-035** Starting rank of a new Level 9 Affinity — UNRESOLVED in WO4; RESOLVED_BY_DESIGNER by the post-WO4 canon
   rulings (TRAINED).
 - **M5-SC-036** Base Movement of Massive creatures — UNRESOLVED (new in the post-WO4 canon rulings).
-- **M5-SC-028** Rounding of percentage cost modifiers — UNRESOLVED; the later Spell cost pipeline owns final rounding.
+- **M5-SC-028** Rounding of percentage cost modifiers — UNRESOLVED in WO4; RESOLVED_BY_DESIGNER in the post-WO4 rulings
+  batch: percentages net into one, applied once; rounding is normal, once, at the end (M5-I155).
 - **M5-SC-011** Arcane Rank vs Arcana Rank terminology — UNRESOLVED in WO4; RESOLVED_BY_DESIGNER after WO4 (one rank:
   the Arcana Skill's, named Arcane Rank — M5-I153). Arcane Authority capacity is still out of WO4 scope.
 - Keyword granularity (authoring note, not a conflict): matching is exact with no Keyword implication, so a component
   that is both "direct damage" and "damage" must list both `keyword.direct_damage` and `keyword.damage`. Which Keywords
   each catalog Effect lists belongs to the later Effect catalog Work Orders.
 - M5-SC-034 is RESOLVED_BY_DESIGNER (Sprint Allowance = Movement × 4).
+
+**Post-WO4 rulings batch.** Every conflict that was still open after M5-WO4 now has a designer ruling (see the register).
+Huge Base Movement is 20 ft and Massive 40 ft (M5-I154). Two follow-ups are open: M5-SC-037 (where Spell Interference
+belongs) and M5-SC-038 (Active Effects capacity and the Concentration base).

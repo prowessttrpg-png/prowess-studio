@@ -47,8 +47,8 @@ const def = (defs, predicate) => {
   return found[0];
 };
 const affinity = (token) => (d) => d.definitionKind === "AFFINITY" && d.payload.affinity === token;
-const STRENGTH_IF = "      if (strengthConditions.length > 0) {\n        modifiers.push({";
 const COST_STEP = "      const costStep = e.emit({";
+const NET_STEP = "      const netStep = e.emit({";
 
 const controls = [
   {
@@ -71,8 +71,8 @@ const controls = [
     name: "§246 Expert −20% applied once for DIRECT_DAMAGE and again for AREA_EFFECT",
     file: COMPILE,
     mutate: replaceOnce(
-      COST_STEP,
-      `      for (const s of rules.strengths) modifiers.splice(1, 0, { modifierKey: \`stack.\${s.rule.strengthKey}\`, targetKey, operation: "REDUCE_PERCENT", operand: rank.strengthDiscountPercent, phase: { phaseKey: "affinity.strength", phaseOrder: 1 }, priority: 0, order: 1, condition: s.condition, stacking: { policy: "STACK" }, source: null, provenance: null });\n${COST_STEP}`,
+      NET_STEP,
+      `      for (const s of rules.strengths) netModifiers.push({ modifierKey: \`stack.\${s.rule.strengthKey}\`, targetKey: NET_PERCENT_TARGET, operation: "SUBTRACT", operand: rank.strengthDiscountPercent, phase: { phaseKey: "affinity.net_percent", phaseOrder: 1 }, priority: 0, order: 2, condition: s.condition, stacking: { policy: "STACK" }, source: null, provenance: null });\n${NET_STEP}`,
     ),
     guard: golden("§182"),
   },
@@ -80,22 +80,33 @@ const controls = [
     name: "§247 Healing +30% and Buff +20% applied sequentially under one Affinity",
     file: COMPILE,
     mutate: replaceOnce(
-      COST_STEP,
-      `      for (const w of rules.weaknesses) modifiers.push({ modifierKey: \`stack.\${w.rule.weaknessKey}\`, targetKey, operation: "INCREASE_PERCENT", operand: w.rule.activationPenaltyPercent, phase: { phaseKey: "affinity.weakness", phaseOrder: 2 }, priority: 0, order: 1, condition: w.condition, stacking: { policy: "STACK" }, source: null, provenance: null });\n${COST_STEP}`,
+      NET_STEP,
+      `      for (const w of rules.weaknesses) netModifiers.push({ modifierKey: \`stack.\${w.rule.weaknessKey}\`, targetKey: NET_PERCENT_TARGET, operation: "ADD", operand: w.rule.activationPenaltyPercent, phase: { phaseKey: "affinity.net_percent", phaseOrder: 1 }, priority: 0, order: 2, condition: w.condition, stacking: { policy: "STACK" }, source: null, provenance: null });\n${NET_STEP}`,
     ),
     guard: golden("§184"),
   },
   {
-    name: "§248 Strength −20 and Weakness +30 netted to +10",
+    // Post-WO4 rulings batch (M5-SC-028): netting is now canonical; the superseded SEQUENTIAL model is the forbidden one.
+    name: "§248 / M5-I155 Strength discount and Weakness penalty applied sequentially (−20% then +30% → 104) instead of netted (110)",
     file: COMPILE,
     mutate: (text) =>
       replaceOnce(
-        "              })),\n              facts,",
-        '              })).concat(rules.strengths.length === 0 ? [] : [{ modifierKey: "net.strength", targetKey: WEAKNESS_TARGET, operation: "ADD", operand: -rankEntry(index, g.owned.rank).strengthDiscountPercent, phase: { phaseKey: "affinity.weakness_selection", phaseOrder: 2 }, priority: 0, order: 0, condition: { kind: "ANY", children: rules.strengths.map((s) => s.condition), provenance: null }, stacking: { policy: "STACK" }, source: null, provenance: null }]),\n              facts,',
-      )(replaceOnce(STRENGTH_IF, "      if (strengthConditions.length < 0) {\n        modifiers.push({")(text)),
-    guard: golden("§185"),
+        'bindings: [fromFragment("/request/modifiers/0/operand", netStep, "/data/finalTargets/0/value")],',
+        'bindings: [factsBinding("/request/facts/keywords"), ...(selection === null ? [] : [fromFragment("/request/modifiers/1/operand", selection, "/data/finalTargets/0/value")])],',
+      )(
+        replaceOnce(
+          'modifiers: [scale(NET_MULTIPLIER, "MULTIPLY", FULL_PRICE_PERCENT, 1), scale(PERCENT_SCALE, "DIVIDE", FULL_PRICE_PERCENT, 2)],',
+          'modifiers: [{ ...scale(STRENGTH_MODIFIER, "REDUCE_PERCENT", rank.strengthDiscountPercent, 1), condition: { kind: "ANY", children: strengthConditions, provenance: null } }, { ...scale(WEAKNESS_MODIFIER, "INCREASE_PERCENT", 0, 2), condition: { kind: "ANY", children: weaknessConditions, provenance: null } }],',
+        )(text),
+      ),
+    guard: golden("§185 / M5-I155"),
   },
-  { name: "§249 Weakness applied before Strength", file: COMPILE, mutate: replaceOnce('phase: { phaseKey: "affinity.strength", phaseOrder: 1 },', 'phase: { phaseKey: "affinity.strength", phaseOrder: 3 },'), guard: golden("§185") },
+  {
+    name: "§249 / M5-I155 the Weakness penalty subtracted from the net percentage instead of added",
+    file: COMPILE,
+    mutate: replaceOnce('          operation: "ADD",\n          operand: NO_WEAKNESS_PERCENT,', '          operation: "SUBTRACT",\n          operand: NO_WEAKNESS_PERCENT,'),
+    guard: golden("§183"),
+  },
   {
     name: "§250 17 − 10% rounded inside Affinity evaluation",
     file: G("affinity/results.ts"),
@@ -124,8 +135,8 @@ const controls = [
     name: "§254 discounts stacked from two owned Affinities",
     file: COMPILE,
     mutate: replaceOnce(
-      COST_STEP,
-      `      for (const other of profile.affinities.filter((a) => a.affinity.entityId !== g.entry.ref.entityId)) {\n        const oe = findAffinityEntry(index, other.affinity);\n        if (oe !== null && oe.payload.strengths.length > 0) modifiers.splice(1, 0, { modifierKey: \`stack.\${other.affinity.entityId}\`, targetKey, operation: "REDUCE_PERCENT", operand: rankEntry(index, other.rank).strengthDiscountPercent, phase: { phaseKey: "affinity.strength", phaseOrder: 1 }, priority: 0, order: 1, condition: { kind: "ANY", children: oe.payload.strengths.map((s) => e.ruleCondition(s.matchAny, oe.provenance, []) as JsonObject), provenance: null }, stacking: { policy: "STACK" }, source: null, provenance: null });\n      }\n${COST_STEP}`,
+      NET_STEP,
+      `      for (const other of profile.affinities.filter((a) => a.affinity.entityId !== g.entry.ref.entityId)) {\n        const oe = findAffinityEntry(index, other.affinity);\n        if (oe !== null && oe.payload.strengths.length > 0) netModifiers.push({ modifierKey: \`stack.\${other.affinity.entityId}\`, targetKey: NET_PERCENT_TARGET, operation: "SUBTRACT", operand: rankEntry(index, other.rank).strengthDiscountPercent, phase: { phaseKey: "affinity.net_percent", phaseOrder: 1 }, priority: 0, order: 2, condition: { kind: "ANY", children: oe.payload.strengths.map((s) => e.ruleCondition(s.matchAny, oe.provenance, []) as JsonObject), provenance: null }, stacking: { policy: "STACK" }, source: null, provenance: null });\n      }\n${NET_STEP}`,
     ),
     guard: contracts("M5-I134"),
   },
@@ -170,31 +181,37 @@ const controls = [
     guard: contracts("M5-I151 / M5-SC-035 ruling"),
   },
   {
-    name: "M5-I152 Large Base Movement drifts from 10 ft to 20 ft",
+    name: "M5-I154 Large Base Movement drifts from 10 ft to 20 ft",
     file: RUNTIME,
     mutate: content((defs) => void (def(defs, (d) => d.payload.sizeKey === "LARGE").payload.baseMovement = { feet: 20 })),
-    guard: runtimeGolden("M5-I152 designer ruling M5-SC-033"),
+    guard: runtimeGolden("M5-I154 designer rulings"),
   },
   {
-    name: "M5-I152 / M5-SC-036 Massive Base Movement guessed as 20 ft",
+    name: "M5-I154 / M5-SC-036 Huge Base Movement reverts to the superseded 15 ft",
+    file: RUNTIME,
+    mutate: content((defs) => void (def(defs, (d) => d.payload.sizeKey === "HUGE").payload.baseMovement = { feet: 15 })),
+    guard: runtimeGolden("M5-I154 designer rulings"),
+  },
+  {
+    name: "M5-I154 / M5-SC-036 Massive Base Movement drifts from 40 ft to 20 ft",
     file: RUNTIME,
     mutate: content((defs) => void (def(defs, (d) => d.payload.sizeKey === "MASSIVE").payload.baseMovement = { feet: 20 })),
-    guard: runtimeGolden("M5-SC-036 a MASSIVE"),
+    guard: runtimeGolden("M5-I154 designer rulings"),
   },
   {
-    name: "M5-I152 the compiler ignores the character's Size (every creature reads Medium)",
+    name: "M5-I154 the compiler ignores the character's Size (every creature reads Medium)",
     file: G("core/compile.ts"),
     mutate: replaceOnce("            const size = this.character.creatureSize;\n", '            const size = "MEDIUM" as const;\n'),
-    guard: runtimeGolden("M5-I152 designer ruling M5-SC-033"),
+    guard: runtimeGolden("M5-I154 designer rulings"),
   },
   {
-    name: "M5-I152 / M5-SC-036 the compiler guesses a Massive Base Movement instead of failing closed",
+    name: "M5-I154 the compiler guesses a value for an unauthored (null) Size instead of failing closed",
     file: G("core/compile.ts"),
     mutate: replaceOnce(
       "            if (entry.payload.baseMovement === null) {\n",
       "            if (entry.payload.baseMovement === null) {\n              literals[variable] = 20;\n              break;\n",
     ),
-    guard: runtimeGolden("M5-SC-036 a MASSIVE"),
+    guard: runtimeGolden("M5-I154 a Size whose Base Movement is unauthored"),
   },
   {
     name: "M5-I153 Arcane Rank reverted to UNRESOLVED after the M5-SC-011 ruling",
@@ -209,10 +226,21 @@ const controls = [
     guard: staticRulings("M5-I153"),
   },
   {
-    name: "M5-SC-036 marked resolved in the register without a designer ruling",
+    name: "M5-SC-037 (Spell Interference) marked resolved in the register without a designer ruling",
     file: REGISTER,
-    mutate: replaceOnce("- **status**: `UNRESOLVED`\n- **resolution authority**: none\n- **notes**: recorded by the post-WO4 canon-rulings amendment.", "- **status**: `RESOLVED_BY_DESIGNER`\n- **resolution authority**: none\n- **notes**: recorded by the post-WO4 canon-rulings amendment."),
-    guard: staticRulings("M5-SC-036 new and UNRESOLVED"),
+    mutate: replaceOnce("- **status**: `UNRESOLVED`\n- **resolution authority**: none\n- **notes**: recorded by the post-WO4 rulings batch. Terminology inventory: Spell Interference", "- **status**: `RESOLVED_BY_DESIGNER`\n- **resolution authority**: none\n- **notes**: recorded by the post-WO4 rulings batch. Terminology inventory: Spell Interference"),
+    guard: staticRulings("only the follow-ups M5-SC-037 / M5-SC-038 are open"),
+  },
+  {
+    name: "M5-SC-007 restored to UNRESOLVED after the rulings batch",
+    file: REGISTER,
+    mutate: (text) => {
+      const at = text.indexOf("### M5-SC-007 ");
+      const head = text.slice(0, at);
+      const rest = text.slice(at).replace("- **status**: `RESOLVED_BY_DESIGNER`", "- **status**: `UNRESOLVED`");
+      return head + rest;
+    },
+    guard: staticRulings("rulings batch: every conflict open after M5-WO4"),
   },
   {
     name: "§261 Divination Persistent Effects +15% coerced to Moderate +20%",

@@ -343,6 +343,8 @@ Move / Sprint Allowance
 > **Post-WO4 canon rulings amendment.** Current canon (M5-I111, M5-I152): `BASE_MOVEMENT = size_base_movement` (the
 > character's CREATURE_SIZE value; MEDIUM when none is named) and `MOVEMENT = base_movement * agi + bonuses`. The diagram
 > above is the WO3 history.
+>
+> **Post-WO4 rulings batch.** Huge is 20 ft and Massive 40 ft (M5-SC-036; M5-I154 supersedes M5-I152).
 
 ## 18. Creature Size
 

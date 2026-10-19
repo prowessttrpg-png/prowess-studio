@@ -131,7 +131,8 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   entry("Arcane Rank", "SKILL_RANK", C, "SKILL", "ARCANE_RANK", { ...designer, conflictKey: "M5-SC-011" }),
   entry("Arcana Rank", "SKILL_RANK", L, "SKILL", null, { ...designer, canonicalTerm: "Arcane Rank", conflictKey: "M5-SC-011" }),
   entry("Martial Rank", "SKILL_RANK", SS, "MANEUVER", "MARTIAL_RANK"),
-  entry("Summoning Rank Value", "SKILL_RANK", U, "SUMMON", null, { ...audit, conflictKey: "M5-SC-020" }),
+  // M5-SC-020 (designer ruling): Summoning Rank Value IS the Summon's Tier (1–4), picked first when building a Summon.
+  entry("Summoning Rank Value", "SKILL_RANK", SS, "SUMMON", "SUMMON_TIER", { ...designer, conflictKey: "M5-SC-020" }),
 
   // ---- Resources --------------------------------------------------------------------------------------------------
   entry("HP", "RESOURCE", C, "RESOURCE", "HP", { conflictKey: "M5-SC-003" }),
@@ -191,14 +192,19 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   entry("Chain", "TARGETING_SHAPE", SS, "MANEUVER", "CHAIN"),
   entry("Trigger-Based", "TARGETING_SHAPE", C, "SPELL", "TRIGGERED"),
   entry("Glyph / Anchor", "TARGETING_SHAPE", C, "SPELL", "ANCHOR"),
-  entry("Projectile", "TARGETING_SHAPE", U, "SPELL", null, { ...audit, conflictKey: "M5-SC-016" }),
+  // M5-SC-016 (designer ruling): Projectile is an Attack Roll Targeting Type (with Touch); Line / Cone / Radius / Zone are
+  // Saving Throw Targeting Types. Damage works with both groups.
+  entry("Projectile", "TARGETING_SHAPE", C, "SPELL", "PROJECTILE", { ...designer, conflictKey: "M5-SC-016" }),
   entry("Summon Point", "TARGETING_SHAPE", SS, "SUMMON", null),
 
   // ---- Effect families --------------------------------------------------------------------------------------------
-  ...["Damage", "Healing", "Cleanse", "Buff", "Debuff", "Control", "Utility", "Summoning", "Spell Interference"].map((t) =>
-    entry(t, "EFFECT_FAMILY", SS, "SPELL", t.toUpperCase().replace(/ /g, "_")),
-  ),
-  entry("Movement", "EFFECT_FAMILY", U, "SPELL", "MOVEMENT", { ...audit, conflictKey: "M5-SC-013" }),
+  // M5-SC-013 (designer ruling): the Spell branches are Damage, Healing, Buff, Debuff, Control, Utility and Summoning.
+  // Cleanse is a sub-branch of Healing and Movement a sub-branch of Utility. Spell Interference was not in the ruling's
+  // list: its place is M5-SC-037 (UNRESOLVED).
+  ...["Damage", "Healing", "Buff", "Debuff", "Control", "Utility", "Summoning"].map((t) => entry(t, "EFFECT_FAMILY", SS, "SPELL", t.toUpperCase(), { ...designer, conflictKey: "M5-SC-013" })),
+  entry("Cleanse", "EFFECT_FAMILY", SS, "SPELL", "CLEANSE", { ...designer, conflictKey: "M5-SC-013" }),
+  entry("Movement", "EFFECT_FAMILY", SS, "SPELL", "MOVEMENT", { ...designer, conflictKey: "M5-SC-013" }),
+  entry("Spell Interference", "EFFECT_FAMILY", U, "SPELL", "SPELL_INTERFERENCE", { ...audit, conflictKey: "M5-SC-037" }),
   ...[
     "Damage / Conversion",
     "Save-Based Attack",
@@ -221,7 +227,9 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   ...["Damage", "Targeting", "Duration", "Condition", "Control", "Trigger", "Defensive", "Metamagic", "Drawback"].map((t) =>
     entry(`${t} Traits`, "TRAIT_FAMILY", SS, "SPELL", t.toUpperCase()),
   ),
-  entry("Maneuver Traits", "TRAIT_FAMILY", U, "MANEUVER", null, { ...audit, conflictKey: "M5-SC-017" }),
+  // M5-SC-017 (designer ruling): Maneuver Traits will exist but none are authored yet; Targeting Conversion is the only
+  // way to change a Maneuver's Targeting Type.
+  entry("Maneuver Traits", "TRAIT_FAMILY", SS, "MANEUVER", "MANEUVER_TRAIT", { ...designer, conflictKey: "M5-SC-017" }),
 
   // ---- Ability Condition families ---------------------------------------------------------------------------------
   entry("Casting Condition", "CONDITION_FAMILY", SS, "SPELL", "SPELL_CASTING_CONDITION", { conflictKey: "M5-SC-012" }),

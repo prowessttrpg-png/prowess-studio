@@ -1234,7 +1234,9 @@
       "packages/prowess-game/src/affinity-golden.test.ts",
       "apps/studio/tests/unit/m5-wo4-static.test.ts",
       "scripts/m5-wo4-negative-controls.mjs"
-    ]
+    ],
+    "status": "SUPERSEDED",
+    "supersededBy": "M5-I155"
   },
   {
     "id": "M5-I129",
@@ -1478,7 +1480,9 @@
       "apps/studio/tests/unit/m5-wo4-static.test.ts",
       "apps/studio/tests/unit/m5-canon-rulings-static.test.ts",
       "scripts/m5-wo4-negative-controls.mjs"
-    ]
+    ],
+    "status": "SUPERSEDED",
+    "supersededBy": "M5-I154"
   },
   {
     "id": "M5-I153",
@@ -1487,6 +1491,31 @@
     "guards": [
       "packages/prowess-game/src/vocabulary.test.ts",
       "apps/studio/tests/unit/m5-wo2-static.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "apps/studio/tests/unit/m5-canon-rulings-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I154",
+    "title": "Base Movement Is Authored Per Creature Size: Small 5, Medium 5, Large 10, Huge 20, Massive 40 Feet; Never Derived From Occupied Space",
+    "group": "Movement",
+    "guards": [
+      "packages/prowess-game/src/runtime-contracts.test.ts",
+      "packages/prowess-game/src/runtime-resources-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo3-static.test.ts",
+      "apps/studio/tests/unit/m5-wo4-static.test.ts",
+      "apps/studio/tests/unit/m5-canon-rulings-static.test.ts",
+      "scripts/m5-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I155",
+    "title": "Percentage Cost Modifiers Combine Into One Net Percentage Applied Once; Final Rounding Is Normal, Once, At The End Of Spell Creation",
+    "group": "Affinity Cost",
+    "guards": [
+      "packages/prowess-game/src/affinity-golden.test.ts",
+      "packages/prowess-game/src/affinity-contracts.test.ts",
       "apps/studio/tests/unit/m5-wo4-static.test.ts",
       "apps/studio/tests/unit/m5-canon-rulings-static.test.ts",
       "scripts/m5-wo4-negative-controls.mjs"

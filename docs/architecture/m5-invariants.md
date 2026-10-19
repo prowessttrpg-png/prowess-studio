@@ -774,6 +774,7 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 
 ### M5-I128 — Affinity Strength Discount Applies Before Affinity Weakness Penalty
 
+- **Status:** SUPERSEDED by M5-I155 (post-WO4 rulings batch). Valid under M5-WO4; the designer ruling on M5-SC-028 nets every percentage cost modifier into one percentage applied once, so there is no "before". Kept for history — not deleted, not renumbered.
 - **Group:** Affinity Cost
 - **Meaning:** Strength REDUCE_PERCENT is phase 1, Weakness INCREASE_PERCENT is phase 2 of one M4 MODIFIER step; never netted.
 - **Guards:** `packages/prowess-game/src/affinity-golden.test.ts`, `apps/studio/tests/unit/m5-wo4-static.test.ts`, `scripts/m5-wo4-negative-controls.mjs`
@@ -918,6 +919,7 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 
 ### M5-I152 — Base Movement Is Authored Per Creature Size And Is Never Derived From Occupied Space; Massive Remains Pending Canon
 
+- **Status:** SUPERSEDED by M5-I154 (post-WO4 rulings batch). Valid until the rulings batch; the designer ruling on M5-SC-036 sets Huge to 20 ft (not 15) and Massive to 40 ft. Kept for history — not deleted, not renumbered.
 - **Group:** Movement
 - **Meaning:** Designer ruling M5-SC-033: CREATURE_SIZE authors baseMovement Small 5 ft, Medium 5 ft, Large 10 ft, Huge 15 ft; core.derived.base_movement reads the character's exact Size Definition through CREATURE_SIZE_BASE_MOVEMENT and cites it; a character with no Size named is MEDIUM; Movement = Base Movement × AGI + bonuses. Massive is null (M5-SC-036) and fails closed with PROWESS_CORE.SIZE_BASE_MOVEMENT_PENDING_CANON. Occupied space is never read as Base Movement.
 - **Guards:** `packages/prowess-game/src/runtime-contracts.test.ts`, `packages/prowess-game/src/core-resolution-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `apps/studio/tests/unit/m5-wo4-static.test.ts`, `apps/studio/tests/unit/m5-canon-rulings-static.test.ts`, `scripts/m5-wo4-negative-controls.mjs`
@@ -927,3 +929,15 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 - **Group:** Terminology
 - **Meaning:** Designer ruling M5-SC-011: Arcane Rank and Arcana Rank are one rank — the Arcana Skill's rank. The terminology inventory records "Arcane Rank" CANONICAL (token ARCANE_RANK, SKILL family) and "Arcana Rank" LEGACY with canonical term "Arcane Rank". No separate Arcane track exists; Arcane Authority capacity is still later Spell Creation work.
 - **Guards:** `packages/prowess-game/src/vocabulary.test.ts`, `apps/studio/tests/unit/m5-wo2-static.test.ts`, `apps/studio/tests/unit/m5-wo4-static.test.ts`, `apps/studio/tests/unit/m5-canon-rulings-static.test.ts`, `scripts/m5-wo4-negative-controls.mjs`
+
+### M5-I154 — Base Movement Is Authored Per Creature Size: Small 5, Medium 5, Large 10, Huge 20, Massive 40 Feet; Never Derived From Occupied Space
+
+- **Group:** Movement
+- **Meaning:** Designer rulings M5-SC-033 / M5-SC-036: CREATURE_SIZE authors baseMovement Small 5, Medium 5, Large 10, Huge 20, Massive 40 ft; core.derived.base_movement copies the character's exact Size Definition value (MEDIUM when none is named) and cites it; Movement = Base Movement × AGI + bonuses. A Size whose value is unauthored (null) still fails closed with PROWESS_CORE.SIZE_BASE_MOVEMENT_PENDING_CANON. Occupied space is never read as Base Movement.
+- **Guards:** `packages/prowess-game/src/runtime-contracts.test.ts`, `packages/prowess-game/src/runtime-resources-golden.test.ts`, `apps/studio/tests/unit/m5-wo3-static.test.ts`, `apps/studio/tests/unit/m5-wo4-static.test.ts`, `apps/studio/tests/unit/m5-canon-rulings-static.test.ts`, `scripts/m5-wo4-negative-controls.mjs`
+
+### M5-I155 — Percentage Cost Modifiers Combine Into One Net Percentage Applied Once; Final Rounding Is Normal, Once, At The End Of Spell Creation
+
+- **Group:** Affinity Cost
+- **Meaning:** Designer ruling M5-SC-028: M4 computes one net percentage — 100 − Strength discount (once) + selected highest Weakness penalty (once) — and applies it once to the listed cost (× net ÷ 100), unrounded. Golden: Master −30% + Weakness +20% → 90% → 20 MP → 18 (never the sequential 16.8). Casting Conditions join the same net sum later; the final normal rounding happens once at the end of Spell creation (Spell cost pipeline).
+- **Guards:** `packages/prowess-game/src/affinity-golden.test.ts`, `packages/prowess-game/src/affinity-contracts.test.ts`, `apps/studio/tests/unit/m5-wo4-static.test.ts`, `apps/studio/tests/unit/m5-canon-rulings-static.test.ts`, `scripts/m5-wo4-negative-controls.mjs`

@@ -39,6 +39,12 @@ appended as an amendment.
 **Post-WO4 Arcane ruling update.** The designer ruled that Arcane Rank and Arcana Rank are the same rank when referring
 to Skills: the Arcana Skill's rank, named Arcane Rank. M5-SC-011 is `RESOLVED_BY_DESIGNER`; the earlier text is kept.
 
+**Post-WO4 rulings batch.** The designer ruled on every remaining open conflict: M5-SC-007, M5-SC-013 to M5-SC-031 and
+M5-SC-036 are `RESOLVED_BY_DESIGNER`. M5-SC-036 also changes Huge Base Movement from 15 ft to 20 ft
+(Massive 40 ft). M5-SC-028 changes executable WO4 behaviour (one net percentage, applied once). Two follow-ups are new and
+`UNRESOLVED`: M5-SC-037 (Spell Interference) and M5-SC-038 (Active Effects capacity / Concentration base). Earlier text is
+kept; each ruling is appended.
+
 **Statuses:** `UNRESOLVED` · `RESOLVED_BY_DESIGNER` · `RESOLVED_BY_CANON_DECISION` · `SUPERSEDED`.
 
 `UNRESOLVED` means that no designer or Canon ruling exists. WO1 records the problem and does not choose an answer.
@@ -162,9 +168,16 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   Concentration Total"; s1911 / s1974 Mage Arts count against "active effect limits / Active Effect capacity".
 - **mechanical consequence**: different capacities at the same RES. It is also unclear whether "Active Effects" and
   "Concentration Slots" are the same pool.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: affects M5-WO13 (Sustain / Mana Lock / Concentration) and Mage Arts.
+- **Rulings batch (post-WO4, resolves M5-SC-007)**: One stat governs Concentration: +1 Concentration per 3 RES (s26 stands; s664 "1 + 1 per 2 Resolve" is superseded).
+  Expert Arcana grants an additional +1 Concentration. Active Effects and Concentration Slots are TWO different pools:
+  **Active Effects** are the total positive effects a character can have on them at one time (buffs, spells, etc.);
+  each individual effect another character places on them counts against it. **Concentration Slots** are the Spells a
+  character can maintain at one time; casting a Spell whose Duration is longer than Instant requires maintaining it,
+  which uses Concentration. The Active Effects capacity value is not stated — recorded as M5-SC-038.
+
 
 ### M5-SC-008 — Character DC composition
 
@@ -252,10 +265,15 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   section.
 - **mechanical consequence**: it is unclear whether Movement is its own Effect family (with costs and catalog) or a
   Control / Trait function. Cleanse may be its own family or a Healing sub-branch.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: WO1 records `MOVEMENT` as `UNRESOLVED` in the terminology inventory. M5-WO7 needs a ruling. The WO1
   structural contract allows any explicit `effectFamily` token, so no architecture change is needed either way.
+- **Rulings batch (post-WO4, resolves M5-SC-013)**: The Spell branches are Damage, Healing, Buff, Debuff, Control, Utility and Summoning. Cleanse and Movement are
+  sub-branches, not branches: Cleanse sits within Healing and Movement within Utility. Spell Interference is not in the
+  ruling's list; its place is recorded as M5-SC-037 (UNRESOLVED). Terminology inventory updated (Movement / Cleanse
+  SYSTEM_SPECIFIC sub-branches; Spell Interference UNRESOLVED).
+
 
 ### M5-SC-014 — Effect Chain default behaviour
 
@@ -267,9 +285,14 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source B**: s776 EFFECT CHAINS IN SPELL EFFECTS: "If one Effect fails, every Effect after it fails." (absolute, with
   no behaviors).
 - **mechanical consequence**: it is unclear whether Continue / Branch behaviors exist at all.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: the two agree if s776 describes only the default. WO1 does not apply Spell chain rules to Maneuvers (§42).
+- **Rulings batch (post-WO4, resolves M5-SC-014)**: The chain behaviours exist, and the default is: each later Effect is predicated on the earlier one succeeding.
+  Example: a first Effect "Agility Saving Throw against affected targets; on failure they receive ___" — every Effect
+  after it happens only if the target failed that first Save. Traits and Metamagic Effects can alter this later
+  (e.g. Continue / Branch behaviours).
+
 
 ### M5-SC-015 — Maneuver AoE: Targeting Conversion as an Effect that carries a Save profile
 
@@ -284,12 +307,18 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   NOT DETERMINE THE SAVE … A Radius spell is not automatically an Agility Save."
 - **mechanical consequence**: (a) Does a Maneuver's AoE conversion use up a Maneuver Effect slot (s1984) once it is
   modeled as MANEUVER_TARGETING? (b) Which Definition owns the AP cost (+3 AP for Radius) and the Save profile?
-- **status**: `UNRESOLVED`
-- **resolution authority**: the designer has resolved the architecture (geometry vs outcome). The slot, cost and
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
   save-profile allocation still needs a ruling.
 - **notes**: WO1 architecture: geometry is a MANEUVER_TARGETING Definition. The Save profile is authored resolution
   data and is never derived from shape (M5-I022). Whether the conversion also counts as an Effect is a content rule
   for M5-WO6 / M5-WO11.
+- **Rulings batch (post-WO4, resolves M5-SC-015)**: Yes: the Targeting Conversion IS a Maneuver Effect (it uses an Effect slot). A Maneuver takes a normal attack
+  the character can perform and alters it; e.g. a Single Target Sword Swing (Attack Roll, 2d8) becomes Ranged, AoE or
+  Line through the Targeting Conversion Effect, which turns the Attack Roll into a Saving Throw. The Targeting
+  Conversion Effect carries the list of Targeting Types it can convert to, with each type's own cost and Save. Maneuver
+  Targeting Types resemble the Spell ones, but their Saves differ slightly because they are martial.
+
 
 ### M5-SC-016 — Effect / Targeting compatibility and "Projectile"
 
@@ -303,10 +332,15 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   is not in the Targeting Type table (s628).
 - **mechanical consequence**: different compatibility sets. Effects also carry shape keywords, which pulls the Effect
   toward Targeting.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: WO1 keeps compatibility as explicit Definition data (`compatibility` rules) and never derives it from
   shape. "Projectile" is `UNRESOLVED` in the terminology inventory.
+- **Rulings batch (post-WO4, resolves M5-SC-016)**: Damage works with both groups, which target differently. **Attack Roll Targeting Types** (Touch, Projectile) are
+  mostly single-target and cost less Mana. **Saving Throw Targeting Types** (Line, Cone, Radius, Zone) make the
+  affected targets Save against the Damage Effect and can affect several targets in an area, so they cost more Mana.
+  Projectile is a real (Attack Roll) Targeting Type — terminology inventory updated to CANONICAL.
+
 
 ### M5-SC-017 — No Maneuver Trait / Targeting / Duration catalogs in V0.1
 
@@ -321,10 +355,14 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   Options (s2063) and weapon properties (s612).
 - **mechanical consequence**: `MANEUVER_TRAIT`, `MANEUVER_TARGETING` and `MANEUVER_DURATION` exist architecturally but
   have no V0.1 content.
-- **status**: `UNRESOLVED`
-- **resolution authority**: the designer has resolved the architecture. Content is absent from the source.
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: WO1 does not invent content (§10). The kinds have payload contracts so later WOs can author content
   once it exists.
+- **Rulings batch (post-WO4, resolves M5-SC-017)**: Targeting Conversion is currently the only way to change an Attack Roll into a different Targeting Type. Like other
+  Maneuver Effects it has a tree that unlocks more complex Targeting Types as Martial Rank improves; their ranges scale
+  with the Strength score. No Maneuver Traits exist yet, but they will (terminology: SYSTEM_SPECIFIC, none authored).
+
 
 ### M5-SC-018 — Maneuver Radius size
 
@@ -335,10 +373,12 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   Master, 10 STR → 150 ft).
 - **source B**: s2030 Radius Attack Conversion table: "1–3 STR 5 ft · 4–6 STR 10 ft · 7+ STR 15 ft".
 - **mechanical consequence**: about a 10× difference at high STR.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: Spell Radius is "5 ft radius × Prowess" (s630). That difference is legitimately branch-specific content,
   because shared geometry is not shared sizing (§30–31).
+- **Rulings batch (post-WO4, resolves M5-SC-018)**: Radius = Martial Rank Base × STR (s2002–s2006 stands; the s2030 table is superseded).
+
 
 ### M5-SC-019 — Dependent / Independent: subtree or action model
 
@@ -349,9 +389,13 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source B**: s1154 / s1184 / s1227–s1230 treat Dependent and Independent as ACTION MODELS of a Summon Entity.
 - **mechanical consequence**: it is unclear whether they are Summon Types (own build method) or a choice on an Entity
   (with a −20% MP modifier for Dependent, s1230).
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: the build workflow's type list (s1181) omits them, which supports the action-model reading. M5-WO14+.
+- **Rulings batch (post-WO4, resolves M5-SC-019)**: Dependent and Independent Summons are BUILT the same way and CONTROLLED differently (an action model, not a
+  Summon type). A Dependent Summon needs the caster to spend their own AP for it to act, so it gets a cost discount; an
+  Independent Summon acts on its own as the player wishes, so it has a higher base cost.
+
 
 ### M5-SC-020 — "Summoning Rank Value" undefined
 
@@ -362,9 +406,13 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source B**: no "Summoning" Skill or rank exists (s185 skill list). Rank Value is defined only for Martial Rank
   (s1980).
 - **mechanical consequence**: Summon AP limits have no defined input.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: probably Arcana or Affinity rank value. Not guessed.
+- **Rulings batch (post-WO4, resolves M5-SC-020)**: Summoning Rank Value is the Summon's **Tier** (1–4), picked first when building a Summon in the Summon builder.
+  Tier 1 is the cheapest with the lowest stats; Tier 4 the most expensive with the highest. Terminology:
+  `SUMMON_TIER`.
+
 
 ### M5-SC-021 — Casting Condition reduction cap
 
@@ -375,9 +423,13 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source B**: s190 Trained Arcana: "1 Casting Condition (reduces Spell Cost up to 30%)"; s198 Expert Arcana: "2 Casting
   Conditions per Spell (still capped at a 30% total reduction)".
 - **mechanical consequence**: different caps at Trained and Master.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: M5-WO9 / M5-WO10.
+- **Rulings batch (post-WO4, resolves M5-SC-021)**: The Casting Condition cap is a flat 30% per Spell — not tied to Arcane Rank for now (s676's 20 / 30 / 40% by rank
+  is superseded). Architecture: a Casting Condition applies only when the Spell meets its Requirements — e.g. a
+  "Disadvantage on Attack Roll" Casting Condition requires the Spell to have an Attack Roll.
+
 
 ### M5-SC-022 — Multi-Effect Spells: shared resolution required?
 
@@ -391,9 +443,14 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   Targeting Type and Saving Throw/Attack Roll."
 - **mechanical consequence**: an extra "same resolution" constraint would forbid, e.g., an Attack-Roll Damage followed
   by a Save-based Control.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: WO1 composition supports multiple ordered Effects. It enforces no resolution-sharing rule (M5-I021).
+- **Rulings batch (post-WO4, resolves M5-SC-022)**: A multi-Effect Spell resolves as one whole: it has ONE Targeting Type (it cannot, e.g., damage another target
+  while healing the caster — unless Metamagic / Traits allow it). Effects resolve down the chain in the Spell's order:
+  Targeting Type → 1st Effect (success) → 2nd Effect (success) → 3rd Effect; if the 1st Effect fails, the Spell ends
+  before the 2nd can happen (see M5-SC-014).
+
 
 ### M5-SC-023 — Trait pricing
 
@@ -404,9 +461,12 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source B**: per-Trait costs that fit no tier: Widen Area +6 MP (s825), Fire Conversion +4 MP (s827), Selective
   Targeting +5 MP per excluded target (s829). s782 describes "Minor / Moderate / Major" patterns.
 - **mechanical consequence**: two pricing models.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: Trait cost is Definition data (cost contributions). M5-WO8.
+- **Rulings batch (post-WO4, resolves M5-SC-023)**: Trait pricing is a RANGE, not fixed tiers. On average Traits run about 5 / 10 / 15 / 20 MP, but an individual
+  Trait may cost anywhere within, below or above that range — each Trait's cost is authored on the Trait.
+
 
 ### M5-SC-024 — Area scaling vs Widen Area
 
@@ -417,9 +477,12 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source B**: s825 Widen Area: "+6 MP. Increase the spell's area by 5 ft". s800 lists Line as compatible; s825 does
   not.
 - **mechanical consequence**: the same outcome has two prices, and Line compatibility differs.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: M5-WO6 / M5-WO8.
+- **Rulings batch (post-WO4, resolves M5-SC-024)**: Widen Area at +6 MP (s825) is right; s631's "+10 ft Radius / Zone / Aura: +3 MP" is superseded. It applies to
+  any Targeting Type that has a radius (so not Line).
+
 
 ### M5-SC-025 — Maneuver Condition discount limits
 
@@ -430,9 +493,12 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source B**: s2094 / s2095: "total Condition discount cannot exceed −3 AP"; s2097: "No single Condition should exceed
   −3 AP".
 - **mechanical consequence**: a single listed Condition exceeds both caps.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: M5-WO9 / M5-WO11.
+- **Rulings batch (post-WO4, resolves M5-SC-025)**: No total Maneuver Condition discount can exceed −3 AP (s2094 / s2095 / s2097 stand; s2020's −5 AP listing is
+  superseded).
+
 
 ### M5-SC-026 — Weapon attack AP: by category or by move
 
@@ -444,9 +510,13 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source B**: s515 / s521 / s523: "A weapon's Category does not mean every move costs the same AP … The move determines
   the AP cost."
 - **mechanical consequence**: Maneuver foundation cost and basic attack cost differ.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: Equipment integration (M5-WO14+). It is a dependency of M5-WO11.
+- **Rulings batch (post-WO4, resolves M5-SC-026)**: AP is set by the ATTACK's category, not the weapon's. Light, Balanced and Heavy weapons each have attacks and moves,
+  and each attack belongs to a category: a Heavy weapon may have a Balanced attack; a Balanced weapon may have a Light
+  and a Heavy attack.
+
 
 ### M5-SC-027 — Reload AP
 
@@ -456,9 +526,11 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source A**: s432 Common Action Costs: "Reload 1 AP unless stated otherwise".
 - **source B**: s529 Reloading: Light 2 AP · Balanced 3 AP · Heavy 4+ AP.
 - **mechanical consequence**: different reload costs.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: Equipment.
+- **Rulings batch (post-WO4, resolves M5-SC-027)**: Reloading is generally 1 AP, but it is weapon-specific: heavier weapons may cost more than 1 AP to reload.
+
 
 ### M5-SC-028 — Rounding of percentage cost modifiers
 
@@ -470,9 +542,17 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source B**: the explicitly stated rules use "round down" (s650 Spell AP, s661 Sustain, s840 half damage).
 - **mechanical consequence**: percentage modifiers (−10%, +30%) produce fractions with no stated rounding method,
   timing or per-step rule.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: M4 never rounds unless a Formula declares it (M4-WO3). M5-WO10 needs an explicit rule.
+- **Rulings batch (post-WO4, resolves M5-SC-028)**: Rounding happens once, at the end of Spell creation, and rounds normally (0.5 up). All percentage-based cost
+  modifiers combine into one net percentage first. Example: a 20 MP Spell with a −25% discount (Casting Conditions +
+  Affinity Strength) and a +15% Affinity Weakness penalty nets to −10% → 18 MP. **Applied now to the M5-WO4 Affinity
+  cost fragment:** M4 computes one net percentage (100 − Strength discount + selected Weakness penalty) and applies it
+  once to the listed cost, unrounded; the sequential WO4 model (discount, then penalty on the result) is superseded
+  (M5-I128 → M5-I155). Casting Conditions join the same net sum in the Spell cost Work Order, which also does the final
+  normal rounding.
+
 
 ### M5-SC-029 — Trigger-Based and Glyph / Anchor: Targeting Types or add-ons
 
@@ -485,9 +565,13 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   Glyph is also a Trait (+10 MP).
 - **mechanical consequence**: base targeting vs modifier changes cost composition and whether another shape can be
   combined.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: WO1 records `TRIGGERED` / `ANCHOR` as semantic shapes (classification only). M5-WO6.
+- **Rulings batch (post-WO4, resolves M5-SC-029)**: Trigger-Based and Glyph / Anchor are ADD-ONS to a Targeting Type, not Targeting Types. They take an already-created
+  Spell and place it in a specified location; on activation the Spell resolves as normal. Their Mana cost is not +4 /
+  +5 but roughly 8–12+ MP, depending on how many Triggers activate the Glyph.
+
 
 ### M5-SC-030 — Skill list completeness (Stealth, Engineering)
 
@@ -498,9 +582,11 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source B**: "Stealth" is used as a Skill (s115, s136 Thief Skills, s1924 Domain contest, s1942 Stalker). Engineering
   has no Skill section; Crafting does (s299).
 - **mechanical consequence**: Skill identity for checks and contests is incomplete.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: M5-WO2. M5-WO2 does not need the Skill list: a Skill Check names an exact Skill canonical key and the Stat chosen by the approach; the Skill catalog arrives with M5-WO3. Still unresolved.
+- **Rulings batch (post-WO4, resolves M5-SC-030)**: Stealth and Engineering are both Skills; their sections are not finished yet.
+
 
 ### M5-SC-031 — Orcani Stat Bonus
 
@@ -511,9 +597,11 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source B**: s152 Character Creation Example: "+2 STR" only. The example's racial Skill handling (s154) is also
   noted as a draft.
 - **mechanical consequence**: CON differs by 1.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: minor; recorded for completeness.
+- **Rulings batch (post-WO4, resolves M5-SC-031)**: Orcani racial Stat bonus is +2 STR and +1 CON (s166 stands; the s152 example is incomplete).
+
 
 ### M5-SC-032 — Advantage and Disadvantage on the same roll
 
@@ -569,6 +657,9 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   MEDIUM (`STANDARD_CREATURE_SIZE`), so the standard character is numerically unchanged. The values are authored data:
   they coincide with occupied space for Large and Huge, but occupied space is still never read as Base Movement.
   Guarded by M5-I152 and the canon-rulings negative controls.
+- **Amended by the rulings batch (M5-SC-036)**: Huge Base Movement is 20 ft × AGI, not 15 ft; Massive is 40 ft × AGI.
+  Small 5 · Medium 5 · Large 10 ft are unchanged. M5-I152 is SUPERSEDED by M5-I154.
+
 
 ### M5-SC-034 — Sprint movement basis and repeated Sprint
 
@@ -631,8 +722,41 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source B**: s442 Creature Space: Massive occupies "20 ft × 20 ft or larger" — occupied space only, and open-ended.
 - **mechanical consequence**: a Massive creature's Movement cannot be computed; the pattern (+5 ft per Size above Medium)
   would suggest 20 ft, but the designer has not said so and Massive is open-ended.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer rulings batch after M5-WO4; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: recorded by the post-WO4 canon-rulings amendment. `creature_size.massive` has `baseMovement: null`.
   Compiling a Massive character's core sheet fails closed with `PROWESS_CORE.SIZE_BASE_MOVEMENT_PENDING_CANON`; no value
   is guessed. Listed in `runtime-resources.json` `deferred`. Guarded by M5-I152 and the canon-rulings negative controls.
+- **Rulings batch (post-WO4, resolves M5-SC-036)**: Huge Base Movement is 20 ft × AGI (this replaces the 15 ft from the earlier M5-SC-033 ruling) and Massive is double
+  that, 40 ft × AGI. `creature_size.huge` = `{ feet: 20 }`, `creature_size.massive` = `{ feet: 40 }`; nothing is
+  deferred. Guarded by M5-I154 (M5-I152 superseded).
+
+### M5-SC-037 — Place Of Spell Interference Among The Spell Branches
+
+- **conflictKey**: `M5-SC-037`
+- **systemFamily**: `SPELL`
+- **concept**: Whether Spell Interference is a Spell branch, a sub-branch, or something else
+- **source A**: rulings batch on M5-SC-013: the Spell branches are Damage, Healing, Buff, Debuff, Control, Utility and
+  Summoning; Cleanse (Healing) and Movement (Utility) are sub-branches. Spell Interference is not mentioned.
+- **source B**: s621 lists Spell Interference as a branch; s1116 has a SPELL INTERFERENCE BRANCH section.
+- **mechanical consequence**: its catalog placement, costs and Affinity Keywords depend on whether it is a branch or a
+  sub-branch (and of which branch).
+- **status**: `UNRESOLVED`
+- **resolution authority**: none
+- **notes**: recorded by the post-WO4 rulings batch. Terminology inventory: Spell Interference `UNRESOLVED`. Needed
+  before the Spell Effect catalog Work Order.
+
+### M5-SC-038 — Active Effects Capacity And The Concentration Base
+
+- **conflictKey**: `M5-SC-038`
+- **systemFamily**: `CHARACTER`
+- **concept**: How many Active Effects a character can carry, and whether Concentration has a base before +1 per 3 RES
+- **source A**: rulings batch on M5-SC-007: Concentration is +1 per 3 RES (+1 from Expert Arcana); Active Effects are a
+  separate pool — the total positive effects on a character, each effect counting.
+- **source B**: s26 attaches "+1 per 3 RES" to "the Maximum number of Active Effects a character can sustain"; s664 gave
+  a base of 1. Neither states the Active Effects capacity under the two-pool ruling.
+- **mechanical consequence**: the Active Effects limit cannot be computed; a low-RES character may have 0 Concentration
+  if there is no base.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none
+- **notes**: recorded by the post-WO4 rulings batch. Needed by M5-WO13 (Sustain / Mana Lock / Concentration).

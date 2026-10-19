@@ -23,7 +23,8 @@ import { auditWo3Content, auditWo3Source, type Wo3Layer } from "./m5-wo3-audit-h
  * are content · M5-I098 Move allowance · M5-I099 split movement · M5-I100 Difficult Terrain · M5-I101 side Initiative ·
  * M5-I102 Initiative formula · M5-I103 tie-break · M5-I104 Surprise · M5-I105 no persistence · M5-I106 provenance ·
  * M5-I107 zero HP · M5-I108 occupied space ≠ speed · M5-I109 repeated Sprint · M5-I110 atomic ordinary costs.
- * Historical: M5-I073 is SUPERSEDED by M5-I075 (traceable, not deleted).
+ * Historical: M5-I073 is SUPERSEDED by M5-I075 (traceable, not deleted). Post-WO4 rulings: M5-I152 → M5-I154 (Size Base
+ * Movement Small 5 · Medium 5 · Large 10 · Huge 20 · Massive 40 ft).
  */
 const ROOT = path.resolve(process.cwd(), "..", "..");
 const read = (file: string) => readFileSync(path.join(ROOT, file), "utf8");
@@ -141,7 +142,7 @@ describe("M5-WO3 audit — Runtime resources, action economy & movement", () => 
     expect(section(register, "M5-SC-034")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`/);
     expect(section(register, "M5-SC-034")).toMatch(/WO3 status above was `UNRESOLVED`/);
     expect(section(register, "M5-SC-034")).toMatch(/s71[\s\S]*s438/);
-    expect(runtime().deferred).toEqual([expect.objectContaining({ conflictKey: "M5-SC-036", status: "DEFERRED_PENDING_CANON" })]);
+    expect(runtime().deferred).toEqual([]); // M5-SC-036 resolved in the rulings batch (M5-I154)
     expect(core().deferred).toEqual([]);
   });
 
@@ -156,7 +157,7 @@ describe("M5-WO3 audit — Runtime resources, action economy & movement", () => 
     const superseded = catalog.find((x) => x.id === "M5-I073");
     expect([superseded?.status, superseded?.supersededBy]).toEqual(["SUPERSEDED", "M5-I075"]);
     expect(superseded?.title).toBe("Unresolved Movement Formula Conflict M5-SC-006 Must Not Produce Executable Canonical Movement Math");
-    expect(catalog.filter((x) => x.status === "SUPERSEDED").map((x) => x.id)).toEqual(["M5-I073", "M5-I075", "M5-I119"]); // M5-I119 → M5-I151 (post-WO4)
+    expect(catalog.filter((x) => x.status === "SUPERSEDED").map((x) => x.id)).toEqual(["M5-I073", "M5-I075", "M5-I119", "M5-I128", "M5-I152"]); // post-WO4: I119 → I151, I128 → I155, I152 → I154
     const md = read("docs/architecture/m5-invariants.md");
     expect(section(md, "M5-I073")).toMatch(/\*\*Status:\*\* SUPERSEDED by M5-I075/);
     expect(section(md, "M5-I075")).toContain("Base Movement Equals 5 Feet Times AGI");
@@ -225,7 +226,7 @@ const act = (d: Docs, key: string) => d.runtime.definitions.find((x) => x.payloa
 const contentControls: Array<[string, () => Docs, string]> = [
   ["§175 Base Movement = 10 × AGI", () => mutate((d) => void ((d.core.definitions.find((x) => x.payload.statistic === "BASE_MOVEMENT")!.payload.formula as { expression: string }).expression = "10 * agi")), "movement-not-canonical"],
   ["§176 Large Size Base Movement drifts from the M5-SC-033 ruling (M5-I152)", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "LARGE")!.payload.baseMovement = { feet: 20 })), "size-speed-inference"],
-  ["M5-I152 Massive Base Movement guessed (M5-SC-036)", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "MASSIVE")!.payload.baseMovement = { feet: 20 })), "size-speed-inference"],
+  ["M5-I154 Massive Base Movement drifts from the M5-SC-036 ruling (40 ft)", () => mutate((d) => void (d.runtime.definitions.find((x) => x.payload.sizeKey === "MASSIVE")!.payload.baseMovement = { feet: 20 })), "size-speed-inference"],
   ["§176 Movement reads a Size term", () => mutate((d) => void ((d.core.definitions.find((x) => x.payload.statistic === "MOVEMENT")!.payload.formula as { variables: unknown[] }).variables.push({ variable: "size", source: { kind: "DERIVED", statistic: "STRENGTH_ARMOR" } }))), "size-speed-inference"],
   ["§177 DOUBLE_ADVANTAGE in content", () => mutate((d) => void ((d.core.definitions.find((x) => x.payload.procedure === "INITIATIVE")!.payload.naturalSelection as Record<string, unknown>).DOUBLE_ADVANTAGE = { expression: "max(r1, r2)" })), "advantage-stacking"],
   ["§181 AP carries over (no END_OF_TURN expiry)", () => mutate((d) => void (res(d, "AP").expiry = [])), "ap-banking"],
