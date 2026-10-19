@@ -31,7 +31,7 @@ export const COMPONENT_COMPILERS: Readonly<Record<ProwessDefinitionKind, Compone
   ACTION: null,
   CREATURE_SIZE: null,
   TERRAIN: null,
-  // M5-WO5 construction legality compiles through construction/legality.ts; this Definition is not an Ability component.
+  // M5-WO5 construction legality compiles through construction/legality.ts; this is not an Ability component.
   ABILITY_CONSTRUCTION_RULE: null,
   // M5-WO4 compiles Affinity through its own subjects (affinity/compile.ts), not as an Ability component compiler.
   AFFINITY: null,
@@ -80,68 +80,47 @@ export function compileProwessAbility(request: unknown): ProwessOutcome<ProwessC
     p.add(X.UNSUPPORTED_CONTRACT_VERSION, ["contractVersion"], `supported Prowess compilation contract versions: ${SUPPORTED_PROWESS_COMPILATION_CONTRACT_VERSIONS.join(", ")}`);
   }
 
-  const rawSubject = own(r, "subject");
-  const subjectRecord = readRecord(rawSubject, ["subject"], p, X.INVALID_REQUEST, ["kind", "composition"], ["kind", "composition"]);
-  let subjectKind: (typeof ABILITY_KINDS)[number] | null = null;
-  let composition: AbilityComposition | null = null;
-  if (subjectRecord !== null) {
-    const k = own(subjectRecord, "kind");
-    subjectKind = typeof k === "string" && (ABILITY_KINDS as readonly string[]).includes(k) ? (k as (typeof ABILITY_KINDS)[number]) : null;
-    if (subjectKind === null) p.add(X.INVALID_REQUEST, ["subject", "kind"], `kind must be ${ABILITY_KINDS.join(" or ")}`);
-  }
-
   const ruleset = createRulesetContext(own(r, "ruleset"));
   if (!ruleset.ok) p.add(X.INVALID_REQUEST, ["ruleset"], "an exact, valid M4 RulesetContext is required");
+  for (const [field, create] of [["actor", createActorContext], ["build", createBuildContext], ["runtime", createRuntimeContext]] as const) {
+    const value = own(r, field);
+    if (value !== undefined && !create(value).ok) p.add(X.INVALID_REQUEST, [field], `${field} must be a valid M4 ${field} context`);
+  }
 
+  // The bundle is re-validated against the request's exact context: a bundle is never trusted by shape.
   const rawBundle = own(r, "definitions");
-  let bundle: ProwessDefinitionBundle | null = null;
-  if (!isPlainObject(rawBundle)) p.add(X.INVALID_REQUEST, ["definitions"], "definitions is the exact ProwessDefinitionBundle of this RulesetContext");
-  else if (ruleset.ok) {
-    const rebuilt = createProwessDefinitionBundle({ ruleset: own(r, "ruleset"), definitions: own(rawBundle, "definitions") ?? null });
-    if (!rebuilt.ok) for (const problem of rebuilt.problems) p.list.push({ ...problem, path: `/definitions${problem.path}` });
-    else if (!bundleMatchesRuleset({ rulesetProvenance: own(rawBundle, "rulesetProvenance") as ProwessDefinitionBundle["rulesetProvenance"], definitions: [] }, ruleset.value)) {
-      p.add(X.BUNDLE_RULESET_MISMATCH, ["definitions", "rulesetProvenance"], "the Definition bundle belongs to a different exact Ruleset");
-    } else bundle = rebuilt.value;
+  if (!isPlainObject(rawBundle)) p.add(X.INVALID_REQUEST, ["definitions"], "definitions is the exact ProwessDefinitionBundle of the request's RulesetContext");
+  const bundle = ruleset.ok && isPlainObject(rawBundle) ? createProwessDefinitionBundle({ ruleset: own(r, "ruleset"), definitions: own(rawBundle as Record<string, unknown>, "definitions") ?? null }) : null;
+  if (bundle !== null && !bundle.ok) {
+    for (const problem of bundle.problems) p.list.push({ ...problem, path: `/definitions${problem.path}` });
+  } else if (bundle !== null && ruleset.ok) {
+    const supplied = own(rawBundle as Record<string, unknown>, "rulesetProvenance");
+    if (!bundleMatchesRuleset({ rulesetProvenance: supplied as ProwessDefinitionBundle["rulesetProvenance"], definitions: [] }, ruleset.value)) {
+      p.add(X.BUNDLE_RULESET_MISMATCH, ["definitions", "rulesetProvenance"], "the Definition bundle was materialized for a different exact Ruleset context");
+    }
   }
 
-  if (subjectRecord !== null && bundle !== null) {
-    const validated = validateAbilityComposition(own(subjectRecord, "composition"), { bundle });
-    if (!validated.ok) for (const problem of validated.problems) p.list.push({ ...problem, path: `/subject/composition${problem.path}` });
-    else composition = validated.value;
+  const subject = readRecord(own(r, "subject"), ["subject"], p, X.INVALID_REQUEST, ["kind", "composition"], ["kind", "composition"]);
+  if (p.count > 0 || subject === null || bundle === null || !bundle.ok) return finish(p, () => null as never);
+
+  const kind = own(subject, "kind");
+  if (!(ABILITY_KINDS as readonly unknown[]).includes(kind)) {
+    p.add(X.INVALID_REQUEST, ["subject", "kind"], `subject kind is explicit: ${ABILITY_KINDS.join(" | ")}`);
+    return finish(p, () => null as never);
+  }
+  const composition = validateAbilityComposition(own(subject, "composition"), { bundle: bundle.value });
+  if (!composition.ok) {
+    for (const problem of composition.problems) p.list.push({ ...problem, path: `/subject/composition${problem.path}` });
+    return finish(p, () => null as never);
+  }
+  if (composition.value.abilityKind !== kind) {
+    p.add(X.SUBJECT_MISMATCH, ["subject", "kind"], `subject kind ${String(kind)} disagrees with the Composition's explicit abilityKind ${composition.value.abilityKind}`);
+    return finish(p, () => null as never);
   }
 
-  if (composition !== null && subjectKind !== null && composition.abilityKind !== subjectKind) {
-    p.add(X.SUBJECT_MISMATCH, ["subject", "kind"], `subject kind ${subjectKind} does not match composition abilityKind ${composition.abilityKind}`);
-  }
-
-  if (p.count > 0 || composition === null || bundle === null || !ruleset.ok) return finish(p, () => null as never);
-
-  const actor = own(r, "actor") === undefined ? null : createActorContext(own(r, "actor"));
-  const build = own(r, "build") === undefined ? null : createBuildContext(own(r, "build"));
-  const runtime = own(r, "runtime") === undefined ? null : createRuntimeContext(own(r, "runtime"));
-  if (actor !== null && !actor.ok) p.add(X.INVALID_REQUEST, ["actor"], "actor is not a valid M4 ActorContext");
-  if (build !== null && !build.ok) p.add(X.INVALID_REQUEST, ["build"], "build is not a valid M4 BuildContext");
-  if (runtime !== null && !runtime.ok) p.add(X.INVALID_REQUEST, ["runtime"], "runtime is not a valid M4 RuntimeContext");
-  if (p.count > 0) return finish(p, () => null as never);
-
-  const fragments: CompilationFragment[] = [];
-  for (const component of compositionComponents(composition)) {
-    const compiler = COMPONENT_COMPILERS[component.use.definition.definitionKind];
-    if (compiler !== null) fragments.push(...compiler(component.use, composition, bundle));
-  }
-
-  return finish(p, () =>
-    assembleCompiledPlan({
-      contractVersion,
-      subject: { kind: subjectKind as (typeof ABILITY_KINDS)[number], composition },
-      ruleset: ruleset.value,
-      bundle,
-      fragments,
-      contexts: {
-        actor: actor?.ok ? actor.value : null,
-        build: build?.ok ? build.value : null,
-        runtime: runtime?.ok ? runtime.value : null,
-      },
-    }),
-  );
+  const fragments = compositionComponents(composition.value).flatMap(({ use }) => {
+    const compiler = COMPONENT_COMPILERS[use.definition.definitionKind];
+    return compiler === null ? [] : compiler(use, composition.value, bundle.value);
+  });
+  return assembleCompiledPlan({ composition: composition.value, bundle: bundle.value, fragments });
 }
