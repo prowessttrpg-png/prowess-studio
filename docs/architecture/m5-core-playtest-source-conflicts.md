@@ -43,7 +43,9 @@ to Skills: the Arcana Skill's rank, named Arcane Rank. M5-SC-011 is `RESOLVED_BY
 M5-SC-036 are `RESOLVED_BY_DESIGNER`. M5-SC-036 also changes Huge Base Movement from 15 ft to 20 ft
 (Massive 40 ft). M5-SC-028 changes executable WO4 behaviour (one net percentage, applied once). Two follow-ups are new and
 `UNRESOLVED`: M5-SC-037 (Spell Interference) and M5-SC-038 (Active Effects capacity / Concentration base). Earlier text is
-kept; each ruling is appended.
+kept; each ruling is appended. The designer then ruled on both follow-ups (Spell Interference is a Utility Counter
+Spelling mechanic, not a branch; Active Effects = 1 per 2 CON; Concentration = 1 + 1 per 3 RES). No conflict in this
+register is `UNRESOLVED` any more.
 
 **Statuses:** `UNRESOLVED` · `RESOLVED_BY_DESIGNER` · `RESOLVED_BY_CANON_DECISION` · `SUPERSEDED`.
 
@@ -741,10 +743,14 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source B**: s621 lists Spell Interference as a branch; s1116 has a SPELL INTERFERENCE BRANCH section.
 - **mechanical consequence**: its catalog placement, costs and Affinity Keywords depend on whether it is a branch or a
   sub-branch (and of which branch).
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer ruling after the post-WO4 rulings batch; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: recorded by the post-WO4 rulings batch. Terminology inventory: Spell Interference `UNRESOLVED`. Needed
   before the Spell Effect catalog Work Order.
+- **Follow-up ruling (resolves M5-SC-037)**: Spell Interference is NOT a branch. It is a ruling used by Counter Spelling, which belongs in Utility: Counter
+  Spelling uses Spell Interference. Terminology: Spell Interference is SYSTEM_SPECIFIC (a Utility mechanic), not an
+  Effect family.
+
 
 ### M5-SC-038 — Active Effects Capacity And The Concentration Base
 
@@ -757,6 +763,9 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   a base of 1. Neither states the Active Effects capacity under the two-pool ruling.
 - **mechanical consequence**: the Active Effects limit cannot be computed; a low-RES character may have 0 Concentration
   if there is no base.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: designer ruling after the post-WO4 rulings batch; earlier status was `UNRESOLVED`, resolution authority none
 - **notes**: recorded by the post-WO4 rulings batch. Needed by M5-WO13 (Sustain / Mana Lock / Concentration).
+- **Follow-up ruling (resolves M5-SC-038)**: Active Effects are set by CON: 1 Active Effect per 2 CON (the number of positive effects that can be on a target at
+  one time). Concentration starts at a base of 1 and gains +1 per 3 RES (Expert Arcana still adds +1 — M5-SC-007).
+  Recorded for M5-WO13 (Sustain / Mana Lock / Concentration); no executable capacity statistic exists yet.

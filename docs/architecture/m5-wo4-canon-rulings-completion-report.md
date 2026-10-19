@@ -62,7 +62,7 @@ The register keeps every earlier entry verbatim. Each ruling is appended as an a
 
 - **M5-SC-036:** Base Movement of Massive creatures was left `UNRESOLVED` by this amendment; the rulings batch (§7)
   resolved it (40 ft, with Huge changed to 20 ft).
-- **Open now:** M5-SC-037 (Spell Interference) and M5-SC-038 (Active Effects capacity / Concentration base).
+- **Open now:** nothing. The follow-ups M5-SC-037 and M5-SC-038 were resolved too (§7).
 - Every other conflict listed as open in M5-WO4 §37 was later resolved by the rulings batch (§7). M5-SC-011 is resolved
   by the Arcane ruling (§6).
 
@@ -101,6 +101,11 @@ Rulings recorded for the later Work Orders that implement them (no executable co
 Summons), 021 (Casting Condition 30% cap and Requirements), 022 (multi-Effect Spells), 023 (Trait price ranges), 024
 (Widen Area), 025 (Maneuver Condition cap), 026 / 027 (attack and reload AP), 029 (Trigger / Glyph add-ons), 030 (Skill
 list), 031 (Orcani).
+
+**Follow-up rulings.** M5-SC-037: Spell Interference is not a branch; it is the ruling Counter Spelling (a Utility
+mechanic) uses — terminology SYSTEM_SPECIFIC. M5-SC-038: Active Effects = 1 per 2 CON; Concentration = 1 base + 1 per 3
+RES (+1 from Expert Arcana). Both are recorded for M5-WO13; no capacity statistic exists yet. No conflict in the
+register is open.
 
 ## 8. Verification
 

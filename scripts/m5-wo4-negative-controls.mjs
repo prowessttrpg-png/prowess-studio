@@ -216,7 +216,7 @@ const controls = [
   {
     name: "M5-I153 Arcane Rank reverted to UNRESOLVED after the M5-SC-011 ruling",
     file: G("vocabulary/terminology.ts"),
-    mutate: replaceOnce('entry("Arcane Rank", "SKILL_RANK", C, "SKILL", "ARCANE_RANK", { ...designer, conflictKey: "M5-SC-011" })', 'entry("Arcane Rank", "SKILL_RANK", U, "SPELL", null, { ...audit, conflictKey: "M5-SC-011" })'),
+    mutate: replaceOnce('entry("Arcane Rank", "SKILL_RANK", C, "SKILL", "ARCANE_RANK", { ...designer, conflictKey: "M5-SC-011" })', 'entry("Arcane Rank", "SKILL_RANK", "UNRESOLVED", "SPELL", null, { authority: "SOURCE_AUDIT", conflictKey: "M5-SC-011" })'),
     guard: vitest("packages/prowess-game", ["src/vocabulary.test.ts", "-t", "M5-I153"]),
   },
   {
@@ -226,10 +226,13 @@ const controls = [
     guard: staticRulings("M5-I153"),
   },
   {
-    name: "M5-SC-037 (Spell Interference) marked resolved in the register without a designer ruling",
+    name: "M5-SC-038 (Active Effects / Concentration) restored to UNRESOLVED after the follow-up ruling",
     file: REGISTER,
-    mutate: replaceOnce("- **status**: `UNRESOLVED`\n- **resolution authority**: none\n- **notes**: recorded by the post-WO4 rulings batch. Terminology inventory: Spell Interference", "- **status**: `RESOLVED_BY_DESIGNER`\n- **resolution authority**: none\n- **notes**: recorded by the post-WO4 rulings batch. Terminology inventory: Spell Interference"),
-    guard: staticRulings("only the follow-ups M5-SC-037 / M5-SC-038 are open"),
+    mutate: (text) => {
+      const at = text.indexOf("### M5-SC-038 ");
+      return text.slice(0, at) + text.slice(at).replace("- **status**: `RESOLVED_BY_DESIGNER`", "- **status**: `UNRESOLVED`");
+    },
+    guard: staticRulings("nothing is open"),
   },
   {
     name: "M5-SC-007 restored to UNRESOLVED after the rulings batch",

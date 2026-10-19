@@ -73,9 +73,7 @@ const entry = (
 
 const C = "CANONICAL" as const;
 const L = "LEGACY" as const;
-const U = "UNRESOLVED" as const;
 const SS = "SYSTEM_SPECIFIC" as const;
-const audit = { authority: "SOURCE_AUDIT" as const };
 const designer = { authority: "DESIGNER_CLARIFICATION" as const };
 
 export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
@@ -112,7 +110,7 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   entry("Accuracy", "DERIVED_STAT", C, "CORE", "ACCURACY", { ...designer, conflictKey: "M5-SC-009" }),
   // M5-SC-006 (designer ruling, M5-WO3) as clarified after WO3 (applied in M5-WO4, M5-I111): Base Movement is the
   // creature's authored value (5 ft for the standard character); Movement = Base Movement × AGI. Size-based Base
-  // Movement values are M5-SC-033 (UNRESOLVED).
+  // Size Base Movement values: M5-SC-033 / M5-SC-036 (designer rulings, M5-I154).
   entry("Base Movement", "DERIVED_STAT", C, "CHARACTER", "BASE_MOVEMENT", { ...designer, conflictKey: "M5-SC-033" }),
   entry("Movement", "DERIVED_STAT", C, "CHARACTER", "MOVEMENT", { ...designer, conflictKey: "M5-SC-006" }),
   // WO3's interim "Final Movement" name and the "Total Movement" basis question (M5-SC-034) are not statistics (M5-I112).
@@ -199,12 +197,12 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
 
   // ---- Effect families --------------------------------------------------------------------------------------------
   // M5-SC-013 (designer ruling): the Spell branches are Damage, Healing, Buff, Debuff, Control, Utility and Summoning.
-  // Cleanse is a sub-branch of Healing and Movement a sub-branch of Utility. Spell Interference was not in the ruling's
-  // list: its place is M5-SC-037 (UNRESOLVED).
+  // Cleanse is a sub-branch of Healing and Movement a sub-branch of Utility. M5-SC-037 (designer ruling): Spell
+  // Interference is not a branch — it is the ruling Counter Spelling (a Utility mechanic) uses.
   ...["Damage", "Healing", "Buff", "Debuff", "Control", "Utility", "Summoning"].map((t) => entry(t, "EFFECT_FAMILY", SS, "SPELL", t.toUpperCase(), { ...designer, conflictKey: "M5-SC-013" })),
   entry("Cleanse", "EFFECT_FAMILY", SS, "SPELL", "CLEANSE", { ...designer, conflictKey: "M5-SC-013" }),
   entry("Movement", "EFFECT_FAMILY", SS, "SPELL", "MOVEMENT", { ...designer, conflictKey: "M5-SC-013" }),
-  entry("Spell Interference", "EFFECT_FAMILY", U, "SPELL", "SPELL_INTERFERENCE", { ...audit, conflictKey: "M5-SC-037" }),
+  entry("Spell Interference", "EFFECT_FAMILY", SS, "SPELL", "SPELL_INTERFERENCE", { ...designer, conflictKey: "M5-SC-037" }),
   ...[
     "Damage / Conversion",
     "Save-Based Attack",

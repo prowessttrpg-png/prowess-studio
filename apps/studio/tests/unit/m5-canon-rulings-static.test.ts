@@ -101,7 +101,7 @@ describe("Post-WO4 canon rulings audit — Size Base Movement & Level 9 Affinity
     expect(read("docs/architecture/m5-wo4-canon-rulings-completion-report.md")).toMatch(/^## \d+\. Arcane Rank$/m);
   });
 
-  it("rulings batch: every conflict open after M5-WO4 is RESOLVED_BY_DESIGNER with its ruling appended; only the follow-ups M5-SC-037 / M5-SC-038 are open", () => {
+  it("rulings batch: every conflict open after M5-WO4 is RESOLVED_BY_DESIGNER with its ruling appended; the follow-ups M5-SC-037 / M5-SC-038 are resolved too — nothing is open", () => {
     const register = read("docs/architecture/m5-core-playtest-source-conflicts.md");
     expect(register).toMatch(/\*\*Post-WO4 rulings batch\.\*\*/);
     const batch = ["007", ...Array.from({ length: 19 }, (_, i) => String(13 + i).padStart(3, "0")), "036"].map((n) => `M5-SC-${n}`);
@@ -111,7 +111,9 @@ describe("Post-WO4 canon rulings audit — Size Base Movement & Level 9 Affinity
       expect(sec, key).toMatch(/\*\*source A\*\*:[\s\S]*\*\*source B\*\*:/); // provenance kept
       expect(sec, key).toContain(`Rulings batch (post-WO4, resolves ${key})`);
     }
-    expect(register.split(/^### /m).filter((x) => /\*\*status\*\*: `UNRESOLVED`/.test(x)).map((x) => x.slice(0, 9))).toEqual(["M5-SC-037", "M5-SC-038"]);
+    expect(register.split(/^### /m).filter((x) => /\*\*status\*\*: `UNRESOLVED`/.test(x)).map((x) => x.slice(0, 9))).toEqual([]);
+    expect(section(register, "M5-SC-037")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`[\s\S]*Follow-up ruling \(resolves M5-SC-037\)[\s\S]*Counter\s+Spelling/);
+    expect(section(register, "M5-SC-038")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`[\s\S]*Follow-up ruling \(resolves M5-SC-038\)[\s\S]*1 Active Effect per 2 CON[\s\S]*base of 1/);
     expect(register).toMatch(/^### M5-SC-037 — Place Of Spell Interference Among The Spell Branches$/m);
     expect(register).toMatch(/^### M5-SC-038 — Active Effects Capacity And The Concentration Base$/m);
   });

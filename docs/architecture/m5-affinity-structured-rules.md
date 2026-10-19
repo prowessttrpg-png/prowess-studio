@@ -446,5 +446,6 @@ Definition and rank rule. There is no latest / current lookup, registry or cache
 - M5-SC-034 is RESOLVED_BY_DESIGNER (Sprint Allowance = Movement × 4).
 
 **Post-WO4 rulings batch.** Every conflict that was still open after M5-WO4 now has a designer ruling (see the register).
-Huge Base Movement is 20 ft and Massive 40 ft (M5-I154). Two follow-ups are open: M5-SC-037 (where Spell Interference
-belongs) and M5-SC-038 (Active Effects capacity and the Concentration base).
+Huge Base Movement is 20 ft and Massive 40 ft (M5-I154). The two follow-ups were resolved as well: M5-SC-037 (Spell
+Interference is a Utility Counter Spelling mechanic, not a branch) and M5-SC-038 (Active Effects 1 per 2 CON;
+Concentration 1 + 1 per 3 RES). No conflict is open.
