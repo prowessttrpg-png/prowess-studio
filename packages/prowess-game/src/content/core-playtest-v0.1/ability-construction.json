@@ -1,0 +1,214 @@
+{
+  "contentKey": "prowess.core_playtest.v0_1.ability_construction",
+  "workOrder": "M5-WO5",
+  "schemaVersion": 1,
+  "source": {
+    "title": "Prowess Core Playtest Packet V0.1",
+    "sha256Prefix": "21fa6771",
+    "parser": "prowess-docx-structure@1.0.0",
+    "structureHashPrefix": "3d9a429c"
+  },
+  "designerRulings": [
+    "M5-WO5 §6.1 Spell access: Arcane Authority (Arcane Rank TRAINED+) or Affinity Authority (governing Affinity TRAINED+)",
+    "M5-WO5 §6.2 Martial Rank is the Martial Skill's rank; Rank Value TRAINED 1 · EXPERT 2 · MASTER 3",
+    "M5-WO5 §6.3 Spell Trait exchange: 1 unused Effect slot → +1 Trait slot, explicit, at least 1 Effect kept; Spells only",
+    "M5-WO5 §6.4 Arcane Authority capacity TRAINED 1/1 · EXPERT 2/2 · MASTER 3/3 Effects/Traits; Arcane and Affinity never add",
+    "M5-WO5 §6.5 Casting Condition capacity from Arcane Rank only: UNTRAINED 0 · TRAINED 1 · EXPERT 2 · MASTER 3",
+    "M5-WO5 §6.6–§6.7 every permanent player-known Ability uses 1 Signature slot; zero-slot use only by an explicit exemption",
+    "M5-WO5 §6.8 stacking is explicit per Effect Definition; stacks share 1 Effect slot within the Definition's own limit",
+    "M5-WO5 §A1–§A12 Maneuver construction requires Martial TRAINED+; Affinity is an access layer, never a substitute or extra capacity"
+  ],
+  "designerContent": "M5-WO5 §6–§16, §120–§127 and the Martial addendum (designer work order): the Arcane and Martial capacity tables, Casting Condition capacity, the Spell Trait exchange, minimum Effects, the Maneuver foundation requirement and the Signature slot policy. Affinity Authority capacity is the WO4 AFFINITY_RANK_RULE table, reused (§122). Canonical content authors no Signature exemption yet: zero-slot Abilities arrive with the rules that grant them.",
+  "deferred": [],
+  "definitions": [
+    {
+      "canonicalKey": "construction.ability_rules",
+      "definitionKind": "ABILITY_CONSTRUCTION_RULE",
+      "payload": {
+        "rankLadder": "SKILL",
+        "formulas": {
+          "remainingEffects": {
+            "expression": "base_effects - trades * effect_slots_per_exchange",
+            "rounding": "NONE",
+            "variables": [
+              "base_effects",
+              "trades",
+              "effect_slots_per_exchange"
+            ]
+          },
+          "effectiveTraits": {
+            "expression": "base_traits + trades * trait_slots_per_exchange",
+            "rounding": "NONE",
+            "variables": [
+              "base_traits",
+              "trades",
+              "trait_slots_per_exchange"
+            ]
+          },
+          "maximumTrades": {
+            "expression": "floor((base_effects - minimum_effects_remaining) / effect_slots_per_exchange)",
+            "rounding": "NONE",
+            "minimum": 0,
+            "variables": [
+              "base_effects",
+              "minimum_effects_remaining",
+              "effect_slots_per_exchange"
+            ]
+          },
+          "signatureProjected": {
+            "expression": "used_slots + candidate_slots",
+            "rounding": "NONE",
+            "variables": [
+              "used_slots",
+              "candidate_slots"
+            ]
+          },
+          "signatureAvailable": {
+            "expression": "capacity - projected",
+            "rounding": "NONE",
+            "variables": [
+              "capacity",
+              "projected"
+            ]
+          }
+        },
+        "spell": {
+          "arcaneAuthority": {
+            "skillKey": "skill.arcana",
+            "minimumRank": "TRAINED",
+            "ranks": [
+              {
+                "rankKey": "UNTRAINED",
+                "effectCapacity": 0,
+                "traitCapacity": 0
+              },
+              {
+                "rankKey": "TRAINED",
+                "effectCapacity": 1,
+                "traitCapacity": 1
+              },
+              {
+                "rankKey": "EXPERT",
+                "effectCapacity": 2,
+                "traitCapacity": 2
+              },
+              {
+                "rankKey": "MASTER",
+                "effectCapacity": 3,
+                "traitCapacity": 3
+              }
+            ]
+          },
+          "affinityAuthority": {
+            "capacitySource": "AFFINITY_RANK_RULE"
+          },
+          "castingConditions": {
+            "capacitySource": "ARCANE_RANK",
+            "ranks": [
+              {
+                "rankKey": "UNTRAINED",
+                "capacity": 0
+              },
+              {
+                "rankKey": "TRAINED",
+                "capacity": 1
+              },
+              {
+                "rankKey": "EXPERT",
+                "capacity": 2
+              },
+              {
+                "rankKey": "MASTER",
+                "capacity": 3
+              }
+            ]
+          },
+          "minimumEffects": 1,
+          "traitExchange": {
+            "effectSlotsPerExchange": 1,
+            "traitSlotsPerExchange": 1,
+            "minimumEffectsRemaining": 1
+          }
+        },
+        "maneuver": {
+          "martial": {
+            "skillKey": "skill.martial",
+            "minimumRank": "TRAINED",
+            "ranks": [
+              {
+                "rankKey": "UNTRAINED",
+                "martialRankValue": 0,
+                "effectCapacity": 0,
+                "traitCapacity": 0,
+                "conditionCapacity": 0
+              },
+              {
+                "rankKey": "TRAINED",
+                "martialRankValue": 1,
+                "effectCapacity": 1,
+                "traitCapacity": 1,
+                "conditionCapacity": 1
+              },
+              {
+                "rankKey": "EXPERT",
+                "martialRankValue": 2,
+                "effectCapacity": 2,
+                "traitCapacity": 2,
+                "conditionCapacity": 2
+              },
+              {
+                "rankKey": "MASTER",
+                "martialRankValue": 3,
+                "effectCapacity": 3,
+                "traitCapacity": 3,
+                "conditionCapacity": 3
+              }
+            ]
+          },
+          "minimumEffects": 1,
+          "foundationRequired": true,
+          "traitExchange": null
+        },
+        "signature": {
+          "capacityStatistic": "SIGNATURE_ABILITY_SLOTS",
+          "defaultSlotCost": 1,
+          "exemptSlotCost": 0,
+          "exemptions": []
+        },
+        "source": {
+          "locators": [
+            "s121",
+            "s122",
+            "s123",
+            "s185",
+            "s190",
+            "s198",
+            "s624",
+            "s626",
+            "s627",
+            "s669",
+            "s676",
+            "s680",
+            "s681",
+            "s682",
+            "s683",
+            "s1980",
+            "s1982",
+            "s1983",
+            "s2018",
+            "s2020"
+          ],
+          "conflicts": [
+            "M5-SC-011",
+            "M5-SC-015",
+            "M5-SC-017",
+            "M5-SC-021",
+            "M5-SC-022",
+            "M5-SC-025"
+          ]
+        }
+      }
+    }
+  ],
+  "revisions": []
+}

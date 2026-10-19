@@ -142,6 +142,31 @@ export const AFFINITY_ERROR_CODES = deepFreeze({
 } as const);
 
 /**
+ * M5-WO5 shared Ability Construction diagnostics. Malformed requests, content or Definitions only — an unsatisfied
+ * construction rule (no access, over capacity, a failed prerequisite, a full Signature roster) is a valid INVALID
+ * result, never one of these (§41).
+ */
+export const CONSTRUCTION_ERROR_CODES = deepFreeze({
+  INVALID_CONSTRUCTION_REQUEST: "PROWESS_CONSTRUCTION.INVALID_CONSTRUCTION_REQUEST",
+  /** The bundle lacks exactly one ABILITY_CONSTRUCTION_RULE (or a role it reads: the Skill ladder, Signature capacity). */
+  MISSING_CONSTRUCTION_DEFINITION: "PROWESS_CONSTRUCTION.MISSING_CONSTRUCTION_DEFINITION",
+  AMBIGUOUS_CONSTRUCTION_DEFINITION: "PROWESS_CONSTRUCTION.AMBIGUOUS_CONSTRUCTION_DEFINITION",
+  INVALID_CONSTRUCTION_CONTEXT: "PROWESS_CONSTRUCTION.INVALID_CONSTRUCTION_CONTEXT",
+  /** A Spell names no explicit Authority, or names one its composition cannot carry (§21). Never inferred. */
+  AUTHORITY_REQUIRED: "PROWESS_CONSTRUCTION.AUTHORITY_REQUIRED",
+  /** A Maneuver carries a Spell construction Authority: Maneuvers are built through Martial training (§A2). */
+  AUTHORITY_NOT_APPLICABLE: "PROWESS_CONSTRUCTION.AUTHORITY_NOT_APPLICABLE",
+  /** A component Definition's `rules.construction` sub-contract is malformed (a Definition defect, §41). */
+  INVALID_COMPONENT_CONSTRUCTION_RULES: "PROWESS_CONSTRUCTION.INVALID_COMPONENT_CONSTRUCTION_RULES",
+  /** Construction content authors no value for something the request needs (a rank row, a Rank Value) — fail closed. */
+  CONSTRUCTION_RULE_UNRESOLVED: "PROWESS_CONSTRUCTION.CONSTRUCTION_RULE_UNRESOLVED",
+  /** The Signature capacity Formula reads a variable source the construction context does not carry. */
+  UNSUPPORTED_SIGNATURE_FORMULA: "PROWESS_CONSTRUCTION.UNSUPPORTED_SIGNATURE_FORMULA",
+  /** An evaluated run does not belong to the plan, or a step it names did not execute successfully. */
+  INCOMPLETE_RUN: "PROWESS_CONSTRUCTION.INCOMPLETE_RUN",
+} as const);
+
+/**
  * The server-side materializer's DomainError codes. The vocabulary lives in @prowess/model (the platform's single
  * error-code home, with HTTP mappings) and is re-exported here for convenience — never redefined.
  */

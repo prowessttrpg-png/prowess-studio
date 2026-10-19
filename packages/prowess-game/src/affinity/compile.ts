@@ -212,8 +212,12 @@ function readSubject(value: unknown, p: Problems): (AffinityCompilationSubject &
   return r as unknown as AffinityCompilationSubject & Record<string, unknown>;
 }
 
-/** Shared compilation state: the fragments emitted so far and the subject's components → exact Definitions. */
-class AffinityEmitter {
+/**
+ * Shared compilation state: the fragments emitted so far and the subject's components → exact Definitions. Exported
+ * for M5-WO5 construction legality, which reuses its exact Keyword contribution and Strength / Weakness condition
+ * primitives under Affinity Authority instead of building a second Affinity evaluator (§104).
+ */
+export class AffinityEmitter {
   readonly fragments: CompilationFragment[] = [];
   readonly components = new Map<string, ProwessDefinitionRef[]>();
   constructor(readonly index: AffinityDefinitionIndex, readonly catalog: KeywordCatalog, readonly p: Problems) {

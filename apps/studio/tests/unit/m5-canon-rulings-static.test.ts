@@ -130,7 +130,7 @@ describe("Post-WO4 canon rulings audit — Size Base Movement & Level 9 Affinity
 
   it("the invariant catalog: M5-I119 → M5-I151, M5-I128 → M5-I155, M5-I152 → M5-I154 SUPERSEDED (kept); M5-I151 and M5-I153–I155 are ACTIVE and guarded here", () => {
     const catalog = JSON.parse(read("docs/architecture/m5-invariants.json")) as Array<{ id: string; title: string; guards: string[]; status?: string; supersededBy?: string }>;
-    expect(catalog).toHaveLength(155);
+    expect(catalog).toHaveLength(158); // M5-WO5 appended M5-I156–I158
     const by = (id: string) => catalog.find((x) => x.id === id)!;
     expect([by("M5-I119").status, by("M5-I119").supersededBy]).toEqual(["SUPERSEDED", "M5-I151"]);
     expect([by("M5-I128").status, by("M5-I128").supersededBy]).toEqual(["SUPERSEDED", "M5-I155"]);

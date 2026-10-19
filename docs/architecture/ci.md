@@ -143,6 +143,21 @@ was removed.
 The follow-up Arcane ruling (M5-SC-011, M5-I153) extends the same step: it also runs `vocabulary.test.ts`, the static
 audit pins the Arcane Rank (CANONICAL) / Arcana Rank (LEGACY) terminology entries, and two more controls revert the
 ruling.
+
+**M5-WO5 additions.** A sixth permanent named step, **"M5-WO5 audit — Shared modular ability construction"**, runs
+right after the canon-rulings gate. It runs:
+
+- the WO5 golden fixtures and contracts in `@prowess/game` (`construction-legality-golden.test.ts`,
+  `construction-legality-contracts.test.ts`) and `vocabulary.test.ts` (Martial Rank and the construction terms);
+- the static audit `apps/studio/tests/unit/m5-wo5-static.test.ts` (AST rules over the construction modules, structural
+  rules over `ability-construction.json`, the M4 baseline, M5-I156–I158, terminology, the
+  `m5-shared-ability-construction.md` sections and diagrams, and this step), with in-memory controls;
+- the regenerated Rules Inspector fixture (`m5-wo5-inspector-fixture.test.ts`);
+- exact Release history, isolation and no persistence against the real database (`prowess-construction-history.test.ts`);
+- construction plans through the existing evaluate endpoint (`m5-wo5-construction-api.test.ts`);
+- the behavioural negative controls `scripts/m5-wo5-negative-controls.mjs`.
+
+The WO1, WO2 and WO4 catalog-length checks were raised from 155 to 158. No gate was removed.
 The post-WO4 rulings batch (M5-SC-007, M5-SC-013 to M5-SC-031, M5-SC-036; M5-I154, M5-I155) runs in the same step: the
 static audit pins every ruling in the register, the two open follow-ups (M5-SC-037, M5-SC-038), the Size values (Huge
 20, Massive 40) and the net-percentage cost fragment; the WO4 controls now forbid the superseded sequential cost model.

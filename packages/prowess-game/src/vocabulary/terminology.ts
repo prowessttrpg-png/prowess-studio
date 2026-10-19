@@ -128,7 +128,9 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   // "Arcane Rank" is the canonical term; "Arcana Rank" is its LEGACY spelling.
   entry("Arcane Rank", "SKILL_RANK", C, "SKILL", "ARCANE_RANK", { ...designer, conflictKey: "M5-SC-011" }),
   entry("Arcana Rank", "SKILL_RANK", L, "SKILL", null, { ...designer, canonicalTerm: "Arcane Rank", conflictKey: "M5-SC-011" }),
-  entry("Martial Rank", "SKILL_RANK", SS, "MANEUVER", "MARTIAL_RANK"),
+  // M5-WO5 (designer ruling, §A1–§A2): Martial Rank IS the Martial Skill's rank — one rank on the SKILL ladder, with an
+  // authored Rank Value; Martial TRAINED is the Maneuver minimum (M5-I158).
+  entry("Martial Rank", "SKILL_RANK", C, "SKILL", "MARTIAL_RANK", { ...designer }),
   // M5-SC-020 (designer ruling): Summoning Rank Value IS the Summon's Tier (1–4), picked first when building a Summon.
   entry("Summoning Rank Value", "SKILL_RANK", SS, "SUMMON", "SUMMON_TIER", { ...designer, conflictKey: "M5-SC-020" }),
 
@@ -147,6 +149,13 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   entry("Mana Lock", "RESOURCE", C, "RESOURCE", "MANA_LOCK"),
   entry("Concentration", "RESOURCE", C, "RESOURCE", "CONCENTRATION", { conflictKey: "M5-SC-007" }),
   entry("Signature Ability Slots", "RESOURCE", C, "CHARACTER", "SIGNATURE_ABILITY_SLOTS"),
+  // ---- Shared Ability Construction (M5-WO5) — capacities authored in the ABILITY_CONSTRUCTION_RULE ------------------
+  entry("Effect Capacity", "RESOURCE", C, "ABILITY", "EFFECT_CAPACITY", { ...designer }),
+  entry("Trait Capacity", "RESOURCE", C, "ABILITY", "TRAIT_CAPACITY", { ...designer }),
+  entry("Casting Condition Capacity", "RESOURCE", C, "SPELL", "CASTING_CONDITION_CAPACITY", { ...designer }),
+  entry("Maneuver Condition Capacity", "RESOURCE", C, "MANEUVER", "MANEUVER_CONDITION_CAPACITY", { ...designer }),
+  entry("Signature Ability Slot", "RESOURCE", C, "CHARACTER", "SIGNATURE_ABILITY_SLOT", { ...designer }),
+  entry("Effect Stack", "RESOURCE", C, "ABILITY", "EFFECT_STACK", { ...designer }),
 
   // ---- Actions and tactical identities (M5-WO3) — the Dodge ACTION (3 AP) is not the Dodge defense ---------------
   entry("Dodge Action", "ACTION", C, "ACTION_ECONOMY", "DODGE_ACTION"),
