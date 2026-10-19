@@ -21,6 +21,7 @@ import { DEFINITION_ERROR_CODES } from "./codes.js";
 import { isCorePayloadKind, readCorePayload } from "./core-payload.js";
 import { isRuntimePayloadKind, readRuntimePayload } from "./runtime-payload.js";
 import { isAffinityPayloadKind, readAffinityDefinitionPayload, readAffinityPayload } from "./affinity-payload.js";
+import { readAbilityConstructionRulePayload } from "./ability-construction-payload.js";
 
 /**
  * Version-1 payload contracts of the SHARED Ability Construction components (PAS-10 M5-WO1 §25–53, §83).
@@ -86,6 +87,11 @@ export interface AbilityConditionDefinitionPayload extends ComponentCommon {
   readonly tradeoff: JsonObject;
 }
 
+/** A Maneuver Foundation (M5-WO5 §16): the action a Maneuver starts from. Structural; no formula or cost here. */
+export interface FoundationDefinitionPayload extends ComponentCommon {
+  readonly foundationKind: string;
+}
+
 export interface AffinityDefinitionPayload {
   readonly affinity: CanonicalAffinity;
 }
@@ -97,7 +103,7 @@ const PAYLOAD_FIELDS: Readonly<Record<AbilityComponentContract, readonly string[
   TRAIT: [...COMMON_FIELDS, "traitFamily", "scope"],
   DURATION: [...COMMON_FIELDS, "durationConcept"],
   ABILITY_CONDITION: [...COMMON_FIELDS, "restriction", "tradeoff"],
-  FOUNDATION: [],
+  FOUNDATION: [...COMMON_FIELDS, "foundationKind"],
 };
 const PAYLOAD_REQUIRED: Readonly<Record<AbilityComponentContract, readonly string[]>> = {
   TARGETING: ["semanticShape"],
@@ -105,7 +111,7 @@ const PAYLOAD_REQUIRED: Readonly<Record<AbilityComponentContract, readonly strin
   TRAIT: ["traitFamily", "scope"],
   DURATION: ["durationConcept"],
   ABILITY_CONDITION: ["restriction"],
-  FOUNDATION: [],
+  FOUNDATION: ["foundationKind"],
 };
 
 /**
@@ -316,9 +322,13 @@ function readComponentPayload(contract: AbilityComponentContract, value: unknown
       payload = { ...readCommon(r, at, p), restriction: { restrictionKey, data: restrictionData }, tradeoff } satisfies Record<keyof AbilityConditionDefinitionPayload, unknown>;
       break;
     }
-    case "FOUNDATION":
-      p.add(C.UNSUPPORTED_SCHEMA_VERSION, at, "Maneuver Foundation payloads are defined by a later M5 Work Order");
+    case "FOUNDATION": {
+      // M5-WO5 (§16): structural only — what the Maneuver starts from (a weapon attack, movement, block, guard …),
+      // authored as a token. Weapon formulas and foundation costs belong to later Work Orders.
+      const foundationKind = readToken(own(r, "foundationKind"), [...at, "foundationKind"], p, "foundationKind");
+      payload = { ...readCommon(r, at, p), foundationKind } satisfies Record<keyof FoundationDefinitionPayload, unknown>;
       break;
+    }
   }
   return p.count > before ? null : (payload as JsonObject);
 }
@@ -338,6 +348,7 @@ export function readDefinitionPayload(kind: ProwessDefinitionKind, contract: Abi
   else if (isCorePayloadKind(kind)) payload = readCorePayload(kind, value, at, p);
   else if (isRuntimePayloadKind(kind)) payload = readRuntimePayload(kind, value, at, p);
   else if (isAffinityPayloadKind(kind)) payload = readAffinityPayload(kind, value, at, p);
+  else if (kind === "ABILITY_CONSTRUCTION_RULE") payload = readAbilityConstructionRulePayload(value, at, p);
   else if (kind === "AFFINITY" && schemaVersion === 2) {
     // M5-WO4: the full Affinity rule content. Legacy terminology was already refused above (M5-I115).
     const affinity = readAffinityDefinitionPayload(value, at, p);

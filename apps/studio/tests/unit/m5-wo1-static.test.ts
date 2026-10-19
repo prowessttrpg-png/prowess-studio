@@ -123,9 +123,9 @@ describe("M5-WO1 audit — Prowess domain & shared ability construction boundary
     for (const file of [...GAME, ...MATERIALIZER]) expect(auditM5Source(read(file), file, file.includes("prowess-db") ? "materializer" : "game"), file).not.toContain("canon-governance");
   });
 
-  it("the M5 invariant catalog defines M5-I001–I155 exactly once (M5-WO2 appended I041–I074, M5-WO3 I075–I110, M5-WO4 I111–I150, the post-WO4 rulings I151–I155), each with executing automated guards", () => {
+  it("the M5 invariant catalog defines M5-I001–I158 exactly once (M5-WO2 appended I041–I074, M5-WO3 I075–I110, M5-WO4 I111–I150, the post-WO4 rulings I151–I155, M5-WO5 I156–I158), each with executing automated guards", () => {
     const catalog = JSON.parse(read("docs/architecture/m5-invariants.json")) as Array<{ id: string; title: string; guards: string[] }>;
-    const expected = Array.from({ length: 155 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`);
+    const expected = Array.from({ length: 158 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`);
     expect(catalog.map((x) => x.id)).toEqual(expected);
     const md = read("docs/architecture/m5-invariants.md");
     const defined = [...md.matchAll(/^### (M5-I\d{3})\b/gm)].map((m) => m[1]);
@@ -134,7 +134,7 @@ describe("M5-WO1 audit — Prowess domain & shared ability construction boundary
       expect(entry.guards.length, entry.id).toBeGreaterThan(0);
       expect(md).toContain(entry.title);
       for (const guard of entry.guards) {
-        expect(guard).toMatch(/^(packages\/[^/]+\/src\/.*\.test\.ts|packages\/prowess-db\/tests\/(unit|integration)\/.*\.test\.ts|apps\/studio\/tests\/unit\/.*\.test\.ts|scripts\/m5-wo[1234]-negative-controls\.mjs)$/);
+        expect(guard).toMatch(/^(packages\/[^/]+\/src\/.*\.test\.ts|packages\/prowess-db\/tests\/(unit|integration)\/.*\.test\.ts|apps\/studio\/tests\/unit\/.*\.test\.ts|scripts\/m5-wo[12345]-negative-controls\.mjs)$/);
         expect(read(guard), `${entry.id} → ${guard}`).toMatch(/\b(it|describe)\s*[.(]|Negative control caught/);
         if (guard.endsWith(".test.ts")) expect(read(guard), `${entry.id} → ${guard}`).toContain(entry.id);
       }

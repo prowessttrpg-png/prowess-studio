@@ -108,6 +108,11 @@ const DEFINITION_KIND_TABLE = {
   AFFINITY_WEAKNESS_SEVERITY: active("AFFINITY"),
   /** Standard Affinity advancement (s161): explicit authored choices per Level (§39–§52). */
   AFFINITY_PROGRESSION: active("AFFINITY"),
+  /**
+   * M5-WO5 shared Ability Construction policy: Arcane / Martial capacities, Casting Condition capacity, the Spell Trait
+   * exchange, minimum Effects and the Signature slot policy (definition/ability-construction-payload.ts).
+   */
+  ABILITY_CONSTRUCTION_RULE: active("ABILITY"),
 
   // Spell branch — separate canonical catalogs implementing the shared contracts.
   SPELL_TARGETING: component("SPELL", "TARGETING", ["TARGETING"]),
@@ -122,7 +127,9 @@ const DEFINITION_KIND_TABLE = {
   MANEUVER_TRAIT: component("MANEUVER", "TRAIT", ["GENERIC_RULE"]),
   MANEUVER_CONDITION: component("MANEUVER", "ABILITY_CONDITION", ["GENERIC_RULE"]),
   MANEUVER_DURATION: component("MANEUVER", "DURATION", ["GENERIC_RULE"]),
-  MANEUVER_FOUNDATION: { family: "MANEUVER", branch: "MANEUVER", contract: "FOUNDATION", entityTypes: ["GENERIC_RULE"], schemaVersions: [] },
+  // M5-WO5 activates the Foundation contract structurally (a Maneuver must name one, §16); weapon formulas and
+  // foundation costs remain later Work Orders.
+  MANEUVER_FOUNDATION: { family: "MANEUVER", branch: "MANEUVER", contract: "FOUNDATION", entityTypes: ["GENERIC_RULE"], schemaVersions: [1] },
 
   // Later families — known, reserved.
   MAGE_ART: reserved("MAGE_ART"),

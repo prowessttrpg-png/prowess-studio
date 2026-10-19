@@ -349,6 +349,24 @@ jobs:
           pnpm --filter "@prowess/game" exec vitest run src/runtime-resources-golden.test.ts src/runtime-contracts.test.ts src/core-resolution-golden.test.ts src/affinity-contracts.test.ts src/vocabulary.test.ts
           pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-canon-rulings-static.test.ts
 
+      # M5-WO5: Shared modular ability construction — Spell Authority (Arcane / Affinity, explicit), Martial training,
+      # Effect / Trait / Condition capacity, the Spell Trait exchange, structure, Foundation, prerequisites, explicit
+      # stacking, Affinity access and Signature slots. Runs the golden fixtures and contracts in @prowess/game, the static
+      # audit (AST rules over the construction modules, structural rules over the construction content, invariants,
+      # terminology, docs and this step), the regenerated Rules Inspector fixture, exact Release history / isolation / no
+      # persistence against the real database, construction plans through the existing evaluate endpoint, and the
+      # behavioural negative controls (each mutates real source or content, must be caught, and is restored).
+      - name: M5-WO5 audit — Shared modular ability construction
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+        run: |
+          pnpm --filter "@prowess/game" exec vitest run src/construction-legality-golden.test.ts src/construction-legality-contracts.test.ts src/vocabulary.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo5-static.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo5-inspector-fixture.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-construction-history.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo5-construction-api.test.ts
+          node scripts/m5-wo5-negative-controls.mjs
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own

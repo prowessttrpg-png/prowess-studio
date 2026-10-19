@@ -24,6 +24,25 @@ export function availabilityOrder(index: number): number {
 }
 
 /**
+ * M5-WO5 shared Ability Construction plan layout. Blocks only; every binding reads a strictly earlier block (Keyword
+ * sets and capacity Formulas first, the Requirements that read them after).
+ */
+export const CONSTRUCTION_ORDER = Object.freeze({
+  /** Per-component exact Keyword sets (Affinity Authority access). */
+  KEYWORDS: 100,
+  /** Capacity, trade-limit and Signature Formulas — M4 does the arithmetic. */
+  FORMULAS: 200,
+  /** The track / Authority access Requirement. */
+  ACCESS: 300,
+  CAPACITY: 400,
+  STRUCTURE: 500,
+  PREREQUISITES: 600,
+  STACKING: 700,
+  AFFINITY_ACCESS: 800,
+  SIGNATURE: 900,
+});
+
+/**
  * M5-WO4 Affinity plan layout. Every step of one block shares the block's position (M4 breaks ties by stepKey), and
  * every binding reads a strictly earlier block — so no position arithmetic is needed at all.
  */

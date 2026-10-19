@@ -73,6 +73,7 @@ export {
 export {
   AFFINITY_ERROR_CODES,
   BUNDLE_ERROR_CODES,
+  CONSTRUCTION_ERROR_CODES,
   COMPILATION_ERROR_CODES,
   COMPOSITION_ERROR_CODES,
   CORE_ERROR_CODES,
@@ -370,3 +371,48 @@ export type {
   ProwessCompiledPlan,
   ProwessSourceMapEntry,
 } from "./compilation/model.js";
+
+// ---- M5-WO5 shared Ability Construction legality ----
+export {
+  AFFINITY_AUTHORITY_CAPACITY_SOURCES,
+  CASTING_CONDITION_CAPACITY_SOURCES,
+  CONSTRUCTION_ACCESS_PATHS,
+  CONSTRUCTION_PREREQUISITE_KINDS,
+  CONSTRUCTION_RULE_FAMILIES,
+  CONSTRUCTION_SKILL_TRACKS,
+  SIGNATURE_SLOT_USES,
+  STACK_LIMIT_KINDS,
+  type ConstructionAccessPath,
+  type ConstructionPrerequisiteKind,
+  type ConstructionRuleFamily,
+  type ConstructionSkillTrack,
+  type SignatureSlotUse,
+  type StackLimitKind,
+} from "./vocabulary/ability-construction.js";
+export {
+  NO_COMPONENT_CONSTRUCTION_RULES,
+  readComponentConstructionRules,
+  type AbilityConstructionRulePayload,
+  type ArcaneCapacityRow,
+  type ComponentConstructionRules,
+  type ConditionCapacityRow,
+  type ConstructionPrerequisite,
+  type MartialCapacityRow,
+  type SignatureExemption,
+  type StackLimit,
+  type TraitExchangeRule,
+} from "./definition/ability-construction-payload.js";
+export type { FoundationDefinitionPayload } from "./definition/payload.js";
+export {
+  compileAbilityConstruction,
+  evaluateAbilityConstruction,
+  readAbilityConstructionRun,
+  type AbilityConstructionCharacterContext,
+  type AbilityConstructionRequest,
+  type AbilityConstructionResult,
+  type ConstructionCompiledOutputs,
+  type ConstructionCompiledRule,
+  type ConstructionRuleResult,
+  type ProwessConstructionCompiledPlan,
+  type SignatureCandidate,
+} from "./construction/legality.js";

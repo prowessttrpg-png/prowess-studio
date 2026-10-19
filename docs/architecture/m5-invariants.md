@@ -941,3 +941,21 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 - **Group:** Affinity Cost
 - **Meaning:** Designer ruling M5-SC-028: M4 computes one net percentage — 100 − Strength discount (once) + selected highest Weakness penalty (once) — and applies it once to the listed cost (× net ÷ 100), unrounded. Golden: Master −30% + Weakness +20% → 90% → 20 MP → 18 (never the sequential 16.8). Casting Conditions join the same net sum later; the final normal rounding happens once at the end of Spell creation (Spell cost pipeline).
 - **Guards:** `packages/prowess-game/src/affinity-golden.test.ts`, `packages/prowess-game/src/affinity-contracts.test.ts`, `apps/studio/tests/unit/m5-wo4-static.test.ts`, `apps/studio/tests/unit/m5-canon-rulings-static.test.ts`, `scripts/m5-wo4-negative-controls.mjs`
+
+### M5-I156 — Spell Authority Is Explicit: Arcane Authority Reads The Arcana Skill Rank At Trained Or Higher; Affinity Authority Reads The Governing Affinity Owned At Trained Or Higher; Never Auto-Switched
+
+- **Group:** Ability Construction
+- **Meaning:** A Spell names its Authority explicitly (ARCANE_AUTHORITY or AFFINITY_AUTHORITY); the compiler never picks the higher one. Arcane Authority reads the Arcana Skill rank on the SKILL ladder (TRAINED minimum) and its Effect / Trait capacity from the ABILITY_CONSTRUCTION_RULE (Trained 1/1, Expert 2/2, Master 3/3). Affinity Authority requires the governing Affinity owned at TRAINED+ and reuses the WO4 AFFINITY_RANK_RULE capacities (never duplicated). A Spell without an Authority is PROWESS_CONSTRUCTION.AUTHORITY_REQUIRED; a Maneuver with one is AUTHORITY_NOT_APPLICABLE. The Spell Trait exchange is explicit (1 Effect slot → 1 Trait slot) and always leaves at least one Effect.
+- **Guards:** `packages/prowess-game/src/construction-legality-golden.test.ts`, `packages/prowess-game/src/construction-legality-contracts.test.ts`, `apps/studio/tests/unit/m5-wo5-static.test.ts`, `scripts/m5-wo5-negative-controls.mjs`
+
+### M5-I157 — Casting Condition Capacity Comes From Arcane Rank Only: Untrained 0, Trained 1, Expert 2, Master 3, Under Either Authority
+
+- **Group:** Ability Construction
+- **Meaning:** The construction rule authors castingConditions.capacitySource = ARCANE_RANK with Untrained 0 · Trained 1 · Expert 2 · Master 3. The capacity is read from the Arcana Skill rank whatever the Spell's Authority; Affinity rank never adds Casting Condition capacity.
+- **Guards:** `packages/prowess-game/src/construction-legality-golden.test.ts`, `packages/prowess-game/src/construction-legality-contracts.test.ts`, `apps/studio/tests/unit/m5-wo5-static.test.ts`, `scripts/m5-wo5-negative-controls.mjs`
+
+### M5-I158 — Martial Trained Is The Maneuver Minimum; Martial Rank Is The Martial Skill Rank; Affinity Never Substitutes For Or Adds Maneuver Capacity
+
+- **Group:** Ability Construction
+- **Meaning:** A Maneuver reads the Martial Skill rank (SKILL ladder, TRAINED minimum) with authored Rank Value and Effect / Trait / Condition capacity 1/2/3 at Trained / Expert / Master. A Maneuver needs a MANEUVER_FOUNDATION and at least one Effect; there is no Maneuver Trait exchange. Owning an Affinity grants access to Affinity-gated components only — it never substitutes for Martial training nor adds Maneuver capacity.
+- **Guards:** `packages/prowess-game/src/construction-legality-golden.test.ts`, `packages/prowess-game/src/construction-legality-contracts.test.ts`, `apps/studio/tests/unit/m5-wo5-static.test.ts`, `scripts/m5-wo5-negative-controls.mjs`
