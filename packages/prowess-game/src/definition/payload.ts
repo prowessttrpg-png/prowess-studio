@@ -21,6 +21,7 @@ import { DEFINITION_ERROR_CODES } from "./codes.js";
 import { isCorePayloadKind, readCorePayload } from "./core-payload.js";
 import { isRuntimePayloadKind, readRuntimePayload } from "./runtime-payload.js";
 import { isAffinityPayloadKind, readAffinityDefinitionPayload, readAffinityPayload } from "./affinity-payload.js";
+import { readAbilityConstructionRulePayload } from "./ability-construction-payload.js";
 
 /**
  * Version-1 payload contracts of the SHARED Ability Construction components (PAS-10 M5-WO1 §25–53, §83).
@@ -201,7 +202,6 @@ function readCostContributions(value: unknown, at: readonly PathSegment[], p: Pr
     const data = readJsonObject(own(r, "data"), [...at, i, "data"], p);
     return currency === null || data === null ? [] : [{ contributionKey, currency, data }];
   });
-  // Authored order is not semantic for a set of named contributions: canonical order is by key.
   return out.sort((a, b) => (a.contributionKey < b.contributionKey ? -1 : a.contributionKey > b.contributionKey ? 1 : 0));
 }
 
@@ -211,7 +211,6 @@ function readToken(value: unknown, at: readonly PathSegment[], p: Problems, what
   return null;
 }
 
-/** Every key path in `value` whose key is in `forbidden` (depth-first, sorted keys — deterministic). */
 function forbiddenKeyPaths(value: unknown, forbidden: readonly string[], at: readonly PathSegment[]): PathSegment[][] {
   if (Array.isArray(value)) return value.flatMap((v: unknown, i: number) => forbiddenKeyPaths(v, forbidden, [...at, i]));
   if (!isPlainObject(value)) return [];
@@ -220,10 +219,6 @@ function forbiddenKeyPaths(value: unknown, forbidden: readonly string[], at: rea
     .flatMap((k) => [...(forbidden.includes(k) ? [[...at, k]] : []), ...forbiddenKeyPaths(value[k], forbidden, [...at, k])]);
 }
 
-/**
- * Every string value or canonical-key segment in `value` that is a LEGACY source term (§7, §218): canonical structured
- * content uses the canonical term. Provenance (envelope `legacyTerms`) is the only place a legacy term is recorded.
- */
 export function legacyTermUses(value: unknown, at: readonly PathSegment[]): { path: PathSegment[]; term: string; canonical: string }[] {
   if (typeof value === "string") {
     const hits = [value, ...value.split(".")]
@@ -248,7 +243,6 @@ function readCommon(r: Record<string, unknown>, at: readonly PathSegment[], p: P
   };
 }
 
-/** Validates a version-1 payload of `contract` (structure only). Returns the canonicalized payload, or null. */
 function readComponentPayload(contract: AbilityComponentContract, value: unknown, at: readonly PathSegment[], p: Problems): JsonObject | null {
   const r = readRecord(value, at, p, C.INVALID_PAYLOAD, PAYLOAD_FIELDS[contract], PAYLOAD_REQUIRED[contract]);
   if (r === null) return null;
@@ -323,10 +317,6 @@ function readComponentPayload(contract: AbilityComponentContract, value: unknown
   return p.count > before ? null : (payload as JsonObject);
 }
 
-/**
- * Validates `value` as the version-`schemaVersion` payload of `kind`. The caller has already checked that the kind
- * supports that version. Legacy terminology anywhere in a canonical payload is rejected (M5-I037).
- */
 export function readDefinitionPayload(kind: ProwessDefinitionKind, contract: AbilityComponentContract | null, value: unknown, at: readonly PathSegment[], p: Problems, schemaVersion = 1): JsonObject | null {
   if (!isProwessDefinitionKind(kind)) return null;
   const before = p.count;
@@ -338,12 +328,13 @@ export function readDefinitionPayload(kind: ProwessDefinitionKind, contract: Abi
   else if (isCorePayloadKind(kind)) payload = readCorePayload(kind, value, at, p);
   else if (isRuntimePayloadKind(kind)) payload = readRuntimePayload(kind, value, at, p);
   else if (isAffinityPayloadKind(kind)) payload = readAffinityPayload(kind, value, at, p);
-  else if (kind === "AFFINITY" && schemaVersion === 2) {
-    // M5-WO4: the full Affinity rule content. Legacy terminology was already refused above (M5-I115).
+  else if (kind === "ABILITY_CONSTRUCTION_RULE") {
+    const construction = readAbilityConstructionRulePayload(value, at, p);
+    if (construction !== null) payload = construction as unknown as JsonObject;
+  } else if (kind === "AFFINITY" && schemaVersion === 2) {
     const affinity = readAffinityDefinitionPayload(value, at, p);
     if (affinity !== null) payload = affinity as unknown as JsonObject;
   } else if (kind === "AFFINITY") {
-    // Version 1 (M5-WO1): the identity-only payload, kept valid so WO1 history is never rewritten.
     const r = readRecord(value, at, p, C.INVALID_PAYLOAD, ["affinity"], ["affinity"]);
     const affinity = r === null ? null : own(r, "affinity");
     if (r !== null && legacyTermFor(String(affinity)) === null) {
