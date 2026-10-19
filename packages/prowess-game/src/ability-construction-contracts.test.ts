@@ -21,6 +21,20 @@ const subject = (composition: Record<string, unknown>, character: Record<string,
 
 const json = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
+const cleanRequest = () => {
+  const f = constructionFixture();
+  return {
+    f,
+    request: {
+      contractVersion: 1,
+      subject: subject(spellComposition(f, { affinity: null }), constructionProfile(f, { arcane: "TRAINED" })),
+      definitions: f.bundle,
+      ruleset: f.ruleset,
+      keywords: constructionKeywordCatalog(),
+    } as Record<string, unknown>,
+  };
+};
+
 describe("M5-WO5 Ability Construction contracts", () => {
   it("is deterministic and JSON-safe for the same exact Ruleset / Definition / character / composition input", () => {
     const f = constructionFixture();
@@ -53,23 +67,19 @@ describe("M5-WO5 Ability Construction contracts", () => {
   });
 
   it("rejects unsafe / non-plain input rather than executing getters or functions", () => {
-    const f = constructionFixture();
+    const { request: getterRequest } = cleanRequest();
     let getterCalls = 0;
-    const bad: Record<string, unknown> = {
-      contractVersion: 1,
-      subject: subject(spellComposition(f, { affinity: null }), constructionProfile(f, { arcane: "TRAINED" })),
-      definitions: f.bundle,
-      ruleset: f.ruleset,
-      keywords: constructionKeywordCatalog(),
-    };
-    Object.defineProperty(bad.subject as object, "evil", { enumerable: true, get: () => (getterCalls += 1) });
-    const result = compileAbilityConstruction(bad);
-    expect(result.ok).toBe(false);
+    Object.defineProperty(getterRequest.subject as object, "evil", { enumerable: true, get: () => (getterCalls += 1) });
+    const getterResult = compileAbilityConstruction(getterRequest);
+    expect(getterResult.ok).toBe(false);
     expect(getterCalls).toBe(0);
 
-    const withFunction = json(bad) as Record<string, unknown>;
-    withFunction.bad = () => 1;
-    expect(compileAbilityConstruction(withFunction).ok).toBe(false);
+    // Build a separate clean request for the function case. Never stringify/clone the getter-bearing object: doing so
+    // would execute the getter in the test itself and invalidate the side-effect safety assertion.
+    const { request: functionRequest } = cleanRequest();
+    functionRequest.bad = () => 1;
+    const functionResult = compileAbilityConstruction(functionRequest);
+    expect(functionResult.ok).toBe(false);
   });
 
   it("fails exact-Ruleset mixing instead of resolving by canonical key or latest/current", () => {
