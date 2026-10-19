@@ -1,25 +1,16 @@
 /**
  * @prowess/game — the Prowess-specific pure domain layer (PAS-10 M5-WO1).
  *
- * M5-WO2 adds the first executable Prowess mechanics: core resolution (rolls, Advantage / Disadvantage, criticals),
- * the six Ability Scores, the Character Die progression, rank primitives and derived statistics — all compiled into
- * M4 FORMULA / REQUIREMENT / MODIFIER steps. See docs/architecture/m5-core-resolution-stats-dice-ranks.md.
- *
- * M5-WO3 adds runtime Resources (HP, MP, ME, AP, Counter Action, movement allowance), the action economy, Base
- * Movement, Initiative and roll-signal resolution — compiled into chains of M4 RESOURCE operations. See
- * docs/architecture/m5-runtime-resources-action-economy.md.
- *
- * M5-WO4 adds Affinity as executable structured content: the six canonical Affinities, Affinity Rank, ownership,
- * standard progression, exact Keyword alignment (Strength / Weakness), the reusable Spell MP Affinity modifier
- * fragment, Affinity Authority and Affinity access prerequisites — compiled into M4 KEYWORD / REQUIREMENT / MODIFIER
- * steps. See docs/architecture/m5-affinity-structured-rules.md.
+ * M5-WO2 adds core resolution, Ability Scores, Character Dice, rank primitives and derived statistics.
+ * M5-WO3 adds runtime Resources, action economy, Movement, Initiative and roll-signal resolution.
+ * M5-WO4 adds executable Affinity identity, Rank, Keyword alignment, Authority and Spell MP Affinity modifiers.
+ * M5-WO5 adds the shared Ability Construction legality framework: Spell/Maneuver access, rank capacity, Spell-only
+ * Effect→Trait exchange, component prerequisites, explicit Effect stacking and Signature-slot capacity — compiled into
+ * frozen M4 FORMULA / KEYWORD / REQUIREMENT operations. Costs, component catalogs and resolution remain later WOs.
  *
  * Owns Prowess Definition contracts, the shared modular Ability Construction grammar (Spell / Maneuver branches),
  * exact Definition bundles and the Prowess → M4 compilation contract. Depends on @prowess/model and @prowess/rules
- * only. It never re-implements the M4 engine: Prowess compiles INTO M4 EvaluationPlans. See
- * docs/architecture/m5-prowess-domain-compilation.md.
- *
- * Explicit public surface (no `export *`): internal readers and plain-data guards are not exported.
+ * only. It never re-implements the M4 engine: Prowess compiles INTO M4 EvaluationPlans.
  */
 export {
   PROWESS_COMPILATION_CONTRACT_VERSION,
@@ -71,6 +62,7 @@ export {
 } from "./vocabulary/terminology.js";
 
 export {
+  ABILITY_CONSTRUCTION_ERROR_CODES,
   AFFINITY_ERROR_CODES,
   BUNDLE_ERROR_CODES,
   COMPILATION_ERROR_CODES,
@@ -101,6 +93,10 @@ export {
   type TargetingDefinitionPayload,
   type TraitDefinitionPayload,
 } from "./definition/payload.js";
+export type {
+  AbilityConstructionRankRule,
+  AbilityConstructionRulePayload,
+} from "./definition/ability-construction-payload.js";
 export { PROWESS_DEFINITION_STORAGE_KEY, readStoredProwessDefinition, type StoredDefinitionReading } from "./definition/storage.js";
 
 export {
@@ -126,6 +122,37 @@ export {
   type TraitUse,
 } from "./construction/composition.js";
 export { componentContractOf, implementSameContract, shareTargetingSemanticShape } from "./construction/contracts.js";
+
+// ---- M5-WO5: shared Ability Construction legality -------------------------------------------------------------------
+export {
+  ABILITY_CONSTRUCTION_RULINGS,
+  ABILITY_CONSTRUCTION_SKILL_RANKS,
+  ABILITY_CONSTRUCTION_SUBJECT_KINDS,
+  ARCANA_SKILL_KEY,
+  EFFECT_STACK_LIMIT_KINDS,
+  MARTIAL_SKILL_KEY,
+  SIGNATURE_SLOT_POLICIES,
+  type AbilityConstructionSkillRank,
+  type AbilityConstructionSubjectKind,
+  type EffectStackLimitKind,
+  type SignatureSlotPolicy,
+} from "./vocabulary/ability-construction.js";
+export {
+  compileAbilityConstruction,
+  readAbilityConstructionRun,
+  type AbilityConstructionAccessGrant,
+  type AbilityConstructionCapacityOutput,
+  type AbilityConstructionCompilationRequest,
+  type AbilityConstructionCompiledOutputs,
+  type AbilityConstructionRequirementReading,
+  type AbilityConstructionRunReading,
+  type AbilityConstructionSignaturePolicy,
+  type AbilityConstructionSkillState,
+  type AbilityConstructionStackGroup,
+  type AbilityConstructionSubject,
+  type CharacterAbilityConstructionProfile,
+  type ProwessAbilityConstructionCompiledPlan,
+} from "./construction/legality.js";
 
 // ---- M5-WO2: core resolution, Ability Scores, Character Dice and rank primitives ------------------------------------
 export {
@@ -288,6 +315,7 @@ export {
   type SidePhase,
 } from "./runtime/combat.js";
 
+// ---- M5-WO4: Affinity ------------------------------------------------------------------------------------------------
 export {
   AFFINITY_ADVANCEMENT_ACTIONS,
   AFFINITY_ALIGNMENTS,
