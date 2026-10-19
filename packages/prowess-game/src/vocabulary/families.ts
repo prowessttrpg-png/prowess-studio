@@ -68,7 +68,7 @@ const reserved = (family: ProwessSystemFamily, entityTypes: readonly EntityType[
   entityTypes,
   schemaVersions: [],
 });
-/** A non-Ability kind with a version-1 payload contract (M5-WO2 core kinds, M5-WO3 runtime kinds). */
+/** A non-Ability kind with a version-1 payload contract. */
 const active = (family: ProwessSystemFamily, entityTypes: readonly EntityType[] = ["GENERIC_RULE"]): DefinitionKindSpec => ({ family, branch: null, contract: null, entityTypes, schemaVersions: [1] });
 const component = (family: "SPELL" | "MANEUVER", contract: AbilityComponentContract, entityTypes: readonly EntityType[]): DefinitionKindSpec => ({
   family,
@@ -89,24 +89,21 @@ const DEFINITION_KIND_TABLE = {
   // Ancestry / Skill catalogs — known, reserved for a later M5 Work Order.
   ANCESTRY: reserved("ANCESTRY"),
   SKILL: reserved("SKILL"),
-  // Runtime resources, the action catalog and the tactical movement identities — v1 payloads defined by M5-WO3
-  // (definition/runtime-payload.ts). RESOURCE keeps the M1 RESOURCE storage type it was reserved under in WO1.
+  // Runtime resources, the action catalog and the tactical movement identities — v1 payloads defined by M5-WO3.
   RESOURCE: active("RESOURCE", ["RESOURCE"]),
   ACTION: active("ACTION_ECONOMY"),
-  /** A creature Size's tactical identity: occupied space only — its movement adjustment is pending canon (M5-SC-033). */
   CREATURE_SIZE: active("CHARACTER"),
-  /** A terrain kind's Movement-allowance cost (Difficult Terrain, s439). Hazard effects are later Effect / Condition work. */
   TERRAIN: active("ACTION_ECONOMY"),
 
+  // Shared Ability Construction — M5-WO5 versioned capacity/access/signature policy. It is branch-neutral rule
+  // content; branch-specific components remain separate Spell/Maneuver Definition families below.
+  ABILITY_CONSTRUCTION_RULE: active("ABILITY"),
+
   // Affinity — WO1 owned only its canonical identity (Evocation, never Emission): payload version 1 `{ affinity }`.
-  // M5-WO4 adds payload version 2 (identity + exact Strength / Weakness rules) and the versioned Affinity rule kinds
-  // (definition/affinity-payload.ts). Version 1 stays readable; only version 2 is executable.
+  // M5-WO4 adds payload version 2 (identity + exact Strength / Weakness rules) and the versioned Affinity rule kinds.
   AFFINITY: { family: "AFFINITY", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1, 2] },
-  /** The Affinity Rank table: explicit order, Strength discount and Authority capacity per rank (§33–§38). */
   AFFINITY_RANK_RULE: active("AFFINITY"),
-  /** The standard Minor / Moderate / Major Weakness reference scale (s686) — reference only (§57). */
   AFFINITY_WEAKNESS_SEVERITY: active("AFFINITY"),
-  /** Standard Affinity advancement (s161): explicit authored choices per Level (§39–§52). */
   AFFINITY_PROGRESSION: active("AFFINITY"),
 
   // Spell branch — separate canonical catalogs implementing the shared contracts.
@@ -142,8 +139,7 @@ export const PROWESS_DEFINITION_KINDS: Readonly<Record<ProwessDefinitionKind, De
 export const PROWESS_DEFINITION_KIND_NAMES = deepFreeze(Object.keys(PROWESS_DEFINITION_KINDS).sort() as ProwessDefinitionKind[]);
 
 export const isProwessSystemFamily = (v: unknown): v is ProwessSystemFamily => typeof v === "string" && (PROWESS_SYSTEM_FAMILIES as readonly string[]).includes(v);
-export const isProwessDefinitionKind = (v: unknown): v is ProwessDefinitionKind =>
-  typeof v === "string" && (PROWESS_DEFINITION_KIND_NAMES as readonly string[]).includes(v);
+export const isProwessDefinitionKind = (v: unknown): v is ProwessDefinitionKind => typeof v === "string" && (PROWESS_DEFINITION_KIND_NAMES as readonly string[]).includes(v);
 export const isAbilityKind = (v: unknown): v is AbilityKind => typeof v === "string" && (ABILITY_KINDS as readonly string[]).includes(v);
 
 export function definitionKindSpec(kind: ProwessDefinitionKind): DefinitionKindSpec {
