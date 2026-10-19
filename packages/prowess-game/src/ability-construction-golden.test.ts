@@ -221,6 +221,6 @@ describe("M5-WO5 shared Ability Construction goldens", () => {
     const operations = compiled.value.evaluationPlan.steps.map((step) => step.operation);
     expect(operations).toContain("FORMULA");
     expect(operations).toContain("REQUIREMENT");
-    expect(compiled.value.evaluationPlan.steps.some((step) => step.operation === "MODIFIER" || step.operation === "RESOURCE")).toBe(false);
+    expect(compiled.value.evaluationPlan.steps.some((step) => step.operation === "MODIFIER" || step.operation.startsWith("RESOURCE_"))).toBe(false);
   });
 });
