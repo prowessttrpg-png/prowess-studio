@@ -47,6 +47,7 @@ import {
   rankEntry as affinityRankEntry,
   readKeywordCatalog,
   type AffinityDefinitionIndex,
+  type AffinityEntry,
   type KeywordCatalog,
 } from "../affinity/definitions.js";
 import {
@@ -81,14 +82,7 @@ import {
   type ProwessOutcome,
 } from "../internal/problems.js";
 
-/**
- * M5-WO5 — Shared Modular Ability Construction Framework.
- *
- * This compiler answers construction LEGALITY only: access, capacity, component prerequisites, explicit stack limits,
- * Trait exchange and Signature-slot capacity. It does not calculate Spell/Maneuver costs or execute Ability outcomes.
- * Prowess selects exact authored rules; numeric arithmetic/comparisons execute in M4 FORMULA / REQUIREMENT steps.
- */
-
+/** M5-WO5 compiles construction legality only. Costs and runtime resolution remain later Work Orders. */
 export interface AbilityConstructionSkillState {
   readonly skillKey: string;
   readonly rank: AbilityConstructionSkillRank;
@@ -102,7 +96,6 @@ export interface CharacterAbilityConstructionProfile {
 }
 
 export interface AbilityConstructionSignaturePolicy {
-  /** Null = normal one-slot rule. A non-null exemption must cite an explicit authored rule key. */
   readonly exemption: { readonly sourceKey: string } | null;
 }
 
@@ -207,6 +200,19 @@ interface ConstructionRuleEntry {
   readonly provenance: RuleProvenance;
 }
 
+interface ConstructionRankFact extends JsonObject {
+  readonly key: string;
+  readonly rankKey: AbilityConstructionSkillRank;
+  readonly order: number;
+  readonly provenance: null;
+}
+
+interface ParsedPrerequisite {
+  readonly node: JsonObject;
+  readonly facts: JsonObject;
+  readonly definitions: readonly ProwessDefinitionRef[];
+}
+
 const REQUEST_FIELDS = ["contractVersion", "subject", "definitions", "ruleset", "keywords"];
 const SUBJECT_FIELDS = ["kind", "subjectKey", "composition", "character", "signature", "accessGrants"];
 const PROFILE_FIELDS = ["prowess", "signatureSlotsUsed", "skills", "affinityProfile"];
@@ -220,17 +226,10 @@ const CONSTRUCTION_RULE = "construction.rule";
 const GOVERNING_AFFINITY = "construction.governing_affinity";
 const AFFINITY_RANK_RULE = "construction.affinity_rank_rule";
 const GRANTS_FACT = "construction.affinity_access_grants";
-
-const ORDER = deepFreeze({
-  FORMULA: 100,
-  ACCESS: 200,
-  COMPONENT_REQUIREMENT: 300,
-  CAPACITY: 400,
-  STACK: 500,
-  SIGNATURE: 600,
-} as const);
+const ORDER = deepFreeze({ FORMULA: 100, ACCESS: 200, COMPONENT_REQUIREMENT: 300, CAPACITY: 400, STACK: 500, SIGNATURE: 600 } as const);
 
 const emptyFacts = () => ({ numeric: [], ranks: [], sets: [], ownedEntityIds: [], keywords: null });
+const provenanceJson = (value: RuleProvenance): JsonObject => clonePlainData(value) as unknown as JsonObject;
 
 function provenanceOf(bundle: ProwessDefinitionBundle, envelope: ProwessDefinitionEnvelope): RuleProvenance {
   return {
@@ -242,35 +241,24 @@ function provenanceOf(bundle: ProwessDefinitionBundle, envelope: ProwessDefiniti
   } as RuleProvenance;
 }
 
-function provenanceJson(value: RuleProvenance): JsonObject {
-  return clonePlainData(value) as unknown as JsonObject;
-}
-
 function skillRank(profile: CharacterAbilityConstructionProfile, skillKey: string): AbilityConstructionSkillRank {
   return profile.skills.find((s) => s.skillKey === skillKey)?.rank ?? "UNTRAINED";
 }
 
-function findConstructionRule(bundle: ProwessDefinitionBundle, p: Problems): ConstructionRuleEntry | null {
-  const found = bundle.definitions.filter((d) => d.definitionKind === "ABILITY_CONSTRUCTION_RULE");
-  if (found.length !== 1) {
-    p.add(A.INVALID_REQUEST, ["definitions"], `exactly one ABILITY_CONSTRUCTION_RULE Definition is required (found ${found.length})`);
-    return null;
-  }
-  const envelope = found[0] as ProwessDefinitionEnvelope;
-  return {
-    ref: definitionRefOf(envelope),
-    payload: envelope.payload as unknown as AbilityConstructionRulePayload,
-    provenance: provenanceOf(bundle, envelope),
-  };
-}
-
 function constructionRank(rule: ConstructionRuleEntry, rank: AbilityConstructionSkillRank): AbilityConstructionRankRule {
-  return rule.payload.ranks.find((r) => r.rank === rank) as AbilityConstructionRankRule;
+  const row = rule.payload.ranks.find((r) => r.rank === rank);
+  if (row === undefined) throw new Error(`Validated construction rule lost rank ${rank}`);
+  return row;
 }
 
 function rankOrder(ladder: ProwessDefinitionEnvelope, rank: AbilityConstructionSkillRank): number {
-  const rows = (ladder.payload as { ranks: readonly { rankKey: string; order: number }[] }).ranks;
+  const rows = (ladder.payload as unknown as { ranks: readonly { rankKey: string; order: number }[] }).ranks;
   return rows.find((r) => r.rankKey === rank)?.order ?? -1;
+}
+
+function rankFact(ladder: ProwessDefinitionEnvelope, profile: CharacterAbilityConstructionProfile, skillKey: string): ConstructionRankFact {
+  const rank = skillRank(profile, skillKey);
+  return { key: `skill-rank:${skillKey}`, rankKey: rank, order: rankOrder(ladder, rank), provenance: null };
 }
 
 function findSkillLadder(bundle: ProwessDefinitionBundle, p: Problems): ProwessDefinitionEnvelope | null {
@@ -288,34 +276,42 @@ function findSkillLadder(bundle: ProwessDefinitionBundle, p: Problems): ProwessD
   return ladder;
 }
 
-function rankFact(ladder: ProwessDefinitionEnvelope, profile: CharacterAbilityConstructionProfile, skillKey: string): JsonObject {
-  const rank = skillRank(profile, skillKey);
-  return { key: `skill-rank:${skillKey}`, rankKey: rank, order: rankOrder(ladder, rank), provenance: null };
+function findConstructionRule(bundle: ProwessDefinitionBundle, p: Problems): ConstructionRuleEntry | null {
+  const found = bundle.definitions.filter((d) => d.definitionKind === "ABILITY_CONSTRUCTION_RULE");
+  if (found.length !== 1) {
+    p.add(A.INVALID_REQUEST, ["definitions"], `exactly one ABILITY_CONSTRUCTION_RULE Definition is required (found ${found.length})`);
+    return null;
+  }
+  const envelope = found[0] as ProwessDefinitionEnvelope;
+  return {
+    ref: definitionRefOf(envelope),
+    payload: envelope.payload as unknown as AbilityConstructionRulePayload,
+    provenance: provenanceOf(bundle, envelope),
+  };
 }
 
 function readProfile(value: unknown, p: Problems): CharacterAbilityConstructionProfile | null {
   const r = readRecord(value, ["subject", "character"], p, A.INVALID_PROFILE, PROFILE_FIELDS, PROFILE_FIELDS);
   if (r === null) return null;
   const prowess = readSafeInteger(own(r, "prowess"), ["subject", "character", "prowess"], p, A.INVALID_PROFILE, "Prowess Score");
-  if (prowess !== null && (prowess < 1 || prowess > 10)) p.add(A.INVALID_PROFILE, ["subject", "character", "prowess"], "Prowess Score is 1–10 unless an exact override exists");
   const signatureSlotsUsed = readSafeInteger(own(r, "signatureSlotsUsed"), ["subject", "character", "signatureSlotsUsed"], p, A.INVALID_PROFILE, "signatureSlotsUsed");
+  if (prowess !== null && (prowess < 1 || prowess > 10)) p.add(A.INVALID_PROFILE, ["subject", "character", "prowess"], "Prowess Score is 1–10 unless an exact override exists");
   if (signatureSlotsUsed !== null && signatureSlotsUsed < 0) p.add(A.INVALID_PROFILE, ["subject", "character", "signatureSlotsUsed"], "signatureSlotsUsed cannot be negative");
 
-  const rawSkills = own(r, "skills");
   const skills: AbilityConstructionSkillState[] = [];
-  if (!Array.isArray(rawSkills)) p.add(A.INVALID_PROFILE, ["subject", "character", "skills"], "skills is an array of exact { skillKey, rank } records");
-  else
-    rawSkills.forEach((raw: unknown, i: number) => {
-      const sr = readRecord(raw, ["subject", "character", "skills", i], p, A.INVALID_PROFILE, SKILL_FIELDS, SKILL_FIELDS);
-      if (sr === null) return;
-      const skillKey = own(sr, "skillKey");
-      const rank = readEnum(own(sr, "rank"), ABILITY_CONSTRUCTION_SKILL_RANKS, ["subject", "character", "skills", i, "rank"], p, A.UNKNOWN_SKILL_RANK, "Skill rank");
-      if (!isExactCanonicalKey(skillKey)) p.add(A.INVALID_PROFILE, ["subject", "character", "skills", i, "skillKey"], "skillKey is an exact canonical key");
-      if (typeof skillKey === "string" && rank !== null) {
-        if (skills.some((s) => s.skillKey === skillKey)) p.add(A.INVALID_PROFILE, ["subject", "character", "skills", i], `skill ${skillKey} is supplied twice`);
-        else skills.push({ skillKey, rank });
-      }
-    });
+  const rawSkills = own(r, "skills");
+  if (!Array.isArray(rawSkills)) p.add(A.INVALID_PROFILE, ["subject", "character", "skills"], "skills is an array");
+  else rawSkills.forEach((raw: unknown, i: number) => {
+    const sr = readRecord(raw, ["subject", "character", "skills", i], p, A.INVALID_PROFILE, SKILL_FIELDS, SKILL_FIELDS);
+    if (sr === null) return;
+    const skillKey = own(sr, "skillKey");
+    const rank = readEnum(own(sr, "rank"), ABILITY_CONSTRUCTION_SKILL_RANKS, ["subject", "character", "skills", i, "rank"], p, A.UNKNOWN_SKILL_RANK, "Skill rank");
+    if (!isExactCanonicalKey(skillKey)) p.add(A.INVALID_PROFILE, ["subject", "character", "skills", i, "skillKey"], "skillKey is exact");
+    if (typeof skillKey === "string" && rank !== null) {
+      if (skills.some((s) => s.skillKey === skillKey)) p.add(A.INVALID_PROFILE, ["subject", "character", "skills", i], `skill ${skillKey} is supplied twice`);
+      else skills.push({ skillKey, rank });
+    }
+  });
 
   const affinityProfile = own(r, "affinityProfile");
   if (affinityProfile !== null && !isPlainObject(affinityProfile)) p.add(A.INVALID_PROFILE, ["subject", "character", "affinityProfile"], "affinityProfile is an exact WO4 profile or null");
@@ -332,7 +328,7 @@ function readSignature(value: unknown, p: Problems): AbilityConstructionSignatur
   if (er === null) return null;
   const sourceKey = own(er, "sourceKey");
   if (!isExactCanonicalKey(sourceKey)) {
-    p.add(A.INVALID_SIGNATURE_EXEMPTION, ["subject", "signature", "exemption", "sourceKey"], "a Signature-slot exemption cites an explicit canonical authored rule key");
+    p.add(A.INVALID_SIGNATURE_EXEMPTION, ["subject", "signature", "exemption", "sourceKey"], "a slot exemption cites one explicit authored rule key");
     return null;
   }
   return { exemption: { sourceKey } };
@@ -343,17 +339,17 @@ function readGrants(value: unknown, composition: AbilityComposition, p: Problems
     p.add(A.INVALID_REQUEST, ["subject", "accessGrants"], "accessGrants is an array");
     return [];
   }
-  const componentKeys = new Set(compositionComponents(composition).map((c) => c.use.componentKey));
+  const keys = new Set(compositionComponents(composition).map((c) => c.use.componentKey));
   const grants: AbilityConstructionAccessGrant[] = [];
   value.forEach((raw: unknown, i: number) => {
     const r = readRecord(raw, ["subject", "accessGrants", i], p, A.INVALID_REQUEST, GRANT_FIELDS, GRANT_FIELDS);
     if (r === null) return;
     const componentKey = own(r, "componentKey");
     const sourceKey = own(r, "sourceKey");
-    if (!isExactLabel(componentKey) || !componentKeys.has(componentKey as string)) p.add(A.INVALID_REQUEST, ["subject", "accessGrants", i, "componentKey"], "componentKey names one exact component in this composition");
-    if (!isExactCanonicalKey(sourceKey)) p.add(A.INVALID_REQUEST, ["subject", "accessGrants", i, "sourceKey"], "sourceKey is an exact canonical authored rule key");
-    if (typeof componentKey === "string" && grants.some((g) => g.componentKey === componentKey)) p.add(A.INVALID_REQUEST, ["subject", "accessGrants", i, "componentKey"], "at most one explicit access grant per component");
-    if (isExactLabel(componentKey) && componentKeys.has(componentKey) && isExactCanonicalKey(sourceKey)) grants.push({ componentKey, sourceKey });
+    if (!isExactLabel(componentKey) || !keys.has(componentKey as string)) p.add(A.INVALID_REQUEST, ["subject", "accessGrants", i, "componentKey"], "componentKey names one exact component");
+    if (!isExactCanonicalKey(sourceKey)) p.add(A.INVALID_REQUEST, ["subject", "accessGrants", i, "sourceKey"], "sourceKey is exact");
+    if (typeof componentKey === "string" && grants.some((g) => g.componentKey === componentKey)) p.add(A.INVALID_REQUEST, ["subject", "accessGrants", i, "componentKey"], "one grant per component");
+    if (isExactLabel(componentKey) && keys.has(componentKey) && isExactCanonicalKey(sourceKey)) grants.push({ componentKey, sourceKey });
   });
   return grants;
 }
@@ -361,7 +357,7 @@ function readGrants(value: unknown, composition: AbilityComposition, p: Problems
 function readSpellAuthority(composition: AbilityComposition, p: Problems): { authority: SpellConstructionAuthority; traitTrades: number } | null {
   const r = readRecord(composition.authority, ["subject", "composition", "authority"], p, A.AUTHORITY_REQUIRED, AUTHORITY_FIELDS, ["authority"]);
   if (r === null) return null;
-  const authority = readEnum(own(r, "authority"), SPELL_CONSTRUCTION_AUTHORITIES, ["subject", "composition", "authority", "authority"], p, A.INVALID_AUTHORITY, "Spell construction Authority");
+  const authority = readEnum(own(r, "authority"), SPELL_CONSTRUCTION_AUTHORITIES, ["subject", "composition", "authority", "authority"], p, A.INVALID_AUTHORITY, "Spell Authority");
   const rawTrades = own(r, "traitTrades");
   const traitTrades = rawTrades === undefined ? 0 : readSafeInteger(rawTrades, ["subject", "composition", "authority", "traitTrades"], p, A.INVALID_TRAIT_TRADE, "traitTrades");
   if (traitTrades !== null && traitTrades < 0) p.add(A.INVALID_TRAIT_TRADE, ["subject", "composition", "authority", "traitTrades"], "traitTrades cannot be negative");
@@ -385,7 +381,7 @@ function validatedAffinityProfile(
 
 function componentEnvelope(bundle: ProwessDefinitionBundle, definition: ProwessDefinitionRef, p: Problems, at: readonly (string | number)[]): ProwessDefinitionEnvelope | null {
   const envelope = findBundleDefinition(bundle, definition);
-  if (envelope === null) p.add(A.INVALID_REQUEST, at, "component Definition must resolve exactly in this Ruleset bundle");
+  if (envelope === null) p.add(A.INVALID_REQUEST, at, "component Definition must resolve exactly in this Ruleset");
   return envelope;
 }
 
@@ -423,7 +419,7 @@ function resolveStackLimit(
   if (kind === "SKILL_RANK_VALUE") {
     const skillKey = own(r, "skillKey");
     if (!isExactCanonicalKey(skillKey)) {
-      p.add(A.INVALID_STACK_RULE, [...at, "skillKey"], "SKILL_RANK_VALUE names one exact Skill key; Rank Value is never an implicit default");
+      p.add(A.INVALID_STACK_RULE, [...at, "skillKey"], "SKILL_RANK_VALUE names the exact Skill key; Rank Value is never a default");
       return null;
     }
     return constructionRank(rule, skillRank(character, skillKey)).rankValue;
@@ -473,17 +469,24 @@ function effectSlotGroups(
   return { slots: groups.reduce((count, group) => count + (group.stackable ? 1 : group.uses.length), 0), groups };
 }
 
-interface ParsedPrerequisite {
-  readonly node: JsonObject;
-  readonly facts: JsonObject;
-  readonly definitions: readonly ProwessDefinitionRef[];
+function mergeJsonFacts(target: { ranks: JsonObject[]; ownedEntityIds: string[] }, source: JsonObject): void {
+  const ranks = source.ranks;
+  if (Array.isArray(ranks)) {
+    for (const raw of ranks) {
+      if (!isPlainObject(raw)) continue;
+      const fact = raw as JsonObject;
+      const key = fact.key;
+      if (typeof key === "string" && !target.ranks.some((x) => x.key === key)) target.ranks.push(fact);
+    }
+  }
+  const ids = source.ownedEntityIds;
+  if (Array.isArray(ids)) for (const id of ids) if (typeof id === "string" && !target.ownedEntityIds.includes(id)) target.ownedEntityIds.push(id);
 }
 
 function componentPrerequisite(
   value: unknown,
   character: CharacterAbilityConstructionProfile,
   ladder: ProwessDefinitionEnvelope,
-  bundle: ProwessDefinitionBundle,
   affinityIndex: AffinityDefinitionIndex | null,
   affinityProfile: CharacterAffinityProfile | null,
   p: Problems,
@@ -499,24 +502,21 @@ function componentPrerequisite(
       return null;
     }
     const children: JsonObject[] = [];
-    const rankFacts: JsonObject[] = [];
-    const ownedEntityIds: string[] = [];
+    const merged = { ranks: [] as JsonObject[], ownedEntityIds: [] as string[] };
     const definitions: ProwessDefinitionRef[] = [];
     rawChildren.forEach((child: unknown, i: number) => {
-      const parsed = componentPrerequisite(child, character, ladder, bundle, affinityIndex, affinityProfile, p, [...at, "children", i]);
+      const parsed = componentPrerequisite(child, character, ladder, affinityIndex, affinityProfile, p, [...at, "children", i]);
       if (parsed === null) return;
       children.push(parsed.node);
-      const facts = parsed.facts as { ranks?: JsonObject[]; ownedEntityIds?: string[] };
-      for (const fact of facts.ranks ?? []) if (!rankFacts.some((x) => x.key === fact.key)) rankFacts.push(fact);
-      for (const id of facts.ownedEntityIds ?? []) if (!ownedEntityIds.includes(id)) ownedEntityIds.push(id);
+      mergeJsonFacts(merged, parsed.facts);
       for (const d of parsed.definitions) if (!definitions.some((x) => x.entityVersionId === d.entityVersionId)) definitions.push(d);
     });
-    return { node: { kind, children, provenance: null }, facts: { ...emptyFacts(), ranks: rankFacts, ownedEntityIds }, definitions };
+    return { node: { kind, children, provenance: null }, facts: { ...emptyFacts(), ranks: merged.ranks, ownedEntityIds: merged.ownedEntityIds }, definitions };
   }
   if (kind === "SKILL_RANK") {
     const skillKey = own(r, "skillKey");
     const minimumRank = readEnum(own(r, "minimumRank"), ABILITY_CONSTRUCTION_SKILL_RANKS, [...at, "minimumRank"], p, A.INVALID_COMPONENT_REQUIREMENT, "minimum Skill rank");
-    if (!isExactCanonicalKey(skillKey)) p.add(A.INVALID_COMPONENT_REQUIREMENT, [...at, "skillKey"], "skillKey is an exact canonical key");
+    if (!isExactCanonicalKey(skillKey)) p.add(A.INVALID_COMPONENT_REQUIREMENT, [...at, "skillKey"], "skillKey is exact");
     if (!isExactCanonicalKey(skillKey) || minimumRank === null) return null;
     const actual = rankFact(ladder, character, skillKey);
     return {
@@ -529,26 +529,27 @@ function componentPrerequisite(
     const affinityKey = own(r, "affinityKey");
     const affinityRanks = ["NONE", "TRAINED", "EXPERT", "MASTER"] as const;
     const minimumRank = readEnum(own(r, "minimumRank"), affinityRanks, [...at, "minimumRank"], p, A.INVALID_COMPONENT_REQUIREMENT, "minimum Affinity Rank");
-    if (!isExactCanonicalKey(affinityKey)) p.add(A.INVALID_COMPONENT_REQUIREMENT, [...at, "affinityKey"], "affinityKey is an exact canonical key");
+    if (!isExactCanonicalKey(affinityKey)) p.add(A.INVALID_COMPONENT_REQUIREMENT, [...at, "affinityKey"], "affinityKey is exact");
     if (!isExactCanonicalKey(affinityKey) || minimumRank === null || affinityIndex === null) return null;
     const entry = affinityIndex.affinities.find((a) => a.ref.canonicalKey === affinityKey) ?? null;
     if (entry === null) {
-      p.add(A.INVALID_COMPONENT_REQUIREMENT, [...at, "affinityKey"], "Affinity prerequisite must resolve in this exact Ruleset");
+      p.add(A.INVALID_COMPONENT_REQUIREMENT, [...at, "affinityKey"], "Affinity must resolve in this exact Ruleset");
       return null;
     }
     const owned = affinityProfile === null ? null : ownedAffinity(affinityProfile, entry.ref);
+    const ownedIds = affinityProfile?.affinities.map((a) => a.affinity.entityId) ?? [];
     const children: JsonObject[] = [{ kind: "ENTITY_OWNED", entityId: entry.ref.entityId, provenance: provenanceJson(entry.provenance) }];
-    const facts = { ...emptyFacts(), ownedEntityIds: affinityProfile?.affinities.map((a) => a.affinity.entityId) ?? [], ranks: [] as JsonObject[] };
+    const rankFacts: JsonObject[] = [];
     if (owned !== null) {
       const actual = affinityRankEntry(affinityIndex, owned.rank);
       const required = affinityRankEntry(affinityIndex, minimumRank);
       const factKey = `affinity-rank:${entry.ref.entityVersionId}`;
-      facts.ranks.push({ key: factKey, rankKey: owned.rank, order: actual.order, provenance: provenanceJson(affinityIndex.rankRule.provenance) });
+      rankFacts.push({ key: factKey, rankKey: owned.rank, order: actual.order, provenance: provenanceJson(affinityIndex.rankRule.provenance) });
       children.push({ kind: "RANK_AT_LEAST", factKey, requiredRankKey: minimumRank, requiredOrder: required.order, provenance: provenanceJson(affinityIndex.rankRule.provenance) });
     }
     return {
       node: { kind: "ALL", children, provenance: provenanceJson(entry.provenance) },
-      facts,
+      facts: { ...emptyFacts(), ranks: rankFacts, ownedEntityIds: ownedIds },
       definitions: [entry.ref, affinityIndex.rankRule.ref],
     };
   }
@@ -560,7 +561,6 @@ function requirementFromDefinition(
   envelope: ProwessDefinitionEnvelope,
   character: CharacterAbilityConstructionProfile,
   ladder: ProwessDefinitionEnvelope,
-  bundle: ProwessDefinitionBundle,
   affinityIndex: AffinityDefinitionIndex | null,
   affinityProfile: CharacterAffinityProfile | null,
   p: Problems,
@@ -568,9 +568,7 @@ function requirementFromDefinition(
   const rules = (envelope.payload as { rules?: unknown }).rules;
   if (!isPlainObject(rules)) return null;
   const raw = own(rules, "accessRequirements");
-  return raw === undefined || raw === null
-    ? null
-    : componentPrerequisite(raw, character, ladder, bundle, affinityIndex, affinityProfile, p, ["definitions", envelope.canonicalKey, "rules", "accessRequirements"]);
+  return raw === undefined || raw === null ? null : componentPrerequisite(raw, character, ladder, affinityIndex, affinityProfile, p, ["definitions", envelope.canonicalKey, "rules", "accessRequirements"]);
 }
 
 function keywordContributions(
@@ -600,7 +598,7 @@ function keywordContributions(
   return out;
 }
 
-function affinityAlignmentNodes(entry: NonNullable<ReturnType<typeof findAffinityEntry>>, catalog: KeywordCatalog, p: Problems): JsonObject[] {
+function affinityAlignmentNodes(entry: AffinityEntry, catalog: KeywordCatalog, p: Problems): JsonObject[] {
   const nodes: JsonObject[] = [];
   const appendAny = (keys: readonly string[]) => {
     const children: JsonObject[] = [];
@@ -615,8 +613,8 @@ function affinityAlignmentNodes(entry: NonNullable<ReturnType<typeof findAffinit
     if (children.length === 1) nodes.push(children[0] as JsonObject);
     else if (children.length > 1) nodes.push({ kind: "ANY", children, provenance: provenanceJson(entry.provenance) });
   };
-  entry.payload.strengths.forEach((x) => appendAny(x.matchAny));
-  entry.payload.weaknesses.forEach((x) => appendAny(x.matchAny));
+  entry.payload.strengths.forEach((r) => appendAny(r.matchAny));
+  entry.payload.weaknesses.forEach((r) => appendAny(r.matchAny));
   return nodes;
 }
 
@@ -625,6 +623,7 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
   if (!checkPlainData(request, [], p, C.NOT_PLAIN_DATA)) return finish(p, () => null as never);
   const r = readRecord(request, [], p, X.INVALID_REQUEST, REQUEST_FIELDS, REQUEST_FIELDS);
   if (r === null) return finish(p, () => null as never);
+
   const contractVersion = own(r, "contractVersion");
   if (typeof contractVersion !== "number" || !SUPPORTED_PROWESS_COMPILATION_CONTRACT_VERSIONS.includes(contractVersion)) p.add(X.UNSUPPORTED_CONTRACT_VERSION, ["contractVersion"], "unsupported Prowess compilation contract version");
 
@@ -636,9 +635,10 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
   else {
     const rebuilt = createProwessDefinitionBundle({ ruleset: own(r, "ruleset"), definitions: own(rawBundle, "definitions") ?? null });
     if (!rebuilt.ok) for (const problem of rebuilt.problems) p.list.push({ ...problem, path: `/definitions${problem.path}` });
-    else if (!bundleMatchesRuleset({ rulesetProvenance: own(rawBundle, "rulesetProvenance") as ProwessRulesetProvenance, definitions: [] }, ruleset.value)) p.add(X.BUNDLE_RULESET_MISMATCH, ["definitions", "rulesetProvenance"], "Definition bundle belongs to a different exact Ruleset");
+    else if (!bundleMatchesRuleset({ rulesetProvenance: own(rawBundle, "rulesetProvenance") as ProwessRulesetProvenance, definitions: [] }, ruleset.value)) p.add(X.BUNDLE_RULESET_MISMATCH, ["definitions", "rulesetProvenance"], "bundle belongs to a different Ruleset");
     else bundle = rebuilt.value;
   }
+
   const subjectRaw = readRecord(own(r, "subject"), ["subject"], p, A.INVALID_REQUEST, SUBJECT_FIELDS, SUBJECT_FIELDS);
   const catalog = readKeywordCatalog(own(r, "keywords"), ["keywords"], p);
   if (bundle === null || !ruleset.ok || subjectRaw === null || catalog === null || p.count > 0) return finish(p, () => null as never);
@@ -651,6 +651,7 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
   const character = readProfile(own(subjectRaw, "character"), p);
   const signature = readSignature(own(subjectRaw, "signature"), p);
   if (!compositionOutcome.ok || character === null || signature === null || !isExactLabel(subjectKey) || p.count > 0) return finish(p, () => null as never);
+
   const composition = compositionOutcome.value;
   const grants = readGrants(own(subjectRaw, "accessGrants"), composition, p);
   const ladder = findSkillLadder(bundle, p);
@@ -668,8 +669,6 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
   }
   if (p.count > 0) return finish(p, () => null as never);
 
-  const ladderRef = definitionRefOf(ladder);
-  const ladderProv = provenanceOf(bundle, ladder);
   const fragments: CompilationFragment[] = [];
   const components = new Map<string, readonly ProwessDefinitionRef[]>();
   components.set(CONSTRUCTION_RULE, [constructionRule.ref]);
@@ -677,7 +676,16 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
   if (affinityIndex !== null) components.set(AFFINITY_RANK_RULE, [affinityIndex.rankRule.ref]);
 
   const emit = (fragment: CompilationFragment) => fragments.push(fragment);
-  const emitRequirement = (fragmentKey: string, order: number, requirement: JsonObject, facts: JsonObject, role: string, componentKeys: readonly string[], definitions: readonly ProwessDefinitionRef[], bindings: CompilationFragment["bindings"] = []) => {
+  const emitRequirement = (
+    fragmentKey: string,
+    order: number,
+    requirement: JsonObject,
+    facts: JsonObject,
+    role: string,
+    componentKeys: readonly string[],
+    definitions: readonly ProwessDefinitionRef[],
+    bindings: CompilationFragment["bindings"] = [],
+  ) => {
     emit({ fragmentKey, order, operation: "REQUIREMENT", input: { requirement, facts }, bindings, role, componentKeys, definitions });
     return fragmentKey;
   };
@@ -711,9 +719,10 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
     if (parsed === null) return finish(p, () => null as never);
     authority = parsed.authority;
     traitTrades = parsed.traitTrades;
+
     if (authority === "ARCANE_AUTHORITY") {
       authorityRank = skillRank(character, ARCANA_SKILL_KEY);
-      const row = constructionRank(constructionRule, authorityRank as AbilityConstructionSkillRank);
+      const row = constructionRank(constructionRule, authorityRank);
       baseEffects = row.arcane.effectCapacity;
       baseTraits = row.arcane.traitCapacity;
       maximumTraitTrades = row.arcane.maximumTraitTrades;
@@ -729,33 +738,33 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
       );
     } else {
       if (composition.affinity === null || affinityIndex === null) {
-        p.add(A.GOVERNING_AFFINITY_REQUIRED, ["subject", "composition", "affinity"], "Affinity Authority requires one explicit governing Affinity");
+        p.add(A.GOVERNING_AFFINITY_REQUIRED, ["subject", "composition", "affinity"], "Affinity Authority requires one governing Affinity");
         return finish(p, () => null as never);
       }
       if (affinityProfile === null) {
-        p.add(A.AFFINITY_PROFILE_REQUIRED, ["subject", "character", "affinityProfile"], "Affinity Authority requires the character's exact Affinity profile");
+        p.add(A.AFFINITY_PROFILE_REQUIRED, ["subject", "character", "affinityProfile"], "Affinity Authority requires the exact Affinity profile");
         return finish(p, () => null as never);
       }
       governingAffinity = composition.affinity.definition;
       const entry = findAffinityEntry(affinityIndex, governingAffinity);
       const owned = entry === null ? null : ownedAffinity(affinityProfile, governingAffinity);
-      if (entry === null) p.add(A.GOVERNING_AFFINITY_REQUIRED, ["subject", "composition", "affinity"], "governing Affinity must be executable in this exact Ruleset");
-      if (entry !== null && owned === null) p.add(A.GOVERNING_AFFINITY_NOT_OWNED, ["subject", "composition", "affinity"], "governing Affinity must be exactly owned");
+      if (entry === null) p.add(A.GOVERNING_AFFINITY_REQUIRED, ["subject", "composition", "affinity"], "governing Affinity must be executable in this Ruleset");
+      if (entry !== null && owned === null) p.add(A.GOVERNING_AFFINITY_NOT_OWNED, ["subject", "composition", "affinity"], "governing Affinity must be owned exactly");
       if (entry === null || owned === null) return finish(p, () => null as never);
+
       components.set(GOVERNING_AFFINITY, [entry.ref]);
       authorityRank = owned.rank;
-      const affinityRow = affinityRankEntry(affinityIndex, owned.rank);
-      const minimumAffinityRow = affinityRankEntry(affinityIndex, constructionRule.payload.spellAccess.minimumAffinityRank);
-      baseEffects = affinityRow.authority?.effectCapacity ?? 0;
-      baseTraits = affinityRow.authority?.traitCapacity ?? 0;
-      const exchangeRow = constructionRank(constructionRule, owned.rank === "NONE" ? "UNTRAINED" : owned.rank);
-      maximumTraitTrades = exchangeRow.arcane.maximumTraitTrades;
+      const row = affinityRankEntry(affinityIndex, owned.rank);
+      const minimum = affinityRankEntry(affinityIndex, constructionRule.payload.spellAccess.minimumAffinityRank);
+      baseEffects = row.authority?.effectCapacity ?? 0;
+      baseTraits = row.authority?.traitCapacity ?? 0;
+      maximumTraitTrades = constructionRank(constructionRule, owned.rank === "NONE" ? "UNTRAINED" : owned.rank).arcane.maximumTraitTrades;
       const factKey = `affinity-rank:${entry.ref.entityVersionId}`;
       authorityStep = emitRequirement(
         "authority.affinity",
         ORDER.ACCESS,
-        { kind: "RANK_AT_LEAST", factKey, requiredRankKey: constructionRule.payload.spellAccess.minimumAffinityRank, requiredOrder: minimumAffinityRow.order, provenance: provenanceJson(affinityIndex.rankRule.provenance) },
-        { ...emptyFacts(), ranks: [{ key: factKey, rankKey: owned.rank, order: affinityRow.order, provenance: provenanceJson(affinityIndex.rankRule.provenance) }] },
+        { kind: "RANK_AT_LEAST", factKey, requiredRankKey: constructionRule.payload.spellAccess.minimumAffinityRank, requiredOrder: minimum.order, provenance: provenanceJson(affinityIndex.rankRule.provenance) },
+        { ...emptyFacts(), ranks: [{ key: factKey, rankKey: owned.rank, order: row.order, provenance: provenanceJson(affinityIndex.rankRule.provenance) }] },
         "spell-affinity-authority-access",
         [GOVERNING_AFFINITY, AFFINITY_RANK_RULE, CONSTRUCTION_RULE],
         [entry.ref, affinityIndex.rankRule.ref, constructionRule.ref],
@@ -779,11 +788,10 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
           definitions: [c.use.definition],
         });
         const requirementStep = `affinity.component_access.${c.use.componentKey}`;
-        const grantNode: JsonObject = { kind: "SET_CONTAINS", factKey: GRANTS_FACT, member: c.use.componentKey, provenance: provenanceJson(entry.provenance) };
         emitRequirement(
           requirementStep,
           ORDER.ACCESS + 1,
-          { kind: "ANY", children: [...alignmentNodes, grantNode], provenance: provenanceJson(entry.provenance) },
+          { kind: "ANY", children: [...alignmentNodes, { kind: "SET_CONTAINS", factKey: GRANTS_FACT, member: c.use.componentKey, provenance: provenanceJson(entry.provenance) }], provenance: provenanceJson(entry.provenance) },
           { ...emptyFacts(), sets: [{ key: GRANTS_FACT, members: grantMembers, provenance: null }] },
           "affinity-authority-component-access",
           [GOVERNING_AFFINITY, c.use.componentKey],
@@ -906,7 +914,7 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
     if (c.slot === "affinity") continue;
     const envelope = componentEnvelope(bundle, c.use.definition, p, ["subject", "composition", c.use.componentKey]);
     if (envelope === null) continue;
-    const parsed = requirementFromDefinition(envelope, character, ladder, bundle, affinityIndex, affinityProfile, p);
+    const parsed = requirementFromDefinition(envelope, character, ladder, affinityIndex, affinityProfile, p);
     if (parsed === null) continue;
     const definitions = [c.use.definition, ...parsed.definitions.filter((d) => d.entityVersionId !== c.use.definition.entityVersionId)];
     const sourceKey = `construction.prerequisite.${c.use.componentKey}`;
@@ -930,13 +938,7 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
     [{ target: "/facts/numeric/0/value", source: { kind: "FRAGMENT", fragmentKey: signatureFormula, pointer: "/data/finalValue" } }],
   );
 
-  const assembled = assembleFragments({
-    subjectKind: "ABILITY_CONSTRUCTION",
-    subjectKey,
-    components: components as SubjectComponents,
-    bundle,
-    fragments,
-  }, p);
+  const assembled = assembleFragments({ subjectKind: "ABILITY_CONSTRUCTION", subjectKey, components: components as SubjectComponents, bundle, fragments }, p);
   if (p.count > 0) return finish(p, () => null as never);
   const stepKey = (fragmentKey: string) => compiledStepKey("ABILITY_CONSTRUCTION", subjectKey, fragmentKey);
   const requirementFragments = [
@@ -990,7 +992,6 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
   }));
 }
 
-/** Read one completed M4 run without re-evaluating Prowess legality in application code. */
 export function readAbilityConstructionRun(plan: ProwessAbilityConstructionCompiledPlan, run: EvaluationRun): ProwessOutcome<AbilityConstructionRunReading> {
   const p = new Problems();
   if (!checkPlainData(run, ["run"], p, C.NOT_PLAIN_DATA)) return finish(p, () => null as never);
