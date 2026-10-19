@@ -35,7 +35,9 @@ export const AFFINITY_ORDER = Object.freeze({
   WEAKNESSES: 300,
   /** M4 MAX modifiers select the highest matched Weakness percentage. */
   WEAKNESS_SELECTION: 400,
-  /** The ordered Strength REDUCE_PERCENT → Weakness INCREASE_PERCENT on the listed cost. */
+  /** The net Affinity cost percentage: 100 − Strength discount + selected Weakness penalty (designer ruling M5-SC-028). */
+  NET_PERCENT: 450,
+  /** The listed cost × net percentage ÷ 100 — applied ONCE (M5-SC-028); never rounded here. */
   COST: 500,
   /** Affinity Authority: rank floor and Effect / Trait capacity Requirements. */
   AUTHORITY: 600,

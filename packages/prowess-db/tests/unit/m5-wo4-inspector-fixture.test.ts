@@ -83,16 +83,17 @@ function build() {
     return plan.value;
   };
 
-  // §156: base 20 · Evocation Expert · DIRECT_DAMAGE −20% → 16 · HEALING +30% → 20.8, explained by M4.
+  // §156 / M5-I155: base 20 · Evocation Expert · DIRECT_DAMAGE −20% + HEALING +30% → net 110% → 22, explained by M4.
   const cost = compile({ kind: "SPELL_AFFINITY_COST", subjectKey: "inspector", composition, costTarget: "LISTED_MP_COST", baseCost: 20 }, "EXPERT");
   const explanation = {
     stepKey: "inspector.explanation",
     order: 1000000,
     operation: "EXPLANATION",
-    input: { input: { explanationKey: "affinity-cost", contributions: [{ contributionKey: "keywords", order: 1, kind: "KEYWORD", response: null }, { contributionKey: "affinity", order: 2, kind: "MODIFIER", response: null }] } },
+    input: { input: { explanationKey: "affinity-cost", contributions: [{ contributionKey: "keywords", order: 1, kind: "KEYWORD", response: null }, { contributionKey: "affinity-net", order: 2, kind: "MODIFIER", response: null }, { contributionKey: "affinity", order: 3, kind: "MODIFIER", response: null }] } },
     bindings: [
       { target: "/input/contributions/0/response", source: { kind: "STEP", stepKey: cost.outputs.keywords!, pointer: "" } },
-      { target: "/input/contributions/1/response", source: { kind: "STEP", stepKey: cost.outputs.cost!.stepKey, pointer: "" } },
+      { target: "/input/contributions/1/response", source: { kind: "STEP", stepKey: cost.outputs.cost!.netStepKey, pointer: "" } },
+      { target: "/input/contributions/2/response", source: { kind: "STEP", stepKey: cost.outputs.cost!.stepKey, pointer: "" } },
     ],
   };
   const summary = { stepKey: "inspector.summary", order: 1000010, operation: "EXPLANATION_PROJECT", input: { document: null, level: "SUMMARY" }, bindings: [{ target: "/document", source: { kind: "STEP", stepKey: "inspector.explanation", pointer: "/data" } }] };

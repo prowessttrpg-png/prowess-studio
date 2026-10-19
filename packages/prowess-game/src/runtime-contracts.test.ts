@@ -87,13 +87,13 @@ describe("canonical runtime content (§100–§101, §166)", () => {
     expect(fixture.bundle.definitions.find((d) => d.canonicalKey === "core.derived.dodge")?.definitionKind).toBe("DERIVED_STAT");
   });
 
-  it("M5-I076 / M5-I108 / M5-I113 / M5-I152 Sizes carry occupied space and an explicit authored Base Movement (M5-SC-033 ruling); Massive is pending (M5-SC-036)", () => {
+  it("M5-I076 / M5-I108 / M5-I113 / M5-I154 (supersedes M5-I152) Sizes carry occupied space and an explicit authored Base Movement (M5-SC-033 / M5-SC-036 rulings)", () => {
     expect(RUNTIME_DEFINITIONS.filter((d) => d.definitionKind === "CREATURE_SIZE").map((d) => [d.payload.sizeKey, d.payload.occupiedSpaceFeet, d.payload.orLarger, d.payload.baseMovement])).toEqual([
       ["SMALL", [5], false, { feet: 5 }],
       ["MEDIUM", [5], false, { feet: 5 }],
       ["LARGE", [10, 10], false, { feet: 10 }],
-      ["HUGE", [15, 15], false, { feet: 15 }],
-      ["MASSIVE", [20, 20], true, null],
+      ["HUGE", [15, 15], false, { feet: 20 }],
+      ["MASSIVE", [20, 20], true, { feet: 40 }],
     ]);
     rejects("creature_size.large", { baseMovement: { kind: "ADD", feet: 10 } });
     rejects("creature_size.large", { baseMovement: 10 }); // a bare number is not the { feet } contract

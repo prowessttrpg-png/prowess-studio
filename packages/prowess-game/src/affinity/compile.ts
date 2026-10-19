@@ -37,12 +37,13 @@ import { ownedAffinity, validateAffinityProfile, type CharacterAffinityProfile, 
  *   KEYWORD      — every explicit component Keyword contribution, with its exact source Definition (§61–§67)
  *   REQUIREMENT  — one per Strength rule and per Weakness rule: ANY exact Keyword present (§86, §90)
  *   MODIFIER     — Weakness selection: one MAX per Weakness, each conditioned on its own Keywords (§126, §130)
- *   MODIFIER     — the listed cost: Strength REDUCE_PERCENT (phase 1), then Weakness INCREASE_PERCENT (phase 2) (§97, §125)
+ *   MODIFIER     — the net cost percentage: 100 − Strength discount + selected Weakness penalty (designer ruling M5-SC-028)
+ *   MODIFIER     — the listed cost: × net percentage, ÷ 100 — the combined percentage applied ONCE (M5-SC-028, M5-I155)
  *   REQUIREMENT  — Affinity Authority rank floor / Effect & Trait capacity / Effect specialization; access prerequisites
  *
  * The compiler ASSEMBLES conditions, Keyword references, modifier definitions, bindings and ordering. M4 performs every
- * percentage, every max selection and every comparison (§127, M5-I149). Nothing here rounds (§99), nets percentages
- * (§96), branches on an Affinity name (§3), picks a governing Affinity (§81), stacks Affinities (§82), touches AP (§135)
+ * percentage, every max selection, the netting and every comparison (§127, M5-I149). Nothing here rounds (§99) or computes
+ * a percentage in TypeScript (M5-I149), branches on an Affinity name (§3), picks a governing Affinity (§81), stacks Affinities (§82), touches AP (§135)
  * or ME (§134), persists anything (§173) or reads anything but its inputs (§169).
  */
 
@@ -124,7 +125,10 @@ export interface AffinityCompiledOutputs {
     readonly costTarget: AffinityCostTarget;
     readonly targetKey: string;
     readonly baseCost: number;
+    /** The listed cost × net ÷ 100 step (M5-SC-028). */
     readonly stepKey: string;
+    /** The net cost percentage step: 100 − Strength + Weakness (M5-SC-028). */
+    readonly netStepKey: string;
     /** The rank-authored discount the Strength modifier carries (0 at NONE — §89). */
     readonly strengthDiscountPercent: number;
     readonly strengthModifierKey: string | null;
@@ -171,6 +175,11 @@ const WEAKNESS_TARGET = "affinity.weakness_percent";
 const COST_TARGET_KEYS: Readonly<Record<AffinityCostTarget, string>> = { LISTED_MP_COST: "spell.listed_mp_cost" };
 const STRENGTH_MODIFIER = "affinity.strength_discount";
 const WEAKNESS_MODIFIER = "affinity.weakness_penalty";
+const NET_PERCENT_TARGET = "affinity.net_cost_percent";
+const NET_MULTIPLIER = "affinity.net_cost_multiplier";
+const PERCENT_SCALE = "affinity.percent_scale";
+/** Full price as a percentage: the neutral start of the net cost percentage (no Strength, no Weakness → 100% of listed). */
+const FULL_PRICE_PERCENT = 100;
 const GRANTS_FACT = "affinity.access_grants";
 const EFFECT_COUNT_FACT = "ability.effect_count";
 const TRAIT_COUNT_FACT = "ability.trait_count";
@@ -452,21 +461,24 @@ export function compileAffinity(request: unknown): ProwessOutcome<ProwessAffinit
         });
       }
 
-      // The listed cost: Strength discount ONCE (phase 1) then the selected Weakness penalty ONCE (phase 2) — M4 applies
-      // them sequentially, never netted (§87–§88, §94–§97). Rank discount is the exact rank-rule value (0 at NONE).
+      // Designer ruling M5-SC-028 (post-WO4, supersedes the sequential WO4 model): every percentage cost modifier combines
+      // into ONE net percentage, applied once to the listed cost. M4 computes the net — 100 − Strength discount (ONCE, the
+      // exact rank-rule value, 0 at NONE) + the selected highest Weakness penalty (ONCE) — and then the cost × net ÷ 100.
+      // Example: Expert −20% with a +15% Weakness → net 95% → 20 MP × 95 ÷ 100 = 19. Nothing is rounded here: final
+      // rounding (normal, once, at the end of Spell creation) belongs to the Spell cost pipeline.
       const rank = rankEntry(index, g.owned.rank);
       const targetKey = COST_TARGET_KEYS[costTarget];
-      const modifiers: JsonObject[] = [];
-      const bindings: CompilationFragmentBinding[] = [factsBinding("/request/facts/keywords")];
+      const netModifiers: JsonObject[] = [];
+      const netBindings: CompilationFragmentBinding[] = [factsBinding("/request/facts/keywords")];
       const strengthConditions = rules.strengths.map((s) => s.condition);
       const weaknessConditions = rules.weaknesses.map((w) => w.condition);
       if (strengthConditions.length > 0) {
-        modifiers.push({
+        netModifiers.push({
           modifierKey: STRENGTH_MODIFIER,
-          targetKey,
-          operation: "REDUCE_PERCENT",
+          targetKey: NET_PERCENT_TARGET,
+          operation: "SUBTRACT",
           operand: rank.strengthDiscountPercent,
-          phase: { phaseKey: "affinity.strength", phaseOrder: 1 },
+          phase: { phaseKey: "affinity.net_percent", phaseOrder: 1 },
           priority: 0,
           order: 0,
           condition: { kind: "ANY", children: strengthConditions, provenance: provenanceJson(g.entry.provenance) },
@@ -478,26 +490,55 @@ export function compileAffinity(request: unknown): ProwessOutcome<ProwessAffinit
       if (selection !== null) {
         const weakness: JsonObject = {
           modifierKey: WEAKNESS_MODIFIER,
-          targetKey,
-          operation: "INCREASE_PERCENT",
+          targetKey: NET_PERCENT_TARGET,
+          operation: "ADD",
           operand: NO_WEAKNESS_PERCENT, // replaced by M4's selected highest Weakness (binding below)
-          phase: { phaseKey: "affinity.weakness", phaseOrder: 2 },
+          phase: { phaseKey: "affinity.net_percent", phaseOrder: 1 },
           priority: 0,
-          order: 0,
+          order: 1,
           condition: { kind: "ANY", children: weaknessConditions, provenance: provenanceJson(g.entry.provenance) },
           stacking: { policy: "UNIQUE", stackingKey: WEAKNESS_MODIFIER },
           source: { sourceType: "prowess.affinity", sourceKey: g.entry.ref.canonicalKey, sourceId: g.entry.ref.entityVersionId },
           provenance: provenanceJson(g.entry.provenance),
         };
-        modifiers.push(weakness);
-        bindings.push(fromFragment(`/request/modifiers/${String(modifiers.indexOf(weakness))}/operand`, selection, "/data/finalTargets/0/value"));
+        netModifiers.push(weakness);
+        netBindings.push(fromFragment(`/request/modifiers/${String(netModifiers.indexOf(weakness))}/operand`, selection, "/data/finalTargets/0/value"));
       }
+      const netStep = e.emit({
+        fragmentKey: "net-percent",
+        order: AFFINITY_ORDER.NET_PERCENT,
+        operation: "MODIFIER",
+        input: { request: { targets: [{ targetKey: NET_PERCENT_TARGET, kind: "NUMERIC", value: FULL_PRICE_PERCENT }], modifiers: netModifiers, facts: { ...emptyFacts() } } },
+        bindings: netBindings,
+        role: "affinity-net-cost-percent",
+        componentKeys: [GOVERNING, RANK_RULE],
+        definitions: [g.entry.ref, index.rankRule.ref],
+      });
+      const scale = (modifierKey: string, operation: string, operand: number, phaseOrder: number): JsonObject => ({
+        modifierKey,
+        targetKey,
+        operation,
+        operand,
+        phase: { phaseKey: modifierKey, phaseOrder },
+        priority: 0,
+        order: 0,
+        condition: null,
+        stacking: { policy: "UNIQUE", stackingKey: modifierKey },
+        source: { sourceType: "prowess.affinity", sourceKey: g.entry.ref.canonicalKey, sourceId: g.entry.ref.entityVersionId },
+        provenance: provenanceJson(g.entry.provenance),
+      });
       const costStep = e.emit({
         fragmentKey: "cost",
         order: AFFINITY_ORDER.COST,
         operation: "MODIFIER",
-        input: { request: { targets: [{ targetKey, kind: "NUMERIC", value: baseCost as number }], modifiers, facts: { ...emptyFacts() } } },
-        bindings,
+        input: {
+          request: {
+            targets: [{ targetKey, kind: "NUMERIC", value: baseCost as number }],
+            modifiers: [scale(NET_MULTIPLIER, "MULTIPLY", FULL_PRICE_PERCENT, 1), scale(PERCENT_SCALE, "DIVIDE", FULL_PRICE_PERCENT, 2)],
+            facts: { ...emptyFacts() },
+          },
+        },
+        bindings: [fromFragment("/request/modifiers/0/operand", netStep, "/data/finalTargets/0/value")],
         role: "spell-affinity-listed-mp",
         componentKeys: [GOVERNING, RANK_RULE],
         definitions: [g.entry.ref, index.rankRule.ref],
@@ -508,6 +549,7 @@ export function compileAffinity(request: unknown): ProwessOutcome<ProwessAffinit
         targetKey,
         baseCost: baseCost as number,
         stepKey: costStep,
+        netStepKey: netStep,
         strengthDiscountPercent: rank.strengthDiscountPercent,
         strengthModifierKey: strengthConditions.length > 0 ? STRENGTH_MODIFIER : null,
         weaknessModifierKey: selection !== null ? WEAKNESS_MODIFIER : null,
@@ -529,7 +571,7 @@ export function compileAffinity(request: unknown): ProwessOutcome<ProwessAffinit
         break;
       }
       const chosen = readEnum(authority, SPELL_CONSTRUCTION_AUTHORITIES, ["subject", "composition", "authority", "authority"], p, A.AUTHORITY_REQUIRED, "Spell construction Authority");
-      if (chosen === "ARCANE_AUTHORITY") p.add(A.ARCANE_AUTHORITY_NOT_IN_SCOPE, ["subject", "composition", "authority"], "Arcane Authority capacity (Arcana Rank) belongs to the later Spell Creation Work Order (§113)");
+      if (chosen === "ARCANE_AUTHORITY") p.add(A.ARCANE_AUTHORITY_NOT_IN_SCOPE, ["subject", "composition", "authority"], "Arcane Authority capacity (Arcane Rank) belongs to the later Spell Creation Work Order (§113)");
       if (chosen !== "AFFINITY_AUTHORITY") break;
       const g = governingOf(composition, index, profile, p);
       if (g === null) break;
@@ -711,7 +753,7 @@ export function compileAffinity(request: unknown): ProwessOutcome<ProwessAffinit
         strengths: o.strengths.map((s) => ({ ...s, stepKey: stepKeyOf(s.stepKey) })),
         weaknesses: o.weaknesses.map((w) => ({ ...w, stepKey: stepKeyOf(w.stepKey) })),
         weaknessSelection: o.weaknessSelection === null ? null : stepKeyOf(o.weaknessSelection),
-        cost: o.cost === null ? null : { ...o.cost, stepKey: stepKeyOf(o.cost.stepKey) },
+        cost: o.cost === null ? null : { ...o.cost, stepKey: stepKeyOf(o.cost.stepKey), netStepKey: stepKeyOf(o.cost.netStepKey) },
         authority:
           o.authority === null
             ? null

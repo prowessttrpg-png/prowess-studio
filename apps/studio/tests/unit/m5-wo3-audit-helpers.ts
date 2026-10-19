@@ -118,8 +118,8 @@ const actionOf = (defs: ContentDefinition[], key: string) => kind(defs, "ACTION"
 const statistic = (defs: ContentDefinition[], s: string) => kind(defs, "DERIVED_STAT").filter((d) => d.payload.statistic === s);
 const has = (list: unknown, predicate: (x: Record<string, unknown>) => boolean) => Array.isArray(list) && list.some((x) => predicate(x as Record<string, unknown>));
 
-/** Designer ruling M5-SC-033 (post-WO4): the exact Base Movement each Creature Size authors. MASSIVE is pending (M5-SC-036). */
-export const SIZE_BASE_MOVEMENT: Readonly<Record<string, { feet: number } | null>> = { SMALL: { feet: 5 }, MEDIUM: { feet: 5 }, LARGE: { feet: 10 }, HUGE: { feet: 15 }, MASSIVE: null };
+/** Designer rulings M5-SC-033 / M5-SC-036 (post-WO4, M5-I154): the exact Base Movement each Creature Size authors. */
+export const SIZE_BASE_MOVEMENT: Readonly<Record<string, { feet: number } | null>> = { SMALL: { feet: 5 }, MEDIUM: { feet: 5 }, LARGE: { feet: 10 }, HUGE: { feet: 20 }, MASSIVE: { feet: 40 } };
 
 /** Structural rules over the canonical core + runtime content (designer rulings M5-SC-006 / 032 and M5-WO3 §19–§75). */
 export function auditWo3Content(core: { definitions: ContentDefinition[] }, runtime: { definitions: ContentDefinition[]; deferred?: unknown[] }): string[] {
@@ -141,7 +141,7 @@ export function auditWo3Content(core: { definitions: ContentDefinition[] }, runt
   if (movement === undefined || movement.variables.some((v) => !(v.source.kind === "EXPLICIT_BONUSES" || (v.source.kind === "STAT" && v.source.stat === "AGI") || (v.source.kind === "DERIVED" && v.source.statistic === "BASE_MOVEMENT")))) add("size-speed-inference");
 
   // Size: occupied space plus the designer-authored Base Movement (M5-I076, M5-I108, M5-I113, M5-I152): Small 5, Medium 5,
-  // Large 10, Huge 15 ft; Massive pending (M5-SC-036, null). Never derived from occupied space, never another movement key.
+  // Large 10, Huge 20, Massive 40 ft (M5-SC-036, M5-I154). Never derived from occupied space, never another movement key.
   for (const d of kind(defs, "CREATURE_SIZE")) {
     const expected = SIZE_BASE_MOVEMENT[String(d.payload.sizeKey)];
     if (expected === undefined || JSON.stringify(d.payload.baseMovement) !== JSON.stringify(expected)) add("size-speed-inference");
@@ -224,7 +224,7 @@ export function auditWo3Content(core: { definitions: ContentDefinition[] }, runt
   // Surprise invents no AP penalty (M5-I104).
   if (has(ap?.usageRestrictions, (x) => x.restrictionKey === "SURPRISED")) add("surprise-ap-penalty");
 
-  // M5-SC-033 is resolved by designer ruling; only Massive's value (M5-SC-036) remains deferred in content.
-  if (!has(runtime.deferred, (x) => x.conflictKey === "M5-SC-036") || has(runtime.deferred, (x) => x.conflictKey === "M5-SC-033")) add("size-speed-inference");
+  // M5-SC-033 and M5-SC-036 are resolved by designer ruling: no Size value is deferred any more.
+  if ((runtime.deferred ?? []).length !== 0) add("size-speed-inference");
   return [...findings].sort();
 }

@@ -123,7 +123,7 @@ describe("M5-WO2 audit — Core resolution, stats, dice & ranks", () => {
     expect(t).toMatch(/entry\("Character Dice", "CORE_RESOLUTION", C,/);
   });
 
-  it("source-conflict register: the six WO2 designer rulings are RESOLVED_BY_DESIGNER; 007 and 011 stay UNRESOLVED; 006 / 032 record their WO2 state and the M5-WO3 ruling", () => {
+  it("source-conflict register: the six WO2 designer rulings are RESOLVED_BY_DESIGNER; 007 and 011 were UNRESOLVED through WO4 (resolved post-WO4); 006 / 032 record their WO2 state and the M5-WO3 ruling", () => {
     const register = read("docs/architecture/m5-core-playtest-source-conflicts.md");
     for (const key of ["M5-SC-002", "M5-SC-003", "M5-SC-005", "M5-SC-008", "M5-SC-009", "M5-SC-010"]) {
       const s = section(register, key);
@@ -131,7 +131,10 @@ describe("M5-WO2 audit — Core resolution, stats, dice & ranks", () => {
       expect(s, key).toMatch(/\*\*resolution authority\*\*: M5-WO2 §/);
       expect(s, key).toMatch(/\*\*source A\*\*:[\s\S]*\*\*source B\*\*:/); // provenance preserved
     }
-    for (const key of ["M5-SC-007", "M5-SC-011"]) expect(section(register, key), key).toMatch(/\*\*status\*\*: `UNRESOLVED`/);
+    // M5-SC-007 was UNRESOLVED through M5-WO4; the post-WO4 rulings batch resolved it (two pools; follow-up M5-SC-038).
+    expect(section(register, "M5-SC-007")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`[\s\S]*Rulings batch \(post-WO4, resolves M5-SC-007\)/);
+    // M5-SC-011 was UNRESOLVED through M5-WO4; the post-WO4 designer ruling resolved it (M5-I153), WO1 history kept.
+    expect(section(register, "M5-SC-011")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`[\s\S]*WO1–WO4 status was `UNRESOLVED`[\s\S]*It is not normalized \(§10\)\.[\s\S]*Post-WO4 designer ruling \(resolves M5-SC-011\)/);
     // M5-WO3 designer rulings: the WO2 history (deferral, fail-closed) is kept, not rewritten.
     for (const key of ["M5-SC-006", "M5-SC-032"]) {
       expect(section(register, key), key).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`/);

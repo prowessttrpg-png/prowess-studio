@@ -21,7 +21,7 @@ import { apiManifest, apiRuleset } from "./m2-flow";
 type Outputs = {
   keywords: string | null;
   weaknessSelection: string | null;
-  cost: { stepKey: string; baseCost: number } | null;
+  cost: { stepKey: string; netStepKey: string; baseCost: number } | null;
   strengths: { ruleKey: string; stepKey: string }[];
   weaknesses: { ruleKey: string; stepKey: string }[];
   access: { requirementKey: string; stepKey: string }[];
@@ -59,15 +59,20 @@ describe("M5-WO4 Affinity plans through POST /api/rules/evaluate and the Rules I
   beforeAll(() => assertRunningAgainstTestDatabase(process.env.DATABASE_URL!));
   afterAll(cleanupM2Api);
 
-  it("§156 base 20 → Evocation Expert Strength −20% → 16 → Healing Weakness +30% → 20.8, explained from M4's modifier trace", async () => {
+  it("§156 / M5-I155 base 20 → Evocation Expert Strength −20% + Healing Weakness +30% → net 110% → 22, explained from M4's modifier trace", async () => {
     const f = FIXTURES.cost;
     const result = await run("m5wo4cost", f);
-    const cost = data(result, f.outputs.cost!.stepKey) as { outcomes: Array<Record<string, unknown>>; finalTargets: Array<{ value: number }> };
-    expect(cost.outcomes.map((o) => [o.modifierKey, o.operation, o.operand, o.status, o.before, o.after])).toEqual([
-      ["affinity.strength_discount", "REDUCE_PERCENT", 20, "APPLIED", 20, 16],
-      ["affinity.weakness_penalty", "INCREASE_PERCENT", 30, "APPLIED", 16, 20.8],
+    const net = data(result, f.outputs.cost!.netStepKey) as { outcomes: Array<Record<string, unknown>>; finalTargets: Array<{ value: number }> };
+    expect(net.outcomes.map((o) => [o.modifierKey, o.operation, o.operand, o.status, o.before, o.after])).toEqual([
+      ["affinity.strength_discount", "SUBTRACT", 20, "APPLIED", 100, 80],
+      ["affinity.weakness_penalty", "ADD", 30, "APPLIED", 80, 110],
     ]);
-    expect(cost.finalTargets[0]?.value).toBe(20.8);
+    const cost = data(result, f.outputs.cost!.stepKey) as { outcomes: Array<Record<string, unknown>>; finalTargets: Array<{ value: number }> };
+    expect(cost.outcomes.map((o) => [o.modifierKey, o.operation, o.operand, o.before, o.after])).toEqual([
+      ["affinity.net_cost_multiplier", "MULTIPLY", 110, 20, 2200],
+      ["affinity.percent_scale", "DIVIDE", 100, 2200, 22],
+    ]);
+    expect(cost.finalTargets[0]?.value).toBe(22);
     const selection = data(result, f.outputs.weaknessSelection!) as { finalTargets: Array<{ value: number }> };
     expect(selection.finalTargets[0]?.value).toBe(30);
     const keywords = data(result, f.outputs.keywords!) as { keywords: Array<{ keyword: { canonicalKey: string }; contributors: Array<{ source: { sourceKey: string; provenance: { canonicalKey: string } } }> }> };

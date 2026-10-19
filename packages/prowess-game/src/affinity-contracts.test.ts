@@ -256,16 +256,19 @@ describe("standard Affinity progression (§40–§52, §157–§160 — M5-I117,
 });
 
 describe("compilation contract (§80–§85, §122–§136, §154–§155, §169–§173, §276–§279)", () => {
-  it("M5-I148 / M5-I149 only M4 KEYWORD / REQUIREMENT / MODIFIER operations; percentages, MAX and comparisons are M4's", () => {
+  it("M5-I148 / M5-I149 / M5-I155 only M4 KEYWORD / REQUIREMENT / MODIFIER operations; percentages, MAX and comparisons are M4's", () => {
     const plan = compileAffinityWith(costSubject({ effects: ["directDamage", "healing"] }), { profile: evocation("EXPERT") });
     expect(plan.ok).toBe(true);
     if (!plan.ok) return;
     expect([...new Set(plan.value.evaluationPlan.steps.map((s) => s.operation))].sort()).toEqual(["KEYWORD", "MODIFIER", "REQUIREMENT"]);
     const modifierOps = plan.value.evaluationPlan.steps.flatMap((s) => (s.operation === "MODIFIER" ? ((s.input.request as { modifiers: { operation: string }[] }).modifiers.map((m) => m.operation)) : []));
-    expect(modifierOps.sort()).toEqual(["INCREASE_PERCENT", "MAX", "MAX", "MAX", "REDUCE_PERCENT"]);
-    // The Weakness penalty operand is BOUND to M4's selected maximum — never pre-computed by the compiler.
+    expect(modifierOps.sort()).toEqual(["ADD", "DIVIDE", "MAX", "MAX", "MAX", "MULTIPLY", "SUBTRACT"]);
+    // M5-I155: the Weakness penalty operand is BOUND to M4's selected maximum, and the cost multiplier is BOUND to M4's
+    // net percentage — the compiler never pre-computes either.
+    const netStep = plan.value.evaluationPlan.steps.find((s) => s.stepKey === plan.value.outputs.cost?.netStepKey);
+    expect(netStep?.bindings).toEqual(expect.arrayContaining([{ target: "/request/modifiers/1/operand", source: { kind: "STEP", stepKey: plan.value.outputs.weaknessSelection, pointer: "/data/finalTargets/0/value" } }]));
     const costStep = plan.value.evaluationPlan.steps.find((s) => s.stepKey === plan.value.outputs.cost?.stepKey);
-    expect(costStep?.bindings).toEqual(expect.arrayContaining([{ target: "/request/modifiers/1/operand", source: { kind: "STEP", stepKey: plan.value.outputs.weaknessSelection, pointer: "/data/finalTargets/0/value" } }]));
+    expect(costStep?.bindings).toEqual([{ target: "/request/modifiers/0/operand", source: { kind: "STEP", stepKey: plan.value.outputs.cost?.netStepKey, pointer: "/data/finalTargets/0/value" } }]);
     expect(JSON.stringify(plan.value)).not.toMatch(/"rounding"|"AP"|"ME"|ACTION_POINTS|mana_?efficiency/i);
   });
 

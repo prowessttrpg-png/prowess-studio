@@ -13,15 +13,10 @@
     "M5-SC-006",
     "M5-SC-032",
     "M5-SC-033",
-    "M5-SC-034"
+    "M5-SC-034",
+    "M5-SC-036"
   ],
-  "deferred": [
-    {
-      "conflictKey": "M5-SC-036",
-      "concept": "Base Movement of Massive creatures",
-      "status": "DEFERRED_PENDING_CANON"
-    }
-  ],
+  "deferred": [],
   "definitions": [
     {
       "canonicalKey": "resource.hp",
@@ -738,7 +733,7 @@
         ],
         "orLarger": false,
         "baseMovement": {
-          "feet": 15
+          "feet": 20
         },
         "rules": {},
         "source": {
@@ -747,7 +742,8 @@
             "s442"
           ],
           "conflicts": [
-            "M5-SC-033"
+            "M5-SC-033",
+            "M5-SC-036"
           ]
         }
       }
@@ -762,7 +758,9 @@
           20
         ],
         "orLarger": true,
-        "baseMovement": null,
+        "baseMovement": {
+          "feet": 40
+        },
         "rules": {},
         "source": {
           "locators": [
@@ -840,6 +838,10 @@
     {
       "workOrder": "M5-WO4 canon rulings",
       "change": "M5-SC-033 RESOLVED_BY_DESIGNER: CREATURE_SIZE.baseMovement Small 5 ft, Medium 5 ft, Large 10 ft, Huge 15 ft (Movement = Base Movement x AGI). Massive stays null pending canon (new M5-SC-036). Occupied space is still never read as Base Movement."
+    },
+    {
+      "workOrder": "M5-WO4 rulings batch",
+      "change": "M5-SC-036 RESOLVED_BY_DESIGNER: Huge Base Movement is 20 ft (replacing the earlier 15 ft) and Massive is double that, 40 ft (Movement = Base Movement x AGI). Every Size now authors a value; nothing is deferred."
     }
   ]
 }

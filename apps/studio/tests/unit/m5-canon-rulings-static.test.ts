@@ -14,8 +14,11 @@ import { auditWo4Content } from "./m5-wo4-audit-helpers";
  * behaviour is guarded by the @prowess/game golden / contract tests and scripts/m5-wo4-negative-controls.mjs.
  *
  * Invariants guarded here (docs/architecture/m5-invariants.md): M5-I151 a new Level 9 Affinity starts at Trained and
- * every Affinity ranks independently · M5-I152 Base Movement is authored per Creature Size, never derived from occupied
- * space; Massive pending. Historical: M5-I119 is SUPERSEDED by M5-I151 (traceable, not deleted).
+ * every Affinity ranks independently · M5-I153 Arcane Rank is the Arcana Skill's rank; Arcana Rank is its legacy name
+ * (M5-SC-011) · M5-I154 Size Base Movement Small 5 · Medium 5 · Large 10 · Huge 20 · Massive 40 ft · M5-I155 percentage
+ * cost modifiers net into one percentage applied once; final rounding normal, once, at the end.
+ * Historical: M5-I119 → M5-I151, M5-I128 → M5-I155, M5-I152 → M5-I154 (traceable, not deleted). The rulings batch also
+ * resolves M5-SC-007 and M5-SC-013 – M5-SC-031 and records the follow-ups M5-SC-037 / M5-SC-038.
  */
 const ROOT = path.resolve(process.cwd(), "..", "..");
 const read = (file: string) => readFileSync(path.join(ROOT, file), "utf8");
@@ -30,23 +33,23 @@ const doc = (name: string) => JSON.parse(read(`${CONTENT}/${name}.json`)) as Doc
 const section = (text: string, key: string) => text.split(/^### /m).find((s) => s.startsWith(key)) ?? "";
 
 describe("Post-WO4 canon rulings audit — Size Base Movement & Level 9 Affinity rank", () => {
-  it("M5-I152 every Creature Size authors its exact Base Movement (Small 5 · Medium 5 · Large 10 · Huge 15 ft); Massive is null pending M5-SC-036", () => {
+  it("M5-I154 every Creature Size authors its exact Base Movement (Small 5 · Medium 5 · Large 10 · Huge 20 · Massive 40 ft); nothing is deferred", () => {
     const sizes = doc("runtime-resources").definitions.filter((d) => d.definitionKind === "CREATURE_SIZE");
     expect(sizes.map((d) => [d.payload.sizeKey, d.payload.baseMovement])).toEqual([
       ["SMALL", { feet: 5 }],
       ["MEDIUM", { feet: 5 }],
       ["LARGE", { feet: 10 }],
-      ["HUGE", { feet: 15 }],
-      ["MASSIVE", null],
+      ["HUGE", { feet: 20 }],
+      ["MASSIVE", { feet: 40 }],
     ]);
     for (const d of sizes) expect((d.payload.source as { conflicts: string[] }).conflicts, String(d.payload.sizeKey)).toContain("M5-SC-033");
     expect((sizes.find((d) => d.payload.sizeKey === "MASSIVE")!.payload.source as { conflicts: string[] }).conflicts).toContain("M5-SC-036");
     const runtime = doc("runtime-resources");
-    expect(runtime.designerRulings).toContain("M5-SC-033");
-    expect(runtime.deferred).toEqual([{ conflictKey: "M5-SC-036", concept: "Base Movement of Massive creatures", status: "DEFERRED_PENDING_CANON" }]);
+    expect(runtime.designerRulings).toEqual(expect.arrayContaining(["M5-SC-033", "M5-SC-036"]));
+    expect(runtime.deferred).toEqual([]);
   });
 
-  it("M5-I152 BASE_MOVEMENT reads only the character's Size Definition; MOVEMENT stays Base Movement × AGI + bonuses", () => {
+  it("M5-I154 BASE_MOVEMENT reads only the character's Size Definition; MOVEMENT stays Base Movement × AGI + bonuses", () => {
     const stat = (s: string) => doc("core-resolution").definitions.find((d) => d.definitionKind === "DERIVED_STAT" && d.payload.statistic === s)!.payload;
     expect(stat("BASE_MOVEMENT").formula).toEqual({ expression: "size_base_movement", rounding: "NONE", unit: "ft", variables: [{ variable: "size_base_movement", source: { kind: "CREATURE_SIZE_BASE_MOVEMENT" } }] });
     expect((stat("BASE_MOVEMENT").source as { conflicts: string[] }).conflicts).toEqual(expect.arrayContaining(["M5-SC-033", "M5-SC-036"]));
@@ -68,7 +71,7 @@ describe("Post-WO4 canon rulings audit — Size Base Movement & Level 9 Affinity
     expect(auditWo4Content(doc("affinity"), doc("core-resolution"), doc("runtime-resources"))).toEqual([]);
   });
 
-  it("source-conflict register: M5-SC-033 and M5-SC-035 RESOLVED_BY_DESIGNER with the rulings appended (history kept); M5-SC-036 new and UNRESOLVED", () => {
+  it("source-conflict register: M5-SC-033 and M5-SC-035 RESOLVED_BY_DESIGNER with the rulings appended (history kept); M5-SC-036 recorded, then resolved by the rulings batch", () => {
     const register = read("docs/architecture/m5-core-playtest-source-conflicts.md");
     expect(register).toMatch(/\*\*Post-WO4 canon rulings update\.\*\*/);
     const sc033 = section(register, "M5-SC-033");
@@ -79,31 +82,79 @@ describe("Post-WO4 canon rulings audit — Size Base Movement & Level 9 Affinity
     expect(sc035).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`/);
     expect(sc035).toMatch(/recorded by M5-WO4 §48[\s\S]*Post-WO4 designer ruling \(resolves M5-SC-035\)/);
     expect(register).toMatch(/^### M5-SC-036 — Base Movement Of Massive Creatures$/m);
-    expect(section(register, "M5-SC-036")).toMatch(/\*\*status\*\*: `UNRESOLVED`\n- \*\*resolution authority\*\*: none/);
+    expect(section(register, "M5-SC-036")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`[\s\S]*Rulings batch \(post-WO4, resolves M5-SC-036\)[\s\S]*Huge Base Movement is 20 ft[\s\S]*40 ft/);
+    expect(sc033).toMatch(/Amended by the rulings batch \(M5-SC-036\)/);
   });
 
-  it("the invariant catalog: M5-I119 SUPERSEDED by M5-I151 (kept); M5-I151 and M5-I152 are ACTIVE and guarded here", () => {
+  it("M5-I153 / M5-SC-011 ruling: Arcane Rank is the Arcana Skill's rank — CANONICAL; Arcana Rank is its LEGACY name; the register keeps the history", () => {
+    const terms = read("packages/prowess-game/src/vocabulary/terminology.ts");
+    expect(terms).toContain('entry("Arcane Rank", "SKILL_RANK", C, "SKILL", "ARCANE_RANK", { ...designer, conflictKey: "M5-SC-011" })');
+    expect(terms).toContain('entry("Arcana Rank", "SKILL_RANK", L, "SKILL", null, { ...designer, canonicalTerm: "Arcane Rank", conflictKey: "M5-SC-011" })');
+    const register = read("docs/architecture/m5-core-playtest-source-conflicts.md");
+    expect(register).toMatch(/\*\*Post-WO4 Arcane ruling update\.\*\*/);
+    expect(section(register, "M5-SC-011")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`[\s\S]*Post-WO4 designer ruling \(resolves M5-SC-011\)/);
+    const catalog = JSON.parse(read("docs/architecture/m5-invariants.json")) as Array<{ id: string; guards: string[]; status?: string }>;
+    const i153 = catalog.find((x) => x.id === "M5-I153")!;
+    expect(i153.status ?? "ACTIVE").toBe("ACTIVE");
+    expect(i153.guards).toContain("apps/studio/tests/unit/m5-canon-rulings-static.test.ts");
+    expect(section(read("docs/architecture/m5-invariants.md"), "M5-I153")).toContain("Arcane Rank Is The Arcana Skill's Rank");
+    expect(read("docs/architecture/m5-wo4-canon-rulings-completion-report.md")).toMatch(/^## \d+\. Arcane Rank$/m);
+  });
+
+  it("rulings batch: every conflict open after M5-WO4 is RESOLVED_BY_DESIGNER with its ruling appended; the follow-ups M5-SC-037 / M5-SC-038 are resolved too — nothing is open", () => {
+    const register = read("docs/architecture/m5-core-playtest-source-conflicts.md");
+    expect(register).toMatch(/\*\*Post-WO4 rulings batch\.\*\*/);
+    const batch = ["007", ...Array.from({ length: 19 }, (_, i) => String(13 + i).padStart(3, "0")), "036"].map((n) => `M5-SC-${n}`);
+    for (const key of batch) {
+      const sec = section(register, key);
+      expect(sec, key).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`/);
+      expect(sec, key).toMatch(/\*\*source A\*\*:[\s\S]*\*\*source B\*\*:/); // provenance kept
+      expect(sec, key).toContain(`Rulings batch (post-WO4, resolves ${key})`);
+    }
+    expect(register.split(/^### /m).filter((x) => /\*\*status\*\*: `UNRESOLVED`/.test(x)).map((x) => x.slice(0, 9))).toEqual([]);
+    expect(section(register, "M5-SC-037")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`[\s\S]*Follow-up ruling \(resolves M5-SC-037\)[\s\S]*Counter\s+Spelling/);
+    expect(section(register, "M5-SC-038")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`[\s\S]*Follow-up ruling \(resolves M5-SC-038\)[\s\S]*1 Active Effect per 2 CON[\s\S]*base of 1/);
+    expect(register).toMatch(/^### M5-SC-037 — Place Of Spell Interference Among The Spell Branches$/m);
+    expect(register).toMatch(/^### M5-SC-038 — Active Effects Capacity And The Concentration Base$/m);
+  });
+
+  it("M5-I155 / M5-SC-028 ruling: Affinity percentages net into one percentage applied once; final rounding is normal, once, at the end", () => {
+    const sc028 = section(read("docs/architecture/m5-core-playtest-source-conflicts.md"), "M5-SC-028");
+    expect(sc028).toMatch(/rounds normally[\s\S]*one net percentage[\s\S]*18 MP/);
+    const compile = read("packages/prowess-game/src/affinity/compile.ts");
+    expect(compile).toContain('fragmentKey: "net-percent"');
+    expect(compile).toContain("const FULL_PRICE_PERCENT = 100;");
+    expect(compile).not.toMatch(/REDUCE_PERCENT|INCREASE_PERCENT/); // the superseded sequential model (M5-I128)
+    expect(compile).not.toMatch(/Math\.(round|floor|ceil)|toFixed/); // the Affinity stage never rounds (M5-I129)
+  });
+
+  it("the invariant catalog: M5-I119 → M5-I151, M5-I128 → M5-I155, M5-I152 → M5-I154 SUPERSEDED (kept); M5-I151 and M5-I153–I155 are ACTIVE and guarded here", () => {
     const catalog = JSON.parse(read("docs/architecture/m5-invariants.json")) as Array<{ id: string; title: string; guards: string[]; status?: string; supersededBy?: string }>;
-    expect(catalog).toHaveLength(152);
+    expect(catalog).toHaveLength(155);
     const by = (id: string) => catalog.find((x) => x.id === id)!;
     expect([by("M5-I119").status, by("M5-I119").supersededBy]).toEqual(["SUPERSEDED", "M5-I151"]);
-    for (const id of ["M5-I151", "M5-I152"]) {
+    expect([by("M5-I128").status, by("M5-I128").supersededBy]).toEqual(["SUPERSEDED", "M5-I155"]);
+    expect([by("M5-I152").status, by("M5-I152").supersededBy]).toEqual(["SUPERSEDED", "M5-I154"]);
+    for (const id of ["M5-I151", "M5-I153", "M5-I154", "M5-I155"]) {
       expect(by(id).status ?? "ACTIVE", id).toBe("ACTIVE");
       expect(by(id).guards, id).toContain("apps/studio/tests/unit/m5-canon-rulings-static.test.ts");
     }
     const md = read("docs/architecture/m5-invariants.md");
     expect(section(md, "M5-I119")).toMatch(/\*\*Status:\*\* SUPERSEDED by M5-I151/);
     expect(section(md, "M5-I151")).toContain("A New Level 9 Affinity Starts At Trained");
-    expect(section(md, "M5-I152")).toContain("Base Movement Is Authored Per Creature Size");
+    expect(section(md, "M5-I152")).toMatch(/\*\*Status:\*\* SUPERSEDED by M5-I154/);
+    expect(section(md, "M5-I154")).toContain("Huge 20, Massive 40 Feet");
+    expect(section(md, "M5-I155")).toContain("One Net Percentage Applied Once");
   });
 
   it("documents the rulings: the Affinity rules doc, the WO3 runtime doc and the amendment completion note", () => {
     const affinityDoc = read("docs/architecture/m5-affinity-structured-rules.md");
     expect(affinityDoc).toContain("Post-WO4 canon rulings");
     expect(affinityDoc).toMatch(/M5-SC-036/);
+    expect(affinityDoc).toContain("Post-WO4 rulings batch");
     expect(read("docs/architecture/m5-runtime-resources-action-economy.md")).toContain("Post-WO4 canon rulings");
     const note = read("docs/architecture/m5-wo4-canon-rulings-completion-report.md");
-    for (const heading of ["Rulings Applied", "Size Base Movement", "Level 9 New Affinity", "Remaining Conflicts", "Verification"]) expect(note, heading).toMatch(new RegExp(`^## \\d+\\. ${heading}$`, "m"));
+    for (const heading of ["Rulings Applied", "Size Base Movement", "Level 9 New Affinity", "Remaining Conflicts", "Arcane Rank", "Rulings Batch", "Verification"]) expect(note, heading).toMatch(new RegExp(`^## \\d+\\. ${heading}$`, "m"));
   });
 
   it("the canon-rulings gate is a permanent named CI step; the M5-WO4 gate remains", () => {
