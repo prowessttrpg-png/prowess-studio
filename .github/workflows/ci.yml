@@ -349,6 +349,16 @@ jobs:
           pnpm --filter "@prowess/game" exec vitest run src/runtime-resources-golden.test.ts src/runtime-contracts.test.ts src/core-resolution-golden.test.ts src/affinity-contracts.test.ts src/vocabulary.test.ts
           pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-canon-rulings-static.test.ts
 
+      # M5-WO5: construction legality over the shared modular Ability grammar. This gate pins the eight designer
+      # rulings, exact versioned construction capacities, Arcane/Affinity/Martial access, Arcane-only Casting Condition
+      # slots, Spell-only Effect→Trait exchange, explicit Effect stacking, Signature-slot capacity and M4-only
+      # Formula/Keyword/Requirement compilation. It deliberately does not begin Targeting/Effect catalog execution.
+      - name: M5-WO5 audit — Shared modular Ability Construction
+        run: |
+          pnpm --filter "@prowess/game" exec vitest run src/ability-construction-golden.test.ts src/ability-construction-contracts.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo5-static.test.ts
+          node scripts/m5-wo5-negative-controls.mjs
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own
