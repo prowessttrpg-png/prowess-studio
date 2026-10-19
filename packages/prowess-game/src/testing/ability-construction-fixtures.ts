@@ -33,7 +33,7 @@ export const CONSTRUCTION_COMPONENTS = {
   spellHealing: component("spell.effect.wo5_healing", "SPELL_EFFECT", effectPayload("HEALING", { keywords: kw("healing") })),
   spellPlain: component("spell.effect.wo5_plain", "SPELL_EFFECT", effectPayload("UTILITY")),
   spellTrait: component("spell.trait.wo5_focus", "SPELL_TRAIT", traitPayload("FOCUS", "EFFECT_SPECIFIC", { keywords: kw("direct_damage") })),
-  spellDuration: component("spell.duration.wo5_instant", "SPELL_DURATION", durationPayload("INSTANT", { keywords: kw("direct_damage") })),
+  spellDuration: component("spell.duration.wo5_instant", "SPELL_DURATION", { ...durationPayload("INSTANT"), keywords: kw("direct_damage") }),
   spellCondition: component("spell.condition.wo5_verbal", "SPELL_CASTING_CONDITION", conditionPayload("VERBAL", { keywords: kw("direct_damage") })),
   maneuverSingle: component("maneuver.targeting.wo5_single", "MANEUVER_TARGETING", targetingPayload("SINGLE_TARGET")),
   maneuverEffect: component("maneuver.effect.wo5_strike", "MANEUVER_EFFECT", effectPayload("DAMAGE")),
