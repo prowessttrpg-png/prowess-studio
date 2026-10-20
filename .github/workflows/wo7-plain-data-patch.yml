@@ -1,4 +1,4 @@
-name: WO7 temporary plain-data patch helper
+name: WO7 temporary context patch helper
 
 on:
   push:
@@ -16,35 +16,30 @@ jobs:
         with:
           ref: m5-wo7
           fetch-depth: 0
-      - name: Apply strict plain-data fixes
+      - name: Patch split construction/targeting character contexts
         run: |
           python - <<'PY'
           from pathlib import Path
 
           p=Path('packages/prowess-game/src/testing/effect-fixtures.ts')
           s=p.read_text()
-          s=s.replace(', affinityProfile: null });', ' });')
-          p.write_text(s)
+          old='export const effectCharacter = (spec: { pro?: number; per?: number; str?: number; arcana?: string; martial?: string } = {}) => ({ stats: { STR: spec.str ?? 5, AGI: 4, CON: 4, PER: spec.per ?? 4, PRO: spec.pro ?? 4, RES: 4 }, skillRanks: [{ skillKey: "skill.arcana", rankKey: spec.arcana ?? "MASTER" }, { skillKey: "skill.martial", rankKey: spec.martial ?? "MASTER" }] });'
+          new='export const effectCharacter = (spec: { pro?: number; per?: number; str?: number; arcana?: string; martial?: string } = {}) => ({ stats: { STR: spec.str ?? 5, AGI: 4, CON: 4, PER: spec.per ?? 4, PRO: spec.pro ?? 4, RES: 4 }, skillRanks: [{ skillKey: "skill.arcana", rankKey: spec.arcana ?? "MASTER" }, { skillKey: "skill.martial", rankKey: spec.martial ?? "MASTER" }], affinityProfile: null });'
+          assert old in s, 'effectCharacter anchor changed'
+          p.write_text(s.replace(old,new,1))
 
           p=Path('packages/prowess-game/src/effect/compile.ts')
           s=p.read_text()
-          old='''const construction = evaluateAbilityConstruction({ contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION, subjectKey: `${String(subjectKey)}.construction`, composition, definitions: bundle, ruleset: own(r, "ruleset"), character: own(r, "character"), keywords: own(r, "keywords"), options: own(r, "constructionOptions"), signature: own(r, "signature"), accessGrants: own(r, "accessGrants") });'''
-          new='''const constructionOptions = own(r, "constructionOptions"); const accessGrants = own(r, "accessGrants");
-  const construction = evaluateAbilityConstruction({ contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION, subjectKey: `${String(subjectKey)}.construction`, composition, definitions: bundle, ruleset: own(r, "ruleset"), character: own(r, "character"), keywords: own(r, "keywords"), signature: own(r, "signature"), ...(constructionOptions === undefined ? {} : { options: constructionOptions }), ...(accessGrants === undefined ? {} : { accessGrants }) });'''
-          assert old in s, 'construction call anchor changed'
-          s=s.replace(old,new,1)
-          old='''const targeting = evaluateAbilityTargeting({ contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION, subjectKey: `${String(own(raw, "subjectKey"))}.targeting`, composition: own(raw, "composition"), definitions: own(raw, "definitions"), ruleset: own(raw, "ruleset"), character: own(raw, "character"), keywords: own(raw, "keywords"), targetingModifiers: own(raw, "targetingModifiers") }); if (!targeting.ok) return targeting as ProwessOutcome<never>;'''
-          new='''const targetingModifiers = own(raw, "targetingModifiers");
-  const targeting = evaluateAbilityTargeting({ contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION, subjectKey: `${String(own(raw, "subjectKey"))}.targeting`, composition: own(raw, "composition"), definitions: own(raw, "definitions"), ruleset: own(raw, "ruleset"), character: own(raw, "character"), keywords: own(raw, "keywords"), ...(targetingModifiers === undefined ? {} : { targetingModifiers }) }); if (!targeting.ok) return targeting as ProwessOutcome<never>;'''
-          assert old in s, 'targeting call anchor changed'
-          s=s.replace(old,new,1)
-          p.write_text(s)
+          old='const targetingModifiers = own(raw, "targetingModifiers");\n  const targeting = evaluateAbilityTargeting({ contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION, subjectKey: `${String(own(raw, "subjectKey"))}.targeting`, composition: own(raw, "composition"), definitions: own(raw, "definitions"), ruleset: own(raw, "ruleset"), character: own(raw, "character"), keywords: own(raw, "keywords"), ...(targetingModifiers === undefined ? {} : { targetingModifiers }) }); if (!targeting.ok) return targeting as ProwessOutcome<never>;'
+          new='const targetingModifiers = own(raw, "targetingModifiers");\n  const character = own(raw, "character") as EffectCharacterContext;\n  const targetingCharacter = { stats: character.stats, skillRanks: character.skillRanks };\n  const targeting = evaluateAbilityTargeting({ contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION, subjectKey: `${String(own(raw, "subjectKey"))}.targeting`, composition: own(raw, "composition"), definitions: own(raw, "definitions"), ruleset: own(raw, "ruleset"), character: targetingCharacter, keywords: own(raw, "keywords"), ...(targetingModifiers === undefined ? {} : { targetingModifiers }) }); if (!targeting.ok) return targeting as ProwessOutcome<never>;'
+          assert old in s, 'targeting context anchor changed'
+          p.write_text(s.replace(old,new,1))
           PY
-      - name: Commit patch if needed
+      - name: Commit patch
         run: |
           if git diff --quiet; then exit 0; fi
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add packages/prowess-game/src/testing/effect-fixtures.ts packages/prowess-game/src/effect/compile.ts
-          git commit -m 'M5-WO7: omit undefined strict plain-data fields'
+          git commit -m 'M5-WO7: split construction and Targeting character contexts'
           git push origin HEAD:m5-wo7
