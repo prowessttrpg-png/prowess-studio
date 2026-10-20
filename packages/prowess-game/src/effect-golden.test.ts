@@ -4,6 +4,7 @@ import { validateEffectUse } from "./effect/compile.js";
 import { keywordCatalog } from "./testing/affinity-fixtures.js";
 import { effectCharacter, effectFixture, effectRequest, maneuverEffectAbility, spellEffectAbility } from "./testing/effect-fixtures.js";
 
+const cloneJson = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const targeting = (f: ReturnType<typeof effectFixture>, composition: Record<string, unknown>, character = effectCharacter()) => {
   const r = evaluateAbilityTargeting({ contractVersion: 1, subjectKey: "wo7.targeting", composition, definitions: f.bundle, ruleset: f.ruleset, character, keywords: keywordCatalog() });
   if (!r.ok) throw new Error(JSON.stringify(r.problems));
@@ -111,7 +112,7 @@ describe("M5-WO7 historical reproducibility", () => {
     const c1 = spellEffectAbility(r1, "spell.effect.direct_damage", "spell.targeting.single_target", { dice: 2 });
     const a = effect(r1, c1);
     const source = r1.bundle.definitions.find((d) => d.canonicalKey === "spell.effect.direct_damage")!.payload as any;
-    const r2 = effectFixture({ rulesetId: "87110000-0000-4000-8000-000000000001", manifestId: "87120000-0000-4000-8000-000000000001", revise: { "spell.effect.direct_damage": { ...structuredClone(source), costContributions: [{ contributionKey: "effect.damage.dice", currency: "MP", data: { kind: "PER_UNIT", parameter: "dice", amount: 9, includedUnits: 0 } }] } } });
+    const r2 = effectFixture({ rulesetId: "87110000-0000-4000-8000-000000000001", manifestId: "87120000-0000-4000-8000-000000000001", revise: { "spell.effect.direct_damage": { ...cloneJson(source), costContributions: [{ contributionKey: "effect.damage.dice", currency: "MP", data: { kind: "PER_UNIT", parameter: "dice", amount: 9, includedUnits: 0 } }] } } });
     const b = effect(r2, spellEffectAbility(r2, "spell.effect.direct_damage", "spell.targeting.single_target", { dice: 2 }));
     const again = effect(r1, c1);
     expect(again).toEqual(a);
