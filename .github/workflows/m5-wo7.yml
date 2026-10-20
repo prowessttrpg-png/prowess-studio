@@ -1,0 +1,35 @@
+name: M5-WO7 audit — Effect framework & Spell/Maneuver contracts
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  m5-wo7:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build M4 / Prowess packages
+        run: pnpm --filter "@prowess/model" --filter "@prowess/rules" --filter "@prowess/game" run build
+
+      - name: M5-WO7 audit — Effect framework & Spell/Maneuver contracts
+        run: |
+          pnpm --filter "@prowess/game" exec vitest run src/effect-golden.test.ts src/effect-contracts.test.ts src/effect-security.test.ts src/effect-inspector.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo7-static.test.ts
+          node scripts/m5-wo7-negative-controls.mjs
