@@ -23,183 +23,185 @@ EXIT=0
 
 [1m[30m[46m RUN [49m[39m[22m [36mv5.0.2 [39m[90m/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game[39m
 
- [31m❯[39m src/effect-contracts.test.ts [2m([22m[2m8 tests[22m[2m | [22m[31m5 failed[39m[2m)[22m[32m 156[2mms[22m[39m
+ [31m❯[39m src/effect-contracts.test.ts [2m([22m[2m8 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[33m 2036[2mms[22m[39m
    [31m❯[39m M5-WO7 Effect grammar [2m(8)[22m
-     [32m✓[39m has exactly the seven canonical Spell Effect families and no Movement/Cleanse/Interference top-level family[32m 2[2mms[22m[39m
-     [32m✓[39m authors Cleanse under Healing and Movement/Counterspell under Utility[32m 0[2mms[22m[39m
-[31m     [31m×[31m keeps Spell and Maneuver Effects branch-specific[39m[32m 53[2mms[22m[39m
-[31m     [31m×[31m requires an explicit Spell resolution and permits only explicit Maneuver inheritance[39m[32m 28[2mms[22m[39m
-[31m     [31m×[31m rejects character-dice scaling above PRO per Effect[39m[32m 37[2mms[22m[39m
-[31m     [31m×[31m stores listed AP/MP contributions but never ME or final Ability cost[39m[32m 18[2mms[22m[39m
+     [32m✓[39m has exactly the seven canonical Spell Effect families and no Movement/Cleanse/Interference top-level family[32m 4[2mms[22m[39m
+     [32m✓[39m authors Cleanse under Healing and Movement/Counterspell under Utility[32m 1[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps Spell and Maneuver Effects branch-specific[33m 477[2mms[22m[39m
+[31m     [31m×[31m requires an explicit Spell resolution and permits only explicit Maneuver inheritance[39m[33m 658[2mms[22m[39m
+[31m     [31m×[31m rejects character-dice scaling above PRO per Effect[39m[33m 402[2mms[22m[39m
+[31m     [31m×[31m stores listed AP/MP contributions but never ME or final Ability cost[39m[32m 250[2mms[22m[39m
      [32m✓[39m does not imply elemental Conditions from damage conversion[32m 1[2mms[22m[39m
-[31m     [31m×[31m is JSON-safe and does not mutate exact inputs[39m[32m 16[2mms[22m[39m
- [31m❯[39m src/effect-security.test.ts [2m([22m[2m7 tests[22m[2m | [22m[31m7 failed[39m[2m)[22m[32m 166[2mms[22m[39m
-   [31m❯[39m M5-WO7 Effect input safety [2m(5)[22m
-[31m     [31m×[31m rejects functions and getters rather than invoking them[39m[32m 43[2mms[22m[39m
-[31m     [31m×[31m rejects cyclic, unsafe-prototype and non-finite values[39m[32m 26[2mms[22m[39m
-[31m     [31m×[31m rejects negative / invalid scaling parameter quantities[39m[32m 36[2mms[22m[39m
-[31m     [31m×[31m rejects unknown Spell Effect families and malformed Save Profiles[39m[32m 24[2mms[22m[39m
-[31m     [31m×[31m rejects unsafe outcome data and invalid Formula scaling[39m[32m 15[2mms[22m[39m
+[31m     [31m×[31m is JSON-safe and does not mutate exact inputs[39m[32m 241[2mms[22m[39m
+ [31m❯[39m src/effect-security.test.ts [2m([22m[2m7 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 2708[2mms[22m[39m
+   [32m✓[39m M5-WO7 Effect input safety [2m(5)[22m
+     [33m[2m✓[22m[39m rejects functions and getters rather than invoking them[33m 306[2mms[22m[39m
+     [32m✓[39m rejects cyclic, unsafe-prototype and non-finite values[32m 247[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects negative / invalid scaling parameter quantities[33m 453[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects unknown Spell Effect families and malformed Save Profiles[33m 506[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects unsafe outcome data and invalid Formula scaling[33m 511[2mms[22m[39m
    [31m❯[39m M5-WO7 Effect determinism and Ruleset isolation [2m(2)[22m
-[31m     [31m×[31m produces deep-equal results for the same exact inputs[39m[32m 10[2mms[22m[39m
-[31m     [31m×[31m keeps concurrent R1/R2 Effect evaluation isolated[39m[32m 10[2mms[22m[39m
- [31m❯[39m src/effect-golden.test.ts [2m([22m[2m17 tests[22m[2m | [22m[31m17 failed[39m[2m)[22m[32m 252[2mms[22m[39m
-   [31m❯[39m M5-WO7 Projectile designer ruling [2m(4)[22m
-[31m     [31m×[31m Projectile costs 3 MP and uses the caster's applicable Range[39m[32m 49[2mms[22m[39m
-[31m     [31m×[31m Projectile + Attack Effect has one delivery attack, reused as Effect resolution[39m[32m 28[2mms[22m[39m
-[31m     [31m×[31m Projectile + Save Effect is delivery attack then the Effect-owned Save[39m[32m 55[2mms[22m[39m
-[31m     [31m×[31m Projectile + Automatic Effect still requires successful delivery[39m[32m 18[2mms[22m[39m
-   [31m❯[39m M5-WO7 Spell Line designer ruling [2m(6)[22m
-[31m     [31m×[31m PRO 1 => 10 ft long and 5 ft wide[39m[32m 10[2mms[22m[39m
-[31m     [31m×[31m PRO 2 => 20 ft long and 5 ft wide[39m[32m 8[2mms[22m[39m
-[31m     [31m×[31m PRO 3 => 30 ft long and 10 ft wide[39m[32m 8[2mms[22m[39m
-[31m     [31m×[31m PRO 4 => 40 ft long and 10 ft wide[39m[32m 6[2mms[22m[39m
-[31m     [31m×[31m PRO 6 => 60 ft long and 15 ft wide[39m[32m 6[2mms[22m[39m
-[31m     [31m×[31m PRO 10 => 100 ft long and 25 ft wide[39m[32m 12[2mms[22m[39m
-   [31m❯[39m M5-WO7 Effect contracts [2m(5)[22m
-[31m     [31m×[31m Direct Healing rejects Cone because compatibility is exact[39m[32m 7[2mms[22m[39m
-[31m     [31m×[31m Cleanse is Healing/Cleanse and does not imply HP restoration[39m[32m 6[2mms[22m[39m
-[31m     [31m×[31m Movement and Counterspell remain Utility subfamilies[39m[32m 8[2mms[22m[39m
-[31m     [31m×[31m Elemental conversion explicitly inherits Ability resolution and creates no extra roll[39m[32m 7[2mms[22m[39m
-[31m     [31m×[31m Radius Conversion owns +3 AP, AGI/PRO Save Profile and exact Radius destination; Targeting owns geometry[39m[32m 6[2mms[22m[39m
-   [31m❯[39m M5-WO7 historical reproducibility [2m(2)[22m
-[31m     [31m×[31m keeps WO6 historical Projectile/Line assumptions reproducible while current canon is amended[39m[32m 8[2mms[22m[39m
-[31m     [31m×[31m pins Effect EntityVersions: publishing a revised R2 does not alter R1 evaluation[39m[32m 8[2mms[22m[39m
- [31m❯[39m src/effect-inspector.test.ts [2m([22m[2m5 tests[22m[2m | [22m[31m5 failed[39m[2m)[22m[32m 65[2mms[22m[39m
+     [33m[2m✓[22m[39m produces deep-equal results for the same exact inputs[33m 352[2mms[22m[39m
+[31m     [31m×[31m keeps concurrent R1/R2 Effect evaluation isolated[39m[33m 330[2mms[22m[39m
+ [31m❯[39m src/effect-inspector.test.ts [2m([22m[2m5 tests[22m[2m | [22m[31m5 failed[39m[2m)[22m[33m 1022[2mms[22m[39m
    [31m❯[39m M5-WO7 Rules Inspector Effect fixtures [2m(5)[22m
-[31m     [31m×[31m shows Projectile + Attack Effect delivery separately from Effect resolution[39m[32m 22[2mms[22m[39m
-[31m     [31m×[31m shows Projectile + Save Effect as delivery then exact Effect Save Profile[39m[32m 16[2mms[22m[39m
-[31m     [31m×[31m shows Direct Damage PRO scaling validation and selected parameter[39m[32m 10[2mms[22m[39m
-[31m     [31m×[31m shows Maneuver Radius Conversion ownership without moving Save/cost to Targeting[39m[32m 9[2mms[22m[39m
-[31m     [31m×[31m exposes exact Ruleset / EntityVersion provenance for Studio inspection[39m[32m 7[2mms[22m[39m
+[31m     [31m×[31m shows Projectile + Attack Effect delivery separately from Effect resolution[39m[33m 367[2mms[22m[39m
+[31m     [31m×[31m shows Projectile + Save Effect as delivery then exact Effect Save Profile[39m[32m 173[2mms[22m[39m
+[31m     [31m×[31m shows Direct Damage PRO scaling validation and selected parameter[39m[32m 171[2mms[22m[39m
+[31m     [31m×[31m shows Maneuver Radius Conversion ownership without moving Save/cost to Targeting[39m[32m 148[2mms[22m[39m
+[31m     [31m×[31m exposes exact Ruleset / EntityVersion provenance for Studio inspection[39m[32m 160[2mms[22m[39m
+ [31m❯[39m src/effect-golden.test.ts [2m([22m[2m17 tests[22m[2m | [22m[31m17 failed[39m[2m)[22m[33m 3851[2mms[22m[39m
+   [31m❯[39m M5-WO7 Projectile designer ruling [2m(4)[22m
+[31m     [31m×[31m Projectile costs 3 MP and uses the caster's applicable Range[39m[33m 396[2mms[22m[39m
+[31m     [31m×[31m Projectile + Attack Effect has one delivery attack, reused as Effect resolution[39m[33m 335[2mms[22m[39m
+[31m     [31m×[31m Projectile + Save Effect is delivery attack then the Effect-owned Save[39m[32m 271[2mms[22m[39m
+[31m     [31m×[31m Projectile + Automatic Effect still requires successful delivery[39m[32m 262[2mms[22m[39m
+   [31m❯[39m M5-WO7 Spell Line designer ruling [2m(6)[22m
+[31m     [31m×[31m PRO 1 => 10 ft long and 5 ft wide[39m[32m 247[2mms[22m[39m
+[31m     [31m×[31m PRO 2 => 20 ft long and 5 ft wide[39m[32m 259[2mms[22m[39m
+[31m     [31m×[31m PRO 3 => 30 ft long and 10 ft wide[39m[32m 283[2mms[22m[39m
+[31m     [31m×[31m PRO 4 => 40 ft long and 10 ft wide[39m[32m 244[2mms[22m[39m
+[31m     [31m×[31m PRO 6 => 60 ft long and 15 ft wide[39m[32m 258[2mms[22m[39m
+[31m     [31m×[31m PRO 10 => 100 ft long and 25 ft wide[39m[32m 217[2mms[22m[39m
+   [31m❯[39m M5-WO7 Effect contracts [2m(5)[22m
+[31m     [31m×[31m Direct Healing rejects Cone because compatibility is exact[39m[32m 161[2mms[22m[39m
+[31m     [31m×[31m Cleanse is Healing/Cleanse and does not imply HP restoration[39m[32m 162[2mms[22m[39m
+[31m     [31m×[31m Movement and Counterspell remain Utility subfamilies[39m[32m 141[2mms[22m[39m
+[31m     [31m×[31m Elemental conversion explicitly inherits Ability resolution and creates no extra roll[39m[32m 153[2mms[22m[39m
+[31m     [31m×[31m Radius Conversion owns +3 AP, AGI/PRO Save Profile and exact Radius destination; Targeting owns geometry[39m[32m 137[2mms[22m[39m
+   [31m❯[39m M5-WO7 historical reproducibility [2m(2)[22m
+[31m     [31m×[31m keeps WO6 historical Projectile/Line assumptions reproducible while current canon is amended[39m[32m 181[2mms[22m[39m
+[31m     [31m×[31m pins Effect EntityVersions: publishing a revised R2 does not alter R1 evaluation[39m[32m 138[2mms[22m[39m
 
-[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 34 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
-
-[41m[1m FAIL [22m[49m src/effect-contracts.test.ts[2m > [22mM5-WO7 Effect grammar[2m > [22mkeeps Spell and Maneuver Effects branch-specific
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
-
-[90m [2m❯[22m src/effect-contracts.test.ts:[2m31:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/34]⎯[22m[39m
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 27 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
 
 [41m[1m FAIL [22m[49m src/effect-contracts.test.ts[2m > [22mM5-WO7 Effect grammar[2m > [22mrequires an explicit Spell resolution and permits only explicit Maneuver inheritance
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
 
-[90m [2m❯[22m src/effect-contracts.test.ts:[2m39:15[22m[39m
+[32m- Expected[39m
+[31m+ Received[39m
 
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/34]⎯[22m[39m
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m src/effect-contracts.test.ts:[2m44:26[22m[39m
+    [90m 42|[39m     const current = effectFixture();
+    [90m 43|[39m     const inherited = validateEffectUse(effectRequest(current, maneuve…
+    [90m 44|[39m     expect(inherited.ok).toBe(true);
+    [90m   |[39m                          [31m^[39m
+    [90m 45|[39m     if (inherited.ok) expect([inherited.value.resolution, inherited.va…
+    [90m 46|[39m   });
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-contracts.test.ts[2m > [22mM5-WO7 Effect grammar[2m > [22mrejects character-dice scaling above PRO per Effect
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
 
-[90m [2m❯[22m src/effect-contracts.test.ts:[2m49:15[22m[39m
+[32m- Expected[39m
+[31m+ Received[39m
 
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/34]⎯[22m[39m
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m src/effect-contracts.test.ts:[2m53:41[22m[39m
+    [90m 51|[39m     expect(bad.ok && bad.value.valid).toBe(false);
+    [90m 52|[39m     const good = validateEffectUse(effectRequest(f, spellEffectAbility…
+    [90m 53|[39m     expect(good.ok && good.value.valid).toBe(true);
+    [90m   |[39m                                         [31m^[39m
+    [90m 54|[39m   });
+    [90m 55|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-contracts.test.ts[2m > [22mM5-WO7 Effect grammar[2m > [22mstores listed AP/MP contributions but never ME or final Ability cost
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
 
-[90m [2m❯[22m src/effect-contracts.test.ts:[2m57:15[22m[39m
+[32m- Expected[39m
+[31m+ Received[39m
 
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/34]⎯[22m[39m
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m src/effect-contracts.test.ts:[2m59:18[22m[39m
+    [90m 57|[39m     const f = effectFixture();
+    [90m 58|[39m     const r = validateEffectUse(effectRequest(f, maneuverEffectAbility…
+    [90m 59|[39m     expect(r.ok).toBe(true);
+    [90m   |[39m                  [31m^[39m
+    [90m 60|[39m     if (!r.ok) return;
+    [90m 61|[39m     expect(r.value.costContributions.map((c) => [c.currency, c.kind, "…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-contracts.test.ts[2m > [22mM5-WO7 Effect grammar[2m > [22mis JSON-safe and does not mutate exact inputs
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
 
-[90m [2m❯[22m src/effect-contracts.test.ts:[2m72:15[22m[39m
+[32m- Expected[39m
+[31m+ Received[39m
 
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/34]⎯[22m[39m
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m src/effect-contracts.test.ts:[2m77:18[22m[39m
+    [90m 75|[39m     const r = validateEffectUse(request);
+    [90m 76|[39m     expect(JSON.stringify(request)).toBe(before);
+    [90m 77|[39m     expect(r.ok).toBe(true);
+    [90m   |[39m                  [31m^[39m
+    [90m 78|[39m     if (r.ok) expect(JSON.parse(JSON.stringify(r.value))).toEqual(r.va…
+    [90m 79|[39m   });
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-golden.test.ts[2m > [22mM5-WO7 Projectile designer ruling[2m > [22mProjectile costs 3 MP and uses the caster's applicable Range
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_TARGETING.INVALID_TARGETING_CONTEXT","path":"/character/affinityProfile","message":"unknown field \"affinityProfile\" (allowed: stats, skillRanks)"}][39m
+[36m [2m❯[22m targeting src/effect-golden.test.ts:[2m10:20[22m[39m
+    [90m  8|[39m const targeting = (f: ReturnType<typeof effectFixture>, composition: R…
+    [90m  9|[39m   const r = evaluateAbilityTargeting({ contractVersion: 1, subjectKey:…
+    [90m 10|[39m   if (!r.ok) throw new Error(JSON.stringify(r.problems));
+    [90m   |[39m                    [31m^[39m
+    [90m 11|[39m   return r.value;
+    [90m 12|[39m };
+[90m [2m❯[22m src/effect-golden.test.ts:[2m23:15[22m[39m
 
-[90m [2m❯[22m src/effect-golden.test.ts:[2m21:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-golden.test.ts[2m > [22mM5-WO7 Projectile designer ruling[2m > [22mProjectile + Attack Effect has one delivery attack, reused as Effect resolution
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}][39m
+[36m [2m❯[22m effect src/effect-golden.test.ts:[2m15:20[22m[39m
+    [90m 13|[39m const effect = (f: ReturnType<typeof effectFixture>, composition: Reco…
+    [90m 14|[39m   const r = validateEffectUse(effectRequest(f, composition, character)…
+    [90m 15|[39m   if (!r.ok) throw new Error(JSON.stringify(r.problems));
+    [90m   |[39m                    [31m^[39m
+    [90m 16|[39m   return r.value;
+    [90m 17|[39m };
+[90m [2m❯[22m src/effect-golden.test.ts:[2m30:15[22m[39m
 
-[90m [2m❯[22m src/effect-golden.test.ts:[2m29:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-golden.test.ts[2m > [22mM5-WO7 Projectile designer ruling[2m > [22mProjectile + Save Effect is delivery attack then the Effect-owned Save
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}][39m
+[36m [2m❯[22m effect src/effect-golden.test.ts:[2m15:20[22m[39m
+    [90m 13|[39m const effect = (f: ReturnType<typeof effectFixture>, composition: Reco…
+    [90m 14|[39m   const r = validateEffectUse(effectRequest(f, composition, character)…
+    [90m 15|[39m   if (!r.ok) throw new Error(JSON.stringify(r.problems));
+    [90m   |[39m                    [31m^[39m
+    [90m 16|[39m   return r.value;
+    [90m 17|[39m };
+[90m [2m❯[22m src/effect-golden.test.ts:[2m36:15[22m[39m
 
-[90m [2m❯[22m src/effect-golden.test.ts:[2m35:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-golden.test.ts[2m > [22mM5-WO7 Projectile designer ruling[2m > [22mProjectile + Automatic Effect still requires successful delivery
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}][39m
+[36m [2m❯[22m effect src/effect-golden.test.ts:[2m15:20[22m[39m
+    [90m 13|[39m const effect = (f: ReturnType<typeof effectFixture>, composition: Reco…
+    [90m 14|[39m   const r = validateEffectUse(effectRequest(f, composition, character)…
+    [90m 15|[39m   if (!r.ok) throw new Error(JSON.stringify(r.problems));
+    [90m   |[39m                    [31m^[39m
+    [90m 16|[39m   return r.value;
+    [90m 17|[39m };
+[90m [2m❯[22m src/effect-golden.test.ts:[2m43:15[22m[39m
 
-[90m [2m❯[22m src/effect-golden.test.ts:[2m42:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-golden.test.ts[2m > [22mM5-WO7 Spell Line designer ruling[2m > [22mPRO 1 => 10 ft long and 5 ft wide
 [41m[1m FAIL [22m[49m src/effect-golden.test.ts[2m > [22mM5-WO7 Spell Line designer ruling[2m > [22mPRO 2 => 20 ft long and 5 ft wide
@@ -207,359 +209,253 @@ EXIT=0
 [41m[1m FAIL [22m[49m src/effect-golden.test.ts[2m > [22mM5-WO7 Spell Line designer ruling[2m > [22mPRO 4 => 40 ft long and 10 ft wide
 [41m[1m FAIL [22m[49m src/effect-golden.test.ts[2m > [22mM5-WO7 Spell Line designer ruling[2m > [22mPRO 6 => 60 ft long and 15 ft wide
 [41m[1m FAIL [22m[49m src/effect-golden.test.ts[2m > [22mM5-WO7 Spell Line designer ruling[2m > [22mPRO 10 => 100 ft long and 25 ft wide
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_TARGETING.INVALID_TARGETING_CONTEXT","path":"/character/affinityProfile","message":"unknown field \"affinityProfile\" (allowed: stats, skillRanks)"}][39m
+[36m [2m❯[22m targeting src/effect-golden.test.ts:[2m10:20[22m[39m
+    [90m  8|[39m const targeting = (f: ReturnType<typeof effectFixture>, composition: R…
+    [90m  9|[39m   const r = evaluateAbilityTargeting({ contractVersion: 1, subjectKey:…
+    [90m 10|[39m   if (!r.ok) throw new Error(JSON.stringify(r.problems));
+    [90m   |[39m                    [31m^[39m
+    [90m 11|[39m   return r.value;
+    [90m 12|[39m };
+[90m [2m❯[22m src/effect-golden.test.ts:[2m52:15[22m[39m
 
-[90m [2m❯[22m src/effect-golden.test.ts:[2m50:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-golden.test.ts[2m > [22mM5-WO7 Effect contracts[2m > [22mDirect Healing rejects Cone because compatibility is exact
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}][39m
+[36m [2m❯[22m effect src/effect-golden.test.ts:[2m15:20[22m[39m
+    [90m 13|[39m const effect = (f: ReturnType<typeof effectFixture>, composition: Reco…
+    [90m 14|[39m   const r = validateEffectUse(effectRequest(f, composition, character)…
+    [90m 15|[39m   if (!r.ok) throw new Error(JSON.stringify(r.problems));
+    [90m   |[39m                    [31m^[39m
+    [90m 16|[39m   return r.value;
+    [90m 17|[39m };
+[90m [2m❯[22m src/effect-golden.test.ts:[2m61:15[22m[39m
 
-[90m [2m❯[22m src/effect-golden.test.ts:[2m60:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-golden.test.ts[2m > [22mM5-WO7 Effect contracts[2m > [22mCleanse is Healing/Cleanse and does not imply HP restoration
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}][39m
+[36m [2m❯[22m effect src/effect-golden.test.ts:[2m15:20[22m[39m
+    [90m 13|[39m const effect = (f: ReturnType<typeof effectFixture>, composition: Reco…
+    [90m 14|[39m   const r = validateEffectUse(effectRequest(f, composition, character)…
+    [90m 15|[39m   if (!r.ok) throw new Error(JSON.stringify(r.problems));
+    [90m   |[39m                    [31m^[39m
+    [90m 16|[39m   return r.value;
+    [90m 17|[39m };
+[90m [2m❯[22m src/effect-golden.test.ts:[2m67:15[22m[39m
 
-[90m [2m❯[22m src/effect-golden.test.ts:[2m66:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-golden.test.ts[2m > [22mM5-WO7 Effect contracts[2m > [22mMovement and Counterspell remain Utility subfamilies
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}][39m
+[36m [2m❯[22m effect src/effect-golden.test.ts:[2m15:20[22m[39m
+    [90m 13|[39m const effect = (f: ReturnType<typeof effectFixture>, composition: Reco…
+    [90m 14|[39m   const r = validateEffectUse(effectRequest(f, composition, character)…
+    [90m 15|[39m   if (!r.ok) throw new Error(JSON.stringify(r.problems));
+    [90m   |[39m                    [31m^[39m
+    [90m 16|[39m   return r.value;
+    [90m 17|[39m };
+[90m [2m❯[22m src/effect-golden.test.ts:[2m74:22[22m[39m
 
-[90m [2m❯[22m src/effect-golden.test.ts:[2m73:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-golden.test.ts[2m > [22mM5-WO7 Effect contracts[2m > [22mElemental conversion explicitly inherits Ability resolution and creates no extra roll
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}][39m
+[36m [2m❯[22m effect src/effect-golden.test.ts:[2m15:20[22m[39m
+    [90m 13|[39m const effect = (f: ReturnType<typeof effectFixture>, composition: Reco…
+    [90m 14|[39m   const r = validateEffectUse(effectRequest(f, composition, character)…
+    [90m 15|[39m   if (!r.ok) throw new Error(JSON.stringify(r.problems));
+    [90m   |[39m                    [31m^[39m
+    [90m 16|[39m   return r.value;
+    [90m 17|[39m };
+[90m [2m❯[22m src/effect-golden.test.ts:[2m81:15[22m[39m
 
-[90m [2m❯[22m src/effect-golden.test.ts:[2m80:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-golden.test.ts[2m > [22mM5-WO7 Effect contracts[2m > [22mRadius Conversion owns +3 AP, AGI/PRO Save Profile and exact Radius destination; Targeting owns geometry
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}][39m
+[36m [2m❯[22m effect src/effect-golden.test.ts:[2m15:20[22m[39m
+    [90m 13|[39m const effect = (f: ReturnType<typeof effectFixture>, composition: Reco…
+    [90m 14|[39m   const r = validateEffectUse(effectRequest(f, composition, character)…
+    [90m 15|[39m   if (!r.ok) throw new Error(JSON.stringify(r.problems));
+    [90m   |[39m                    [31m^[39m
+    [90m 16|[39m   return r.value;
+    [90m 17|[39m };
+[90m [2m❯[22m src/effect-golden.test.ts:[2m88:15[22m[39m
 
-[90m [2m❯[22m src/effect-golden.test.ts:[2m87:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-golden.test.ts[2m > [22mM5-WO7 historical reproducibility[2m > [22mkeeps WO6 historical Projectile/Line assumptions reproducible while current canon is amended
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_TARGETING.INVALID_TARGETING_CONTEXT","path":"/character/affinityProfile","message":"unknown field \"affinityProfile\" (allowed: stats, skillRanks)"}][39m
+[36m [2m❯[22m targeting src/effect-golden.test.ts:[2m10:20[22m[39m
+    [90m  8|[39m const targeting = (f: ReturnType<typeof effectFixture>, composition: R…
+    [90m  9|[39m   const r = evaluateAbilityTargeting({ contractVersion: 1, subjectKey:…
+    [90m 10|[39m   if (!r.ok) throw new Error(JSON.stringify(r.problems));
+    [90m   |[39m                    [31m^[39m
+    [90m 11|[39m   return r.value;
+    [90m 12|[39m };
+[90m [2m❯[22m src/effect-golden.test.ts:[2m105:27[22m[39m
 
-[90m [2m❯[22m src/effect-golden.test.ts:[2m103:17[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-golden.test.ts[2m > [22mM5-WO7 historical reproducibility[2m > [22mpins Effect EntityVersions: publishing a revised R2 does not alter R1 evaluation
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}][39m
+[36m [2m❯[22m effect src/effect-golden.test.ts:[2m15:20[22m[39m
+    [90m 13|[39m const effect = (f: ReturnType<typeof effectFixture>, composition: Reco…
+    [90m 14|[39m   const r = validateEffectUse(effectRequest(f, composition, character)…
+    [90m 15|[39m   if (!r.ok) throw new Error(JSON.stringify(r.problems));
+    [90m   |[39m                    [31m^[39m
+    [90m 16|[39m   return r.value;
+    [90m 17|[39m };
+[90m [2m❯[22m src/effect-golden.test.ts:[2m114:15[22m[39m
 
-[90m [2m❯[22m src/effect-golden.test.ts:[2m112:16[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-inspector.test.ts[2m > [22mM5-WO7 Rules Inspector Effect fixtures[2m > [22mshows Projectile + Attack Effect delivery separately from Effect resolution
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}][39m
+[36m [2m❯[22m run src/effect-inspector.test.ts:[2m7:25[22m[39m
+    [90m  5|[39m const run = (f: ReturnType<typeof effectFixture>, composition: Record<…
+    [90m  6|[39m   const result = validateEffectUse(effectRequest(f, composition, chara…
+    [90m  7|[39m   if (!result.ok) throw new Error(JSON.stringify(result.problems));
+    [90m   |[39m                         [31m^[39m
+    [90m  8|[39m   return result.value;
+    [90m  9|[39m };
+[90m [2m❯[22m src/effect-inspector.test.ts:[2m14:15[22m[39m
 
-[90m [2m❯[22m src/effect-inspector.test.ts:[2m13:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-inspector.test.ts[2m > [22mM5-WO7 Rules Inspector Effect fixtures[2m > [22mshows Projectile + Save Effect as delivery then exact Effect Save Profile
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}][39m
+[36m [2m❯[22m run src/effect-inspector.test.ts:[2m7:25[22m[39m
+    [90m  5|[39m const run = (f: ReturnType<typeof effectFixture>, composition: Record<…
+    [90m  6|[39m   const result = validateEffectUse(effectRequest(f, composition, chara…
+    [90m  7|[39m   if (!result.ok) throw new Error(JSON.stringify(result.problems));
+    [90m   |[39m                         [31m^[39m
+    [90m  8|[39m   return result.value;
+    [90m  9|[39m };
+[90m [2m❯[22m src/effect-inspector.test.ts:[2m21:15[22m[39m
 
-[90m [2m❯[22m src/effect-inspector.test.ts:[2m20:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-inspector.test.ts[2m > [22mM5-WO7 Rules Inspector Effect fixtures[2m > [22mshows Direct Damage PRO scaling validation and selected parameter
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}][39m
+[36m [2m❯[22m run src/effect-inspector.test.ts:[2m7:25[22m[39m
+    [90m  5|[39m const run = (f: ReturnType<typeof effectFixture>, composition: Record<…
+    [90m  6|[39m   const result = validateEffectUse(effectRequest(f, composition, chara…
+    [90m  7|[39m   if (!result.ok) throw new Error(JSON.stringify(result.problems));
+    [90m   |[39m                         [31m^[39m
+    [90m  8|[39m   return result.value;
+    [90m  9|[39m };
+[90m [2m❯[22m src/effect-inspector.test.ts:[2m28:15[22m[39m
 
-[90m [2m❯[22m src/effect-inspector.test.ts:[2m27:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-inspector.test.ts[2m > [22mM5-WO7 Rules Inspector Effect fixtures[2m > [22mshows Maneuver Radius Conversion ownership without moving Save/cost to Targeting
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}][39m
+[36m [2m❯[22m run src/effect-inspector.test.ts:[2m7:25[22m[39m
+    [90m  5|[39m const run = (f: ReturnType<typeof effectFixture>, composition: Record<…
+    [90m  6|[39m   const result = validateEffectUse(effectRequest(f, composition, chara…
+    [90m  7|[39m   if (!result.ok) throw new Error(JSON.stringify(result.problems));
+    [90m   |[39m                         [31m^[39m
+    [90m  8|[39m   return result.value;
+    [90m  9|[39m };
+[90m [2m❯[22m src/effect-inspector.test.ts:[2m35:15[22m[39m
 
-[90m [2m❯[22m src/effect-inspector.test.ts:[2m34:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-inspector.test.ts[2m > [22mM5-WO7 Rules Inspector Effect fixtures[2m > [22mexposes exact Ruleset / EntityVersion provenance for Studio inspection
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mError[22m: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}][39m
+[36m [2m❯[22m run src/effect-inspector.test.ts:[2m7:25[22m[39m
+    [90m  5|[39m const run = (f: ReturnType<typeof effectFixture>, composition: Record<…
+    [90m  6|[39m   const result = validateEffectUse(effectRequest(f, composition, chara…
+    [90m  7|[39m   if (!result.ok) throw new Error(JSON.stringify(result.problems));
+    [90m   |[39m                         [31m^[39m
+    [90m  8|[39m   return result.value;
+    [90m  9|[39m };
+[90m [2m❯[22m src/effect-inspector.test.ts:[2m43:15[22m[39m
 
-[90m [2m❯[22m src/effect-inspector.test.ts:[2m42:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/34]⎯[22m[39m
-
-[41m[1m FAIL [22m[49m src/effect-security.test.ts[2m > [22mM5-WO7 Effect input safety[2m > [22mrejects functions and getters rather than invoking them
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
-
-[90m [2m❯[22m src/effect-security.test.ts:[2m11:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/34]⎯[22m[39m
-
-[41m[1m FAIL [22m[49m src/effect-security.test.ts[2m > [22mM5-WO7 Effect input safety[2m > [22mrejects cyclic, unsafe-prototype and non-finite values
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
-
-[90m [2m❯[22m src/effect-security.test.ts:[2m22:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/34]⎯[22m[39m
-
-[41m[1m FAIL [22m[49m src/effect-security.test.ts[2m > [22mM5-WO7 Effect input safety[2m > [22mrejects negative / invalid scaling parameter quantities
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
-
-[90m [2m❯[22m src/effect-security.test.ts:[2m38:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/34]⎯[22m[39m
-
-[41m[1m FAIL [22m[49m src/effect-security.test.ts[2m > [22mM5-WO7 Effect input safety[2m > [22mrejects unknown Spell Effect families and malformed Save Profiles
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
-
-[90m [2m❯[22m src/effect-security.test.ts:[2m45:23[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/34]⎯[22m[39m
-
-[41m[1m FAIL [22m[49m src/effect-security.test.ts[2m > [22mM5-WO7 Effect input safety[2m > [22mrejects unsafe outcome data and invalid Formula scaling
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
-
-[90m [2m❯[22m src/effect-security.test.ts:[2m59:24[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/34]⎯[22m[39m
-
-[41m[1m FAIL [22m[49m src/effect-security.test.ts[2m > [22mM5-WO7 Effect determinism and Ruleset isolation[2m > [22mproduces deep-equal results for the same exact inputs
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
-
-[90m [2m❯[22m src/effect-security.test.ts:[2m71:15[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/34]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/27]⎯[22m[39m
 
 [41m[1m FAIL [22m[49m src/effect-security.test.ts[2m > [22mM5-WO7 Effect determinism and Ruleset isolation[2m > [22mkeeps concurrent R1/R2 Effect evaluation isolated
-[31m[1mError[22m: [
-  {
-    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",
-    "path": "/definitions/68/schemaVersion",
-    "message": "a undefined is not plain data"
-  }
-][39m
-[36m [2m❯[22m effectFixture src/testing/effect-fixtures.ts:[2m72:108[22m[39m
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
 
-[90m [2m❯[22m src/effect-security.test.ts:[2m79:16[22m[39m
+[32m- Expected[39m
+[31m+ Received[39m
 
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/34]⎯[22m[39m
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m src/effect-security.test.ts:[2m86:26[22m[39m
+    [90m 84|[39m       Promise.resolve(validateEffectUse(effectRequest(r2, spellEffectA…
+    [90m 85|[39m     ]);
+    [90m 86|[39m     expect(a.ok && b.ok).toBe(true);
+    [90m   |[39m                          [31m^[39m
+    [90m 87|[39m     if (!a.ok || !b.ok) return;
+    [90m 88|[39m     const amount = (r: typeof a.value) => { const c = r.costContributi…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/27]⎯[22m[39m
 
 
 [2m Test Files [22m [1m[31m4 failed[39m[22m[90m (4)[39m
-[2m      Tests [22m [1m[31m34 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (37)[39m
-[2m   Start at [22m 23:37:31
-[2m   Duration [22m 1.35s[2m (transform 63%, tests 21%, import 16%)[22m
+[2m      Tests [22m [1m[31m27 failed[39m[22m[2m | [22m[1m[32m10 passed[39m[22m[90m (37)[39m
+[2m   Start at [22m 23:38:46
+[2m   Duration [22m 5.19s[2m (tests 73%, transform 21%, import 7%)[22m
 
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-contracts.test.ts > M5-WO7 Effect grammar > keeps Spell and Maneuver Effects branch-specific,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-contracts.test.ts:31:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-contracts.test.ts,title=src/effect-contracts.test.ts > M5-WO7 Effect grammar > requires an explicit Spell resolution and permits only explicit Maneuver inheritance,line=44,column=26::AssertionError: expected false to be true // Object.is equality%0A%0A- Expected%0A+ Received%0A%0A- true%0A+ false%0A%0A ❯ src/effect-contracts.test.ts:44:26%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-contracts.test.ts > M5-WO7 Effect grammar > requires an explicit Spell resolution and permits only explicit Maneuver inheritance,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-contracts.test.ts:39:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-contracts.test.ts,title=src/effect-contracts.test.ts > M5-WO7 Effect grammar > rejects character-dice scaling above PRO per Effect,line=53,column=41::AssertionError: expected false to be true // Object.is equality%0A%0A- Expected%0A+ Received%0A%0A- true%0A+ false%0A%0A ❯ src/effect-contracts.test.ts:53:41%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-contracts.test.ts > M5-WO7 Effect grammar > rejects character-dice scaling above PRO per Effect,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-contracts.test.ts:49:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-contracts.test.ts,title=src/effect-contracts.test.ts > M5-WO7 Effect grammar > stores listed AP/MP contributions but never ME or final Ability cost,line=59,column=18::AssertionError: expected false to be true // Object.is equality%0A%0A- Expected%0A+ Received%0A%0A- true%0A+ false%0A%0A ❯ src/effect-contracts.test.ts:59:18%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-contracts.test.ts > M5-WO7 Effect grammar > stores listed AP/MP contributions but never ME or final Ability cost,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-contracts.test.ts:57:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-contracts.test.ts,title=src/effect-contracts.test.ts > M5-WO7 Effect grammar > is JSON-safe and does not mutate exact inputs,line=77,column=18::AssertionError: expected false to be true // Object.is equality%0A%0A- Expected%0A+ Received%0A%0A- true%0A+ false%0A%0A ❯ src/effect-contracts.test.ts:77:18%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-contracts.test.ts > M5-WO7 Effect grammar > is JSON-safe and does not mutate exact inputs,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-contracts.test.ts:72:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 Projectile designer ruling > Projectile costs 3 MP and uses the caster's applicable Range,line=10,column=20::Error: [{"code":"PROWESS_TARGETING.INVALID_TARGETING_CONTEXT","path":"/character/affinityProfile","message":"unknown field \"affinityProfile\" (allowed: stats, skillRanks)"}]%0A ❯ targeting src/effect-golden.test.ts:10:20%0A ❯ src/effect-golden.test.ts:23:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 Projectile designer ruling > Projectile costs 3 MP and uses the caster's applicable Range,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:21:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 Projectile designer ruling > Projectile + Attack Effect has one delivery attack%2C reused as Effect resolution,line=15,column=20::Error: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}]%0A ❯ effect src/effect-golden.test.ts:15:20%0A ❯ src/effect-golden.test.ts:30:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 Projectile designer ruling > Projectile + Attack Effect has one delivery attack%2C reused as Effect resolution,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:29:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 Projectile designer ruling > Projectile + Save Effect is delivery attack then the Effect-owned Save,line=15,column=20::Error: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}]%0A ❯ effect src/effect-golden.test.ts:15:20%0A ❯ src/effect-golden.test.ts:36:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 Projectile designer ruling > Projectile + Save Effect is delivery attack then the Effect-owned Save,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:35:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 Projectile designer ruling > Projectile + Automatic Effect still requires successful delivery,line=15,column=20::Error: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}]%0A ❯ effect src/effect-golden.test.ts:15:20%0A ❯ src/effect-golden.test.ts:43:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 Projectile designer ruling > Projectile + Automatic Effect still requires successful delivery,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:42:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 Spell Line designer ruling > PRO 1 => 10 ft long and 5 ft wide,line=10,column=20::Error: [{"code":"PROWESS_TARGETING.INVALID_TARGETING_CONTEXT","path":"/character/affinityProfile","message":"unknown field \"affinityProfile\" (allowed: stats, skillRanks)"}]%0A ❯ targeting src/effect-golden.test.ts:10:20%0A ❯ src/effect-golden.test.ts:52:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 Spell Line designer ruling > PRO 1 => 10 ft long and 5 ft wide,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:50:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 Spell Line designer ruling > PRO 2 => 20 ft long and 5 ft wide,line=10,column=20::Error: [{"code":"PROWESS_TARGETING.INVALID_TARGETING_CONTEXT","path":"/character/affinityProfile","message":"unknown field \"affinityProfile\" (allowed: stats, skillRanks)"}]%0A ❯ targeting src/effect-golden.test.ts:10:20%0A ❯ src/effect-golden.test.ts:52:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 Spell Line designer ruling > PRO 2 => 20 ft long and 5 ft wide,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:50:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 Spell Line designer ruling > PRO 3 => 30 ft long and 10 ft wide,line=10,column=20::Error: [{"code":"PROWESS_TARGETING.INVALID_TARGETING_CONTEXT","path":"/character/affinityProfile","message":"unknown field \"affinityProfile\" (allowed: stats, skillRanks)"}]%0A ❯ targeting src/effect-golden.test.ts:10:20%0A ❯ src/effect-golden.test.ts:52:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 Spell Line designer ruling > PRO 3 => 30 ft long and 10 ft wide,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:50:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 Spell Line designer ruling > PRO 4 => 40 ft long and 10 ft wide,line=10,column=20::Error: [{"code":"PROWESS_TARGETING.INVALID_TARGETING_CONTEXT","path":"/character/affinityProfile","message":"unknown field \"affinityProfile\" (allowed: stats, skillRanks)"}]%0A ❯ targeting src/effect-golden.test.ts:10:20%0A ❯ src/effect-golden.test.ts:52:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 Spell Line designer ruling > PRO 4 => 40 ft long and 10 ft wide,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:50:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 Spell Line designer ruling > PRO 6 => 60 ft long and 15 ft wide,line=10,column=20::Error: [{"code":"PROWESS_TARGETING.INVALID_TARGETING_CONTEXT","path":"/character/affinityProfile","message":"unknown field \"affinityProfile\" (allowed: stats, skillRanks)"}]%0A ❯ targeting src/effect-golden.test.ts:10:20%0A ❯ src/effect-golden.test.ts:52:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 Spell Line designer ruling > PRO 6 => 60 ft long and 15 ft wide,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:50:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 Spell Line designer ruling > PRO 10 => 100 ft long and 25 ft wide,line=10,column=20::Error: [{"code":"PROWESS_TARGETING.INVALID_TARGETING_CONTEXT","path":"/character/affinityProfile","message":"unknown field \"affinityProfile\" (allowed: stats, skillRanks)"}]%0A ❯ targeting src/effect-golden.test.ts:10:20%0A ❯ src/effect-golden.test.ts:52:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 Spell Line designer ruling > PRO 10 => 100 ft long and 25 ft wide,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:50:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 Effect contracts > Direct Healing rejects Cone because compatibility is exact,line=15,column=20::Error: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}]%0A ❯ effect src/effect-golden.test.ts:15:20%0A ❯ src/effect-golden.test.ts:61:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 Effect contracts > Direct Healing rejects Cone because compatibility is exact,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:60:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 Effect contracts > Cleanse is Healing/Cleanse and does not imply HP restoration,line=15,column=20::Error: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}]%0A ❯ effect src/effect-golden.test.ts:15:20%0A ❯ src/effect-golden.test.ts:67:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 Effect contracts > Cleanse is Healing/Cleanse and does not imply HP restoration,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:66:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 Effect contracts > Movement and Counterspell remain Utility subfamilies,line=15,column=20::Error: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}]%0A ❯ effect src/effect-golden.test.ts:15:20%0A ❯ src/effect-golden.test.ts:74:22%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 Effect contracts > Movement and Counterspell remain Utility subfamilies,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:73:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 Effect contracts > Elemental conversion explicitly inherits Ability resolution and creates no extra roll,line=15,column=20::Error: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}]%0A ❯ effect src/effect-golden.test.ts:15:20%0A ❯ src/effect-golden.test.ts:81:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 Effect contracts > Elemental conversion explicitly inherits Ability resolution and creates no extra roll,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:80:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 Effect contracts > Radius Conversion owns +3 AP%2C AGI/PRO Save Profile and exact Radius destination; Targeting owns geometry,line=15,column=20::Error: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}]%0A ❯ effect src/effect-golden.test.ts:15:20%0A ❯ src/effect-golden.test.ts:88:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 Effect contracts > Radius Conversion owns +3 AP%2C AGI/PRO Save Profile and exact Radius destination; Targeting owns geometry,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:87:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 historical reproducibility > keeps WO6 historical Projectile/Line assumptions reproducible while current canon is amended,line=10,column=20::Error: [{"code":"PROWESS_TARGETING.INVALID_TARGETING_CONTEXT","path":"/character/affinityProfile","message":"unknown field \"affinityProfile\" (allowed: stats, skillRanks)"}]%0A ❯ targeting src/effect-golden.test.ts:10:20%0A ❯ src/effect-golden.test.ts:105:27%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 historical reproducibility > keeps WO6 historical Projectile/Line assumptions reproducible while current canon is amended,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:103:17%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-golden.test.ts,title=src/effect-golden.test.ts > M5-WO7 historical reproducibility > pins Effect EntityVersions%3A publishing a revised R2 does not alter R1 evaluation,line=15,column=20::Error: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}]%0A ❯ effect src/effect-golden.test.ts:15:20%0A ❯ src/effect-golden.test.ts:114:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-golden.test.ts > M5-WO7 historical reproducibility > pins Effect EntityVersions%3A publishing a revised R2 does not alter R1 evaluation,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-golden.test.ts:112:16%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-inspector.test.ts,title=src/effect-inspector.test.ts > M5-WO7 Rules Inspector Effect fixtures > shows Projectile + Attack Effect delivery separately from Effect resolution,line=7,column=25::Error: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}]%0A ❯ run src/effect-inspector.test.ts:7:25%0A ❯ src/effect-inspector.test.ts:14:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-inspector.test.ts > M5-WO7 Rules Inspector Effect fixtures > shows Projectile + Attack Effect delivery separately from Effect resolution,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-inspector.test.ts:13:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-inspector.test.ts,title=src/effect-inspector.test.ts > M5-WO7 Rules Inspector Effect fixtures > shows Projectile + Save Effect as delivery then exact Effect Save Profile,line=7,column=25::Error: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}]%0A ❯ run src/effect-inspector.test.ts:7:25%0A ❯ src/effect-inspector.test.ts:21:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-inspector.test.ts > M5-WO7 Rules Inspector Effect fixtures > shows Projectile + Save Effect as delivery then exact Effect Save Profile,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-inspector.test.ts:20:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-inspector.test.ts,title=src/effect-inspector.test.ts > M5-WO7 Rules Inspector Effect fixtures > shows Direct Damage PRO scaling validation and selected parameter,line=7,column=25::Error: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}]%0A ❯ run src/effect-inspector.test.ts:7:25%0A ❯ src/effect-inspector.test.ts:28:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-inspector.test.ts > M5-WO7 Rules Inspector Effect fixtures > shows Direct Damage PRO scaling validation and selected parameter,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-inspector.test.ts:27:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-inspector.test.ts,title=src/effect-inspector.test.ts > M5-WO7 Rules Inspector Effect fixtures > shows Maneuver Radius Conversion ownership without moving Save/cost to Targeting,line=7,column=25::Error: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}]%0A ❯ run src/effect-inspector.test.ts:7:25%0A ❯ src/effect-inspector.test.ts:35:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-inspector.test.ts > M5-WO7 Rules Inspector Effect fixtures > shows Maneuver Radius Conversion ownership without moving Save/cost to Targeting,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-inspector.test.ts:34:15%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-inspector.test.ts,title=src/effect-inspector.test.ts > M5-WO7 Rules Inspector Effect fixtures > exposes exact Ruleset / EntityVersion provenance for Studio inspection,line=7,column=25::Error: [{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/accessGrants","message":"a undefined is not plain data"},{"code":"PROWESS_DEFINITION.NOT_PLAIN_DATA","path":"/construction/options","message":"a undefined is not plain data"}]%0A ❯ run src/effect-inspector.test.ts:7:25%0A ❯ src/effect-inspector.test.ts:43:15%0A%0A
 
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-inspector.test.ts > M5-WO7 Rules Inspector Effect fixtures > exposes exact Ruleset / EntityVersion provenance for Studio inspection,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-inspector.test.ts:42:15%0A%0A
-
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-security.test.ts > M5-WO7 Effect input safety > rejects functions and getters rather than invoking them,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-security.test.ts:11:15%0A%0A
-
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-security.test.ts > M5-WO7 Effect input safety > rejects cyclic%2C unsafe-prototype and non-finite values,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-security.test.ts:22:15%0A%0A
-
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-security.test.ts > M5-WO7 Effect input safety > rejects negative / invalid scaling parameter quantities,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-security.test.ts:38:15%0A%0A
-
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-security.test.ts > M5-WO7 Effect input safety > rejects unknown Spell Effect families and malformed Save Profiles,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-security.test.ts:45:23%0A%0A
-
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-security.test.ts > M5-WO7 Effect input safety > rejects unsafe outcome data and invalid Formula scaling,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-security.test.ts:59:24%0A%0A
-
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-security.test.ts > M5-WO7 Effect determinism and Ruleset isolation > produces deep-equal results for the same exact inputs,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-security.test.ts:71:15%0A%0A
-
-::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/testing/effect-fixtures.ts,title=src/effect-security.test.ts > M5-WO7 Effect determinism and Ruleset isolation > keeps concurrent R1/R2 Effect evaluation isolated,line=72,column=108::Error: [%0A  {%0A    "code": "PROWESS_DEFINITION.NOT_PLAIN_DATA",%0A    "path": "/definitions/68/schemaVersion",%0A    "message": "a undefined is not plain data"%0A  }%0A]%0A ❯ effectFixture src/testing/effect-fixtures.ts:72:108%0A ❯ src/effect-security.test.ts:79:16%0A%0A
+::error file=/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game/src/effect-security.test.ts,title=src/effect-security.test.ts > M5-WO7 Effect determinism and Ruleset isolation > keeps concurrent R1/R2 Effect evaluation isolated,line=86,column=26::AssertionError: expected false to be true // Object.is equality%0A%0A- Expected%0A+ Received%0A%0A- true%0A+ false%0A%0A ❯ src/effect-security.test.ts:86:26%0A%0A
 undefined
 /home/runner/work/prowess-studio/prowess-studio/packages/prowess-game:
  ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/effect-golden.test.ts src/effect-contracts.test.ts src/effect-security.test.ts src/effect-inspector.test.ts
@@ -569,17 +465,17 @@ EXIT=1
 
 [1m[30m[46m RUN [49m[39m[22m [36mv5.0.2 [39m[90m/home/runner/work/prowess-studio/prowess-studio/apps/studio[39m
 
- [31m❯[39m tests/unit/m5-wo7-static.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 16[2mms[22m[39m
+ [31m❯[39m tests/unit/m5-wo7-static.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 25[2mms[22m[39m
    [31m❯[39m M5-WO7 audit — Effect framework & Spell/Maneuver contracts [2m(9)[22m
-     [32m✓[39m keeps Prowess Effect semantics out of the generic M4 package and DB access out of @prowess/game[32m 1[2mms[22m[39m
-[31m     [31m×[31m preserves branch separation and exactly seven canonical Spell Effect families[39m[32m 4[2mms[22m[39m
-     [32m✓[39m locks Projectile to 3 MP, caster Range and Ranged Attack delivery while Effect Save remains separate[32m 0[2mms[22m[39m
-     [32m✓[39m locks Spell Line to 10×PRO and 5×ceil(PRO/2), with no deferred current-canon width[32m 0[2mms[22m[39m
-     [32m✓[39m uses exact compatibility, explicit Spell resolution and explicit Maneuver inheritance[32m 0[2mms[22m[39m
+     [32m✓[39m keeps Prowess Effect semantics out of the generic M4 package and DB access out of @prowess/game[32m 2[2mms[22m[39m
+[31m     [31m×[31m preserves branch separation and exactly seven canonical Spell Effect families[39m[32m 7[2mms[22m[39m
+     [32m✓[39m locks Projectile to 3 MP, caster Range and Ranged Attack delivery while Effect Save remains separate[32m 1[2mms[22m[39m
+     [32m✓[39m locks Spell Line to 10×PRO and 5×ceil(PRO/2), with no deferred current-canon width[32m 1[2mms[22m[39m
+     [32m✓[39m uses exact compatibility, explicit Spell resolution and explicit Maneuver inheritance[32m 1[2mms[22m[39m
      [32m✓[39m keeps Character Dice limits per Effect and forbids global or implicit secondary mechanics[32m 0[2mms[22m[39m
-[31m     [31m×[31m keeps conversion cost/save data on Maneuver Effects rather than Maneuver Targeting[39m[32m 6[2mms[22m[39m
+[31m     [31m×[31m keeps conversion cost/save data on Maneuver Effects rather than Maneuver Targeting[39m[32m 8[2mms[22m[39m
      [32m✓[39m does not calculate final Ability cost or execute runtime Effects / chains / ME feedback[32m 0[2mms[22m[39m
-     [32m✓[39m pins exact Ruleset/version provenance and represents all M5-I001–I212 invariants[32m 2[2mms[22m[39m
+     [32m✓[39m pins exact Ruleset/version provenance and represents all M5-I001–I212 invariants[32m 4[2mms[22m[39m
 
 [31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
 
@@ -823,8 +719,8 @@ EXIT=1
 
 [2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
 [2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m7 passed[39m[22m[90m (9)[39m
-[2m   Start at [22m 23:37:33
-[2m   Duration [22m 621ms[2m (environment 72%, setup 19%, transform 5%, tests 3%, import 1%, worker 1%)[22m
+[2m   Start at [22m 23:38:52
+[2m   Duration [22m 1.07s[2m (environment 73%, setup 19%, transform 5%, tests 3%, worker 1%)[22m
 
 
 ::error file=/home/runner/work/prowess-studio/prowess-studio/apps/studio/tests/unit/m5-wo7-static.test.ts,title=tests/unit/m5-wo7-static.test.ts > M5-WO7 audit — Effect framework & Spell/Maneuver contracts > preserves branch separation and exactly seven canonical Spell Effect families,line=37,column=21::AssertionError: expected 'import type { JsonObject } from "@pro…' to contain 'branch === "MANEUVER"'%0A%0A- Expected%0A+ Received%0A%0A- branch === "MANEUVER"%0A+ import type { JsonObject } from "@prowess/model";%0A+ import { validateFormulaProgram } from "@prowess/rules";%0A+ import { readDefinitionRef, type ProwessDefinitionRef } from "./envelope.js";%0A+ import type { CostContribution, EffectDefinitionPayload } from "./payload.js";%0A+ import { isPlainObject, type PathSegment } from "../internal/plain-data.js";%0A+ import { Problems, isToken, own, readEnum, readRecord, readSafeInteger } from "../internal/problems.js";%0A+ import { DURATION_CONCEPTS, type DurationConcept, type ResolutionMode } from "../vocabulary/construction.js";%0A+ import { PROWESS_STATS, type ProwessStat } from "../vocabulary/core.js";%0A+ import type { TargetCategory } from "../vocabulary/targeting.js";%0A+ import {%0A+   EFFECT_ATTACK_TYPES,%0A+   EFFECT_COST_KINDS,%0A+   EFFECT_OUTCOME_KEYS,%0A+   EFFECT_OUTCOME_OPERATIONS,%0A+   EFFECT_RESOLUTION_POLICIES,%0A+   EFFECT_SAVE_SELECTION_POLICIES,%0A+   EFFECT_SUBFAMILIES,%0A+   SPELL_EFFECT_FAMILIES,%0A+   TARGETING_DELIVERY_CHECKS,%0A+   type EffectAttackType,%0A+   type EffectOutcomeOperation,%0A+   type EffectResolutionPolicy,%0A+   type EffectSaveSelectionPolicy,%0A+   type EffectSubfamily,%0A+   type SpellEffectFamily,%0A+   type TargetingDeliveryCheck,%0A+ } from "../vocabulary/effect.js";%0A+%0A+ export const EFFECT_ERROR_CODES = Object.freeze({%0A+   INVALID_EFFECT_RULES: "PROWESS_EFFECT.INVALID_EFFECT_RULES",%0A+   INVALID_EFFECT_COST: "PROWESS_EFFECT.INVALID_EFFECT_COST",%0A+   EFFECT_RULE_MISSING: "PROWESS_EFFECT.EFFECT_RULE_MISSING",%0A+   SPELL_EFFECT_RESOLUTION_REQUIRED: "PROWESS_EFFECT.SPELL_EFFECT_RESOLUTION_REQUIRED",%0A+   INVALID_INHERITED_RESOLUTION: "PROWESS_EFFECT.INVALID_INHERITED_RESOLUTION",%0A+   INVALID_OUTCOMES: "PROWESS_EFFECT.INVALID_OUTCOMES",%0A+   INVALID_DELIVERY_RULE: "PROWESS_EFFECT.INVALID_DELIVERY_RULE",%0A+ } as const);%0A+ const E = EFFECT_ERROR_CODES;%0A+ const TARGETS = ["SELF", "CREATURE", "OBJECT", "POINT", "SPACE", "AREA", "SOURCE"] as const satisfies readonly TargetCategory[];%0A+ const PARAM = /^[a-z][A-Za-z0-9]{0,63}$/;%0A+%0A+ export type EffectLimit = { readonly kind: "FIXED"; readonly value: number } | { readonly kind: "STAT"; readonly stat: ProwessStat };%0A+ export interface EffectParameterRule { readonly parameter: string; readonly kind: "COUNT" | "TOKEN" | "FLAG"; readonly minimum: number | null; readonly maximum: EffectLimit | null; readonly increment: number | null; readonly default: number | string | boolean | null; readonly allowed: readonly string[]; }%0A+ export type EffectFormulaVariable = { readonly variable: string; readonly source: { readonly kind: "STAT"; readonly stat: ProwessStat } | { readonly kind: "PARAMETER"; readonly parameter: string } | { readonly kind: "MARTIAL_RANK_VALUE" } };%0A+ export interface EffectFormula { readonly formulaKey: string; readonly expression: string; readonly rounding: "NONE" | "FLOOR" | "CEIL"; readonly minimum: number | null; readonly unit: string | null; readonly variables: readonly EffectFormulaVariable[]; }%0A+ export interface EffectSaveProfile { readonly validSaves: readonly ProwessStat[]; readonly selectionPolicy: EffectSaveSelectionPolicy; }%0A+ export interface EffectDurationPolicy { readonly allowed: readonly DurationConcept[]; readonly default: DurationConcept | null; readonly sustainEligible: boolean; readonly manaLockEligible: boolean; }%0A+ export interface EffectRules { readonly branch: "SPELL" | "MANEUVER"; readonly effectSubfamily: EffectSubfamily | null; readonly targetCategories: readonly TargetCategory[]; readonly resolutionPolicy: EffectResolutionPolicy; readonly attackType: EffectAttackType | null; readonly saveProfile: EffectSaveProfile | null; readonly parameters: readonly EffectParameterRule[]; readonly formulas: readonly EffectFormula[]; readonly duration: EffectDurationPolicy; readonly targetingConversion: { readonly destination: ProwessDefinitionRef } | null; readonly restrictions: readonly string[]; }%0A+ export type EffectCostRule = { readonly contributionKey: string; readonly kind: "FIXED"; readonly currency: "AP" | "MP"; readonly amount: number } | { readonly contributionKey: string; readonly kind: "PER_UNIT"; readonly currency: "AP" | "MP"; readonly parameter: string; readonly amount: number; readonly includedUnits: number } | { readonly contributionKey: string; readonly kind: "PER_SELECTION"; readonly currency: "AP" | "MP"; readonly parameter: string; readonly amounts: Readonly<Record<string, number>> };%0A+ export interface EffectOutcomeReading { readonly outcomeKey: "SUCCESS" | "FAILURE"; readonly operations: readonly { readonly kind: EffectOutcomeOperation; readonly data: JsonObject }[]; }%0A+ export interface TargetingDeliveryRule { readonly check: TargetingDeliveryCheck; }%0A+%0A+ const integer = (v: unknown, at: readonly PathSegment[], p: Problems, what: string, positive = false): number | null => { const n = readSafeInteger(v, at, p, E.INVALID_EFFECT_RULES, what); if (n !== null && (n < 0 || (positive && n === 0))) { p.add(E.INVALID_EFFECT_RULES, at, `${what} is ${positive ? "positive" : "non-negative"}`); return null; } return n; };%0A+ const limit = (v: unknown, at: readonly PathSegment[], p: Problems): EffectLimit | null => {%0A+   if (v == null) return null;%0A+   const r = readRecord(v, at, p, E.INVALID_EFFECT_RULES, ["kind", "value", "stat"], ["kind"]); if (!r) return null;%0A+   const k = readEnum(own(r, "kind"), ["FIXED", "STAT"] as const, [...at, "kind"], p, E.INVALID_EFFECT_RULES, "limit kind");%0A+   if (k === "FIXED") { const value = integer(own(r, "value"), [...at, "value"], p, "maximum"); return value === null ? null : { kind: k, value }; }%0A+   if (k === "STAT") { const stat = readEnum(own(r, "stat"), PROWESS_STATS, [...at, "stat"], p, E.INVALID_EFFECT_RULES, "limit Stat"); return stat === null ? null : { kind: k, stat }; }%0A+   return null;%0A+ };%0A+ function parameters(v: unknown, at: readonly PathSegment[], p: Problems): EffectParameterRule[] {%0A+   if (!Array.isArray(v)) { p.add(E.INVALID_EFFECT_RULES, at, "parameters is an array"); return []; }%0A+   const out: EffectParameterRule[] = [];%0A+   v.forEach((x, i) => {%0A+     const q = readRecord(x, [...at, i], p, E.INVALID_EFFECT_RULES, ["parameter", "kind", "minimum", "maximum", "increment", "default", "allowed"], ["parameter", "kind"]); if (!q) return;%0A+     const name = own(q, "parameter"); const kind = readEnum(own(q, "kind"), ["COUNT", "TOKEN", "FLAG"] as const, [...at, i, "kind"], p, E.INVALID_EFFECT_RULES, "parameter kind");%0A+     if (typeof name !== "string" || !PARAM.test(name) || out.some((e) => e.parameter === name)) { p.add(E.INVALID_EFFECT_RULES, [...at, i, "parameter"], "unique lowerCamel parameter"); return; }%0A+     if (!kind) return;%0A+     if (kind === "COUNT") {%0A+       const minimum = own(q, "minimum") == null ? null : integer(own(q, "minimum"), [...at, i, "minimum"], p, "minimum");%0A+       const maximum = limit(own(q, "maximum"), [...at, i, "maximum"], p);%0A+       const increment = own(q, "increment") == null ? 1 : integer(own(q, "increment"), [...at, i, "increment"], p, "increment", true);%0A+       const d = own(q, "default"); const def = d == null ? null : integer(d, [...at, i, "default"], p, "default");%0A+       out.push({ parameter: name, kind, minimum, maximum, increment, default: def, allowed: [] }); return;%0A+     }%0A+     if (kind === "FLAG") { const d = own(q, "default"); if (typeof d !== "boolean") p.add(E.INVALID_EFFECT_RULES, [...at, i, "default"], "FLAG default is boolean"); out.push({ parameter: name, kind, minimum: null, maximum: null, increment: null, default: typeof d === "boolean" ? d : null, allowed: [] }); return; }%0A+     const a = own(q, "allowed"); const allowed = Array.isArray(a) ? a.filter((e): e is string => isToken(e)) : [];%0A+     if (!Array.isArray(a) || allowed.length !== a.length || allowed.length === 0 || new Set(allowed).size !== allowed.length) p.add(E.INVALID_EFFECT_RULES, [...at, i, "allowed"], "TOKEN allowed is a non-empty unique token list");%0A+     const d = own(q, "default"); if (d != null && (typeof d !== "string" || !allowed.includes(d))) p.add(E.INVALID_EFFECT_RULES, [...at, i, "default"], "TOKEN default is allowed");%0A+     out.push({ parameter: name, kind, minimum: null, maximum: null, increment: null, default: typeof d === "string" && allowed.includes(d) ? d : null, allowed });%0A+   }); return out;%0A+ }%0A+ function formulas(v: unknown, declared: readonly EffectParameterRule[], at: readonly PathSegment[], p: Problems): EffectFormula[] {%0A+   if (!Array.isArray(v)) { p.add(E.INVALID_EFFECT_RULES, at, "formulas is an array"); return []; }%0A+   const out: EffectFormula[] = [];%0A+   v.forEach((x, i) => {%0A+     const q = readRecord(x, [...at, i], p, E.INVALID_EFFECT_RULES, ["formulaKey", "expression", "rounding", "minimum", "unit", "variables"], ["formulaKey", "expression", "variables"]); if (!q) return;%0A+     const formulaKey = own(q, "formulaKey"); const expression = own(q, "expression"); const rounding = readEnum(own(q, "rounding") ?? "NONE", ["NONE", "FLOOR", "CEIL"] as const, [...at, i, "rounding"], p, E.INVALID_EFFECT_RULES, "rounding");%0A+     const minimum = own(q, "minimum") == null ? null : readSafeInteger(own(q, "minimum"), [...at, i, "minimum"], p, E.INVALID_EFFECT_RULES, "minimum"); const unit = own(q, "unit");%0A+     if (typeof formulaKey !== "string" || !/^[a-z][A-Za-z0-9_.-]*$/.test(formulaKey) || out.some((f) => f.formulaKey === formulaKey)) p.add(E.INVALID_EFFECT_RULES, [...at, i, "formulaKey"], "unique formula key");%0A+     const vr = own(q, "variables"); const vars: EffectFormulaVariable[] = [];%0A+     if (!Array.isArray(vr)) p.add(E.INVALID_EFFECT_RULES, [...at, i, "variables"], "variables is an array"); else vr.forEach((raw, j) => {%0A+       const d = readRecord(raw, [...at, i, "variables", j], p, E.INVALID_EFFECT_RULES, ["variable", "source"], ["variable", "source"]); if (!d) return; const variable = own(d, "variable"); const s = own(d, "source");%0A+       if (typeof variable !== "string" || !PARAM.test(variable) || !isPlainObject(s)) { p.add(E.INVALID_EFFECT_RULES, [...at, i, "variables", j], "valid variable/source"); return; }%0A+       const k = readEnum(own(s, "kind"), ["STAT", "PARAMETER", "MARTIAL_RANK_VALUE"] as const, [...at, i, "variables", j, "source", "kind"], p, E.INVALID_EFFECT_RULES, "source kind");%0A+       if (k === "STAT") { const stat = readEnum(own(s, "stat"), PROWESS_STATS, [...at, i, "variables", j, "source", "stat"], p, E.INVALID_EFFECT_RULES, "Stat"); if (stat) vars.push({ variable, source: { kind: k, stat } }); }%0A+       else if (k === "PARAMETER") { const parameter = own(s, "parameter"); if (typeof parameter !== "string" || !declared.some((e) => e.parameter === parameter && e.kind === "COUNT")) p.add(E.INVALID_EFFECT_RULES, [...at, i, "variables", j, "source", "parameter"], "declared COUNT parameter"); else vars.push({ variable, source: { kind: k, parameter } }); }%0A+       else if (k) vars.push({ variable, source: { kind: k } });%0A+     });%0A+     const pr = validateFormulaProgram({ expression, rounding: rounding ?? "NONE", minimum, maximum: null, unit: typeof unit === "string" ? unit : null });%0A+     if (typeof expression !== "string" || !pr.ok) p.add(E.INVALID_EFFECT_RULES, [...at, i, "expression"], "valid M4 Formula");%0A+     else if ([...pr.program.variables].sort().join() !== vars.map((e) => e.variable).sort().join()) p.add(E.INVALID_EFFECT_RULES, [...at, i, "variables"], "variables exactly match M4 Formula variables");%0A+     if (typeof formulaKey === "string" && typeof expression === "string" && rounding) out.push({ formulaKey, expression, rounding, minimum, unit: typeof unit === "string" ? unit : null, variables: vars });%0A+   }); return out;%0A+ }%0A+ function duration(v: unknown, at: readonly PathSegment[], p: Problems): EffectDurationPolicy | null {%0A+   const r = readRecord(v, at, p, E.INVALID_EFFECT_RULES, ["allowed", "default", "sustainEligible", "manaLockEligible"], ["allowed", "default", "sustainEligible", "manaLockEligible"]); if (!r) return null;%0A+   const a = own(r, "allowed"); const allowed = Array.isArray(a) ? a.map((e, i) => readEnum(e, DURATION_CONCEPTS, [...at, "allowed", i], p, E.INVALID_EFFECT_RULES, "Duration")).filter((e): e is DurationConcept => e !== null) : [];%0A+   if (allowed.length === 0 || new Set(allowed).size !== allowed.length) p.add(E.INVALID_EFFECT_RULES, [...at, "allowed"], "non-empty unique Duration list");%0A+   const d = own(r, "default"); const def = d === null ? null : readEnum(d, DURATION_CONCEPTS, [...at, "default"], p, E.INVALID_EFFECT_RULES, "default Duration"); if (def && !allowed.includes(def)) p.add(E.INVALID_EFFECT_RULES, [...at, "default"], "default is allowed");%0A+   const sustainEligible = own(r, "sustainEligible"), manaLockEligible = own(r, "manaLockEligible"); if (typeof sustainEligible !== "boolean" || typeof manaLockEligible !== "boolean") p.add(E.INVALID_EFFECT_RULES, at, "duration flags are boolean");%0A+   return typeof sustainEligible === "boolean" && typeof manaLockEligible === "boolean" ? { allowed, default: def, sustainEligible, manaLockEligible } : null;%0A+ }%0A+ function saves(v: unknown, at: readonly PathSegment[], p: Problems): EffectSaveProfile | null {%0A+   if (v == null) return null; const r = readRecord(v, at, p, E.INVALID_EFFECT_RULES, ["validSaves", "selectionPolicy"], ["validSaves", "selectionPolicy"]); if (!r) return null;%0A+   const a = own(r, "validSaves"); const validSaves = Array.isArray(a) ? a.map((e, i) => readEnum(e, PROWESS_STATS, [...at, "validSaves", i], p, E.INVALID_EFFECT_RULES, "Save")).filter((e): e is ProwessStat => e !== null) : [];%0A+   const selectionPolicy = readEnum(own(r, "selectionPolicy"), EFFECT_SAVE_SELECTION_POLICIES, [...at, "selectionPolicy"], p, E.INVALID_EFFECT_RULES, "Save policy"); if (validSaves.length === 0 || new Set(validSaves).size !== validSaves.length) p.add(E.INVALID_EFFECT_RULES, [...at, "validSaves"], "non-empty unique saves"); if (selectionPolicy === "FIXED" && validSaves.length !== 1) p.add(E.INVALID_EFFECT_RULES, [...at, "validSaves"], "FIXED has one Save");%0A+   return selectionPolicy ? { validSaves, selectionPolicy } : null;%0A+ }%0A+%0A+ export function readEffectRules(v: unknown, effectFamily: string, branch: "SPELL" | "MANEUVER", resolution: EffectDefinitionPayload["resolution"], at: readonly PathSegment[], p: Problems): EffectRules | null {%0A+   const before = p.count; const fields = ["branch", "effectSubfamily", "targetCategories", "resolutionPolicy", "attackType", "saveProfile", "parameters", "formulas", "duration", "targetingConversion", "restrictions"];%0A+   const r = readRecord(v, at, p, E.INVALID_EFFECT_RULES, fields, ["branch", "resolutionPolicy", "parameters", "formulas", "duration"]); if (!r) return null;%0A+   const authoredBranch = readEnum(own(r, "branch"), ["SPELL", "MANEUVER"] as const, [...at, "branch"], p, E.INVALID_EFFECT_RULES, "branch"); if (authoredBranch && authoredBranch !== branch) p.add(E.INVALID_EFFECT_RULES, [...at, "branch"], "branch matches Definition kind");%0A+   if (branch === "SPELL" && !(SPELL_EFFECT_FAMILIES as readonly string[]).includes(effectFamily)) p.add(E.INVALID_EFFECT_RULES, at, `Spell Effect family is one of ${SPELL_EFFECT_FAMILIES.join(", ")}`);%0A+   const sr = own(r, "effectSubfamily"); const effectSubfamily = sr == null ? null : readEnum(sr, EFFECT_SUBFAMILIES, [...at, "effectSubfamily"], p, E.INVALID_EFFECT_RULES, "subfamily");%0A+   if (branch === "SPELL" && effectSubfamily === "CLEANSE" && effectFamily !== "HEALING") p.add(E.INVALID_EFFECT_RULES, [...at, "effectSubfamily"], "CLEANSE is HEALING");%0A+   if (branch === "SPELL" && ["MOVEMENT", "COUNTERSPELL", "DETECTION"].includes(effectSubfamily ?? "") && effectFamily !== "UTILITY") p.add(E.INVALID_EFFECT_RULES, [...at, "effectSubfamily"], `${effectSubfamily} is UTILITY`);%0A+   if (branch === "SPELL" && effectSubfamily === "FORCED_MOVEMENT" && effectFamily !== "CONTROL") p.add(E.INVALID_EFFECT_RULES, [...at, "effectSubfamily"], "FORCED_MOVEMENT is CONTROL");%0A+   const ta = own(r, "targetCategories"); const targetCategories = ta == null ? [] : Array.isArray(ta) ? ta.map((e, i) => readEnum(e, TARGETS, [...at, "targetCategories", i], p, E.INVALID_EFFECT_RULES, "target category")).filter((e): e is TargetCategory => e !== null) : [];%0A+   const resolutionPolicy = readEnum(own(r, "resolutionPolicy"), EFFECT_RESOLUTION_POLICIES, [...at, "resolutionPolicy"], p, E.INVALID_EFFECT_RULES, "resolution policy");%0A+   if (branch === "SPELL" && resolution === null) p.add(E.SPELL_EFFECT_RESOLUTION_REQUIRED, [...at, "resolutionPolicy"], "executable Spell Effect has resolution");%0A+   if (resolutionPolicy === "INHERIT_ABILITY" && (branch !== "MANEUVER" || resolution !== null)) p.add(E.INVALID_INHERITED_RESOLUTION, [...at, "resolutionPolicy"], "inherit is explicit Maneuver-only with null structural resolution");%0A+   if (resolutionPolicy === "OWN" && resolution === null) p.add(E.INVALID_INHERITED_RESOLUTION, [...at, "resolutionPolicy"], "OWN requires resolution");%0A+   const ar = own(r, "attackType"); const attackType = ar == null ? null : readEnum(ar, EFFECT_ATTACK_TYPES, [...at, "attackType"], p, E.INVALID_EFFECT_RULES, "attack type"); const saveProfile = saves(own(r, "saveProfile"), [...at, "saveProfile"], p); const mode: ResolutionMode | null = resolution?.mode ?? null;%0A+   if (mode === "ATTACK_ROLL" && attackType === null) p.add(E.INVALID_EFFECT_RULES, [...at, "attackType"], "Attack Effect identifies attack type"); if (mode !== "ATTACK_ROLL" && attackType !== null) p.add(E.INVALID_EFFECT_RULES, [...at, "attackType"], "attackType only on ATTACK_ROLL"); if (mode === "SAVING_THROW" && !saveProfile) p.add(E.INVALID_EFFECT_RULES, [...at, "saveProfile"], "Save Effect owns Save Profile"); if (mode !== "SAVING_THROW" && saveProfile) p.add(E.INVALID_EFFECT_RULES, [...at, "saveProfile"], "Save Profile only on SAVING_THROW");%0A+   const ps = parameters(own(r, "parameters"), [...at, "parameters"], p); const fs = formulas(own(r, "formulas"), ps, [...at, "formulas"], p); const du = duration(own(r, "duration"), [...at, "duration"], p);%0A+   let targetingConversion: { destination: ProwessDefinitionRef } | null = null; const cv = own(r, "targetingConversion"); if (cv != null) { const q = readRecord(cv, [...at, "targetingConversion"], p, E.INVALID_EFFECT_RULES, ["destination"], ["destination"]); const ref = q ? readDefinitionRef(own(q, "destination"), [...at, "targetingConversion", "destination"], p, E.INVALID_EFFECT_RULES) : null; if (branch !== "MANEUVER" || effectSubfamily !== "TARGETING_CONVERSION" || (ref && ref.definitionKind !== "MANEUVER_TARGETING")) p.add(E.INVALID_EFFECT_RULES, [...at, "targetingConversion"], "Maneuver Targeting Conversion owns exact MANEUVER_TARGETING destination"); else if (ref) targetingConversion = { destination: ref }; }%0A+   const rr = own(r, "restrictions"); const restrictions = rr == null ? [] : Array.isArray(rr) ? rr.filter((e): e is string => isToken(e)) : []; if (rr != null && (!Array.isArray(rr) || restrictions.length !== rr.length || new Set(restrictions).size !== restrictions.length)) p.add(E.INVALID_EFFECT_RULES, [...at, "restrictions"], "unique restriction tokens");%0A+   return p.count > before || !authoredBranch || !resolutionPolicy || !du ? null : { branch: authoredBranch, effectSubfamily, targetCategories, resolutionPolicy, attackType, saveProfile, parameters: ps, formulas: fs, duration: du, targetingConversion, restrictions };%0A+ }%0A+%0A+ export function readEffectCosts(value: readonly CostContribution[], rules: EffectRules, at: readonly PathSegment[], p: Problems): EffectCostRule[] {%0A+   const out: EffectCostRule[] = []; value.forEach((c, i) => {%0A+     if (c.currency !== "AP" && c.currency !== "MP") { p.add(E.INVALID_EFFECT_COST, [...at, i, "currency"], "Effect cost currency is AP or MP; ME is payment only"); return; }%0A+     const d = readRecord(c.data, [...at, i, "data"], p, E.INVALID_EFFECT_COST, ["kind", "amount", "parameter", "includedUnits", "amounts"], ["kind"]); if (!d) return; const kind = readEnum(own(d, "kind"), EFFECT_COST_KINDS, [...at, i, "data", "kind"], p, E.INVALID_EFFECT_COST, "cost kind");%0A+     if (kind === "FIXED") { const amount = integer(own(d, "amount"), [...at, i, "data", "amount"], p, "amount"); if (amount !== null) out.push({ contributionKey: c.contributionKey, kind, currency: c.currency, amount }); return; }%0A+     const parameter = own(d, "parameter"); const pr = typeof parameter === "string" ? rules.parameters.find((e) => e.parameter === parameter) : undefined; if (!pr) { p.add(E.INVALID_EFFECT_COST, [...at, i, "data", "parameter"], "scaled cost names parameter"); return; }%0A+     if (kind === "PER_UNIT") { if (pr.kind !== "COUNT") p.add(E.INVALID_EFFECT_COST, [...at, i, "data", "parameter"], "PER_UNIT uses COUNT"); const amount = integer(own(d, "amount"), [...at, i, "data", "amount"], p, "amount"); const includedUnits = own(d, "includedUnits") == null ? 0 : integer(own(d, "includedUnits"), [...at, i, "data", "includedUnits"], p, "included units"); if (amount !== null && includedUnits !== null) out.push({ contributionKey: c.contributionKey, kind, currency: c.currency, parameter: pr.parameter, amount, includedUnits }); return; }%0A+     const a = own(d, "amounts"); const amounts: Record<string, number> = {}; if (!isPlainObject(a) || pr.kind !== "TOKEN") p.add(E.INVALID_EFFECT_COST, [...at, i, "data", "amounts"], "PER_SELECTION uses TOKEN amounts map"); else Object.keys(a).sort().forEach((k) => { const n = integer(a[k], [...at, i, "data", "amounts", k], p, "amount"); if (isToken(k) && n !== null) amounts[k] = n; }); if (pr.kind === "TOKEN") out.push({ contributionKey: c.contributionKey, kind: "PER_SELECTION", currency: c.currency, parameter: pr.parameter, amounts });%0A+   }); return out;%0A+ }%0A+%0A+ export function readEffectOutcomes(value: EffectDefinitionPayload["outcomes"], at: readonly PathSegment[], p: Problems): EffectOutcomeReading[] {%0A+   const out: EffectOutcomeReading[] = []; value.forEach((o, i) => { const key = readEnum(o.outcomeKey, EFFECT_OUTCOME_KEYS, [...at, i, "outcomeKey"], p, E.INVALID_OUTCOMES, "outcome key"); const raw = own(o.data as Record<string, unknown>, "operations"); const operations: { kind: EffectOutcomeOperation; data: JsonObject }[] = []; if (!Array.isArray(raw) || raw.length === 0) p.add(E.INVALID_OUTCOMES, [...at, i, "data", "operations"], "non-empty structured operations"); else raw.forEach((x, j) => { const q = readRecord(x, [...at, i, "data", "operations", j], p, E.INVALID_OUTCOMES, ["kind", "data"], ["kind"]); if (!q) return; const kind = readEnum(own(q, "kind"), EFFECT_OUTCOME_OPERATIONS, [...at, i, "data", "operations", j, "kind"], p, E.INVALID_OUTCOMES, "operation"); const d = own(q, "data"); if (kind && (d == null || isPlainObject(d))) operations.push({ kind, data: (d ?? {}) as JsonObject }); else if (d != null && !isPlainObject(d)) p.add(E.INVALID_OUTCOMES, [...at, i, "data", "operations", j, "data"], "plain JSON object"); }); if (key) out.push({ outcomeKey: key, operations }); }); if (!out.some((e) => e.outcomeKey === "SUCCESS")) p.add(E.INVALID_OUTCOMES, at, "SUCCESS outcome required"); return out;%0A+ }%0A+%0A+ export function readTargetingDeliveryRule(v: unknown, at: readonly PathSegment[], p: Problems): TargetingDeliveryRule | null { if (v == null) return null; const r = readRecord(v, at, p, E.INVALID_DELIVERY_RULE, ["check"], ["check"]); if (!r) return null; const check = readEnum(own(r, "check"), TARGETING_DELIVERY_CHECKS, [...at, "check"], p, E.INVALID_DELIVERY_RULE, "delivery check"); return check ? { check } : null; }%0A+ export function isSpellEffectFamily(value: string): value is SpellEffectFamily { return (SPELL_EFFECT_FAMILIES as readonly string[]).includes(value); }%0A+%0A%0A ❯ tests/unit/m5-wo7-static.test.ts:37:21%0A%0A
@@ -844,22 +740,22 @@ AssertionError [ERR_ASSERTION]: baseline guard not green for §192 Projectile re
 
 [1m[30m[46m RUN [49m[39m[22m [36mv5.0.2 [39m[90m/home/runner/work/prowess-studio/prowess-studio/apps/studio[39m
 
- [31m❯[39m tests/unit/m5-wo7-static.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 15[2mms[22m[39m
+ [31m❯[39m tests/unit/m5-wo7-static.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 26[2mms[22m[39m
    [31m❯[39m M5-WO7 audit — Effect framework & Spell/Maneuver contracts [2m(9)[22m
-     [32m✓[39m keeps Prowess Effect semantics out of the generic M4 package and DB access out of @prowess/game[32m 1[2mms[22m[39m
-[31m     [31m×[31m preserves branch separation and exactly seven canonical Spell Effect families[39m[32m 4[2mms[22m[39m
-     [32m✓[39m locks Projectile to 3 MP, caster Range and Ranged Attack delivery while Effect Save remains separate[32m 0[2mms[22m[39m
-     [32m✓[39m locks Spell Line to 10×PRO and 5×ceil(PRO/2), with no deferred current-canon width[32m 0[2mms[22m[39m
-     [32m✓[39m uses exact compatibility, explicit Spell resolution and explicit Maneuver inheritance[32m 0[2mms[22m[39m
+     [32m✓[39m keeps Prowess Effect semantics out of the generic M4 package and DB access out of @prowess/game[32m 2[2mms[22m[39m
+[31m     [31m×[31m preserves branch separation and exactly seven canonical Spell Effect families[39m[32m 7[2mms[22m[39m
+     [32m✓[39m locks Projectile to 3 MP, caster Range and Ranged Attack delivery while Effect Save remains separate[32m 1[2mms[22m[39m
+     [32m✓[39m locks Spell Line to 10×PRO and 5×ceil(PRO/2), with no deferred current-canon width[32m 1[2mms[22m[39m
+     [32m✓[39m uses exact compatibility, explicit Spell resolution and explicit Maneuver inheritance[32m 1[2mms[22m[39m
      [32m✓[39m keeps Character Dice limits per Effect and forbids global or implicit secondary mechanics[32m 0[2mms[22m[39m
-[31m     [31m×[31m keeps conversion cost/save data on Maneuver Effects rather than Maneuver Targeting[39m[32m 5[2mms[22m[39m
+[31m     [31m×[31m keeps conversion cost/save data on Maneuver Effects rather than Maneuver Targeting[39m[32m 9[2mms[22m[39m
      [32m✓[39m does not calculate final Ability cost or execute runtime Effects / chains / ME feedback[32m 0[2mms[22m[39m
-     [32m✓[39m pins exact Ruleset/version provenance and represents all M5-I001–I212 invariants[32m 2[2mms[22m[39m
+     [32m✓[39m pins exact Ruleset/version provenance and represents all M5-I001–I212 invariants[32m 4[2mms[22m[39m
 
 [2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
 [2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m7 passed[39m[22m[90m (9)[39m
-[2m   Start at [22m 23:37:34
-[2m   Duration [22m 695ms[2m (environment 73%, setup 18%, transform 5%, tests 3%, import 1%, worker 1%)[22m
+[2m   Start at [22m 23:38:53
+[2m   Duration [22m 1.04s[2m (environment 73%, setup 18%, transform 5%, tests 3%, import 1%, worker 1%)[22m
 
 
 ::error file=/home/runner/work/prowess-studio/prowess-studio/apps/studio/tests/unit/m5-wo7-static.test.ts,title=tests/unit/m5-wo7-static.test.ts > M5-WO7 audit — Effect framework & Spell/Maneuver contracts > preserves branch separation and exactly seven canonical Spell Effect families,line=37,column=21::AssertionError: expected 'import type { JsonObject } from "@pro…' to contain 'branch === "MANEUVER"'%0A%0A- Expected%0A+ Received%0A%0A- branch === "MANEUVER"%0A+ import type { JsonObject } from "@prowess/model";%0A+ import { validateFormulaProgram } from "@prowess/rules";%0A+ import { readDefinitionRef, type ProwessDefinitionRef } from "./envelope.js";%0A+ import type { CostContribution, EffectDefinitionPayload } from "./payload.js";%0A+ import { isPlainObject, type PathSegment } from "../internal/plain-data.js";%0A+ import { Problems, isToken, own, readEnum, readRecord, readSafeInteger } from "../internal/problems.js";%0A+ import { DURATION_CONCEPTS, type DurationConcept, type ResolutionMode } from "../vocabulary/construction.js";%0A+ import { PROWESS_STATS, type ProwessStat } from "../vocabulary/core.js";%0A+ import type { TargetCategory } from "../vocabulary/targeting.js";%0A+ import {%0A+   EFFECT_ATTACK_TYPES,%0A+   EFFECT_COST_KINDS,%0A+   EFFECT_OUTCOME_KEYS,%0A+   EFFECT_OUTCOME_OPERATIONS,%0A+   EFFECT_RESOLUTION_POLICIES,%0A+   EFFECT_SAVE_SELECTION_POLICIES,%0A+   EFFECT_SUBFAMILIES,%0A+   SPELL_EFFECT_FAMILIES,%0A+   TARGETING_DELIVERY_CHECKS,%0A+   type EffectAttackType,%0A+   type EffectOutcomeOperation,%0A+   type EffectResolutionPolicy,%0A+   type EffectSaveSelectionPolicy,%0A+   type EffectSubfamily,%0A+   type SpellEffectFamily,%0A+   type TargetingDeliveryCheck,%0A+ } from "../vocabulary/effect.js";%0A+%0A+ export const EFFECT_ERROR_CODES = Object.freeze({%0A+   INVALID_EFFECT_RULES: "PROWESS_EFFECT.INVALID_EFFECT_RULES",%0A+   INVALID_EFFECT_COST: "PROWESS_EFFECT.INVALID_EFFECT_COST",%0A+   EFFECT_RULE_MISSING: "PROWESS_EFFECT.EFFECT_RULE_MISSING",%0A+   SPELL_EFFECT_RESOLUTION_REQUIRED: "PROWESS_EFFECT.SPELL_EFFECT_RESOLUTION_REQUIRED",%0A+   INVALID_INHERITED_RESOLUTION: "PROWESS_EFFECT.INVALID_INHERITED_RESOLUTION",%0A+   INVALID_OUTCOMES: "PROWESS_EFFECT.INVALID_OUTCOMES",%0A+   INVALID_DELIVERY_RULE: "PROWESS_EFFECT.INVALID_DELIVERY_RULE",%0A+ } as const);%0A+ const E = EFFECT_ERROR_CODES;%0A+ const TARGETS = ["SELF", "CREATURE", "OBJECT", "POINT", "SPACE", "AREA", "SOURCE"] as const satisfies readonly TargetCategory[];%0A+ const PARAM = /^[a-z][A-Za-z0-9]{0,63}$/;%0A+%0A+ export type EffectLimit = { readonly kind: "FIXED"; readonly value: number } | { readonly kind: "STAT"; readonly stat: ProwessStat };%0A+ export interface EffectParameterRule { readonly parameter: string; readonly kind: "COUNT" | "TOKEN" | "FLAG"; readonly minimum: number | null; readonly maximum: EffectLimit | null; readonly increment: number | null; readonly default: number | string | boolean | null; readonly allowed: readonly string[]; }%0A+ export type EffectFormulaVariable = { readonly variable: string; readonly source: { readonly kind: "STAT"; readonly stat: ProwessStat } | { readonly kind: "PARAMETER"; readonly parameter: string } | { readonly kind: "MARTIAL_RANK_VALUE" } };%0A+ export interface EffectFormula { readonly formulaKey: string; readonly expression: string; readonly rounding: "NONE" | "FLOOR" | "CEIL"; readonly minimum: number | null; readonly unit: string | null; readonly variables: readonly EffectFormulaVariable[]; }%0A+ export interface EffectSaveProfile { readonly validSaves: readonly ProwessStat[]; readonly selectionPolicy: EffectSaveSelectionPolicy; }%0A+ export interface EffectDurationPolicy { readonly allowed: readonly DurationConcept[]; readonly default: DurationConcept | null; readonly sustainEligible: boolean; readonly manaLockEligible: boolean; }%0A+ export interface EffectRules { readonly branch: "SPELL" | "MANEUVER"; readonly effectSubfamily: EffectSubfamily | null; readonly targetCategories: readonly TargetCategory[]; readonly resolutionPolicy: EffectResolutionPolicy; readonly attackType: EffectAttackType | null; readonly saveProfile: EffectSaveProfile | null; readonly parameters: readonly EffectParameterRule[]; readonly formulas: readonly EffectFormula[]; readonly duration: EffectDurationPolicy; readonly targetingConversion: { readonly destination: ProwessDefinitionRef } | null; readonly restrictions: readonly string[]; }%0A+ export type EffectCostRule = { readonly contributionKey: string; readonly kind: "FIXED"; readonly currency: "AP" | "MP"; readonly amount: number } | { readonly contributionKey: string; readonly kind: "PER_UNIT"; readonly currency: "AP" | "MP"; readonly parameter: string; readonly amount: number; readonly includedUnits: number } | { readonly contributionKey: string; readonly kind: "PER_SELECTION"; readonly currency: "AP" | "MP"; readonly parameter: string; readonly amounts: Readonly<Record<string, number>> };%0A+ export interface EffectOutcomeReading { readonly outcomeKey: "SUCCESS" | "FAILURE"; readonly operations: readonly { readonly kind: EffectOutcomeOperation; readonly data: JsonObject }[]; }%0A+ export interface TargetingDeliveryRule { readonly check: TargetingDeliveryCheck; }%0A+%0A+ const integer = (v: unknown, at: readonly PathSegment[], p: Problems, what: string, positive = false): number | null => { const n = readSafeInteger(v, at, p, E.INVALID_EFFECT_RULES, what); if (n !== null && (n < 0 || (positive && n === 0))) { p.add(E.INVALID_EFFECT_RULES, at, `${what} is ${positive ? "positive" : "non-negative"}`); return null; } return n; };%0A+ const limit = (v: unknown, at: readonly PathSegment[], p: Problems): EffectLimit | null => {%0A+   if (v == null) return null;%0A+   const r = readRecord(v, at, p, E.INVALID_EFFECT_RULES, ["kind", "value", "stat"], ["kind"]); if (!r) return null;%0A+   const k = readEnum(own(r, "kind"), ["FIXED", "STAT"] as const, [...at, "kind"], p, E.INVALID_EFFECT_RULES, "limit kind");%0A+   if (k === "FIXED") { const value = integer(own(r, "value"), [...at, "value"], p, "maximum"); return value === null ? null : { kind: k, value }; }%0A+   if (k === "STAT") { const stat = readEnum(own(r, "stat"), PROWESS_STATS, [...at, "stat"], p, E.INVALID_EFFECT_RULES, "limit Stat"); return stat === null ? null : { kind: k, stat }; }%0A+   return null;%0A+ };%0A+ function parameters(v: unknown, at: readonly PathSegment[], p: Problems): EffectParameterRule[] {%0A+   if (!Array.isArray(v)) { p.add(E.INVALID_EFFECT_RULES, at, "parameters is an array"); return []; }%0A+   const out: EffectParameterRule[] = [];%0A+   v.forEach((x, i) => {%0A+     const q = readRecord(x, [...at, i], p, E.INVALID_EFFECT_RULES, ["parameter", "kind", "minimum", "maximum", "increment", "default", "allowed"], ["parameter", "kind"]); if (!q) return;%0A+     const name = own(q, "parameter"); const kind = readEnum(own(q, "kind"), ["COUNT", "TOKEN", "FLAG"] as const, [...at, i, "kind"], p, E.INVALID_EFFECT_RULES, "parameter kind");%0A+     if (typeof name !== "string" || !PARAM.test(name) || out.some((e) => e.parameter === name)) { p.add(E.INVALID_EFFECT_RULES, [...at, i, "parameter"], "unique lowerCamel parameter"); return; }%0A+     if (!kind) return;%0A+     if (kind === "COUNT") {%0A+       const minimum = own(q, "minimum") == null ? null : integer(own(q, "minimum"), [...at, i, "minimum"], p, "minimum");%0A+       const maximum = limit(own(q, "maximum"), [...at, i, "maximum"], p);%0A+       const increment = own(q, "increment") == null ? 1 : integer(own(q, "increment"), [...at, i, "increment"], p, "increment", true);%0A+       const d = own(q, "default"); const def = d == null ? null : integer(d, [...at, i, "default"], p, "default");%0A+       out.push({ parameter: name, kind, minimum, maximum, increment, default: def, allowed: [] }); return;%0A+     }%0A+     if (kind === "FLAG") { const d = own(q, "default"); if (typeof d !== "boolean") p.add(E.INVALID_EFFECT_RULES, [...at, i, "default"], "FLAG default is boolean"); out.push({ parameter: name, kind, minimum: null, maximum: null, increment: null, default: typeof d === "boolean" ? d : null, allowed: [] }); return; }%0A+     const a = own(q, "allowed"); const allowed = Array.isArray(a) ? a.filter((e): e is string => isToken(e)) : [];%0A+     if (!Array.isArray(a) || allowed.length !== a.length || allowed.length === 0 || new Set(allowed).size !== allowed.length) p.add(E.INVALID_EFFECT_RULES, [...at, i, "allowed"], "TOKEN allowed is a non-empty unique token list");%0A+     const d = own(q, "default"); if (d != null && (typeof d !== "string" || !allowed.includes(d))) p.add(E.INVALID_EFFECT_RULES, [...at, i, "default"], "TOKEN default is allowed");%0A+     out.push({ parameter: name, kind, minimum: null, maximum: null, increment: null, default: typeof d === "string" && allowed.includes(d) ? d : null, allowed });%0A+   }); return out;%0A+ }%0A+ function formulas(v: unknown, declared: readonly EffectParameterRule[], at: readonly PathSegment[], p: Problems): EffectFormula[] {%0A+   if (!Array.isArray(v)) { p.add(E.INVALID_EFFECT_RULES, at, "formulas is an array"); return []; }%0A+   const out: EffectFormula[] = [];%0A+   v.forEach((x, i) => {%0A+     const q = readRecord(x, [...at, i], p, E.INVALID_EFFECT_RULES, ["formulaKey", "expression", "rounding", "minimum", "unit", "variables"], ["formulaKey", "expression", "variables"]); if (!q) return;%0A+     const formulaKey = own(q, "formulaKey"); const expression = own(q, "expression"); const rounding = readEnum(own(q, "rounding") ?? "NONE", ["NONE", "FLOOR", "CEIL"] as const, [...at, i, "rounding"], p, E.INVALID_EFFECT_RULES, "rounding");%0A+     const minimum = own(q, "minimum") == null ? null : readSafeInteger(own(q, "minimum"), [...at, i, "minimum"], p, E.INVALID_EFFECT_RULES, "minimum"); const unit = own(q, "unit");%0A+     if (typeof formulaKey !== "string" || !/^[a-z][A-Za-z0-9_.-]*$/.test(formulaKey) || out.some((f) => f.formulaKey === formulaKey)) p.add(E.INVALID_EFFECT_RULES, [...at, i, "formulaKey"], "unique formula key");%0A+     const vr = own(q, "variables"); const vars: EffectFormulaVariable[] = [];%0A+     if (!Array.isArray(vr)) p.add(E.INVALID_EFFECT_RULES, [...at, i, "variables"], "variables is an array"); else vr.forEach((raw, j) => {%0A+       const d = readRecord(raw, [...at, i, "variables", j], p, E.INVALID_EFFECT_RULES, ["variable", "source"], ["variable", "source"]); if (!d) return; const variable = own(d, "variable"); const s = own(d, "source");%0A+       if (typeof variable !== "string" || !PARAM.test(variable) || !isPlainObject(s)) { p.add(E.INVALID_EFFECT_RULES, [...at, i, "variables", j], "valid variable/source"); return; }%0A+       const k = readEnum(own(s, "kind"), ["STAT", "PARAMETER", "MARTIAL_RANK_VALUE"] as const, [...at, i, "variables", j, "source", "kind"], p, E.INVALID_EFFECT_RULES, "source kind");%0A+       if (k === "STAT") { const stat = readEnum(own(s, "stat"), PROWESS_STATS, [...at, i, "variables", j, "source", "stat"], p, E.INVALID_EFFECT_RULES, "Stat"); if (stat) vars.push({ variable, source: { kind: k, stat } }); }%0A+       else if (k === "PARAMETER") { const parameter = own(s, "parameter"); if (typeof parameter !== "string" || !declared.some((e) => e.parameter === parameter && e.kind === "COUNT")) p.add(E.INVALID_EFFECT_RULES, [...at, i, "variables", j, "source", "parameter"], "declared COUNT parameter"); else vars.push({ variable, source: { kind: k, parameter } }); }%0A+       else if (k) vars.push({ variable, source: { kind: k } });%0A+     });%0A+     const pr = validateFormulaProgram({ expression, rounding: rounding ?? "NONE", minimum, maximum: null, unit: typeof unit === "string" ? unit : null });%0A+     if (typeof expression !== "string" || !pr.ok) p.add(E.INVALID_EFFECT_RULES, [...at, i, "expression"], "valid M4 Formula");%0A+     else if ([...pr.program.variables].sort().join() !== vars.map((e) => e.variable).sort().join()) p.add(E.INVALID_EFFECT_RULES, [...at, i, "variables"], "variables exactly match M4 Formula variables");%0A+     if (typeof formulaKey === "string" && typeof expression === "string" && rounding) out.push({ formulaKey, expression, rounding, minimum, unit: typeof unit === "string" ? unit : null, variables: vars });%0A+   }); return out;%0A+ }%0A+ function duration(v: unknown, at: readonly PathSegment[], p: Problems): EffectDurationPolicy | null {%0A+   const r = readRecord(v, at, p, E.INVALID_EFFECT_RULES, ["allowed", "default", "sustainEligible", "manaLockEligible"], ["allowed", "default", "sustainEligible", "manaLockEligible"]); if (!r) return null;%0A+   const a = own(r, "allowed"); const allowed = Array.isArray(a) ? a.map((e, i) => readEnum(e, DURATION_CONCEPTS, [...at, "allowed", i], p, E.INVALID_EFFECT_RULES, "Duration")).filter((e): e is DurationConcept => e !== null) : [];%0A+   if (allowed.length === 0 || new Set(allowed).size !== allowed.length) p.add(E.INVALID_EFFECT_RULES, [...at, "allowed"], "non-empty unique Duration list");%0A+   const d = own(r, "default"); const def = d === null ? null : readEnum(d, DURATION_CONCEPTS, [...at, "default"], p, E.INVALID_EFFECT_RULES, "default Duration"); if (def && !allowed.includes(def)) p.add(E.INVALID_EFFECT_RULES, [...at, "default"], "default is allowed");%0A+   const sustainEligible = own(r, "sustainEligible"), manaLockEligible = own(r, "manaLockEligible"); if (typeof sustainEligible !== "boolean" || typeof manaLockEligible !== "boolean") p.add(E.INVALID_EFFECT_RULES, at, "duration flags are boolean");%0A+   return typeof sustainEligible === "boolean" && typeof manaLockEligible === "boolean" ? { allowed, default: def, sustainEligible, manaLockEligible } : null;%0A+ }%0A+ function saves(v: unknown, at: readonly PathSegment[], p: Problems): EffectSaveProfile | null {%0A+   if (v == null) return null; const r = readRecord(v, at, p, E.INVALID_EFFECT_RULES, ["validSaves", "selectionPolicy"], ["validSaves", "selectionPolicy"]); if (!r) return null;%0A+   const a = own(r, "validSaves"); const validSaves = Array.isArray(a) ? a.map((e, i) => readEnum(e, PROWESS_STATS, [...at, "validSaves", i], p, E.INVALID_EFFECT_RULES, "Save")).filter((e): e is ProwessStat => e !== null) : [];%0A+   const selectionPolicy = readEnum(own(r, "selectionPolicy"), EFFECT_SAVE_SELECTION_POLICIES, [...at, "selectionPolicy"], p, E.INVALID_EFFECT_RULES, "Save policy"); if (validSaves.length === 0 || new Set(validSaves).size !== validSaves.length) p.add(E.INVALID_EFFECT_RULES, [...at, "validSaves"], "non-empty unique saves"); if (selectionPolicy === "FIXED" && validSaves.length !== 1) p.add(E.INVALID_EFFECT_RULES, [...at, "validSaves"], "FIXED has one Save");%0A+   return selectionPolicy ? { validSaves, selectionPolicy } : null;%0A+ }%0A+%0A+ export function readEffectRules(v: unknown, effectFamily: string, branch: "SPELL" | "MANEUVER", resolution: EffectDefinitionPayload["resolution"], at: readonly PathSegment[], p: Problems): EffectRules | null {%0A+   const before = p.count; const fields = ["branch", "effectSubfamily", "targetCategories", "resolutionPolicy", "attackType", "saveProfile", "parameters", "formulas", "duration", "targetingConversion", "restrictions"];%0A+   const r = readRecord(v, at, p, E.INVALID_EFFECT_RULES, fields, ["branch", "resolutionPolicy", "parameters", "formulas", "duration"]); if (!r) return null;%0A+   const authoredBranch = readEnum(own(r, "branch"), ["SPELL", "MANEUVER"] as const, [...at, "branch"], p, E.INVALID_EFFECT_RULES, "branch"); if (authoredBranch && authoredBranch !== branch) p.add(E.INVALID_EFFECT_RULES, [...at, "branch"], "branch matches Definition kind");%0A+   if (branch === "SPELL" && !(SPELL_EFFECT_FAMILIES as readonly string[]).includes(effectFamily)) p.add(E.INVALID_EFFECT_RULES, at, `Spell Effect family is one of ${SPELL_EFFECT_FAMILIES.join(", ")}`);%0A+   const sr = own(r, "effectSubfamily"); const effectSubfamily = sr == null ? null : readEnum(sr, EFFECT_SUBFAMILIES, [...at, "effectSubfamily"], p, E.INVALID_EFFECT_RULES, "subfamily");%0A+   if (branch === "SPELL" && effectSubfamily === "CLEANSE" && effectFamily !== "HEALING") p.add(E.INVALID_EFFECT_RULES, [...at, "effectSubfamily"], "CLEANSE is HEALING");%0A+   if (branch === "SPELL" && ["MOVEMENT", "COUNTERSPELL", "DETECTION"].includes(effectSubfamily ?? "") && effectFamily !== "UTILITY") p.add(E.INVALID_EFFECT_RULES, [...at, "effectSubfamily"], `${effectSubfamily} is UTILITY`);%0A+   if (branch === "SPELL" && effectSubfamily === "FORCED_MOVEMENT" && effectFamily !== "CONTROL") p.add(E.INVALID_EFFECT_RULES, [...at, "effectSubfamily"], "FORCED_MOVEMENT is CONTROL");%0A+   const ta = own(r, "targetCategories"); const targetCategories = ta == null ? [] : Array.isArray(ta) ? ta.map((e, i) => readEnum(e, TARGETS, [...at, "targetCategories", i], p, E.INVALID_EFFECT_RULES, "target category")).filter((e): e is TargetCategory => e !== null) : [];%0A+   const resolutionPolicy = readEnum(own(r, "resolutionPolicy"), EFFECT_RESOLUTION_POLICIES, [...at, "resolutionPolicy"], p, E.INVALID_EFFECT_RULES, "resolution policy");%0A+   if (branch === "SPELL" && resolution === null) p.add(E.SPELL_EFFECT_RESOLUTION_REQUIRED, [...at, "resolutionPolicy"], "executable Spell Effect has resolution");%0A+   if (resolutionPolicy === "INHERIT_ABILITY" && (branch !== "MANEUVER" || resolution !== null)) p.add(E.INVALID_INHERITED_RESOLUTION, [...at, "resolutionPolicy"], "inherit is explicit Maneuver-only with null structural resolution");%0A+   if (resolutionPolicy === "OWN" && resolution === null) p.add(E.INVALID_INHERITED_RESOLUTION, [...at, "resolutionPolicy"], "OWN requires resolution");%0A+   const ar = own(r, "attackType"); const attackType = ar == null ? null : readEnum(ar, EFFECT_ATTACK_TYPES, [...at, "attackType"], p, E.INVALID_EFFECT_RULES, "attack type"); const saveProfile = saves(own(r, "saveProfile"), [...at, "saveProfile"], p); const mode: ResolutionMode | null = resolution?.mode ?? null;%0A+   if (mode === "ATTACK_ROLL" && attackType === null) p.add(E.INVALID_EFFECT_RULES, [...at, "attackType"], "Attack Effect identifies attack type"); if (mode !== "ATTACK_ROLL" && attackType !== null) p.add(E.INVALID_EFFECT_RULES, [...at, "attackType"], "attackType only on ATTACK_ROLL"); if (mode === "SAVING_THROW" && !saveProfile) p.add(E.INVALID_EFFECT_RULES, [...at, "saveProfile"], "Save Effect owns Save Profile"); if (mode !== "SAVING_THROW" && saveProfile) p.add(E.INVALID_EFFECT_RULES, [...at, "saveProfile"], "Save Profile only on SAVING_THROW");%0A+   const ps = parameters(own(r, "parameters"), [...at, "parameters"], p); const fs = formulas(own(r, "formulas"), ps, [...at, "formulas"], p); const du = duration(own(r, "duration"), [...at, "duration"], p);%0A+   let targetingConversion: { destination: ProwessDefinitionRef } | null = null; const cv = own(r, "targetingConversion"); if (cv != null) { const q = readRecord(cv, [...at, "targetingConversion"], p, E.INVALID_EFFECT_RULES, ["destination"], ["destination"]); const ref = q ? readDefinitionRef(own(q, "destination"), [...at, "targetingConversion", "destination"], p, E.INVALID_EFFECT_RULES) : null; if (branch !== "MANEUVER" || effectSubfamily !== "TARGETING_CONVERSION" || (ref && ref.definitionKind !== "MANEUVER_TARGETING")) p.add(E.INVALID_EFFECT_RULES, [...at, "targetingConversion"], "Maneuver Targeting Conversion owns exact MANEUVER_TARGETING destination"); else if (ref) targetingConversion = { destination: ref }; }%0A+   const rr = own(r, "restrictions"); const restrictions = rr == null ? [] : Array.isArray(rr) ? rr.filter((e): e is string => isToken(e)) : []; if (rr != null && (!Array.isArray(rr) || restrictions.length !== rr.length || new Set(restrictions).size !== restrictions.length)) p.add(E.INVALID_EFFECT_RULES, [...at, "restrictions"], "unique restriction tokens");%0A+   return p.count > before || !authoredBranch || !resolutionPolicy || !du ? null : { branch: authoredBranch, effectSubfamily, targetCategories, resolutionPolicy, attackType, saveProfile, parameters: ps, formulas: fs, duration: du, targetingConversion, restrictions };%0A+ }%0A+%0A+ export function readEffectCosts(value: readonly CostContribution[], rules: EffectRules, at: readonly PathSegment[], p: Problems): EffectCostRule[] {%0A+   const out: EffectCostRule[] = []; value.forEach((c, i) => {%0A+     if (c.currency !== "AP" && c.currency !== "MP") { p.add(E.INVALID_EFFECT_COST, [...at, i, "currency"], "Effect cost currency is AP or MP; ME is payment only"); return; }%0A+     const d = readRecord(c.data, [...at, i, "data"], p, E.INVALID_EFFECT_COST, ["kind", "amount", "parameter", "includedUnits", "amounts"], ["kind"]); if (!d) return; const kind = readEnum(own(d, "kind"), EFFECT_COST_KINDS, [...at, i, "data", "kind"], p, E.INVALID_EFFECT_COST, "cost kind");%0A+     if (kind === "FIXED") { const amount = integer(own(d, "amount"), [...at, i, "data", "amount"], p, "amount"); if (amount !== null) out.push({ contributionKey: c.contributionKey, kind, currency: c.currency, amount }); return; }%0A+     const parameter = own(d, "parameter"); const pr = typeof parameter === "string" ? rules.parameters.find((e) => e.parameter === parameter) : undefined; if (!pr) { p.add(E.INVALID_EFFECT_COST, [...at, i, "data", "parameter"], "scaled cost names parameter"); return; }%0A+     if (kind === "PER_UNIT") { if (pr.kind !== "COUNT") p.add(E.INVALID_EFFECT_COST, [...at, i, "data", "parameter"], "PER_UNIT uses COUNT"); const amount = integer(own(d, "amount"), [...at, i, "data", "amount"], p, "amount"); const includedUnits = own(d, "includedUnits") == null ? 0 : integer(own(d, "includedUnits"), [...at, i, "data", "includedUnits"], p, "included units"); if (amount !== null && includedUnits !== null) out.push({ contributionKey: c.contributionKey, kind, currency: c.currency, parameter: pr.parameter, amount, includedUnits }); return; }%0A+     const a = own(d, "amounts"); const amounts: Record<string, number> = {}; if (!isPlainObject(a) || pr.kind !== "TOKEN") p.add(E.INVALID_EFFECT_COST, [...at, i, "data", "amounts"], "PER_SELECTION uses TOKEN amounts map"); else Object.keys(a).sort().forEach((k) => { const n = integer(a[k], [...at, i, "data", "amounts", k], p, "amount"); if (isToken(k) && n !== null) amounts[k] = n; }); if (pr.kind === "TOKEN") out.push({ contributionKey: c.contributionKey, kind: "PER_SELECTION", currency: c.currency, parameter: pr.parameter, amounts });%0A+   }); return out;%0A+ }%0A+%0A+ export function readEffectOutcomes(value: EffectDefinitionPayload["outcomes"], at: readonly PathSegment[], p: Problems): EffectOutcomeReading[] {%0A+   const out: EffectOutcomeReading[] = []; value.forEach((o, i) => { const key = readEnum(o.outcomeKey, EFFECT_OUTCOME_KEYS, [...at, i, "outcomeKey"], p, E.INVALID_OUTCOMES, "outcome key"); const raw = own(o.data as Record<string, unknown>, "operations"); const operations: { kind: EffectOutcomeOperation; data: JsonObject }[] = []; if (!Array.isArray(raw) || raw.length === 0) p.add(E.INVALID_OUTCOMES, [...at, i, "data", "operations"], "non-empty structured operations"); else raw.forEach((x, j) => { const q = readRecord(x, [...at, i, "data", "operations", j], p, E.INVALID_OUTCOMES, ["kind", "data"], ["kind"]); if (!q) return; const kind = readEnum(own(q, "kind"), EFFECT_OUTCOME_OPERATIONS, [...at, i, "data", "operations", j, "kind"], p, E.INVALID_OUTCOMES, "operation"); const d = own(q, "data"); if (kind && (d == null || isPlainObject(d))) operations.push({ kind, data: (d ?? {}) as JsonObject }); else if (d != null && !isPlainObject(d)) p.add(E.INVALID_OUTCOMES, [...at, i, "data", "operations", j, "data"], "plain JSON object"); }); if (key) out.push({ outcomeKey: key, operations }); }); if (!out.some((e) => e.outcomeKey === "SUCCESS")) p.add(E.INVALID_OUTCOMES, at, "SUCCESS outcome required"); return out;%0A+ }%0A+%0A+ export function readTargetingDeliveryRule(v: unknown, at: readonly PathSegment[], p: Problems): TargetingDeliveryRule | null { if (v == null) return null; const r = readRecord(v, at, p, E.INVALID_DELIVERY_RULE, ["check"], ["check"]); if (!r) return null; const check = readEnum(own(r, "check"), TARGETING_DELIVERY_CHECKS, [...at, "check"], p, E.INVALID_DELIVERY_RULE, "delivery check"); return check ? { check } : null; }%0A+ export function isSpellEffectFamily(value: string): value is SpellEffectFamily { return (SPELL_EFFECT_FAMILIES as readonly string[]).includes(value); }%0A+%0A%0A ❯ tests/unit/m5-wo7-static.test.ts:37:21%0A%0A
