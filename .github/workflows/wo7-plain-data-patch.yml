@@ -1,0 +1,50 @@
+name: WO7 temporary plain-data patch helper
+
+on:
+  push:
+    branches: [m5-wo7]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: m5-wo7
+          fetch-depth: 0
+      - name: Apply strict plain-data fixes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p=Path('packages/prowess-game/src/testing/effect-fixtures.ts')
+          s=p.read_text()
+          s=s.replace(', affinityProfile: null });', ' });')
+          p.write_text(s)
+
+          p=Path('packages/prowess-game/src/effect/compile.ts')
+          s=p.read_text()
+          old='''const construction = evaluateAbilityConstruction({ contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION, subjectKey: `${String(subjectKey)}.construction`, composition, definitions: bundle, ruleset: own(r, "ruleset"), character: own(r, "character"), keywords: own(r, "keywords"), options: own(r, "constructionOptions"), signature: own(r, "signature"), accessGrants: own(r, "accessGrants") });'''
+          new='''const constructionOptions = own(r, "constructionOptions"); const accessGrants = own(r, "accessGrants");
+  const construction = evaluateAbilityConstruction({ contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION, subjectKey: `${String(subjectKey)}.construction`, composition, definitions: bundle, ruleset: own(r, "ruleset"), character: own(r, "character"), keywords: own(r, "keywords"), signature: own(r, "signature"), ...(constructionOptions === undefined ? {} : { options: constructionOptions }), ...(accessGrants === undefined ? {} : { accessGrants }) });'''
+          assert old in s, 'construction call anchor changed'
+          s=s.replace(old,new,1)
+          old='''const targeting = evaluateAbilityTargeting({ contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION, subjectKey: `${String(own(raw, "subjectKey"))}.targeting`, composition: own(raw, "composition"), definitions: own(raw, "definitions"), ruleset: own(raw, "ruleset"), character: own(raw, "character"), keywords: own(raw, "keywords"), targetingModifiers: own(raw, "targetingModifiers") }); if (!targeting.ok) return targeting as ProwessOutcome<never>;'''
+          new='''const targetingModifiers = own(raw, "targetingModifiers");
+  const targeting = evaluateAbilityTargeting({ contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION, subjectKey: `${String(own(raw, "subjectKey"))}.targeting`, composition: own(raw, "composition"), definitions: own(raw, "definitions"), ruleset: own(raw, "ruleset"), character: own(raw, "character"), keywords: own(raw, "keywords"), ...(targetingModifiers === undefined ? {} : { targetingModifiers }) }); if (!targeting.ok) return targeting as ProwessOutcome<never>;'''
+          assert old in s, 'targeting call anchor changed'
+          s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+      - name: Commit patch if needed
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add packages/prowess-game/src/testing/effect-fixtures.ts packages/prowess-game/src/effect/compile.ts
+          git commit -m 'M5-WO7: omit undefined strict plain-data fields'
+          git push origin HEAD:m5-wo7
