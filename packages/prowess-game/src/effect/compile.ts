@@ -203,7 +203,9 @@ export function readEffectRun(input: { readonly plan: ProwessEffectCompiledPlan;
 export function validateEffectUse(request: unknown): ProwessOutcome<EffectUseResult> {
   const plan = compileEffectUse(request); if (!plan.ok) return plan as ProwessOutcome<never>; const raw = request as Record<string, unknown>;
   const targetingModifiers = own(raw, "targetingModifiers");
-  const targeting = evaluateAbilityTargeting({ contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION, subjectKey: `${String(own(raw, "subjectKey"))}.targeting`, composition: own(raw, "composition"), definitions: own(raw, "definitions"), ruleset: own(raw, "ruleset"), character: own(raw, "character"), keywords: own(raw, "keywords"), ...(targetingModifiers === undefined ? {} : { targetingModifiers }) }); if (!targeting.ok) return targeting as ProwessOutcome<never>;
+  const character = own(raw, "character") as EffectCharacterContext;
+  const targetingCharacter = { stats: character.stats, skillRanks: character.skillRanks };
+  const targeting = evaluateAbilityTargeting({ contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION, subjectKey: `${String(own(raw, "subjectKey"))}.targeting`, composition: own(raw, "composition"), definitions: own(raw, "definitions"), ruleset: own(raw, "ruleset"), character: targetingCharacter, keywords: own(raw, "keywords"), ...(targetingModifiers === undefined ? {} : { targetingModifiers }) }); if (!targeting.ok) return targeting as ProwessOutcome<never>;
   const response = orchestrateRulesEvaluation({ evaluationKey: `effect.${plan.value.subject.subjectKey}.${plan.value.subject.componentKey}`, contexts: { ruleset: own(raw, "ruleset") }, plan: plan.value.evaluationPlan }); if (!response.success || response.data === null) { const p = new Problems(); p.add(E.INVALID_EFFECT_RULES, ["run"], `M4 could not evaluate Effect plan: ${JSON.stringify(response.errors)}`); return finish(p, () => null as never); }
   return readEffectRun({ plan: plan.value, run: response.data as unknown as EvaluationRun, targeting: targeting.value });
 }
