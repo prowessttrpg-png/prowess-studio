@@ -11,7 +11,7 @@ import { PLAYTEST_DEFINITIONS } from "./core-fixtures.js";
 import { uuid } from "./fixtures.js";
 import { validateEffectUse, type EffectUseResult } from "../effect/compile.js";
 
-interface FixtureDefinition { readonly canonicalKey: string; readonly definitionKind: ProwessDefinitionKind; readonly schemaVersion: number; readonly payload: Record<string, unknown>; }
+interface FixtureDefinition { readonly canonicalKey: string; readonly definitionKind: ProwessDefinitionKind; readonly schemaVersion?: number; readonly payload: Record<string, unknown>; }
 const TARGETING = targetingContent as unknown as { readonly definitions: readonly FixtureDefinition[] };
 const CONSTRUCTION = constructionContent as unknown as { readonly definitions: readonly FixtureDefinition[] };
 const EFFECTS = EFFECT_REFERENCE_CONTENT as unknown as { readonly definitions: readonly FixtureDefinition[] };
@@ -68,7 +68,7 @@ export function effectFixture(options: EffectFixtureOptions = {}): EffectFixture
   };
   const ctx = createRulesetContext({ rulesetId, manifestId, rules: BASE.map((d) => { const i = ix.get(d.canonicalKey)!; return { entityId: entity(i), entityVersionId: version(i, revision(d)), canonicalKey: d.canonicalKey, entityType: PROWESS_DEFINITION_KINDS[d.definitionKind].entityTypes[0], sourceRulesetId: rulesetId, sourceManifestId: manifestId }; }) });
   if (!ctx.ok) throw new Error(JSON.stringify(ctx.errors));
-  const definitions = BASE.map((d) => { const i = ix.get(d.canonicalKey)!; return { schemaVersion: d.schemaVersion, systemFamily: PROWESS_DEFINITION_KINDS[d.definitionKind].family, definitionKind: d.definitionKind, entityId: entity(i), entityVersionId: version(i, revision(d)), canonicalKey: d.canonicalKey, payload: resolveRefs(cloneJson(payloadOf(d)), ref), provenance: { rulesetId, manifestId, releaseId: null, sourceRulesetId: rulesetId, sourceManifestId: manifestId, legacyTerms: [] } }; });
+  const definitions = BASE.map((d) => { const i = ix.get(d.canonicalKey)!; return { schemaVersion: d.schemaVersion ?? 1, systemFamily: PROWESS_DEFINITION_KINDS[d.definitionKind].family, definitionKind: d.definitionKind, entityId: entity(i), entityVersionId: version(i, revision(d)), canonicalKey: d.canonicalKey, payload: resolveRefs(cloneJson(payloadOf(d)), ref), provenance: { rulesetId, manifestId, releaseId: null, sourceRulesetId: rulesetId, sourceManifestId: manifestId, legacyTerms: [] } }; });
   const bundle = createProwessDefinitionBundle({ ruleset: ctx.value, definitions }); if (!bundle.ok) throw new Error(JSON.stringify(bundle.problems, null, 2));
   return { ruleset: ctx.value, bundle: bundle.value, ref };
 }
