@@ -90,7 +90,8 @@ describe("M5-WO7 Effect contracts", () => {
     expect(r.validSaves).toEqual(["AGI", "PRO"]);
     expect(r.targetingConversion?.destination.canonicalKey).toBe("maneuver.targeting.radius");
     const radiusComposition = maneuverEffectAbility(f, "maneuver.effect.radius_attack_conversion", "maneuver.targeting.radius");
-    (radiusComposition.targeting as any).parameters = { originMode: "THROWN_IMPACT" };
+    const target = radiusComposition.targeting as { parameters: Record<string, unknown> };
+    target.parameters = { originMode: "THROWN_IMPACT" };
     const t = targeting(f, radiusComposition, effectCharacter({ str: 5, martial: "EXPERT" }));
     expect(t.geometry.find((g) => g.measure === "RADIUS")?.value).toBe(50);
     expect(JSON.stringify(t)).not.toMatch(/"amount":3.*AP|AGI.*PRO/);
@@ -111,13 +112,15 @@ describe("M5-WO7 historical reproducibility", () => {
     const r1 = effectFixture({ rulesetId: "87010000-0000-4000-8000-000000000001", manifestId: "87020000-0000-4000-8000-000000000001" });
     const c1 = spellEffectAbility(r1, "spell.effect.direct_damage", "spell.targeting.single_target", { dice: 2 });
     const a = effect(r1, c1);
-    const source = r1.bundle.definitions.find((d) => d.canonicalKey === "spell.effect.direct_damage")!.payload as any;
+    const source = r1.bundle.definitions.find((d) => d.canonicalKey === "spell.effect.direct_damage")!.payload as Record<string, unknown>;
     const r2 = effectFixture({ rulesetId: "87110000-0000-4000-8000-000000000001", manifestId: "87120000-0000-4000-8000-000000000001", revise: { "spell.effect.direct_damage": { ...cloneJson(source), costContributions: [{ contributionKey: "effect.damage.dice", currency: "MP", data: { kind: "PER_UNIT", parameter: "dice", amount: 9, includedUnits: 0 } }] } } });
     const b = effect(r2, spellEffectAbility(r2, "spell.effect.direct_damage", "spell.targeting.single_target", { dice: 2 }));
     const again = effect(r1, c1);
     expect(again).toEqual(a);
-    expect((a.costContributions[0] as any).amount).toBe(4);
-    expect((b.costContributions[0] as any).amount).toBe(9);
+    const aCost = a.costContributions[0];
+    const bCost = b.costContributions[0];
+    expect(aCost && "amount" in aCost ? aCost.amount : null).toBe(4);
+    expect(bCost && "amount" in bCost ? bCost.amount : null).toBe(9);
     expect(a.provenance.effect.entityVersionId).not.toBe(b.provenance.effect.entityVersionId);
   });
 });
