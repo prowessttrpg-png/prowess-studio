@@ -3,6 +3,7 @@ name: WO7 temporary context patch helper
 on:
   push:
     branches: [m5-wo7]
+  workflow_dispatch: {}
 
 permissions:
   contents: write
