@@ -17,6 +17,7 @@ const CONSTRUCTION = constructionContent as unknown as { readonly definitions: r
 const EFFECTS = EFFECT_REFERENCE_CONTENT as unknown as { readonly definitions: readonly FixtureDefinition[] };
 const AMENDMENTS = TARGETING_WO7_AMENDMENTS as unknown as { readonly definitions: readonly FixtureDefinition[] };
 const common = (extra: Record<string, unknown> = {}) => ({ keywords: [], parameters: {}, compatibility: [], costContributions: [], rules: {}, ...extra });
+const cloneJson = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const SUPPORT: readonly FixtureDefinition[] = [
   { canonicalKey: "spell.duration.instant", definitionKind: "SPELL_DURATION", schemaVersion: 1, payload: common({ durationConcept: "INSTANT" }) },
   { canonicalKey: "maneuver.duration.instant", definitionKind: "MANEUVER_DURATION", schemaVersion: 1, payload: common({ durationConcept: "INSTANT" }) },
@@ -40,9 +41,7 @@ export const EFFECT_MANIFEST_2 = uuid(8712);
 export interface EffectFixtureOptions {
   readonly rulesetId?: string;
   readonly manifestId?: string;
-  /** true = current WO7 canon; false = exact WO6 historical Targeting assumptions. */
   readonly currentCanon?: boolean;
-  /** Revised Effect content for historical-reproducibility tests. */
   readonly revise?: Readonly<Record<string, Record<string, unknown>>>;
 }
 export interface EffectFixture { readonly ruleset: RulesetContext; readonly bundle: ProwessDefinitionBundle; readonly ref: (canonicalKey: string) => ProwessDefinitionRef; }
@@ -65,11 +64,11 @@ export function effectFixture(options: EffectFixtureOptions = {}): EffectFixture
   const entity = (i: number) => uuid(40000 + i), version = (i: number, r: number) => uuid(42000 + i + r * 500);
   const ref = (canonicalKey: string): ProwessDefinitionRef => {
     const d = BASE.find((x) => x.canonicalKey === canonicalKey); if (!d) throw new Error(`no fixture Definition ${canonicalKey}`); const i = ix.get(canonicalKey)!;
-    return { entityId: entity(i), entityVersionId: version(i, revision(d)), canonicalKey, definitionKind: d.definitionKind, systemFamily: PROWESS_DEFINITION_KINDS[d.definitionKind].family };
+    return { entityId: entity(i), entityVersionId: version(i, revision(d)), canonicalKey, definitionKind: d.definitionKind, systemFamily: PROWESS_DEFINITION_KINDS[d.definitionKind].family } as ProwessDefinitionRef;
   };
   const ctx = createRulesetContext({ rulesetId, manifestId, rules: BASE.map((d) => { const i = ix.get(d.canonicalKey)!; return { entityId: entity(i), entityVersionId: version(i, revision(d)), canonicalKey: d.canonicalKey, entityType: PROWESS_DEFINITION_KINDS[d.definitionKind].entityTypes[0], sourceRulesetId: rulesetId, sourceManifestId: manifestId }; }) });
-  if (!ctx.ok) throw new Error(JSON.stringify(ctx.problems));
-  const definitions = BASE.map((d) => { const i = ix.get(d.canonicalKey)!; return { schemaVersion: d.schemaVersion, systemFamily: PROWESS_DEFINITION_KINDS[d.definitionKind].family, definitionKind: d.definitionKind, entityId: entity(i), entityVersionId: version(i, revision(d)), canonicalKey: d.canonicalKey, payload: resolveRefs(structuredClone(payloadOf(d)), ref), provenance: { rulesetId, manifestId, releaseId: null, sourceRulesetId: rulesetId, sourceManifestId: manifestId, legacyTerms: [] } }; });
+  if (!ctx.ok) throw new Error(JSON.stringify(ctx.errors));
+  const definitions = BASE.map((d) => { const i = ix.get(d.canonicalKey)!; return { schemaVersion: d.schemaVersion, systemFamily: PROWESS_DEFINITION_KINDS[d.definitionKind].family, definitionKind: d.definitionKind, entityId: entity(i), entityVersionId: version(i, revision(d)), canonicalKey: d.canonicalKey, payload: resolveRefs(cloneJson(payloadOf(d)), ref), provenance: { rulesetId, manifestId, releaseId: null, sourceRulesetId: rulesetId, sourceManifestId: manifestId, legacyTerms: [] } }; });
   const bundle = createProwessDefinitionBundle({ ruleset: ctx.value, definitions }); if (!bundle.ok) throw new Error(JSON.stringify(bundle.problems, null, 2));
   return { ruleset: ctx.value, bundle: bundle.value, ref };
 }
