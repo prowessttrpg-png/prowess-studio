@@ -20,8 +20,10 @@ describe("M5-WO7 audit — Effect framework & Spell/Maneuver contracts", () => {
   const compiler = text("packages/prowess-game/src/effect/compile.ts");
   const effects = text("packages/prowess-game/src/content/core-playtest-v0.1/effects.ts");
   const targeting = text("packages/prowess-game/src/content/core-playtest-v0.1/targeting-wo7-amendments.ts");
+  const historicalTargeting = text("packages/prowess-game/src/content/core-playtest-v0.1/targeting.json");
   const docs = text("docs/architecture/m5-effect-framework.md");
   const rulesPackage = text("packages/prowess-rules/package.json");
+  const familyBlock = vocabulary.match(/SPELL_EFFECT_FAMILIES\s*=\s*Object\.freeze\(\[([\s\S]*?)\]\s+as const\)/)?.[1] ?? "";
 
   it("keeps Prowess Effect semantics out of the generic M4 package and DB access out of @prowess/game", () => {
     expect(rulesPackage).not.toMatch(/prowess-game|SPELL_EFFECT|MANEUVER_EFFECT|Projectile|Effect Framework/);
@@ -29,16 +31,8 @@ describe("M5-WO7 audit — Effect framework & Spell/Maneuver contracts", () => {
   });
 
   it("preserves branch separation and exactly seven canonical Spell Effect families", () => {
-    expect(vocabulary).toContain('"DAMAGE"');
-    expect(vocabulary).toContain('"HEALING"');
-    expect(vocabulary).toContain('"BUFF"');
-    expect(vocabulary).toContain('"DEBUFF"');
-    expect(vocabulary).toContain('"CONTROL"');
-    expect(vocabulary).toContain('"UTILITY"');
-    expect(vocabulary).toContain('"SUMMONING"');
-    expect(vocabulary).not.toMatch(/SPELL_EFFECT_FAMILIES[\s\S]*"MOVEMENT"[\s\S]*as const/);
-    expect(vocabulary).not.toMatch(/SPELL_EFFECT_FAMILIES[\s\S]*"CLEANSE"[\s\S]*as const/);
-    expect(vocabulary).not.toMatch(/SPELL_EFFECT_FAMILIES[\s\S]*"SPELL_INTERFERENCE"[\s\S]*as const/);
+    expect(familyBlock.match(/"[A-Z_]+"/g)).toEqual(["\"DAMAGE\"", "\"HEALING\"", "\"BUFF\"", "\"DEBUFF\"", "\"CONTROL\"", "\"UTILITY\"", "\"SUMMONING\""]);
+    expect(familyBlock).not.toMatch(/MOVEMENT|CLEANSE|SPELL_INTERFERENCE/);
     expect(payload).toContain('branch === "SPELL"');
     expect(payload).toContain('branch === "MANEUVER"');
   });
@@ -51,6 +45,7 @@ describe("M5-WO7 audit — Effect framework & Spell/Maneuver contracts", () => {
     expect(compiler).toContain('"DELIVERY_THEN_SAVE"');
     expect(payload).toContain('saveProfile');
     expect(targeting).not.toMatch(/validSaves|saveProfile/);
+    expect(`${targeting}\n${compiler}`).not.toMatch(/projectileDoubleAttack|skipProjectileDelivery/);
   });
 
   it("locks Spell Line to 10×PRO and 5×ceil(PRO/2), with no deferred current-canon width", () => {
@@ -58,18 +53,22 @@ describe("M5-WO7 audit — Effect framework & Spell/Maneuver contracts", () => {
     expect(targeting).toContain('expression: "5 * ceil(pro / 2) + width_extension * 5"');
     expect(targeting).not.toContain('15 * pro');
     expect(targeting).not.toContain('DEFERRED_PENDING_CANON');
+    expect(targeting).not.toContain('floor(pro / 2)');
   });
 
   it("uses exact compatibility, explicit Spell resolution and explicit Maneuver inheritance", () => {
     expect(payload).toContain('SPELL_EFFECT_RESOLUTION_REQUIRED');
     expect(payload).toContain('INHERIT_ABILITY');
     expect(compiler).toContain('relation === "TARGETING"');
-    expect(`${payload}\n${compiler}`).not.toMatch(/includes\([^)]*display|toLowerCase\(\).*targeting|fuzzy/i);
+    expect(`${payload}\n${compiler}`).not.toMatch(/includes\([^)]*display|toLowerCase\(\).*targeting|fuzzy|implicitManeuverInheritance/);
+    const direct = effects.slice(effects.indexOf('spell.effect.direct_damage'), effects.indexOf('spell.effect.direct_healing'));
+    expect(direct).toContain('{ mode: "ATTACK_ROLL", data: {} }');
   });
 
-  it("keeps Character Dice limits per Effect and forbids implicit secondary mechanics", () => {
+  it("keeps Character Dice limits per Effect and forbids global or implicit secondary mechanics", () => {
     expect(effects).toContain('maximum: { kind: "STAT", stat: "PRO" }');
     expect(effects).toContain('DAMAGE_TYPE_ONLY_NO_IMPLICIT_CONDITION');
+    expect(`${effects}\n${compiler}`).not.toMatch(/globalCharacterDiceCap|damageImpliesBurning/);
     const conversion = effects.slice(effects.indexOf('maneuver.effect.elemental_damage_conversion'));
     expect(conversion).not.toMatch(/Burning|Shocked|Poisoned|Mana Drain/);
   });
@@ -78,12 +77,11 @@ describe("M5-WO7 audit — Effect framework & Spell/Maneuver contracts", () => {
     expect(effects).toContain('maneuver.effect.radius_attack_conversion');
     expect(effects).toContain('validSaves: ["AGI", "PRO"]');
     expect(effects).toContain('fixed(`${canonicalKey}.ap`, "AP", ap)');
-    const historicalTargeting = text("packages/prowess-game/src/content/core-playtest-v0.1/targeting.json");
-    expect(historicalTargeting).not.toMatch(/Save Profile|saveProfile/);
+    expect(historicalTargeting).not.toMatch(/Save Profile|saveProfile|conversionCostDuplicate/);
   });
 
   it("does not calculate final Ability cost or execute runtime Effects / chains / ME feedback", () => {
-    expect(`${payload}\n${compiler}`).not.toMatch(/finalSpellCost|finalManeuverCost|applyDamage|restoreHp|mutateHp|executeEffectChain|spendManaEfficiency/);
+    expect(`${payload}\n${compiler}`).not.toMatch(/finalSpellCost|finalManeuverCost|applyDamage|restoreHp|mutateHp|executeEffectChain|spendManaEfficiency|runtimeHpMutation/);
     expect(docs).toContain("final Spell cost — WO10");
     expect(docs).toContain("final Maneuver cost — WO11");
     expect(docs).toContain("Effect Chain execution — WO12");
