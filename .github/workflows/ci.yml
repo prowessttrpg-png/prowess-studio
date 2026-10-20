@@ -367,6 +367,22 @@ jobs:
           pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo5-construction-api.test.ts
           node scripts/m5-wo5-negative-controls.mjs
 
+      # M5-WO6: Targeting framework, geometry, range & Spell / Maneuver Targeting catalogs — the golden fixtures and
+      # contracts in @prowess/game, the static audit (AST rules over the Targeting modules, structural rules over the
+      # Targeting content, no Studio geometry math, the register, terminology, invariants, docs and this step), the
+      # regenerated Rules Inspector fixture, exact Release history / isolation / no persistence against the real database,
+      # Targeting plans through the existing evaluate endpoint, and the behavioural negative controls §174–§189.
+      - name: M5-WO6 audit — Targeting framework, geometry & branch catalogs
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+        run: |
+          pnpm --filter "@prowess/game" exec vitest run src/targeting-golden.test.ts src/targeting-contracts.test.ts src/vocabulary.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo6-static.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo6-inspector-fixture.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-targeting-history.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo6-targeting-api.test.ts
+          node scripts/m5-wo6-negative-controls.mjs
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own

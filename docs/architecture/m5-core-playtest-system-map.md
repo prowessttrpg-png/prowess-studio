@@ -236,7 +236,8 @@ The shared grammar. Spell and Maneuver are its two V0.1 branches (designer clari
   s929, HEALING TRAITS s947, DEBUFF SPELL BRANCH s974, DEBUFF TRAITS s1007, BUFF SPELL BRANCH s1029, BUFF TRAITS
   s1054, CONTROL SPELL BRANCH s1073, SPELL INTERFERENCE BRANCH s1116, CONTROL TRAITS s1130) · Summoning branch s1146+.
 - **Spell Targeting catalog (s628–s631, s750–s775):** Self, Touch, Single Target, Multi-Target, Line, Cone, Radius,
-  Zone, Aura, Trigger-Based, Glyph / Anchor (M5-SC-029). Base MP per type, range 15 ft × PER, area scaling by PRO,
+  Zone, Aura, Trigger-Based, Glyph / Anchor (M5-SC-029 — add-ons, not base types; Projectile added, M5-SC-016). Base MP
+  per type, range 15 ft × PER, area scaling by PRO,
   scaling upgrades. Line of Sight, Line of Effect and cover.
 - **Spell Effect branches:** Damage, Healing, Cleanse, Buff, Debuff, Control, Utility, Summoning, Spell Interference.
   Movement is disputed (M5-SC-013). An Effect entry carries keywords, MP cost, valid Targeting, Roll / Save, effect and
@@ -277,7 +278,8 @@ The shared grammar. Spell and Maneuver are its two V0.1 branches (designer clari
   - Validation and Explanation.
 - **Known conflicts:** M5-SC-011, M5-SC-013, M5-SC-014, M5-SC-016, M5-SC-021, M5-SC-022, M5-SC-023, M5-SC-024,
   M5-SC-028, M5-SC-029.
-- **Future WO:** M5-WO6 (Targeting), WO7 (Effects), WO8 (Traits), WO9 (Duration & Conditions), **WO10 (Spell
+- **Implemented:** M5-WO6 Targeting framework and catalogs (`m5-targeting-framework.md`).
+- **Future WO:** WO7 (Effects), WO8 (Traits), WO9 (Duration & Conditions), **WO10 (Spell
   cost)**, WO12 (Resolution & Effect Chains), WO13 (Sustain / Mana Lock / Concentration).
 
 ## 10. MANEUVERS
@@ -460,7 +462,7 @@ The shared grammar. Spell and Maneuver are its two V0.1 branches (designer clari
 | M5-WO3 | Shared Resources & Action Economy | §5–§6 | M5-SC-007, 026, 027 |
 | M5-WO4 | Affinity Structured Rules | §7 | M5-SC-028 (percent rounding) |
 | M5-WO5 | Shared Modular Ability Construction Framework (capacities, access, Signature slots) | §8 | M5-SC-022 |
-| M5-WO6 | Targeting Framework + Spell / Maneuver catalogs | §9–§10 | M5-SC-015, 016, 018, 024, 029 |
+| M5-WO6 | Targeting Framework + Spell / Maneuver catalogs | §9–§10 | M5-SC-015, 016, 018, 024, 029, 039, 040 |
 | M5-WO7 | Effect Framework + Spell / Maneuver Definition contracts | §9–§10 | M5-SC-013, 016 |
 | M5-WO8 | Trait Framework + Spell / Maneuver contracts | §9 | M5-SC-017, 023, 024 |
 | M5-WO9 | Duration & Ability Conditions | §9–§10, §14 | M5-SC-021, 025 |

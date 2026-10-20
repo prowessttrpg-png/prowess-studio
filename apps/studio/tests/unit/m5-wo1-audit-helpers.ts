@@ -11,7 +11,7 @@ import ts from "typescript";
  */
 export type M5Layer = "game" | "rules" | "materializer" | "source";
 
-const SHAPES = new Set(["SELF", "TOUCH", "SINGLE_TARGET", "MULTI_TARGET", "LINE", "CONE", "RADIUS", "ZONE", "AURA", "TRIGGERED", "ANCHOR"]);
+const SHAPES = new Set(["SELF", "TOUCH", "SINGLE_TARGET", "MULTI_TARGET", "PROJECTILE", "LINE", "CONE", "RADIUS", "ZONE", "AURA", "CHAIN", "TRIGGERED", "ANCHOR"]); // PROJECTILE / CHAIN added by M5-WO6
 const STATS = /^(STR|AGI|CON|PER|RES|PRO|STRENGTH|AGILITY|CONSTITUTION|PERCEPTION|RESOLVE|PROWESS)$/i;
 const ARITHMETIC = new Set([
   ts.SyntaxKind.PlusToken,

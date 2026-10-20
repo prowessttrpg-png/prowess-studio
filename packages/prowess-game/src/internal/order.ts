@@ -66,3 +66,17 @@ export const AFFINITY_ORDER = Object.freeze({
   /** Affinity access Requirements (Trait / Effect / Maneuver prerequisites). */
   ACCESS: 900,
 });
+
+/** M5-WO6 Targeting: derived inputs, geometry / range Formulas, parameter bounds, Keywords, compatibility. */
+export const TARGETING_ORDER = Object.freeze({
+  /** WO2 derived statistics a Targeting Formula reads (BASE_RANGE for default Spell Range). */
+  DERIVED: 100,
+  /** Range and area Formulas — content programs, executed by M4. */
+  FORMULAS: 200,
+  /** Explicit parameter bounds (a Multi-Target count of at least 2). */
+  PARAMETERS: 300,
+  /** The Targeting Definition's exact Keyword contributions. */
+  KEYWORDS: 400,
+  /** Component ↔ Targeting compatibility Requirements. */
+  COMPATIBILITY: 500,
+});

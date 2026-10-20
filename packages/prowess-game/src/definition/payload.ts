@@ -1,7 +1,7 @@
 import type { JsonObject } from "@prowess/model";
 import { isPlainObject, type PathSegment } from "../internal/plain-data.js";
 import { Problems, isExactCanonicalKey, isExactLabel, isToken, own, readEnum, readRecord } from "../internal/problems.js";
-import { ABILITY_COMPONENT_CONTRACTS, isProwessDefinitionKind, type AbilityComponentContract, type ProwessDefinitionKind } from "../vocabulary/families.js";
+import { ABILITY_COMPONENT_CONTRACTS, PROWESS_DEFINITION_KINDS, isProwessDefinitionKind, type AbilityComponentContract, type ProwessDefinitionKind } from "../vocabulary/families.js";
 import {
   CANONICAL_AFFINITIES,
   COST_CURRENCIES,
@@ -22,6 +22,7 @@ import { isCorePayloadKind, readCorePayload } from "./core-payload.js";
 import { isRuntimePayloadKind, readRuntimePayload } from "./runtime-payload.js";
 import { isAffinityPayloadKind, readAffinityDefinitionPayload, readAffinityPayload } from "./affinity-payload.js";
 import { readAbilityConstructionRulePayload } from "./ability-construction-payload.js";
+import { readTargetingCosts, readTargetingRules } from "./targeting-payload.js";
 
 /**
  * Version-1 payload contracts of the SHARED Ability Construction components (PAS-10 M5-WO1 §25–53, §83).
@@ -128,7 +129,10 @@ export const TARGETING_FORBIDDEN_KEYS = Object.freeze([
   "saves",
   "saveStat",
   "savingThrow",
+  "saveProfile",
+  "saveProfiles",
   "attackRoll",
+  "attackRolls",
   "damage",
   "healing",
   "condition",
@@ -255,7 +259,7 @@ function readCommon(r: Record<string, unknown>, at: readonly PathSegment[], p: P
 }
 
 /** Validates a version-1 payload of `contract` (structure only). Returns the canonicalized payload, or null. */
-function readComponentPayload(contract: AbilityComponentContract, value: unknown, at: readonly PathSegment[], p: Problems): JsonObject | null {
+function readComponentPayload(contract: AbilityComponentContract, branch: "SPELL" | "MANEUVER" | null, value: unknown, at: readonly PathSegment[], p: Problems): JsonObject | null {
   const r = readRecord(value, at, p, C.INVALID_PAYLOAD, PAYLOAD_FIELDS[contract], PAYLOAD_REQUIRED[contract]);
   if (r === null) return null;
   const before = p.count;
@@ -267,7 +271,15 @@ function readComponentPayload(contract: AbilityComponentContract, value: unknown
       }
       const semanticShape = readEnum(own(r, "semanticShape"), TARGETING_SEMANTIC_SHAPES, [...at, "semanticShape"], p, C.INVALID_PAYLOAD, "targeting semantic shape");
       const geometry = readJsonObject(own(r, "geometry"), [...at, "geometry"], p);
-      payload = { ...readCommon(r, at, p), semanticShape, geometry } satisfies Record<keyof TargetingDefinitionPayload, unknown>;
+      const common = readCommon(r, at, p);
+      // M5-WO6: the typed `rules.targeting` sub-contract and its typed LISTED cost contributions (§53–§54, §61). A WO1-era
+      // payload without it stays readable; only a Definition WITH it is executable Targeting (and never an add-on, §13).
+      const targeting = own(common.rules as Record<string, unknown>, "targeting");
+      if (targeting !== undefined) {
+        const rules = readTargetingRules(targeting, semanticShape, branch, [...at, "rules", "targeting"], p);
+        if (rules !== null) readTargetingCosts(common.costContributions, rules, branch, [...at, "costContributions"], p);
+      }
+      payload = { ...common, semanticShape, geometry } satisfies Record<keyof TargetingDefinitionPayload, unknown>;
       break;
     }
     case "EFFECT": {
@@ -344,7 +356,7 @@ export function readDefinitionPayload(kind: ProwessDefinitionKind, contract: Abi
     p.add(C.LEGACY_TERM_AS_CANONICAL, use.path, `"${use.term}" is legacy source terminology; canonical structured content uses ${use.canonical}`);
   }
   let payload: JsonObject | null = null;
-  if (contract !== null) payload = readComponentPayload(contract, value, at, p);
+  if (contract !== null) payload = readComponentPayload(contract, PROWESS_DEFINITION_KINDS[kind].branch, value, at, p);
   else if (isCorePayloadKind(kind)) payload = readCorePayload(kind, value, at, p);
   else if (isRuntimePayloadKind(kind)) payload = readRuntimePayload(kind, value, at, p);
   else if (isAffinityPayloadKind(kind)) payload = readAffinityPayload(kind, value, at, p);

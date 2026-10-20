@@ -959,3 +959,123 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 - **Group:** Ability Construction
 - **Meaning:** A Maneuver reads the Martial Skill rank (SKILL ladder, TRAINED minimum) with authored Rank Value and Effect / Trait / Condition capacity 1/2/3 at Trained / Expert / Master. A Maneuver needs a MANEUVER_FOUNDATION and at least one Effect; there is no Maneuver Trait exchange. Owning an Affinity grants access to Affinity-gated components only — it never substitutes for Martial training nor adds Maneuver capacity.
 - **Guards:** `packages/prowess-game/src/construction-legality-golden.test.ts`, `packages/prowess-game/src/construction-legality-contracts.test.ts`, `apps/studio/tests/unit/m5-wo5-static.test.ts`, `scripts/m5-wo5-negative-controls.mjs`
+
+### M5-I159 — Targeting Determines Range, Area, Target Count, Delivery, Origin And Placement; It Never Determines An Effect's Mechanical Outcome
+
+- **Group:** Targeting
+- **Meaning:** A Targeting Definition's `rules.targeting` sub-contract states range model, area measures, cardinality, valid target categories, origin, placement, Line of Sight / Effect and cover policy. TARGETING_FORBIDDEN_KEYS (outcome, damage, healing, status, save, saveProfile, attackRoll …) are refused at any depth (PROWESS_DEFINITION.TARGETING_IMPLIES_OUTCOME); the Targeting result never contains an outcome.
+- **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `packages/prowess-game/src/targeting-contracts.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I160 — Targeting Never Selects An Attack Roll, Saving Throw Or Save Stat; Resolution Belongs To Effects Even When A Targeting Type Has A Typical Delivery Family
+
+- **Group:** Targeting
+- **Meaning:** Touch and Projectile carry deliveryFamily DIRECT_ATTACK_DELIVERY as a classification only; no Targeting plan contains an Attack Roll, Saving Throw, Save Stat or Save Profile step or value. Cover is EXPOSED_TO_RESOLUTION metadata; the Effect decides Dodge or Save effects.
+- **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `packages/prowess-game/src/targeting-contracts.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I161 — A Standard Ability Composition Has Exactly One Branch-Specific Targeting Definition, And A Standard Multi-Effect Spell Shares That Targeting Across All Effects Unless An Explicit Modifier Says Otherwise
+
+- **Group:** Targeting
+- **Meaning:** The WO1 composition keeps one `targeting` use (never targeting[]). Every component with an explicit TARGETING compatibility rule is checked against that one Targeting by an M4 REQUIREMENT; an explicit `targetingModifiers` entry (a Trait, Metamagic or special rule — later Work Orders) yields MODIFIED_BY_EXPLICIT_RULE.
+- **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `packages/prowess-game/src/targeting-contracts.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I162 — SPELL_TARGETING And MANEUVER_TARGETING Remain Distinct Exact Definition Families Even When They Share The Same Semantic Geometry
+
+- **Group:** Targeting
+- **Meaning:** Both are stored under EntityType TARGETING; the DefinitionKind keeps them apart. A SPELL_TARGETING Definition in a Maneuver composition is the WO1 CROSS_BRANCH_DEFINITION. Spell Radius (5 ft × PRO) and Maneuver Radius (Martial Rank Base × STR) share the RADIUS shape but are different exact Definitions and formulas.
+- **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `packages/prowess-game/src/targeting-contracts.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I163 — Projectile Is A Canonical Spell Targeting Type Distinct From Single Target, While Its Base MP Cost Remains Deferred Until M5-SC-039 Is Resolved
+
+- **Group:** Targeting
+- **Meaning:** spell.targeting.projectile (semantic PROJECTILE, one primary target, default Spell Range) is its own Definition. Its base contribution is BASE_DEFERRED citing M5-SC-039; the result reports DEFERRED_PENDING_CANON — never 2, 0 or 3 MP.
+- **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `packages/prowess-game/src/targeting-contracts.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I164 — Trigger-Based And Glyph/Anchor Are Targeting Add-Ons, Not Canonical Base Spell Targeting Types
+
+- **Group:** Targeting
+- **Meaning:** Designer ruling M5-SC-029: TARGETING_ADD_ONS are TRIGGER / ANCHOR. The historical WO1 shapes TRIGGERED / ANCHOR stay readable, but a Definition with executable `rules.targeting` using them, or a composition using one, is PROWESS_TARGETING.TARGETING_ADD_ON_AS_BASE. No canonical trigger / glyph / anchor Targeting Definition exists; the +4 / +5 MP source costs are never used.
+- **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `packages/prowess-game/src/targeting-contracts.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I165 — Default Spell Range Equals 15 Feet Times PER Unless An Exact Targeting Or Ability Rule Overrides It
+
+- **Group:** Targeting
+- **Meaning:** DEFAULT_SPELL_RANGE reads the WO2 BASE_RANGE statistic (core.derived.base_range, 15 × PER) through an M4 FORMULA step; the Targeting range Formula adds only declared range extensions. PER 4 → 60 ft.
+- **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I166 — Spell Range And Spell Area Are Separate Mechanical Values And Must Never Be Collapsed Into One Distance
+
+- **Group:** Targeting
+- **Meaning:** Range is its own step and output; area measures (LENGTH / WIDTH / RADIUS) are separate steps and outputs. PER 5, PRO 3 Radius → placement range 75 ft and radius 15 ft.
+- **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I167 — Spell Line Length Equals 15 Feet Times PRO; The Ambiguous Base Line Width Rule Must Remain Deferred Until M5-SC-040 Is Resolved
+
+- **Group:** Targeting
+- **Meaning:** Spell Line LENGTH = 15 × PRO (+ declared length extensions) is an M4 Formula; WIDTH is DEFERRED_PENDING_CANON with the rule text '5 ft wide per 2 Prowess' and conflict M5-SC-040 — no width step, no guessed rounding or minimum.
+- **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I168 — Spell Cone Length Equals 10 Feet Times PRO
+
+- **Group:** Targeting
+- **Meaning:** Spell Cone LENGTH = 10 × PRO (+ declared length extensions) through an M4 Formula. PRO 3 → 30 ft.
+- **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I169 — Spell Radius, Zone Radius And Aura Radius Each Use Five Feet Times PRO Unless An Exact Rule Overrides Them
+
+- **Group:** Targeting
+- **Meaning:** Spell Radius, Zone and Aura RADIUS = 5 × PRO through M4 Formulas. Zone authors no Duration; Aura follows its authored source (CASTER by default; SUMMON / OBJECT / ANCHOR listed at +4 MP).
+- **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I170 — The Superseded Plus-Three-MP Radius/Zone/Aura Expansion Rule Is Never Used; Widen Area Is A Targeting Trait Costing Six MP And Is Owned By The Trait Subsystem
+
+- **Group:** Targeting
+- **Meaning:** Designer ruling M5-SC-024: no Spell Targeting authors an area / radius extension parameter or a radius-extension cost. Radius-capable Targeting carries explicit `radiusCapable: true` metadata for the Widen Area Trait (M5-WO8).
+- **Guards:** `packages/prowess-game/src/targeting-contracts.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I171 — Targeting Compatibility Uses Exact Structured Identity Or Explicit Semantic Rules And Never Display-Name Or Prose Inference
+
+- **Group:** Targeting
+- **Meaning:** A component's TARGETING compatibility `allow` labels match the Targeting's exact canonical key or its semantic token by exact set membership (M4 SET_CONTAINS); no substring, display-name or description matching exists.
+- **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `packages/prowess-game/src/targeting-contracts.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I172 — Maneuver Targeting Conversion Is A Maneuver Effect And The Targeting Definition It References Does Not Duplicate The Effect's AP/MP Cost Or Save Profile
+
+- **Group:** Targeting
+- **Meaning:** MANEUVER_TARGETING Definitions carry no cost contributions (PROWESS_TARGETING.MANEUVER_TARGETING_COST) and no Save Profile (TARGETING_IMPLIES_OUTCOME). The Conversion Effect (M5-WO7) owns conversion, Save Profile, cost and slot.
+- **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `packages/prowess-game/src/targeting-contracts.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I173 — Canonical Maneuver Radius Equals Martial Rank Base Times STR, With Rank Bases Five, Ten And Fifteen Feet For Trained, Expert And Master
+
+- **Group:** Targeting
+- **Meaning:** Designer ruling M5-SC-018: maneuver.targeting.radius authors the MARTIAL_RANK_BASE rank table (TRAINED 5, EXPERT 10, MASTER 15 ft, Martial Skill) and the Formula rank_base × str, executed by M4. Expert STR 5 → 50 ft; Master STR 10 → 150 ft.
+- **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I174 — The Superseded Fixed Strength-Band Maneuver Radius Table Is Never Executed
+
+- **Group:** Targeting
+- **Meaning:** The s2030 bands (STR 1–3 → 5 ft, 4–6 → 10 ft, 7+ → 15 ft) appear in no executable content: Trained STR 2 → 10 ft and STR 7 → 35 ft.
+- **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I175 — Spell And Maneuver Targeting Geometry Formulas Compile Through M4 Formula Operations Rather Than Hidden Prowess Compiler Or UI Arithmetic
+
+- **Group:** Targeting
+- **Meaning:** Every Targeting distance is an authored Formula program in content, validated by M4 validateFormulaProgram and executed as an M4 FORMULA step; @prowess/game and Studio contain no geometry arithmetic. M4 knows no Prowess Targeting term.
+- **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `packages/prowess-game/src/targeting-contracts.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I176 — Targeting Definitions Preserve Exact EntityVersion, Ruleset, Composition And Formula Provenance
+
+- **Group:** Targeting
+- **Meaning:** Each Targeting step's source-map entry cites the exact Targeting EntityVersion (and the BASE_RANGE statistic or Skill ladder it reads); the plan carries the exact Ruleset / Release provenance; Keyword contributions keep the Targeting's EntityVersion as their source. R1 re-evaluates identically after R2.
+- **Guards:** `packages/prowess-game/src/targeting-contracts.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I177 — WO6 Targeting Evaluation Does Not Calculate Final Spell Or Maneuver Cost And Does Not Perform Runtime Resource Payment
+
+- **Group:** Targeting
+- **Meaning:** The result reports LISTED Targeting contributions (BASE, BASE_DEFERRED, PER_STEP, PER_ADDITIONAL_TARGET, PER_SELECTION) with the use's selections only — no total, no final MP / AP, no ME, no payment.
+- **Guards:** `packages/prowess-game/src/targeting-contracts.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+### M5-I178 — Targeting Evaluation Is Deterministic, Immutable, JSON-Safe And Free Of Global Mutable Targeting State
+
+- **Group:** Targeting
+- **Meaning:** Equal requests give deep-equal plans, runs, results and source maps; inputs are never mutated and outputs are deep-frozen; plans replay identically through M4 after a JSON round-trip; unsafe input (getters, cycles, NaN, Infinity, functions, __proto__) is refused.
+- **Guards:** `packages/prowess-game/src/targeting-contracts.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`

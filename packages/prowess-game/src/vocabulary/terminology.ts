@@ -23,6 +23,8 @@ export const TERMINOLOGY_CATEGORIES = deepFreeze([
   "AFFINITY",
   "ABILITY_KIND",
   "TARGETING_SHAPE",
+  /** M5-WO6 (M5-SC-029): applied to a completed Spell; never a base Targeting Type. */
+  "TARGETING_ADD_ON",
   "EFFECT_FAMILY",
   "TRAIT_FAMILY",
   "CONDITION_FAMILY",
@@ -197,8 +199,11 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
   entry("Zone", "TARGETING_SHAPE", C, "ABILITY", "ZONE"),
   entry("Aura", "TARGETING_SHAPE", C, "ABILITY", "AURA"),
   entry("Chain", "TARGETING_SHAPE", SS, "MANEUVER", "CHAIN"),
-  entry("Trigger-Based", "TARGETING_SHAPE", C, "SPELL", "TRIGGERED"),
-  entry("Glyph / Anchor", "TARGETING_SHAPE", C, "SPELL", "ANCHOR"),
+  // M5-SC-029 (designer ruling, applied in M5-WO6): Trigger-Based and Glyph / Anchor are Targeting ADD-ONS applied to a
+  // completed Spell, never base Targeting Types. Historical provenance: WO1–WO5 classified them as TARGETING_SHAPE
+  // (tokens TRIGGERED / ANCHOR, Core Playtest s628 / s751); those semantic tokens stay readable for WO1-era payloads.
+  entry("Trigger-Based", "TARGETING_ADD_ON", C, "SPELL", "TRIGGER", { ...designer, conflictKey: "M5-SC-029" }),
+  entry("Glyph / Anchor", "TARGETING_ADD_ON", C, "SPELL", "ANCHOR", { ...designer, conflictKey: "M5-SC-029" }),
   // M5-SC-016 (designer ruling): Projectile is an Attack Roll Targeting Type (with Touch); Line / Cone / Radius / Zone are
   // Saving Throw Targeting Types. Damage works with both groups.
   entry("Projectile", "TARGETING_SHAPE", C, "SPELL", "PROJECTILE", { ...designer, conflictKey: "M5-SC-016" }),
