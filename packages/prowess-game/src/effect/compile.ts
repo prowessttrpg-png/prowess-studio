@@ -35,7 +35,7 @@ import type { ProwessStat } from "../vocabulary/core.js";
 import type { AbilityKind, ProwessDefinitionKind } from "../vocabulary/families.js";
 import type { EffectDeliveryInteraction, TargetingDeliveryCheck } from "../vocabulary/effect.js";
 
-export interface EffectCharacterContext extends AbilityConstructionCharacterContext {}
+export type EffectCharacterContext = AbilityConstructionCharacterContext;
 export interface EffectUseRequest {
   readonly contractVersion: ProwessCompilationContractVersion;
   readonly subjectKey: string;
