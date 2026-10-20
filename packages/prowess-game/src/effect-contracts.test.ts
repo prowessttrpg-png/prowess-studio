@@ -6,6 +6,12 @@ import { effectCharacter, effectFixture, effectRequest, maneuverEffectAbility, s
 
 const codes = (x: { ok: boolean; problems?: readonly { code: string }[] }) => x.ok ? [] : (x.problems ?? []).map((p) => p.code);
 const cloneJson = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+type EffectPayloadView = {
+  readonly effectFamily?: unknown;
+  readonly rules?: { readonly effect?: { readonly effectSubfamily?: unknown; readonly restrictions?: readonly string[] } };
+  readonly outcomes?: unknown;
+};
+const payload = (key: string): EffectPayloadView => EFFECT_REFERENCE_CONTENT.definitions.find((d) => d.canonicalKey === key)!.payload as unknown as EffectPayloadView;
 
 describe("M5-WO7 Effect grammar", () => {
   it("has exactly the seven canonical Spell Effect families and no Movement/Cleanse/Interference top-level family", () => {
@@ -16,23 +22,21 @@ describe("M5-WO7 Effect grammar", () => {
   });
 
   it("authors Cleanse under Healing and Movement/Counterspell under Utility", () => {
-    const by = (key: string) => EFFECT_REFERENCE_CONTENT.definitions.find((d) => d.canonicalKey === key)!.payload as any;
-    expect([by("spell.effect.cleanse").effectFamily, by("spell.effect.cleanse").rules.effect.effectSubfamily]).toEqual(["HEALING", "CLEANSE"]);
-    expect([by("spell.effect.reposition").effectFamily, by("spell.effect.reposition").rules.effect.effectSubfamily]).toEqual(["UTILITY", "MOVEMENT"]);
-    expect([by("spell.effect.dispel").effectFamily, by("spell.effect.dispel").rules.effect.effectSubfamily]).toEqual(["UTILITY", "COUNTERSPELL"]);
+    expect([payload("spell.effect.cleanse").effectFamily, payload("spell.effect.cleanse").rules?.effect?.effectSubfamily]).toEqual(["HEALING", "CLEANSE"]);
+    expect([payload("spell.effect.reposition").effectFamily, payload("spell.effect.reposition").rules?.effect?.effectSubfamily]).toEqual(["UTILITY", "MOVEMENT"]);
+    expect([payload("spell.effect.dispel").effectFamily, payload("spell.effect.dispel").rules?.effect?.effectSubfamily]).toEqual(["UTILITY", "COUNTERSPELL"]);
   });
 
   it("keeps Spell and Maneuver Effects branch-specific", () => {
     const f = effectFixture();
-    const spell = spellEffectAbility(f, "spell.effect.direct_damage");
-    const crossed = cloneJson(spell) as any;
-    crossed.effects[0].definition = f.ref("maneuver.effect.elemental_damage_conversion");
+    const crossed = cloneJson(spellEffectAbility(f, "spell.effect.direct_damage"));
+    crossed.effects[0]!.definition = f.ref("maneuver.effect.elemental_damage_conversion");
     expect(codes(compileEffectUse(effectRequest(f, crossed)))).not.toEqual([]);
   });
 
   it("requires an explicit Spell resolution and permits only explicit Maneuver inheritance", () => {
-    const source = EFFECT_REFERENCE_CONTENT.definitions.find((d) => d.canonicalKey === "spell.effect.direct_damage")!.payload as any;
-    const f = effectFixture({ revise: { "spell.effect.direct_damage": { ...cloneJson(source), resolution: null } } });
+    const source = cloneJson(EFFECT_REFERENCE_CONTENT.definitions.find((d) => d.canonicalKey === "spell.effect.direct_damage")!.payload) as unknown as Record<string, unknown>;
+    const f = effectFixture({ revise: { "spell.effect.direct_damage": { ...source, resolution: null } } });
     expect(codes(compileEffectUse(effectRequest(f, spellEffectAbility(f, "spell.effect.direct_damage")))).toString()).toContain("SPELL_EFFECT_RESOLUTION_REQUIRED");
 
     const current = effectFixture();
@@ -59,8 +63,8 @@ describe("M5-WO7 Effect grammar", () => {
   });
 
   it("does not imply elemental Conditions from damage conversion", () => {
-    const p = EFFECT_REFERENCE_CONTENT.definitions.find((d) => d.canonicalKey === "maneuver.effect.elemental_damage_conversion")!.payload as any;
-    expect(p.rules.effect.restrictions).toContain("DAMAGE_TYPE_ONLY_NO_IMPLICIT_CONDITION");
+    const p = payload("maneuver.effect.elemental_damage_conversion");
+    expect(p.rules?.effect?.restrictions).toContain("DAMAGE_TYPE_ONLY_NO_IMPLICIT_CONDITION");
     expect(JSON.stringify(p.outcomes)).not.toMatch(/Burning|Shocked|Poisoned|Mana Drain/i);
   });
 
