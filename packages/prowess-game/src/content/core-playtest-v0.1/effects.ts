@@ -2,7 +2,10 @@
 const compat = (...allow: string[]) => [{ relation: "TARGETING", allow }];
 const prereq = (skillKey: string, minimumRank: string) => ({ prerequisites: [{ prerequisiteKey: `${skillKey}.${minimumRank}`, kind: "SKILL_RANK_AT_LEAST", skillKey, minimumRank }] });
 const duration = (allowed = ["INSTANT"], defaultValue: string | null = "INSTANT", sustainEligible = false, manaLockEligible = false) => ({ allowed, default: defaultValue, sustainEligible, manaLockEligible });
-const successFailure = (success: readonly unknown[]) => [{ outcomeKey: "SUCCESS", data: { operations: success } }, { outcomeKey: "FAILURE", data: { operations: [{ kind: "NO_EFFECT", data: {} }] }];
+const successFailure = (success: readonly unknown[]) => [
+  { outcomeKey: "SUCCESS", data: { operations: success } },
+  { outcomeKey: "FAILURE", data: { operations: [{ kind: "NO_EFFECT", data: {} }] } },
+];
 const fixed = (contributionKey: string, currency: "AP" | "MP", amount: number) => ({ contributionKey, currency, data: { kind: "FIXED", amount } });
 const perUnit = (contributionKey: string, parameter: string, amount: number, includedUnits = 0) => ({ contributionKey, currency: "MP", data: { kind: "PER_UNIT", parameter, amount, includedUnits } });
 const spell = (canonicalKey: string, effectFamily: string, resolution: unknown, effectSubfamily: string | null, keywords: string[], targeting: string[], effect: Record<string, unknown>, costs: unknown[], outcomes: unknown[], rank = "TRAINED") => ({ canonicalKey, definitionKind: "SPELL_EFFECT", schemaVersion: 1, payload: { effectFamily, resolution, outcomes, keywords, parameters: {}, compatibility: compat(...targeting), costContributions: costs, rules: { construction: prereq("skill.arcana", rank), effect: { branch: "SPELL", effectSubfamily, targetCategories: ["CREATURE"], resolutionPolicy: "OWN", attackType: null, saveProfile: null, parameters: [], formulas: [], duration: duration(), targetingConversion: null, restrictions: [], ...effect } } } });
