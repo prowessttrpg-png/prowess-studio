@@ -163,7 +163,7 @@ describe("M5-WO6 audit — Targeting framework, geometry & branch catalogs", () 
     const md = read("docs/architecture/m5-invariants.md");
     const self = read("apps/studio/tests/unit/m5-wo6-static.test.ts");
     for (const entry of catalog.slice(158)) {
-      expect(entry.status ?? "ACTIVE", entry.id).toBe("ACTIVE");
+      expect(entry.status ?? "ACTIVE", entry.id).toBe(["M5-I160", "M5-I163", "M5-I167"].includes(entry.id) ? "SUPERSEDED" : "ACTIVE");
       expect(entry.guards, entry.id).toEqual(expect.arrayContaining(["apps/studio/tests/unit/m5-wo6-static.test.ts", "scripts/m5-wo6-negative-controls.mjs"]));
       for (const guard of entry.guards) {
         expect(existsSync(path.join(ROOT, guard)), guard).toBe(true);

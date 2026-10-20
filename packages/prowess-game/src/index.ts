@@ -481,3 +481,18 @@ export {
   type TargetingCostReport,
   type TargetingParameterValue,
 } from "./targeting/compile.js";
+
+
+// ---- M5-WO7 Effect framework, resolution contracts & Effect Definitions ----
+export {
+  SPELL_EFFECT_FAMILIES, EFFECT_SUBFAMILIES, EFFECT_RESOLUTION_POLICIES, EFFECT_ATTACK_TYPES,
+  EFFECT_SAVE_SELECTION_POLICIES, EFFECT_PARAMETER_KINDS, EFFECT_LIMIT_KINDS, EFFECT_VARIABLE_SOURCE_KINDS,
+  EFFECT_COST_KINDS, EFFECT_OUTCOME_KEYS, EFFECT_OUTCOME_OPERATIONS, TARGETING_DELIVERY_CHECKS,
+  EFFECT_DELIVERY_INTERACTIONS,
+  type SpellEffectFamily, type EffectSubfamily, type EffectResolutionPolicy, type EffectAttackType,
+  type EffectSaveSelectionPolicy, type EffectParameterKind, type EffectLimitKind, type EffectVariableSourceKind,
+  type EffectCostKind, type EffectOutcomeKey, type EffectOutcomeOperation, type TargetingDeliveryCheck,
+  type EffectDeliveryInteraction,
+} from "./vocabulary/effect.js";
+export { EFFECT_ERROR_CODES, isSpellEffectFamily, type EffectRules, type EffectParameterRule, type EffectFormula, type EffectSaveProfile, type EffectDurationPolicy, type EffectCostRule, type EffectOutcomeReading, type TargetingDeliveryRule } from "./definition/effect-payload.js";
+export { compileEffectUse, validateEffectUse, readEffectRun, type EffectCharacterContext, type EffectUseRequest, type EffectUseResult, type EffectCompiledOutputs, type ProwessEffectCompiledPlan } from "./effect/compile.js";

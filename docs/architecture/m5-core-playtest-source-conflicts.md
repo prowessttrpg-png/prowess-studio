@@ -786,12 +786,15 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   table (s628) has no Projectile row.
 - **source B**: the older, lower-authority Chapter Book lists Projectile at 2 MP. That value is not Core Playtest canon.
 - **mechanical consequence**: a Projectile Spell's listed Targeting MP — and so its total Spell MP — cannot be computed.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: M5-WO7 post-WO6 designer ruling
 - **notes**: recorded by M5-WO6. WO6 authors the Projectile Targeting Definition (identity, one primary target, default
   Spell Range, delivery family, compatibility) with its base contribution `BASE_DEFERRED` (M5-SC-039); no 2 / 0 / 3 MP
   value is authored. M5-WO10 must resolve it before complete Projectile Spell pricing can pass.
 
+
+
+- **M5-WO7 resolution**: Projectile Targeting costs exactly **3 MP**, uses the caster current applicable Range, and requires a **Ranged Attack Roll** delivery check. The delivery check is distinct from Effect outcome; an ATTACK_ROLL Effect reuses the same roll, while a SAVING_THROW Effect resolves its Effect-owned Save only after delivery hits.
 
 ### M5-SC-040 — Spell Line Width Rounding / Minimum
 
@@ -801,8 +804,11 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **source A**: Core Playtest SPELL RANGE AND AREA SCALING (s628–s631), Area Scaling table: "Line Width — 5 ft wide per 2 Prowess".
 - **source B**: no source states the rounding for odd PRO, the width at PRO 1, or a minimum width (5 ft?).
 - **mechanical consequence**: the Line width is ambiguous for PRO 1 and every odd PRO.
-- **status**: `UNRESOLVED`
-- **resolution authority**: none
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: M5-WO7 post-WO6 designer ruling
 - **notes**: recorded by M5-WO6. The Spell Line Definition stores the rule text with `valueStatus: DEFERRED_PENDING_CANON`
   (M5-SC-040) and emits no width. Line identity, base MP, length (15 ft × PRO), origin and the +5 ft width scaling option
   (+4 MP) stay executable.
+
+- **M5-WO7 resolution**: current Spell Line length is **10 ft × PRO** and width is **5 ft × ceil(PRO / 2)**. WO6 historical Releases preserve their earlier 15×PRO/deferred-width assumptions; current canon does not mutate them.
+

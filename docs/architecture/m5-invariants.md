@@ -968,6 +968,8 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 
 ### M5-I160 — Targeting Never Selects An Attack Roll, Saving Throw Or Save Stat; Resolution Belongs To Effects Even When A Targeting Type Has A Typical Delivery Family
 
+- **Status:** `SUPERSEDED` by `M5-I180` for current canon. Historical Releases remain reproducible.
+
 - **Group:** Targeting
 - **Meaning:** Touch and Projectile carry deliveryFamily DIRECT_ATTACK_DELIVERY as a classification only; no Targeting plan contains an Attack Roll, Saving Throw, Save Stat or Save Profile step or value. Cover is EXPOSED_TO_RESOLUTION metadata; the Effect decides Dodge or Save effects.
 - **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `packages/prowess-game/src/targeting-contracts.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
@@ -985,6 +987,8 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 - **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `packages/prowess-game/src/targeting-contracts.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
 
 ### M5-I163 — Projectile Is A Canonical Spell Targeting Type Distinct From Single Target, While Its Base MP Cost Remains Deferred Until M5-SC-039 Is Resolved
+
+- **Status:** `SUPERSEDED` by `M5-I179` for current canon. Historical Releases remain reproducible.
 
 - **Group:** Targeting
 - **Meaning:** spell.targeting.projectile (semantic PROJECTILE, one primary target, default Spell Range) is its own Definition. Its base contribution is BASE_DEFERRED citing M5-SC-039; the result reports DEFERRED_PENDING_CANON — never 2, 0 or 3 MP.
@@ -1009,6 +1013,8 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 - **Guards:** `packages/prowess-game/src/targeting-golden.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
 
 ### M5-I167 — Spell Line Length Equals 15 Feet Times PRO; The Ambiguous Base Line Width Rule Must Remain Deferred Until M5-SC-040 Is Resolved
+
+- **Status:** `SUPERSEDED` by `M5-I183` for current canon. Historical Releases remain reproducible.
 
 - **Group:** Targeting
 - **Meaning:** Spell Line LENGTH = 15 × PRO (+ declared length extensions) is an M4 Formula; WIDTH is DEFERRED_PENDING_CANON with the rule text '5 ft wide per 2 Prowess' and conflict M5-SC-040 — no width step, no guessed rounding or minimum.
@@ -1079,3 +1085,208 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 - **Group:** Targeting
 - **Meaning:** Equal requests give deep-equal plans, runs, results and source maps; inputs are never mutated and outputs are deep-frozen; plans replay identically through M4 after a JSON round-trip; unsafe input (getters, cycles, NaN, Infinity, functions, __proto__) is refused.
 - **Guards:** `packages/prowess-game/src/targeting-contracts.test.ts`, `apps/studio/tests/unit/m5-wo6-static.test.ts`, `scripts/m5-wo6-negative-controls.mjs`
+
+
+### M5-I179 — Projectile Targeting Has A Listed Base Cost Of Three MP And Uses The Caster Current Applicable Range
+
+- **Group:** Effect Framework
+- **Meaning:** Projectile current canon is 3 MP and reads the existing applicable caster Range rather than hard-coding a second range formula.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I180 — Projectile Requires A Ranged Attack Roll For Delivery; This Delivery Check Is Distinct From The Effect Mechanical Outcome And Any Effect-Owned Saving Throw
+
+- **Group:** Effect Framework
+- **Meaning:** Projectile owns a Ranged Attack delivery check only; Effect resolution and any Effect Save remain separate Effect data.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I181 — When A Projectile-Delivered Effect Uses Attack-Roll Resolution, The Projectile Delivery Attack Is The Effect Attack And Is Never Rolled Twice
+
+- **Group:** Effect Framework
+- **Meaning:** An ATTACK_ROLL Effect delivered by Projectile reuses the delivery attack and never creates a second roll.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I182 — When A Projectile-Delivered Effect Uses Saving-Throw Resolution, Successful Projectile Delivery Occurs Before The Effect-Owned Saving Throw
+
+- **Group:** Effect Framework
+- **Meaning:** A SAVING_THROW Effect delivered by Projectile resolves delivery first and the Effect-owned Save only after a hit.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I183 — Canonical Spell Line Length Equals Ten Feet Times PRO
+
+- **Group:** Effect Framework
+- **Meaning:** Current Spell Line length is the M4 Formula 10 × PRO feet.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I184 — Canonical Spell Line Width Equals Five Feet Times The Ceiling Of PRO Divided By Two
+
+- **Group:** Effect Framework
+- **Meaning:** Current Spell Line width is the M4 Formula 5 × ceil(PRO / 2) feet, minimum 5 feet.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I185 — Effects Define What An Ability Does While Targeting Defines Delivery And Geometry; Targeting Never Owns Effect Outcomes
+
+- **Group:** Effect Framework
+- **Meaning:** Targeting owns delivery/geometry; Effect owns mechanical outcome.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I186 — Saving Throw Identity And Save Profiles Are Effect-Owned Mechanics And Are Never Inferred From Targeting Geometry
+
+- **Group:** Effect Framework
+- **Meaning:** Save identity/profile belongs to Effects, never Targeting geometry.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I187 — SPELL_EFFECT And MANEUVER_EFFECT Are Separate Exact Definition Families That Share A Structural Effect Contract But Are Never Interchangeable
+
+- **Group:** Effect Framework
+- **Meaning:** Spell and Maneuver Effect Definition families share structure but cannot cross branches.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I188 — The Seven Canonical Top-Level Spell Effect Families Are Damage, Healing, Buff, Debuff, Control, Utility And Summoning
+
+- **Group:** Effect Framework
+- **Meaning:** Only Damage, Healing, Buff, Debuff, Control, Utility and Summoning are top-level Spell Effect families.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I189 — Cleanse Is A Healing Subfamily And Movement Is A Utility Subfamily; Neither Is A Separate Top-Level Spell Effect Family
+
+- **Group:** Effect Framework
+- **Meaning:** Cleanse is HEALING/CLEANSE and Movement is UTILITY/MOVEMENT.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I190 — Spell Interference Is A Utility Mechanic Rather Than A Top-Level Spell Effect Family
+
+- **Group:** Effect Framework
+- **Meaning:** Counterspell/Dispel-style Spell Interference is a Utility mechanic, not a top-level family.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I191 — An Executable Canonical Spell Effect Must Explicitly Define Its Resolution Mode And Mechanical Outcome Metadata
+
+- **Group:** Effect Framework
+- **Meaning:** Executable Spell Effects author an explicit resolution and structured outcomes.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I192 — A Maneuver Effect May Inherit The Maneuver Existing Resolution Only Through An Explicit Inherit-Ability Resolution Policy
+
+- **Group:** Effect Framework
+- **Meaning:** Null Maneuver Effect resolution means inheritance only when INHERIT_ABILITY is explicitly authored.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I193 — Effect Saving-Throw Resolution Carries An Exact Authored Save Profile Or Exact Save-Selection Rule
+
+- **Group:** Effect Framework
+- **Meaning:** Saving-throw Effects author exact valid Saves and selection policy.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I194 — Effect Targeting Compatibility Uses Exact Structured Identity Or Explicit Semantic Compatibility And Never Fuzzy Text Matching
+
+- **Group:** Effect Framework
+- **Meaning:** Effect/Targeting compatibility uses exact identity/semantic tokens, never fuzzy text.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I195 — Damage And Healing Character Dice Limits Apply Per Effect And Normally Cannot Exceed The Caster PRO
+
+- **Group:** Effect Framework
+- **Meaning:** Damage/Healing Character Dice selection is checked against PRO independently per Effect.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I196 — Effects Never Gain Secondary Mechanical Outcomes Merely From Flavor, Damage Type, Keywords Or Display Text
+
+- **Group:** Effect Framework
+- **Meaning:** Flavor, damage type and Keywords never create unauthored secondary mechanics.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I197 — Effect Scaling Is Available Only Through Explicit Structured Scaling Rules And Parameters
+
+- **Group:** Effect Framework
+- **Meaning:** Only explicit parameters/formulas expose Effect scaling.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I198 — Effect Listed AP And MP Contributions Are Construction Costs And Never Runtime Resource Payment
+
+- **Group:** Effect Framework
+- **Meaning:** Effect AP/MP values are listed construction contributions, not runtime payment.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I199 — Mana Efficiency Never Changes An Effect Listed MP Cost
+
+- **Group:** Effect Framework
+- **Meaning:** ME is payment-time state and never rewrites listed Effect MP.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I200 — Effect Access And Prerequisites Reuse The Existing Structured Ability Construction Requirement System
+
+- **Group:** Effect Framework
+- **Meaning:** Effect access compiles through existing structured Ability Construction requirements.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I201 — Effect Stackability And Stack Limits Reuse WO5 Explicit Definition-Owned Stack Contract
+
+- **Group:** Effect Framework
+- **Meaning:** Effect stackability/limits reuse the WO5 Definition-owned stack contract.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I202 — Effect Duration Metadata Describes Compatibility And Defaults; The Ability Actual Duration Remains A Separate Component
+
+- **Group:** Effect Framework
+- **Meaning:** Effect Duration data is compatibility/default metadata; composition owns actual Duration.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I203 — Maneuver Targeting Conversion Is Owned By MANEUVER_EFFECT Definitions That Carry The Conversion Cost, Save Profile And Destination Targeting Reference
+
+- **Group:** Effect Framework
+- **Meaning:** Maneuver Targeting Conversion Effects own conversion cost, Save Profile and exact destination Targeting ref.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I204 — Maneuver Targeting Definitions Never Duplicate Conversion Effect Costs Or Save Profiles
+
+- **Group:** Effect Framework
+- **Meaning:** Destination Maneuver Targeting Definitions do not duplicate conversion cost/Save.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I205 — Elemental Damage Conversion Changes Damage Type Only And Never Applies Unauthored Secondary Conditions
+
+- **Group:** Effect Framework
+- **Meaning:** Elemental conversion changes damage type only and creates no implicit Condition.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I206 — Maneuver Damage Normally Comes From Its Foundation Or Weapon Unless An Exact Maneuver Effect Explicitly Replaces That Source
+
+- **Group:** Effect Framework
+- **Meaning:** Maneuver Foundation/weapon remains the damage source unless an exact Effect replaces it.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I207 — Spell And Maneuver Effect Cost Contributions Are Not Combined Into Final Ability Cost During WO7
+
+- **Group:** Effect Framework
+- **Meaning:** WO7 never assembles complete Spell or Maneuver cost.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I208 — WO7 Does Not Execute Effect Chains, Runtime Damage, Healing, Conditions, Movement Or Resource Mutation
+
+- **Group:** Effect Framework
+- **Meaning:** WO7 validates/compiles Effect metadata only; no chain or runtime state mutation occurs.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I209 — Effect Definitions Preserve Exact EntityVersion, Ruleset, Compatibility, Access, Keyword And Cost Provenance
+
+- **Group:** Effect Framework
+- **Meaning:** Effect evaluation pins exact EntityVersion, Ruleset, compatibility, access, Keywords and listed costs.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I210 — Historical Effect Evaluation Never Resolves Through Latest Or Current Content
+
+- **Group:** Effect Framework
+- **Meaning:** Historical Effect evaluation never resolves through newest/current content.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I211 — Effect Validation And Compilation Use Existing M4 Formula, Requirement And Keyword Primitives Rather Than Reimplementing Generic Rule Evaluation
+
+- **Group:** Effect Framework
+- **Meaning:** Effect rules compile into existing generic M4 Formula, Requirement and Keyword primitives.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I212 — Effect Evaluation Is Deterministic, Immutable, JSON-Safe And Free Of Global Mutable Effect State
+
+- **Group:** Effect Framework
+- **Meaning:** Equal exact inputs are deterministic; inputs remain immutable; public contracts are JSON-safe and no global Effect state exists.
+- **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
