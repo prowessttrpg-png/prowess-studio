@@ -131,9 +131,9 @@ describe("M5-WO5 audit — Shared modular ability construction", () => {
 
   it("the invariant catalog appends M5-I156–I158 after M5-I155 (never renumbered), each guarded by the WO5 tests and controls", () => {
     const catalog = JSON.parse(read("docs/architecture/m5-invariants.json")) as Array<{ id: string; title: string; guards: string[]; status?: string }>;
-    expect(catalog.map((x) => x.id)).toEqual(Array.from({ length: 158 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
+    expect(catalog.map((x) => x.id)).toEqual(Array.from({ length: 178 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
     const md = read("docs/architecture/m5-invariants.md");
-    for (const entry of catalog.slice(155)) {
+    for (const entry of catalog.slice(155, 158)) {
       expect(entry.status ?? "ACTIVE").toBe("ACTIVE");
       expect(entry.guards).toEqual([G("construction-legality-golden.test.ts"), G("construction-legality-contracts.test.ts"), "apps/studio/tests/unit/m5-wo5-static.test.ts", "scripts/m5-wo5-negative-controls.mjs"]);
       for (const guard of entry.guards) expect(existsSync(path.join(ROOT, guard)), guard).toBe(true);

@@ -47,6 +47,11 @@ kept; each ruling is appended. The designer then ruled on both follow-ups (Spell
 Spelling mechanic, not a branch; Active Effects = 1 per 2 CON; Concentration = 1 + 1 per 3 RES). No conflict in this
 register is `UNRESOLVED` any more.
 
+**M5-WO6 update.** Two new conflicts are `UNRESOLVED`: M5-SC-039 (Projectile base MP cost) and M5-SC-040 (Spell Line width
+rounding / minimum). WO6 records the known rule and emits no number for either value (`DEFERRED_PENDING_CANON`). The
+M5-SC-029 ruling is now applied: Trigger-Based and Glyph / Anchor are Targeting add-ons, not base Targeting Types.
+Earlier text is kept.
+
 **Statuses:** `UNRESOLVED` · `RESOLVED_BY_DESIGNER` · `RESOLVED_BY_CANON_DECISION` · `SUPERSEDED`.
 
 `UNRESOLVED` means that no designer or Canon ruling exists. WO1 records the problem and does not choose an answer.
@@ -769,3 +774,35 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **Follow-up ruling (resolves M5-SC-038)**: Active Effects are set by CON: 1 Active Effect per 2 CON (the number of positive effects that can be on a target at
   one time). Concentration starts at a base of 1 and gains +1 per 3 RES (Expert Arcana still adds +1 — M5-SC-007).
   Recorded for M5-WO13 (Sustain / Mana Lock / Concentration); no executable capacity statistic exists yet.
+
+
+### M5-SC-039 — Projectile Base MP Cost
+
+- **conflictKey**: `M5-SC-039`
+- **systemFamily**: `SPELL`
+- **concept**: The Base MP Targeting cost of Projectile
+- **source A**: rulings batch on M5-SC-016: Projectile is a canonical (Attack-Roll-oriented) Spell Targeting Type; s842
+  "Projectile is treated as a Single Target delivery type unless modified by a Trait". The Core Playtest Targeting Types
+  table (s628) has no Projectile row.
+- **source B**: the older, lower-authority Chapter Book lists Projectile at 2 MP. That value is not Core Playtest canon.
+- **mechanical consequence**: a Projectile Spell's listed Targeting MP — and so its total Spell MP — cannot be computed.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none
+- **notes**: recorded by M5-WO6. WO6 authors the Projectile Targeting Definition (identity, one primary target, default
+  Spell Range, delivery family, compatibility) with its base contribution `BASE_DEFERRED` (M5-SC-039); no 2 / 0 / 3 MP
+  value is authored. M5-WO10 must resolve it before complete Projectile Spell pricing can pass.
+
+
+### M5-SC-040 — Spell Line Width Rounding / Minimum
+
+- **conflictKey**: `M5-SC-040`
+- **systemFamily**: `SPELL`
+- **concept**: The base width of a Spell Line
+- **source A**: Core Playtest SPELL RANGE AND AREA SCALING (s628–s631), Area Scaling table: "Line Width — 5 ft wide per 2 Prowess".
+- **source B**: no source states the rounding for odd PRO, the width at PRO 1, or a minimum width (5 ft?).
+- **mechanical consequence**: the Line width is ambiguous for PRO 1 and every odd PRO.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none
+- **notes**: recorded by M5-WO6. The Spell Line Definition stores the rule text with `valueStatus: DEFERRED_PENDING_CANON`
+  (M5-SC-040) and emits no width. Line identity, base MP, length (15 ft × PRO), origin and the +5 ft width scaling option
+  (+4 MP) stay executable.

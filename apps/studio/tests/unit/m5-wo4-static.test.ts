@@ -135,9 +135,9 @@ describe("M5-WO4 audit — Affinity identity, rank, authority & keyword alignmen
     expect(affinity().deferred).toEqual([]);
   });
 
-  it("the invariant catalog has M5-I001–I158 (M5-WO5 appended I156–I158); M5-I111–I155 are guarded here; M5-I073 → M5-I075 → M5-I111 and M5-I119 → M5-I151 supersession is traceable", () => {
+  it("the invariant catalog has M5-I001–I178 (M5-WO5 appended I156–I158, M5-WO6 I159–I178); M5-I111–I155 are guarded here; M5-I073 → M5-I075 → M5-I111 and M5-I119 → M5-I151 supersession is traceable", () => {
     const catalog = JSON.parse(read("docs/architecture/m5-invariants.json")) as Array<{ id: string; title: string; guards: string[]; status?: string; supersededBy?: string }>;
-    expect(catalog.map((x) => x.id)).toEqual(Array.from({ length: 158 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
+    expect(catalog.map((x) => x.id)).toEqual(Array.from({ length: 178 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
     const self = read("apps/studio/tests/unit/m5-wo4-static.test.ts");
     for (const entry of catalog.slice(110, 155)) {
       expect(entry.guards, entry.id).toContain("apps/studio/tests/unit/m5-wo4-static.test.ts");

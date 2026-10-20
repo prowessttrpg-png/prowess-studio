@@ -1553,5 +1553,214 @@
       "apps/studio/tests/unit/m5-wo5-static.test.ts",
       "scripts/m5-wo5-negative-controls.mjs"
     ]
+  },
+  {
+    "id": "M5-I159",
+    "title": "Targeting Determines Range, Area, Target Count, Delivery, Origin And Placement; It Never Determines An Effect's Mechanical Outcome",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-golden.test.ts",
+      "packages/prowess-game/src/targeting-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I160",
+    "title": "Targeting Never Selects An Attack Roll, Saving Throw Or Save Stat; Resolution Belongs To Effects Even When A Targeting Type Has A Typical Delivery Family",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-golden.test.ts",
+      "packages/prowess-game/src/targeting-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I161",
+    "title": "A Standard Ability Composition Has Exactly One Branch-Specific Targeting Definition, And A Standard Multi-Effect Spell Shares That Targeting Across All Effects Unless An Explicit Modifier Says Otherwise",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-golden.test.ts",
+      "packages/prowess-game/src/targeting-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I162",
+    "title": "SPELL_TARGETING And MANEUVER_TARGETING Remain Distinct Exact Definition Families Even When They Share The Same Semantic Geometry",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-golden.test.ts",
+      "packages/prowess-game/src/targeting-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I163",
+    "title": "Projectile Is A Canonical Spell Targeting Type Distinct From Single Target, While Its Base MP Cost Remains Deferred Until M5-SC-039 Is Resolved",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-golden.test.ts",
+      "packages/prowess-game/src/targeting-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I164",
+    "title": "Trigger-Based And Glyph/Anchor Are Targeting Add-Ons, Not Canonical Base Spell Targeting Types",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-golden.test.ts",
+      "packages/prowess-game/src/targeting-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I165",
+    "title": "Default Spell Range Equals 15 Feet Times PER Unless An Exact Targeting Or Ability Rule Overrides It",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I166",
+    "title": "Spell Range And Spell Area Are Separate Mechanical Values And Must Never Be Collapsed Into One Distance",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I167",
+    "title": "Spell Line Length Equals 15 Feet Times PRO; The Ambiguous Base Line Width Rule Must Remain Deferred Until M5-SC-040 Is Resolved",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I168",
+    "title": "Spell Cone Length Equals 10 Feet Times PRO",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I169",
+    "title": "Spell Radius, Zone Radius And Aura Radius Each Use Five Feet Times PRO Unless An Exact Rule Overrides Them",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I170",
+    "title": "The Superseded Plus-Three-MP Radius/Zone/Aura Expansion Rule Is Never Used; Widen Area Is A Targeting Trait Costing Six MP And Is Owned By The Trait Subsystem",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I171",
+    "title": "Targeting Compatibility Uses Exact Structured Identity Or Explicit Semantic Rules And Never Display-Name Or Prose Inference",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-golden.test.ts",
+      "packages/prowess-game/src/targeting-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I172",
+    "title": "Maneuver Targeting Conversion Is A Maneuver Effect And The Targeting Definition It References Does Not Duplicate The Effect's AP/MP Cost Or Save Profile",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-golden.test.ts",
+      "packages/prowess-game/src/targeting-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I173",
+    "title": "Canonical Maneuver Radius Equals Martial Rank Base Times STR, With Rank Bases Five, Ten And Fifteen Feet For Trained, Expert And Master",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I174",
+    "title": "The Superseded Fixed Strength-Band Maneuver Radius Table Is Never Executed",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I175",
+    "title": "Spell And Maneuver Targeting Geometry Formulas Compile Through M4 Formula Operations Rather Than Hidden Prowess Compiler Or UI Arithmetic",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-golden.test.ts",
+      "packages/prowess-game/src/targeting-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I176",
+    "title": "Targeting Definitions Preserve Exact EntityVersion, Ruleset, Composition And Formula Provenance",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I177",
+    "title": "WO6 Targeting Evaluation Does Not Calculate Final Spell Or Maneuver Cost And Does Not Perform Runtime Resource Payment",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I178",
+    "title": "Targeting Evaluation Is Deterministic, Immutable, JSON-Safe And Free Of Global Mutable Targeting State",
+    "group": "Targeting",
+    "guards": [
+      "packages/prowess-game/src/targeting-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo6-static.test.ts",
+      "scripts/m5-wo6-negative-controls.mjs"
+    ]
   }
 ]

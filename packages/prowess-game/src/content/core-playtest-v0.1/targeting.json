@@ -1,0 +1,1541 @@
+{
+  "contentKey": "prowess.core_playtest.v0_1.targeting",
+  "workOrder": "M5-WO6",
+  "schemaVersion": 1,
+  "source": {
+    "title": "Prowess Core Playtest Packet V0.1",
+    "sha256Prefix": "21fa6771",
+    "parser": "prowess-docx-structure@1.0.0",
+    "structureHashPrefix": "3d9a429c"
+  },
+  "designerRulings": [
+    "M5-SC-016 Projectile is a canonical (Attack-Roll-oriented) Spell Targeting Type; Touch and Projectile deliver directly, Line / Cone / Radius / Zone deliver to an area — the Effect owns resolution",
+    "M5-SC-018 Maneuver Radius = Martial Rank Base (Trained 5 · Expert 10 · Master 15 ft) × STR; the STR-band table is superseded",
+    "M5-SC-015 / M5-SC-017 Targeting Conversion is a Maneuver Effect: it owns the conversion, Save Profile and cost; MANEUVER_TARGETING carries geometry only",
+    "M5-SC-022 a Spell has one Targeting Type shared by every Effect",
+    "M5-SC-024 the '+10 ft Radius / Zone / Aura → +3 MP' scaling is superseded; Widen Area (+6 MP) is a Targeting Trait for Targeting Types with a radius (not Line)",
+    "M5-SC-029 Trigger-Based and Glyph / Anchor are Targeting add-ons, not base Targeting Types; their +4 / +5 MP source costs are superseded"
+  ],
+  "designerContent": "M5-WO6 §19–§99: the Spell Targeting catalog (Self, Touch, Single Target, Multi-Target, Projectile, Line, Cone, Radius, Zone, Aura), default Spell Range (= the WO2 BASE_RANGE statistic, 15 ft × PER), Spell areas, the Targeting scaling table without the superseded radius expansion, and the Maneuver Targeting geometry catalog (Self, Touch, Single Target, Multi-Target, Line, Cone, Radius, Chain, Zone).",
+  "deferred": [
+    {
+      "conflictKey": "M5-SC-039",
+      "subject": "spell.targeting.projectile",
+      "field": "costContributions.targeting.base",
+      "note": "Projectile Base MP cost is unresolved; the lower-authority Chapter Book value (2 MP) is not canon. Required by M5-WO10."
+    },
+    {
+      "conflictKey": "M5-SC-040",
+      "subject": "spell.targeting.line",
+      "field": "rules.targeting.measures.WIDTH",
+      "note": "Base Line width '5 ft wide per 2 Prowess' has no rounding / minimum rule; no width is emitted."
+    }
+  ],
+  "definitions": [
+    {
+      "canonicalKey": "spell.targeting.self",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "SELF",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "kind": "BASE",
+              "amount": 0
+            }
+          }
+        ],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "SELF_DELIVERY",
+            "cardinality": {
+              "kind": "ONE"
+            },
+            "validTargets": [
+              "SELF"
+            ],
+            "range": {
+              "model": "SELF"
+            },
+            "measures": [],
+            "origin": {
+              "modes": [
+                "CASTER"
+              ],
+              "default": "CASTER"
+            },
+            "placement": "NONE",
+            "lineOfSight": "NOT_REQUIRED",
+            "lineOfEffect": "NOT_REQUIRED",
+            "cover": "NOT_APPLICABLE",
+            "radiusCapable": false,
+            "parameters": []
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.touch",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "TOUCH",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "kind": "BASE",
+              "amount": 1
+            }
+          }
+        ],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "DIRECT_ATTACK_DELIVERY",
+            "cardinality": {
+              "kind": "ONE"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT"
+            ],
+            "range": {
+              "model": "TOUCH"
+            },
+            "measures": [],
+            "origin": {
+              "modes": [
+                "CASTER"
+              ],
+              "default": "CASTER"
+            },
+            "placement": "CHOOSE_TARGETS",
+            "lineOfSight": "NOT_REQUIRED",
+            "lineOfEffect": "REQUIRED",
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "radiusCapable": false,
+            "parameters": []
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.single_target",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "SINGLE_TARGET",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "kind": "BASE",
+              "amount": 3
+            }
+          },
+          {
+            "contributionKey": "targeting.range_extension",
+            "currency": "MP",
+            "data": {
+              "kind": "PER_STEP",
+              "parameter": "rangeExtension",
+              "amount": 2,
+              "step": {
+                "size": 15,
+                "unit": "ft"
+              }
+            }
+          }
+        ],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "TARGETED_DELIVERY",
+            "cardinality": {
+              "kind": "ONE"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "POINT"
+            ],
+            "range": {
+              "model": "DEFAULT_SPELL_RANGE",
+              "formula": {
+                "expression": "base_range + range_extension * 15",
+                "rounding": "NONE",
+                "unit": "ft",
+                "variables": [
+                  {
+                    "variable": "base_range",
+                    "source": {
+                      "kind": "DERIVED",
+                      "statistic": "BASE_RANGE"
+                    }
+                  },
+                  {
+                    "variable": "range_extension",
+                    "source": {
+                      "kind": "PARAMETER",
+                      "parameter": "rangeExtension"
+                    }
+                  }
+                ]
+              }
+            },
+            "measures": [],
+            "origin": {
+              "modes": [
+                "CASTER"
+              ],
+              "default": "CASTER"
+            },
+            "placement": "CHOOSE_TARGETS",
+            "lineOfSight": "REQUIRED",
+            "lineOfEffect": "REQUIRED",
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "radiusCapable": false,
+            "parameters": [
+              {
+                "parameter": "rangeExtension",
+                "kind": "STEPS",
+                "minimum": 0,
+                "default": 0
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.multi_target",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "MULTI_TARGET",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "kind": "BASE",
+              "amount": 5
+            }
+          },
+          {
+            "contributionKey": "targeting.range_extension",
+            "currency": "MP",
+            "data": {
+              "kind": "PER_STEP",
+              "parameter": "rangeExtension",
+              "amount": 2,
+              "step": {
+                "size": 15,
+                "unit": "ft"
+              }
+            }
+          },
+          {
+            "contributionKey": "targeting.additional_target",
+            "currency": "MP",
+            "data": {
+              "kind": "PER_ADDITIONAL_TARGET",
+              "parameter": "targetCount",
+              "amount": 3
+            }
+          }
+        ],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "TARGETED_DELIVERY",
+            "cardinality": {
+              "kind": "SELECTED",
+              "parameter": "targetCount",
+              "minimum": 2
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "POINT"
+            ],
+            "range": {
+              "model": "DEFAULT_SPELL_RANGE",
+              "formula": {
+                "expression": "base_range + range_extension * 15",
+                "rounding": "NONE",
+                "unit": "ft",
+                "variables": [
+                  {
+                    "variable": "base_range",
+                    "source": {
+                      "kind": "DERIVED",
+                      "statistic": "BASE_RANGE"
+                    }
+                  },
+                  {
+                    "variable": "range_extension",
+                    "source": {
+                      "kind": "PARAMETER",
+                      "parameter": "rangeExtension"
+                    }
+                  }
+                ]
+              }
+            },
+            "measures": [],
+            "origin": {
+              "modes": [
+                "CASTER"
+              ],
+              "default": "CASTER"
+            },
+            "placement": "CHOOSE_TARGETS",
+            "lineOfSight": "REQUIRED",
+            "lineOfEffect": "REQUIRED",
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "radiusCapable": false,
+            "parameters": [
+              {
+                "parameter": "targetCount",
+                "kind": "COUNT",
+                "minimum": 2
+              },
+              {
+                "parameter": "rangeExtension",
+                "kind": "STEPS",
+                "minimum": 0,
+                "default": 0
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.projectile",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "PROJECTILE",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "kind": "BASE_DEFERRED",
+              "conflictKey": "M5-SC-039"
+            }
+          },
+          {
+            "contributionKey": "targeting.range_extension",
+            "currency": "MP",
+            "data": {
+              "kind": "PER_STEP",
+              "parameter": "rangeExtension",
+              "amount": 2,
+              "step": {
+                "size": 15,
+                "unit": "ft"
+              }
+            }
+          }
+        ],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "DIRECT_ATTACK_DELIVERY",
+            "cardinality": {
+              "kind": "ONE"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "POINT"
+            ],
+            "range": {
+              "model": "DEFAULT_SPELL_RANGE",
+              "formula": {
+                "expression": "base_range + range_extension * 15",
+                "rounding": "NONE",
+                "unit": "ft",
+                "variables": [
+                  {
+                    "variable": "base_range",
+                    "source": {
+                      "kind": "DERIVED",
+                      "statistic": "BASE_RANGE"
+                    }
+                  },
+                  {
+                    "variable": "range_extension",
+                    "source": {
+                      "kind": "PARAMETER",
+                      "parameter": "rangeExtension"
+                    }
+                  }
+                ]
+              }
+            },
+            "measures": [],
+            "origin": {
+              "modes": [
+                "CASTER"
+              ],
+              "default": "CASTER"
+            },
+            "placement": "CHOOSE_TARGETS",
+            "lineOfSight": "REQUIRED",
+            "lineOfEffect": "REQUIRED",
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "radiusCapable": false,
+            "parameters": [
+              {
+                "parameter": "rangeExtension",
+                "kind": "STEPS",
+                "minimum": 0,
+                "default": 0
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.line",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "LINE",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "kind": "BASE",
+              "amount": 5
+            }
+          },
+          {
+            "contributionKey": "targeting.line_length_extension",
+            "currency": "MP",
+            "data": {
+              "kind": "PER_STEP",
+              "parameter": "lengthExtension",
+              "amount": 3,
+              "step": {
+                "size": 10,
+                "unit": "ft"
+              }
+            }
+          },
+          {
+            "contributionKey": "targeting.line_width_extension",
+            "currency": "MP",
+            "data": {
+              "kind": "PER_STEP",
+              "parameter": "widthExtension",
+              "amount": 4,
+              "step": {
+                "size": 5,
+                "unit": "ft"
+              }
+            }
+          }
+        ],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "AREA_DELIVERY",
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA"
+            ],
+            "range": {
+              "model": "SELF"
+            },
+            "measures": [
+              {
+                "measure": "LENGTH",
+                "valueStatus": "FORMULA",
+                "formula": {
+                  "expression": "15 * pro + length_extension * 10",
+                  "rounding": "NONE",
+                  "unit": "ft",
+                  "variables": [
+                    {
+                      "variable": "pro",
+                      "source": {
+                        "kind": "STAT",
+                        "stat": "PRO"
+                      }
+                    },
+                    {
+                      "variable": "length_extension",
+                      "source": {
+                        "kind": "PARAMETER",
+                        "parameter": "lengthExtension"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "measure": "WIDTH",
+                "valueStatus": "DEFERRED_PENDING_CANON",
+                "conflictKey": "M5-SC-040",
+                "ruleText": "5 ft wide per 2 Prowess"
+              }
+            ],
+            "origin": {
+              "modes": [
+                "CASTER"
+              ],
+              "default": "CASTER"
+            },
+            "placement": "FROM_ORIGIN",
+            "lineOfSight": "REQUIRED",
+            "lineOfEffect": "REQUIRED",
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "radiusCapable": false,
+            "parameters": [
+              {
+                "parameter": "lengthExtension",
+                "kind": "STEPS",
+                "minimum": 0,
+                "default": 0
+              },
+              {
+                "parameter": "widthExtension",
+                "kind": "STEPS",
+                "minimum": 0,
+                "default": 0
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.cone",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "CONE",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "kind": "BASE",
+              "amount": 5
+            }
+          },
+          {
+            "contributionKey": "targeting.cone_length_extension",
+            "currency": "MP",
+            "data": {
+              "kind": "PER_STEP",
+              "parameter": "lengthExtension",
+              "amount": 3,
+              "step": {
+                "size": 10,
+                "unit": "ft"
+              }
+            }
+          }
+        ],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "AREA_DELIVERY",
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA"
+            ],
+            "range": {
+              "model": "SELF"
+            },
+            "measures": [
+              {
+                "measure": "LENGTH",
+                "valueStatus": "FORMULA",
+                "formula": {
+                  "expression": "10 * pro + length_extension * 10",
+                  "rounding": "NONE",
+                  "unit": "ft",
+                  "variables": [
+                    {
+                      "variable": "pro",
+                      "source": {
+                        "kind": "STAT",
+                        "stat": "PRO"
+                      }
+                    },
+                    {
+                      "variable": "length_extension",
+                      "source": {
+                        "kind": "PARAMETER",
+                        "parameter": "lengthExtension"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "origin": {
+              "modes": [
+                "CASTER",
+                "POINT_IN_RANGE"
+              ],
+              "default": "CASTER"
+            },
+            "placement": "FROM_ORIGIN",
+            "lineOfSight": "REQUIRED",
+            "lineOfEffect": "REQUIRED",
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "radiusCapable": false,
+            "parameters": [
+              {
+                "parameter": "lengthExtension",
+                "kind": "STEPS",
+                "minimum": 0,
+                "default": 0
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.radius",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "RADIUS",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "kind": "BASE",
+              "amount": 6
+            }
+          },
+          {
+            "contributionKey": "targeting.range_extension",
+            "currency": "MP",
+            "data": {
+              "kind": "PER_STEP",
+              "parameter": "rangeExtension",
+              "amount": 2,
+              "step": {
+                "size": 15,
+                "unit": "ft"
+              }
+            }
+          }
+        ],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "AREA_DELIVERY",
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA"
+            ],
+            "range": {
+              "model": "DEFAULT_SPELL_RANGE",
+              "formula": {
+                "expression": "base_range + range_extension * 15",
+                "rounding": "NONE",
+                "unit": "ft",
+                "variables": [
+                  {
+                    "variable": "base_range",
+                    "source": {
+                      "kind": "DERIVED",
+                      "statistic": "BASE_RANGE"
+                    }
+                  },
+                  {
+                    "variable": "range_extension",
+                    "source": {
+                      "kind": "PARAMETER",
+                      "parameter": "rangeExtension"
+                    }
+                  }
+                ]
+              }
+            },
+            "measures": [
+              {
+                "measure": "RADIUS",
+                "valueStatus": "FORMULA",
+                "formula": {
+                  "expression": "5 * pro",
+                  "rounding": "NONE",
+                  "unit": "ft",
+                  "variables": [
+                    {
+                      "variable": "pro",
+                      "source": {
+                        "kind": "STAT",
+                        "stat": "PRO"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "origin": {
+              "modes": [
+                "POINT_IN_RANGE"
+              ],
+              "default": "POINT_IN_RANGE"
+            },
+            "placement": "CHOOSE_POINT",
+            "lineOfSight": "REQUIRED",
+            "lineOfEffect": "REQUIRED",
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "radiusCapable": true,
+            "parameters": [
+              {
+                "parameter": "rangeExtension",
+                "kind": "STEPS",
+                "minimum": 0,
+                "default": 0
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.zone",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "ZONE",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "kind": "BASE",
+              "amount": 8
+            }
+          },
+          {
+            "contributionKey": "targeting.range_extension",
+            "currency": "MP",
+            "data": {
+              "kind": "PER_STEP",
+              "parameter": "rangeExtension",
+              "amount": 2,
+              "step": {
+                "size": 15,
+                "unit": "ft"
+              }
+            }
+          },
+          {
+            "contributionKey": "targeting.mobile_zone",
+            "currency": "MP",
+            "data": {
+              "kind": "PER_SELECTION",
+              "parameter": "mobile",
+              "amount": 5,
+              "values": [
+                true
+              ]
+            }
+          }
+        ],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "AREA_DELIVERY",
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA",
+              "SPACE"
+            ],
+            "range": {
+              "model": "DEFAULT_SPELL_RANGE",
+              "formula": {
+                "expression": "base_range + range_extension * 15",
+                "rounding": "NONE",
+                "unit": "ft",
+                "variables": [
+                  {
+                    "variable": "base_range",
+                    "source": {
+                      "kind": "DERIVED",
+                      "statistic": "BASE_RANGE"
+                    }
+                  },
+                  {
+                    "variable": "range_extension",
+                    "source": {
+                      "kind": "PARAMETER",
+                      "parameter": "rangeExtension"
+                    }
+                  }
+                ]
+              }
+            },
+            "measures": [
+              {
+                "measure": "RADIUS",
+                "valueStatus": "FORMULA",
+                "formula": {
+                  "expression": "5 * pro",
+                  "rounding": "NONE",
+                  "unit": "ft",
+                  "variables": [
+                    {
+                      "variable": "pro",
+                      "source": {
+                        "kind": "STAT",
+                        "stat": "PRO"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "origin": {
+              "modes": [
+                "POINT_IN_RANGE"
+              ],
+              "default": "POINT_IN_RANGE"
+            },
+            "placement": "CHOOSE_POINT",
+            "lineOfSight": "REQUIRED",
+            "lineOfEffect": "REQUIRED",
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "radiusCapable": true,
+            "parameters": [
+              {
+                "parameter": "rangeExtension",
+                "kind": "STEPS",
+                "minimum": 0,
+                "default": 0
+              },
+              {
+                "parameter": "mobile",
+                "kind": "FLAG",
+                "default": false
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.aura",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "AURA",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "kind": "BASE",
+              "amount": 6
+            }
+          },
+          {
+            "contributionKey": "targeting.aura_source",
+            "currency": "MP",
+            "data": {
+              "kind": "PER_SELECTION",
+              "parameter": "sourceRef",
+              "amount": 4,
+              "values": [
+                "SUMMON",
+                "OBJECT",
+                "ANCHOR"
+              ]
+            }
+          }
+        ],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "EMANATION_DELIVERY",
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA"
+            ],
+            "range": {
+              "model": "SELF"
+            },
+            "measures": [
+              {
+                "measure": "RADIUS",
+                "valueStatus": "FORMULA",
+                "formula": {
+                  "expression": "5 * pro",
+                  "rounding": "NONE",
+                  "unit": "ft",
+                  "variables": [
+                    {
+                      "variable": "pro",
+                      "source": {
+                        "kind": "STAT",
+                        "stat": "PRO"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "origin": {
+              "modes": [
+                "SOURCE"
+              ],
+              "default": "SOURCE",
+              "sources": [
+                "CASTER",
+                "SUMMON",
+                "OBJECT",
+                "ANCHOR"
+              ],
+              "defaultSource": "CASTER"
+            },
+            "placement": "FOLLOWS_SOURCE",
+            "lineOfSight": "NOT_REQUIRED",
+            "lineOfEffect": "REQUIRED",
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "radiusCapable": true,
+            "parameters": [
+              {
+                "parameter": "sourceRef",
+                "kind": "TOKEN",
+                "allowed": [
+                  "CASTER",
+                  "SUMMON",
+                  "OBJECT",
+                  "ANCHOR"
+                ],
+                "default": "CASTER"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.self",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "SELF",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "SELF_DELIVERY",
+            "cardinality": {
+              "kind": "ONE"
+            },
+            "validTargets": [
+              "SELF"
+            ],
+            "range": {
+              "model": "SELF"
+            },
+            "measures": [],
+            "origin": {
+              "modes": [
+                "PERFORMER"
+              ],
+              "default": "PERFORMER"
+            },
+            "placement": "NONE",
+            "lineOfSight": "INHERITED",
+            "lineOfEffect": "INHERITED",
+            "cover": "INHERITED",
+            "radiusCapable": false,
+            "parameters": []
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.touch",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "TOUCH",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "FOUNDATION_DELIVERY",
+            "cardinality": {
+              "kind": "ONE"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT"
+            ],
+            "range": {
+              "model": "TOUCH"
+            },
+            "measures": [],
+            "origin": {
+              "modes": [
+                "PERFORMER"
+              ],
+              "default": "PERFORMER"
+            },
+            "placement": "CHOOSE_TARGETS",
+            "lineOfSight": "INHERITED",
+            "lineOfEffect": "INHERITED",
+            "cover": "INHERITED",
+            "radiusCapable": false,
+            "parameters": []
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.single_target",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "SINGLE_TARGET",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "FOUNDATION_DELIVERY",
+            "cardinality": {
+              "kind": "ONE"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT"
+            ],
+            "range": {
+              "model": "FOUNDATION_RANGE"
+            },
+            "measures": [],
+            "origin": {
+              "modes": [
+                "FOUNDATION"
+              ],
+              "default": "FOUNDATION"
+            },
+            "placement": "FOUNDATION",
+            "lineOfSight": "INHERITED",
+            "lineOfEffect": "INHERITED",
+            "cover": "INHERITED",
+            "radiusCapable": false,
+            "parameters": []
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.multi_target",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "MULTI_TARGET",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "FOUNDATION_DELIVERY",
+            "cardinality": {
+              "kind": "SELECTED",
+              "parameter": "targetCount",
+              "minimum": 2
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT"
+            ],
+            "range": {
+              "model": "FOUNDATION_RANGE"
+            },
+            "measures": [],
+            "origin": {
+              "modes": [
+                "FOUNDATION"
+              ],
+              "default": "FOUNDATION"
+            },
+            "placement": "CHOOSE_TARGETS",
+            "lineOfSight": "INHERITED",
+            "lineOfEffect": "INHERITED",
+            "cover": "INHERITED",
+            "radiusCapable": false,
+            "parameters": [
+              {
+                "parameter": "targetCount",
+                "kind": "COUNT",
+                "minimum": 2
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.line",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "LINE",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "AREA_DELIVERY",
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA"
+            ],
+            "range": {
+              "model": "FOUNDATION_RANGE"
+            },
+            "measures": [
+              {
+                "measure": "LENGTH",
+                "valueStatus": "EFFECT_DEFINED"
+              },
+              {
+                "measure": "WIDTH",
+                "valueStatus": "EFFECT_DEFINED"
+              }
+            ],
+            "origin": {
+              "modes": [
+                "PERFORMER",
+                "WEAPON_TIP",
+                "PROJECTILE_PATH",
+                "EMITTED_POINT"
+              ],
+              "default": null
+            },
+            "placement": "FROM_ORIGIN",
+            "lineOfSight": "INHERITED",
+            "lineOfEffect": "INHERITED",
+            "cover": "INHERITED",
+            "radiusCapable": false,
+            "parameters": [
+              {
+                "parameter": "originMode",
+                "kind": "TOKEN",
+                "allowed": [
+                  "PERFORMER",
+                  "WEAPON_TIP",
+                  "PROJECTILE_PATH",
+                  "EMITTED_POINT"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.cone",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "CONE",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "AREA_DELIVERY",
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA"
+            ],
+            "range": {
+              "model": "FOUNDATION_RANGE"
+            },
+            "measures": [
+              {
+                "measure": "LENGTH",
+                "valueStatus": "EFFECT_DEFINED"
+              }
+            ],
+            "origin": {
+              "modes": [
+                "PERFORMER",
+                "WEAPON_DIRECTION"
+              ],
+              "default": null
+            },
+            "placement": "FROM_ORIGIN",
+            "lineOfSight": "INHERITED",
+            "lineOfEffect": "INHERITED",
+            "cover": "INHERITED",
+            "radiusCapable": false,
+            "parameters": [
+              {
+                "parameter": "originMode",
+                "kind": "TOKEN",
+                "allowed": [
+                  "PERFORMER",
+                  "WEAPON_DIRECTION"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.radius",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "RADIUS",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "AREA_DELIVERY",
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA"
+            ],
+            "range": {
+              "model": "FOUNDATION_RANGE"
+            },
+            "measures": [
+              {
+                "measure": "RADIUS",
+                "valueStatus": "FORMULA",
+                "formula": {
+                  "expression": "rank_base * str",
+                  "rounding": "NONE",
+                  "unit": "ft",
+                  "variables": [
+                    {
+                      "variable": "rank_base",
+                      "source": {
+                        "kind": "SKILL_RANK_TABLE",
+                        "table": "MARTIAL_RANK_BASE"
+                      }
+                    },
+                    {
+                      "variable": "str",
+                      "source": {
+                        "kind": "STAT",
+                        "stat": "STR"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "origin": {
+              "modes": [
+                "THROWN_IMPACT",
+                "RANGED_IMPACT",
+                "PROJECTILE_IMPACT",
+                "PERFORMER"
+              ],
+              "default": null
+            },
+            "placement": "CHOOSE_POINT",
+            "lineOfSight": "INHERITED",
+            "lineOfEffect": "INHERITED",
+            "cover": "INHERITED",
+            "radiusCapable": true,
+            "parameters": [
+              {
+                "parameter": "originMode",
+                "kind": "TOKEN",
+                "allowed": [
+                  "THROWN_IMPACT",
+                  "RANGED_IMPACT",
+                  "PROJECTILE_IMPACT",
+                  "PERFORMER"
+                ]
+              }
+            ],
+            "rankTables": [
+              {
+                "tableKey": "MARTIAL_RANK_BASE",
+                "skillKey": "skill.martial",
+                "entries": [
+                  {
+                    "rankKey": "TRAINED",
+                    "value": 5
+                  },
+                  {
+                    "rankKey": "EXPERT",
+                    "value": 10
+                  },
+                  {
+                    "rankKey": "MASTER",
+                    "value": 15
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.chain",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "CHAIN",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "CHAIN_DELIVERY",
+            "cardinality": {
+              "kind": "CHAIN"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT"
+            ],
+            "range": {
+              "model": "FOUNDATION_RANGE"
+            },
+            "measures": [],
+            "origin": {
+              "modes": [
+                "FOUNDATION"
+              ],
+              "default": "FOUNDATION"
+            },
+            "placement": "CHOOSE_TARGETS",
+            "lineOfSight": "INHERITED",
+            "lineOfEffect": "INHERITED",
+            "cover": "INHERITED",
+            "radiusCapable": false,
+            "parameters": []
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.zone",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "semanticShape": "ZONE",
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "compatibility": [],
+        "costContributions": [],
+        "rules": {
+          "targeting": {
+            "deliveryFamily": "AREA_DELIVERY",
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA",
+              "SPACE"
+            ],
+            "range": {
+              "model": "EFFECT_DEFINED"
+            },
+            "measures": [
+              {
+                "measure": "RADIUS",
+                "valueStatus": "EFFECT_DEFINED"
+              }
+            ],
+            "origin": {
+              "modes": [
+                "EFFECT_DEFINED"
+              ],
+              "default": "EFFECT_DEFINED"
+            },
+            "placement": "EFFECT_DEFINED",
+            "lineOfSight": "INHERITED",
+            "lineOfEffect": "INHERITED",
+            "cover": "INHERITED",
+            "radiusCapable": true,
+            "parameters": []
+          }
+        }
+      }
+    }
+  ],
+  "revisions": [],
+  "sources": {
+    "SPELL_TARGETING": {
+      "locators": [
+        "s25",
+        "s628",
+        "s629",
+        "s630",
+        "s631",
+        "s632",
+        "s750",
+        "s751",
+        "s752",
+        "s753",
+        "s754",
+        "s755",
+        "s756",
+        "s757",
+        "s758",
+        "s759",
+        "s760",
+        "s761",
+        "s762",
+        "s763",
+        "s764",
+        "s765",
+        "s766",
+        "s767",
+        "s768",
+        "s772",
+        "s773",
+        "s774",
+        "s775",
+        "s842"
+      ],
+      "conflicts": [
+        "M5-SC-016",
+        "M5-SC-022",
+        "M5-SC-024",
+        "M5-SC-029",
+        "M5-SC-039",
+        "M5-SC-040"
+      ]
+    },
+    "MANEUVER_TARGETING": {
+      "locators": [
+        "s1984",
+        "s1998",
+        "s1999",
+        "s2000",
+        "s2001",
+        "s2002",
+        "s2003",
+        "s2004",
+        "s2005",
+        "s2006",
+        "s2027",
+        "s2028",
+        "s2029"
+      ],
+      "conflicts": [
+        "M5-SC-015",
+        "M5-SC-017",
+        "M5-SC-018"
+      ]
+    }
+  }
+}

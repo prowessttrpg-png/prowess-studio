@@ -22,12 +22,16 @@ export const TARGETING_SEMANTIC_SHAPES = deepFreeze([
   "TOUCH",
   "SINGLE_TARGET",
   "MULTI_TARGET",
+  // M5-WO6 (designer ruling M5-SC-016, §11): Projectile is a canonical Spell Targeting Type, distinct from Single Target.
+  "PROJECTILE",
   "LINE",
   "CONE",
   "RADIUS",
   "ZONE",
   "AURA",
   "CHAIN",
+  // Historical WO1 classifiers. Designer ruling M5-SC-029: Trigger-Based and Glyph / Anchor are Targeting ADD-ONS, never a
+  // base Targeting Type (M5-WO6 §12–§16, vocabulary/targeting.ts). Kept readable so WO1-era payloads stay valid.
   "TRIGGERED",
   "ANCHOR",
 ] as const);

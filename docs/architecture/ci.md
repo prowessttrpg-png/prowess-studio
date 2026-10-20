@@ -158,6 +158,23 @@ right after the canon-rulings gate. It runs:
 - the behavioural negative controls `scripts/m5-wo5-negative-controls.mjs`.
 
 The WO1, WO2 and WO4 catalog-length checks were raised from 155 to 158. No gate was removed.
+
+**M5-WO6 additions.** A seventh permanent named step runs right after the M5-WO5 gate:
+**"M5-WO6 audit — Targeting framework, geometry & branch catalogs"**. It runs:
+
+- the WO6 golden fixtures and contracts in `@prowess/game` (`targeting-golden.test.ts`, `targeting-contracts.test.ts`) and
+  `vocabulary.test.ts` (Trigger-Based / Glyph / Anchor as Targeting add-ons);
+- the static audit `apps/studio/tests/unit/m5-wo6-static.test.ts` (AST rules over the Targeting modules, structural rules
+  over `targeting.json`, no Targeting geometry math in Studio UI code, M5-SC-039 / M5-SC-040, the M4 baseline,
+  M5-I159–I178, terminology, the `m5-targeting-framework.md` sections and diagrams, and this step), with in-memory
+  controls;
+- the regenerated Rules Inspector fixture (`m5-wo6-inspector-fixture.test.ts`);
+- exact Release history, isolation and no persistence against the real database (`prowess-targeting-history.test.ts`);
+- Targeting plans through the existing evaluate endpoint (`m5-wo6-targeting-api.test.ts`);
+- the behavioural negative controls `scripts/m5-wo6-negative-controls.mjs`.
+
+The WO1, WO4, WO5 and canon-rulings catalog-length checks were raised from 158 to 178, and the canon-rulings register
+check now admits exactly the two new open conflicts (M5-SC-039, M5-SC-040). No gate was removed.
 The post-WO4 rulings batch (M5-SC-007, M5-SC-013 to M5-SC-031, M5-SC-036; M5-I154, M5-I155) runs in the same step: the
 static audit pins every ruling in the register, the two open follow-ups (M5-SC-037, M5-SC-038), the Size values (Huge
 20, Massive 40) and the net-percentage cost fragment; the WO4 controls now forbid the superseded sequential cost model.

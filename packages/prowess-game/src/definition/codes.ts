@@ -167,6 +167,30 @@ export const CONSTRUCTION_ERROR_CODES = deepFreeze({
 } as const);
 
 /**
+ * M5-WO6 Targeting diagnostics. Malformed requests, content or Definitions only — an unmet Targeting bound (too few
+ * Multi-Target targets) or an incompatible component is a valid INVALID result, never one of these.
+ */
+export const TARGETING_ERROR_CODES = deepFreeze({
+  INVALID_TARGETING_REQUEST: "PROWESS_TARGETING.INVALID_TARGETING_REQUEST",
+  INVALID_TARGETING_CONTEXT: "PROWESS_TARGETING.INVALID_TARGETING_CONTEXT",
+  /** A Targeting Definition's `rules.targeting` sub-contract (or its typed cost contributions) is malformed. */
+  INVALID_TARGETING_RULES: "PROWESS_TARGETING.INVALID_TARGETING_RULES",
+  /** Trigger-Based / Glyph / Anchor authored as a BASE Targeting Type: they are add-ons (M5-SC-029, M5-I164). */
+  TARGETING_ADD_ON_AS_BASE: "PROWESS_TARGETING.TARGETING_ADD_ON_AS_BASE",
+  /** A MANEUVER_TARGETING Definition carries a cost: the Targeting Conversion Effect owns it (§82, M5-I172). */
+  MANEUVER_TARGETING_COST: "PROWESS_TARGETING.MANEUVER_TARGETING_COST",
+  /** The composition's Targeting Definition authors no executable `rules.targeting` (e.g. a WO1-era payload). */
+  TARGETING_RULE_MISSING: "PROWESS_TARGETING.TARGETING_RULE_MISSING",
+  /** A Targeting parameter the exact Definition does not declare, or a value of the wrong kind (§52). */
+  UNDECLARED_TARGETING_PARAMETER: "PROWESS_TARGETING.UNDECLARED_TARGETING_PARAMETER",
+  INVALID_TARGETING_PARAMETER: "PROWESS_TARGETING.INVALID_TARGETING_PARAMETER",
+  /** Content names something this Ruleset does not resolve (a rank not on the ladder, a missing derived statistic). */
+  TARGETING_RULE_UNRESOLVED: "PROWESS_TARGETING.TARGETING_RULE_UNRESOLVED",
+  /** An evaluated run does not belong to the plan, or a step it names did not execute successfully. */
+  INCOMPLETE_RUN: "PROWESS_TARGETING.INCOMPLETE_RUN",
+} as const);
+
+/**
  * The server-side materializer's DomainError codes. The vocabulary lives in @prowess/model (the platform's single
  * error-code home, with HTTP mappings) and is re-exported here for convenience — never redefined.
  */
