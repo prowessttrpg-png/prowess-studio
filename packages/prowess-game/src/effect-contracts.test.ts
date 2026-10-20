@@ -5,6 +5,7 @@ import { SPELL_EFFECT_FAMILIES } from "./vocabulary/effect.js";
 import { effectCharacter, effectFixture, effectRequest, maneuverEffectAbility, spellEffectAbility } from "./testing/effect-fixtures.js";
 
 const codes = (x: { ok: boolean; problems?: readonly { code: string }[] }) => x.ok ? [] : (x.problems ?? []).map((p) => p.code);
+const cloneJson = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 describe("M5-WO7 Effect grammar", () => {
   it("has exactly the seven canonical Spell Effect families and no Movement/Cleanse/Interference top-level family", () => {
@@ -24,19 +25,23 @@ describe("M5-WO7 Effect grammar", () => {
   it("keeps Spell and Maneuver Effects branch-specific", () => {
     const f = effectFixture();
     const spell = spellEffectAbility(f, "spell.effect.direct_damage");
-    const crossed = structuredClone(spell) as any;
+    const crossed = cloneJson(spell) as any;
     crossed.effects[0].definition = f.ref("maneuver.effect.elemental_damage_conversion");
     expect(codes(compileEffectUse(effectRequest(f, crossed)))).not.toEqual([]);
   });
 
-  it("requires an explicit Spell resolution and explicit Maneuver inheritance", () => {
-    const f = effectFixture({ revise: { "spell.effect.direct_damage": { ...(EFFECT_REFERENCE_CONTENT.definitions.find((d) => d.canonicalKey === "spell.effect.direct_damage")!.payload as any), resolution: null } } });
+  it("requires an explicit Spell resolution and permits only explicit Maneuver inheritance", () => {
+    const source = EFFECT_REFERENCE_CONTENT.definitions.find((d) => d.canonicalKey === "spell.effect.direct_damage")!.payload as any;
+    const f = effectFixture({ revise: { "spell.effect.direct_damage": { ...cloneJson(source), resolution: null } } });
     expect(codes(compileEffectUse(effectRequest(f, spellEffectAbility(f, "spell.effect.direct_damage")))).toString()).toContain("SPELL_EFFECT_RESOLUTION_REQUIRED");
-    const ok = validateEffectUse(effectRequest(effectFixture(), maneuverEffectAbility(effectFixture(), "maneuver.effect.elemental_damage_conversion")));
-    expect(ok.ok).toBe(false); // exact bundle identity is intentionally mixed and must fail closed
+
+    const current = effectFixture();
+    const inherited = validateEffectUse(effectRequest(current, maneuverEffectAbility(current, "maneuver.effect.elemental_damage_conversion")));
+    expect(inherited.ok).toBe(true);
+    if (inherited.ok) expect([inherited.value.resolution, inherited.value.resolutionPolicy]).toEqual([null, "INHERIT_ABILITY"]);
   });
 
-  it("rejects character-dice scaling above PRO per Effect, not by summing separate Effects", () => {
+  it("rejects character-dice scaling above PRO per Effect", () => {
     const f = effectFixture();
     const bad = validateEffectUse(effectRequest(f, spellEffectAbility(f, "spell.effect.direct_damage", "spell.targeting.single_target", { dice: 5 }), effectCharacter({ pro: 4 })));
     expect(bad.ok && bad.value.valid).toBe(false);
