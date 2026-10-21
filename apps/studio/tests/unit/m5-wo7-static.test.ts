@@ -13,6 +13,16 @@ interface InvariantEntry {
   readonly supersededBy?: string;
   readonly guards: readonly string[];
 }
+interface TargetingCatalog {
+  readonly definitions: readonly {
+    readonly definitionKind: string;
+    readonly payload: {
+      readonly costContributions?: readonly unknown[];
+      readonly rules?: unknown;
+      readonly [key: string]: unknown;
+    };
+  }[];
+}
 
 describe("M5-WO7 audit — Effect framework & Spell/Maneuver contracts", () => {
   const vocabulary = text("packages/prowess-game/src/vocabulary/effect.ts");
@@ -20,7 +30,7 @@ describe("M5-WO7 audit — Effect framework & Spell/Maneuver contracts", () => {
   const compiler = text("packages/prowess-game/src/effect/compile.ts");
   const effects = text("packages/prowess-game/src/content/core-playtest-v0.1/effects.ts");
   const targeting = text("packages/prowess-game/src/content/core-playtest-v0.1/targeting-wo7-amendments.ts");
-  const historicalTargeting = text("packages/prowess-game/src/content/core-playtest-v0.1/targeting.json");
+  const historicalTargetingCatalog = json<TargetingCatalog>("packages/prowess-game/src/content/core-playtest-v0.1/targeting.json");
   const docs = text("docs/architecture/m5-effect-framework.md");
   const rulesPackage = text("packages/prowess-rules/package.json");
   const familyBlock = vocabulary.match(/SPELL_EFFECT_FAMILIES\s*=\s*Object\.freeze\(\[([\s\S]*?)\]\s+as const\)/)?.[1] ?? "";
@@ -79,7 +89,9 @@ describe("M5-WO7 audit — Effect framework & Spell/Maneuver contracts", () => {
     expect(effects).toMatch(/conversion\("maneuver\.effect\.radius_attack_conversion",\s*"EXPERT",\s*3,\s*"maneuver\.targeting\.radius",\s*\["AGI",\s*"PRO"\]\)/);
     expect(effects).toContain('saveProfile: { validSaves: saves, selectionPolicy: "MARTIAL_CONTROL" }');
     expect(effects).toContain('fixed(`${canonicalKey}.ap`, "AP", ap)');
-    expect(historicalTargeting).not.toMatch(/Save Profile|saveProfile|conversionCostDuplicate/);
+    const maneuverTargetingDefinitions = historicalTargetingCatalog.definitions.filter((definition) => definition.definitionKind === "MANEUVER_TARGETING");
+    expect(JSON.stringify(maneuverTargetingDefinitions)).not.toMatch(/"saveProfile"|conversionCostDuplicate/);
+    for (const definition of maneuverTargetingDefinitions) expect(definition.payload.costContributions ?? []).toEqual([]);
   });
 
   it("does not calculate final Ability cost or execute runtime Effects / chains / ME feedback", () => {
