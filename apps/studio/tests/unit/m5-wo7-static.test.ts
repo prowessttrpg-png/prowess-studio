@@ -34,7 +34,8 @@ describe("M5-WO7 audit — Effect framework & Spell/Maneuver contracts", () => {
     expect(familyBlock.match(/"[A-Z_]+"/g)).toEqual(["\"DAMAGE\"", "\"HEALING\"", "\"BUFF\"", "\"DEBUFF\"", "\"CONTROL\"", "\"UTILITY\"", "\"SUMMONING\""]);
     expect(familyBlock).not.toMatch(/MOVEMENT|CLEANSE|SPELL_INTERFERENCE/);
     expect(payload).toContain('branch === "SPELL"');
-    expect(payload).toContain('branch === "MANEUVER"');
+    expect(payload).toContain('branch !== "MANEUVER"');
+    expect(payload).toContain('authoredBranch !== branch');
   });
 
   it("locks Projectile to 3 MP, caster Range and Ranged Attack delivery while Effect Save remains separate", () => {
@@ -75,7 +76,8 @@ describe("M5-WO7 audit — Effect framework & Spell/Maneuver contracts", () => {
 
   it("keeps conversion cost/save data on Maneuver Effects rather than Maneuver Targeting", () => {
     expect(effects).toContain('maneuver.effect.radius_attack_conversion');
-    expect(effects).toContain('validSaves: ["AGI", "PRO"]');
+    expect(effects).toMatch(/conversion\("maneuver\.effect\.radius_attack_conversion",\s*"EXPERT",\s*3,\s*"maneuver\.targeting\.radius",\s*\["AGI",\s*"PRO"\]\)/);
+    expect(effects).toContain('saveProfile: { validSaves: saves, selectionPolicy: "MARTIAL_CONTROL" }');
     expect(effects).toContain('fixed(`${canonicalKey}.ap`, "AP", ap)');
     expect(historicalTargeting).not.toMatch(/Save Profile|saveProfile|conversionCostDuplicate/);
   });
