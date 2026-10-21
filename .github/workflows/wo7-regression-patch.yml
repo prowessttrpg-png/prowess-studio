@@ -1,3 +1,4 @@
+# Temporary WO7 migration aid; remove after regression gates are updated.
 name: WO7 temporary regression patch
 
 on:
