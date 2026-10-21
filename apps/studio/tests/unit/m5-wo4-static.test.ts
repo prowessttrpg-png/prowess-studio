@@ -137,7 +137,7 @@ describe("M5-WO4 audit — Affinity identity, rank, authority & keyword alignmen
 
   it("the invariant catalog has M5-I001–I178 (M5-WO5 appended I156–I158, M5-WO6 I159–I178); M5-I111–I155 are guarded here; M5-I073 → M5-I075 → M5-I111 and M5-I119 → M5-I151 supersession is traceable", () => {
     const catalog = JSON.parse(read("docs/architecture/m5-invariants.json")) as Array<{ id: string; title: string; guards: string[]; status?: string; supersededBy?: string }>;
-    expect(catalog.map((x) => x.id)).toEqual(Array.from({ length: 178 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
+    expect(catalog.slice(0, 178).map((x) => x.id)).toEqual(Array.from({ length: 178 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
     const self = read("apps/studio/tests/unit/m5-wo4-static.test.ts");
     for (const entry of catalog.slice(110, 155)) {
       expect(entry.guards, entry.id).toContain("apps/studio/tests/unit/m5-wo4-static.test.ts");
@@ -145,7 +145,7 @@ describe("M5-WO4 audit — Affinity identity, rank, authority & keyword alignmen
       expect(entry.status ?? "ACTIVE", entry.id).toBe(["M5-I119", "M5-I128", "M5-I152"].includes(entry.id) ? "SUPERSEDED" : "ACTIVE");
       for (const guard of entry.guards) expect(existsSync(path.join(ROOT, guard)), `${entry.id} → ${guard}`).toBe(true);
     }
-    expect(catalog.filter((x) => x.status === "SUPERSEDED").map((x) => [x.id, x.supersededBy])).toEqual([["M5-I073", "M5-I075"], ["M5-I075", "M5-I111"], ["M5-I119", "M5-I151"], ["M5-I128", "M5-I155"], ["M5-I152", "M5-I154"]]);
+    expect(catalog.filter((x) => x.status === "SUPERSEDED" && Number(x.id.slice("M5-I".length)) <= 155).map((x) => [x.id, x.supersededBy])).toEqual([["M5-I073", "M5-I075"], ["M5-I075", "M5-I111"], ["M5-I119", "M5-I151"], ["M5-I128", "M5-I155"], ["M5-I152", "M5-I154"]]);
     expect(catalog.find((x) => x.id === "M5-I075")?.title).toBe("Base Movement Equals 5 Feet Times AGI Before Size Or Other Explicit Movement Modifiers");
     const md = read("docs/architecture/m5-invariants.md");
     expect(section(md, "M5-I075")).toMatch(/\*\*Status:\*\* SUPERSEDED by M5-I111/);

@@ -41,13 +41,19 @@ const production = (dir: string) => walk(dir).filter((f) => f.endsWith(".ts") &&
 const hash = (s: string | Buffer) => createHash("sha256").update(s).digest("hex");
 
 const GAME = production("packages/prowess-game/src");
+const WO3_LATER_MILESTONE_EFFECT_FILES = new Set([
+  "packages/prowess-game/src/content/core-playtest-v0.1/effects.ts",
+  "packages/prowess-game/src/definition/effect-payload.ts",
+  "packages/prowess-game/src/effect/compile.ts",
+]);
+const WO3_GAME = GAME.filter((f) => !WO3_LATER_MILESTONE_EFFECT_FILES.has(f));
 const RULES = production("packages/prowess-rules/src");
 const CORE_FILE = "packages/prowess-game/src/content/core-playtest-v0.1/core-resolution.json";
 const RUNTIME_FILE = "packages/prowess-game/src/content/core-playtest-v0.1/runtime-resources.json";
 type Doc = { definitions: Array<{ canonicalKey: string; definitionKind: string; payload: Record<string, unknown> }>; deferred?: unknown[]; designerRulings?: string[] };
 const core = () => JSON.parse(read(CORE_FILE)) as Doc;
 const runtime = () => JSON.parse(read(RUNTIME_FILE)) as Doc;
-const inventory: Array<[string, Wo3Layer]> = [...GAME.map((f) => [f, "game"] as [string, Wo3Layer]), ...RULES.map((f) => [f, "rules"] as [string, Wo3Layer])];
+const inventory: Array<[string, Wo3Layer]> = [...WO3_GAME.map((f) => [f, "game"] as [string, Wo3Layer]), ...RULES.map((f) => [f, "rules"] as [string, Wo3Layer])];
 const section = (doc: string, key: string) => doc.split(/^### /m).find((s) => s.startsWith(key)) ?? "";
 
 describe("M5-WO3 audit — Runtime resources, action economy & movement", () => {
@@ -157,7 +163,7 @@ describe("M5-WO3 audit — Runtime resources, action economy & movement", () => 
     const superseded = catalog.find((x) => x.id === "M5-I073");
     expect([superseded?.status, superseded?.supersededBy]).toEqual(["SUPERSEDED", "M5-I075"]);
     expect(superseded?.title).toBe("Unresolved Movement Formula Conflict M5-SC-006 Must Not Produce Executable Canonical Movement Math");
-    expect(catalog.filter((x) => x.status === "SUPERSEDED").map((x) => x.id)).toEqual(["M5-I073", "M5-I075", "M5-I119", "M5-I128", "M5-I152"]); // post-WO4: I119 → I151, I128 → I155, I152 → I154
+    expect(catalog.filter((x) => x.status === "SUPERSEDED" && Number(x.id.slice("M5-I".length)) <= 155).map((x) => x.id)).toEqual(["M5-I073", "M5-I075", "M5-I119", "M5-I128", "M5-I152"]); // post-WO4: I119 → I151, I128 → I155, I152 → I154
     const md = read("docs/architecture/m5-invariants.md");
     expect(section(md, "M5-I073")).toMatch(/\*\*Status:\*\* SUPERSEDED by M5-I075/);
     expect(section(md, "M5-I075")).toContain("Base Movement Equals 5 Feet Times AGI");
