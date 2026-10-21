@@ -111,8 +111,13 @@ describe("Post-WO4 canon rulings audit — Size Base Movement & Level 9 Affinity
       expect(sec, key).toMatch(/\*\*source A\*\*:[\s\S]*\*\*source B\*\*:/); // provenance kept
       expect(sec, key).toContain(`Rulings batch (post-WO4, resolves ${key})`);
     }
-    // M5-WO6 opened exactly two new conflicts (Projectile base MP, Spell Line width); every earlier one stays resolved.
-    expect(register.split(/^### /m).filter((x) => /\*\*status\*\*: `UNRESOLVED`/.test(x)).map((x) => x.slice(0, 9))).toEqual(["M5-SC-039", "M5-SC-040"]);
+    // Every conflict owned by this post-WO4 rulings batch (through M5-SC-038) remains resolved.
+    const unresolvedHistorical = register
+      .split(/^### /m)
+      .filter((x) => /\*\*status\*\*: `UNRESOLVED`/.test(x))
+      .map((x) => x.slice(0, 9))
+      .filter((key) => Number(key.slice("M5-SC-".length)) <= 38);
+    expect(unresolvedHistorical).toEqual([]);
     expect(section(register, "M5-SC-037")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`[\s\S]*Follow-up ruling \(resolves M5-SC-037\)[\s\S]*Counter\s+Spelling/);
     expect(section(register, "M5-SC-038")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`[\s\S]*Follow-up ruling \(resolves M5-SC-038\)[\s\S]*1 Active Effect per 2 CON[\s\S]*base of 1/);
     expect(register).toMatch(/^### M5-SC-037 — Place Of Spell Interference Among The Spell Branches$/m);
@@ -131,7 +136,9 @@ describe("Post-WO4 canon rulings audit — Size Base Movement & Level 9 Affinity
 
   it("the invariant catalog: M5-I119 → M5-I151, M5-I128 → M5-I155, M5-I152 → M5-I154 SUPERSEDED (kept); M5-I151 and M5-I153–I155 are ACTIVE and guarded here", () => {
     const catalog = JSON.parse(read("docs/architecture/m5-invariants.json")) as Array<{ id: string; title: string; guards: string[]; status?: string; supersededBy?: string }>;
-    expect(catalog).toHaveLength(178); // M5-WO5 appended M5-I156–I158, M5-WO6 M5-I159–I178
+    expect(catalog.slice(0, 178).map((x) => x.id)).toEqual(
+      Array.from({ length: 178 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`),
+    ); // M5-WO5 appended M5-I156–I158, M5-WO6 M5-I159–I178
     const by = (id: string) => catalog.find((x) => x.id === id)!;
     expect([by("M5-I119").status, by("M5-I119").supersededBy]).toEqual(["SUPERSEDED", "M5-I151"]);
     expect([by("M5-I128").status, by("M5-I128").supersededBy]).toEqual(["SUPERSEDED", "M5-I155"]);

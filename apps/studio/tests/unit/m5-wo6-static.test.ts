@@ -136,13 +136,17 @@ describe("M5-WO6 audit — Targeting framework, geometry & branch catalogs", () 
     expect(read(G("targeting/compile.ts"))).toContain("T.TARGETING_ADD_ON_AS_BASE");
   });
 
-  it("source-conflict register: M5-SC-039 and M5-SC-040 are UNRESOLVED with no answer chosen; M5-SC-029 is applied; earlier text kept", () => {
+  it("source-conflict register preserves the WO6 evidence for M5-SC-039 / M5-SC-040 and records their later designer resolutions", () => {
     const register = read("docs/architecture/m5-core-playtest-source-conflicts.md");
     expect(register).toMatch(/^### M5-SC-039 — Projectile Base MP Cost$/m);
     expect(register).toMatch(/^### M5-SC-040 — Spell Line Width Rounding \/ Minimum$/m);
-    for (const key of ["M5-SC-039", "M5-SC-040"]) expect(section(register, key), key).toMatch(/\*\*status\*\*: `UNRESOLVED`\n- \*\*resolution authority\*\*: none/);
+    for (const key of ["M5-SC-039", "M5-SC-040"])
+      expect(section(register, key), key).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`\n- \*\*resolution authority\*\*: M5-WO7 post-WO6 designer ruling/);
     expect(section(register, "M5-SC-039")).toMatch(/Chapter Book lists Projectile at 2 MP\. That value is not Core Playtest canon/);
+    expect(section(register, "M5-SC-039")).toContain("Projectile Targeting costs exactly **3 MP**");
     expect(section(register, "M5-SC-040")).toContain("5 ft wide per 2 Prowess");
+    expect(section(register, "M5-SC-040")).toContain("10 ft × PRO");
+    expect(section(register, "M5-SC-040")).toContain("5 ft × ceil(PRO / 2)");
     expect(section(register, "M5-SC-029")).toMatch(/\*\*status\*\*: `RESOLVED_BY_DESIGNER`[\s\S]*ADD-ONS to a Targeting Type/);
     expect(section(register, "M5-SC-024")).toMatch(/Widen Area at \+6 MP/);
     expect(section(register, "M5-SC-018")).toMatch(/Radius = Martial Rank Base × STR/);
@@ -157,13 +161,14 @@ describe("M5-WO6 audit — Targeting framework, geometry & branch catalogs", () 
     expect(t).toMatch(/Historical provenance: WO1–WO5 classified them as TARGETING_SHAPE/);
   });
 
-  it("the invariant catalog has M5-I001–I178 exactly once; M5-I159–I178 are ACTIVE and guarded by the WO6 tests and controls", () => {
+  it("the invariant catalog preserves M5-I001–I178 exactly once; M5-I159–I178 retain WO6 guards and explicit supersession state", () => {
     const catalog = JSON.parse(read("docs/architecture/m5-invariants.json")) as Array<{ id: string; title: string; guards: string[]; status?: string }>;
-    expect(catalog.map((x) => x.id)).toEqual(Array.from({ length: 178 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
+    expect(catalog.length).toBeGreaterThanOrEqual(178);
+    expect(catalog.slice(0, 178).map((x) => x.id)).toEqual(Array.from({ length: 178 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
     const md = read("docs/architecture/m5-invariants.md");
     const self = read("apps/studio/tests/unit/m5-wo6-static.test.ts");
-    for (const entry of catalog.slice(158)) {
-      expect(entry.status ?? "ACTIVE", entry.id).toBe("ACTIVE");
+    for (const entry of catalog.slice(158, 178)) {
+      expect(entry.status ?? "ACTIVE", entry.id).toBe(["M5-I160", "M5-I163", "M5-I167"].includes(entry.id) ? "SUPERSEDED" : "ACTIVE");
       expect(entry.guards, entry.id).toEqual(expect.arrayContaining(["apps/studio/tests/unit/m5-wo6-static.test.ts", "scripts/m5-wo6-negative-controls.mjs"]));
       for (const guard of entry.guards) {
         expect(existsSync(path.join(ROOT, guard)), guard).toBe(true);

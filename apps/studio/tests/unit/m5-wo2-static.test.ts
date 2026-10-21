@@ -38,10 +38,15 @@ const production = (dir: string) => walk(dir).filter((f) => f.endsWith(".ts") &&
 const hash = (s: string | Buffer) => createHash("sha256").update(s).digest("hex");
 
 const GAME = production("packages/prowess-game/src");
+const WO2_LATER_MILESTONE_CONTENT = new Set([
+  "packages/prowess-game/src/content/core-playtest-v0.1/effects.ts",
+  "packages/prowess-game/src/content/core-playtest-v0.1/targeting-wo7-amendments.ts",
+]);
+const WO2_GAME = GAME.filter((f) => !WO2_LATER_MILESTONE_CONTENT.has(f));
 const RULES = production("packages/prowess-rules/src");
 const CONTENT_FILE = "packages/prowess-game/src/content/core-playtest-v0.1/core-resolution.json";
 const content = () => JSON.parse(read(CONTENT_FILE)) as { definitions: Array<{ canonicalKey: string; definitionKind: string; payload: Record<string, unknown> }> };
-const inventory: Array<[string, Wo2Layer]> = [...GAME.map((f) => [f, "game"] as [string, Wo2Layer]), ...RULES.map((f) => [f, "rules"] as [string, Wo2Layer])];
+const inventory: Array<[string, Wo2Layer]> = [...WO2_GAME.map((f) => [f, "game"] as [string, Wo2Layer]), ...RULES.map((f) => [f, "rules"] as [string, Wo2Layer])];
 const section = (doc: string, key: string) => doc.split(/^### /m).find((s) => s.startsWith(key)) ?? "";
 
 describe("M5-WO2 audit — Core resolution, stats, dice & ranks", () => {
@@ -71,7 +76,7 @@ describe("M5-WO2 audit — Core resolution, stats, dice & ranks", () => {
     for (const f of files) tree.update(`${f}\n${hash(readFileSync(path.join(ROOT, f)))}\n`);
     expect(files.length).toBe(baseline.rulesSrcFileCount);
     expect(tree.digest("hex")).toBe(baseline.rulesSrcTreeHash);
-    for (const file of GAME) expect(read(file), file).not.toMatch(/expression:\s*["'`]/);
+    for (const file of WO2_GAME) expect(read(file), file).not.toMatch(/expression:\s*["'`]/);
     expect(GAME.filter((f) => /core\//.test(f)).map(read).join("\n")).not.toMatch(/\b(floor|ceil)\s*\(/);
   });
 
