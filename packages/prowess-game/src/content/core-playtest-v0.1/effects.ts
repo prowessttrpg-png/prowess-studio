@@ -1,6 +1,7 @@
 /** M5-WO7 representative structured Effect content. The full library is intentionally deferred to M6 authoring/import. */
 const compat = (...allow: string[]) => [{ relation: "TARGETING", allow }];
-const prereq = (skillKey: string, minimumRank: string) => ({ prerequisites: [{ prerequisiteKey: `${skillKey}.${minimumRank}`, kind: "SKILL_RANK_AT_LEAST", skillKey, minimumRank }] });
+const prerequisiteToken = (skillKey: string, minimumRank: string) => `${skillKey.replace(/[^A-Za-z0-9]+/g, "_").toUpperCase()}_${minimumRank.toUpperCase()}`;
+const prereq = (skillKey: string, minimumRank: string) => ({ prerequisites: [{ prerequisiteKey: prerequisiteToken(skillKey, minimumRank), kind: "SKILL_RANK_AT_LEAST", skillKey, minimumRank }] });
 const duration = (allowed = ["INSTANT"], defaultValue: string | null = "INSTANT", sustainEligible = false, manaLockEligible = false) => ({ allowed, default: defaultValue, sustainEligible, manaLockEligible });
 const successFailure = (success: readonly unknown[]) => [
   { outcomeKey: "SUCCESS", data: { operations: success } },
