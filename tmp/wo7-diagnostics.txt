@@ -570,12 +570,12 @@ PROBE:maneuver.zone:{
   }
 }
 
- [32m✓[39m src/wo7-debug.test.ts[2m > [22mWO7 debug[2m > [22mprints representative validation results[33m 680[2mms[22m[39m
+ [32m✓[39m src/wo7-debug.test.ts[2m > [22mWO7 debug[2m > [22mprints representative validation results[33m 873[2mms[22m[39m
 
 [2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
 [2m      Tests [22m [1m[32m1 passed[39m[22m[90m (1)[39m
-[2m   Start at [22m 00:39:05
-[2m   Duration [22m 1.54s[2m (tests 47%, transform 44%, import 9%)[22m
+[2m   Start at [22m 00:40:35
+[2m   Duration [22m 1.96s[2m (tests 47%, transform 43%, import 9%)[22m
 
 EXIT=0
 
@@ -583,33 +583,45 @@ EXIT=0
 
 [1m[30m[46m RUN [49m[39m[22m [36mv5.0.2 [39m[90m/home/runner/work/prowess-studio/prowess-studio/packages/prowess-game[39m
 
- [32m✓[39m src/effect-security.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 2126[2mms[22m[39m
-   [32m✓[39m M5-WO7 Effect determinism and Ruleset isolation [2m(2)[22m
-     [33m[2m✓[22m[39m produces deep-equal results for the same exact inputs[33m 551[2mms[22m[39m
-     [33m[2m✓[22m[39m keeps concurrent R1/R2 Effect evaluation isolated[33m 501[2mms[22m[39m
- [32m✓[39m src/effect-contracts.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 2236[2mms[22m[39m
+ [32m✓[39m src/effect-contracts.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 2767[2mms[22m[39m
    [32m✓[39m M5-WO7 Effect grammar [2m(8)[22m
-     [33m[2m✓[22m[39m requires an explicit Spell resolution and permits only explicit Maneuver inheritance[33m 569[2mms[22m[39m
-     [33m[2m✓[22m[39m rejects character-dice scaling above PRO per Effect[33m 701[2mms[22m[39m
-     [33m[2m✓[22m[39m stores listed AP/MP contributions but never ME or final Ability cost[33m 382[2mms[22m[39m
-     [33m[2m✓[22m[39m is JSON-safe and does not mutate exact inputs[33m 313[2mms[22m[39m
- [32m✓[39m src/effect-inspector.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 1337[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps Spell and Maneuver Effects branch-specific[33m 318[2mms[22m[39m
+     [33m[2m✓[22m[39m requires an explicit Spell resolution and permits only explicit Maneuver inheritance[33m 676[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects character-dice scaling above PRO per Effect[33m 954[2mms[22m[39m
+     [33m[2m✓[22m[39m stores listed AP/MP contributions but never ME or final Ability cost[33m 489[2mms[22m[39m
+     [33m[2m✓[22m[39m is JSON-safe and does not mutate exact inputs[33m 323[2mms[22m[39m
+ [32m✓[39m src/effect-security.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 3147[2mms[22m[39m
+   [32m✓[39m M5-WO7 Effect input safety [2m(5)[22m
+     [33m[2m✓[22m[39m rejects negative / invalid scaling parameter quantities[33m 371[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects unknown Spell Effect families and malformed Save Profiles[33m 454[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects unsafe outcome data and invalid Formula scaling[33m 326[2mms[22m[39m
+   [32m✓[39m M5-WO7 Effect determinism and Ruleset isolation [2m(2)[22m
+     [33m[2m✓[22m[39m produces deep-equal results for the same exact inputs[33m 639[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps concurrent R1/R2 Effect evaluation isolated[33m 909[2mms[22m[39m
+ [32m✓[39m src/effect-inspector.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 1736[2mms[22m[39m
    [32m✓[39m M5-WO7 Rules Inspector Effect fixtures [2m(5)[22m
-     [33m[2m✓[22m[39m shows Projectile + Attack Effect delivery separately from Effect resolution[33m 356[2mms[22m[39m
- [32m✓[39m src/effect-golden.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 4727[2mms[22m[39m
+     [33m[2m✓[22m[39m shows Projectile + Attack Effect delivery separately from Effect resolution[33m 494[2mms[22m[39m
+     [33m[2m✓[22m[39m shows Projectile + Save Effect as delivery then exact Effect Save Profile[33m 335[2mms[22m[39m
+     [33m[2m✓[22m[39m shows Direct Damage PRO scaling validation and selected parameter[33m 305[2mms[22m[39m
+     [33m[2m✓[22m[39m shows Maneuver Radius Conversion ownership without moving Save/cost to Targeting[33m 302[2mms[22m[39m
+ [32m✓[39m src/effect-golden.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 6008[2mms[22m[39m
    [32m✓[39m M5-WO7 Projectile designer ruling [2m(4)[22m
-     [33m[2m✓[22m[39m Projectile + Attack Effect has one delivery attack, reused as Effect resolution[33m 432[2mms[22m[39m
-     [33m[2m✓[22m[39m Projectile + Save Effect is delivery attack then the Effect-owned Save[33m 429[2mms[22m[39m
-     [33m[2m✓[22m[39m Projectile + Automatic Effect still requires successful delivery[33m 321[2mms[22m[39m
+     [33m[2m✓[22m[39m Projectile costs 3 MP and uses the caster's applicable Range[33m 384[2mms[22m[39m
+     [33m[2m✓[22m[39m Projectile + Attack Effect has one delivery attack, reused as Effect resolution[33m 565[2mms[22m[39m
+     [33m[2m✓[22m[39m Projectile + Save Effect is delivery attack then the Effect-owned Save[33m 342[2mms[22m[39m
+     [33m[2m✓[22m[39m Projectile + Automatic Effect still requires successful delivery[33m 397[2mms[22m[39m
    [32m✓[39m M5-WO7 Effect contracts [2m(5)[22m
-     [33m[2m✓[22m[39m Movement and Counterspell remain Utility subfamilies[33m 414[2mms[22m[39m
+     [33m[2m✓[22m[39m Direct Healing rejects Cone because compatibility is exact[33m 376[2mms[22m[39m
+     [33m[2m✓[22m[39m Cleanse is Healing/Cleanse and does not imply HP restoration[33m 326[2mms[22m[39m
+     [33m[2m✓[22m[39m Movement and Counterspell remain Utility subfamilies[33m 540[2mms[22m[39m
+     [33m[2m✓[22m[39m Radius Conversion owns +3 AP, AGI/PRO Save Profile and exact Radius destination; Targeting owns geometry[33m 360[2mms[22m[39m
    [32m✓[39m M5-WO7 historical reproducibility [2m(2)[22m
-     [33m[2m✓[22m[39m pins Effect EntityVersions: publishing a revised R2 does not alter R1 evaluation[33m 627[2mms[22m[39m
+     [33m[2m✓[22m[39m pins Effect EntityVersions: publishing a revised R2 does not alter R1 evaluation[33m 812[2mms[22m[39m
 
 [2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
 [2m      Tests [22m [1m[32m37 passed[39m[22m[90m (37)[39m
-[2m   Start at [22m 00:39:07
-[2m   Duration [22m 5.60s[2m (tests 81%, transform 14%, import 5%)[22m
+[2m   Start at [22m 00:40:38
+[2m   Duration [22m 7.16s[2m (tests 81%, transform 14%, import 4%)[22m
 
 EXIT=0
 
@@ -617,12 +629,12 @@ EXIT=0
 
 [1m[30m[46m RUN [49m[39m[22m [36mv5.0.2 [39m[90m/home/runner/work/prowess-studio/prowess-studio/apps/studio[39m
 
- [32m✓[39m tests/unit/m5-wo7-static.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/m5-wo7-static.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 11[2mms[22m[39m
 
 [2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
 [2m      Tests [22m [1m[32m9 passed[39m[22m[90m (9)[39m
-[2m   Start at [22m 00:39:13
-[2m   Duration [22m 817ms[2m (environment 75%, setup 18%, transform 5%, tests 1%, import 1%, worker 1%)[22m
+[2m   Start at [22m 00:40:46
+[2m   Duration [22m 1.05s[2m (environment 76%, setup 18%, transform 5%, tests 1%, import 1%, worker 1%)[22m
 
 EXIT=0
 
@@ -631,20 +643,16 @@ node:internal/modules/run_main:123
     triggerUncaughtException(
     ^
 
-AssertionError [ERR_ASSERTION]: mutation anchor must occur exactly once: amount: 3
-
-3 !== 2
-
-    at Object.mutate (file:///home/runner/work/prowess-studio/prowess-studio/scripts/m5-wo7-negative-controls.mjs:24:10)
-    at file:///home/runner/work/prowess-studio/prowess-studio/scripts/m5-wo7-negative-controls.mjs:63:29
+AssertionError [ERR_ASSERTION]: negative control was not caught: §192 Projectile returned to DEFERRED_PENDING_CANON
+    at file:///home/runner/work/prowess-studio/prowess-studio/scripts/m5-wo7-negative-controls.mjs:74:14
     at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
-  actual: 3,
-  expected: 2,
-  operator: 'strictEqual',
+  actual: 0,
+  expected: 0,
+  operator: 'notStrictEqual',
   diff: 'simple'
 }
 
