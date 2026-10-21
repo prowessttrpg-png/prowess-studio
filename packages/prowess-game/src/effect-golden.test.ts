@@ -6,7 +6,8 @@ import { effectCharacter, effectFixture, effectRequest, maneuverEffectAbility, s
 
 const cloneJson = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const targeting = (f: ReturnType<typeof effectFixture>, composition: Record<string, unknown>, character = effectCharacter()) => {
-  const r = evaluateAbilityTargeting({ contractVersion: 1, subjectKey: "wo7.targeting", composition, definitions: f.bundle, ruleset: f.ruleset, character, keywords: keywordCatalog() });
+  const targetingCharacter = { stats: character.stats, skillRanks: character.skillRanks };
+  const r = evaluateAbilityTargeting({ contractVersion: 1, subjectKey: "wo7.targeting", composition, definitions: f.bundle, ruleset: f.ruleset, character: targetingCharacter, keywords: keywordCatalog() });
   if (!r.ok) throw new Error(JSON.stringify(r.problems));
   return r.value;
 };
