@@ -34,6 +34,8 @@ describe("M5-WO7 audit — Effect framework & Spell/Maneuver contracts", () => {
   const docs = text("docs/architecture/m5-effect-framework.md");
   const rulesPackage = text("packages/prowess-rules/package.json");
   const familyBlock = vocabulary.match(/SPELL_EFFECT_FAMILIES\s*=\s*Object\.freeze\(\[([\s\S]*?)\]\s+as const\)/)?.[1] ?? "";
+  const projectileBlock = targeting.slice(targeting.indexOf('canonicalKey: "spell.targeting.projectile"'), targeting.indexOf('canonicalKey: "spell.targeting.line"'));
+  const lineBlock = targeting.slice(targeting.indexOf('canonicalKey: "spell.targeting.line"'));
 
   it("keeps Prowess Effect semantics out of the generic M4 package and DB access out of @prowess/game", () => {
     expect(rulesPackage).not.toMatch(/prowess-game|SPELL_EFFECT|MANEUVER_EFFECT|Projectile|Effect Framework/);
@@ -49,9 +51,10 @@ describe("M5-WO7 audit — Effect framework & Spell/Maneuver contracts", () => {
   });
 
   it("locks Projectile to 3 MP, caster Range and Ranged Attack delivery while Effect Save remains separate", () => {
-    expect(targeting).toContain('amount: 3');
-    expect(targeting).toContain('model: "DEFAULT_SPELL_RANGE"');
-    expect(targeting).toContain('check: "RANGED_ATTACK_ROLL"');
+    expect(projectileBlock).toContain('contributionKey: "targeting.base", currency: "MP", data: { kind: "BASE", amount: 3 }');
+    expect(projectileBlock).toContain('model: "DEFAULT_SPELL_RANGE"');
+    expect(projectileBlock).toContain('check: "RANGED_ATTACK_ROLL"');
+    expect(projectileBlock).not.toContain('DEFERRED_PENDING_CANON');
     expect(compiler).toContain('"SAME_ATTACK_ROLL"');
     expect(compiler).toContain('"DELIVERY_THEN_SAVE"');
     expect(payload).toContain('saveProfile');
@@ -60,11 +63,11 @@ describe("M5-WO7 audit — Effect framework & Spell/Maneuver contracts", () => {
   });
 
   it("locks Spell Line to 10×PRO and 5×ceil(PRO/2), with no deferred current-canon width", () => {
-    expect(targeting).toContain('expression: "10 * pro + length_extension * 10"');
-    expect(targeting).toContain('expression: "5 * ceil(pro / 2) + width_extension * 5"');
-    expect(targeting).not.toContain('15 * pro');
-    expect(targeting).not.toContain('DEFERRED_PENDING_CANON');
-    expect(targeting).not.toContain('floor(pro / 2)');
+    expect(lineBlock).toContain('expression: "10 * pro + length_extension * 10"');
+    expect(lineBlock).toContain('expression: "5 * ceil(pro / 2) + width_extension * 5"');
+    expect(lineBlock).not.toContain('15 * pro');
+    expect(lineBlock).not.toContain('DEFERRED_PENDING_CANON');
+    expect(lineBlock).not.toContain('floor(pro / 2)');
   });
 
   it("uses exact compatibility, explicit Spell resolution and explicit Maneuver inheritance", () => {
