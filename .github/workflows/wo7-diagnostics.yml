@@ -39,6 +39,21 @@ jobs:
           run_cmd 'MODEL BUILD' pnpm --filter '@prowess/model' run build
           run_cmd 'RULES BUILD' pnpm --filter '@prowess/rules' run build
           run_cmd 'GAME BUILD' pnpm --filter '@prowess/game' run build
+          echo '===== EFFECT PROBE =====' >> tmp/wo7-diagnostics.txt
+          node --input-type=module >> tmp/wo7-diagnostics.txt 2>&1 <<'JS'
+          import { validateEffectUse } from './packages/prowess-game/dist/effect/compile.js';
+          import { effectFixture, effectRequest, maneuverEffectAbility, spellEffectAbility, effectCharacter } from './packages/prowess-game/dist/testing/effect-fixtures.js';
+          const f = effectFixture();
+          for (const [name, comp, character] of [
+            ['spell.direct_damage', spellEffectAbility(f, 'spell.effect.direct_damage', 'spell.targeting.single_target', { dice: 2 }), effectCharacter({pro:4})],
+            ['maneuver.elemental', maneuverEffectAbility(f, 'maneuver.effect.elemental_damage_conversion'), effectCharacter()],
+            ['maneuver.zone', maneuverEffectAbility(f, 'maneuver.effect.zone_carve'), effectCharacter()],
+          ]) {
+            const result = validateEffectUse(effectRequest(f, comp, character));
+            console.log(name, JSON.stringify(result, null, 2));
+          }
+          JS
+          echo >> tmp/wo7-diagnostics.txt
           run_cmd 'GAME TESTS' pnpm --filter '@prowess/game' exec vitest run src/effect-golden.test.ts src/effect-contracts.test.ts src/effect-security.test.ts src/effect-inspector.test.ts
           run_cmd 'STUDIO STATIC' pnpm --filter '@prowess/studio' exec vitest run tests/unit/m5-wo7-static.test.ts
           run_cmd 'NEGATIVE CONTROLS' node scripts/m5-wo7-negative-controls.mjs
