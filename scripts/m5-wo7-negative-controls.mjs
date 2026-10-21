@@ -25,10 +25,16 @@ const replaceOnce = (from, to) => (text) => {
   return text.replace(from, to);
 };
 const append = (snippet) => (text) => `${text}\n${snippet}\n`;
+const mutateJson = (mutator) => (text) => {
+  const value = JSON.parse(text);
+  mutator(value);
+  return `${JSON.stringify(value, null, 2)}\n`;
+};
+const PROJECTILE_BASE = '{ contributionKey: "targeting.base", currency: "MP", data: { kind: "BASE", amount: 3 } }';
 
 const controls = [
-  { name: "§192 Projectile returned to DEFERRED_PENDING_CANON", file: T, mutate: replaceOnce('amount: 3', 'amount: "DEFERRED_PENDING_CANON"'), guard: STATIC },
-  { name: "§193 Projectile wrong base cost = 2 MP", file: T, mutate: replaceOnce('amount: 3', 'amount: 2'), guard: STATIC },
+  { name: "§192 Projectile returned to DEFERRED_PENDING_CANON", file: T, mutate: replaceOnce(PROJECTILE_BASE, '{ contributionKey: "targeting.base", currency: "MP", data: { kind: "BASE_DEFERRED", conflictKey: "M5-SC-039" } }'), guard: STATIC },
+  { name: "§193 Projectile wrong base cost = 2 MP", file: T, mutate: replaceOnce(PROJECTILE_BASE, '{ contributionKey: "targeting.base", currency: "MP", data: { kind: "BASE", amount: 2 } }'), guard: STATIC },
   { name: "§194 Projectile Save Effect skips delivery", file: C, mutate: append('export const skipProjectileDelivery = true;'), guard: STATIC },
   { name: "§195 Projectile Attack Effect double-rolls", file: C, mutate: append('export const projectileDoubleAttack = true;'), guard: STATIC },
   { name: "§196 old Spell Line length 15×PRO restored", file: T, mutate: replaceOnce('expression: "10 * pro + length_extension * 10"', 'expression: "15 * pro + length_extension * 10"'), guard: STATIC },
@@ -44,8 +50,8 @@ const controls = [
   { name: "§206 Character Dice cap made global across Spell", file: C, mutate: append('export const globalCharacterDiceCap = true;'), guard: STATIC },
   { name: "§207 Fire Damage implicitly applies Burning", file: C, mutate: append('export const damageImpliesBurning = true;'), guard: STATIC },
   { name: "§208 Lightning conversion implicitly applies Shocked", file: E, mutate: replaceOnce('DAMAGE_TYPE_ONLY_NO_IMPLICIT_CONDITION', 'DAMAGE_TYPE_ONLY_NO_IMPLICIT_CONDITION", "Shocked'), guard: STATIC },
-  { name: "§209 Targeting duplicates Radius Conversion +3 AP", file: H, mutate: append('// conversionCostDuplicate: +3 AP'), guard: STATIC },
-  { name: "§210 Targeting duplicates Radius Conversion Save Profile", file: H, mutate: append('// saveProfile: ["AGI", "PRO"]'), guard: STATIC },
+  { name: "§209 Targeting duplicates Radius Conversion +3 AP", file: H, mutate: mutateJson((catalog) => { const radius = catalog.definitions.find((d) => d.canonicalKey === "maneuver.targeting.radius"); radius.payload.costContributions = [{ contributionKey: "conversion.radius", currency: "AP", data: { kind: "BASE", amount: 3 } }]; }), guard: STATIC },
+  { name: "§210 Targeting duplicates Radius Conversion Save Profile", file: H, mutate: mutateJson((catalog) => { const radius = catalog.definitions.find((d) => d.canonicalKey === "maneuver.targeting.radius"); radius.payload.rules.targeting.saveProfile = { validSaves: ["AGI", "PRO"] }; }), guard: STATIC },
   { name: "§211 WO7 calculates final Ability cost", file: C, mutate: append('export const finalSpellCost = 0; export const finalManeuverCost = 0;'), guard: STATIC },
   { name: "§212 WO7 mutates runtime HP", file: C, mutate: append('export const runtimeHpMutation = true;'), guard: STATIC },
   { name: "§213 Effect resolves through latest version", file: C, mutate: append('export const latestEffect = true;'), guard: STATIC },
