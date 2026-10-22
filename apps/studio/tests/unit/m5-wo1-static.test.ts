@@ -34,6 +34,9 @@ const production = (dir: string) => walk(dir).filter((f) => f.endsWith(".ts") &&
 
 const GAME = production("packages/prowess-game/src");
 const WO1_LATER_MILESTONE_FILES = new Set([
+  // WO9 authored Formula content is covered by the dedicated WO9 gate; all earlier files stay covered.
+  "packages/prowess-game/src/content/core-playtest-v0.1/duration-conditions.ts",
+  "packages/prowess-game/src/ability/duration-conditions.ts",
   "packages/prowess-game/src/content/core-playtest-v0.1/effects.ts",
   "packages/prowess-game/src/content/core-playtest-v0.1/traits.ts",
   "packages/prowess-game/src/content/core-playtest-v0.1/targeting-wo7-amendments.ts",

@@ -850,3 +850,40 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **notes**: WO8 preserves an explicit separate additional-capacity surface and refuses non-empty allocations with
   PROWESS_TRAIT.CAPACITY_UNRESOLVED. Affinity-specific Traits may use ordinary/exchanged slots when their exact
   prerequisite and Strength Keyword checks pass. Later authoritative grants can activate extra capacity.
+
+### M5-SC-043 — Cannot Move This Turn Has Conflicting Listed AP Benefits
+
+- **conflictKey**: `M5-SC-043`
+- **systemFamily**: `MANEUVER`
+- **source A**: Core Playtest s2020 Common Conditions lists Cannot Move This Turn as 1 AP reduction.
+- **source B**: s2099 Movement Conditions lists the same before/after-turn restriction as 2 AP reduction.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none.
+- **mechanical consequence**: the representative Definition is DEFERRED and exposes no guessed discount. WO9 can
+  represent the restriction, but cannot choose between these values. SC025's 3 AP total cap remains authoritative.
+
+### M5-SC-044 — Discretionary Benefits And Incomplete Restriction Subjects
+
+- **conflictKey**: `M5-SC-044`
+- **systemFamily**: `ABILITY`
+- **source A**: s674 Material requires a chosen specific component; s675 Delayed and Environmental need a specified
+  timing/trigger or environment. Risk gives an open-ended percentage and Focus is GM-set. Weapon Lock requires a
+  specific weapon; Environmental Lock provides a discretionary range (s2020 and detailed Maneuver Conditions).
+- **source B**: source Once per Mission lists 5 AP, while the designer ruling SC025 caps all Maneuver Conditions at 3.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none for unspecified subjects, discretionary values or an exact replacement mission benefit.
+- **mechanical consequence**: generic reference templates remain DEFERRED. Exact authored subjects/requirements and
+  objective contributions can use the typed framework; authors cannot supply an arbitrary discount parameter.
+  No default Material benefit, discretionary range selection or replacement 5-to-3 AP entry is invented.
+
+### M5-SC-045 — Permanent Duration Has No General Authored Access Rule
+
+- **conflictKey**: `M5-SC-045`
+- **systemFamily**: `SPELL`
+- **source A**: s657 permits Permanent only by special rules.
+- **source B**: s662 discusses indefinite maintained Sustain, with AP and Concentration requirements; it does not grant
+  the Permanent Duration or authorize a universal price/access rule.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none.
+- **mechanical consequence**: Permanent uses the existing PERMANENT_BY_SPECIAL_RULE token and remains DEFERRED.
+  No free Permanent mode or automatic conversion from Sustained exists. SC042 remains independently unresolved.

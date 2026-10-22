@@ -1362,3 +1362,111 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 - **Group:** Traits and authored abilities
 - **Meaning:** WO8 Is Deterministic Immutable JSON Safe And Does Not Execute Combat State.
 - **Guards:** `packages/prowess-game/src/ability-definitions.test.ts`, `packages/prowess-game/src/ability-negative.test.ts`, `packages/prowess-game/src/ability-security.test.ts`, `packages/prowess-game/src/trait-contracts.test.ts`, `apps/studio/tests/unit/m5-wo8-static.test.ts`, `scripts/m5-wo8-negative-controls.mjs`
+
+### M5-I225 — Duration Is A First-Class Exact Versioned Ability Component And Never An Unversioned String
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** Duration Is A First-Class Exact Versioned Ability Component And Never An Unversioned String.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I226 — Spell And Maneuver Duration Share The DURATION Contract But Remain Branch-Specific Definition Families
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** Spell And Maneuver Duration Share The DURATION Contract But Remain Branch-Specific Definition Families.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I227 — A Spell Has Exactly One Legal Duration Selection And ROUNDS Requires A Positive Whole-Number Count
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** A Spell Has Exactly One Legal Duration Selection And ROUNDS Requires A Positive Whole-Number Count.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I228 — Duration Compatibility Reuses Exact Effect And Trait Metadata Rather Than Inferring Legality From Prose
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** Duration Compatibility Reuses Exact Effect And Trait Metadata Rather Than Inferring Legality From Prose.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I229 — Duration Cost Contributions Remain Listed Component Costs Until WO10 Or WO11 Performs Final Cost Calculation
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** Duration Cost Contributions Remain Listed Component Costs Until WO10 Or WO11 Performs Final Cost Calculation.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I230 — WO9 Does Not Execute Sustain, Mana Lock, Concentration Or Active-Effect Runtime State
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** WO9 Does Not Execute Sustain, Mana Lock, Concentration Or Active-Effect Runtime State.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I231 — Ability Conditions Are Construction Restrictions And Never Implicitly Become Status Conditions
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** Ability Conditions Are Construction Restrictions And Never Implicitly Become Status Conditions.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I232 — Spell Casting Conditions Are Exact Versioned Components With Structured Requirements And Listed Modifiers
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** Spell Casting Conditions Are Exact Versioned Components With Structured Requirements And Listed Modifiers.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I233 — A Spell Casting Condition Is Legal Only When Its Structured Requirement Matches A Mechanic Actually Present In The Spell
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** A Spell Casting Condition Is Legal Only When Its Structured Requirement Matches A Mechanic Actually Present In The Spell.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I234 — Total Spell Casting Condition MP Reduction Is Capped At Thirty Percent Independently Of Casting Condition Slot Capacity
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** Total Spell Casting Condition MP Reduction Is Capped At Thirty Percent Independently Of Casting Condition Slot Capacity.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I235 — WO9 Exposes Casting Condition Modifier Contributions But Never Applies Them To Final Spell MP Or AP
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** WO9 Exposes Casting Condition Modifier Contributions But Never Applies Them To Final Spell MP Or AP.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I236 — Maneuver Conditions Are Exact Versioned Components With Structured Requirements And Explicit Cost-Reduction Choices
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** Maneuver Conditions Are Exact Versioned Components With Structured Requirements And Explicit Cost-Reduction Choices.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I237 — Total Maneuver Condition AP Reduction Cannot Exceed Three AP
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** Total Maneuver Condition AP Reduction Cannot Exceed Three AP.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I238 — A Maneuver Condition Offering AP Or MP Reduction Requires An Explicit Authored Selection And Never Applies Both Automatically
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** A Maneuver Condition Offering AP Or MP Reduction Requires An Explicit Authored Selection And Never Applies Both Automatically.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I239 — Source Ranges And GM-Set Condition Benefits Never Become Guessed Executable Values
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** Source Ranges And GM-Set Condition Benefits Never Become Guessed Executable Values.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I240 — Duration And Ability Condition Evaluation Is Exact-Ruleset And Historically Reproducible
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** Duration And Ability Condition Evaluation Is Exact-Ruleset And Historically Reproducible.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I241 — WO9 Is Deterministic Immutable JSON-Safe And Does Not Execute Final Ability Cost Or Combat Runtime
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** WO9 Is Deterministic Immutable JSON-Safe And Does Not Execute Final Ability Cost Or Combat Runtime.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I242 — M5-SC-042 Remains Explicitly Unresolved And WO9 Does Not Infer Additional Affinity Trait Capacity
+
+- **Group:** Duration and Ability Conditions
+- **Meaning:** M5-SC-042 Remains Explicitly Unresolved And WO9 Does Not Infer Additional Affinity Trait Capacity.
+- **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`

@@ -493,7 +493,11 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
     exchange === null ? null : formula("capacity.maximum_trades", "maximumTrades", { base_effects: baseEffects, minimum_effects_remaining: exchange.minimumEffectsRemaining, effect_slots_per_exchange: exchange.effectSlotsPerExchange }, "construction-capacity-formula", capacityKeys, capacityDefs);
   const effectSlots = composition.effects.length; // §59–§60: one slot per Effect use, whatever its stack count
   const traitSlots = composition.traits.length;
-  const conditionSlots = composition.conditions.length;
+  const conditionSlots = composition.conditions.filter(use => {
+    const d = findBundleDefinition(bundle, use.definition)!;
+    const typed = (d.payload.rules as JsonObject).condition;
+    return typed === undefined || (typed as JsonObject).consumesSlot !== false;
+  }).length;
   requirement("capacity.trades", "TRADE_LIMIT", null, CONSTRUCTION_ORDER.CAPACITY, { requirement: compare("construction.trades", "<=", NO_EXCHANGE_TRADES, ruleProv), facts: numeric("construction.trades", trades) }, maxTradesStep === null ? [] : [fromFragment("/requirement/expected", maxTradesStep)], [RULE], [rule.entry.ref]);
   requirement("capacity.effects", "EFFECT_CAPACITY", null, CONSTRUCTION_ORDER.CAPACITY, { requirement: compare("construction.effect_slots", "<=", 0, ruleProv), facts: numeric("construction.effect_slots", effectSlots) }, [fromFragment("/requirement/expected", remainingStep)], capacityKeys, capacityDefs);
   requirement("capacity.minimum_effects", "MINIMUM_EFFECTS", null, CONSTRUCTION_ORDER.CAPACITY, { requirement: compare("construction.effect_slots", ">=", minimumEffects, ruleProv), facts: numeric("construction.effect_slots", effectSlots) }, [], [RULE], [rule.entry.ref]);
@@ -542,9 +546,9 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
 
   // ---- Stacking (§52–§58): explicit permission, the Definition's own limit, one Effect slot ---------------------------
   const stacking: { componentKey: string; stacks: number; limit: number; limitSource: "NOT_STACKABLE" | "FIXED" | "TRACK_RANK_VALUE" }[] = [];
-  const stackUses = [...composition.effects, ...composition.traits.filter(t => { const d = findBundleDefinition(bundle, t.definition); return d !== null && (d.payload.rules as JsonObject).trait !== undefined; })];
+  const stackUses = [...composition.effects, ...composition.traits.filter(t => { const d = findBundleDefinition(bundle, t.definition); return d !== null && (d.payload.rules as JsonObject).trait !== undefined; }), ...composition.conditions.filter(t => { const d = findBundleDefinition(bundle, t.definition); return d !== null && (d.payload.rules as JsonObject).condition !== undefined; })];
   stackUses.forEach((use) => {
-    const slot = composition.traits.some(t => t.componentKey === use.componentKey) ? "traits" : "effects";
+    const slot = composition.conditions.some(t => t.componentKey === use.componentKey) ? "conditions" : composition.traits.some(t => t.componentKey === use.componentKey) ? "traits" : "effects";
     const index = composition[slot].findIndex(c => c.componentKey === use.componentKey);
     const raw = own(use.parameters as Record<string, unknown>, "stacks");
     let stacks = SINGLE_STACK;

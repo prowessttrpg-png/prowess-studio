@@ -25,6 +25,7 @@ import { readAbilityConstructionRulePayload } from "./ability-construction-paylo
 import { readTraitRules, readTraitCosts } from "./trait-payload.js";
 import { readAuthoredAbilityPayload } from "./authored-ability-payload.js";
 import { readTargetingCosts, readTargetingRules } from "./targeting-payload.js";
+import { readDurationRules, readDurationCosts, readConditionRules, readConditionContributions } from "./duration-condition-payload.js";
 
 /**
  * Version-1 payload contracts of the SHARED Ability Construction components (PAS-10 M5-WO1 §25–53, §83).
@@ -327,7 +328,12 @@ function readComponentPayload(contract: AbilityComponentContract, branch: "SPELL
     }
     case "DURATION": {
       const durationConcept = readEnum(own(r, "durationConcept"), DURATION_CONCEPTS, [...at, "durationConcept"], p, C.INVALID_PAYLOAD, "duration concept");
-      payload = { ...readCommon(r, at, p), durationConcept } satisfies Record<keyof DurationDefinitionPayload, unknown>;
+      const common = readCommon(r, at, p);
+      if (common.rules.duration !== undefined && durationConcept) {
+        const rules = readDurationRules(common.rules.duration, branch, durationConcept, [...at, "rules", "duration"], p);
+        if (rules) readDurationCosts(common.costContributions, rules, durationConcept, [...at, "costContributions"], p);
+      }
+      payload = { ...common, durationConcept } satisfies Record<keyof DurationDefinitionPayload, unknown>;
       break;
     }
     case "ABILITY_CONDITION": {
@@ -338,7 +344,12 @@ function readComponentPayload(contract: AbilityComponentContract, branch: "SPELL
       const restrictionKey = rr === null ? null : readToken(own(rr, "restrictionKey"), [...at, "restriction", "restrictionKey"], p, "restrictionKey");
       const restrictionData = rr === null ? null : readJsonObject(own(rr, "data"), [...at, "restriction", "data"], p);
       const tradeoff = readJsonObject(own(r, "tradeoff"), [...at, "tradeoff"], p);
-      payload = { ...readCommon(r, at, p), restriction: { restrictionKey, data: restrictionData }, tradeoff } satisfies Record<keyof AbilityConditionDefinitionPayload, unknown>;
+      const common = readCommon(r, at, p);
+      payload = { ...common, restriction: { restrictionKey, data: restrictionData }, tradeoff } satisfies Record<keyof AbilityConditionDefinitionPayload, unknown>;
+      if (common.rules.condition !== undefined) {
+        const rules = readConditionRules(common.rules.condition, branch, [...at, "rules", "condition"], p);
+        if (rules) readConditionContributions(payload as unknown as AbilityConditionDefinitionPayload, rules, [...at, "costContributions"], p);
+      }
       break;
     }
     case "FOUNDATION": {

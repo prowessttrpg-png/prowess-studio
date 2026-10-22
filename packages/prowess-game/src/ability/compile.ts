@@ -17,6 +17,7 @@ import { readKeywordCatalog, keywordReference } from "../affinity/definitions.js
 import { clonePlainData, isPlainObject } from "../internal/plain-data.js";
 import { Problems, checkPlainData, finish, isExactLabel, own, readRecord, type ProwessOutcome } from "../internal/problems.js";
 import type { ProwessCompilationSourceMap, ProwessSourceMapEntry } from "../compilation/model.js";
+import { compileDurationConditions, readDurationConditionRun, type CompiledDurationConditions, type DurationConditionResult } from "./duration-conditions.js";
 
 export interface AbilityDefinitionRequest extends Omit<AbilityConstructionRequest, "composition" | "options"> {
   readonly definition: ProwessDefinitionRef;
@@ -34,6 +35,7 @@ export interface CompiledTrait {
 }
 interface EffectCompilation { readonly actionKey: string | null; readonly plan: ProwessEffectCompiledPlan; readonly targeting: ProwessTargetingCompiledPlan; }
 export interface ProwessAbilityDefinitionCompiledPlan {
+  readonly durationConditions?: CompiledDurationConditions;
   readonly contractVersion: 1;
   readonly subject: { readonly kind: "AUTHORED_ABILITY"; readonly subjectKey: string; readonly abilityKind: "SPELL" | "MANEUVER" };
   readonly rulesetProvenance: ProwessRulesetProvenance;
@@ -52,6 +54,7 @@ export interface ProwessAbilityDefinitionCompiledPlan {
   readonly explanationStepKey: string;
 }
 export interface AuthoredAbilityResult {
+  readonly durationConditions?: DurationConditionResult;
   readonly valid: boolean;
   readonly status: "VALID" | "INVALID";
   readonly abilityKind: "SPELL" | "MANEUVER";
@@ -243,10 +246,11 @@ export function compileAbilityDefinition(request: unknown): ProwessOutcome<Prowe
     if (Object.keys(params).some(k => k !== "rounds") || (concept === "ROUNDS" ? !Number.isSafeInteger(params.rounds) || (params.rounds as number) < 1 : Object.keys(params).length > 0)) p.add(A.DURATION, ["duration", "parameters"], "only ROUNDS accepts an explicit positive rounds count; maintenance is deferred");
     for (const e of effects) check(`duration.${e.actionKey ?? "spell"}.${e.plan.subject.componentKey}`, { kind: "SET_CONTAINS", factKey: "duration.allowed", member: concept }, asJson({ ...emptyFacts(), sets: [{ key: "duration.allowed", members: e.plan.outputs.duration.allowed }] }), [composition.duration!.definition, e.plan.outputs.effect.definition], [composition.duration!.componentKey, e.plan.subject.componentKey], A.DURATION);
   }
+  const durationConditions = compileDurationConditions({ bundle, composition, construction: construction.value, effects, traits, actions, targeting: targeting.value, stats: character.stats }, emit, check, p);
   if (p.count) return finish(p, () => null as never);
   const explained = [...steps];
   const explanationStepKey = emit("explanation", "EXPLANATION", { input: { explanationKey: `authored.${subjectKey}`, contributions: explained.map((s, i) => ({ contributionKey: s.stepKey, order: i, kind: s.operation === "FORMULA" ? "FORMULA" : s.operation === "KEYWORD" ? "KEYWORD" : s.operation === "MODIFIER" ? "MODIFIER" : s.operation === "EXPLANATION" ? "GENERIC" : "REQUIREMENT", response: null })) } }, [definitionRefOf(d)], [composition.compositionKey], explained.map((s, i) => ({ target: `/input/contributions/${i}/response`, source: { kind: "STEP", stepKey: s.stepKey, pointer: "" } })));
-  return finish(p, () => clonePlainData({ contractVersion: 1 as const, subject: { kind: "AUTHORED_ABILITY" as const, subjectKey: subjectKey as string, abilityKind: composition.abilityKind }, rulesetProvenance: bundle.rulesetProvenance, definition: definitionRefOf(d), evaluationPlan: { steps, primaryStepKey: null, validationStepKey: null, explanationStepKey }, sourceMap: { entries }, authored, construction: construction.value, targeting: targeting.value, effects, traits, rules, actions, targetingChanges, actionConstruction, explanationStepKey }));
+  return finish(p, () => clonePlainData({ contractVersion: 1 as const, subject: { kind: "AUTHORED_ABILITY" as const, subjectKey: subjectKey as string, abilityKind: composition.abilityKind }, rulesetProvenance: bundle.rulesetProvenance, definition: definitionRefOf(d), evaluationPlan: { steps, primaryStepKey: null, validationStepKey: null, explanationStepKey }, sourceMap: { entries }, authored, construction: construction.value, targeting: targeting.value, effects, traits, rules, actions, targetingChanges, actionConstruction, ...(durationConditions ? { durationConditions } : {}), explanationStepKey }));
 }
 
 export function readAbilityDefinitionRun(plan: ProwessAbilityDefinitionCompiledPlan, run: unknown): ProwessOutcome<AuthoredAbilityResult> {
@@ -261,6 +265,7 @@ export function readAbilityDefinitionRun(plan: ProwessAbilityDefinitionCompiledP
   }
   if (p.count) return finish(p, () => null as never);
   if (full.executionStatus !== "COMPLETE" || new Set(full.steps.map(s => s.stepKey)).size !== full.steps.length || full.steps.length !== plan.evaluationPlan.steps.length || plan.evaluationPlan.steps.some(s => !full.steps.some(x => x.stepKey === s.stepKey && x.operation === s.operation && x.order === s.order && JSON.stringify(clonePlainData(x.response?.ruleset ?? null)) === JSON.stringify(clonePlainData(plan.rulesetProvenance)) && x.executionStatus === "EXECUTED" && x.response?.success))) { p.add(A.INCOMPLETE_RUN, [], "every step must match and execute successfully"); return finish(p, () => null as never); }
+  if (plan.durationConditions && full.steps.some(s => { const data = s.response!.data as { finalValue?: unknown }; return s.stepKey.includes(".wo9.") && s.operation === "FORMULA" && (!Number.isSafeInteger(data.finalValue) || (data.finalValue as number) < 0); })) { p.add(A.INCOMPLETE_RUN, [], "WO9 contribution results must be complete nonnegative safe integers"); return finish(p, () => null as never); }
   const subset = (child: { evaluationPlan: EvaluationPlan }): EvaluationRun => ({ ...full, steps: full.steps.filter(s => child.evaluationPlan.steps.some(x => x.stepKey === s.stepKey)) });
   const construction = readAbilityConstructionRun({ plan: plan.construction, run: subset(plan.construction) }); if (!construction.ok) return construction;
   const targeting = readAbilityTargetingRun({ plan: plan.targeting, run: subset(plan.targeting) }); if (!targeting.ok) return targeting;
@@ -277,7 +282,7 @@ export function readAbilityDefinitionRun(plan: ProwessAbilityDefinitionCompiledP
   for (const e of effects) if (!e.result.valid) problems.push({ code: A.INVALID, path: e.result.componentKey, message: e.result.problems.join(", ") });
   const man = plan.subject.abilityKind === "MANEUVER" ? plan.authored as ManeuverDefinitionPayload : null;
   const additional = plan.subject.abilityKind === "SPELL" ? (plan.authored as SpellDefinitionPayload).additionalAffinityTraits.length : 0;
-  return finish(p, () => ({ valid: problems.length === 0, status: problems.length ? "INVALID" : "VALID", abilityKind: plan.subject.abilityKind, definition: plan.definition, rulesetProvenance: plan.rulesetProvenance, construction: construction.value, targeting: targeting.value, effects, traits: plan.traits, traitCapacity: { ordinary: { base: construction.value.capacity.traits.base, effective: construction.value.capacity.traits.effective, used: construction.value.usage.traits }, affinityAdditional: { capacity: null, used: additional, conflictKey: "M5-SC-042" } }, actions: plan.actions, targetingChanges: plan.targetingChanges.map(c => ({ actionKey: c.actionKey, measure: c.measure, definitions: c.definitions, value: (full.steps.find(s => s.stepKey === c.stepKey)!.response!.data as unknown as { finalTargets: { value: number }[] }).finalTargets[0]!.value })), powerfulBlow: man?.powerfulBlow ? { actionKeys: man.powerfulBlow.actionKeys, damageSource: "COMBINED_COMMITTED_ATTACKS", attachedEffectsResolve: "ONCE" } : null, problems }));
+  return finish(p, () => ({ ...(plan.durationConditions ? { durationConditions: readDurationConditionRun(plan.durationConditions, full) } : {}), valid: problems.length === 0, status: problems.length ? "INVALID" : "VALID", abilityKind: plan.subject.abilityKind, definition: plan.definition, rulesetProvenance: plan.rulesetProvenance, construction: construction.value, targeting: targeting.value, effects, traits: plan.traits, traitCapacity: { ordinary: { base: construction.value.capacity.traits.base, effective: construction.value.capacity.traits.effective, used: construction.value.usage.traits }, affinityAdditional: { capacity: null, used: additional, conflictKey: "M5-SC-042" } }, actions: plan.actions, targetingChanges: plan.targetingChanges.map(c => ({ actionKey: c.actionKey, measure: c.measure, definitions: c.definitions, value: (full.steps.find(s => s.stepKey === c.stepKey)!.response!.data as unknown as { finalTargets: { value: number }[] }).finalTargets[0]!.value })), powerfulBlow: man?.powerfulBlow ? { actionKeys: man.powerfulBlow.actionKeys, damageSource: "COMBINED_COMMITTED_ATTACKS", attachedEffectsResolve: "ONCE" } : null, problems }));
 }
 export function evaluateAbilityDefinition(request: unknown): ProwessOutcome<AuthoredAbilityResult> {
   const plan = compileAbilityDefinition(request); if (!plan.ok) return plan;

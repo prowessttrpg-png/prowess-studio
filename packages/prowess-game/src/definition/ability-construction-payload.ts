@@ -15,6 +15,7 @@ import { DERIVED_STATISTICS, type DerivedStatistic } from "../vocabulary/core.js
 import { CONSTRUCTION_ERROR_CODES as K, DEFINITION_ERROR_CODES as C } from "./codes.js";
 import { readSource, type CoreDefinitionSource } from "./core-payload.js";
 import { readDefinitionRef, type ProwessDefinitionRef } from "./envelope.js";
+import { readConditionPolicy, type ConditionPolicy } from "./condition-policy.js";
 
 /**
  * Version-1 payload of ABILITY_CONSTRUCTION_RULE (PAS-10 M5-WO5 §120–§127): the versioned structural policy of shared
@@ -79,6 +80,8 @@ export type ConstructionFormulaSlot = keyof typeof CONSTRUCTION_FORMULA_INPUTS;
 const FORMULA_SLOTS = Object.keys(CONSTRUCTION_FORMULA_INPUTS) as ConstructionFormulaSlot[];
 
 export interface AbilityConstructionRulePayload {
+  /** Additive WO9 policy. Historical WO5–WO8 Definitions omit it and retain their original serialization. */
+  readonly conditionPolicy?: ConditionPolicy;
   /** The SKILL rank ladder both construction tracks read (§19). */
   readonly rankLadder: string;
   /** Every construction arithmetic step, authored as content (M5-I050 / M5-I074: arithmetic lives in content). */
@@ -182,7 +185,7 @@ function readConstructionFormula(value: unknown, at: readonly PathSegment[], p: 
 /** Reads and validates an ABILITY_CONSTRUCTION_RULE payload (version 1). Rank keys are checked against the ladder at compile time. */
 export function readAbilityConstructionRulePayload(value: unknown, at: readonly PathSegment[], p: Problems): JsonObject | null {
   const before = p.count;
-  const r = readRecord(value, at, p, C.INVALID_PAYLOAD, ["rankLadder", "formulas", "spell", "maneuver", "signature", "source"], ["rankLadder", "formulas", "spell", "maneuver", "signature", "source"]);
+  const r = readRecord(value, at, p, C.INVALID_PAYLOAD, ["rankLadder", "formulas", "spell", "maneuver", "signature", "source", "conditionPolicy"], ["rankLadder", "formulas", "spell", "maneuver", "signature", "source"]);
   if (r === null) return null;
   const rankLadder = own(r, "rankLadder");
   if (!isToken(rankLadder)) p.add(C.INVALID_PAYLOAD, [...at, "rankLadder"], "rankLadder is the SKILL rank ladder key");
@@ -248,8 +251,9 @@ export function readAbilityConstructionRulePayload(value: unknown, at: readonly 
     signature = { capacityStatistic, defaultSlotCost, exemptSlotCost, exemptions };
   }
   const source = readSource(own(r, "source"), [...at, "source"], p);
+  const conditionPolicy = own(r, "conditionPolicy") === undefined ? undefined : readConditionPolicy(own(r, "conditionPolicy"), [...at, "conditionPolicy"], p);
   if (p.count > before) return null;
-  return { rankLadder, formulas, spell, maneuver, signature, source } as unknown as JsonObject;
+  return { rankLadder, formulas, spell, maneuver, signature, source, ...(conditionPolicy ? { conditionPolicy } : {}) } as unknown as JsonObject;
 }
 
 // ---- Component `rules.construction` sub-contract (§38) ----------------------------------------------------------------

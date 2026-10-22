@@ -39,6 +39,8 @@ const hash = (s: string | Buffer) => createHash("sha256").update(s).digest("hex"
 
 const GAME = production("packages/prowess-game/src");
 const WO2_LATER_MILESTONE_CONTENT = new Set([
+  // WO9 content owns listed contribution/cap Formulas, covered by its permanent content and architecture audit.
+  "packages/prowess-game/src/content/core-playtest-v0.1/duration-conditions.ts",
   "packages/prowess-game/src/content/core-playtest-v0.1/effects.ts",
   "packages/prowess-game/src/content/core-playtest-v0.1/targeting-wo7-amendments.ts",
 ]);
