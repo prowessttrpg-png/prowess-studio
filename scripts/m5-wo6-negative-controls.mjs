@@ -113,7 +113,7 @@ const controls = [
   {
     name: "§184 the exact SPELL_TARGETING Radius EntityVersion reused in a Maneuver",
     file: COMPOSITION,
-    mutate: replaceOnce("    if (ref.definitionKind !== required) {", '    if (ref.definitionKind !== required && !(ref.definitionKind === "SPELL_TARGETING" && required === "MANEUVER_TARGETING")) {'),
+    mutate: replaceOnce('    if (ref.definitionKind !== required && !(ref.definitionKind === "SHARED_TRAIT" && (required === "SPELL_TRAIT" || required === "MANEUVER_TRAIT"))) {', '    if (ref.definitionKind !== required && !(ref.definitionKind === "SHARED_TRAIT" && (required === "SPELL_TRAIT" || required === "MANEUVER_TRAIT")) && !(ref.definitionKind === "SPELL_TARGETING" && required === "MANEUVER_TARGETING")) {'),
     guard: golden("§147"),
   },
   {

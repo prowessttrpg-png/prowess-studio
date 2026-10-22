@@ -9,7 +9,7 @@ Status: IMPLEMENTATION UNDER VERIFICATION — not FINAL PASS.
 | 3 | Source authority | Designer > approved CanonDecision > current Core Playtest > permanent WO1–WO7 > older Chapter Book. |
 | 4 | Designer rulings applied | SC041 option 1 (base three, approved exchanges can exceed it); SC024 Widen Area +5 ft/+6 MP. |
 | 5 | Files created | Trait/authored payload contracts, ability compiler, reference fixtures, four domain suites, DB history and Inspector fixture tests, API integration, static audit, mutation script, dedicated workflow, architecture documentation and this report. |
-| 6 | Files modified | Definition vocabulary/dispatch, scope inventory, shared Trait selection, parameter-reader export, construction stacking, public exports, invariant/conflict catalogs, historical audit delegation, WO1 mutation-anchor compatibility, permanent CI. |
+| 6 | Files modified | Definition vocabulary/dispatch, scope inventory, shared Trait selection, parameter-reader export, construction stacking, public exports, invariant/conflict catalogs, historical audit delegation, WO1/WO6 mutation-anchor compatibility, permanent CI. |
 | 7 | Files removed | None. |
 | 8 | Database / migration status | Existing EntityVersion JSON and exact materializer; no schema or migration change. |
 | 9 | Trait Definition contract | Typed rules.trait plus permanent component envelope/construction/cost contracts. |
@@ -95,6 +95,8 @@ Draft PR: https://github.com/prowessttrpg-png/prowess-studio/pull/49. The first 
 - Permanent run 39714305567: Prisma drift reported no differences; all 2,023 package unit tests, 2,649 Studio unit/component tests, 518 DB integration tests, 127 API integration tests, M1 gates and all M4 gates passed. The WO1 negative-control script then failed to find its exact old source anchor after WO8 explicitly allowed SHARED_TRAIT. No application/domain test failed. Later M5 gates, production build and Playwright were skipped in that run.
 - Narrow correction: update only the WO1 negative-control anchor to the current explicit shared-Trait guard. Preserve the same injected contract-only cross-branch defect, the same behavioral guards, exact source restoration, and every earlier gate. No runtime/domain code changes are needed for this CI correction. All 17 WO1 behavioral source controls passed locally after the correction; every mutated file was restored byte-for-byte and each positive guard passed after restoration.
 
+The follow-up anchor review found the same stale predicate in WO6 control §184 (Spell Targeting reused in a Maneuver). Update its match to the current explicit shared-Trait guard and preserve that exception in the injected invalid cross-branch Targeting variant. The original behavior guards and restoration requirements remain unchanged. All 16 WO6 behavioral source controls passed locally with byte-for-byte restoration and positive guard reruns.
+
 The corrected head must complete all permanent CI checks before merge approval is requested. This PR remains draft and unmerged. WO8 is not FINAL PASS; merged-main verification will still be required after separate merge authorization.
 
 ## Exact file inventory
@@ -132,4 +134,5 @@ The corrected head must complete all permanent CI checks before merge approval i
 | Modified | `packages/prowess-game/src/vocabulary/construction.ts` |
 | Modified | `packages/prowess-game/src/vocabulary/families.ts` |
 | Modified | `scripts/m5-wo1-negative-controls.mjs` |
+| Modified | `scripts/m5-wo6-negative-controls.mjs` |
 | Created | `scripts/m5-wo8-negative-controls.mjs` |
