@@ -812,3 +812,41 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 
 - **M5-WO7 resolution**: current Spell Line length is **10 ft × PRO** and width is **5 ft × ceil(PRO / 2)**. WO6 historical Releases preserve their earlier 15×PRO/deferred-width assumptions; current canon does not mutate them.
 
+### M5-SC-041 — WO8 Normal Trait Hard Cap Versus The Approved Spell Trait Exchange
+
+- **conflictKey**: `M5-SC-041`
+- **systemFamily**: `SPELL`
+- **concept**: Whether WO8's three-normal-Trait limit also limits Traits gained by an explicit Effect-slot exchange.
+- **source A**: M5-WO8 §11 says maximum Traits equals the applicable Arcane or Affinity Rank and establishes a general
+  hard cap of three normal Traits. It distinguishes Affinity-specific additional capacity from ordinary capacity.
+- **source B**: approved M5-WO5 §6.3 and §63–§67, retained by M5-I156, permit an explicit one-for-one exchange of Effect
+  slots for Trait slots while retaining at least one Effect. Permanent golden tests explicitly require Arcane Expert
+  with one exchange to allow three Traits, and Arcane/Affinity Master with two exchanges to allow five Traits.
+- **mechanical consequence**: an absolute cap of three normal Traits would invalidate approved legal configurations
+  and break the WO5 regression that WO8 §39 requires to remain green. The existing exchange is not an Affinity-specific
+  bonus and cannot silently be reclassified as one.
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: explicit designer selection of option 1 in the WO8 implementation chat (2026-10-21).
+- **implementation baseline**: `283a7c3f064307d0a2385daf995ad936b2b74e58` (WO7 merge, PR #48); permanent main workflows
+  200 and 43 were verified successful before WO8 work.
+- **resolution**: three limits base normal Trait capacity; an explicitly selected approved
+  Effect-slot exchange can increase that capacity, with any authoritative Affinity-specific additional allowance
+  represented separately. The approved exchange and historical Definitions are preserved.
+- **affected guards**: `packages/prowess-game/src/construction-legality-golden.test.ts` §65–§67;
+  `packages/prowess-game/src/construction-legality-contracts.test.ts`; M5-I156.
+- **notes**: no executable rule, existing Definition, historical Release or regression expectation has been changed.
+
+
+### M5-SC-042 — Additional Affinity Trait Capacity Has No Authored Grant Yet
+
+- **conflictKey**: `M5-SC-042`
+- **systemFamily**: `SPELL`
+- **concept**: Numeric additional Affinity-specific Trait capacity beyond ordinary/exchanged slots.
+- **source A**: WO8 §11 allows an additional allowance only where supported by authoritative progression rules.
+- **source B**: current permanent Affinity Rank/Progression Definitions author authority base capacity and advancement,
+  but no separate additional Trait capacity grant. M5-SC-041 preserves the ordinary Effect-slot exchange.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none; no numeric bonus invented.
+- **notes**: WO8 preserves an explicit separate additional-capacity surface and refuses non-empty allocations with
+  PROWESS_TRAIT.CAPACITY_UNRESOLVED. Affinity-specific Traits may use ordinary/exchanged slots when their exact
+  prerequisite and Strength Keyword checks pass. Later authoritative grants can activate extra capacity.

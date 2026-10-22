@@ -93,7 +93,7 @@ class CompositionReader {
   ref(value: unknown, at: readonly PathSegment[], required: ProwessDefinitionKind): ProwessDefinitionRef | null {
     const ref = readDefinitionRef(value, at, this.p, K.INVALID_REFERENCE);
     if (ref === null) return null;
-    if (ref.definitionKind !== required) {
+    if (ref.definitionKind !== required && !(ref.definitionKind === "SHARED_TRAIT" && (required === "SPELL_TRAIT" || required === "MANEUVER_TRAIT"))) {
       const other = ABILITY_KINDS.find((k) => k !== this.abilityKind);
       const crossBranch = other !== undefined && Object.values(ABILITY_SLOT_KINDS[other]).includes(ref.definitionKind as never);
       this.p.add(
@@ -244,7 +244,7 @@ export function validateAbilityComposition(input: unknown, options: { readonly b
     if (a === null) return [];
     const scope = readEnum(own(a, "scope"), TRAIT_SCOPES, [...at, "scope"], p, K.INVALID_TRAIT_TARGET, "trait scope");
     const target = own(a, "componentKey") ?? null;
-    const expectedSlot: Partial<Record<TraitScope, AbilitySlot>> = { EFFECT_SPECIFIC: "effects", TARGETING: "targeting", DURATION: "duration", CONDITION: "conditions" };
+    const expectedSlot: Partial<Record<TraitScope, AbilitySlot>> = { EFFECT_SPECIFIC: "effects", TARGETING: "targeting", DURATION: "duration", CONDITION: "conditions", RESOLUTION: "effects" };
     if (scope === null) return [];
     if (scope === "ABILITY_WIDE") {
       if (target !== null) p.add(K.INVALID_TRAIT_TARGET, [...at, "componentKey"], "an ability-wide Trait names no single component");

@@ -1290,3 +1290,75 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 - **Group:** Effect Framework
 - **Meaning:** Equal exact inputs are deterministic; inputs remain immutable; public contracts are JSON-safe and no global Effect state exists.
 - **Guards:** `packages/prowess-game/src/effect-golden.test.ts`, `packages/prowess-game/src/effect-contracts.test.ts`, `apps/studio/tests/unit/m5-wo7-static.test.ts`, `scripts/m5-wo7-negative-controls.mjs`
+
+### M5-I213 — Traits Are Exact Versioned Definitions With Explicit Shared Spell Or Maneuver Applicability
+
+- **Group:** Traits and authored abilities
+- **Meaning:** Traits Are Exact Versioned Definitions With Explicit Shared Spell Or Maneuver Applicability.
+- **Guards:** `packages/prowess-game/src/ability-definitions.test.ts`, `packages/prowess-game/src/ability-negative.test.ts`, `packages/prowess-game/src/ability-security.test.ts`, `packages/prowess-game/src/trait-contracts.test.ts`, `apps/studio/tests/unit/m5-wo8-static.test.ts`, `scripts/m5-wo8-negative-controls.mjs`
+
+### M5-I214 — Trait Scope Selects The Ability An Effect Targeting Or A Resolution Explicitly
+
+- **Group:** Traits and authored abilities
+- **Meaning:** Trait Scope Selects The Ability An Effect Targeting Or A Resolution Explicitly.
+- **Guards:** `packages/prowess-game/src/ability-definitions.test.ts`, `packages/prowess-game/src/ability-negative.test.ts`, `packages/prowess-game/src/ability-security.test.ts`, `packages/prowess-game/src/trait-contracts.test.ts`, `apps/studio/tests/unit/m5-wo8-static.test.ts`, `scripts/m5-wo8-negative-controls.mjs`
+
+### M5-I215 — Trait Parameters Reuse Typed M5 Schemas And Reject Unknown Unsafe Or Invalid Selections
+
+- **Group:** Traits and authored abilities
+- **Meaning:** Trait Parameters Reuse Typed M5 Schemas And Reject Unknown Unsafe Or Invalid Selections.
+- **Guards:** `packages/prowess-game/src/ability-definitions.test.ts`, `packages/prowess-game/src/ability-negative.test.ts`, `packages/prowess-game/src/ability-security.test.ts`, `packages/prowess-game/src/trait-contracts.test.ts`, `apps/studio/tests/unit/m5-wo8-static.test.ts`, `scripts/m5-wo8-negative-controls.mjs`
+
+### M5-I216 — Trait Access Reuses Construction Requirements And Affinity Strength Keywords
+
+- **Group:** Traits and authored abilities
+- **Meaning:** Trait Access Reuses Construction Requirements And Affinity Strength Keywords.
+- **Guards:** `packages/prowess-game/src/ability-definitions.test.ts`, `packages/prowess-game/src/ability-negative.test.ts`, `packages/prowess-game/src/ability-security.test.ts`, `packages/prowess-game/src/trait-contracts.test.ts`, `apps/studio/tests/unit/m5-wo8-static.test.ts`, `scripts/m5-wo8-negative-controls.mjs`
+
+### M5-I217 — Trait Modifications Cannot Smuggle Independent Effect Outcomes
+
+- **Group:** Traits and authored abilities
+- **Meaning:** Trait Modifications Cannot Smuggle Independent Effect Outcomes.
+- **Guards:** `packages/prowess-game/src/ability-definitions.test.ts`, `packages/prowess-game/src/ability-negative.test.ts`, `packages/prowess-game/src/ability-security.test.ts`, `packages/prowess-game/src/trait-contracts.test.ts`, `apps/studio/tests/unit/m5-wo8-static.test.ts`, `scripts/m5-wo8-negative-controls.mjs`
+
+### M5-I218 — Normal Spell Trait Capacity Preserves Approved Exchanges And Additional Affinity Capacity Is Separate
+
+- **Group:** Traits and authored abilities
+- **Meaning:** Normal Spell Trait Capacity Preserves Approved Exchanges And Additional Affinity Capacity Is Separate.
+- **Guards:** `packages/prowess-game/src/ability-definitions.test.ts`, `packages/prowess-game/src/ability-negative.test.ts`, `packages/prowess-game/src/ability-security.test.ts`, `packages/prowess-game/src/trait-contracts.test.ts`, `apps/studio/tests/unit/m5-wo8-static.test.ts`, `scripts/m5-wo8-negative-controls.mjs`
+
+### M5-I219 — Authored Spells Preserve One Targeting Ordered Effects Explicit Authority And Structural Duration
+
+- **Group:** Traits and authored abilities
+- **Meaning:** Authored Spells Preserve One Targeting Ordered Effects Explicit Authority And Structural Duration.
+- **Guards:** `packages/prowess-game/src/ability-definitions.test.ts`, `packages/prowess-game/src/ability-negative.test.ts`, `packages/prowess-game/src/ability-security.test.ts`, `packages/prowess-game/src/trait-contracts.test.ts`, `apps/studio/tests/unit/m5-wo8-static.test.ts`, `scripts/m5-wo8-negative-controls.mjs`
+
+### M5-I220 — Authored Maneuvers Inherit Attack Profiles And Check Every Committed Action
+
+- **Group:** Traits and authored abilities
+- **Meaning:** Authored Maneuvers Inherit Attack Profiles And Check Every Committed Action.
+- **Guards:** `packages/prowess-game/src/ability-definitions.test.ts`, `packages/prowess-game/src/ability-negative.test.ts`, `packages/prowess-game/src/ability-security.test.ts`, `packages/prowess-game/src/trait-contracts.test.ts`, `apps/studio/tests/unit/m5-wo8-static.test.ts`, `scripts/m5-wo8-negative-controls.mjs`
+
+### M5-I221 — Maneuver Effects Retain Martial Capacity And Explicit Skill Requirements
+
+- **Group:** Traits and authored abilities
+- **Meaning:** Maneuver Effects Retain Martial Capacity And Explicit Skill Requirements.
+- **Guards:** `packages/prowess-game/src/ability-definitions.test.ts`, `packages/prowess-game/src/ability-negative.test.ts`, `packages/prowess-game/src/ability-security.test.ts`, `packages/prowess-game/src/trait-contracts.test.ts`, `apps/studio/tests/unit/m5-wo8-static.test.ts`, `scripts/m5-wo8-negative-controls.mjs`
+
+### M5-I222 — Powerful Blow Is An Authored Action Group With Attached Effects Resolving Once
+
+- **Group:** Traits and authored abilities
+- **Meaning:** Powerful Blow Is An Authored Action Group With Attached Effects Resolving Once.
+- **Guards:** `packages/prowess-game/src/ability-definitions.test.ts`, `packages/prowess-game/src/ability-negative.test.ts`, `packages/prowess-game/src/ability-security.test.ts`, `packages/prowess-game/src/trait-contracts.test.ts`, `apps/studio/tests/unit/m5-wo8-static.test.ts`, `scripts/m5-wo8-negative-controls.mjs`
+
+### M5-I223 — Authored Ability Plans And Inspector Sources Preserve Exact Ruleset And Historical Definition Pins
+
+- **Group:** Traits and authored abilities
+- **Meaning:** Authored Ability Plans And Inspector Sources Preserve Exact Ruleset And Historical Definition Pins.
+- **Guards:** `packages/prowess-game/src/ability-definitions.test.ts`, `packages/prowess-game/src/ability-negative.test.ts`, `packages/prowess-game/src/ability-security.test.ts`, `packages/prowess-game/src/trait-contracts.test.ts`, `apps/studio/tests/unit/m5-wo8-static.test.ts`, `scripts/m5-wo8-negative-controls.mjs`
+
+### M5-I224 — WO8 Is Deterministic Immutable JSON Safe And Does Not Execute Combat State
+
+- **Group:** Traits and authored abilities
+- **Meaning:** WO8 Is Deterministic Immutable JSON Safe And Does Not Execute Combat State.
+- **Guards:** `packages/prowess-game/src/ability-definitions.test.ts`, `packages/prowess-game/src/ability-negative.test.ts`, `packages/prowess-game/src/ability-security.test.ts`, `packages/prowess-game/src/trait-contracts.test.ts`, `apps/studio/tests/unit/m5-wo8-static.test.ts`, `scripts/m5-wo8-negative-controls.mjs`

@@ -115,6 +115,9 @@ const DEFINITION_KIND_TABLE = {
   ABILITY_CONSTRUCTION_RULE: active("ABILITY"),
 
   // Spell branch — separate canonical catalogs implementing the shared contracts.
+  SPELL_DEFINITION: active("SPELL"),
+  MANEUVER_DEFINITION: active("MANEUVER"),
+  SHARED_TRAIT: { family: "ABILITY", branch: null, contract: "TRAIT", entityTypes: ["GENERIC_RULE"], schemaVersions: [1] },
   SPELL_TARGETING: component("SPELL", "TARGETING", ["TARGETING"]),
   SPELL_EFFECT: component("SPELL", "EFFECT", ["SPELL_EFFECT"]),
   SPELL_TRAIT: component("SPELL", "TRAIT", ["SPELL_TRAIT"]),

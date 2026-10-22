@@ -38,6 +38,9 @@ export const COMPONENT_COMPILERS: Readonly<Record<ProwessDefinitionKind, Compone
   AFFINITY_PROGRESSION: null,
   // M5-WO5 evaluates construction legality through its own entry point (construction/legality.ts).
   ABILITY_CONSTRUCTION_RULE: null,
+  SPELL_DEFINITION: null,
+  MANEUVER_DEFINITION: null,
+  SHARED_TRAIT: null,
   SPELL_TARGETING: null,
   SPELL_EFFECT: null,
   SPELL_TRAIT: null,
