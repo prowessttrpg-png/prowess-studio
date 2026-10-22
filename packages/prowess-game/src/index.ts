@@ -496,3 +496,8 @@ export {
 } from "./vocabulary/effect.js";
 export { EFFECT_ERROR_CODES, isSpellEffectFamily, type EffectRules, type EffectParameterRule, type EffectFormula, type EffectSaveProfile, type EffectDurationPolicy, type EffectCostRule, type EffectOutcomeReading, type TargetingDeliveryRule } from "./definition/effect-payload.js";
 export { compileEffectUse, validateEffectUse, readEffectRun, type EffectCharacterContext, type EffectUseRequest, type EffectUseResult, type EffectCompiledOutputs, type ProwessEffectCompiledPlan } from "./effect/compile.js";
+
+// M5-WO8: typed Traits and exact authored Spell/Maneuver Definition compilation.
+export { TRAIT_FAMILIES, TRAIT_MODIFICATIONS, TRAIT_ERROR_CODES, readTraitRules, readTraitCosts, type TraitRules, type TraitFamily, type TraitModification, type TraitSelectedModification } from "./definition/trait-payload.js";
+export { AUTHORED_ABILITY_ERROR_CODES, validateAuthoredAbilityDefinition, serializeAuthoredAbilityDefinition, deserializeAuthoredAbilityDefinition, type SpellDefinitionPayload, type ManeuverDefinitionPayload, type AuthoredAbilityPayload, type AttackFoundationProfile } from "./definition/authored-ability-payload.js";
+export { compileAbilityDefinition, readAbilityDefinitionRun, evaluateAbilityDefinition, type AbilityDefinitionRequest, type ProwessAbilityDefinitionCompiledPlan, type AuthoredAbilityResult, type CompiledTrait } from "./ability/compile.js";

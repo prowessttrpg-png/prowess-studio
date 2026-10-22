@@ -35,8 +35,12 @@ const production = (dir: string) => walk(dir).filter((f) => f.endsWith(".ts") &&
 const GAME = production("packages/prowess-game/src");
 const WO1_LATER_MILESTONE_FILES = new Set([
   "packages/prowess-game/src/content/core-playtest-v0.1/effects.ts",
+  "packages/prowess-game/src/content/core-playtest-v0.1/traits.ts",
   "packages/prowess-game/src/content/core-playtest-v0.1/targeting-wo7-amendments.ts",
   "packages/prowess-game/src/effect/compile.ts",
+  "packages/prowess-game/src/ability/compile.ts",
+  "packages/prowess-game/src/definition/trait-payload.ts",
+  "packages/prowess-game/src/definition/authored-ability-payload.ts",
 ]);
 const WO1_GAME = GAME.filter((f) => !WO1_LATER_MILESTONE_FILES.has(f));
 const RULES = production("packages/prowess-rules/src");

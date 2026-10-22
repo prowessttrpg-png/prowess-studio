@@ -38,7 +38,7 @@ export const TARGETING_SEMANTIC_SHAPES = deepFreeze([
 export type TargetingSemanticShape = (typeof TARGETING_SEMANTIC_SHAPES)[number];
 
 /** What part of an Ability a Trait modifies (§45). A Trait is never assumed ability-wide. */
-export const TRAIT_SCOPES = deepFreeze(["EFFECT_SPECIFIC", "ABILITY_WIDE", "TARGETING", "DURATION", "CONDITION"] as const);
+export const TRAIT_SCOPES = deepFreeze(["EFFECT_SPECIFIC", "ABILITY_WIDE", "TARGETING", "DURATION", "CONDITION", "RESOLUTION"] as const);
 export type TraitScope = (typeof TRAIT_SCOPES)[number];
 
 /** Shared resolution vocabulary (§57). Branch rules decide formulas, legal Saves and results. */

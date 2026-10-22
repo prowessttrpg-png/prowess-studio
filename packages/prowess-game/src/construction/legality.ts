@@ -542,12 +542,15 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
 
   // ---- Stacking (§52–§58): explicit permission, the Definition's own limit, one Effect slot ---------------------------
   const stacking: { componentKey: string; stacks: number; limit: number; limitSource: "NOT_STACKABLE" | "FIXED" | "TRACK_RANK_VALUE" }[] = [];
-  composition.effects.forEach((use, i) => {
+  const stackUses = [...composition.effects, ...composition.traits.filter(t => { const d = findBundleDefinition(bundle, t.definition); return d !== null && (d.payload.rules as JsonObject).trait !== undefined; })];
+  stackUses.forEach((use) => {
+    const slot = composition.traits.some(t => t.componentKey === use.componentKey) ? "traits" : "effects";
+    const index = composition[slot].findIndex(c => c.componentKey === use.componentKey);
     const raw = own(use.parameters as Record<string, unknown>, "stacks");
     let stacks = SINGLE_STACK;
     if (raw !== undefined) {
-      const n = readSafeInteger(raw, ["composition", "effects", i, "parameters", "stacks"], p, K.INVALID_CONSTRUCTION_REQUEST, "stacks");
-      if (n !== null && n < 1) p.add(K.INVALID_CONSTRUCTION_REQUEST, ["composition", "effects", i, "parameters", "stacks"], "stacks is a positive safe integer (default 1)");
+      const n = readSafeInteger(raw, ["composition", slot, index, "parameters", "stacks"], p, K.INVALID_CONSTRUCTION_REQUEST, "stacks");
+      if (n !== null && n < 1) p.add(K.INVALID_CONSTRUCTION_REQUEST, ["composition", slot, index, "parameters", "stacks"], "stacks is a positive safe integer (default 1)");
       else if (n !== null) stacks = n;
     }
     const cr = componentRules.get(use.componentKey);

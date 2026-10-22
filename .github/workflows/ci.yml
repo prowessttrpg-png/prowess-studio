@@ -383,6 +383,22 @@ jobs:
           pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo6-targeting-api.test.ts
           node scripts/m5-wo6-negative-controls.mjs
 
+      - name: M5-WO7 regression — Effect framework & Spell/Maneuver contracts
+        run: |
+          pnpm --filter "@prowess/game" exec vitest run src/effect-golden.test.ts src/effect-contracts.test.ts src/effect-security.test.ts src/effect-inspector.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo7-static.test.ts
+
+      - name: M5-WO8 audit — Traits & authored Spell/Maneuver definitions
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+        run: |
+          pnpm --filter "@prowess/game" exec vitest run src/ability-definitions.test.ts src/ability-negative.test.ts src/ability-security.test.ts src/trait-contracts.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo8-static.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo8-inspector-fixture.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-authored-ability-history.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo8-ability-api.test.ts
+          node scripts/m5-wo8-negative-controls.mjs
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own

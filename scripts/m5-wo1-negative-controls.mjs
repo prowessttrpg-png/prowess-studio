@@ -22,7 +22,7 @@ const architecture = () => spawnSync(process.execPath, [abs("scripts/check-archi
 const G = (f) => `packages/prowess-game/src/${f}`;
 const append = (snippet) => [[null, `\n${snippet}\n`]];
 const CONTRACT_IMPORT = ["import { ABILITY_KINDS, ABILITY_SLOT_KINDS,", "import { PROWESS_DEFINITION_KINDS, ABILITY_KINDS, ABILITY_SLOT_KINDS,"];
-const CONTRACT_CHECK = ["if (ref.definitionKind !== required) {", "if (PROWESS_DEFINITION_KINDS[ref.definitionKind].contract !== PROWESS_DEFINITION_KINDS[required].contract) {"];
+const CONTRACT_CHECK = ['if (ref.definitionKind !== required && !(ref.definitionKind === "SHARED_TRAIT" && (required === "SPELL_TRAIT" || required === "MANEUVER_TRAIT"))) {', "if (PROWESS_DEFINITION_KINDS[ref.definitionKind].contract !== PROWESS_DEFINITION_KINDS[required].contract) {"];
 
 const controls = [
   { name: "§214 Prowess logic inside @prowess/rules", file: "packages/prowess-rules/src/orchestration/model.ts", edits: append('export const affinityBonus = (affinity: string) => (affinity === "Evocation" ? 1 : 0);'), guard: staticAudit("packages/prowess-rules/src/orchestration/model.ts") },

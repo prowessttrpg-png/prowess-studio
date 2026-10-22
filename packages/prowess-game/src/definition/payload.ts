@@ -22,6 +22,8 @@ import { isCorePayloadKind, readCorePayload } from "./core-payload.js";
 import { isRuntimePayloadKind, readRuntimePayload } from "./runtime-payload.js";
 import { isAffinityPayloadKind, readAffinityDefinitionPayload, readAffinityPayload } from "./affinity-payload.js";
 import { readAbilityConstructionRulePayload } from "./ability-construction-payload.js";
+import { readTraitRules, readTraitCosts } from "./trait-payload.js";
+import { readAuthoredAbilityPayload } from "./authored-ability-payload.js";
 import { readTargetingCosts, readTargetingRules } from "./targeting-payload.js";
 
 /**
@@ -315,7 +317,12 @@ function readComponentPayload(contract: AbilityComponentContract, branch: "SPELL
     case "TRAIT": {
       const traitFamily = readToken(own(r, "traitFamily"), [...at, "traitFamily"], p, "traitFamily");
       const scope = readEnum(own(r, "scope"), TRAIT_SCOPES, [...at, "scope"], p, C.INVALID_PAYLOAD, "trait scope");
-      payload = { ...readCommon(r, at, p), traitFamily, scope } satisfies Record<keyof TraitDefinitionPayload, unknown>;
+      const common = readCommon(r, at, p);
+      if (common.rules.trait !== undefined && scope !== null) {
+        const rules = readTraitRules(common.rules.trait, branch, scope, [...at, "rules", "trait"], p);
+        if (rules) readTraitCosts(common.costContributions, rules, [...at, "costContributions"], p);
+      }
+      payload = { ...common, traitFamily, scope } satisfies Record<keyof TraitDefinitionPayload, unknown>;
       break;
     }
     case "DURATION": {
@@ -360,6 +367,7 @@ export function readDefinitionPayload(kind: ProwessDefinitionKind, contract: Abi
   else if (isCorePayloadKind(kind)) payload = readCorePayload(kind, value, at, p);
   else if (isRuntimePayloadKind(kind)) payload = readRuntimePayload(kind, value, at, p);
   else if (isAffinityPayloadKind(kind)) payload = readAffinityPayload(kind, value, at, p);
+  else if (kind === "SPELL_DEFINITION" || kind === "MANEUVER_DEFINITION") payload = readAuthoredAbilityPayload(kind, value, at, p) as unknown as JsonObject | null;
   else if (kind === "ABILITY_CONSTRUCTION_RULE") payload = readAbilityConstructionRulePayload(value, at, p);
   else if (kind === "AFFINITY" && schemaVersion === 2) {
     // M5-WO4: the full Affinity rule content. Legacy terminology was already refused above (M5-I115).

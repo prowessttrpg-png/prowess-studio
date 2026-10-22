@@ -2176,5 +2176,161 @@
       "apps/studio/tests/unit/m5-wo7-static.test.ts",
       "scripts/m5-wo7-negative-controls.mjs"
     ]
+  },
+  {
+    "id": "M5-I213",
+    "title": "Traits Are Exact Versioned Definitions With Explicit Shared Spell Or Maneuver Applicability",
+    "group": "Traits and authored abilities",
+    "guards": [
+      "packages/prowess-game/src/ability-definitions.test.ts",
+      "packages/prowess-game/src/ability-negative.test.ts",
+      "packages/prowess-game/src/ability-security.test.ts",
+      "packages/prowess-game/src/trait-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo8-static.test.ts",
+      "scripts/m5-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I214",
+    "title": "Trait Scope Selects The Ability An Effect Targeting Or A Resolution Explicitly",
+    "group": "Traits and authored abilities",
+    "guards": [
+      "packages/prowess-game/src/ability-definitions.test.ts",
+      "packages/prowess-game/src/ability-negative.test.ts",
+      "packages/prowess-game/src/ability-security.test.ts",
+      "packages/prowess-game/src/trait-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo8-static.test.ts",
+      "scripts/m5-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I215",
+    "title": "Trait Parameters Reuse Typed M5 Schemas And Reject Unknown Unsafe Or Invalid Selections",
+    "group": "Traits and authored abilities",
+    "guards": [
+      "packages/prowess-game/src/ability-definitions.test.ts",
+      "packages/prowess-game/src/ability-negative.test.ts",
+      "packages/prowess-game/src/ability-security.test.ts",
+      "packages/prowess-game/src/trait-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo8-static.test.ts",
+      "scripts/m5-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I216",
+    "title": "Trait Access Reuses Construction Requirements And Affinity Strength Keywords",
+    "group": "Traits and authored abilities",
+    "guards": [
+      "packages/prowess-game/src/ability-definitions.test.ts",
+      "packages/prowess-game/src/ability-negative.test.ts",
+      "packages/prowess-game/src/ability-security.test.ts",
+      "packages/prowess-game/src/trait-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo8-static.test.ts",
+      "scripts/m5-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I217",
+    "title": "Trait Modifications Cannot Smuggle Independent Effect Outcomes",
+    "group": "Traits and authored abilities",
+    "guards": [
+      "packages/prowess-game/src/ability-definitions.test.ts",
+      "packages/prowess-game/src/ability-negative.test.ts",
+      "packages/prowess-game/src/ability-security.test.ts",
+      "packages/prowess-game/src/trait-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo8-static.test.ts",
+      "scripts/m5-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I218",
+    "title": "Normal Spell Trait Capacity Preserves Approved Exchanges And Additional Affinity Capacity Is Separate",
+    "group": "Traits and authored abilities",
+    "guards": [
+      "packages/prowess-game/src/ability-definitions.test.ts",
+      "packages/prowess-game/src/ability-negative.test.ts",
+      "packages/prowess-game/src/ability-security.test.ts",
+      "packages/prowess-game/src/trait-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo8-static.test.ts",
+      "scripts/m5-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I219",
+    "title": "Authored Spells Preserve One Targeting Ordered Effects Explicit Authority And Structural Duration",
+    "group": "Traits and authored abilities",
+    "guards": [
+      "packages/prowess-game/src/ability-definitions.test.ts",
+      "packages/prowess-game/src/ability-negative.test.ts",
+      "packages/prowess-game/src/ability-security.test.ts",
+      "packages/prowess-game/src/trait-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo8-static.test.ts",
+      "scripts/m5-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I220",
+    "title": "Authored Maneuvers Inherit Attack Profiles And Check Every Committed Action",
+    "group": "Traits and authored abilities",
+    "guards": [
+      "packages/prowess-game/src/ability-definitions.test.ts",
+      "packages/prowess-game/src/ability-negative.test.ts",
+      "packages/prowess-game/src/ability-security.test.ts",
+      "packages/prowess-game/src/trait-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo8-static.test.ts",
+      "scripts/m5-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I221",
+    "title": "Maneuver Effects Retain Martial Capacity And Explicit Skill Requirements",
+    "group": "Traits and authored abilities",
+    "guards": [
+      "packages/prowess-game/src/ability-definitions.test.ts",
+      "packages/prowess-game/src/ability-negative.test.ts",
+      "packages/prowess-game/src/ability-security.test.ts",
+      "packages/prowess-game/src/trait-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo8-static.test.ts",
+      "scripts/m5-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I222",
+    "title": "Powerful Blow Is An Authored Action Group With Attached Effects Resolving Once",
+    "group": "Traits and authored abilities",
+    "guards": [
+      "packages/prowess-game/src/ability-definitions.test.ts",
+      "packages/prowess-game/src/ability-negative.test.ts",
+      "packages/prowess-game/src/ability-security.test.ts",
+      "packages/prowess-game/src/trait-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo8-static.test.ts",
+      "scripts/m5-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I223",
+    "title": "Authored Ability Plans And Inspector Sources Preserve Exact Ruleset And Historical Definition Pins",
+    "group": "Traits and authored abilities",
+    "guards": [
+      "packages/prowess-game/src/ability-definitions.test.ts",
+      "packages/prowess-game/src/ability-negative.test.ts",
+      "packages/prowess-game/src/ability-security.test.ts",
+      "packages/prowess-game/src/trait-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo8-static.test.ts",
+      "scripts/m5-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I224",
+    "title": "WO8 Is Deterministic Immutable JSON Safe And Does Not Execute Combat State",
+    "group": "Traits and authored abilities",
+    "guards": [
+      "packages/prowess-game/src/ability-definitions.test.ts",
+      "packages/prowess-game/src/ability-negative.test.ts",
+      "packages/prowess-game/src/ability-security.test.ts",
+      "packages/prowess-game/src/trait-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo8-static.test.ts",
+      "scripts/m5-wo8-negative-controls.mjs"
+    ]
   }
 ]
