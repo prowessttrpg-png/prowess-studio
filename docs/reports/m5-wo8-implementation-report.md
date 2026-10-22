@@ -9,7 +9,7 @@ Status: IMPLEMENTATION UNDER VERIFICATION — not FINAL PASS.
 | 3 | Source authority | Designer > approved CanonDecision > current Core Playtest > permanent WO1–WO7 > older Chapter Book. |
 | 4 | Designer rulings applied | SC041 option 1 (base three, approved exchanges can exceed it); SC024 Widen Area +5 ft/+6 MP. |
 | 5 | Files created | Trait/authored payload contracts, ability compiler, reference fixtures, four domain suites, DB history and Inspector fixture tests, API integration, static audit, mutation script, dedicated workflow, architecture documentation and this report. |
-| 6 | Files modified | Definition vocabulary/dispatch, scope inventory, shared Trait selection, parameter-reader export, construction stacking, public exports, invariant/conflict catalogs, historical audit delegation, permanent CI. |
+| 6 | Files modified | Definition vocabulary/dispatch, scope inventory, shared Trait selection, parameter-reader export, construction stacking, public exports, invariant/conflict catalogs, historical audit delegation, WO1 mutation-anchor compatibility, permanent CI. |
 | 7 | Files removed | None. |
 | 8 | Database / migration status | Existing EntityVersion JSON and exact materializer; no schema or migration change. |
 | 9 | Trait Definition contract | Typed rules.trait plus permanent component envelope/construction/cost contracts. |
@@ -86,6 +86,17 @@ The user-approved WO8 work order is marked APPROVED FOR IMPLEMENTATION, identifi
 
 Baseline main remains 283a7c3f064307d0a2385daf995ad936b2b74e58. The permanent CI run 39666499214 and dedicated WO7 run 39666499248 on that baseline are successful. No WO8 completion claim is made; permanent PR and merged-main verification remain required.
 
+## Permanent CI verification
+
+Draft PR: https://github.com/prowessttrpg-png/prowess-studio/pull/49. The first published head ce349f9330319e1728c5b05841745e7b375041aa has exactly the same tree (93286ba7d27eb4f08f61c12bc1a771239c3ef7f9) and parent as approved local commit 2f80f6d47cc4541b29a1df4d30e5509a859c88a8. Git transport had no credentials; publication used the connected GitHub API, changing commit metadata only. The user explicitly approved WO8 publication and permanent CI verification, and explicitly withheld merge approval.
+
+- Dedicated WO8 run 39714305718: passed 69 domain tests, 8 architecture audit tests, and all 8 source mutation controls with exact restoration.
+- Dedicated WO7 run 39714305392: passed.
+- Permanent run 39714305567: Prisma drift reported no differences; all 2,023 package unit tests, 2,649 Studio unit/component tests, 518 DB integration tests, 127 API integration tests, M1 gates and all M4 gates passed. The WO1 negative-control script then failed to find its exact old source anchor after WO8 explicitly allowed SHARED_TRAIT. No application/domain test failed. Later M5 gates, production build and Playwright were skipped in that run.
+- Narrow correction: update only the WO1 negative-control anchor to the current explicit shared-Trait guard. Preserve the same injected contract-only cross-branch defect, the same behavioral guards, exact source restoration, and every earlier gate. No runtime/domain code changes are needed for this CI correction. All 17 WO1 behavioral source controls passed locally after the correction; every mutated file was restored byte-for-byte and each positive guard passed after restoration.
+
+The corrected head must complete all permanent CI checks before merge approval is requested. This PR remains draft and unmerged. WO8 is not FINAL PASS; merged-main verification will still be required after separate merge authorization.
+
 ## Exact file inventory
 
 | Status | File |
@@ -120,4 +131,5 @@ Baseline main remains 283a7c3f064307d0a2385daf995ad936b2b74e58. The permanent CI
 | Created | `packages/prowess-game/src/trait-contracts.test.ts` |
 | Modified | `packages/prowess-game/src/vocabulary/construction.ts` |
 | Modified | `packages/prowess-game/src/vocabulary/families.ts` |
+| Modified | `scripts/m5-wo1-negative-controls.mjs` |
 | Created | `scripts/m5-wo8-negative-controls.mjs` |
