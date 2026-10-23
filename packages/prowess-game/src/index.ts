@@ -506,3 +506,7 @@ export { compileAbilityDefinition, readAbilityDefinitionRun, evaluateAbilityDefi
 export { DURATION_CONDITION_ERRORS, readDurationRules, readDurationCosts, readConditionRules, readConditionContributions, type DurationRules, type ConditionRules, type RuntimeRequirement, type ConditionModifier, type ConditionContribution } from "./definition/duration-condition-payload.js";
 export { type ConditionPolicy, type ConditionFormula } from "./definition/condition-policy.js";
 export type { CompiledDurationConditions, DurationConditionResult } from "./ability/duration-conditions.js";
+
+// M5-WO10: final Spell cost, percentage netting and AP derivation — composes with compileAbilityDefinition.
+export { SPELL_COST_ERROR_CODES, compileSpellCost, readSpellCostRun, evaluateSpellCost, type ProwessSpellCostCompiledPlan, type SpellCostResult, type SpellCostContributionPlan, type SpellCostPercentPlan, type SpellCostSource, type SpellCostOperation } from "./ability/spell-cost.js";
+export { SPELL_COST_POLICY } from "./content/core-playtest-v0.1/spell-cost.js";
