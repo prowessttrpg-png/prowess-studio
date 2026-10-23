@@ -34,6 +34,18 @@ export interface AttackFoundationProfile {
   readonly damage: { readonly kind: "WEAPON"; readonly weaponKey: string; readonly baseDice: string; readonly power: number; readonly stat: ProwessStat; readonly enchantments: readonly string[] };
 }
 
+/** A non-attack Maneuver foundation (Move, Run, Sprint, Block, Guard): an exact action with its own Targeting and NO Attack
+ * resolution, damage profile or weapon requirement. It contributes its authored AP and never counts as an attack. */
+export interface ActionFoundationProfile {
+  readonly category: "MOVEMENT" | "DEFENSE";
+  readonly targeting: ComponentUse;
+  readonly range: null;
+  readonly resolution: { readonly mode: "NONE" };
+  readonly damage: null;
+}
+export type FoundationProfile = AttackFoundationProfile | ActionFoundationProfile;
+export const isAttackFoundation = (profile: FoundationProfile): profile is AttackFoundationProfile => profile.resolution.mode === "ATTACK_ROLL";
+
 function text(r: Record<string, unknown>, at: readonly PathSegment[], p: Problems) {
   const name = own(r, "name"), description = own(r, "description");
   if (typeof name !== "string" || !name.trim() || typeof description !== "string") p.add(E, at, "name and description are inert text metadata");
@@ -151,6 +163,20 @@ export function readAttackFoundationProfile(v: unknown, at: readonly PathSegment
   if (!damage || damage.kind !== "WEAPON" || !isExactLabel(damage.weaponKey) || typeof damage.baseDice !== "string" || !/^[1-9][0-9]*d(4|6|8|10|12|20)$/.test(damage.baseDice) || !Number.isSafeInteger(damage.power) || (damage.power as number) < 0) p.add(C, at, "ordinary Maneuver damage retains weapon base dice, Power and Stat; never Spell Character Dice");
   const enchantments = labels(damage?.enchantments, [...at, "damage", "enchantments"], p);
   return p.count > before || !category || !targeting || feet === null || !stat || !damage || !damageStat ? null : { category, targeting, range: { kind: "WEAPON_RANGE", feet }, resolution: { mode: "ATTACK_ROLL", stat }, damage: { kind: "WEAPON", weaponKey: damage.weaponKey as string, baseDice: damage.baseDice as string, power: damage.power as number, stat: damageStat, enchantments } };
+}
+export function readActionFoundationProfile(v: unknown, at: readonly PathSegment[], p: Problems): ActionFoundationProfile | null {
+  const before = p.count, C = AUTHORED_ABILITY_ERROR_CODES.FOUNDATION;
+  const r = readRecord(v, at, p, C, ["category", "targeting"], ["category", "targeting"]); if (!r) return null;
+  const category = readEnum(own(r, "category"), ["MOVEMENT", "DEFENSE"] as const, [...at, "category"], p, C, "non-attack action category");
+  const targeting = optionalUse(own(r, "targeting"), [...at, "targeting"], p);
+  if (!targeting || targeting.definition.definitionKind !== "MANEUVER_TARGETING" || targeting.componentKey !== "targeting") p.add(C, at, "a non-attack action owns its exact Maneuver targeting");
+  return p.count > before || !category || !targeting ? null : { category, targeting, range: null, resolution: { mode: "NONE" }, damage: null };
+}
+/** A foundation is EITHER an exact Attack (`rules.attack`) OR an exact non-attack action (`rules.action`) — never both, never neither. */
+export function readFoundationProfile(rules: Readonly<Record<string, unknown>>, at: readonly PathSegment[], p: Problems): FoundationProfile | null {
+  const attack = own(rules, "attack"), action = own(rules, "action");
+  if ((attack === undefined) === (action === undefined)) { p.add(AUTHORED_ABILITY_ERROR_CODES.FOUNDATION, at, "a foundation is exactly one Attack or one non-attack action"); return null; }
+  return attack !== undefined ? readAttackFoundationProfile(attack, at, p) : readActionFoundationProfile(action, at, p);
 }
 export function validateAuthoredAbilityDefinition(kind: "SPELL_DEFINITION" | "MANEUVER_DEFINITION", input: unknown): ProwessOutcome<AuthoredAbilityPayload> {
   const p = new Problems(); if (!checkPlainData(input, [], p, E)) return finish(p, () => null as never);

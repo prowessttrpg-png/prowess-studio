@@ -34,6 +34,9 @@ const production = (dir: string) => walk(dir).filter((f) => f.endsWith(".ts") &&
 
 const GAME = production("packages/prowess-game/src");
 const WO1_LATER_MILESTONE_FILES = new Set([
+  // WO11 final Maneuver-cost Formula content and compiler are covered by the dedicated WO11 gate; all earlier files stay covered.
+  "packages/prowess-game/src/content/core-playtest-v0.1/maneuver-cost.ts",
+  "packages/prowess-game/src/ability/maneuver-cost.ts",
   // WO10 final Spell-cost Formula content and compiler are covered by the dedicated WO10 gate; all earlier files stay covered.
   "packages/prowess-game/src/content/core-playtest-v0.1/spell-cost.ts",
   "packages/prowess-game/src/ability/spell-cost.ts",
