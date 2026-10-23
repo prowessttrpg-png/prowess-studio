@@ -559,6 +559,10 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   once to the listed cost, unrounded; the sequential WO4 model (discount, then penalty on the result) is superseded
   (M5-I128 → M5-I155). Casting Conditions join the same net sum in the Spell cost Work Order, which also does the final
   normal rounding.
+- **M5-WO10 application**: the final Spell cost pipeline builds ONE M4 net percentage — 100 − Strength (the WO4 stage) +
+  highest Weakness (the WO4 stage) − the WO9 EFFECTIVE Casting Condition reduction (M5-SC-021, flat 30%) — applies it once
+  to the constructed base MP (`base × net ÷ 100`, unrounded) and rounds normally exactly once (`floor(unrounded + 0.5)`):
+  15 MP at −10% → 13.5 → 14 MP; the older 13 × 0.9 = 11.7 → 11 floor example is historical only (→ 12 MP). M5-I243–I260.
 
 
 ### M5-SC-029 — Trigger-Based and Glyph / Anchor: Targeting Types or add-ons
@@ -887,3 +891,30 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **resolution authority**: none.
 - **mechanical consequence**: Permanent uses the existing PERMANENT_BY_SPECIAL_RULE token and remains DEFERRED.
   No free Permanent mode or automatic conversion from Sustained exists. SC042 remains independently unresolved.
+
+### M5-SC-046 — Multi-Target Additional-Target Pricing Has No Authored Base Count
+
+- **conflictKey**: `M5-SC-046`
+- **systemFamily**: `SPELL`
+- **source A**: s628 Targeting Types: Multi-Target 5 MP "affects multiple chosen targets"; s631 scaling "+1 Multi-Target
+  target +3 MP" (WO6 `PER_ADDITIONAL_TARGET`).
+- **source B**: no source states how many targets the 5 MP base covers, so a selected `targetCount` cannot be turned into a
+  number of additional targets (WO6 records "no invented base count").
+- **status**: `UNRESOLVED`
+- **resolution authority**: none.
+- **mechanical consequence**: recorded by M5-WO10. A Spell whose Multi-Target use selects a target count fails closed with
+  `PROWESS_SPELL_COST.UNRESOLVED_CONTRIBUTION`; no base count is guessed.
+
+### M5-SC-047 — Signature Spell MP Discount Has No Current Structured Authority
+
+- **conflictKey**: `M5-SC-047`
+- **systemFamily**: `SPELL`
+- **source A**: older, lower-authority Chapter Book material describes an MP discount for Signature Spells.
+- **source B**: the Core Playtest Packet V0.1 TOTAL MP FORMULA (s645) lists no Signature modifier; no designer ruling,
+  CanonDecision or structured Ruleset Definition authors one.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none.
+- **mechanical consequence**: recorded by M5-WO10. Final Spell cost applies no Signature discount and has no name-based
+  shortcut; the Signature slot state never changes cost. A future structured percentage modifier would join the single net
+  percentage.
+

@@ -407,6 +407,21 @@ jobs:
           pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo8-ability-api.test.ts
           node scripts/m5-wo8-negative-controls.mjs
 
+      # M5-WO10: Final Spell cost, percentage netting & AP derivation — goldens and contracts in @prowess/game, the static
+      # audit (WO10 module / policy, register, invariants, docs, CI, frozen M4 / Prisma / routes), the regenerated Rules
+      # Inspector traces A–H, exact Release history against the real database, the traces through the existing evaluate
+      # endpoint, and the behavioural mutation controls (each mutates real source, must be caught, and is restored).
+      - name: M5-WO10 audit — Final Spell Cost & AP Derivation
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+        run: |
+          pnpm --filter "@prowess/game" exec vitest run src/spell-cost-golden.test.ts src/spell-cost-contracts.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo10-static.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo10-inspector-fixture.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-spell-cost-history.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo10-spell-cost-api.test.ts
+          node scripts/m5-wo10-negative-controls.mjs
+
       # Re-confirms the destructive-reset safety guard on every CI run, not
       # just at M0-WO3 setup time — this resets prowess_studio_test, the
       # disposable CI-only database created above, never a developer's own

@@ -74,7 +74,7 @@ describe("M5-WO9 audit — Duration & Ability Condition Framework", () => {
     expect(files).toEqual(Object.keys(baseline.frozenFiles).sort());
     for (const [path, expected] of Object.entries(baseline.frozenFiles)) expect(hash(readFileSync(resolve(root, path))), path).toBe(expected);
     const inv = JSON.parse(read("docs/architecture/m5-invariants.json")) as { id: string; guards: string[] }[];
-    expect(inv.slice(0, 224)).toEqual(baseline.priorInvariants); expect(inv.length).toBe(242);
+    expect(inv.slice(0, 224)).toEqual(baseline.priorInvariants); expect(inv.length).toBe(260); // M5-WO10 appended M5-I243–I260
     for (let n = 225; n <= 242; n++) { const row = inv.find(x => x.id === `M5-I${n}`)!; expect(row).toBeTruthy(); for (const path of row.guards) expect(existsSync(resolve(root, path))).toBe(true); }
   });
   it("retains every permanent gate and adds dedicated tests, audit, controls, history, API and Inspector coverage", () => {

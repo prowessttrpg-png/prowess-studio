@@ -1470,3 +1470,111 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 - **Group:** Duration and Ability Conditions
 - **Meaning:** M5-SC-042 Remains Explicitly Unresolved And WO9 Does Not Infer Additional Affinity Trait Capacity.
 - **Guards:** `packages/prowess-game/src/duration-condition.test.ts`, `packages/prowess-game/src/duration-condition-negative.test.ts`, `apps/studio/tests/unit/m5-wo9-static.test.ts`, `scripts/m5-wo9-negative-controls.mjs`
+
+### M5-I243 — Final Spell Cost Is Derived Only From Exact Structured Spell Components And Explicit Cost Modifiers
+
+- **Group:** Final Spell Cost
+- **Meaning:** compileSpellCost composes the canonical authored Ability plan and consumes only typed WO4/WO6/WO7/WO8/WO9 outputs; no executable cost originates in prose.
+- **Guards:** `packages/prowess-game/src/spell-cost-golden.test.ts`, `packages/prowess-game/src/spell-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I244 — Final Spell Base MP Is The Sum Of Exact Targeting, Effect, Trait, Duration And Authorized Flat Special Contributions
+
+- **Group:** Final Spell Cost
+- **Meaning:** One M4 MODIFIER adds every listed MP contribution (each an M4 FORMULA over its exact Definition) and subtracts exact flat reductions.
+- **Guards:** `packages/prowess-game/src/spell-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I245 — Percentage Spell Cost Modifiers Are Combined Into One Net Percentage And Applied Exactly Once
+
+- **Group:** Final Spell Cost
+- **Meaning:** One M4 MODIFIER builds 100 − Strength + Weakness − effective Conditions; one FORMULA applies base × net ÷ 100 (M5-SC-028).
+- **Guards:** `packages/prowess-game/src/spell-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I246 — Affinity Strength And Weakness Evaluation Is Reused From WO4 And Never Reimplemented By The Spell Cost Compiler
+
+- **Group:** Final Spell Cost
+- **Meaning:** The WO4 SPELL_AFFINITY_COST stages are compiled by compileAffinity and their modifiers re-hosted verbatim; the WO4 listed-cost and net steps are never included, so Affinity is consumed exactly once.
+- **Guards:** `packages/prowess-game/src/spell-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I247 — The WO9 Effective Casting Condition Reduction, Capped At Thirty Percent, Is The Only Casting Condition Percentage Consumed By Final Spell Cost
+
+- **Group:** Final Spell Cost
+- **Meaning:** The net percentage binds the WO9 spellMpPercent effective step (min(listed, 30)); listed 45% is consumed as 30%.
+- **Guards:** `packages/prowess-game/src/spell-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I248 — Final Spell MP Is Rounded Normally Exactly Once At The End Of The MP Construction Pipeline
+
+- **Group:** Final Spell Cost
+- **Meaning:** floor(unrounded + 0.5) in the single spell-final-mp-rounding FORMULA; 13.5 → 14.
+- **Guards:** `packages/prowess-game/src/spell-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I249 — No Individual Component, Affinity Stage Or Casting Condition Stage Performs Intermediate MP Rounding
+
+- **Group:** Final Spell Cost
+- **Meaning:** Every other WO10 FORMULA rounds NONE and only the final MP and base AP programs call floor.
+- **Guards:** `packages/prowess-game/src/spell-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I250 — Final Spell AP Is Derived From Final MP Divided By PRO And Rounded Down With A Minimum Base Cost Of One AP
+
+- **Group:** Final Spell Cost
+- **Meaning:** max(1, floor(final MP ÷ PRO)) bound only to the final MP step; PRO is the caster's exact, positive Prowess Score.
+- **Guards:** `packages/prowess-game/src/spell-cost-golden.test.ts`, `packages/prowess-game/src/spell-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I251 — Explicit Spell AP Modifiers Apply Only After Base AP Derivation
+
+- **Group:** Final Spell Cost
+- **Meaning:** Somatic (−1), Charge (+N) and other exact AP contributions modify the base AP in a later M4 MODIFIER.
+- **Guards:** `packages/prowess-game/src/spell-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I252 — Final Spell AP Cannot Be Reduced Below One And Has No Implicit Maximum Of Three
+
+- **Group:** Final Spell Cost
+- **Meaning:** A final MAX 1 modifier; no upper bound (36 MP at PRO 5 → 7 AP).
+- **Guards:** `packages/prowess-game/src/spell-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I253 — Mana Efficiency Is Payment Capacity And Never Reduces Final Spell MP Cost
+
+- **Group:** Final Spell Cost
+- **Meaning:** No ME input exists in the Spell cost contract; an ME character field is refused.
+- **Guards:** `packages/prowess-game/src/spell-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I254 — WO10 Performs No MP, ME, AP Or Other Runtime Resource Mutation
+
+- **Group:** Final Spell Cost
+- **Meaning:** Only FORMULA / MODIFIER / REQUIREMENT / KEYWORD / EXPLANATION steps; DB evaluation leaves every table unchanged.
+- **Guards:** `packages/prowess-game/src/spell-cost-contracts.test.ts`, `packages/prowess-db/tests/integration/prowess-spell-cost-history.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I255 — WO10 Does Not Execute Channeling, Sustain, Mana Lock Lifecycle, Concentration Or Active Effects
+
+- **Group:** Final Spell Cost
+- **Meaning:** The final AP may exceed 3 and is only reported; WO13 owns maintenance and Channeling runtime.
+- **Guards:** `packages/prowess-game/src/spell-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I256 — WO10 Does Not Calculate Final Maneuver Cost Or Execute Effect Chains
+
+- **Group:** Final Spell Cost
+- **Meaning:** A Maneuver Definition is refused with PROWESS_SPELL_COST.SPELL_ONLY; Effect Chains remain WO12.
+- **Guards:** `packages/prowess-game/src/spell-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I257 — Every Final Spell Cost Contribution Preserves Exact Definition, Component, Ruleset And Evaluation Provenance
+
+- **Group:** Final Spell Cost
+- **Meaning:** Each contribution names its component, exact Definition version and M4 step; the source map cites them.
+- **Guards:** `packages/prowess-game/src/spell-cost-golden.test.ts`, `packages/prowess-game/src/spell-cost-contracts.test.ts`, `packages/prowess-db/tests/integration/prowess-spell-cost-history.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I258 — Final Spell Cost Compilation Is Exact-Ruleset, Historically Reproducible, Deterministic, Immutable And JSON-Safe
+
+- **Group:** Final Spell Cost
+- **Meaning:** R1/R2 isolation, mixed-Ruleset refusal, deep-frozen outputs, JSON replay, unsafe input refusal.
+- **Guards:** `packages/prowess-game/src/spell-cost-contracts.test.ts`, `packages/prowess-db/tests/integration/prowess-spell-cost-history.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I259 — Legacy Sequential Percentage Application And Legacy Floor-Rounded Final MP Examples Are Not Canonical Executable Behavior After M5-SC-028
+
+- **Group:** Final Spell Cost
+- **Meaning:** 13 × 0.9 = 11.7 → 12 MP (not 11); 20 × .8 × 1.1 × .9 is never computed.
+- **Guards:** `packages/prowess-game/src/spell-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+### M5-I260 — M5-SC-042 Remains Unresolved And Final Spell Cost Does Not Infer Additional Affinity Trait Capacity
+
+- **Group:** Final Spell Cost
+- **Meaning:** A non-empty additional Affinity Trait allocation still fails closed through WO8.
+- **Guards:** `packages/prowess-game/src/spell-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
