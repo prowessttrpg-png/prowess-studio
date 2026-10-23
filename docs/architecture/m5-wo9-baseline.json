@@ -1,0 +1,2430 @@
+{
+  "baseline": "169f360887277a4b17d761fa606c919c508ee723",
+  "frozenFiles": {
+    "packages/prowess-db/prisma/migrations/20260930235722_init/migration.sql": "e53c493a022e483c2bb4b9dcea5a5a600b8af44e4b434f54e1db4bf7d561eb59",
+    "packages/prowess-db/prisma/migrations/20261001045349_add_entity/migration.sql": "115e875462d4bf7821a10a4d7efd72dd79c785c308c283cdc1008df9eda41acf",
+    "packages/prowess-db/prisma/migrations/20261001212804_add_entity_version/migration.sql": "61d5ab1ad075e1f80681a5ff3d74c408fe8743aa7c075630c24bf733eb065c68",
+    "packages/prowess-db/prisma/migrations/20261001215241_add_entity_version_updated_at/migration.sql": "bef8e61bb81336e2b6e86d11fd61d4fe8881a9584e9081c1b807e5db08117307",
+    "packages/prowess-db/prisma/migrations/20261002022400_add_entity_alias/migration.sql": "fa21a62cf2bfd8ec8ac390cd4ce034060b63ae2acf5c9492209b446fae571beb",
+    "packages/prowess-db/prisma/migrations/20261002025218_add_keyword_foundation/migration.sql": "67fba78240cb615ddedebc583c15008bbcfb1b30c91db35dd3df323618775543",
+    "packages/prowess-db/prisma/migrations/20261002225710_add_entity_relationship/migration.sql": "3ba841c4b649a298c47e254ff65f6e995556d69e52a1c7488d305dd891cdd717",
+    "packages/prowess-db/prisma/migrations/20261002231523_add_source_provenance/migration.sql": "75392f571ba230dae4c14ec555dc7962803978b6288cf8ecc6072d9432a53a70",
+    "packages/prowess-db/prisma/migrations/20261004233000_add_ruleset_foundation/migration.sql": "a081c52eb2e3760520b488613136e0c08294633cba9386ed68998056ac54a8a6",
+    "packages/prowess-db/prisma/migrations/20261005001500_add_ruleset_manifest/migration.sql": "31f2aa6c695444d75150c90299d6dbd9b302cc6e87a0dd60c821196a3d1dc14c",
+    "packages/prowess-db/prisma/migrations/20261005120000_add_manifest_inheritance/migration.sql": "5fb2a0707fcffe93357b5e489af594db51ec2aabc0082893cd53230debbe4ea0",
+    "packages/prowess-db/prisma/migrations/20261005220000_add_canon_policy/migration.sql": "82d4a44f2caa1bb3f3ac88aaac2bdf18e95448787e32372a45a38398a919fc3c",
+    "packages/prowess-db/prisma/migrations/20261006010000_add_rule_conflicts/migration.sql": "5befce6a128a2e730998dad6ccef68484b06282060f5a354c7ad93b204cb8cad",
+    "packages/prowess-db/prisma/migrations/20261007010000_add_canon_decisions/migration.sql": "62ed605803a83093c91462ff18d4379016f3815a52d2143734c58017c08c6d7e",
+    "packages/prowess-db/prisma/migrations/20261008010000_add_change_sets/migration.sql": "2f11f6f86dfd4591304f415ab7ed8a9fe8c131cb6e90d05a9c620161b9c4d442",
+    "packages/prowess-db/prisma/migrations/20261009010000_add_ruleset_releases/migration.sql": "813c659816bd767a99e5f39626dde3c0f4d817cc92276886b9a63e43535ab0f7",
+    "packages/prowess-db/prisma/migrations/20261010010000_add_migration_plans/migration.sql": "6a4624ffeb062144c5825917177c6eef2599b3376c62c96ee0e595bdcef2253e",
+    "packages/prowess-db/prisma/migrations/20261011010000_add_source_structure/migration.sql": "edd72da496f3fe5ea1d8b499b8ff69278f80bf41fe363b2cc8cfe64dc74faba7",
+    "packages/prowess-db/prisma/migrations/20261012010000_add_import_batches_candidates/migration.sql": "6fdc2a4faadd2bc6c1d76ee330c3c6f5d8a6049e62d983301481b51a32db0624",
+    "packages/prowess-db/prisma/migrations/20261013010000_add_import_batch_extraction_output/migration.sql": "4a2297e981e62ccc28fd3332792cd606de06f6bf0068f97b6adc45468a2fa473",
+    "packages/prowess-db/prisma/migrations/20261014010000_add_import_entity_matching/migration.sql": "fe3ca1beb64a1aac21d3e378cc68f8dac8974768f122a6c5dbbefe2ef78d66b4",
+    "packages/prowess-db/prisma/migrations/20261015010000_add_import_decisions/migration.sql": "0246fbbd42c8f4dd54e0c136473037db44834241d94d60ef03cffaed39807b91",
+    "packages/prowess-db/prisma/migrations/migration_lock.toml": "99836963713b4f5b269ad49af0ed3d7b0b2e336115c2f92dc9ac683d139d0900",
+    "packages/prowess-db/prisma/schema.prisma": "26013a80863d5f884ed5cb3ef239eae89a2257bb5e19e7c1b0a999e6fe1c601a",
+    "packages/prowess-rules/src/context.test.ts": "39674a4f7741cf7a255d2fe3b812915f77071a5aa8461fdb9ebfc2e7a8308969",
+    "packages/prowess-rules/src/context/context-key.ts": "995efe143f3d1c0880a7f67d607d8bab5eeda492486233bf81a6590c76d8667d",
+    "packages/prowess-rules/src/context/evaluation-contexts.ts": "1fb3762ec0595e34f3c06f74af56c1d09aa9c52a7654cb67643a754b8aee9cb6",
+    "packages/prowess-rules/src/context/evaluation-request.ts": "ec0603033299016a10334fd2c513c0d6d157c4ef2b94a920777177e71c2a9b07",
+    "packages/prowess-rules/src/context/ruleset-context.ts": "f363ae1570142afeac9fe66a8ab8125e19043a6e51097be2bb1027fdea7f9b78",
+    "packages/prowess-rules/src/context/shared.ts": "79a126f200313e49e51dc476a9bfa3ea862a359b5011856750318d8e7782191d",
+    "packages/prowess-rules/src/contract-version.ts": "91827f1f12bdc25e5d648b576449de200d82d371c2c3011f3b8513d03ceba57e",
+    "packages/prowess-rules/src/errors/engine-error.ts": "52c1bd99307ede0d715c04078f0be472067d1889f65fbc105ce3d2427f258805",
+    "packages/prowess-rules/src/evaluate.test.ts": "5ad1f18d8bc9520d2083e926141341cc9b16c6c93e9329d87a25991860494b21",
+    "packages/prowess-rules/src/evaluation/evaluate.ts": "abd4991ef93ad339d4426e7ae5407709dcfad9d8c7db477afe19074d0dbda42f",
+    "packages/prowess-rules/src/explanation-engine.test.ts": "1620df6e54950c5c57e99fb5d1cefe2631e6cbc6bcf9c2b8d6ce93c539776f5f",
+    "packages/prowess-rules/src/explanation/build.ts": "780e703479f2585026c631460187c88a181b0ac2bcaaafa2d5361980fac8ed79",
+    "packages/prowess-rules/src/explanation/model.ts": "a413103afa7d510577e819c18c9ff443972abb98d0d87d3fa551b4c4ce3103c2",
+    "packages/prowess-rules/src/explanation/project.ts": "91bd3133343a935378d35bd6be5fbb96ca91d1bed23df23319b93e8ec9cd4ef8",
+    "packages/prowess-rules/src/formula-dependency-security.test.ts": "17c1f798add7f961b3ab52cc5c6242d372462d394756336fff82b72694b14159",
+    "packages/prowess-rules/src/formula-evaluate.test.ts": "f80613e86fa55de8e5ea6191850fbfd54434c0c39b973b53c487d00c2a8fcba9",
+    "packages/prowess-rules/src/formula-parser.test.ts": "04472fe551f60625007313b61924adf6d0ed7ae56affa871785cd65fa3ee27ec",
+    "packages/prowess-rules/src/formula/ast.ts": "c4b3140a33d7583affdc68e71ddae025f65d7e8606737ee8a4c80a29a29617c7",
+    "packages/prowess-rules/src/formula/dependency.ts": "1bb190a485fb4c65a545e1a520aa5f86b49bb1269304ef897ce19beaedd34c87",
+    "packages/prowess-rules/src/formula/diagnostics.ts": "0f57d8758c5ab12801cdd643a8414ca756b3c1b1a17fbe0a7bd37e67e430aea5",
+    "packages/prowess-rules/src/formula/evaluate.ts": "fc1c58510759fdef90bf41b27982a616873fd51c1e55ea4b9407ad970ae3a23d",
+    "packages/prowess-rules/src/formula/lexer.ts": "8777927ed318b8cf0768b153b3ff5fca160114b97ad7726de1b65eb3a07ae53e",
+    "packages/prowess-rules/src/formula/parser.ts": "028ae6f713e7649755f31d03c9b29ef12bfb87388605aa5a0672bb708f6849a6",
+    "packages/prowess-rules/src/index.ts": "3ec5d39adcd2b8e0fef20ccf59428ca7c620f4ea1fcdaa3987a1ae59f163919a",
+    "packages/prowess-rules/src/internal/canonical-json.ts": "73e3b08a65ee04888e5fc4ce88c3bb003ea5b4d9f4c387abab1c4eadff2a7381",
+    "packages/prowess-rules/src/internal/input-reader.ts": "0c1fd62811a640d217d8be1aba332d2fadf332275712c8d59dafc8d6069b5995",
+    "packages/prowess-rules/src/internal/plain-data.ts": "bd47c566c356911f80bc2aa7681650ed13108ab83f1be2e9a257350a0e4f34dc",
+    "packages/prowess-rules/src/keyword-resolution.test.ts": "60e5f480ebc4daddf6eded8c0bc53cb4544683bbbada5ec249e086c011492a9c",
+    "packages/prowess-rules/src/keyword/query.ts": "90adeab59f5ccf386d0f057dbe7d1317ac429e58f50e38b18e9c68bd4d6a971e",
+    "packages/prowess-rules/src/keyword/resolve.ts": "9de4e10c56100f61d68aaed32f6b9174d0e919aa56712446ed592db5d799a44f",
+    "packages/prowess-rules/src/lookup.test.ts": "106d93d2129135ef6eb7fb17dad13f52232f1af2ae0a517254ac6a73804ee0b1",
+    "packages/prowess-rules/src/modifier-evaluate.test.ts": "9cc577a652c8f11909741c9c88f85624ad3037e2d996395ff9a80444db2ebcf9",
+    "packages/prowess-rules/src/modifier/evaluate.ts": "fe22c992a9ecdb6b3ed2a42f26494db009db1eef3d90eba53d14f02aec43b6bc",
+    "packages/prowess-rules/src/modifier/model.ts": "0dafb1fd52953f331717b18d0e5fcb48baf7bd30f690161e58bef50c27a4afd6",
+    "packages/prowess-rules/src/modifier/validate.ts": "9f3238d238e328206a21996ac80e70c00379803a342f16df05547841e4878917",
+    "packages/prowess-rules/src/orchestration.test.ts": "04aac7c3972b3fc9cbc228f514b132e2f229ca3217cd5a973dea2a6124e63cdf",
+    "packages/prowess-rules/src/orchestration/model.ts": "6c7a7229b0feadca62632822495fd4241a3dfa59e8f9e6a4b09f1260412f967c",
+    "packages/prowess-rules/src/orchestration/orchestrate.ts": "45c79330e8e2740e9f6eb7a8541c09c3b965a7fb8ce7a774be3336ac05cae98f",
+    "packages/prowess-rules/src/orchestration/plan.ts": "a51c4a1616bd0130190ef96c912bed855b7a664b88d9aa3c1399bd6078db36d9",
+    "packages/prowess-rules/src/orchestration/pointer.ts": "c125cf649c20b0790c1cb8a923716b0605f3b9a990b3d5023b79e10a1149fd0d",
+    "packages/prowess-rules/src/public-surface.test.ts": "d456a169742ca975fe3945ef96f6e462bc95cda63ddf3061d80da3512353b3f2",
+    "packages/prowess-rules/src/requirement-definition-facts.test.ts": "830b4d1d41c78003aec3b89fca81f5f1164c9da9b561bbf9c894694379c4282b",
+    "packages/prowess-rules/src/requirement-evaluate.test.ts": "546a94c21164963e12e3e0f492101174ceda9707323a828a0d9bf3e98c25b84d",
+    "packages/prowess-rules/src/requirement/evaluate.ts": "136813dff88cb3c3c8c2f1ee4e52b9e7972c523e2d27e1782d50a80562b1c7d8",
+    "packages/prowess-rules/src/requirement/facts.ts": "22a93c4a99013dac539e562ab13854f2ff136f16574e782e3a5fe94a33ab127f",
+    "packages/prowess-rules/src/requirement/model.ts": "c0f4360fe7d941e6ebccf0c600d1d0e9678b9db204e4dd3115d89210e756eb88",
+    "packages/prowess-rules/src/requirement/validate.ts": "52702cc8bb1259a3a02f1833092cca2d530a9a59d234fa2ad5ab49c3a9cd5720",
+    "packages/prowess-rules/src/resource-engine.test.ts": "6371013bc01a488566beacbe99d7da599912b098fcc5f2971687660c3131566c",
+    "packages/prowess-rules/src/resource/model.ts": "36e2d4a30b1cb57dc4d3bcdd94cf289ae732e882619689b47197b6c1f60ac8a7",
+    "packages/prowess-rules/src/resource/payment.ts": "512145db3bc04631749b9412029b4be218b8d12ee7c4eaf489a9dce437294262",
+    "packages/prowess-rules/src/resource/snapshot.ts": "a9fbe423f4c82a4041298b5e08bc942cd84e40d278236e7769a1b9cf308793d8",
+    "packages/prowess-rules/src/resource/transition.ts": "f864d543416ab3e2f56c86c68425a7516b9caad6adcca8bf8bc490adda2612bf",
+    "packages/prowess-rules/src/response.test.ts": "e6efeeb48d1314f0a054188abddd6fa176cb6b5b4be0c815a606c8a605544084",
+    "packages/prowess-rules/src/result/evaluation-value.ts": "e2d5d4281ce694ba06d6bf5fb0b3a4b83cdfffb4f67c651b7a9606cb2e044428",
+    "packages/prowess-rules/src/result/provenance.ts": "5e381e572ac7e5c801c1073a35f75e85a4b47f153dbeb98dade7659e9f4649a6",
+    "packages/prowess-rules/src/result/rule-engine-response.ts": "71c9ada0077a7e18bdee159eb472353560fdcf755e943239009c81c57d8cfd70",
+    "packages/prowess-rules/src/testing/determinism.ts": "b0e4c9ea49ee9385c528fa533e4e10341b60465192ea0ae123ae706ec43e41a6",
+    "packages/prowess-rules/src/testing/fixtures.ts": "7105cf2b775387ead7d1ef78576bae0dcd389ce36a9e6813f47899b423c23ee4",
+    "packages/prowess-rules/src/trace.test.ts": "141acf5cd18db98d17e1341fe0751d1b285c84ccad75897a2c5381b068179531",
+    "packages/prowess-rules/src/trace/calculation-trace.ts": "afcf88564185dfd7a904c9d99e30c8209be770761a53e077a0f4a003df39a265",
+    "packages/prowess-rules/src/validation-engine.test.ts": "babe120eef995c33f9c36111a0f8e5e6b682ba8439d17dd4fe4306bb80c856f3",
+    "packages/prowess-rules/src/validation-engine/evaluate.ts": "6edce2fe53d3a39b17a528cc9eff3ca8b64958229ff56e38ecc845a3db15b5fe",
+    "packages/prowess-rules/src/validation-engine/model.ts": "4d0e2f589479071ab3dcbdb1395ec4f68ef626ac194ce5bb9b5bcdad470921b4",
+    "packages/prowess-rules/src/validation-engine/source.ts": "b689ef64935c236075b6a1d13cae67722674eaacea9e70d67795e2fc7814fc7d",
+    "packages/prowess-rules/src/validation/validation-message.ts": "344c0036beaa00f14b1ce0c0192d9fb2488a7631ed6d4847e15c9d02914eb3dd"
+  },
+  "priorInvariants": [
+    {
+      "id": "M5-I001",
+      "title": "Core Playtest V0.1 Is The Primary Mechanical Source For M5 Except Where Explicit Approved Designer Or Canon Clarification Supersedes It",
+      "group": "Source authority",
+      "guards": [
+        "packages/prowess-game/src/vocabulary.test.ts",
+        "apps/studio/tests/unit/m5-wo1-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I002",
+      "title": "Unresolved Source Ambiguity Is Preserved Rather Than Silently Reconciled",
+      "group": "Source authority",
+      "guards": [
+        "packages/prowess-game/src/vocabulary.test.ts",
+        "apps/studio/tests/unit/m5-wo1-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I003",
+      "title": "Prowess-Specific Mechanics Do Not Enter The Generic @prowess/rules Package",
+      "group": "Boundary",
+      "guards": [
+        "apps/studio/tests/unit/m5-wo1-static.test.ts",
+        "scripts/m5-wo1-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I004",
+      "title": "Prowess Domain Semantics Live In A Dedicated Pure Domain Layer",
+      "group": "Boundary",
+      "guards": [
+        "apps/studio/tests/unit/m5-wo1-static.test.ts",
+        "scripts/m5-wo1-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I005",
+      "title": "Every Canonical Structured Prowess Definition Carries Exact EntityVersion Identity",
+      "group": "Definition",
+      "guards": [
+        "packages/prowess-game/src/definition-envelope.test.ts",
+        "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I006",
+      "title": "Definition Payload Schema Version Is Explicit And Independent Of EntityVersion",
+      "group": "Definition",
+      "guards": [
+        "packages/prowess-game/src/definition-envelope.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I007",
+      "title": "Ruleset Provenance Is Preserved Through Exact Prowess Definition Materialization",
+      "group": "Materialization",
+      "guards": [
+        "packages/prowess-game/src/definition-bundle.test.ts",
+        "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I008",
+      "title": "Definition Bundles Contain Only Versions Pinned By Their Exact RulesetContext",
+      "group": "Materialization",
+      "guards": [
+        "packages/prowess-game/src/definition-bundle.test.ts",
+        "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts",
+        "scripts/m5-wo1-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I009",
+      "title": "Definitions From Different Exact Rulesets Are Never Silently Mixed",
+      "group": "Materialization",
+      "guards": [
+        "packages/prowess-game/src/definition-bundle.test.ts",
+        "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts",
+        "scripts/m5-wo1-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I010",
+      "title": "Compilation Uses Exact Definition Versions And Never Latest/Current Lookup",
+      "group": "Compilation",
+      "guards": [
+        "packages/prowess-game/src/compilation.test.ts",
+        "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I011",
+      "title": "Prowess Compilation Emits M4 EvaluationPlans Rather Than Reimplementing The M4 Rules Engine",
+      "group": "Compilation",
+      "guards": [
+        "packages/prowess-game/src/compilation.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I012",
+      "title": "Compilation Performs No Hidden Gameplay Calculation",
+      "group": "Compilation",
+      "guards": [
+        "packages/prowess-game/src/compilation.test.ts",
+        "apps/studio/tests/unit/m5-wo1-static.test.ts",
+        "scripts/m5-wo1-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I013",
+      "title": "Compiled Step Identity And Ordering Are Deterministic",
+      "group": "Compilation",
+      "guards": [
+        "packages/prowess-game/src/compilation.test.ts",
+        "scripts/m5-wo1-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I014",
+      "title": "Compilation Preserves A Domain-To-Evaluation-Step Source Map",
+      "group": "Compilation",
+      "guards": [
+        "packages/prowess-game/src/compilation.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I015",
+      "title": "Definition And Composition Are Separate Layers",
+      "group": "Layers",
+      "guards": [
+        "packages/prowess-game/src/ability-construction.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I016",
+      "title": "Composition And Runtime State Are Separate Layers",
+      "group": "Layers",
+      "guards": [
+        "packages/prowess-game/src/ability-construction.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I017",
+      "title": "Presentation Does Not Own Or Duplicate Prowess Mechanics",
+      "group": "Layers",
+      "guards": [
+        "apps/studio/tests/unit/m5-wo1-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I018",
+      "title": "Source Prose Is Never Parsed As Runtime Rule Logic",
+      "group": "Source authority",
+      "guards": [
+        "apps/studio/tests/unit/m5-wo1-static.test.ts",
+        "packages/prowess-db/tests/unit/m5-source-terminology.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I019",
+      "title": "Import Review Does Not Automatically Create Canonical Executable Prowess Rules",
+      "group": "Source authority",
+      "guards": [
+        "apps/studio/tests/unit/m5-wo1-static.test.ts",
+        "packages/prowess-db/tests/unit/m5-source-terminology.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I020",
+      "title": "Canon Governance Is Explicit And Is Never Inferred By A Compiler",
+      "group": "Boundary",
+      "guards": [
+        "apps/studio/tests/unit/m5-wo1-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I021",
+      "title": "Spell Composition Supports Multiple Compatible Spell Effect Branches",
+      "group": "Ability Construction",
+      "guards": [
+        "packages/prowess-game/src/ability-construction.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I022",
+      "title": "Targeting Defines Delivery Geometry And Legal Placement; It Does Not Determine The Applied Effect Or Resolution",
+      "group": "Ability Construction",
+      "guards": [
+        "packages/prowess-game/src/ability-construction.test.ts",
+        "scripts/m5-wo1-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I023",
+      "title": "Mana Efficiency Payment Never Rewrites Listed Cost",
+      "group": "Resources",
+      "guards": [
+        "packages/prowess-game/src/compilation.test.ts",
+        "packages/prowess-game/src/vocabulary.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I024",
+      "title": "Mana Lock Represents Reserved Capacity Rather Than Resource Spending",
+      "group": "Resources",
+      "guards": [
+        "packages/prowess-game/src/compilation.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I025",
+      "title": "Spell And Maneuver Construction Share The Prowess Modular Ability Construction Framework While Retaining Branch-Specific Rules And Catalogs",
+      "group": "Ability Construction",
+      "guards": [
+        "packages/prowess-game/src/ability-construction.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I026",
+      "title": "Summoning Grants No Unauthored Capability",
+      "group": "Ability Construction",
+      "guards": [
+        "packages/prowess-game/src/vocabulary.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I027",
+      "title": "Historical Prowess Definitions Never Resolve Through Latest Or Current Selection",
+      "group": "Materialization",
+      "guards": [
+        "packages/prowess-game/src/definition-bundle.test.ts",
+        "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts",
+        "apps/studio/tests/unit/m5-wo1-static.test.ts",
+        "scripts/m5-wo1-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I028",
+      "title": "Prowess Domain Inputs And Outputs Are Immutable Detached Plain Data",
+      "group": "Purity",
+      "guards": [
+        "packages/prowess-game/src/definition-envelope.test.ts",
+        "packages/prowess-game/src/ability-construction.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I029",
+      "title": "Prowess Compilation Is Deterministic",
+      "group": "Purity",
+      "guards": [
+        "packages/prowess-game/src/definition-envelope.test.ts",
+        "packages/prowess-game/src/compilation.test.ts",
+        "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I030",
+      "title": "Changes To The Frozen M4 Foundation Require Explicit Approval",
+      "group": "Boundary",
+      "guards": [
+        "apps/studio/tests/unit/m5-wo1-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I031",
+      "title": "Spell And Maneuver Targeting Use Common Targeting Semantics Where Applicable Without Requiring Shared Canonical Targeting Definitions",
+      "group": "Ability Construction",
+      "guards": [
+        "packages/prowess-game/src/ability-construction.test.ts",
+        "scripts/m5-wo1-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I032",
+      "title": "Equivalent AoE Geometry Has The Same Spatial Meaning Across Spell And Maneuver Construction; Attached Effects Determine The Outcome",
+      "group": "Ability Construction",
+      "guards": [
+        "packages/prowess-game/src/ability-construction.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I033",
+      "title": "Spell Effects And Maneuver Effects Implement A Common Effect Contract But Remain Separate Definition Families",
+      "group": "Ability Construction",
+      "guards": [
+        "packages/prowess-game/src/ability-construction.test.ts",
+        "scripts/m5-wo1-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I034",
+      "title": "Spell Traits And Maneuver Traits Implement A Common Trait Contract But Remain Separate Definition Families",
+      "group": "Ability Construction",
+      "guards": [
+        "packages/prowess-game/src/ability-construction.test.ts",
+        "scripts/m5-wo1-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I035",
+      "title": "Duration, Conditions, Affinity And Resolution Are Shared Ability-Construction Concepts Whose Legal Content And Consequences May Be Branch-Specific",
+      "group": "Ability Construction",
+      "guards": [
+        "packages/prowess-game/src/ability-construction.test.ts",
+        "packages/prowess-game/src/vocabulary.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I036",
+      "title": "AbilityKind Determines Legal Definition Catalogs And Branch-Specific Rules; It Does Not Replace The Shared Construction Framework",
+      "group": "Ability Construction",
+      "guards": [
+        "packages/prowess-game/src/ability-construction.test.ts",
+        "packages/prowess-game/src/vocabulary.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I037",
+      "title": "Evocation Is The Canonical Affinity Name; Emission Is Preserved Only As Historical / Legacy Source Terminology",
+      "group": "Terminology",
+      "guards": [
+        "packages/prowess-game/src/definition-envelope.test.ts",
+        "packages/prowess-game/src/vocabulary.test.ts",
+        "packages/prowess-db/tests/unit/m5-source-terminology.test.ts",
+        "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts",
+        "scripts/m5-wo1-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I038",
+      "title": "A Shared Component Contract Never Makes Cross-Branch Definitions Automatically Interchangeable",
+      "group": "Ability Construction",
+      "guards": [
+        "packages/prowess-game/src/ability-construction.test.ts",
+        "scripts/m5-wo1-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I039",
+      "title": "An Affinity-Assisted Maneuver Remains A Maneuver Unless An Explicit Rule Changes Its AbilityKind",
+      "group": "Ability Construction",
+      "guards": [
+        "packages/prowess-game/src/ability-construction.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I040",
+      "title": "Ability Conditions And Target Conditions Are Distinct Concepts: Construction Restrictions Do Not Automatically Become Status Effects",
+      "group": "Ability Construction",
+      "guards": [
+        "packages/prowess-game/src/ability-construction.test.ts",
+        "scripts/m5-wo1-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I041",
+      "title": "Character Die Is The Canonical Identity For Player Dice And Player Die Legacy Terminology",
+      "group": "Terminology",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "packages/prowess-game/src/core-contracts.test.ts",
+        "packages/prowess-game/src/vocabulary.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I042",
+      "title": "Standard Character Die Progression Is Exact By Level And Is Structured Data, Not Scattered Hard-Coded Branches",
+      "group": "Core Resolution",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "packages/prowess-game/src/core-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I043",
+      "title": "Dice Evaluation Consumes Explicit Runtime Roll Results And Introduces No Randomness Into The Deterministic Rules Layer",
+      "group": "Core Resolution",
+      "guards": [
+        "packages/prowess-game/src/core-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I044",
+      "title": "Half Character Die Uses Half The Die's Maximum Face As A Static Value",
+      "group": "Core Resolution",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I045",
+      "title": "Prowess Uses Exactly Six Canonical Core Ability Scores: STR, AGI, CON, PER, RES, PRO",
+      "group": "Character Core",
+      "guards": [
+        "packages/prowess-game/src/core-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I046",
+      "title": "Standard Ability Scores Are Bounded From 1 Through 10 Unless An Exact Rule Explicitly Overrides The Bound",
+      "group": "Character Core",
+      "guards": [
+        "packages/prowess-game/src/core-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I047",
+      "title": "Rank Ordering And Rank Numeric Effects Are Separate Concepts",
+      "group": "Ranks",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "packages/prowess-game/src/core-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I048",
+      "title": "Base Skill Rank Bonuses Are Untrained 0, Trained +2, Expert +4, Master +6",
+      "group": "Ranks",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I049",
+      "title": "Skill Checks Use The Stat Chosen For The Character's Approach Rather Than A Stat Permanently Owned By The Skill",
+      "group": "Ranks",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I050",
+      "title": "Core Roll Arithmetic Is Executed By M4 Formula And Threshold Resolution By M4 Requirement Rather Than By Hidden Compiler Math",
+      "group": "Compilation",
+      "guards": [
+        "packages/prowess-game/src/core-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs",
+        "packages/prowess-db/tests/integration/prowess-core-resolution-history.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I051",
+      "title": "Advantage Selects The Higher Of Two Natural Character Die Results And Adds Modifiers Once",
+      "group": "Core Resolution",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I052",
+      "title": "Disadvantage Selects The Lower Of Two Natural Character Die Results And Adds Modifiers Once",
+      "group": "Core Resolution",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I053",
+      "title": "Selected Natural Die Result Is Preserved Separately From Final Roll Total",
+      "group": "Core Resolution",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I054",
+      "title": "Attack Rolls Use Character Die + PER + Prowess Accuracy + Explicit Bonuses Unless An Exact Rule Specifies Otherwise",
+      "group": "Core Resolution",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I055",
+      "title": "Prowess Accuracy Bonus Is floor(PRO / 3) And Remains An Explicit To-Hit Contribution",
+      "group": "Core Resolution",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I056",
+      "title": "Dodge Is The Canonical Defense Term; Evasion Is Legacy Terminology For The Same Defense",
+      "group": "Terminology",
+      "guards": [
+        "packages/prowess-game/src/core-contracts.test.ts",
+        "packages/prowess-game/src/vocabulary.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I057",
+      "title": "Base Dodge Is Half Character Die + AGI + floor(PER / 3) Before Other Explicit Modifiers",
+      "group": "Derived Statistics",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I058",
+      "title": "A Maximum Natural Character Die Result Creates A Critical Threat But Does Not Automatically Hit",
+      "group": "Core Resolution",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I059",
+      "title": "Critical Hit Requires Both A Critical Threat And A Successful Attack",
+      "group": "Core Resolution",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I060",
+      "title": "Saving Throws Use Character Die + Explicit Save Stat + Explicit Bonuses",
+      "group": "Core Resolution",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I061",
+      "title": "Targeting Never Selects A Saving Throw; The Applicable Effect Or Rule Does",
+      "group": "Core Resolution",
+      "guards": [
+        "packages/prowess-game/src/core-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I062",
+      "title": "Character DC Is Half Character Die + PRO + floor(RES / 3) + Explicit Bonuses",
+      "group": "Derived Statistics",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I063",
+      "title": "Maximum HP Is Base HP From Race Plus CON Before Other Explicit Bonuses",
+      "group": "Derived Statistics",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I064",
+      "title": "Maximum MP Is Base MP From Race Plus RES Before Other Explicit Bonuses",
+      "group": "Derived Statistics",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I065",
+      "title": "Base HP And Base MP Are Racial Starting Values Rather Than Multipliers",
+      "group": "Derived Statistics",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I066",
+      "title": "Strength Grants floor(STR / 3) Natural Armor Before Other Armor Sources",
+      "group": "Derived Statistics",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I067",
+      "title": "Agility Grants floor(AGI / 3) Additional AP Capacity Above The Base 3 AP",
+      "group": "Derived Statistics",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I068",
+      "title": "Base Range Is 15 Feet Times PER",
+      "group": "Derived Statistics",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I069",
+      "title": "Base Mana Efficiency Equals PRO And Remains A Payment Resource Rather Than A Listed-Cost Modifier",
+      "group": "Derived Statistics",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I070",
+      "title": "Base Signature Ability Capacity Equals PRO",
+      "group": "Derived Statistics",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I071",
+      "title": "Skill Automatic Success Uses Ability Score + Skill Rank Bonus Against DC Without Requiring A Character Die Roll",
+      "group": "Core Resolution",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I072",
+      "title": "Stat Mastery At Level 10 And Stat 10 Produces Advantage On Applicable Rolls Rather Than A Numeric Modifier",
+      "group": "Core Resolution",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I073",
+      "title": "Unresolved Movement Formula Conflict M5-SC-006 Must Not Produce Executable Canonical Movement Math",
+      "group": "Source Conflicts",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "packages/prowess-game/src/core-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "scripts/m5-wo2-negative-controls.mjs"
+      ],
+      "status": "SUPERSEDED",
+      "supersededBy": "M5-I075"
+    },
+    {
+      "id": "M5-I074",
+      "title": "WO2 Derived Character Statistics Calculate Through M4 Primitives While Runtime Resource Mutation Remains Deferred To The Resource / Action-Economy Work",
+      "group": "Derived Statistics",
+      "guards": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "packages/prowess-db/tests/integration/prowess-core-resolution-history.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I075",
+      "title": "Base Movement Equals 5 Feet Times AGI Before Size Or Other Explicit Movement Modifiers",
+      "group": "Movement",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "packages/prowess-game/src/vocabulary.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ],
+      "status": "SUPERSEDED",
+      "supersededBy": "M5-I111"
+    },
+    {
+      "id": "M5-I076",
+      "title": "Size-Based Movement Adjustments Are Explicit Structured Rules And Are Never Inferred From Occupied Space",
+      "group": "Movement",
+      "guards": [
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I077",
+      "title": "Advantage And Disadvantage Are Non-Stacking Presence Signals",
+      "group": "Roll State",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I078",
+      "title": "If At Least One Advantage And At Least One Disadvantage Apply To The Same Roll, The Roll Resolves Normally Regardless Of Duplicate Counts",
+      "group": "Roll State",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I079",
+      "title": "Roll-State Resolution Preserves Every Contributing Advantage And Disadvantage Source For Provenance And Explanation",
+      "group": "Roll State",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I080",
+      "title": "HP, MP, ME, AP And Counter Action Are Distinct Runtime Resources",
+      "group": "Resources",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I081",
+      "title": "Resource Maximum Or Capacity Is Distinct From Current Resource Amount",
+      "group": "Resources",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I082",
+      "title": "HP Does Not Refresh Automatically On Turn Or Round Boundaries",
+      "group": "Resources",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I083",
+      "title": "MP Does Not Refresh Automatically On Turn Or Round Boundaries",
+      "group": "Resources",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I084",
+      "title": "AP Refreshes To Current AP Capacity At The Start Of The Creature's Turn",
+      "group": "Action Economy",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I085",
+      "title": "Unused AP Expires At End Of Turn Unless An Explicit Rule Preserves It",
+      "group": "Action Economy",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I086",
+      "title": "Default Counter Action Capacity Is One And Refreshes At The Start Of Each Round",
+      "group": "Action Economy",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I087",
+      "title": "Counter Actions Never Accumulate Across Rounds By Default",
+      "group": "Action Economy",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I088",
+      "title": "Counter Action And AP Are Separate Resources And Are Not Implicitly Interchangeable",
+      "group": "Action Economy",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I089",
+      "title": "Mana Efficiency Maximum Equals PRO And Current ME Refreshes To That Maximum At The Start Of Each Round",
+      "group": "Mana",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I090",
+      "title": "Mana Efficiency Is Used Before MP Only For Costs Explicitly Declared ME-Eligible",
+      "group": "Mana",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I091",
+      "title": "Mana Efficiency Payment Never Alters The Listed Cost Being Paid",
+      "group": "Mana",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I092",
+      "title": "Prowess Multi-Resource Payment Is Atomic On Insufficient Resources",
+      "group": "Mana",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I093",
+      "title": "Reserved MP Capacity Reduces Available Maximum Without Spending Current MP",
+      "group": "Mana",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I094",
+      "title": "Releasing Reserved MP Capacity Restores Capacity But Never Refills Current MP",
+      "group": "Mana",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I095",
+      "title": "Core Runtime Resource Transitions Compile Through M4 Resource Operations And Do Not Reimplement Resource Arithmetic",
+      "group": "Compilation",
+      "guards": [
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I096",
+      "title": "Prowess AP Is A Spendable Resource Rather Than A Fixed Number Of Action Slots",
+      "group": "Action Economy",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I097",
+      "title": "Core Action Costs Are Versioned Structured Definitions And May Be Overridden Only By Explicit Rules",
+      "group": "Action Economy",
+      "guards": [
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs",
+        "packages/prowess-db/tests/integration/prowess-runtime-resources-history.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I098",
+      "title": "Move Costs One AP And Provides Movement Allowance Rather Than Permanently Changing Movement",
+      "group": "Movement",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I099",
+      "title": "Movement Allowance May Be Split Around Other Actions Until The Purchased Allowance Is Exhausted",
+      "group": "Movement",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I100",
+      "title": "Difficult Terrain Consumes Movement Allowance At Double The Normal Rate Unless An Explicit Rule Overrides It",
+      "group": "Movement",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I101",
+      "title": "Combat Uses Side Initiative And The Player Side Does Not Default To Individual Character Initiative Slots",
+      "group": "Combat",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I102",
+      "title": "Initiative Uses Character Die + Half PER + Half AGI + Explicit Bonuses With No Implicit Rounding",
+      "group": "Combat",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I103",
+      "title": "Initiative Ties Resolve By Highest PER, Then Highest AGI, Then Explicit Reroll Requirement",
+      "group": "Combat",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I104",
+      "title": "Surprise Prevents Counter Action Use During The First Round Without Inventing A Fixed AP Penalty",
+      "group": "Combat",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I105",
+      "title": "Runtime Rules Evaluation Never Persists Current Combat Resource State As A Side Effect",
+      "group": "Boundary",
+      "guards": [
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "packages/prowess-db/tests/integration/prowess-runtime-resources-history.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I106",
+      "title": "Resource And Action-Economy Steps Preserve Exact Prowess Definition And Ruleset Provenance",
+      "group": "Provenance",
+      "guards": [
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "packages/prowess-db/tests/integration/prowess-runtime-resources-history.test.ts",
+        "packages/prowess-db/tests/unit/m5-wo3-inspector-fixture.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I107",
+      "title": "Zero HP Is Exposed As Resource Depletion But Full Downed And Death-Save Resolution Remains A Separate Later Subsystem",
+      "group": "Resources",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I108",
+      "title": "Creature Occupied Space And Creature Movement Speed Are Separate Mechanical Concepts",
+      "group": "Movement",
+      "guards": [
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "scripts/m5-wo3-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I109",
+      "title": "Repeated Sprint Execution Must Never Exponentially Multiply Movement",
+      "group": "Movement",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I110",
+      "title": "Ordinary Action Costs Are Atomic And Do Not Become Multi-Turn Commitments Unless The Action Explicitly Supports Such A Rule",
+      "group": "Action Economy",
+      "guards": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I111",
+      "title": "Movement Equals Base Movement Multiplied By AGI; Base Movement Is A Separate Authored Creature Value",
+      "group": "Movement",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "packages/prowess-game/src/vocabulary.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I112",
+      "title": "Sprint Grants Four Times The Creature's Movement And Does Not Require A Separate Total Movement Statistic",
+      "group": "Movement",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I113",
+      "title": "Creature Size May Alter Base Movement Only Through An Explicit Structured Rule; Occupied Space Never Implies Base Movement",
+      "group": "Movement",
+      "guards": [
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I114",
+      "title": "Prowess Has Exactly Six Canonical Affinity Identities: Evocation, Conjuration, Transmutation, Divination, Enhancement And Manipulation",
+      "group": "Affinity Identity",
+      "guards": [
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I115",
+      "title": "Evocation Is Canonical And Emission Is Historical Legacy Terminology Only",
+      "group": "Affinity Identity",
+      "guards": [
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I116",
+      "title": "Affinity Ownership And Affinity Rank Are Separate Concepts",
+      "group": "Affinity Ownership",
+      "guards": [
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I117",
+      "title": "A Level 1 Primary Affinity Is Owned At Rank NONE And Becomes Trained At Level 3 Under Standard Progression",
+      "group": "Affinity Ownership",
+      "guards": [
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I118",
+      "title": "At Level 6 Standard Affinity Advancement Is Either Primary Trained To Expert Or A Secondary Affinity At Trained",
+      "group": "Affinity Ownership",
+      "guards": [
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I119",
+      "title": "The Starting Rank Of A New Level 9 Affinity Remains Unresolved Until Explicit Canon Resolves M5-SC-035",
+      "group": "Affinity Ownership",
+      "guards": [
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ],
+      "status": "SUPERSEDED",
+      "supersededBy": "M5-I151"
+    },
+    {
+      "id": "M5-I120",
+      "title": "Affinity Rank Order Is NONE, TRAINED, EXPERT, MASTER And Is Distinct From Other Rank Systems' Numeric Effects",
+      "group": "Affinity Rank",
+      "guards": [
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I121",
+      "title": "Affinity Strength Discount Is 0%, 10%, 20%, 30% For NONE, TRAINED, EXPERT, MASTER Respectively",
+      "group": "Affinity Rank",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I122",
+      "title": "Multiple Strength Keyword Matches From One Governing Affinity Apply The Rank Discount Only Once",
+      "group": "Affinity Alignment",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I123",
+      "title": "Affinity Strength And Weakness Matching Uses Exact Structured Keyword Identity And Never Fuzzy Text Matching",
+      "group": "Affinity Alignment",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I124",
+      "title": "Every Affinity Weakness Owns An Exact Authored Percentage Penalty Rather Than Requiring Severity Inference",
+      "group": "Affinity Weakness",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I125",
+      "title": "When Multiple Weaknesses Of The Same Governing Affinity Match, Only The Highest Applicable Penalty Is Applied Unless An Explicit Rule Says Otherwise",
+      "group": "Affinity Weakness",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I126",
+      "title": "All Matched Weaknesses Remain Visible For Provenance Even When Only The Highest Penalty Is Applied",
+      "group": "Affinity Weakness",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I127",
+      "title": "When An Ability Matches Both A Strength And A Weakness, Both Modifiers Apply",
+      "group": "Affinity Cost",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I128",
+      "title": "Affinity Strength Discount Applies Before Affinity Weakness Penalty",
+      "group": "Affinity Cost",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ],
+      "status": "SUPERSEDED",
+      "supersededBy": "M5-I155"
+    },
+    {
+      "id": "M5-I129",
+      "title": "Affinity Modifier Arithmetic Does Not Round; Final Rounding Belongs To The Later Branch Cost Pipeline",
+      "group": "Affinity Cost",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I130",
+      "title": "An Affinity Weakness Normally Changes Cost Rather Than Prohibiting Ability Construction",
+      "group": "Affinity Cost",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I131",
+      "title": "Affinity-Relevant Keywords May Be Contributed By Explicit Targeting, Effects, Traits And Other Valid Ability Components",
+      "group": "Keyword Contributions",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I132",
+      "title": "Affinity Does Not Infer Mechanical Keywords From Component Display Names Or Targeting Geometry",
+      "group": "Keyword Contributions",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I133",
+      "title": "One Explicit Governing Affinity Is Required For WO4 Executable Affinity Cost Evaluation; No Affinity Is Auto-Selected",
+      "group": "Governing Affinity",
+      "guards": [
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I134",
+      "title": "WO4 Does Not Stack Discounts From Multiple Owned Affinities Without An Explicit Future Multi-Affinity Rule",
+      "group": "Governing Affinity",
+      "guards": [
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I135",
+      "title": "The Governing Affinity Must Be An Exact Affinity Owned By The Character Under The Same Exact Ruleset",
+      "group": "Governing Affinity",
+      "guards": [
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I136",
+      "title": "Affinity Authority Requires At Least Trained Rank",
+      "group": "Affinity Authority",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I137",
+      "title": "Affinity Authority Effect Capacity Is One, Two, Three At Trained, Expert, Master",
+      "group": "Affinity Authority",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I138",
+      "title": "Affinity Authority Base Trait Capacity Is One, Two, Three At Trained, Expert, Master",
+      "group": "Affinity Authority",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I139",
+      "title": "Arcane And Affinity Authority Capacities Do Not Add Together Unless An Explicit Feature Says Otherwise",
+      "group": "Affinity Authority",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I140",
+      "title": "Affinity Authority Access And Affinity Cost Modification Are Separate Mechanical Concepts",
+      "group": "Affinity Authority",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I141",
+      "title": "Qualifying For A Trait Through Affinity Rank Never Removes That Trait's Cost Or Other Requirements",
+      "group": "Affinity Authority",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I142",
+      "title": "Spell Affinity Strengths And Weaknesses Modify Listed MP Rather Than Runtime Mana Payment",
+      "group": "Branch Boundaries",
+      "guards": [
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I143",
+      "title": "Affinity Never Directly Modifies Spell AP Unless An Explicit Rule Says So; Its Normal AP Effect Occurs Indirectly Through Later MP-Based AP Derivation",
+      "group": "Branch Boundaries",
+      "guards": [
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I144",
+      "title": "Spell Affinity MP Economics Are Never Automatically Applied To Maneuver AP Or Other Maneuver Costs",
+      "group": "Branch Boundaries",
+      "guards": [
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I145",
+      "title": "Affinity Alignment Semantics Are Shared Across Ability Construction While Branch-Specific Cost And Access Rules Remain Explicit",
+      "group": "Branch Boundaries",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I146",
+      "title": "Affinity Definitions, Rank Rules And Keyword Contributions Preserve Exact Ruleset And EntityVersion Provenance",
+      "group": "Provenance",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "packages/prowess-db/tests/integration/prowess-affinity-history.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I147",
+      "title": "Historical Affinity Evaluation Never Resolves Through Latest Or Current Content",
+      "group": "Provenance",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs",
+        "packages/prowess-db/tests/integration/prowess-affinity-history.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I148",
+      "title": "Affinity Compilation Uses Existing M4 Keyword, Requirement And Modifier Primitives Rather Than Reimplementing Them",
+      "group": "Compilation",
+      "guards": [
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I149",
+      "title": "Affinity Cost Compilation Performs No Hidden Percentage Arithmetic In The Prowess Compiler",
+      "group": "Compilation",
+      "guards": [
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I150",
+      "title": "Affinity Evaluation Is Deterministic, Immutable, JSON-Safe And Free Of Global Mutable Affinity State",
+      "group": "Compilation",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts"
+      ]
+    },
+    {
+      "id": "M5-I151",
+      "title": "A New Level 9 Affinity Starts At Trained And Every Affinity Ranks Independently",
+      "group": "Affinity Ownership",
+      "guards": [
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "apps/studio/tests/unit/m5-canon-rulings-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I152",
+      "title": "Base Movement Is Authored Per Creature Size And Is Never Derived From Occupied Space; Massive Remains Pending Canon",
+      "group": "Movement",
+      "guards": [
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "apps/studio/tests/unit/m5-canon-rulings-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ],
+      "status": "SUPERSEDED",
+      "supersededBy": "M5-I154"
+    },
+    {
+      "id": "M5-I153",
+      "title": "Arcane Rank Is The Arcana Skill's Rank; Arcana Rank Is Its Legacy Name",
+      "group": "Terminology",
+      "guards": [
+        "packages/prowess-game/src/vocabulary.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "apps/studio/tests/unit/m5-canon-rulings-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I154",
+      "title": "Base Movement Is Authored Per Creature Size: Small 5, Medium 5, Large 10, Huge 20, Massive 40 Feet; Never Derived From Occupied Space",
+      "group": "Movement",
+      "guards": [
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "apps/studio/tests/unit/m5-canon-rulings-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I155",
+      "title": "Percentage Cost Modifiers Combine Into One Net Percentage Applied Once; Final Rounding Is Normal, Once, At The End Of Spell Creation",
+      "group": "Affinity Cost",
+      "guards": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "apps/studio/tests/unit/m5-canon-rulings-static.test.ts",
+        "scripts/m5-wo4-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I156",
+      "title": "Spell Authority Is Explicit: Arcane Authority Reads The Arcana Skill Rank At Trained Or Higher; Affinity Authority Reads The Governing Affinity Owned At Trained Or Higher; Never Auto-Switched",
+      "group": "Ability Construction",
+      "guards": [
+        "packages/prowess-game/src/construction-legality-golden.test.ts",
+        "packages/prowess-game/src/construction-legality-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo5-static.test.ts",
+        "scripts/m5-wo5-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I157",
+      "title": "Casting Condition Capacity Comes From Arcane Rank Only: Untrained 0, Trained 1, Expert 2, Master 3, Under Either Authority",
+      "group": "Ability Construction",
+      "guards": [
+        "packages/prowess-game/src/construction-legality-golden.test.ts",
+        "packages/prowess-game/src/construction-legality-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo5-static.test.ts",
+        "scripts/m5-wo5-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I158",
+      "title": "Martial Trained Is The Maneuver Minimum; Martial Rank Is The Martial Skill Rank; Affinity Never Substitutes For Or Adds Maneuver Capacity",
+      "group": "Ability Construction",
+      "guards": [
+        "packages/prowess-game/src/construction-legality-golden.test.ts",
+        "packages/prowess-game/src/construction-legality-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo5-static.test.ts",
+        "scripts/m5-wo5-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I159",
+      "title": "Targeting Determines Range, Area, Target Count, Delivery, Origin And Placement; It Never Determines An Effect's Mechanical Outcome",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "packages/prowess-game/src/targeting-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I160",
+      "title": "Targeting Never Selects An Attack Roll, Saving Throw Or Save Stat; Resolution Belongs To Effects Even When A Targeting Type Has A Typical Delivery Family",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "packages/prowess-game/src/targeting-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ],
+      "status": "SUPERSEDED",
+      "supersededBy": "M5-I180"
+    },
+    {
+      "id": "M5-I161",
+      "title": "A Standard Ability Composition Has Exactly One Branch-Specific Targeting Definition, And A Standard Multi-Effect Spell Shares That Targeting Across All Effects Unless An Explicit Modifier Says Otherwise",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "packages/prowess-game/src/targeting-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I162",
+      "title": "SPELL_TARGETING And MANEUVER_TARGETING Remain Distinct Exact Definition Families Even When They Share The Same Semantic Geometry",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "packages/prowess-game/src/targeting-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I163",
+      "title": "Projectile Is A Canonical Spell Targeting Type Distinct From Single Target, While Its Base MP Cost Remains Deferred Until M5-SC-039 Is Resolved",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "packages/prowess-game/src/targeting-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ],
+      "status": "SUPERSEDED",
+      "supersededBy": "M5-I179"
+    },
+    {
+      "id": "M5-I164",
+      "title": "Trigger-Based And Glyph/Anchor Are Targeting Add-Ons, Not Canonical Base Spell Targeting Types",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "packages/prowess-game/src/targeting-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I165",
+      "title": "Default Spell Range Equals 15 Feet Times PER Unless An Exact Targeting Or Ability Rule Overrides It",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I166",
+      "title": "Spell Range And Spell Area Are Separate Mechanical Values And Must Never Be Collapsed Into One Distance",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I167",
+      "title": "Spell Line Length Equals 15 Feet Times PRO; The Ambiguous Base Line Width Rule Must Remain Deferred Until M5-SC-040 Is Resolved",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ],
+      "status": "SUPERSEDED",
+      "supersededBy": "M5-I183"
+    },
+    {
+      "id": "M5-I168",
+      "title": "Spell Cone Length Equals 10 Feet Times PRO",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I169",
+      "title": "Spell Radius, Zone Radius And Aura Radius Each Use Five Feet Times PRO Unless An Exact Rule Overrides Them",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I170",
+      "title": "The Superseded Plus-Three-MP Radius/Zone/Aura Expansion Rule Is Never Used; Widen Area Is A Targeting Trait Costing Six MP And Is Owned By The Trait Subsystem",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I171",
+      "title": "Targeting Compatibility Uses Exact Structured Identity Or Explicit Semantic Rules And Never Display-Name Or Prose Inference",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "packages/prowess-game/src/targeting-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I172",
+      "title": "Maneuver Targeting Conversion Is A Maneuver Effect And The Targeting Definition It References Does Not Duplicate The Effect's AP/MP Cost Or Save Profile",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "packages/prowess-game/src/targeting-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I173",
+      "title": "Canonical Maneuver Radius Equals Martial Rank Base Times STR, With Rank Bases Five, Ten And Fifteen Feet For Trained, Expert And Master",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I174",
+      "title": "The Superseded Fixed Strength-Band Maneuver Radius Table Is Never Executed",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I175",
+      "title": "Spell And Maneuver Targeting Geometry Formulas Compile Through M4 Formula Operations Rather Than Hidden Prowess Compiler Or UI Arithmetic",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "packages/prowess-game/src/targeting-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I176",
+      "title": "Targeting Definitions Preserve Exact EntityVersion, Ruleset, Composition And Formula Provenance",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I177",
+      "title": "WO6 Targeting Evaluation Does Not Calculate Final Spell Or Maneuver Cost And Does Not Perform Runtime Resource Payment",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I178",
+      "title": "Targeting Evaluation Is Deterministic, Immutable, JSON-Safe And Free Of Global Mutable Targeting State",
+      "group": "Targeting",
+      "guards": [
+        "packages/prowess-game/src/targeting-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "scripts/m5-wo6-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I179",
+      "title": "Projectile Targeting Has A Listed Base Cost Of Three MP And Uses The Caster Current Applicable Range",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I180",
+      "title": "Projectile Requires A Ranged Attack Roll For Delivery; This Delivery Check Is Distinct From The Effect Mechanical Outcome And Any Effect-Owned Saving Throw",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I181",
+      "title": "When A Projectile-Delivered Effect Uses Attack-Roll Resolution, The Projectile Delivery Attack Is The Effect Attack And Is Never Rolled Twice",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I182",
+      "title": "When A Projectile-Delivered Effect Uses Saving-Throw Resolution, Successful Projectile Delivery Occurs Before The Effect-Owned Saving Throw",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I183",
+      "title": "Canonical Spell Line Length Equals Ten Feet Times PRO",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I184",
+      "title": "Canonical Spell Line Width Equals Five Feet Times The Ceiling Of PRO Divided By Two",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I185",
+      "title": "Effects Define What An Ability Does While Targeting Defines Delivery And Geometry; Targeting Never Owns Effect Outcomes",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I186",
+      "title": "Saving Throw Identity And Save Profiles Are Effect-Owned Mechanics And Are Never Inferred From Targeting Geometry",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I187",
+      "title": "SPELL_EFFECT And MANEUVER_EFFECT Are Separate Exact Definition Families That Share A Structural Effect Contract But Are Never Interchangeable",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I188",
+      "title": "The Seven Canonical Top-Level Spell Effect Families Are Damage, Healing, Buff, Debuff, Control, Utility And Summoning",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I189",
+      "title": "Cleanse Is A Healing Subfamily And Movement Is A Utility Subfamily; Neither Is A Separate Top-Level Spell Effect Family",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I190",
+      "title": "Spell Interference Is A Utility Mechanic Rather Than A Top-Level Spell Effect Family",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I191",
+      "title": "An Executable Canonical Spell Effect Must Explicitly Define Its Resolution Mode And Mechanical Outcome Metadata",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I192",
+      "title": "A Maneuver Effect May Inherit The Maneuver Existing Resolution Only Through An Explicit Inherit-Ability Resolution Policy",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I193",
+      "title": "Effect Saving-Throw Resolution Carries An Exact Authored Save Profile Or Exact Save-Selection Rule",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I194",
+      "title": "Effect Targeting Compatibility Uses Exact Structured Identity Or Explicit Semantic Compatibility And Never Fuzzy Text Matching",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I195",
+      "title": "Damage And Healing Character Dice Limits Apply Per Effect And Normally Cannot Exceed The Caster PRO",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I196",
+      "title": "Effects Never Gain Secondary Mechanical Outcomes Merely From Flavor, Damage Type, Keywords Or Display Text",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I197",
+      "title": "Effect Scaling Is Available Only Through Explicit Structured Scaling Rules And Parameters",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I198",
+      "title": "Effect Listed AP And MP Contributions Are Construction Costs And Never Runtime Resource Payment",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I199",
+      "title": "Mana Efficiency Never Changes An Effect Listed MP Cost",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I200",
+      "title": "Effect Access And Prerequisites Reuse The Existing Structured Ability Construction Requirement System",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I201",
+      "title": "Effect Stackability And Stack Limits Reuse WO5 Explicit Definition-Owned Stack Contract",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I202",
+      "title": "Effect Duration Metadata Describes Compatibility And Defaults; The Ability Actual Duration Remains A Separate Component",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I203",
+      "title": "Maneuver Targeting Conversion Is Owned By MANEUVER_EFFECT Definitions That Carry The Conversion Cost, Save Profile And Destination Targeting Reference",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I204",
+      "title": "Maneuver Targeting Definitions Never Duplicate Conversion Effect Costs Or Save Profiles",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I205",
+      "title": "Elemental Damage Conversion Changes Damage Type Only And Never Applies Unauthored Secondary Conditions",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I206",
+      "title": "Maneuver Damage Normally Comes From Its Foundation Or Weapon Unless An Exact Maneuver Effect Explicitly Replaces That Source",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I207",
+      "title": "Spell And Maneuver Effect Cost Contributions Are Not Combined Into Final Ability Cost During WO7",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I208",
+      "title": "WO7 Does Not Execute Effect Chains, Runtime Damage, Healing, Conditions, Movement Or Resource Mutation",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I209",
+      "title": "Effect Definitions Preserve Exact EntityVersion, Ruleset, Compatibility, Access, Keyword And Cost Provenance",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I210",
+      "title": "Historical Effect Evaluation Never Resolves Through Latest Or Current Content",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I211",
+      "title": "Effect Validation And Compilation Use Existing M4 Formula, Requirement And Keyword Primitives Rather Than Reimplementing Generic Rule Evaluation",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I212",
+      "title": "Effect Evaluation Is Deterministic, Immutable, JSON-Safe And Free Of Global Mutable Effect State",
+      "group": "Effect Framework",
+      "status": "ACTIVE",
+      "guards": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts",
+        "scripts/m5-wo7-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I213",
+      "title": "Traits Are Exact Versioned Definitions With Explicit Shared Spell Or Maneuver Applicability",
+      "group": "Traits and authored abilities",
+      "guards": [
+        "packages/prowess-game/src/ability-definitions.test.ts",
+        "packages/prowess-game/src/ability-negative.test.ts",
+        "packages/prowess-game/src/ability-security.test.ts",
+        "packages/prowess-game/src/trait-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo8-static.test.ts",
+        "scripts/m5-wo8-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I214",
+      "title": "Trait Scope Selects The Ability An Effect Targeting Or A Resolution Explicitly",
+      "group": "Traits and authored abilities",
+      "guards": [
+        "packages/prowess-game/src/ability-definitions.test.ts",
+        "packages/prowess-game/src/ability-negative.test.ts",
+        "packages/prowess-game/src/ability-security.test.ts",
+        "packages/prowess-game/src/trait-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo8-static.test.ts",
+        "scripts/m5-wo8-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I215",
+      "title": "Trait Parameters Reuse Typed M5 Schemas And Reject Unknown Unsafe Or Invalid Selections",
+      "group": "Traits and authored abilities",
+      "guards": [
+        "packages/prowess-game/src/ability-definitions.test.ts",
+        "packages/prowess-game/src/ability-negative.test.ts",
+        "packages/prowess-game/src/ability-security.test.ts",
+        "packages/prowess-game/src/trait-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo8-static.test.ts",
+        "scripts/m5-wo8-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I216",
+      "title": "Trait Access Reuses Construction Requirements And Affinity Strength Keywords",
+      "group": "Traits and authored abilities",
+      "guards": [
+        "packages/prowess-game/src/ability-definitions.test.ts",
+        "packages/prowess-game/src/ability-negative.test.ts",
+        "packages/prowess-game/src/ability-security.test.ts",
+        "packages/prowess-game/src/trait-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo8-static.test.ts",
+        "scripts/m5-wo8-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I217",
+      "title": "Trait Modifications Cannot Smuggle Independent Effect Outcomes",
+      "group": "Traits and authored abilities",
+      "guards": [
+        "packages/prowess-game/src/ability-definitions.test.ts",
+        "packages/prowess-game/src/ability-negative.test.ts",
+        "packages/prowess-game/src/ability-security.test.ts",
+        "packages/prowess-game/src/trait-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo8-static.test.ts",
+        "scripts/m5-wo8-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I218",
+      "title": "Normal Spell Trait Capacity Preserves Approved Exchanges And Additional Affinity Capacity Is Separate",
+      "group": "Traits and authored abilities",
+      "guards": [
+        "packages/prowess-game/src/ability-definitions.test.ts",
+        "packages/prowess-game/src/ability-negative.test.ts",
+        "packages/prowess-game/src/ability-security.test.ts",
+        "packages/prowess-game/src/trait-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo8-static.test.ts",
+        "scripts/m5-wo8-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I219",
+      "title": "Authored Spells Preserve One Targeting Ordered Effects Explicit Authority And Structural Duration",
+      "group": "Traits and authored abilities",
+      "guards": [
+        "packages/prowess-game/src/ability-definitions.test.ts",
+        "packages/prowess-game/src/ability-negative.test.ts",
+        "packages/prowess-game/src/ability-security.test.ts",
+        "packages/prowess-game/src/trait-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo8-static.test.ts",
+        "scripts/m5-wo8-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I220",
+      "title": "Authored Maneuvers Inherit Attack Profiles And Check Every Committed Action",
+      "group": "Traits and authored abilities",
+      "guards": [
+        "packages/prowess-game/src/ability-definitions.test.ts",
+        "packages/prowess-game/src/ability-negative.test.ts",
+        "packages/prowess-game/src/ability-security.test.ts",
+        "packages/prowess-game/src/trait-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo8-static.test.ts",
+        "scripts/m5-wo8-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I221",
+      "title": "Maneuver Effects Retain Martial Capacity And Explicit Skill Requirements",
+      "group": "Traits and authored abilities",
+      "guards": [
+        "packages/prowess-game/src/ability-definitions.test.ts",
+        "packages/prowess-game/src/ability-negative.test.ts",
+        "packages/prowess-game/src/ability-security.test.ts",
+        "packages/prowess-game/src/trait-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo8-static.test.ts",
+        "scripts/m5-wo8-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I222",
+      "title": "Powerful Blow Is An Authored Action Group With Attached Effects Resolving Once",
+      "group": "Traits and authored abilities",
+      "guards": [
+        "packages/prowess-game/src/ability-definitions.test.ts",
+        "packages/prowess-game/src/ability-negative.test.ts",
+        "packages/prowess-game/src/ability-security.test.ts",
+        "packages/prowess-game/src/trait-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo8-static.test.ts",
+        "scripts/m5-wo8-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I223",
+      "title": "Authored Ability Plans And Inspector Sources Preserve Exact Ruleset And Historical Definition Pins",
+      "group": "Traits and authored abilities",
+      "guards": [
+        "packages/prowess-game/src/ability-definitions.test.ts",
+        "packages/prowess-game/src/ability-negative.test.ts",
+        "packages/prowess-game/src/ability-security.test.ts",
+        "packages/prowess-game/src/trait-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo8-static.test.ts",
+        "scripts/m5-wo8-negative-controls.mjs"
+      ]
+    },
+    {
+      "id": "M5-I224",
+      "title": "WO8 Is Deterministic Immutable JSON Safe And Does Not Execute Combat State",
+      "group": "Traits and authored abilities",
+      "guards": [
+        "packages/prowess-game/src/ability-definitions.test.ts",
+        "packages/prowess-game/src/ability-negative.test.ts",
+        "packages/prowess-game/src/ability-security.test.ts",
+        "packages/prowess-game/src/trait-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo8-static.test.ts",
+        "scripts/m5-wo8-negative-controls.mjs"
+      ]
+    }
+  ]
+}
