@@ -505,6 +505,8 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **notes**: M5-WO9 / M5-WO11.
 - **Rulings batch (post-WO4, resolves M5-SC-025)**: No total Maneuver Condition discount can exceed −3 AP (s2094 / s2095 / s2097 stand; s2020's −5 AP listing is
   superseded).
+- **M5-WO11 application**: final Maneuver cost consumes only WO9's effective (min(listed, 3)) Condition AP reduction; the
+  −5 AP Once per Mission listing remains deferred (M5-SC-044) and never executes.
 
 
 ### M5-SC-026 — Weapon attack AP: by category or by move
@@ -523,6 +525,8 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **Rulings batch (post-WO4, resolves M5-SC-026)**: AP is set by the ATTACK's category, not the weapon's. Light, Balanced and Heavy weapons each have attacks and moves,
   and each attack belongs to a category: a Heavy weapon may have a Balanced attack; a Balanced weapon may have a Light
   and a Heavy attack.
+- **M5-WO11 application**: each Attack is an exact foundation Definition that authors its own AP; WO11 consumes that exact
+  value per Attack use and never prices an Attack from its weapon, category label or display name.
 
 
 ### M5-SC-027 — Reload AP
@@ -918,3 +922,21 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   shortcut; the Signature slot state never changes cost. A future structured percentage modifier would join the single net
   percentage.
 
+
+### M5-SC-048 — Elemental Damage Conversion MP Cost And Its Relevant-Affinity Reduction Are Not Exactly Structured
+
+- **conflictKey**: `M5-SC-048`
+- **systemFamily**: `MANEUVER`
+- **source A**: Core Playtest Packet V0.1 §10 Elemental Damage Conversion (s2012–s2017): "+5 MP, reduced by relevant Affinity
+  Rank" — None 5 MP · Trained −1 → 4 · Expert −2 → 3 · Master −3 → 2, minimum 2 MP; the relevant Affinities depend on the
+  chosen element (e.g. Fire → Emission, Transmutation; Metal → Transmutation, Enhancement).
+- **source B**: the permanent M5-WO7 canonical Definition `maneuver.effect.elemental_damage_conversion` lists one FIXED
+  +4 MP with no Affinity rule; the element → relevant-Affinity table names an Affinity ("Emission") that the current
+  Affinity catalog does not contain.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none.
+- **mechanical consequence**: recorded by M5-WO11. The Ruleset's Maneuver cost policy lists the canonical Definition as an
+  unresolved component cost, so a Maneuver using it fails closed with `PROWESS_MANEUVER_COST.UNRESOLVED_CONTRIBUTION`
+  instead of consuming 4 MP or inventing an element → Affinity mapping. WO11 adds the generic, exact structured
+  Effect-specific rule (`affinityReduction`: exact relevant Affinities, per-rank flat reductions, component minimum) that a
+  future authored version of this Effect can use; WO7's listed value is not changed here.

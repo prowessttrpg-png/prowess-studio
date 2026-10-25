@@ -1,0 +1,63 @@
+name: M5-WO11 audit — Final Maneuver Cost & Attack Floors
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  m5-wo11:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Create test database and deploy migrations
+        env:
+          PGPASSWORD: postgres
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+        run: |
+          psql -h localhost -U postgres -d postgres -c "CREATE DATABASE prowess_studio_test;"
+          pnpm run db:generate
+          pnpm run db:migrate:deploy
+      # Same package set as the permanent CI "Build workspace packages" step: the Studio Next.js app is not built here
+      # (its production build needs the full runtime environment and is covered by permanent CI).
+      - name: Build workspace packages
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+      - name: M5-WO11 audit — Final Maneuver Cost & Attack Floors
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+          APP_URL: http://127.0.0.1:3100
+          LOG_LEVEL: warn
+          DEVELOPMENT_MODE: "false"
+        run: |
+          node --input-type=module -e 'await import("./packages/prowess-game/dist/index.js")'
+          pnpm --filter "@prowess/game" exec vitest run src/maneuver-cost-golden.test.ts src/maneuver-cost-contracts.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo11-static.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo11-inspector-fixture.test.ts
+          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-maneuver-cost-history.test.ts
+          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo11-maneuver-cost-api.test.ts
+          node scripts/m5-wo11-negative-controls.mjs

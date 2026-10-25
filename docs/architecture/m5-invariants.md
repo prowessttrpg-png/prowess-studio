@@ -1578,3 +1578,203 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 - **Group:** Final Spell Cost
 - **Meaning:** A non-empty additional Affinity Trait allocation still fails closed through WO8.
 - **Guards:** `packages/prowess-game/src/spell-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo10-static.test.ts`, `scripts/m5-wo10-negative-controls.mjs`
+
+## M5-WO11 — Final Maneuver Cost, Attack Floors & Signature Reduction
+
+### M5-I261 — Final Maneuver Cost Is Derived Only From Exact Authored Actions, Effects, Conditions And Authorized Structured Cost Rules
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Every AP and MP contribution comes from an exact authored action use, Effect instance, Trait, Duration or WO9 Condition and the Ruleset's own Maneuver cost policy; an unpriced foundation, an unresolved conflict or an unauthored operation fails closed.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `packages/prowess-game/src/maneuver-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I262 — Base AP Is Calculated Before Conditions, Signature And Temporary Discounts
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Base AP is its own M4 step, preserved in the result separately from every later reduction.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I263 — Base AP Includes Every Exact AP-Costing Foundation, Action, Powerful Blow Attack Contribution, Maneuver Effect And Added AP Commitment
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Every authored action use contributes its exact AP once, Powerful Blow constituents included, plus Effect, Trait, Duration and AP-commitment contributions.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I264 — Base MP Is The Sum Of Exact Mana-Bearing Maneuver Component Contributions And Is Never Derived From AP
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Base MP is an independent M4 sum of MP contributions; there is no MP ÷ PRO, no AP-to-MP exchange rate and no implicit MP.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I265 — AP-Or-MP Cost Options Require An Explicit Authored Choice And Are Never Auto-Selected
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** An option keyed by a TOKEN with both currencies requires an explicit authored selection; only the selected amounts apply.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `packages/prowess-game/src/maneuver-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I266 — AND Cost Options Apply Every Required Currency
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** A component listing AP and MP contributes both.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I267 — WO11 Consumes WO9's Effective Maneuver Condition AP Reduction And Never Exceeds The Canonical Three-AP Condition Cap
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Condition AP reductions are bound only from WO9's effective (min(listed, 3)) step; raw listed totals and rank caps are never consumed.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I268 — Maneuver Condition MP Reductions Use Only Explicitly Selected Structured Contributions
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Only the WO9-selected MP option of an AP-or-MP Condition reduces MP; the alternative never applies too.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I269 — Final Maneuver MP Cannot Become Negative
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** The final MP step ends with MAX 0.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I270 — Normal Condition Reductions Cannot Reduce AP Below The Number Of Separate Attack Resolutions
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Post-Condition AP is MAX(Condition-reduced AP, max(1, separate attack resolutions)).
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I271 — Powerful Blow's Internal Combined Attacks Contribute Their Full Base AP But Count As One Attack Resolution For The Condition Attack Floor
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** A Powerful Blow group adds every constituent Attack's AP and counts as one resolution.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I272 — Non-Attack Maneuvers Retain The Universal One-AP Minimum
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** A Maneuver with zero attack resolutions still has a floor and a final minimum of 1 AP.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I273 — Signature Maneuver Reduces Post-Condition AP By Exactly One And Does Not Count As A Maneuver Condition
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Signature is an explicit assignment verified against a WO5 Signature slot; it is phase 1 of the final AP step, outside the Condition cap and capacity.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `packages/prowess-game/src/maneuver-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I274 — Signature Maneuver May Bypass The Separate-Attack Condition Floor But Cannot Reduce Final AP Below One
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Signature applies after the attack floor; the final AP step ends with MAX 1.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I275 — Signature Maneuver Never Reduces MP Unless An Explicit Future Rule Says Otherwise
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** The Signature modifier targets AP only.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I276 — Three AP Is Not A Maneuver Cost Cap
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** No maximum AP exists; high-AP Maneuvers are reported, never rejected for exceeding 3 AP.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `packages/prowess-game/src/maneuver-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I277 — WO11 Does Not Spend AP Or MP
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** The cost plan has no RESOURCE step and no persistence; DB and API tests fingerprint every table.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-contracts.test.ts`, `packages/prowess-db/tests/integration/prowess-maneuver-cost-history.test.ts`, `apps/studio/tests/integration/m5-wo11-maneuver-cost-api.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I278 — WO11 Does Not Execute Maneuver Effects, Damage, Movement Or Encounter State
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** No attack roll, Save, damage, movement, Effect Chain, Sustain or Concentration is executed.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I279 — Final Maneuver Cost Preserves Exact Ruleset And Source Provenance
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Every contribution names its exact component use, Definition, EntityVersion, Ruleset and source-map step.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `packages/prowess-game/src/maneuver-cost-contracts.test.ts`, `packages/prowess-db/tests/integration/prowess-maneuver-cost-history.test.ts`, `apps/studio/tests/integration/m5-wo11-maneuver-cost-api.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I280 — Final Maneuver Cost Is Historically Reproducible, Deterministic, Immutable And JSON-Safe
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** R1 keeps its component versions after R2; equal requests give deep-equal frozen outputs that replay through M4 after a JSON round trip.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-contracts.test.ts`, `packages/prowess-db/tests/integration/prowess-maneuver-cost-history.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I281 — Existing Unresolved Conflicts Remain Unresolved
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** M5-SC-042, M5-SC-044, M5-SC-046 and M5-SC-047 are unchanged; M5-SC-048 is recorded and fails closed.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I282 — Every Maneuver Attack Is An Exact Existing Attack The Character Can Perform
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Each Attack use resolves to an exact foundation Definition in the exact Ruleset; capability to perform it is exported as an inherited requirement contract, never invented.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I283 — Selecting A Weapon-Based Attack Automatically Carries Its Weapon Performance Requirement Into The Maneuver
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Every Attack resolution group carries the Attack's weapon requirement.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I284 — Inherited Attack Weapon Requirements Grant No Maneuver Condition Discount And Consume No Condition Capacity
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Inherited requirements are structural metadata: no AP/MP reduction, no Condition slot, outside the 3 AP cap.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I285 — A Maneuver Cannot Gain A Discount By Restating An Attack Requirement It Already Inherently Possesses
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** A Condition whose restriction is inherent to the selected Attack (Weapon Lock) is refused.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I286 — Attack-Scoped Effects And Traits Apply Only To Their Explicitly Attached Attack Or Powerful Blow Resolution
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** An Effect attaches to exactly one resolution group; Effect-scoped Traits follow it; nothing is broadcast.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `packages/prowess-game/src/maneuver-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I287 — Different Attacks Within One Maneuver Maintain Independent Effect And Trait Attachment Sets
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Each resolution group lists only its own Effects and Traits.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I288 — Repeated Uses Of The Same Attack Remain Distinct Attack Resolutions Unless Explicitly Combined By Powerful Blow
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Two uses of one Attack Definition are two contributions and two resolutions without Powerful Blow.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `packages/prowess-game/src/maneuver-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I289 — Powerful Blow Combines Compatible Uses Of The Same Attack Type Into One Resolution While Paying The Full Sum Of Their Attack Costs
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** A Powerful Blow group is one resolution whose constituents each contribute their full AP.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I290 — Powerful Blow Cannot Combine Different Attack Types Into One Resolution
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Powerful Blow members must be the same exact Attack Definition and attacks only.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I291 — Effects And Traits Attached To A Powerful Blow Apply Once To The Combined Attack Resolution Unless Their Exact Rule Says Otherwise
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** An Effect attached to a Powerful Blow names the whole group and resolves once.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I292 — Powerful Blow Constituent Attacks Count Toward Base AP But The Powerful Blow Counts As One Attack Resolution For The Condition Attack Floor
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** Constituent AP is in Base AP; the floor counts the group once.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`
+
+### M5-I293 — Maneuver Effect Cost Is Based On Authored Effect Instances And Is Never Automatically Multiplied Across Unrelated Attacks
+
+- **Group:** Final Maneuver Cost
+- **Meaning:** An Effect instance is counted once however many compiled views contain it.
+- **Guards:** `packages/prowess-game/src/maneuver-cost-golden.test.ts`, `packages/prowess-game/src/maneuver-cost-contracts.test.ts`, `apps/studio/tests/unit/m5-wo11-static.test.ts`, `scripts/m5-wo11-negative-controls.mjs`

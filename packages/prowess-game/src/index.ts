@@ -499,7 +499,7 @@ export { compileEffectUse, validateEffectUse, readEffectRun, type EffectCharacte
 
 // M5-WO8: typed Traits and exact authored Spell/Maneuver Definition compilation.
 export { TRAIT_FAMILIES, TRAIT_MODIFICATIONS, TRAIT_ERROR_CODES, readTraitRules, readTraitCosts, type TraitRules, type TraitFamily, type TraitModification, type TraitSelectedModification } from "./definition/trait-payload.js";
-export { AUTHORED_ABILITY_ERROR_CODES, validateAuthoredAbilityDefinition, serializeAuthoredAbilityDefinition, deserializeAuthoredAbilityDefinition, type SpellDefinitionPayload, type ManeuverDefinitionPayload, type AuthoredAbilityPayload, type AttackFoundationProfile } from "./definition/authored-ability-payload.js";
+export { AUTHORED_ABILITY_ERROR_CODES, validateAuthoredAbilityDefinition, serializeAuthoredAbilityDefinition, deserializeAuthoredAbilityDefinition, type SpellDefinitionPayload, type ManeuverDefinitionPayload, type AuthoredAbilityPayload, type AttackFoundationProfile, type ActionFoundationProfile, type FoundationProfile, isAttackFoundation } from "./definition/authored-ability-payload.js";
 export { compileAbilityDefinition, readAbilityDefinitionRun, evaluateAbilityDefinition, type AbilityDefinitionRequest, type ProwessAbilityDefinitionCompiledPlan, type AuthoredAbilityResult, type CompiledTrait } from "./ability/compile.js";
 
 // M5-WO9: typed Duration and construction Conditions, consumed through compileAbilityDefinition.
@@ -510,3 +510,9 @@ export type { CompiledDurationConditions, DurationConditionResult } from "./abil
 // M5-WO10: final Spell cost, percentage netting and AP derivation — composes with compileAbilityDefinition.
 export { SPELL_COST_ERROR_CODES, compileSpellCost, readSpellCostRun, evaluateSpellCost, type ProwessSpellCostCompiledPlan, type SpellCostResult, type SpellCostContributionPlan, type SpellCostPercentPlan, type SpellCostSource, type SpellCostOperation } from "./ability/spell-cost.js";
 export { SPELL_COST_POLICY } from "./content/core-playtest-v0.1/spell-cost.js";
+
+// M5-WO11: final Maneuver cost, attack floors and Signature reduction — composes with compileAbilityDefinition.
+export { MANEUVER_COST_ERROR_CODES, compileManeuverCost, readManeuverCostRun, evaluateManeuverCost, type ProwessManeuverCostCompiledPlan, type ManeuverCostResult, type ManeuverCostContributionPlan, type ManeuverCostOption, type ManeuverResolutionGroup, type ManeuverStructure, type ManeuverCostSource, type ManeuverCurrency } from "./ability/maneuver-cost.js";
+export { MANEUVER_COST_POLICY, MANEUVER_COST_CONTENT } from "./content/core-playtest-v0.1/maneuver-cost.js";
+export { type ManeuverCostPolicy } from "./definition/maneuver-cost-policy.js";
+export { type EffectAffinityReduction } from "./definition/effect-payload.js";

@@ -131,9 +131,9 @@ describe("M5-WO10 audit — Final Spell Cost & AP Derivation", () => {
 
   it("invariants M5-I243–I260 exist once, keep history, and are guarded by executing tests that cite them", () => {
     const inv = JSON.parse(read("docs/architecture/m5-invariants.json")) as { id: string; title: string; guards: string[]; status?: string }[];
-    expect(inv.map((x) => x.id)).toEqual(Array.from({ length: 260 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
+    expect(inv.slice(0, 260).map((x) => x.id)).toEqual(Array.from({ length: 260 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`)); // M5-WO11 appends M5-I261+ (its own gate checks the full sequence)
     const self = read("apps/studio/tests/unit/m5-wo10-static.test.ts"), md = read("docs/architecture/m5-invariants.md");
-    for (const row of inv.slice(242)) {
+    for (const row of inv.slice(242, 260)) {
       expect(row.status ?? "ACTIVE").toBe("ACTIVE");
       expect(row.guards).toEqual(expect.arrayContaining(["apps/studio/tests/unit/m5-wo10-static.test.ts", "scripts/m5-wo10-negative-controls.mjs"]));
       for (const g of row.guards) {

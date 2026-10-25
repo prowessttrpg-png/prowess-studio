@@ -39,6 +39,8 @@ const hash = (s: string | Buffer) => createHash("sha256").update(s).digest("hex"
 
 const GAME = production("packages/prowess-game/src");
 const WO2_LATER_MILESTONE_CONTENT = new Set([
+  // WO11 content owns the final Maneuver AP / MP Formulas, covered by its permanent goldens and architecture audit.
+  "packages/prowess-game/src/content/core-playtest-v0.1/maneuver-cost.ts",
   // WO10 content owns the final Spell MP / AP Formulas, covered by its permanent goldens and architecture audit.
   "packages/prowess-game/src/content/core-playtest-v0.1/spell-cost.ts",
   // WO9 content owns listed contribution/cap Formulas, covered by its permanent content and architecture audit.

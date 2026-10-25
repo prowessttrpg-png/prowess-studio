@@ -4,7 +4,7 @@ import { createRulesetContext, orchestrateRulesEvaluation, type EvaluationPlan, 
 import { createProwessDefinitionBundle, findBundleDefinition, type ProwessRulesetProvenance } from "../bundle/bundle.js";
 import { readDefinitionRef, definitionRefOf, isSameExactDefinition, type ProwessDefinitionRef } from "../definition/envelope.js";
 import { readComponentConstructionRules } from "../definition/ability-construction-payload.js";
-import { readAttackFoundationProfile, AUTHORED_ABILITY_ERROR_CODES as A, type AuthoredAbilityPayload, type AttackFoundationProfile, type ManeuverDefinitionPayload, type SpellDefinitionPayload } from "../definition/authored-ability-payload.js";
+import { readFoundationProfile, isAttackFoundation, AUTHORED_ABILITY_ERROR_CODES as A, type AuthoredAbilityPayload, type FoundationProfile, type ManeuverDefinitionPayload, type SpellDefinitionPayload } from "../definition/authored-ability-payload.js";
 import { readTraitRules, readTraitCosts, TRAIT_ERROR_CODES as T, type TraitSelectedModification, type TraitRules } from "../definition/trait-payload.js";
 import type { TraitDefinitionPayload, EffectDefinitionPayload, FoundationDefinitionPayload, DurationDefinitionPayload } from "../definition/payload.js";
 import { compileAbilityConstruction, readAbilityConstructionRun, type AbilityConstructionRequest, type AbilityConstructionResult, type ProwessConstructionCompiledPlan } from "../construction/legality.js";
@@ -48,7 +48,7 @@ export interface ProwessAbilityDefinitionCompiledPlan {
   readonly effects: readonly EffectCompilation[];
   readonly traits: readonly CompiledTrait[];
   readonly rules: readonly { readonly ruleKey: string; readonly stepKey: string; readonly code: string }[];
-  readonly actions: readonly { readonly componentKey: string; readonly definition: ProwessDefinitionRef; readonly profile: AttackFoundationProfile }[];
+  readonly actions: readonly { readonly componentKey: string; readonly definition: ProwessDefinitionRef; readonly profile: FoundationProfile }[];
   readonly targetingChanges: readonly { readonly actionKey: string | null; readonly measure: string; readonly stepKey: string; readonly definitions: readonly ProwessDefinitionRef[] }[];
   readonly actionConstruction: readonly ProwessConstructionCompiledPlan[];
   readonly explanationStepKey: string;
@@ -95,14 +95,30 @@ export function compileAbilityDefinition(request: unknown): ProwessOutcome<Prowe
   const constructionOptions = spellData?.constructionOptions ?? { effectSlotsTradedForTraits: 0 };
   if (own(r, "constructionOptions") !== undefined && JSON.stringify(clonePlainData(own(r, "constructionOptions"))) !== JSON.stringify(clonePlainData(constructionOptions))) p.add(A.INVALID, ["constructionOptions"], "validation cannot override the authored Effect-slot exchange selection");
   const man = spell ? null : authored as ManeuverDefinitionPayload;
-  const actions: { componentKey: string; definition: ProwessDefinitionRef; profile: AttackFoundationProfile }[] = [];
+  const actions: { componentKey: string; definition: ProwessDefinitionRef; profile: FoundationProfile }[] = [];
   if (man) for (const action of man.actions) {
     const definition = findBundleDefinition(bundle, action.definition);
     if (!definition || definition.definitionKind !== "MANEUVER_FOUNDATION") { p.add(A.FOUNDATION, ["actions", action.componentKey], "foundation must resolve in this exact Ruleset"); continue; }
     if (Object.keys(action.parameters).length) p.add(A.FOUNDATION, ["actions", action.componentKey, "parameters"], "foundation profile is inherited; no arbitrary attack override parameters");
     const payload = definition.payload as unknown as FoundationDefinitionPayload;
-    const profile = readAttackFoundationProfile(payload.rules.attack, ["actions", action.componentKey, "profile"], p);
+    const profile = readFoundationProfile(payload.rules as Record<string, unknown>, ["actions", action.componentKey, "profile"], p);
     if (profile) actions.push({ componentKey: action.componentKey, definition: action.definition, profile });
+  }
+  if (man) {
+    // M5-WO11 attachment graph: each committed Attack is its own resolution unless explicitly combined by Powerful Blow,
+    // which combines only repeated uses of ONE exact Attack (never different Attacks, never non-attack actions).
+    const pb = man.powerfulBlow;
+    if (pb) {
+      const members = actions.filter(a => pb.actionKeys.includes(a.componentKey));
+      if (members.some(a => !isAttackFoundation(a.profile)) || members.some(a => !isSameExactDefinition(a.definition, members[0]!.definition))) p.add(A.FOUNDATION, ["powerfulBlow"], "Powerful Blow combines compatible uses of the same exact Attack only");
+    }
+    const groups = actions.map(a => pb?.actionKeys.includes(a.componentKey) ? pb.actionKeys.slice().sort().join() : a.componentKey);
+    for (const attachment of man.effectAttachments) {
+      const touched = new Set(attachment.actionKeys.map(k => groups[actions.findIndex(a => a.componentKey === k)]));
+      const group = [...touched][0];
+      const exact = touched.size === 1 && (group === undefined || !pb || group !== pb.actionKeys.slice().sort().join() || attachment.actionKeys.length === pb.actionKeys.length);
+      if (!exact) p.add(A.FOUNDATION, ["effectAttachments", attachment.effectKey], "an attack-scoped Effect attaches to exactly one resolution: one Attack use or one whole Powerful Blow; it is never broadcast");
+    }
   }
   if (p.count) return finish(p, () => null as never);
   const firstAction = actions[0];
@@ -203,7 +219,7 @@ export function compileAbilityDefinition(request: unknown): ProwessOutcome<Prowe
       const selected = changes.filter(m => m.modification.kind === "TARGETING_MEASURE" && m.modification.measure === measure);
       if (!selected.length) continue;
       const baseStep = measure === "RANGE" ? target.outputs.range.stepKey : target.outputs.measures.find(m => m.measure === measure)?.stepKey;
-      const fixedBase = action && measure === "RANGE" ? action.profile.range.feet : null;
+      const fixedBase = action && measure === "RANGE" && action.profile.range !== null ? action.profile.range.feet : null;
       if ((!baseStep && fixedBase === null) || (measure === "RADIUS" && !target.outputs.radiusCapable)) { p.add(T.INCOMPATIBLE, ["targeting", measure], "Trait requires an explicit supported numeric inherited measure"); continue; }
       const key = `trait.targeting.${action?.componentKey ?? "spell"}.${measure}`;
       const targetKey = { RADIUS: "targeting.radius", RANGE: "targeting.range", LENGTH: "targeting.length", WIDTH: "targeting.width" }[measure];
