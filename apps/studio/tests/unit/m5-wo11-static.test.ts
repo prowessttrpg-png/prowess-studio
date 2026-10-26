@@ -157,9 +157,9 @@ describe("M5-WO11 audit — Final Maneuver Cost & Attack Floors", () => {
 
   it("invariants M5-I261–I293 exist once after WO10's, keep history, and are guarded by executing tests that cite them", () => {
     const inv = JSON.parse(read("docs/architecture/m5-invariants.json")) as { id: string; title: string; group: string; guards: string[]; status?: string }[];
-    expect(inv.map((x) => x.id)).toEqual(Array.from({ length: 293 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
+    expect(inv.slice(0, 293).map((x) => x.id)).toEqual(Array.from({ length: 293 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`)); // M5-WO12 appends M5-I294+ (its own gate checks the full sequence)
     const self = read("apps/studio/tests/unit/m5-wo11-static.test.ts"), md = read("docs/architecture/m5-invariants.md");
-    for (const row of inv.slice(260)) {
+    for (const row of inv.slice(260, 293)) {
       expect([row.status ?? "ACTIVE", row.group]).toEqual(["ACTIVE", "Final Maneuver Cost"]);
       expect(row.guards).toEqual(expect.arrayContaining(["apps/studio/tests/unit/m5-wo11-static.test.ts", "scripts/m5-wo11-negative-controls.mjs"]));
       for (const g of row.guards) {

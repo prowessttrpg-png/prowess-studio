@@ -516,3 +516,9 @@ export { MANEUVER_COST_ERROR_CODES, compileManeuverCost, readManeuverCostRun, ev
 export { MANEUVER_COST_POLICY, MANEUVER_COST_CONTENT } from "./content/core-playtest-v0.1/maneuver-cost.js";
 export { type ManeuverCostPolicy } from "./definition/maneuver-cost-policy.js";
 export { type EffectAffinityReduction } from "./definition/effect-payload.js";
+
+// M5-WO12: Effect Chain execution and runtime resolution routing — composes with compileAbilityDefinition and WO2 cores.
+export { EFFECT_EXECUTION_ERROR_CODES, compileAbilityExecution, executeAbilityResolution, type ProwessAbilityExecutionPlan, type AbilityExecutionResult, type ExecutionChainNode, type ExecutionGroup, type ExecutionEffect, type ExecutionInputRequest, type ExecutionInputKind, type ExecutionRequestKind, type ExecutionNodeStatus, type ExecutionTermination, type ExecutionResolution, type ResolvedOutcome, type SpellTargetTrace, type GroupTargetTrace, type CoreEvaluationRecord, type TriggerEvaluationRecord, type SaveFlow } from "./ability/effect-execution.js";
+export { EFFECT_CHAIN_BEHAVIORS, EFFECT_CHAIN_FAILURE_POLICIES, readEffectChain, type EffectChainBehavior, type EffectChainNode, type EffectChainPayload } from "./definition/effect-chain-payload.js";
+export { MARTIAL_SAVE_CONTROLS, type EffectExecutionPolicy, type MartialSaveControl } from "./definition/effect-execution-policy.js";
+export { EFFECT_EXECUTION_POLICY, EFFECT_EXECUTION_CONTENT } from "./content/core-playtest-v0.1/effect-execution.js";

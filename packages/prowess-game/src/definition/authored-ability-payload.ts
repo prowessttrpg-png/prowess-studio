@@ -2,6 +2,7 @@ import type { JsonObject } from "@prowess/model";
 import { clonePlainData, deepFreeze, isPlainObject, type PathSegment } from "../internal/plain-data.js";
 import { Problems, checkPlainData, finish, isExactLabel, own, readEnum, readRecord, readSafeInteger, type ProwessOutcome } from "../internal/problems.js";
 import { readDefinitionRef } from "./envelope.js";
+import { readEffectChain } from "./effect-chain-payload.js";
 import { validateAbilityComposition, type ComponentUse, type OrderedComponentUse, type SpellComposition, type TraitUse, type ManeuverComposition } from "../construction/composition.js";
 import { TRAIT_SCOPES, type TraitScope } from "../vocabulary/construction.js";
 import { PROWESS_STATS, type ProwessStat } from "../vocabulary/core.js";
@@ -96,10 +97,7 @@ export function readAuthoredAbilityPayload(kind: "SPELL_DEFINITION" | "MANEUVER_
       const authority = c.value.authority;
       if (!authority || Object.keys(authority).join() !== "authority" || !["ARCANE_AUTHORITY", "AFFINITY_AUTHORITY"].includes(String(authority.authority))) p.add(E, [...at, "composition", "authority"], "one explicit Spell authority is required");
       if (c.value.branch.kind === "SPELL" && (c.value.branch.sustain !== null || c.value.branch.concentration !== null || Object.keys(c.value.branch.data).length)) p.add(E, at, "runtime Sustain/Concentration and executable branch data are not WO8 authored configuration");
-      if (c.value.branch.kind === "SPELL" && c.value.branch.effectChain !== null) {
-        const chain = readRecord(c.value.branch.effectChain, [...at, "composition", "branch", "effectChain"], p, E, ["failurePolicy"], ["failurePolicy"]);
-        if (chain) readEnum(chain.failurePolicy, ["STOP", "CONTINUE"] as const, at, p, E, "structural failure policy");
-      }
+      if (c.value.branch.kind === "SPELL" && c.value.branch.effectChain !== null) readEffectChain(c.value.branch.effectChain, c.value.effects, [...at, "composition", "branch", "effectChain"], p);
     }
     const options = own(r, "constructionOptions");
     const selected = options === undefined ? { effectSlotsTradedForTraits: 0 } : readRecord(options, [...at, "constructionOptions"], p, E, ["effectSlotsTradedForTraits"], ["effectSlotsTradedForTraits"]);

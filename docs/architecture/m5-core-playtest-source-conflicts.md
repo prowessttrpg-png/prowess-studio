@@ -299,6 +299,9 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   Example: a first Effect "Agility Saving Throw against affected targets; on failure they receive ___" — every Effect
   after it happens only if the target failed that first Save. Traits and Metamagic Effects can alter this later
   (e.g. Continue / Branch behaviours).
+- **M5-WO12 application**: an Effect with no listed Chain Behavior runs SUCCESS_ONLY (the Ruleset's execution policy
+  `defaultChainBehavior`); an authored `effectChain` lists per-Effect behaviors, branches and structured triggers, and its
+  WO8 `failurePolicy` (STOP / CONTINUE) is the chain default for unlisted Effects.
 
 
 ### M5-SC-015 — Maneuver AoE: Targeting Conversion as an Effect that carries a Save profile
@@ -940,3 +943,46 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
   instead of consuming 4 MP or inventing an element → Affinity mapping. WO11 adds the generic, exact structured
   Effect-specific rule (`affinityReduction`: exact relevant Affinities, per-rank flat reductions, component minimum) that a
   future authored version of this Effect can use; WO7's listed value is not changed here.
+
+### M5-SC-049 — Trait TRIGGER Modifications Have No Executable Effect Chain Semantics
+
+- **conflictKey**: `M5-SC-049`
+- **systemFamily**: `SPELL`
+- **source A**: the Core Playtest Spell Trait text ("a Trait may … add a trigger"); WO8 accepts an exact Trait modification
+  `{ kind: "TRIGGER", event: "ON_HIT" | "ON_MISS" | "ON_DELIVERY" | "ON_ENTRY" }`.
+- **source B**: no rule says what the event is relative to (which Attack, which delivery, which zone entry), whether it
+  gates the Effect like an Effect Chain trigger or activates the Spell (a Trigger-Based add-on, M5-SC-029), or how it
+  combines with the Effect's own Chain Behavior.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none.
+- **mechanical consequence**: recorded by M5-WO12. An Effect modified by a TRIGGER Trait is refused for execution with
+  `PROWESS_EXECUTION.UNRESOLVED_RUNTIME_RULE`; the structured Effect Chain `trigger` (an M4 requirement over chain-local
+  facts) is unaffected.
+
+### M5-SC-050 — Save Profiles Without An Executable Runtime Selection
+
+- **conflictKey**: `M5-SC-050`
+- **systemFamily**: `SPELL`
+- **source A**: WO7 Save Profiles declare `CONSTRUCTION_CHOICE` (e.g. canonical Bind: STR or PRO; Dispel: PRO or RES).
+- **source B**: no authored field records the construction-time choice, so the Save to roll is not determined at runtime;
+  a `MARTIAL_CONTROL` profile on a Spell, or Martial control without an exact Martial rank, has no rule either.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none.
+- **mechanical consequence**: recorded by M5-WO12. Execution of such an Effect fails closed with
+  `PROWESS_EXECUTION.UNRESOLVED_RUNTIME_RULE`; a one-Save profile, `FIXED`, `TARGET_CHOICE` (defender input) and Maneuver
+  `MARTIAL_CONTROL` (Trained / Expert / Master inputs) execute.
+
+### M5-SC-051 — Maneuver Effect Resolution Combinations Without Authored Routing
+
+- **conflictKey**: `M5-SC-051`
+- **systemFamily**: `MANEUVER`
+- **source A**: Maneuver Effects either inherit the Attack's resolution, use the foundation Attack (`FOUNDATION_ATTACK`),
+  or replace the Attack Roll with a Save Profile (Save-Based Maneuvers).
+- **source B**: no rule orders two resolution-replacing Effects on one Attack, says whether an Automatic Effect attached
+  to an Attack depends on the hit, says what an inherited-resolution Effect on a non-attack action inherits, or routes an
+  own Attack Roll that is not the foundation Attack.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none.
+- **mechanical consequence**: recorded by M5-WO12. Those combinations fail closed with
+  `PROWESS_EXECUTION.UNRESOLVED_RUNTIME_RULE`; inherited Effects, foundation-Attack Effects, one replacing Martial Save
+  and Automatic Effects on non-attack actions execute.
