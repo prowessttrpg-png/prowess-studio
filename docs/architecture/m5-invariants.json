@@ -3059,5 +3059,232 @@
       "apps/studio/tests/unit/m5-wo11-static.test.ts",
       "scripts/m5-wo11-negative-controls.mjs"
     ]
+  },
+  {
+    "id": "M5-I294",
+    "title": "Effect Chain Execution Uses Exact Authored Effect Uses And Never Display Names",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I295",
+    "title": "Spell Effects Resolve In Authored Order Subject To Explicit Trigger And Transition Rules",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I296",
+    "title": "The Only Canonical Spell Chain Behaviors Are Continue, Success Only, Failure Only, Stop And Branch",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I297",
+    "title": "Continue Proceeds Regardless Of Effect Success Or Failure",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I298",
+    "title": "Success Only Terminates On Effect Failure",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I299",
+    "title": "Failure Only Terminates On Effect Success",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I300",
+    "title": "Stop Terminates After The Current Effect Outcome",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I301",
+    "title": "Branch Selects Exactly One Authored Result Path Unless An Exact Future Rule Authorizes Fan-Out",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I302",
+    "title": "Effect Chain Graphs Are Acyclic Unless An Exact Future Rule Authorizes Bounded Repetition",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I303",
+    "title": "A False Trigger Produces NOT_TRIGGERED Rather Than Effect Success Or Effect Failure",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "packages/prowess-game/src/effect-execution-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I304",
+    "title": "Effect Success Normalizes Attack Hit, Target Save Failure And Satisfied Automatic Resolution",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I305",
+    "title": "Effect Failure Normalizes Attack Miss, Target Save Success And Unsatisfied Automatic Resolution",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I306",
+    "title": "Runtime Resolution Inputs Are Explicit And Deterministic; WO12 Has No Internal Random Number Generator",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "packages/prowess-game/src/effect-execution-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I307",
+    "title": "Multi-Target Spell Chains Maintain Independent Per-Target Execution State",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I308",
+    "title": "Projectile Delivery And Effect Resolution Remain Distinct, And Projectile Attack Effects Reuse The Delivery Roll",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I309",
+    "title": "Maneuver Effects Remain Bound To Their Exact Attack Or Powerful Blow Resolution Group",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "packages/prowess-game/src/effect-execution-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I310",
+    "title": "Powerful Blow Uses One Runtime Attack Resolution Regardless Of Its Number Of Constituent Compatible Attacks",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "packages/prowess-game/src/effect-execution-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I311",
+    "title": "Maneuver Critical Context Is Attack-Specific And Never Broadcast Across The Maneuver",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I312",
+    "title": "Inherited Maneuver Effect Resolution Creates No Additional Roll",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I313",
+    "title": "Runtime Martial Save Selection Follows Trained, Expert And Master Save-Control Rules",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "packages/prowess-game/src/effect-execution-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I314",
+    "title": "WO12 Selects And Emits Structured Outcomes But Does Not Directly Mutate Combat State",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-contracts.test.ts",
+      "apps/studio/tests/integration/m5-wo12-effect-execution-api.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I315",
+    "title": "WO12 Execution Is Exact-Ruleset, Historically Reproducible, Immutable, Deterministic And JSON-Safe",
+    "group": "Effect Chain Execution",
+    "guards": [
+      "packages/prowess-game/src/effect-execution-contracts.test.ts",
+      "packages/prowess-db/tests/integration/prowess-effect-execution-history.test.ts",
+      "apps/studio/tests/unit/m5-wo12-static.test.ts",
+      "scripts/m5-wo12-negative-controls.mjs"
+    ]
   }
 ]
