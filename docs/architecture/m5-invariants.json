@@ -3286,5 +3286,236 @@
       "apps/studio/tests/unit/m5-wo12-static.test.ts",
       "scripts/m5-wo12-negative-controls.mjs"
     ]
+  },
+  {
+    "id": "M5-I316",
+    "title": "Instant Effects Never Create Persistent Active Effect State",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "packages/prowess-game/src/active-magic-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I317",
+    "title": "Timed Effects Expire From Exact Duration Boundaries And Require No Sustain By Default",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I318",
+    "title": "Sustained Effects Require Their Exact Sustain Payment And Concentration While Active",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "packages/prowess-game/src/active-magic-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I319",
+    "title": "Default Sustain MP Equals Floor Of Final Spell MP Divided By Prowess With A Minimum Of One",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I320",
+    "title": "Default Sustained Spell Upkeep Requires One AP Per Round Unless An Exact Rule Modifies It",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I321",
+    "title": "Mana Efficiency Pays Sustain Before MP And Never Reduces The Authored Sustain Cost",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I322",
+    "title": "Failed Sustain Payment Ends The Exact Sustained Effect Unless An Exact Rule Provides Otherwise",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "packages/prowess-game/src/active-magic-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I323",
+    "title": "Mana Lock Reserves Maximum MP And Never Spends Or Refunds Current MP",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "packages/prowess-game/src/active-magic-contracts.test.ts",
+      "apps/studio/tests/integration/m5-wo13-active-magic-api.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I324",
+    "title": "Releasing Mana Lock Restores Capacity Without Restoring Current MP",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I325",
+    "title": "Concentration Capacity Equals One Plus One Slot Per Two Complete Resolve Points Unless Explicitly Modified",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I326",
+    "title": "Concentration Saves Reuse The Prowess Saving Throw",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "packages/prowess-game/src/active-magic-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I327",
+    "title": "Concentration DC Is Eight Plus Two Per Additional Active Concentration Consumer",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I328",
+    "title": "Concentration Failure Ends The Disrupted Effect By Default; Global Break Requires Explicit Authority",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I329",
+    "title": "Channeled Spells Consume Concentration While Unfinished",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I330",
+    "title": "Only One Spell May Be Channeled At A Time Unless An Exact Rule Overrides It",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "packages/prowess-game/src/active-magic-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I331",
+    "title": "Channeling Requires At Least One AP Of Progress Per Continued Round",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I332",
+    "title": "Failed Channeling Concentration Loses All Invested AP Progress",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I333",
+    "title": "Active Effects Remain Pinned To Their Exact Ruleset For Their Entire Lifetime",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-contracts.test.ts",
+      "packages/prowess-db/tests/integration/prowess-active-magic-history.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I334",
+    "title": "Timed Effects Are Not Dismissible Early By Default; Sustained Effects Are Dismissible As A Free Action By Default",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I335",
+    "title": "Active Magic Resource Transitions Are Atomic And Cannot Produce Negative Resources",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "packages/prowess-game/src/active-magic-contracts.test.ts",
+      "apps/studio/tests/integration/m5-wo13-active-magic-api.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I336",
+    "title": "WO13 Does Not Recalculate Spell Cost Or Reexecute Effect Chains",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-contracts.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M5-I337",
+    "title": "WO13 Lifecycle State Is Deterministic, Immutable In Transition Semantics, Historically Reproducible And JSON-Safe",
+    "group": "Active Magic Runtime",
+    "guards": [
+      "packages/prowess-game/src/active-magic-contracts.test.ts",
+      "packages/prowess-db/tests/integration/prowess-active-magic-history.test.ts",
+      "apps/studio/tests/unit/m5-wo13-static.test.ts",
+      "scripts/m5-wo13-negative-controls.mjs"
+    ]
   }
 ]

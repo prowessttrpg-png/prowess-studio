@@ -1912,3 +1912,135 @@ M4 invariants (M4-I01–I188, M4-I162A) are frozen and are not repeated, renumbe
 - **Group:** Effect Chain Execution
 - **Meaning:** An R1 Spell keeps R1 routing after R2; mixed context / bundle is refused; equal requests give deep-equal frozen JSON-safe traces.
 - **Guards:** `packages/prowess-game/src/effect-execution-contracts.test.ts`, `packages/prowess-db/tests/integration/prowess-effect-execution-history.test.ts`, `apps/studio/tests/unit/m5-wo12-static.test.ts`, `scripts/m5-wo12-negative-controls.mjs`
+
+### M5-I316 — Instant Effects Never Create Persistent Active Effect State
+
+- **Group:** Active Magic Runtime
+- **Meaning:** An Instant Spell (or an outcome that does not persist) resolves once and leaves no Active Effect, Sustain, Concentration or dismissal state.
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `packages/prowess-game/src/active-magic-contracts.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I317 — Timed Effects Expire From Exact Duration Boundaries And Require No Sustain By Default
+
+- **Group:** Active Magic Runtime
+- **Meaning:** ROUNDS counts down at explicit round ends to EXPIRED; COMBAT / SCENE / MISSION end only at explicit caller boundaries; none pays Sustain or uses Concentration by default; no wall clock.
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I318 — Sustained Effects Require Their Exact Sustain Payment And Concentration While Active
+
+- **Group:** Active Magic Runtime
+- **Meaning:** Each Sustained Active Effect occupies a Concentration slot and pays its own pinned Sustain AP and MP at every MAINTENANCE event.
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `packages/prowess-game/src/active-magic-contracts.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I319 — Default Sustain MP Equals Floor Of Final Spell MP Divided By Prowess With A Minimum Of One
+
+- **Group:** Active Magic Runtime
+- **Meaning:** Sustain MP is the pinned M4 Formula max(1, floor(finalMp / PRO)) over WO10's Final Spell MP (17 / 4 → 4; 4 / 5 → 1); a held amount is re-executed and arbitrary values refused.
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I320 — Default Sustained Spell Upkeep Requires One AP Per Round Unless An Exact Rule Modifies It
+
+- **Group:** Active Magic Runtime
+- **Meaning:** Sustain AP is the Ruleset policy's sustainApPerRound (1), spent through WO3 with every upkeep.
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I321 — Mana Efficiency Pays Sustain Before MP And Never Reduces The Authored Sustain Cost
+
+- **Group:** Active Magic Runtime
+- **Meaning:** Upkeep mana is a WO3 ME-eligible MAGICAL_PAYMENT: 5 vs ME 3 / MP 10 → 3 ME + 2 MP; the Sustain Cost stays 5.
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I322 — Failed Sustain Payment Ends The Exact Sustained Effect Unless An Exact Rule Provides Otherwise
+
+- **Group:** Active Magic Runtime
+- **Meaning:** An unpayable upkeep ends that Effect SUSTAIN_UNPAID with nothing spent; when only some can be paid the controller selects (PENDING_MAINTENANCE_SELECTION).
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `packages/prowess-game/src/active-magic-contracts.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I323 — Mana Lock Reserves Maximum MP And Never Spends Or Refunds Current MP
+
+- **Group:** Active Magic Runtime
+- **Meaning:** A Mana Lock is a WO3 / M4 RESERVE_CAPACITY on MP: Max 40, lock 12 → available 28, current unchanged; the amount comes only from an exact policy rule (canonical: none, M5-SC-052).
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `packages/prowess-game/src/active-magic-contracts.test.ts`, `apps/studio/tests/integration/m5-wo13-active-magic-api.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I324 — Releasing Mana Lock Restores Capacity Without Restoring Current MP
+
+- **Group:** Active Magic Runtime
+- **Meaning:** Ending a locked Effect releases exactly its reservation (available 28 → 40) while current MP stays 16; locks stack per Active Effect.
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I325 — Concentration Capacity Equals One Plus One Slot Per Two Complete Resolve Points Unless Explicitly Modified
+
+- **Group:** Active Magic Runtime
+- **Meaning:** Slots are the M4 Formula 1 + floor(RES / 2) (RES 1 → 1 … RES 6 → 4); exceeding them is refused without ending anything (M5-SC-054 ruling).
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I326 — Concentration Saves Reuse The Prowess Saving Throw
+
+- **Group:** Active Magic Runtime
+- **Meaning:** A Concentration test is WO2's SAVING_THROW with stat PRO against the DC from an explicit roll; a success boolean is never an input.
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `packages/prowess-game/src/active-magic-contracts.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I327 — Concentration DC Is Eight Plus Two Per Additional Active Concentration Consumer
+
+- **Group:** Active Magic Runtime
+- **Meaning:** DC is the M4 Formula 8 + 2 × max(0, consumers − 1), counting the disrupted consumer (1 → 8, 2 → 10, 3 → 12, 4 → 14).
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I328 — Concentration Failure Ends The Disrupted Effect By Default; Global Break Requires Explicit Authority
+
+- **Group:** Active Magic Runtime
+- **Meaning:** A failed Save ends only the disrupted Effect (CONCENTRATION_FAILED); failureScope ALL is an explicit event.
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I329 — Channeled Spells Consume Concentration While Unfinished
+
+- **Group:** Active Magic Runtime
+- **Meaning:** An unfinished Channel occupies a Concentration slot and is subject to Concentration tests; completion releases it.
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I330 — Only One Spell May Be Channeled At A Time Unless An Exact Rule Overrides It
+
+- **Group:** Active Magic Runtime
+- **Meaning:** A second CHANNEL_START is refused with PROWESS_ACTIVE_MAGIC.CHANNEL_LIMIT under the policy maximumSimultaneous 1.
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `packages/prowess-game/src/active-magic-contracts.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I331 — Channeling Requires At Least One AP Of Progress Per Continued Round
+
+- **Group:** Active Magic Runtime
+- **Meaning:** AP is spent through WO3 and accumulates; a round ending with less than the policy minimum abandons the Channel; overpayment is refused; completion is immediate.
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I332 — Failed Channeling Concentration Loses All Invested AP Progress
+
+- **Group:** Active Magic Runtime
+- **Meaning:** On a failed Save the Spell fails, invested progress is lost, nothing is refunded and a new attempt starts from 0.
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I333 — Active Effects Remain Pinned To Their Exact Ruleset For Their Entire Lifetime
+
+- **Group:** Active Magic Runtime
+- **Meaning:** State, Active Effects and Channels carry their Ruleset, Ability, Duration and policy versions; a request under another Ruleset or policy is refused and nothing is recompiled.
+- **Guards:** `packages/prowess-game/src/active-magic-contracts.test.ts`, `packages/prowess-db/tests/integration/prowess-active-magic-history.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I334 — Timed Effects Are Not Dismissible Early By Default; Sustained Effects Are Dismissible As A Free Action By Default
+
+- **Group:** Active Magic Runtime
+- **Meaning:** Dismissal is the pinned per-Duration policy: SUSTAINED FREE_ACTION; ROUNDS / COMBAT / SCENE / MISSION / MANA_LOCK NOT_DISMISSIBLE.
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I335 — Active Magic Resource Transitions Are Atomic And Cannot Produce Negative Resources
+
+- **Group:** Active Magic Runtime
+- **Meaning:** Every upkeep / investment / reservation is staged through WO3 plans and adopted only when wholly legal; negative and over-capacity requests are refused before mutation.
+- **Guards:** `packages/prowess-game/src/active-magic-golden.test.ts`, `packages/prowess-game/src/active-magic-contracts.test.ts`, `apps/studio/tests/integration/m5-wo13-active-magic-api.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I336 — WO13 Does Not Recalculate Spell Cost Or Reexecute Effect Chains
+
+- **Group:** Active Magic Runtime
+- **Meaning:** Final Spell MP / AP come from evaluateSpellCost (WO10) and persistent outcomes from executeAbilityResolution (WO12) at activation; WO13 implements neither.
+- **Guards:** `packages/prowess-game/src/active-magic-contracts.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
+
+### M5-I337 — WO13 Lifecycle State Is Deterministic, Immutable In Transition Semantics, Historically Reproducible And JSON-Safe
+
+- **Group:** Active Magic Runtime
+- **Meaning:** A pure transition (state + event → state + trace) with no RNG or clock; equal requests give deep-equal frozen JSON-safe results; R1 state replays identically after R2.
+- **Guards:** `packages/prowess-game/src/active-magic-contracts.test.ts`, `packages/prowess-db/tests/integration/prowess-active-magic-history.test.ts`, `apps/studio/tests/unit/m5-wo13-static.test.ts`, `scripts/m5-wo13-negative-controls.mjs`
