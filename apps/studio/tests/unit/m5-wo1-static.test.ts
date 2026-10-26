@@ -34,6 +34,9 @@ const production = (dir: string) => walk(dir).filter((f) => f.endsWith(".ts") &&
 
 const GAME = production("packages/prowess-game/src");
 const WO1_LATER_MILESTONE_FILES = new Set([
+  // WO13 active-magic lifecycle content (M4 Formula programs) and transition module are covered by the dedicated WO13 gate.
+  "packages/prowess-game/src/content/core-playtest-v0.1/active-magic.ts",
+  "packages/prowess-game/src/ability/active-magic.ts",
   // WO12 Effect-chain execution routes M4 core resolutions per target (counters and ordinals, no cost math); covered by the dedicated WO12 gate.
   "packages/prowess-game/src/ability/effect-execution.ts",
   // WO11 final Maneuver-cost Formula content and compiler are covered by the dedicated WO11 gate; all earlier files stay covered.

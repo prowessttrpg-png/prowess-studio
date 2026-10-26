@@ -166,7 +166,7 @@ describe("M5-WO12 audit — Effect Chain Execution & Runtime Routing", () => {
 
   it("invariants M5-I001–I315 are sequential; M5-I294–I315 are guarded by executing tests that cite them", () => {
     const inv = JSON.parse(read("docs/architecture/m5-invariants.json")) as { id: string; title: string; group: string; guards: string[]; status?: string }[];
-    expect(inv.map((x) => x.id)).toEqual(Array.from({ length: 315 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`));
+    expect(inv.slice(0, 315).map((x) => x.id)).toEqual(Array.from({ length: 315 }, (_, i) => `M5-I${String(i + 1).padStart(3, "0")}`)); // M5-WO13 appends M5-I316+ (its own gate checks the full sequence)
     const self = read("apps/studio/tests/unit/m5-wo12-static.test.ts"), md = read("docs/architecture/m5-invariants.md");
     for (const row of inv.slice(293, 315)) {
       expect([row.status ?? "ACTIVE", row.group]).toEqual(["ACTIVE", "Effect Chain Execution"]);

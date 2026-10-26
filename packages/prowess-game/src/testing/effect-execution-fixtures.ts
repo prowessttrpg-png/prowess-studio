@@ -24,9 +24,13 @@ export interface SpellChainSpec {
   readonly chain?: Record<string, unknown> | null;
   /** [traitKey (fixture.trait.*), effectKey] — Effect-specific Traits. */
   readonly traits?: readonly (readonly [string, string])[];
+  /** [Duration canonical key, parameters] (default Instant). M5-WO13 lifecycle fixtures. */
+  readonly duration?: readonly [string, Record<string, unknown>];
 }
+/** Extra test Effects (M5-WO13): [fixture.wo12.effect.<suffix>, canonical base Effect, edit]. Absent → WO12 ids unchanged. */
+export type ExtraEffect = readonly [string, string, (e: Record<string, unknown>) => void];
 
-export function executionFixture(options: { rulesetId?: string; manifestId?: string; revise?: Readonly<Record<string, Record<string, unknown>>>; spells?: Readonly<Record<string, SpellChainSpec>>; maneuvers?: Readonly<Record<string, ManeuverSpec>>; policy?: Record<string, unknown> | null } = {}) {
+export function executionFixture(options: { rulesetId?: string; manifestId?: string; revise?: Readonly<Record<string, Record<string, unknown>>>; spells?: Readonly<Record<string, SpellChainSpec>>; maneuvers?: Readonly<Record<string, ManeuverSpec>>; policy?: Record<string, unknown> | null; effects?: readonly ExtraEffect[] } = {}) {
   const rule = copy(EFFECT_EXECUTION_CONTENT.constructionRule.payload) as Record<string, unknown>;
   if (options.policy === null) delete rule.effectExecutionPolicy;
   else if (options.policy) rule.effectExecutionPolicy = { ...(rule.effectExecutionPolicy as Record<string, unknown>), ...options.policy };
@@ -52,6 +56,7 @@ export function executionFixture(options: { rulesetId?: string; manifestId?: str
   add("fixture.wo12.effect.mend", "SPELL_EFFECT", widen("spell.effect.direct_healing")); // AUTOMATIC
   add("fixture.wo12.effect.choice", "SPELL_EFFECT", widen("spell.effect.impair", (e) => { instant(e); setPath(e, "rules/effect/saveProfile", { validSaves: ["AGI", "CON"], selectionPolicy: "TARGET_CHOICE" }); }));
   add("fixture.wo12.effect.construction_choice", "SPELL_EFFECT", widen("spell.effect.bind"));
+  for (const [suffix, baseKey, edit] of options.effects ?? []) add(`fixture.wo12.effect.${suffix}`, "SPELL_EFFECT", widen(baseKey, edit));
   const parameters: Readonly<Record<string, Record<string, unknown>>> = { strike: { dice: 1 }, hex: { amount: 1 }, mend: { dice: 1 }, choice: { amount: 1 }, construction_choice: { distance: 5 } };
   const spell = (key: string, s: SpellChainSpec) => {
     const d = copy(base.bundle.definitions.find((x) => x.canonicalKey === "fixture.spell.simple")!.payload) as Record<string, unknown>;
@@ -61,7 +66,7 @@ export function executionFixture(options: { rulesetId?: string; manifestId?: str
     setPath(d, "composition/targeting", use(s.targeting ?? "spell.targeting.single_target", "targeting", s.targetingParameters ?? {}));
     setPath(d, "composition/effects", s.effects.map(([effectKey, suffix], i) => ({ ...use(`fixture.wo12.effect.${suffix}`, effectKey, parameters[suffix] ?? {}), order: 10 * (i + 1) })));
     setPath(d, "composition/traits", (s.traits ?? []).map(([t, effectKey], i) => ({ ...use(t, `trait${String(i + 1)}`), order: 10 * (i + 1), appliesTo: { scope: "EFFECT_SPECIFIC", componentKey: effectKey } })));
-    setPath(d, "composition/duration", use("spell.duration.instant", "duration"));
+    setPath(d, "composition/duration", use(s.duration?.[0] ?? "spell.duration.instant", "duration", s.duration?.[1] ?? {}));
     setPath(d, "composition/conditions", []);
     setPath(d, "composition/branch/effectChain", s.chain ?? null);
     add(key, "SPELL_DEFINITION", d);

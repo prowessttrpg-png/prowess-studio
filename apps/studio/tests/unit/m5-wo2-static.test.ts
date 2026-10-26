@@ -39,6 +39,10 @@ const hash = (s: string | Buffer) => createHash("sha256").update(s).digest("hex"
 
 const GAME = production("packages/prowess-game/src");
 const WO2_LATER_MILESTONE_CONTENT = new Set([
+  // WO13 content owns the Sustain / Concentration Formulas; its transition module sequences WO2 / WO3 / M4 (bookkeeping
+  // counters only) — both covered by the WO13 goldens and gate.
+  "packages/prowess-game/src/content/core-playtest-v0.1/active-magic.ts",
+  "packages/prowess-game/src/ability/active-magic.ts",
   // WO12 execution routing composes WO2 core resolution per runtime request (traversal counters only), covered by the WO12 goldens and gate.
   "packages/prowess-game/src/ability/effect-execution.ts",
   // WO11 content owns the final Maneuver AP / MP Formulas, covered by its permanent goldens and architecture audit.

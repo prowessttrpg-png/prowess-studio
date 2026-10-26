@@ -986,3 +986,46 @@ action for a later step. No Ruleset, Release, EntityVersion or ImportCandidate w
 - **mechanical consequence**: recorded by M5-WO12. Those combinations fail closed with
   `PROWESS_EXECUTION.UNRESOLVED_RUNTIME_RULE`; inherited Effects, foundation-Attack Effects, one replacing Martial Save
   and Automatic Effects on non-attack actions execute.
+
+### M5-SC-052 — Generic Mana Lock Amount Has No Exact Structured Formula
+
+- **conflictKey**: `M5-SC-052`
+- **systemFamily**: `SPELL`
+- **source A**: Core Playtest V0.1 MANA LOCK: "Some spells reserve mana … Locked MP reduces the caster's maximum available
+  MP"; the worked example "a spell that locks 12 MP".
+- **source B**: no rule states HOW MUCH a Mana-Locked Spell reserves (its Final MP? a listed lock value? a formula?); the
+  WO9 `spell.duration.mana_lock` Definition carries only `futureRuntime.manaLock: true` and no amount.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none.
+- **mechanical consequence**: recorded by M5-WO13. The canonical `activeMagicPolicy.manaLock.amount` is `null`, so a
+  Mana Lock activation fails closed with `PROWESS_ACTIVE_MAGIC.UNRESOLVED_RUNTIME_RULE` and a held reservation is never
+  trusted. The exact structured shapes a future Ruleset can pin (`{ kind: "FINAL_SPELL_MP" }`, `{ kind: "FIXED", amount }`)
+  exist and are exercised only by TEST fixtures. Reservation / release semantics themselves are permanent (WO3 / M4).
+
+### M5-SC-053 — Standard Spell MP Payment Timing During Channeling Is Not Structurally Defined
+
+- **conflictKey**: `M5-SC-053`
+- **systemFamily**: `SPELL`
+- **source A**: Core Playtest V0.1 CHANNELING SPELLS defines AP accumulation exactly ("Spend at least 1 AP each round …
+  When the required AP is fully paid, the spell resolves immediately").
+- **source B**: nothing states whether the Spell's MP is paid when Channeling begins, as AP accrues, or at completion,
+  nor whether MP is lost when a Channel fails; WO3's MAGICAL_PAYMENT has no Channel timing.
+- **status**: `UNRESOLVED`
+- **resolution authority**: none.
+- **mechanical consequence**: recorded by M5-WO13. Channeling spends AP only; no MP is paid at start, during or at
+  completion. A completed Channel reports `readyToResolve: true` with `mpPayment: { status: "UNRESOLVED", conflictKey:
+  "M5-SC-053" }`, handing the Spell to the normal resolution path without choosing a payment moment.
+
+### M5-SC-054 — Concentration Capacity: Stat-Table "+1 per 3 RES" vs Magic Section "1 + 1 per 2 Resolve"
+
+- **conflictKey**: `M5-SC-054`
+- **systemFamily**: `CHARACTER`
+- **source A**: Core Playtest V0.1 Resolve stat table: "Concentration: +1 per 3 RES — The Maximum number of Active
+  Effects a character can sustain at one time."
+- **source B**: Core Playtest V0.1 CONCENTRATION: "Unless another rule says otherwise: Concentration Slots = 1 + 1 per 2
+  Resolve."
+- **status**: `RESOLVED_BY_DESIGNER`
+- **resolution authority**: the M5-WO13 work order (designer instruction): "Concentration Slots = 1 + 1 per 2 Resolve,
+  implemented as complete pairs: 1 + floor(RES / 2)" (RES 1 → 1 … RES 6 → 4).
+- **mechanical consequence**: the active-magic policy pins `1 + floor(res / 2)` as an M4 Formula; the stat-table line is
+  preserved as provenance only. No Concentration capacity modifier exists yet; none is synthesized.

@@ -522,3 +522,10 @@ export { EFFECT_EXECUTION_ERROR_CODES, compileAbilityExecution, executeAbilityRe
 export { EFFECT_CHAIN_BEHAVIORS, EFFECT_CHAIN_FAILURE_POLICIES, readEffectChain, type EffectChainBehavior, type EffectChainNode, type EffectChainPayload } from "./definition/effect-chain-payload.js";
 export { MARTIAL_SAVE_CONTROLS, type EffectExecutionPolicy, type MartialSaveControl } from "./definition/effect-execution-policy.js";
 export { EFFECT_EXECUTION_POLICY, EFFECT_EXECUTION_CONTENT } from "./content/core-playtest-v0.1/effect-execution.js";
+
+// M5-WO13 — Active Magic Runtime (Sustain, Mana Lock, Concentration, Channeling, Active Effect lifecycle).
+export { ACTIVE_MAGIC_ERROR_CODES, ACTIVE_EFFECT_STATUSES, ACTIVE_EFFECT_END_REASONS, ACTIVE_MAGIC_BOUNDARIES, ACTIVE_MAGIC_EXTERNAL_ENDS, CONCENTRATION_TRIGGERS, ACTIVE_EFFECT_TICK_TIMINGS, ACTIVE_MAGIC_EVENT_KINDS, transitionActiveMagic } from "./ability/active-magic.js";
+export type { ActiveEffectStatus, ActiveEffectEndReason, ActiveMagicEventKind, ActiveEffectOutcomeBinding, FormulaEvaluation, ActiveEffectState, ChannelState, ActiveMagicState, ResourceChange, RuntimeEvaluation, ConcentrationTestTrace, ActiveMagicTransition, ActiveMagicInspector } from "./ability/active-magic.js";
+export { ACTIVE_MAGIC_DISMISSAL, ACTIVE_MAGIC_DURATIONS, readActiveMagicPolicy } from "./definition/active-magic-policy.js";
+export type { ActiveMagicDismissal, ActiveMagicDuration, ActiveMagicPolicy, ManaLockAmountRule } from "./definition/active-magic-policy.js";
+export { ACTIVE_MAGIC_POLICY, ACTIVE_MAGIC_CONTENT } from "./content/core-playtest-v0.1/active-magic.js";
