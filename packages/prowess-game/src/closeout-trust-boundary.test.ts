@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createProwessDefinitionBundle } from "./bundle/bundle.js";
+import { createBundleWithinCheckedRequest, createProwessDefinitionBundle } from "./bundle/bundle.js";
 import { compileAbilityDefinition } from "./ability/compile.js";
 import { evaluateSpellCost } from "./ability/spell-cost.js";
 import { compileCoreResolution } from "./core/compile.js";
@@ -86,5 +86,21 @@ describe("M5-CLOSEOUT-02 trust boundary", () => {
     expect(createProwessDefinitionBundle({ ruleset: f.ruleset, definitions: lookalike })).toEqual(createProwessDefinitionBundle({ ruleset: f.ruleset, definitions: json(f.bundle.definitions) }));
     const badFrozen = Object.freeze([...json(f.bundle.definitions), { not: "an envelope" }]);
     expect(createProwessDefinitionBundle({ ruleset: f.ruleset, definitions: badFrozen }).ok).toBe(false);
+  });
+
+  it("R3: the internal continuation equals the public factory for clean input and falls back to its exact problems otherwise", () => {
+    const defs = json(f.bundle.definitions);
+    expect(createBundleWithinCheckedRequest(json(f.ruleset), defs, true)).toEqual(createProwessDefinitionBundle({ ruleset: json(f.ruleset), definitions: defs }));
+    expect(createBundleWithinCheckedRequest(f.ruleset, defs, false)).toEqual(createProwessDefinitionBundle({ ruleset: f.ruleset, definitions: defs }));
+    const getter = json(f.ruleset) as unknown as Record<string, unknown>;
+    Object.defineProperty(getter, "rulesetId", { get: () => "x", enumerable: true });
+    expect(createBundleWithinCheckedRequest(getter, defs, false)).toEqual(createProwessDefinitionBundle({ ruleset: getter, definitions: defs }));
+    const nan = { ...json(f.ruleset), extra: Number.NaN };
+    expect(createBundleWithinCheckedRequest(nan, defs, false)).toEqual(createProwessDefinitionBundle({ ruleset: nan, definitions: defs }));
+    expect(createBundleWithinCheckedRequest(nan, defs, false).ok).toBe(false);
+    const tampered = json(f.bundle.definitions) as unknown as Record<string, unknown>[];
+    tampered[0] = { ...tampered[0], canonicalKey: "fixture.other.key" };
+    expect(createBundleWithinCheckedRequest(f.ruleset, tampered, false)).toEqual(createProwessDefinitionBundle({ ruleset: f.ruleset, definitions: tampered }));
+    expect(createBundleWithinCheckedRequest(f.ruleset, tampered, false).ok).toBe(false);
   });
 });

@@ -1,7 +1,7 @@
 import type { JsonObject } from "@prowess/model";
 import { createRulesetContext, orchestrateRulesEvaluation, type EvaluationBinding, type EvaluationPlan, type EvaluationRun, type EvaluationStep } from "@prowess/rules";
 import { validateAffinityProfile } from "../affinity/profile.js";
-import { createProwessDefinitionBundle, findBundleDefinition, type ProwessRulesetProvenance } from "../bundle/bundle.js";
+import { createProwessDefinitionBundle, findBundleDefinition, type ProwessRulesetProvenance, createBundleWithinCheckedRequest } from "../bundle/bundle.js";
 import type { ProwessCompilationSourceMap, ProwessSourceMapEntry } from "../compilation/model.js";
 import type { AbilityConstructionRulePayload } from "../definition/ability-construction-payload.js";
 import { isAttackFoundation, type ManeuverDefinitionPayload } from "../definition/authored-ability-payload.js";
@@ -183,7 +183,7 @@ export function compileManeuverCost(request: unknown): ProwessOutcome<ProwessMan
   // The exact Ruleset's own construction rule carries the Maneuver cost policy (Signature reduction, minimums).
   const context = createRulesetContext(own(request, "ruleset"));
   const rawBundle = own(request, "definitions") as Record<string, unknown>;
-  const bundleOut = context.ok ? createProwessDefinitionBundle({ ruleset: context.value, definitions: rawBundle.definitions }) : null;
+  const bundleOut = !context.ok ? null : isPlainObject(rawBundle) && Object.hasOwn(rawBundle, "definitions") ? createBundleWithinCheckedRequest(context.value, own(rawBundle, "definitions"), false) : createProwessDefinitionBundle({ ruleset: context.value, definitions: rawBundle.definitions });
   if (!bundleOut?.ok) { p.add(K.INVALID_REQUEST, ["definitions"], "exact Ruleset bundle required"); return finish(p, () => null as never); }
   const bundle = bundleOut.value;
   const rules = bundle.definitions.filter((d) => d.definitionKind === "ABILITY_CONSTRUCTION_RULE");

@@ -5,7 +5,7 @@ import { Problems, checkPlainData, finish, isExactCanonicalKey, isExactLabel, ow
 import { COMPILATION_ERROR_CODES as X, CORE_ERROR_CODES as K, DEFINITION_ERROR_CODES as C } from "../definition/codes.js";
 import type { ProwessDefinitionRef } from "../definition/envelope.js";
 import type { CoreFormula, CoreRollPayload, FormulaVariableSource, StatMasteryPayload } from "../definition/core-payload.js";
-import { bundleMatchesRuleset, createProwessDefinitionBundle, type ProwessDefinitionBundle, type ProwessRulesetProvenance } from "../bundle/bundle.js";
+import { bundleMatchesRuleset, type ProwessDefinitionBundle, type ProwessRulesetProvenance, createBundleWithinCheckedRequest } from "../bundle/bundle.js";
 import { assembleFragments, compiledStepKey, type SubjectComponents } from "../compilation/assemble.js";
 import type { CompilationFragment, CompilationFragmentBinding, ProwessCompilationSourceMap } from "../compilation/model.js";
 import { PROWESS_COMPILATION_CONTRACT_VERSION, SUPPORTED_PROWESS_COMPILATION_CONTRACT_VERSIONS, type ProwessCompilationContractVersion } from "../contract-version.js";
@@ -517,7 +517,7 @@ export function readCoreBundle(r: Record<string, unknown>, p: Problems): { bundl
     p.add(X.INVALID_REQUEST, ["definitions"], "definitions is the exact ProwessDefinitionBundle of the request's RulesetContext");
     return null;
   }
-  const bundle = createProwessDefinitionBundle({ ruleset: own(r, "ruleset"), definitions: own(rawBundle, "definitions") ?? null });
+  const bundle = createBundleWithinCheckedRequest(own(r, "ruleset"), own(rawBundle, "definitions") ?? null, true);
   if (!bundle.ok) {
     for (const problem of bundle.problems) p.list.push({ ...problem, path: `/definitions${problem.path}` });
     return null;

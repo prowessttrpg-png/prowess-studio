@@ -2,7 +2,7 @@ import { createActorContext, createBuildContext, createRuntimeContext, createRul
 import { deepFreeze, isPlainObject } from "../internal/plain-data.js";
 import { Problems, checkPlainData, finish, own, readRecord, type ProwessOutcome } from "../internal/problems.js";
 import { COMPILATION_ERROR_CODES as X, DEFINITION_ERROR_CODES as C } from "../definition/codes.js";
-import { bundleMatchesRuleset, createProwessDefinitionBundle, type ProwessDefinitionBundle } from "../bundle/bundle.js";
+import { bundleMatchesRuleset, type ProwessDefinitionBundle, createBundleWithinCheckedRequest } from "../bundle/bundle.js";
 import { compositionComponents, validateAbilityComposition, type AbilityComposition, type ComponentUse } from "../construction/composition.js";
 import { SUPPORTED_PROWESS_COMPILATION_CONTRACT_VERSIONS } from "../contract-version.js";
 import { ABILITY_KINDS, type ProwessDefinitionKind } from "../vocabulary/families.js";
@@ -93,7 +93,7 @@ export function compileProwessAbility(request: unknown): ProwessOutcome<ProwessC
   // The bundle is re-validated against the request's exact context: a bundle is never trusted by shape.
   const rawBundle = own(r, "definitions");
   if (!isPlainObject(rawBundle)) p.add(X.INVALID_REQUEST, ["definitions"], "definitions is the exact ProwessDefinitionBundle of the request's RulesetContext");
-  const bundle = ruleset.ok && isPlainObject(rawBundle) ? createProwessDefinitionBundle({ ruleset: own(r, "ruleset"), definitions: own(rawBundle as Record<string, unknown>, "definitions") ?? null }) : null;
+  const bundle = ruleset.ok && isPlainObject(rawBundle) ? createBundleWithinCheckedRequest(own(r, "ruleset"), own(rawBundle as Record<string, unknown>, "definitions") ?? null, true) : null;
   if (bundle !== null && !bundle.ok) {
     for (const problem of bundle.problems) p.list.push({ ...problem, path: `/definitions${problem.path}` });
   } else if (bundle !== null && ruleset.ok) {
