@@ -29,7 +29,7 @@ export const REVIEWABLE_BATCH_STATUSES = ["READY_FOR_REVIEW", "REVIEWING"] as co
 const REVIEWING = "REVIEWING" as const;
 const COMPLETED = "COMPLETED" as const;
 
-export function toDomainDecision(r: DecisionRow): ImportDecision {
+function toDomainDecision(r: DecisionRow): ImportDecision {
   return {
     id: ImportDecisionId.of(r.id),
     importBatchId: ImportBatchId.of(r.importBatchId),

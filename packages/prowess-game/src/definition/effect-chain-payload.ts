@@ -15,9 +15,9 @@ export type EffectChainBehavior = (typeof EFFECT_CHAIN_BEHAVIORS)[number];
 export const EFFECT_CHAIN_FAILURE_POLICIES = deepFreeze(["STOP", "CONTINUE"] as const);
 export type EffectChainFailurePolicy = (typeof EFFECT_CHAIN_FAILURE_POLICIES)[number];
 /** Chain-local trigger facts: an EARLIER exact Effect Use's result, the delivery result, or an explicit runtime target fact. */
-export const EFFECT_CHAIN_FACT_PATTERN = /^(chain\.([A-Za-z0-9_-]+)\.(success|failure)|chain\.previous\.(success|failure)|delivery\.(hit|critical)|target\.[a-z][a-z0-9_]*)$/;
+const EFFECT_CHAIN_FACT_PATTERN = /^(chain\.([A-Za-z0-9_-]+)\.(success|failure)|chain\.previous\.(success|failure)|delivery\.(hit|critical)|target\.[a-z][a-z0-9_]*)$/;
 /** The WO8 authored-definition code: an invalid chain is an invalid authored Spell. */
-export const EFFECT_CHAIN_ERROR = "PROWESS_ABILITY.INVALID_DEFINITION";
+const EFFECT_CHAIN_ERROR = "PROWESS_ABILITY.INVALID_DEFINITION";
 
 export interface EffectChainNode {
   readonly effectKey: string;

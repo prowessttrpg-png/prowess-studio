@@ -1,5 +1,6 @@
 import { createRulesetContext, findResolvedRule, type RulesetContext } from "@prowess/rules";
 import { Problems, checkPlainData, finish, own, readRecord, type ProwessOutcome } from "../internal/problems.js";
+import { hasUnsafeDataProperties, inspectPlainData } from "../internal/plain-data.js";
 import { BUNDLE_ERROR_CODES as B, DEFINITION_ERROR_CODES as C } from "../definition/codes.js";
 import { definitionRefOf, isSameExactDefinition, readEnvelope, type ProwessDefinitionEnvelope, type ProwessDefinitionRef } from "../definition/envelope.js";
 import { PROWESS_DEFINITION_KINDS } from "../vocabulary/families.js";
@@ -33,6 +34,10 @@ export function rulesetProvenanceOf(ruleset: RulesetContext): ProwessRulesetProv
   };
 }
 
+/** The exact five-field identity `isSameExactDefinition` compares, as one collision-free key (JSON of the tuple). */
+const exactDefinitionKey = (e: ProwessDefinitionEnvelope): string =>
+  JSON.stringify([e.entityId, e.entityVersionId, e.canonicalKey, e.definitionKind, e.systemFamily]);
+
 /**
  * Builds a bundle from an exact RulesetContext and Definition envelopes. Fails closed on: unsafe data, malformed or
  * unsupported envelopes, a version the context does not pin (injection), a canonical-key or EntityType disagreement
@@ -41,6 +46,28 @@ export function rulesetProvenanceOf(ruleset: RulesetContext): ProwessRulesetProv
 export function createProwessDefinitionBundle(input: unknown): ProwessOutcome<ProwessDefinitionBundle> {
   const p = new Problems();
   if (!checkPlainData(input, [], p, C.NOT_PLAIN_DATA)) return finish(p, () => null as never);
+  return buildBundle(input, p);
+}
+
+/**
+ * INTERNAL continuation of an already-guarded boundary (M5-CLOSEOUT-02 R3) — deliberately NOT part of the package's
+ * public surface. Precondition, met by every caller: the calling public boundary ran `checkPlainData` over its COMPLETE
+ * request earlier in this same synchronous call and returned on any problem, and `definitions` is an own data property
+ * of that request (read with `own`). `ruleset` is either from that same request (`rulesetFromRequest`) or an engine
+ * value, which is inspected here. Given those, `checkPlainData({ ruleset, definitions })` can only report nothing, so
+ * it is not repeated; if the engine ruleset is not clean the public factory runs and reports exactly what it always did.
+ * Everything else — Ruleset context, envelopes, payloads, legacy terms, pins, provenance, duplicates — runs in full.
+ */
+export function createBundleWithinCheckedRequest(ruleset: unknown, definitions: unknown, rulesetFromRequest: boolean): ProwessOutcome<ProwessDefinitionBundle> {
+  const input = { ruleset, definitions };
+  if (!rulesetFromRequest && ((ruleset !== null && typeof ruleset === "object" && hasUnsafeDataProperties(ruleset, true)) || inspectPlainData(ruleset).length > 0)) {
+    return createProwessDefinitionBundle(input);
+  }
+  return buildBundle(input, new Problems());
+}
+
+/** The bundle factory after the whole input has passed `checkPlainData` (so no envelope needs re-inspecting). */
+function buildBundle(input: unknown, p: Problems): ProwessOutcome<ProwessDefinitionBundle> {
   const r = readRecord(input, [], p, B.INVALID_BUNDLE, ["ruleset", "definitions"], ["ruleset", "definitions"]);
   if (r === null) return finish(p, () => null as never);
 
@@ -57,9 +84,11 @@ export function createProwessDefinitionBundle(input: unknown): ProwessOutcome<Pr
   }
 
   const accepted: ProwessDefinitionEnvelope[] = [];
+  /** Exact-identity keys of `accepted` — the same five fields `isSameExactDefinition` compares (O(1) duplicate check). */
+  const acceptedKeys = new Set<string>();
   raw.forEach((item: unknown, i: number) => {
     const at = ["definitions", i];
-    const envelope = readEnvelope(item, at, p);
+    const envelope = readEnvelope(item, at, p, true);
     if (envelope === null) return;
     const pinned = findResolvedRule(ruleset, envelope.entityId);
     if (pinned === null || pinned.entityVersionId !== envelope.entityVersionId) {
@@ -84,11 +113,12 @@ export function createProwessDefinitionBundle(input: unknown): ProwessOutcome<Pr
       p.add(B.RULESET_MISMATCH, [...at, "provenance"], "pin provenance must equal the exact context's (sourceRulesetId / sourceManifestId)");
       return;
     }
-    const ref = definitionRefOf(envelope);
-    if (accepted.some((a) => isSameExactDefinition(definitionRefOf(a), ref))) {
+    const key = exactDefinitionKey(envelope);
+    if (acceptedKeys.has(key)) {
       p.add(B.DUPLICATE_DEFINITION, at, "the same exact Definition version is supplied twice");
       return;
     }
+    acceptedKeys.add(key);
     accepted.push(envelope);
   });
 

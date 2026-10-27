@@ -38,7 +38,7 @@ const MARKER_ROLE: Record<string, DeclarationRole> = {
 const MARKER_PATTERN = /(Formulas?|Requirements?|Requires|Prerequisites?|Keywords?)[ \t]*:/giu;
 
 /** A statement boundary: start of text, start of a line, or after a sentence terminator / semicolon. */
-export function isStatementBoundary(text: string, index: number): boolean {
+function isStatementBoundary(text: string, index: number): boolean {
   let k = index - 1;
   while (k >= 0 && (text[k] === " " || text[k] === "\t")) k -= 1;
   if (k < 0 || text[k] === "\n") return true;

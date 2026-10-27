@@ -1,7 +1,7 @@
 import type { JsonObject } from "@prowess/model";
 import { createRulesetContext, orchestrateRulesEvaluation, type EvaluationPlan, type EvaluationRun, type RuleProvenance } from "@prowess/rules";
 import { keywordReference, readKeywordCatalog } from "../affinity/definitions.js";
-import { bundleMatchesRuleset, createProwessDefinitionBundle, findBundleDefinition, type ProwessDefinitionBundle, type ProwessRulesetProvenance } from "../bundle/bundle.js";
+import { bundleMatchesRuleset, findBundleDefinition, type ProwessDefinitionBundle, type ProwessRulesetProvenance, createBundleWithinCheckedRequest } from "../bundle/bundle.js";
 import { assembleFragments, compiledStepKey } from "../compilation/assemble.js";
 import type { CompilationFragment, ProwessCompilationSourceMap } from "../compilation/model.js";
 import { validateAbilityComposition, type AbilityComposition } from "../construction/composition.js";
@@ -158,7 +158,7 @@ export function compileEffectUse(request: unknown): ProwessOutcome<ProwessEffect
   const ruleset = createRulesetContext(own(r, "ruleset")); const rawBundle = own(r, "definitions"); let bundle: ProwessDefinitionBundle | null = null;
   if (!ruleset.ok) p.add(E.INVALID_EFFECT_RULES, ["ruleset"], "an exact valid M4 RulesetContext is required");
   else if (!isPlainObject(rawBundle)) p.add(E.INVALID_EFFECT_RULES, ["definitions"], "definitions is exact ProwessDefinitionBundle");
-  else { const rebuilt = createProwessDefinitionBundle({ ruleset: own(r, "ruleset"), definitions: own(rawBundle, "definitions") ?? null }); if (!rebuilt.ok) for (const problem of rebuilt.problems) p.list.push({ ...problem, path: `/definitions${problem.path}` }); else if (!bundleMatchesRuleset(rebuilt.value, ruleset.value)) p.add(X.BUNDLE_RULESET_MISMATCH, ["definitions"], "bundle belongs to another Ruleset"); else bundle = rebuilt.value; }
+  else { const rebuilt = createBundleWithinCheckedRequest(own(r, "ruleset"), own(rawBundle, "definitions") ?? null, true); if (!rebuilt.ok) for (const problem of rebuilt.problems) p.list.push({ ...problem, path: `/definitions${problem.path}` }); else if (!bundleMatchesRuleset(rebuilt.value, ruleset.value)) p.add(X.BUNDLE_RULESET_MISMATCH, ["definitions"], "bundle belongs to another Ruleset"); else bundle = rebuilt.value; }
   const catalog = readKeywordCatalog(own(r, "keywords"), ["keywords"], p); if (p.count || !bundle || !catalog) return finish(p, () => null as never);
   const compositionOut = validateAbilityComposition(own(r, "composition"), { bundle }); if (!compositionOut.ok) for (const problem of compositionOut.problems) p.list.push({ ...problem, path: `/composition${problem.path}` }); if (!compositionOut.ok || p.count) return finish(p, () => null as never);
   const composition = compositionOut.value; const effectUse = composition.effects.find((x) => x.componentKey === componentKey); if (!effectUse) { p.add(E.INVALID_EFFECT_RULES, ["componentKey"], "componentKey names one Effect use"); return finish(p, () => null as never); }

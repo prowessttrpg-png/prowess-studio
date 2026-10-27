@@ -3,7 +3,7 @@ import { createRulesetContext, orchestrateRulesEvaluation, type EvaluationPlan, 
 import { AffinityEmitter } from "../affinity/compile.js";
 import { findAffinityEntry, indexAffinityDefinitions, rankEntry, readKeywordCatalog, type AffinityDefinitionIndex, type AffinityEntry } from "../affinity/definitions.js";
 import { ownedAffinity, validateAffinityProfile, type CharacterAffinityProfile } from "../affinity/profile.js";
-import { bundleMatchesRuleset, createProwessDefinitionBundle, findBundleDefinition, type ProwessDefinitionBundle, type ProwessRulesetProvenance } from "../bundle/bundle.js";
+import { bundleMatchesRuleset, findBundleDefinition, type ProwessDefinitionBundle, type ProwessRulesetProvenance, createBundleWithinCheckedRequest } from "../bundle/bundle.js";
 import { assembleFragments, compiledStepKey } from "../compilation/assemble.js";
 import type { CompilationFragmentBinding, ProwessCompilationSourceMap } from "../compilation/model.js";
 import { PROWESS_COMPILATION_CONTRACT_VERSION, SUPPORTED_PROWESS_COMPILATION_CONTRACT_VERSIONS, type ProwessCompilationContractVersion } from "../contract-version.js";
@@ -283,7 +283,7 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
   if (!ruleset.ok) p.add(K.INVALID_CONSTRUCTION_REQUEST, ["ruleset"], "an exact, valid M4 RulesetContext is required");
   else if (!isPlainObject(rawBundle)) p.add(K.INVALID_CONSTRUCTION_REQUEST, ["definitions"], "definitions is the exact ProwessDefinitionBundle of the request's RulesetContext");
   else {
-    const rebuilt = createProwessDefinitionBundle({ ruleset: own(r, "ruleset"), definitions: own(rawBundle, "definitions") ?? null });
+    const rebuilt = createBundleWithinCheckedRequest(own(r, "ruleset"), own(rawBundle, "definitions") ?? null, true);
     if (!rebuilt.ok) for (const problem of rebuilt.problems) p.list.push({ ...problem, path: `/definitions${problem.path}` });
     else if (!bundleMatchesRuleset({ rulesetProvenance: own(rawBundle, "rulesetProvenance") as ProwessRulesetProvenance, definitions: [] }, ruleset.value)) {
       p.add(X.BUNDLE_RULESET_MISMATCH, ["definitions", "rulesetProvenance"], "the Definition bundle was materialized for a different exact Ruleset; Rulesets are never mixed");

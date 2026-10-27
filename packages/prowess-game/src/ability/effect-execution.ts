@@ -1,6 +1,6 @@
 import type { JsonObject } from "@prowess/model";
 import { createRulesetContext, orchestrateRulesEvaluation, type EvaluationPlan, type RequirementNode } from "@prowess/rules";
-import { createProwessDefinitionBundle, type ProwessDefinitionBundle, type ProwessRulesetProvenance } from "../bundle/bundle.js";
+import { createProwessDefinitionBundle, type ProwessDefinitionBundle, type ProwessRulesetProvenance, createBundleWithinCheckedRequest } from "../bundle/bundle.js";
 import { buildCoreResolutionContexts, compileCoreResolution } from "../core/compile.js";
 import type { AbilityConstructionRulePayload } from "../definition/ability-construction-payload.js";
 import { isAttackFoundation, type ManeuverDefinitionPayload, type SpellDefinitionPayload } from "../definition/authored-ability-payload.js";
@@ -215,7 +215,8 @@ function compileInternal(request: unknown): ProwessOutcome<Compiled> {
   }
   const plan = compiled.value, authored = evaluated.value;
   const context = createRulesetContext(own(request, "ruleset"));
-  const bundleOut = context.ok ? createProwessDefinitionBundle({ ruleset: context.value, definitions: (own(request, "definitions") as Record<string, unknown>).definitions }) : null;
+  const rawDefinitions = own(request, "definitions") as Record<string, unknown>;
+  const bundleOut = !context.ok ? null : isPlainObject(rawDefinitions) && Object.hasOwn(rawDefinitions, "definitions") ? createBundleWithinCheckedRequest(context.value, own(rawDefinitions, "definitions"), false) : createProwessDefinitionBundle({ ruleset: context.value, definitions: rawDefinitions.definitions });
   if (!bundleOut?.ok) { p.add(K.INVALID_REQUEST, ["definitions"], "exact Ruleset bundle required"); return finish(p, () => null as never); }
   const bundle = bundleOut.value;
   const rules = bundle.definitions.filter((d) => d.definitionKind === "ABILITY_CONSTRUCTION_RULE");

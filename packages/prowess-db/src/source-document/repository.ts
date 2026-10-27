@@ -20,7 +20,7 @@ import type { SourceDocument as PrismaSourceDocumentRow } from "../../generated/
  * the exact same row mapping — same same-package-only convenience as
  * `entity/repository.ts`'s `toDomainEntity`.
  */
-export function toDomainSourceDocument(row: PrismaSourceDocumentRow): SourceDocument {
+function toDomainSourceDocument(row: PrismaSourceDocumentRow): SourceDocument {
   return {
     id: SourceDocumentId.of(row.id),
     title: row.title,

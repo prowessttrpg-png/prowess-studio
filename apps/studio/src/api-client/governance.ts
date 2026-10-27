@@ -29,9 +29,7 @@ export const createManifest = (rulesetId: string, body: { parentManifestId?: str
   apiPost<ManifestDto>(`/api/rulesets/${enc(rulesetId)}/manifests`, body);
 // Canon policies
 export const listPolicies = (rulesetId: string) => apiList<PolicyDto>(`/api/rulesets/${enc(rulesetId)}/canon-policies${query(all)}`);
-export const getLatestPolicy = (rulesetId: string) => apiGet<PolicyDto | null>(`/api/rulesets/${enc(rulesetId)}/canon-policies/latest`);
 export const getPolicy = (id: string) => apiGet<PolicyDto>(`/api/canon-policies/${enc(id)}`);
-export const listAuthorityRecords = (id: string) => apiList<AuthorityRecordDto>(`/api/canon-policies/${enc(id)}/source-authorities${query(all)}`);
 export const resolveAuthority = (policyId: string, sourceDocumentId: string, scopeKey: string) =>
   apiGet<AuthorityResolutionDto>(`/api/canon-policies/${enc(policyId)}/source-authority/resolve${query({ sourceDocumentId, scopeKey })}`);
 export const createPolicy = (rulesetId: string, body: Record<string, unknown>) => apiPost<PolicyDto>(`/api/rulesets/${enc(rulesetId)}/canon-policies`, body);

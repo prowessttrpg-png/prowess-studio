@@ -37,7 +37,7 @@ export const RULES_EVALUATION_BODY_FIELDS = ["ruleset", "evaluationKey", "actor"
 const jsonObject = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
 
 /** Exactly one exact selector: { kind: MANIFEST, manifestId } or { kind: RELEASE, releaseId } — nothing else. */
-export function readRulesetSelector(value: unknown): RulesetSelector {
+function readRulesetSelector(value: unknown): RulesetSelector {
   if (!jsonObject(value)) throw bodyError("ruleset must be { kind: MANIFEST, manifestId } or { kind: RELEASE, releaseId }", "ruleset");
   if (value.kind === "MANIFEST") return { kind: "MANIFEST", manifestId: reqUuid(strictObject(value, ["kind", "manifestId"], "ruleset"), "manifestId", "ruleset.") };
   if (value.kind === "RELEASE") return { kind: "RELEASE", releaseId: reqUuid(strictObject(value, ["kind", "releaseId"], "ruleset"), "releaseId", "ruleset.") };

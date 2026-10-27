@@ -22,7 +22,7 @@ export type XmlNode = XmlElement | string;
 
 const ENTITY: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
 
-export function decodeXmlEntities(text: string): string {
+function decodeXmlEntities(text: string): string {
   if (!text.includes("&")) return text;
   return text.replace(/&(#x[0-9a-fA-F]+|#[0-9]+|[a-zA-Z]+);/g, (whole, body: string) => {
     if (body.startsWith("#x")) return String.fromCodePoint(Number.parseInt(body.slice(2), 16));

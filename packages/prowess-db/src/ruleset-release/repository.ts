@@ -32,7 +32,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (value: string) => UUID.test(value);
 
 
-export function toDomainRelease(row: PrismaReleaseRow): RulesetRelease {
+function toDomainRelease(row: PrismaReleaseRow): RulesetRelease {
   return {
     id: RulesetReleaseId.of(row.id),
     rulesetId: RulesetId.of(row.rulesetId),
@@ -109,7 +109,7 @@ export class PublicationAbort extends Error {
 
 const MAX_PUBLICATION_ATTEMPTS = 8;
 
-export function isReleaseNumberViolation(error: unknown): boolean {
+function isReleaseNumberViolation(error: unknown): boolean {
   return isUniqueViolation(error, { constraint: "ruleset_releases_ruleset_id_release_number_key", fields: ["ruleset_id", "release_number"] });
 }
 export function isVersionLabelViolation(error: unknown): boolean {

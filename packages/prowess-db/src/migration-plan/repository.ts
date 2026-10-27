@@ -21,7 +21,7 @@ import type { MigrationPlan as PlanRow, MigrationPlanItem as ItemRow } from "../
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (v: string) => UUID.test(v);
 
-export function toDomainPlan(row: PlanRow): MigrationPlan {
+function toDomainPlan(row: PlanRow): MigrationPlan {
   return {
     id: MigrationPlanId.of(row.id),
     sourceReleaseId: RulesetReleaseId.of(row.sourceReleaseId),
@@ -34,7 +34,7 @@ export function toDomainPlan(row: PlanRow): MigrationPlan {
   };
 }
 
-export function toDomainItem(row: ItemRow): MigrationPlanItem {
+function toDomainItem(row: ItemRow): MigrationPlanItem {
   return {
     id: MigrationPlanItemId.of(row.id),
     migrationPlanId: MigrationPlanId.of(row.migrationPlanId),

@@ -110,10 +110,14 @@ function readProvenance(value: unknown, at: readonly PathSegment[], p: Problems)
   return { rulesetId: rulesetId as string, manifestId: manifestId as string, releaseId, sourceRulesetId, sourceManifestId, legacyTerms };
 }
 
-/** Internal reader used by the envelope, the bundle and stored-definition readers. */
-export function readEnvelope(input: unknown, at: readonly PathSegment[], p: Problems): ProwessDefinitionEnvelope | null {
+/**
+ * Internal reader used by the envelope, the bundle and stored-definition readers. `containerChecked` is passed ONLY by
+ * the bundle factory, whose whole input — every envelope included — has already passed `checkPlainData` in the same
+ * call (M5-CLOSEOUT-02 R3); every other reader inspects the envelope here.
+ */
+export function readEnvelope(input: unknown, at: readonly PathSegment[], p: Problems, containerChecked = false): ProwessDefinitionEnvelope | null {
   const before = p.count;
-  if (!checkPlainData(input, at, p, C.NOT_PLAIN_DATA)) return null;
+  if (!containerChecked && !checkPlainData(input, at, p, C.NOT_PLAIN_DATA)) return null;
   const r = readRecord(input, at, p, C.INVALID_ENVELOPE, ENVELOPE_FIELDS, ENVELOPE_FIELDS);
   if (r === null) return null;
 

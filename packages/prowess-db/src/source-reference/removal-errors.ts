@@ -7,7 +7,7 @@ import { DomainError, SOURCE_REFERENCE_ERROR_CODES } from "@prowess/model";
  * any other P2003 — is returned UNCHANGED so it keeps failing closed through the generic 500 boundary.
  * Pure (no database access) so it can be unit-tested.
  */
-export const SOURCE_REFERENCE_EVIDENCE_CONSTRAINTS = ["rule_conflict_candidates_source_reference_fkey"] as const;
+const SOURCE_REFERENCE_EVIDENCE_CONSTRAINTS = ["rule_conflict_candidates_source_reference_fkey"] as const;
 
 export function mapSourceReferenceRemovalError(error: unknown, id: string): unknown {
   if (typeof error !== "object" || error === null || (error as { code?: unknown }).code !== "P2003") return error;

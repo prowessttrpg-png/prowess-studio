@@ -25,7 +25,7 @@ import type {
  * Ruleset.
  */
 
-export function toDomainManifest(row: PrismaManifestRow): RulesetManifest {
+function toDomainManifest(row: PrismaManifestRow): RulesetManifest {
   return {
     id: RulesetManifestId.of(row.id),
     rulesetId: RulesetId.of(row.rulesetId),
@@ -35,7 +35,7 @@ export function toDomainManifest(row: PrismaManifestRow): RulesetManifest {
   };
 }
 
-export function toDomainManifestEntry(row: PrismaManifestEntryRow): RulesetManifestEntry {
+function toDomainManifestEntry(row: PrismaManifestEntryRow): RulesetManifestEntry {
   return {
     id: RulesetManifestEntryId.of(row.id),
     manifestId: RulesetManifestId.of(row.manifestId),
@@ -107,7 +107,7 @@ type ManifestTx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 /**
  * The allocator's transaction body, callable inside an ENCLOSING transaction (M2-WO8 publication):
  * read this Ruleset's highest manifest_version, insert the manifest at the next number, insert every
- * entry in order. The caller owns the transaction and the bounded retry on `isManifestVersionViolation`
+ * entry in order (one multi-row insert). The caller owns the transaction and the bounded retry on `isManifestVersionViolation`
  * — exactly as `insertRulesetManifestWithEntries` does. One allocator, two callers.
  */
 export async function insertManifestSnapshotInTransaction(
@@ -126,9 +126,11 @@ export async function insertManifestSnapshotInTransaction(
   const manifest = await tx.rulesetManifest.create({
     data: { rulesetId, manifestVersion: nextManifestVersion, parentManifestId },
   });
-  for (const entry of entries) {
-    await tx.rulesetManifestEntry.create({
-      data: { manifestId: manifest.id, entityId: entry.entityId, entityVersionId: entry.entityVersionId },
+  // One multi-row INSERT, rows in the order supplied (M5-CLOSEOUT-02 R9). Same transaction, so a rejected row still
+  // rolls back the manifest and every entry; no row identities are returned or needed (reads order by Entity key).
+  if (entries.length > 0) {
+    await tx.rulesetManifestEntry.createMany({
+      data: entries.map((entry) => ({ manifestId: manifest.id, entityId: entry.entityId, entityVersionId: entry.entityVersionId })),
     });
   }
   return manifest.id;

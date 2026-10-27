@@ -1,6 +1,6 @@
 import type { JsonObject } from "@prowess/model";
 import { createRulesetContext, orchestrateRulesEvaluation, type EvaluationPlan } from "@prowess/rules";
-import { createProwessDefinitionBundle, type ProwessDefinitionBundle, type ProwessRulesetProvenance } from "../bundle/bundle.js";
+import { type ProwessDefinitionBundle, type ProwessRulesetProvenance, createBundleWithinCheckedRequest } from "../bundle/bundle.js";
 import { buildCoreResolutionContexts, compileCoreResolution } from "../core/compile.js";
 import type { AbilityConstructionRulePayload } from "../definition/ability-construction-payload.js";
 import { ACTIVE_MAGIC_DURATIONS, type ActiveMagicDismissal, type ActiveMagicDuration, type ActiveMagicPolicy } from "../definition/active-magic-policy.js";
@@ -297,7 +297,7 @@ export function transitionActiveMagic(request: unknown): ProwessOutcome<ActiveMa
   if (!isExactLabel(casterKey)) p.add(K.INVALID_REQUEST, ["casterKey"], "exact caster identity");
   const context = createRulesetContext(own(r, "ruleset"));
   const defs = own(r, "definitions");
-  const bundleOut = context.ok && isPlainObject(defs) ? createProwessDefinitionBundle({ ruleset: context.value, definitions: own(defs, "definitions") }) : null;
+  const bundleOut = context.ok && isPlainObject(defs) ? createBundleWithinCheckedRequest(context.value, own(defs, "definitions"), false) : null;
   if (!bundleOut?.ok) { p.add(K.INVALID_REQUEST, ["definitions"], "the exact Ruleset bundle is required"); return finish(p, () => null as never); }
   if (p.count > 0) return finish(p, () => null as never);
   const bundle = bundleOut.value, ruleset = context.ok ? context.value : null!;

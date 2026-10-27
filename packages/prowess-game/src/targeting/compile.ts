@@ -1,7 +1,7 @@
 import type { JsonObject } from "@prowess/model";
 import { createRulesetContext, orchestrateRulesEvaluation, type EvaluationPlan, type EvaluationRun, type RuleProvenance } from "@prowess/rules";
 import { keywordReference, readKeywordCatalog } from "../affinity/definitions.js";
-import { bundleMatchesRuleset, createProwessDefinitionBundle, findBundleDefinition, type ProwessDefinitionBundle, type ProwessRulesetProvenance } from "../bundle/bundle.js";
+import { bundleMatchesRuleset, findBundleDefinition, type ProwessDefinitionBundle, type ProwessRulesetProvenance, createBundleWithinCheckedRequest } from "../bundle/bundle.js";
 import { assembleFragments, compiledStepKey } from "../compilation/assemble.js";
 import type { CompilationFragment, CompilationFragmentBinding, ProwessCompilationSourceMap } from "../compilation/model.js";
 import { compositionComponents, validateAbilityComposition, type AbilityComposition } from "../construction/composition.js";
@@ -198,7 +198,7 @@ export function compileAbilityTargeting(request: unknown): ProwessOutcome<Prowes
   if (!ruleset.ok) p.add(T.INVALID_TARGETING_REQUEST, ["ruleset"], "an exact, valid M4 RulesetContext is required");
   else if (!isPlainObject(rawBundle)) p.add(T.INVALID_TARGETING_REQUEST, ["definitions"], "definitions is the exact ProwessDefinitionBundle of the request's RulesetContext");
   else {
-    const rebuilt = createProwessDefinitionBundle({ ruleset: own(r, "ruleset"), definitions: own(rawBundle, "definitions") ?? null });
+    const rebuilt = createBundleWithinCheckedRequest(own(r, "ruleset"), own(rawBundle, "definitions") ?? null, true);
     if (!rebuilt.ok) for (const problem of rebuilt.problems) p.list.push({ ...problem, path: `/definitions${problem.path}` });
     else if (!bundleMatchesRuleset({ rulesetProvenance: own(rawBundle, "rulesetProvenance") as ProwessRulesetProvenance, definitions: [] }, ruleset.value)) {
       p.add(X.BUNDLE_RULESET_MISMATCH, ["definitions", "rulesetProvenance"], "the Definition bundle was materialized for a different exact Ruleset; Rulesets are never mixed");

@@ -551,7 +551,7 @@ function readInitiative(value: unknown, at: readonly PathSegment[], p: Problems)
 }
 
 /** Kind → v1 payload reader for the M5-WO2 core kinds. Static, closed table (no registration). */
-export const CORE_PAYLOAD_FIELDS = Object.freeze({
+const CORE_PAYLOAD_FIELDS = Object.freeze({
   STAT: ["stat", "minimum", "maximum", "source"],
   CHARACTER_DIE_PROGRESSION: ["levels", "dice", "progression", "source"],
   RANK_LADDER: ["ladderKey", "ranks", "source"],
@@ -559,7 +559,7 @@ export const CORE_PAYLOAD_FIELDS = Object.freeze({
   DERIVED_STAT: ["statistic", "formula", "bonusTarget", "source"],
 } as const);
 export type CorePayloadKind = keyof typeof CORE_PAYLOAD_FIELDS | "CORE_RESOLUTION";
-export const CORE_PAYLOAD_KINDS = Object.freeze(["STAT", "CHARACTER_DIE_PROGRESSION", "RANK_LADDER", "SKILL_RANK", "DERIVED_STAT", "CORE_RESOLUTION"] as const satisfies readonly CorePayloadKind[]);
+const CORE_PAYLOAD_KINDS = Object.freeze(["STAT", "CHARACTER_DIE_PROGRESSION", "RANK_LADDER", "SKILL_RANK", "DERIVED_STAT", "CORE_RESOLUTION"] as const satisfies readonly CorePayloadKind[]);
 export const isCorePayloadKind = (kind: string): kind is CorePayloadKind => (CORE_PAYLOAD_KINDS as readonly string[]).includes(kind);
 
 /** Validates a version-1 payload of a WO2 core kind. Returns the canonical payload, or null with problems recorded. */

@@ -144,7 +144,7 @@ export function readAuthoredAbilityPayload(kind: "SPELL_DEFINITION" | "MANEUVER_
   return p.count > before ? null : { ...metadata, composition, actions, effectAttachments: effectAttachments.sort((a, b) => a.effectKey < b.effectKey ? -1 : 1), powerfulBlow };
 }
 
-export function readAttackFoundationProfile(v: unknown, at: readonly PathSegment[], p: Problems): AttackFoundationProfile | null {
+function readAttackFoundationProfile(v: unknown, at: readonly PathSegment[], p: Problems): AttackFoundationProfile | null {
   const before = p.count, C = AUTHORED_ABILITY_ERROR_CODES.FOUNDATION;
   const r = readRecord(v, at, p, C, ["category", "targeting", "range", "resolution", "damage"], ["category", "targeting", "range", "resolution", "damage"]); if (!r) return null;
   const category = readEnum(own(r, "category"), ["MELEE", "RANGED"] as const, [...at, "category"], p, C, "attack category");
@@ -162,7 +162,7 @@ export function readAttackFoundationProfile(v: unknown, at: readonly PathSegment
   const enchantments = labels(damage?.enchantments, [...at, "damage", "enchantments"], p);
   return p.count > before || !category || !targeting || feet === null || !stat || !damage || !damageStat ? null : { category, targeting, range: { kind: "WEAPON_RANGE", feet }, resolution: { mode: "ATTACK_ROLL", stat }, damage: { kind: "WEAPON", weaponKey: damage.weaponKey as string, baseDice: damage.baseDice as string, power: damage.power as number, stat: damageStat, enchantments } };
 }
-export function readActionFoundationProfile(v: unknown, at: readonly PathSegment[], p: Problems): ActionFoundationProfile | null {
+function readActionFoundationProfile(v: unknown, at: readonly PathSegment[], p: Problems): ActionFoundationProfile | null {
   const before = p.count, C = AUTHORED_ABILITY_ERROR_CODES.FOUNDATION;
   const r = readRecord(v, at, p, C, ["category", "targeting"], ["category", "targeting"]); if (!r) return null;
   const category = readEnum(own(r, "category"), ["MOVEMENT", "DEFENSE"] as const, [...at, "category"], p, C, "non-attack action category");

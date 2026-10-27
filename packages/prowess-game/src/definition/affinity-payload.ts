@@ -103,7 +103,7 @@ export interface AffinityProgressionPayload {
   readonly source: CoreDefinitionSource;
 }
 
-export const AFFINITY_PAYLOAD_KINDS = Object.freeze(["AFFINITY_RANK_RULE", "AFFINITY_WEAKNESS_SEVERITY", "AFFINITY_PROGRESSION"] as const);
+const AFFINITY_PAYLOAD_KINDS = Object.freeze(["AFFINITY_RANK_RULE", "AFFINITY_WEAKNESS_SEVERITY", "AFFINITY_PROGRESSION"] as const);
 export type AffinityPayloadKind = (typeof AFFINITY_PAYLOAD_KINDS)[number];
 export const isAffinityPayloadKind = (kind: string): kind is AffinityPayloadKind => (AFFINITY_PAYLOAD_KINDS as readonly string[]).includes(kind);
 

@@ -92,7 +92,7 @@ export function StructuralView({ payload }: { payload: Record<string, unknown> }
   );
 }
 
-export function EntityIdentityView({ candidate }: { candidate: ExtractionCandidateDto }) {
+function EntityIdentityView({ candidate }: { candidate: ExtractionCandidateDto }) {
   return (
     <section aria-label="Proposed identity" data-testid="entity-view">
       <h4>Proposed identity</h4>
@@ -108,7 +108,7 @@ export function EntityIdentityView({ candidate }: { candidate: ExtractionCandida
   );
 }
 
-export function PayloadView({ candidate }: { candidate: ExtractionCandidateDto }) {
+function PayloadView({ candidate }: { candidate: ExtractionCandidateDto }) {
   const key = candidate.payloadSchemaKey;
   if (key === "prowess.semantic.formula") return <FormulaView payload={candidate.payload} />;
   if (key === "prowess.semantic.requirement") return <RequirementView payload={candidate.payload} />;

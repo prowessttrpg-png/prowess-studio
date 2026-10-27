@@ -80,11 +80,3 @@ export function SectionCrumbs({ section, record }: { section?: { label: string; 
   return <Crumbs items={items} />;
 }
 
-export function SectionHeading({ title, children }: { title: string; children?: ReactNode }) {
-  return (
-    <div className="gov-section-heading">
-      <h2>{title}</h2>
-      {children}
-    </div>
-  );
-}

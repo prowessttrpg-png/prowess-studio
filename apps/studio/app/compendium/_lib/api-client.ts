@@ -1,7 +1,8 @@
 /**
  * Compendium API client (PAS-10 M1-WO9 §1, §35) — the ONLY way Compendium
- * UI code talks to data. Every function here calls `fetch` against the
- * M1-WO8 HTTP API; nothing in this file (or anywhere under
+ * UI code talks to data. Every function here calls the M1-WO8 HTTP API
+ * through the one shared Studio `fetch` transport (`src/api-client/http.ts`,
+ * M5-CLOSEOUT-02 R8); nothing in this file (or anywhere under
  * `apps/studio/app/compendium/`) imports `@prowess/db`, Prisma, or any
  * database repository. This is what keeps the architectural boundary in
  * `docs/architecture/api-layer.md` real rather than aspirational —
@@ -17,6 +18,7 @@
  * `Response`, a parsing exception, or server-side detail into whatever
  * calls it.
  */
+import { fetchJsonBody, query } from "../../../src/api-client/http";
 
 /** Mirrors the API's stable error shape (M1-WO8 §4) exactly. */
 export interface ApiErrorBody {
@@ -46,45 +48,28 @@ export class CompendiumApiError extends Error {
   }
 }
 
-async function apiGet<T>(path: string): Promise<T> {
-  let response: Response;
-  try {
-    response = await fetch(path);
-  } catch {
-    // A network-level failure (server unreachable, offline, ...) — not an
-    // API error body at all. Surfaced as a CompendiumApiError too, so
-    // every caller has exactly one error type to handle.
-    throw new CompendiumApiError(
-      { code: "NETWORK_ERROR", message: "Could not reach the server.", field: null, details: null },
-      0,
-    );
-  }
+const NETWORK_FAILURE: ApiErrorBody = { code: "NETWORK_ERROR", message: "Could not reach the server.", field: null, details: null };
 
-  let body: unknown;
-  try {
-    body = await response.json();
-  } catch {
+/**
+ * GET through the shared Studio transport (`src/api-client/http.ts`, M5-CLOSEOUT-02 R8) with the Compendium's own error
+ * semantics, unchanged: a network failure and an unreadable body are both `NETWORK_ERROR` CompendiumApiErrors, and a
+ * non-2xx body is passed through as the server sent it. Query strings use the shared `query` builder.
+ */
+async function apiGet<T>(path: string): Promise<T> {
+  const sent = await fetchJsonBody(path);
+  // A network-level failure (server unreachable, offline, ...) — not an API error body at all. Surfaced as a
+  // CompendiumApiError too, so every caller has exactly one error type to handle.
+  if (sent.kind === "NETWORK_FAILURE") throw new CompendiumApiError(NETWORK_FAILURE, 0);
+  if (sent.kind === "UNREADABLE_BODY") {
     throw new CompendiumApiError(
       { code: "NETWORK_ERROR", message: "The server returned an unreadable response.", field: null, details: null },
-      response.status,
+      sent.response.status,
     );
   }
-
-  if (!response.ok) {
-    throw new CompendiumApiError(body as ApiErrorBody, response.status);
+  if (!sent.response.ok) {
+    throw new CompendiumApiError(sent.body as ApiErrorBody, sent.response.status);
   }
-  return (body as { data: T }).data;
-}
-
-function buildQuery(params: Record<string, string | number | undefined>): string {
-  const query = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== "") {
-      query.set(key, String(value));
-    }
-  }
-  const asString = query.toString();
-  return asString.length > 0 ? `?${asString}` : "";
+  return (sent.body as { data: T }).data;
 }
 
 // --- Entity -----------------------------------------------------------
@@ -145,7 +130,7 @@ export interface ListEntitiesResult {
 }
 
 export async function listEntities(params: ListEntitiesParams): Promise<ListEntitiesResult> {
-  const query = buildQuery({
+  const search = query({
     page: params.page,
     pageSize: params.pageSize,
     search: params.search,
@@ -155,18 +140,13 @@ export async function listEntities(params: ListEntitiesParams): Promise<ListEnti
     keyword: params.keyword,
   });
 
-  let response: Response;
-  try {
-    response = await fetch(`/api/entities${query}`);
-  } catch {
-    throw new CompendiumApiError(
-      { code: "NETWORK_ERROR", message: "Could not reach the server.", field: null, details: null },
-      0,
-    );
-  }
-  const body = await response.json();
-  if (!response.ok) {
-    throw new CompendiumApiError(body as ApiErrorBody, response.status);
+  const sent = await fetchJsonBody(`/api/entities${search}`);
+  if (sent.kind === "NETWORK_FAILURE") throw new CompendiumApiError(NETWORK_FAILURE, 0);
+  // Unchanged from the original list call: an unreadable body is not wrapped — the parse error itself propagates.
+  if (sent.kind === "UNREADABLE_BODY") throw sent.error;
+  const body = sent.body as { data: EntityListItemDto[]; pagination: Omit<ListEntitiesResult, "items"> };
+  if (!sent.response.ok) {
+    throw new CompendiumApiError(body as unknown as ApiErrorBody, sent.response.status);
   }
   return { items: body.data, ...body.pagination };
 }

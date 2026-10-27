@@ -48,7 +48,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (v: unknown): v is string => typeof v === "string" && UUID.test(v);
 
 /** Constraint fixed by migration 20261011010000_add_source_structure. */
-export const INGESTION_SNAPSHOT_UNIQUE = "source_snapshot_ingestions_snapshot_key";
+const INGESTION_SNAPSHOT_UNIQUE = "source_snapshot_ingestions_snapshot_key";
 
 /** Large documents write tens of thousands of rows in one transaction; give it room (default is 5s). */
 const INGESTION_TRANSACTION_OPTIONS = { maxWait: 10_000, timeout: 300_000 } as const;
@@ -57,7 +57,7 @@ const INGESTION_TRANSACTION_OPTIONS = { maxWait: 10_000, timeout: 300_000 } as c
 // Row mapping
 // ---------------------------------------------------------------------------------------------------------------
 
-export function toDomainIngestion(row: IngestionRow): SourceSnapshotIngestion {
+function toDomainIngestion(row: IngestionRow): SourceSnapshotIngestion {
   return {
     id: SourceSnapshotIngestionId.of(row.id),
     sourceSnapshotId: SourceSnapshotId.of(row.sourceSnapshotId),
@@ -72,7 +72,7 @@ export function toDomainIngestion(row: IngestionRow): SourceSnapshotIngestion {
 
 const sectionIdOrNull = (v: string | null) => (v === null ? null : SourceSectionId.of(v));
 
-export function toDomainSection(row: SectionRow): SourceSection {
+function toDomainSection(row: SectionRow): SourceSection {
   return {
     id: SourceSectionId.of(row.id),
     sourceSnapshotId: SourceSnapshotId.of(row.sourceSnapshotId),
@@ -87,7 +87,7 @@ export function toDomainSection(row: SectionRow): SourceSection {
   };
 }
 
-export function toDomainBlock(row: BlockRow): SourceBlock {
+function toDomainBlock(row: BlockRow): SourceBlock {
   return {
     id: SourceBlockId.of(row.id),
     sourceSnapshotId: SourceSnapshotId.of(row.sourceSnapshotId),
@@ -106,7 +106,7 @@ export function toDomainBlock(row: BlockRow): SourceBlock {
   };
 }
 
-export function toDomainTable(row: TableRow): SourceTable {
+function toDomainTable(row: TableRow): SourceTable {
   return {
     id: SourceTableId.of(row.id),
     sourceSnapshotId: SourceSnapshotId.of(row.sourceSnapshotId),
@@ -122,7 +122,7 @@ export function toDomainTable(row: TableRow): SourceTable {
   };
 }
 
-export function toDomainAsset(row: AssetRow): SourceAsset {
+function toDomainAsset(row: AssetRow): SourceAsset {
   return {
     id: SourceAssetId.of(row.id),
     sourceSnapshotId: SourceSnapshotId.of(row.sourceSnapshotId),
@@ -139,7 +139,7 @@ export function toDomainAsset(row: AssetRow): SourceAsset {
   };
 }
 
-export function toDomainPlacement(row: PlacementRow): SourceAssetPlacement {
+function toDomainPlacement(row: PlacementRow): SourceAssetPlacement {
   return {
     id: SourceAssetPlacementId.of(row.id),
     sourceSnapshotId: SourceSnapshotId.of(row.sourceSnapshotId),

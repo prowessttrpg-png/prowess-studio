@@ -295,7 +295,22 @@ export const TERMINOLOGY_INVENTORY: readonly TerminologyEntry[] = deepFreeze([
  * are one separator — so "Emission", "EMISSION", "Player Die" and "PLAYER_DIE" are all recognised.
  */
 const termToken = (value: string): string => value.toUpperCase().replace(/[ _-]+/g, "_");
+/**
+ * Token → the FIRST LEGACY entry (inventory order) with that token: exactly the entry the former linear
+ * `TERMINOLOGY_INVENTORY.find` returned. An immutable, null-prototype record computed once from the frozen inventory
+ * (M5-CLOSEOUT-02 R2) — not module state: it is frozen and never changes after module evaluation.
+ */
+const LEGACY_BY_TOKEN: Readonly<Record<string, TerminologyEntry>> = (() => {
+  const index = Object.create(null) as Record<string, TerminologyEntry>;
+  for (const e of TERMINOLOGY_INVENTORY) {
+    if (e.status !== "LEGACY") continue;
+    const token = termToken(e.term);
+    if (!Object.hasOwn(index, token)) index[token] = e;
+  }
+  return Object.freeze(index);
+})();
 export function legacyTermFor(candidate: string): { term: string; canonicalTerm: string } | null {
-  const hit = TERMINOLOGY_INVENTORY.find((e) => e.status === "LEGACY" && termToken(e.term) === termToken(candidate));
+  const token = termToken(candidate);
+  const hit = Object.hasOwn(LEGACY_BY_TOKEN, token) ? LEGACY_BY_TOKEN[token] : undefined;
   return hit === undefined || hit.canonicalTerm === null ? null : { term: hit.term, canonicalTerm: hit.canonicalTerm };
 }

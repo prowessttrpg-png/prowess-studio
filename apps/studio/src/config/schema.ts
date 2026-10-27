@@ -3,10 +3,10 @@ import { z } from "zod";
 /**
  * Supported runtime environments (PAS-10 §8, M0-WO2).
  */
-export const ENVIRONMENTS = ["development", "test", "production"] as const;
+const ENVIRONMENTS = ["development", "test", "production"] as const;
 export type Environment = (typeof ENVIRONMENTS)[number];
 
-export const LOG_LEVELS = ["fatal", "error", "warn", "info", "debug", "trace"] as const;
+const LOG_LEVELS = ["fatal", "error", "warn", "info", "debug", "trace"] as const;
 export type LogLevel = (typeof LOG_LEVELS)[number];
 
 /**
