@@ -14,12 +14,13 @@
  */
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { suiteOfFile, loadInventory, suiteTestFiles } from "./gate-inventory.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const reportsDir = path.join(root, process.env.PROWESS_REPORTS_DIR ?? "reports");
+const reportsDir = process.env.PROWESS_REPORTS_DIR ?? path.join(tmpdir(), "prowess-reports");
 const [gateId, ...files] = process.argv.slice(2);
 const inventory = loadInventory(root);
 const gate = inventory.gates.find((g) => g.id === gateId);

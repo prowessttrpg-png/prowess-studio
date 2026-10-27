@@ -41,6 +41,9 @@ concurrency:
 
 env:
   CERTIFICATION: ${{ github.event_name == 'workflow_dispatch' && inputs.certification && 'true' || 'false' }}
+  # Authoritative suite reports live OUTSIDE the checkout (scripts/ci/collect-reports.mjs moves them there), so no
+  # static audit or control ever reads them as repository content.
+  PROWESS_REPORTS_DIR: /tmp/prowess-reports
 
 jobs:
   # ---- Tier 1 ---------------------------------------------------------------------------------------------------------
@@ -98,7 +101,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: reports-unit-packages
-          path: reports/
+          path: /tmp/prowess-reports/
           if-no-files-found: error
           retention-days: 7
 
@@ -127,7 +130,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: reports-unit-game
-          path: reports/
+          path: /tmp/prowess-reports/
           if-no-files-found: error
           retention-days: 7
 
@@ -156,7 +159,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: reports-unit-studio
-          path: reports/
+          path: /tmp/prowess-reports/
           if-no-files-found: error
           retention-days: 7
 
@@ -267,7 +270,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: reports-db-api
-          path: reports/
+          path: /tmp/prowess-reports/
           if-no-files-found: error
           retention-days: 7
       # Re-confirms the destructive-reset safety guard on every run — this resets prowess_studio_test, the disposable
@@ -343,7 +346,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: reports-db-integration-${{ matrix.shard }}
-          path: reports/
+          path: /tmp/prowess-reports/
           if-no-files-found: error
           retention-days: 7
 
@@ -373,7 +376,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: reports-*
-          path: reports
+          path: /tmp/prowess-reports
           merge-multiple: true
       - name: M1 audit gate — static invariants (no current-version state, enum parity, errors, migrations, layering)
         run: node scripts/ci/verify-gate.mjs M1-STATIC apps/studio/tests/unit/m1-audit-static.test.ts
@@ -448,7 +451,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: reports-*
-          path: reports
+          path: /tmp/prowess-reports
           merge-multiple: true
       - name: M5-WO4 audit — Affinity identity, rank, authority & keyword alignment
         run: |
@@ -483,7 +486,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: reports-*
-          path: reports
+          path: /tmp/prowess-reports
           merge-multiple: true
       - name: M5-WO6 audit — Targeting framework, geometry & branch catalogs
         run: |
@@ -530,7 +533,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: reports-*
-          path: reports
+          path: /tmp/prowess-reports
           merge-multiple: true
       - name: M5-WO11 audit — Final Maneuver Cost & Attack Floors
         run: |
@@ -560,7 +563,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: reports-*
-          path: reports
+          path: /tmp/prowess-reports
           merge-multiple: true
       - name: M5-WO12 audit — Effect Chain Execution & Runtime Routing
         run: |
@@ -590,7 +593,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: reports-*
-          path: reports
+          path: /tmp/prowess-reports
           merge-multiple: true
       - name: M5-WO13 audit — Active Magic Runtime
         run: |
