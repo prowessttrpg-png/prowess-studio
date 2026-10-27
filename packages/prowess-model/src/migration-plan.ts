@@ -25,12 +25,6 @@ export type MigrationChangeType = (typeof MIGRATION_CHANGE_TYPES)[number];
 export const MIGRATION_COMPATIBILITY_CLASSIFICATIONS = ["UNCHANGED", "RECALCULATE_ONLY", "VALID_WITH_CHANGES", "REVIEW_REQUIRED", "INVALID", "UNSUPPORTED"] as const;
 export type MigrationCompatibilityClassification = (typeof MIGRATION_COMPATIBILITY_CLASSIFICATIONS)[number];
 
-export function isMigrationChangeType(value: string): value is MigrationChangeType {
-  return (MIGRATION_CHANGE_TYPES as readonly string[]).includes(value);
-}
-export function isMigrationCompatibilityClassification(value: string): value is MigrationCompatibilityClassification {
-  return (MIGRATION_COMPATIBILITY_CLASSIFICATIONS as readonly string[]).includes(value);
-}
 
 /** The only compatibility WO11 asserts: identical Version => UNCHANGED; any structural change => REVIEW_REQUIRED. */
 export function compatibilityFor(changeType: MigrationChangeType): MigrationCompatibilityClassification {

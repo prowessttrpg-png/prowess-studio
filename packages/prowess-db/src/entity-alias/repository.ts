@@ -63,17 +63,6 @@ export async function selectAliasesByEntityId(entityId: string): Promise<EntityA
   return rows.map(toDomainEntityAlias);
 }
 
-export async function selectEntityAliasById(id: string): Promise<EntityAlias | null> {
-  try {
-    const row = await prisma.entityAlias.findUnique({ where: { id } });
-    return row ? toDomainEntityAlias(row) : null;
-  } catch {
-    // Same deliberate simplification as elsewhere in this package: a
-    // malformed UUID and a genuinely absent id are both "not found" here.
-    return null;
-  }
-}
-
 export interface AliasEntityMatch {
   entity: Entity;
   matchedAlias: EntityAlias;

@@ -113,7 +113,6 @@ export function availableDecisions(status: string, kind: string): ImportDecision
   });
 }
 
-export const isTerminalStatus = (status: string) => (TERMINAL_CANDIDATE_STATUSES as readonly string[]).includes(status);
 export const REVIEWABLE_BATCH = (status: string) => status === "READY_FOR_REVIEW" || status === "REVIEWING";
 
 /** Review progress from the DERIVED server summary — never recounted from loaded pages. */
@@ -122,7 +121,6 @@ export function reviewProgress(byStatus: Record<string, number>, total: number) 
   const rejected = byStatus.REJECTED ?? 0;
   return { total, approved, rejected, reviewed: approved + rejected, unresolved: total - approved - rejected };
 }
-export const STATUS_ORDER = EXTRACTION_CANDIDATE_STATUSES;
 
 /**
  * Per-outline indexes, built ONCE per loaded outline array (M3-WO9 real-source fix: a ~2,500-section outline made the
@@ -158,12 +156,6 @@ function indexFor(sections: readonly SourceSectionDto[]) {
 export function sectionPath(sectionId: string | null, sections: readonly SourceSectionDto[]): string | null {
   if (sectionId === null) return null;
   return indexFor(sections).paths.get(sectionId) ?? null;
-}
-
-/** The section a semantic payload's `sectionPath` names, resolved against the outline (display only). */
-export function sectionForPath(path: unknown, sections: readonly SourceSectionDto[]): SourceSectionDto | null {
-  if (typeof path !== "string") return null;
-  return indexFor(sections).byPath.get(path)?.[0] ?? null;
 }
 
 /**

@@ -45,8 +45,6 @@ export const isImportBatchScopeType = (v: unknown): v is ImportBatchScopeType =>
  */
 export const IMPORT_BATCH_STATUSES = ["CREATED", "EXTRACTING", "READY_FOR_REVIEW", "REVIEWING", "COMPLETED", "FAILED", "CANCELLED"] as const;
 export type ImportBatchStatus = (typeof IMPORT_BATCH_STATUSES)[number];
-export const isImportBatchStatus = (v: unknown): v is ImportBatchStatus =>
-  typeof v === "string" && (IMPORT_BATCH_STATUSES as readonly string[]).includes(v);
 /** The only status WO2 ever writes for a Batch. */
 export const INITIAL_IMPORT_BATCH_STATUS = "CREATED" satisfies ImportBatchStatus;
 /**
@@ -85,8 +83,6 @@ export const isExtractionConfidence = (v: unknown): v is ExtractionConfidence =>
  */
 export const EXTRACTION_CANDIDATE_STATUSES = ["UNREVIEWED", "MATCHED", "NEW_ENTITY", "CONFLICT", "NEEDS_MAPPING", "REJECTED", "APPROVED"] as const;
 export type ExtractionCandidateStatus = (typeof EXTRACTION_CANDIDATE_STATUSES)[number];
-export const isExtractionCandidateStatus = (v: unknown): v is ExtractionCandidateStatus =>
-  typeof v === "string" && (EXTRACTION_CANDIDATE_STATUSES as readonly string[]).includes(v);
 /** The only status WO2 ever writes for a Candidate. */
 export const INITIAL_EXTRACTION_CANDIDATE_STATUS = "UNREVIEWED" satisfies ExtractionCandidateStatus;
 
@@ -103,8 +99,6 @@ export const MAX_SUPPORTING_ANCHORS = 10_000;
 export const MAX_CANDIDATES_PER_CALL = 5000;
 /** Extractor key / payload schema key syntax: lowercase dotted / dashed identifiers, e.g. "prowess.entity.skill". */
 export const IMPORT_IDENTIFIER_PATTERN = /^[a-z0-9]+(?:[.\-_][a-z0-9]+)*$/;
-/** The documented extractor key for synthetic / manual foundation work before WO3's extractor exists. */
-export const MANUAL_FOUNDATION_EXTRACTOR_KEY = "manual-foundation";
 
 // ---------------------------------------------------------------------------------------------------------------
 // Persisted domain shapes

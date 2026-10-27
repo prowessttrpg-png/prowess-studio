@@ -287,7 +287,6 @@ export const listSourceSnapshots = (sourceDocumentId: string, p: Page = {}) => a
 export const getSourceSnapshot = (id: string) => apiGet<SourceSnapshotDto>(`/api/import/source-snapshots/${enc(id)}`);
 export const getSourceOutline = (snapshotId: string) => apiGet<SourceOutlineDto>(`/api/import/source-snapshots/${enc(snapshotId)}/structure`);
 export const getSourceSection = (id: string) => apiGet<SourceSectionDto>(`/api/import/source-sections/${enc(id)}`);
-export const listSectionChildren = (id: string, p: Page = {}) => apiList<SourceSectionDto>(`/api/import/source-sections/${enc(id)}/children${query(p)}`);
 export const listSectionContents = (id: string, p: Page = {}) => apiList<SourceContentNodeDto>(`/api/import/source-sections/${enc(id)}/contents${query(p)}`);
 export const getSourceBlock = (id: string) => apiGet<SourceBlockDto>(`/api/import/source-blocks/${enc(id)}`);
 export const getSourceTable = (id: string) => apiGet<SourceTableDto>(`/api/import/source-tables/${enc(id)}`);
@@ -306,7 +305,6 @@ export const getCandidate = (id: string) => apiGet<ExtractionCandidateDto>(`/api
 // ---- Matching / conflicts (WO4 / WO6) --------------------------------------------------------------------------------
 export const analyzeMatches = (batchId: string) => apiPost<{ run: MatchRunDto; created: boolean }>(`/api/import/batches/${enc(batchId)}/match-runs`, {});
 export const listMatchRuns = (batchId: string, p: Page = {}) => apiList<MatchRunDto>(`/api/import/batches/${enc(batchId)}/match-runs${query(p)}`);
-export const getMatchRun = (id: string) => apiGet<MatchRunDto>(`/api/import/match-runs/${enc(id)}`);
 export const getCandidateAssessment = (matchRunId: string, candidateId: string) =>
   apiGet<MatchAssessmentDto>(`/api/import/match-runs/${enc(matchRunId)}/candidates/${enc(candidateId)}/assessment`);
 export const listDuplicateGroups = (matchRunId: string, p: Page = {}) => apiList<DuplicateGroupDto>(`/api/import/match-runs/${enc(matchRunId)}/duplicate-groups${query(p)}`);

@@ -46,8 +46,6 @@ export type ImportMatchDecisionBasis = (typeof IMPORT_MATCH_DECISION_BASES)[numb
 export const ENTITY_IDENTITY_CANDIDATE_KINDS = ["ENTITY", "ENTITY_FIELD"] as const satisfies readonly ExtractionCandidateKind[];
 /** Semantic kinds that can be approved directly (APPROVE_SEMANTIC) because they carry no stable Entity identity. */
 export const SEMANTIC_CANDIDATE_KINDS = ["FORMULA", "REQUIREMENT", "KEYWORD"] as const satisfies readonly ExtractionCandidateKind[];
-/** Generic structural / reference kinds: never approved as domain content (may be rejected or marked NEEDS_MAPPING). */
-export const STRUCTURAL_CANDIDATE_KINDS = ["UNKNOWN", "REFERENCE", "RELATIONSHIP"] as const satisfies readonly ExtractionCandidateKind[];
 
 /** Terminal review statuses — nothing transitions out of them. */
 export const TERMINAL_CANDIDATE_STATUSES = ["APPROVED", "REJECTED"] as const satisfies readonly ExtractionCandidateStatus[];
