@@ -70,8 +70,11 @@ test.describe("M0-WO5 Studio Application Shell", () => {
     page,
   }) => {
     await page.goto("/");
-    const dashboardLink = page.getByRole("link", { name: "Dashboard" });
-    const compendiumLink = page.getByRole("link", { name: "Compendium" });
+    // exact: role-name matching is otherwise a case-insensitive SUBSTRING match, so on a database that already holds
+    // Entities such as "test.compendium.entity.…" the locator also matched their rows on /compendium (strict-mode
+    // violation — the local "dirty database" flake, M5-CLOSEOUT-03 C8).
+    const dashboardLink = page.getByRole("link", { name: "Dashboard", exact: true });
+    const compendiumLink = page.getByRole("link", { name: "Compendium", exact: true });
     await expect(dashboardLink).toHaveAttribute("aria-current", "page");
 
     await compendiumLink.click();
