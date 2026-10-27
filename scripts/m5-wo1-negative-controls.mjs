@@ -1,23 +1,23 @@
 /**
  * M5-WO1 behavioural negative controls (PAS-10 M5-WO1 §214–230). Each control temporarily mutates REAL source on disk,
  * runs the guard that must catch it, requires that guard to FAIL for the right reason, and restores the file in a
- * `finally`. Every file is verified byte-identical afterwards and every guard is re-run green. Never commit a control.
+ * `finally`. Every file is verified byte-identical afterwards and the working tree is checked unchanged (shared harness,
+ * scripts/lib/control-harness.mjs: one green baseline per distinct guard). Never commit a control.
  *
  * Run from the repository root after building workspace packages: node scripts/m5-wo1-negative-controls.mjs
  */
 import assert from "node:assert/strict";
-import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { applyEdits, keyedGuard, runControls, vitestGuard } from "./lib/control-harness.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const abs = (file) => path.join(root, file);
-const vitest = (pkgDir, args) => () =>
-  spawnSync(process.execPath, [path.join(root, pkgDir, "node_modules/vitest/vitest.mjs"), "run", ...args], { cwd: path.join(root, pkgDir), encoding: "utf8", timeout: 120_000, env: { ...process.env, CI: "1" } });
+const vitest = (pkgDir, args) => vitestGuard(root, pkgDir, args, { timeout: 120_000 });
 const game = (file, pattern) => vitest("packages/prowess-game", [file, "-t", pattern]);
 const staticAudit = (target) => vitest("apps/studio", ["tests/unit/m5-wo1-static.test.ts", "-t", `${target} passes`]);
-const architecture = () => spawnSync(process.execPath, [abs("scripts/check-architecture.mjs")], { cwd: root, encoding: "utf8", timeout: 60_000 });
+const architecture = keyedGuard("node scripts/check-architecture.mjs", () => spawnSync(process.execPath, [abs("scripts/check-architecture.mjs")], { cwd: root, encoding: "utf8", timeout: 60_000 }));
 
 const G = (f) => `packages/prowess-game/src/${f}`;
 const append = (snippet) => [[null, `\n${snippet}\n`]];
@@ -44,39 +44,11 @@ const controls = [
   { name: "§230 Target Must Be Bloodied treated as applying Bloodied", file: G("definition/payload.ts"), edits: [["forbiddenKeyPaths(r, ABILITY_CONDITION_FORBIDDEN_KEYS, at)", "forbiddenKeyPaths(r, [], at)"]], guard: game("src/ability-construction.test.ts", "applies a status to the target") },
 ];
 
-const originals = new Map();
-const restore = () => {
-  for (const [file, text] of originals) writeFileSync(abs(file), text);
-};
-try {
-  for (const control of controls) {
-    if (!originals.has(control.file)) originals.set(control.file, readFileSync(abs(control.file), "utf8"));
-    const original = originals.get(control.file);
-    const baseline = control.guard();
-    assert.equal(baseline.status, 0, `baseline guard is not green for ${control.name}:\n${baseline.stdout}${baseline.stderr}`);
-
-    let mutated = original;
-    for (const [from, to] of control.edits) {
-      if (from === null) mutated = `${mutated}${to}`;
-      else {
-        assert.equal(mutated.split(from).length, 2, `mutation anchor must occur exactly once (${control.name}): ${from}`);
-        mutated = mutated.replace(from, to);
-      }
-    }
-    assert.notEqual(mutated, original);
-    writeFileSync(abs(control.file), mutated);
-    try {
-      const result = control.guard();
-      assert.notEqual(result.status, 0, `control was NOT caught: ${control.name}`);
-      assert.match(`${result.stdout}${result.stderr}`, control.expect ?? /AssertionError/, `control failed for infrastructure rather than behaviour: ${control.name}\n${result.stdout}${result.stderr}`);
-    } finally {
-      writeFileSync(abs(control.file), original);
-    }
-    assert.equal(control.guard().status, 0, `guard not green after restoring ${control.name}`);
-    console.log(`Negative control caught: ${control.name}`);
-  }
-} finally {
-  restore();
-}
-for (const [file, text] of originals) assert.equal(readFileSync(abs(file), "utf8"), text, `${file} was not restored byte-for-byte`);
-console.log(`All ${controls.length} M5-WO1 negative controls caught; every mutated file restored byte-for-byte.`);
+runControls({
+  root,
+  title: "M5-WO1",
+  controls: controls.map((control) => ({ ...control, mutate: applyEdits(control.name, control.edits) })),
+  expect: /AssertionError/,
+  caught: (name) => `Negative control caught: ${name}`,
+  done: (count) => `All ${count} M5-WO1 negative controls caught; every mutated file restored byte-for-byte.`,
+});

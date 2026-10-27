@@ -7,15 +7,12 @@
  * Run from the repository root after building workspace packages: node scripts/m5-wo6-negative-controls.mjs
  */
 import assert from "node:assert/strict";
-import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { runControls, vitestGuard } from "./lib/control-harness.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const abs = (file) => path.join(root, file);
-const vitest = (pkgDir, args) => () =>
-  spawnSync(process.execPath, [path.join(root, pkgDir, "node_modules/vitest/vitest.mjs"), "run", ...args], { cwd: path.join(root, pkgDir), encoding: "utf8", timeout: 180_000, env: { ...process.env, CI: "1" } });
+const vitest = (pkgDir, args) => vitestGuard(root, pkgDir, args, { timeout: 180_000 });
 const golden = (pattern) => vitest("packages/prowess-game", ["src/targeting-golden.test.ts", "-t", pattern]);
 const staticWo6 = (pattern) => vitest("apps/studio", ["tests/unit/m5-wo6-static.test.ts", "-t", pattern]);
 const COMPILE_RULES = staticWo6("targeting/compile.ts passes the WO6 rules");
@@ -154,33 +151,11 @@ const controls = [
   },
 ];
 
-const originals = new Map();
-const restore = () => {
-  for (const [file, text] of originals) writeFileSync(abs(file), text);
-};
-try {
-  for (const control of controls) {
-    if (!originals.has(control.file)) originals.set(control.file, readFileSync(abs(control.file), "utf8"));
-    const original = originals.get(control.file);
-    const baseline = control.guard();
-    assert.equal(baseline.status, 0, `baseline guard is not green for ${control.name}:\n${baseline.stdout}${baseline.stderr}`);
-    assert.doesNotMatch(baseline.stdout, /no tests|No test files found|\b0 passed/i, `baseline guard selected no tests for ${control.name}`);
-
-    const mutated = control.mutate(original);
-    assert.notEqual(mutated, original);
-    writeFileSync(abs(control.file), mutated);
-    try {
-      const result = control.guard();
-      assert.notEqual(result.status, 0, `control was NOT caught: ${control.name}`);
-      assert.match(`${result.stdout}${result.stderr}`, /AssertionError|Error: compile failed|Error: reading failed|Error: steps failed|Error: \[|expected/, `control failed for infrastructure rather than behaviour: ${control.name}\n${result.stdout}${result.stderr}`);
-    } finally {
-      writeFileSync(abs(control.file), original);
-    }
-    assert.equal(readFileSync(abs(control.file), "utf8"), original, `file not restored byte-for-byte: ${control.file}`);
-    assert.equal(control.guard().status, 0, `guard not green after restoring ${control.name}`);
-    console.log(`Negative control caught: ${control.name}`);
-  }
-} finally {
-  restore();
-}
-console.log(`All ${controls.length} M5-WO6 negative controls caught and reverted.`);
+runControls({
+  root,
+  title: "M5-WO6",
+  controls: controls,
+  expect: /AssertionError|Error: compile failed|Error: reading failed|Error: steps failed|Error: \[|expected/,
+  caught: (name) => `Negative control caught: ${name}`,
+  done: (count) => `All ${count} M5-WO6 negative controls caught and reverted.`,
+});
