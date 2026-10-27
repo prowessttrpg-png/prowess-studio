@@ -26,23 +26,40 @@ export class GovernanceApiError extends Error {
   }
 }
 
-async function request(method: "GET" | "POST", path: string, body?: unknown): Promise<{ status: number; json: Record<string, unknown> }> {
+/**
+ * The ONE Studio `fetch` transport (M5-CLOSEOUT-02 R8), shared by the governance / import / rules clients below and the
+ * Compendium client. It only performs the request and reads the JSON body, reporting the two transport failures as
+ * values; every client keeps its own error type, codes, messages and envelope rules. `init` is passed to `fetch` only
+ * when given, so a client that calls `fetch(path)` keeps that exact call.
+ */
+export type TransportResult =
+  | { readonly kind: "OK"; readonly response: Response; readonly body: unknown }
+  | { readonly kind: "NETWORK_FAILURE" }
+  | { readonly kind: "UNREADABLE_BODY"; readonly response: Response; readonly error: unknown };
+
+export async function fetchJsonBody(path: string, init?: RequestInit): Promise<TransportResult> {
   let response: Response;
   try {
-    response = await fetch(path, {
-      method,
-      headers: body === undefined ? undefined : { "content-type": "application/json" },
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
+    response = await (init === undefined ? fetch(path) : fetch(path, init));
   } catch {
-    throw new GovernanceApiError("NETWORK_ERROR", "Could not reach the server.", 0);
+    return { kind: "NETWORK_FAILURE" };
   }
-  let json: unknown;
   try {
-    json = await response.json();
-  } catch {
-    throw new GovernanceApiError("INVALID_RESPONSE", "The server returned an unreadable response.", response.status);
+    return { kind: "OK", response, body: await response.json() };
+  } catch (error) {
+    return { kind: "UNREADABLE_BODY", response, error };
   }
+}
+
+async function request(method: "GET" | "POST", path: string, body?: unknown): Promise<{ status: number; json: Record<string, unknown> }> {
+  const sent = await fetchJsonBody(path, {
+    method,
+    headers: body === undefined ? undefined : { "content-type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (sent.kind === "NETWORK_FAILURE") throw new GovernanceApiError("NETWORK_ERROR", "Could not reach the server.", 0);
+  if (sent.kind === "UNREADABLE_BODY") throw new GovernanceApiError("INVALID_RESPONSE", "The server returned an unreadable response.", sent.response.status);
+  const { response, body: json } = sent;
   if (typeof json !== "object" || json === null || Array.isArray(json)) {
     throw new GovernanceApiError("INVALID_RESPONSE", "The server returned an unexpected response shape.", response.status);
   }
