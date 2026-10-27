@@ -62,6 +62,10 @@ jobs:
           cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
+      # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
+      # test) without it. Generation needs no database.
+      - name: Prisma Client generation
+        run: pnpm run db:generate
       - name: Build workspace packages
         run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Lint
@@ -90,6 +94,10 @@ jobs:
           cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
+      # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
+      # test) without it. Generation needs no database.
+      - name: Prisma Client generation
+        run: pnpm run db:generate
       - name: Build workspace packages
         run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       # The independent package suites run concurrently on the runner's cores; each writes its own JSON report.
@@ -120,6 +128,10 @@ jobs:
           cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
+      # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
+      # test) without it. Generation needs no database.
+      - name: Prisma Client generation
+        run: pnpm run db:generate
       - name: Build workspace packages
         run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Unit tests (@prowess/game)
@@ -149,6 +161,10 @@ jobs:
           cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
+      # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
+      # test) without it. Generation needs no database.
+      - name: Prisma Client generation
+        run: pnpm run db:generate
       - name: Build workspace packages
         run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: UI/component tests (apps/studio)
@@ -320,20 +336,27 @@ jobs:
         with:
           node-version: "22"
           cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
-      - name: Create test database
+      # Both databases, as the pre-CLOSEOUT-03 job had them: the integration suite also proves dev/test isolation
+      # (data written through the test client never appears in prowess_studio_dev), which needs a migrated dev database.
+      - name: Create dev and test databases
         env:
           PGPASSWORD: postgres
         run: |
           until pg_isready -h localhost -p 5432 -U postgres > /dev/null 2>&1; do sleep 2; done
+          psql -h localhost -U postgres -d postgres -c "CREATE DATABASE prowess_studio_dev;"
           psql -h localhost -U postgres -d postgres -c "CREATE DATABASE prowess_studio_test;"
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
-      - name: Prisma Client generation and test-database migrations
+      - name: Prisma Client generation
+        run: pnpm run db:generate
+      - name: Deploy migrations (development database)
+        env:
+          NODE_ENV: development
+        run: pnpm run db:migrate:deploy
+      - name: Deploy migrations (test database)
         env:
           NODE_ENV: test
-        run: |
-          pnpm run db:generate
-          pnpm run db:migrate:deploy
+        run: pnpm run db:migrate:deploy
       - name: Build workspace packages
         run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Database integration tests
@@ -370,6 +393,10 @@ jobs:
           cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
+      # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
+      # test) without it. Generation needs no database.
+      - name: Prisma Client generation
+        run: pnpm run db:generate
       - name: Build workspace packages
         run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Download authoritative reports
@@ -445,6 +472,10 @@ jobs:
           cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
+      # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
+      # test) without it. Generation needs no database.
+      - name: Prisma Client generation
+        run: pnpm run db:generate
       - name: Build workspace packages
         run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Download authoritative reports
@@ -480,6 +511,10 @@ jobs:
           cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
+      # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
+      # test) without it. Generation needs no database.
+      - name: Prisma Client generation
+        run: pnpm run db:generate
       - name: Build workspace packages
         run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Download authoritative reports
@@ -527,6 +562,10 @@ jobs:
           cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
+      # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
+      # test) without it. Generation needs no database.
+      - name: Prisma Client generation
+        run: pnpm run db:generate
       - name: Build workspace packages
         run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Download authoritative reports
@@ -557,6 +596,10 @@ jobs:
           cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
+      # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
+      # test) without it. Generation needs no database.
+      - name: Prisma Client generation
+        run: pnpm run db:generate
       - name: Build workspace packages
         run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Download authoritative reports
@@ -587,6 +630,10 @@ jobs:
           cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
+      # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
+      # test) without it. Generation needs no database.
+      - name: Prisma Client generation
+        run: pnpm run db:generate
       - name: Build workspace packages
         run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Download authoritative reports
