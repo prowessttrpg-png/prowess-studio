@@ -63,7 +63,7 @@ jobs:
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       - name: Build workspace packages
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Lint
         run: pnpm lint
       - name: Architecture boundary checks
@@ -91,10 +91,10 @@ jobs:
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       - name: Build workspace packages
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       # The independent package suites run concurrently on the runner's cores; each writes its own JSON report.
       - name: Unit tests (packages)
-        run: pnpm --workspace-concurrency=4 --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/db" --filter "@prowess/test-fixtures" run test:unit --reporter=default --reporter=json --outputFile.json=vitest-report.json
+        run: pnpm --workspace-concurrency=4 --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/db" run test:unit --reporter=default --reporter=json --outputFile.json=vitest-report.json
       - name: Collect authoritative reports
         run: node scripts/ci/collect-reports.mjs model-unit ui-unit import-unit rules-unit db-unit
       - name: Upload reports
@@ -121,7 +121,7 @@ jobs:
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       - name: Build workspace packages
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Unit tests (@prowess/game)
         run: pnpm --filter "@prowess/game" run test:unit --reporter=default --reporter=json --outputFile.json=vitest-report.json
       - name: Collect authoritative reports
@@ -150,7 +150,7 @@ jobs:
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       - name: Build workspace packages
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: UI/component tests (apps/studio)
         run: pnpm --filter "@prowess/studio" run test:unit --reporter=default --reporter=json --outputFile.json=vitest-report.json
       - name: Collect authoritative reports
@@ -258,7 +258,7 @@ jobs:
 
       # Workspace packages are built before anything resolves their compiled declarations.
       - name: Build workspace packages
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       # M1-WO8: API route-handler tests, calling each Next.js route handler directly against prowess_studio_test.
       - name: API integration tests (apps/studio)
         env:
@@ -335,7 +335,7 @@ jobs:
           pnpm run db:generate
           pnpm run db:migrate:deploy
       - name: Build workspace packages
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Database integration tests
         run: pnpm --filter "@prowess/db" run test:integration --shard=${{ matrix.shard }}/2 --reporter=default --reporter=json --outputFile.json=vitest-report.integration.json
       - name: Collect authoritative reports
@@ -371,7 +371,7 @@ jobs:
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       - name: Build workspace packages
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Download authoritative reports
         uses: actions/download-artifact@v4
         with:
@@ -446,7 +446,7 @@ jobs:
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       - name: Build workspace packages
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Download authoritative reports
         uses: actions/download-artifact@v4
         with:
@@ -481,7 +481,7 @@ jobs:
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       - name: Build workspace packages
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Download authoritative reports
         uses: actions/download-artifact@v4
         with:
@@ -528,7 +528,7 @@ jobs:
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       - name: Build workspace packages
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Download authoritative reports
         uses: actions/download-artifact@v4
         with:
@@ -558,7 +558,7 @@ jobs:
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       - name: Build workspace packages
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Download authoritative reports
         uses: actions/download-artifact@v4
         with:
@@ -588,7 +588,7 @@ jobs:
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       - name: Build workspace packages
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
       - name: Download authoritative reports
         uses: actions/download-artifact@v4
         with:

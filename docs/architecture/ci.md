@@ -37,7 +37,9 @@ tier-2              summary: EVERY job succeeded                 ("Tier 2 — me
 ```
 
 Jobs that need a database each have their **own** disposable PostgreSQL 16 service container; no database is shared
-between concurrent jobs.
+between concurrent jobs. The workspace package build (`@prowess/model`, `ui`, `import`, `rules`, `game`, `db`) runs
+in each job that needs it; the placeholder `@prowess/test-fixtures` package was removed in M5-CLOSEOUT-03 (R6) — it had
+no tests, source beyond a version constant, or dependents.
 
 ### Named permanent gates
 

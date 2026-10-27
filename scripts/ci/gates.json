@@ -976,12 +976,17 @@
     {
       "type": "suite",
       "value": "test-fixtures-unit",
-      "reason": "@prowess/test-fixtures has no tests of its own (its test:unit script only echoes); there is no assertion to carry"
+      "reason": "R6 (M5-CLOSEOUT-03): the placeholder @prowess/test-fixtures package was removed; it had no tests of its own (its test:unit script only echoed), so there is no assertion to carry"
     },
     {
       "type": "command",
       "value": "pnpm --filter \"@prowess/model\" --filter \"@prowess/rules\" --filter \"@prowess/game\" run build",
       "reason": "dedicated WO7–WO9 workflows built a package subset; every consolidated job builds the full workspace package set (a superset)"
+    },
+    {
+      "type": "command",
+      "value": "pnpm --filter \"@prowess/model\" --filter \"@prowess/ui\" --filter \"@prowess/import\" --filter \"@prowess/rules\" --filter \"@prowess/game\" --filter \"@prowess/db\" --filter \"@prowess/test-fixtures\" run build",
+      "reason": "R6 (M5-CLOSEOUT-03): the same workspace package build/test without the removed placeholder @prowess/test-fixtures package (it had no source beyond a version constant and no dependents)"
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { checkInventory, loadInventory, workflowJobs } from "../../../../scripts/ci/gate-inventory.mjs";
@@ -57,5 +57,15 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
     expect(ci).toContain("cancel-in-progress: ${{ github.event_name == 'pull_request' }}");
     expect(ci).toMatch(/group: \$\{\{ github\.event_name == 'pull_request' && format\('ci-pr-\{0\}', github\.event\.pull_request\.number\) \|\| format\('ci-run-\{0\}', github\.run_id\) \}\}/);
     expect(ci).not.toMatch(/paths(-ignore)?:/); // no path filter: Tier 2 / Tier 3 never skip a check
+  });
+
+  it("R6: the placeholder @prowess/test-fixtures package is gone and nothing references it as a workspace package", () => {
+    expect(existsSync(path.join(ROOT, "packages/prowess-test-fixtures"))).toBe(false);
+    const manifests = [...readdirSync(path.join(ROOT, "packages")).map((d) => `packages/${d}/package.json`), "apps/studio/package.json", "package.json"];
+    for (const m of manifests) if (existsSync(path.join(ROOT, m))) expect(readFileSync(path.join(ROOT, m), "utf8"), m).not.toContain("@prowess/test-fixtures");
+    expect(readFileSync(path.join(ROOT, "pnpm-lock.yaml"), "utf8")).not.toContain("prowess-test-fixtures");
+    expect(readFileSync(path.join(ROOT, ".github/workflows/ci.yml"), "utf8")).not.toContain("test-fixtures");
+    // The architecture rules still FORBID importing it from @prowess/rules and @prowess/game (defence if re-added).
+    expect(readFileSync(path.join(ROOT, "scripts/check-architecture.mjs"), "utf8")).not.toContain('"packages/prowess-test-fixtures"');
   });
 });
