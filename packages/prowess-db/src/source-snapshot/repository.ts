@@ -15,9 +15,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (v: unknown): v is string => typeof v === "string" && UUID.test(v);
 
 /** Constraint names fixed by migration 20261011010000_add_source_structure. */
-export const SNAPSHOT_CONTENT_HASH_UNIQUE = "source_snapshots_document_content_hash_key";
+const SNAPSHOT_CONTENT_HASH_UNIQUE = "source_snapshots_document_content_hash_key";
 
-export function toDomainSourceSnapshot(row: SnapshotRow): SourceSnapshot {
+function toDomainSourceSnapshot(row: SnapshotRow): SourceSnapshot {
   return {
     id: SourceSnapshotId.of(row.id),
     sourceDocumentId: SourceDocumentId.of(row.sourceDocumentId),

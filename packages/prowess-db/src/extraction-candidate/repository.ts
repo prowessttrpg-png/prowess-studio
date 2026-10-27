@@ -24,13 +24,13 @@ import { isUniqueViolation } from "../prisma-errors.js";
  * `extraction_candidate_sources`, only by INSERT, always with status UNREVIEWED, all Candidates of one call in ONE
  * transaction. Reads source structure (sections / content nodes and their text) only to verify anchors.
  */
-export const CANDIDATE_ORDINAL_UNIQUE = "extraction_candidates_batch_ordinal_key";
-export const CANDIDATE_FINGERPRINT_UNIQUE = "extraction_candidates_batch_fingerprint_key";
+const CANDIDATE_ORDINAL_UNIQUE = "extraction_candidates_batch_ordinal_key";
+const CANDIDATE_FINGERPRINT_UNIQUE = "extraction_candidates_batch_fingerprint_key";
 const CHUNK = 5_000;
 
 type CandidateWithSources = CandidateRow & { supportingSources: SourceRow[] };
 
-export function toDomainCandidate(row: CandidateWithSources): ExtractionCandidate {
+function toDomainCandidate(row: CandidateWithSources): ExtractionCandidate {
   return {
     id: ExtractionCandidateId.of(row.id),
     importBatchId: ImportBatchId.of(row.importBatchId),

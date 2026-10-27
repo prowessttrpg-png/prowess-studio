@@ -8,7 +8,7 @@ import type { Ruleset as PrismaRulesetRow } from "../../generated/prisma/client.
  * Internal to @prowess/db (not exported from `index.ts`); see `./service.ts`.
  */
 
-export function toDomainRuleset(row: PrismaRulesetRow): Ruleset {
+function toDomainRuleset(row: PrismaRulesetRow): Ruleset {
   return {
     id: RulesetId.of(row.id),
     canonicalKey: row.canonicalKey as CanonicalKey,

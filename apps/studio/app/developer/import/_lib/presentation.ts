@@ -164,7 +164,7 @@ export function sectionPath(sectionId: string | null, sections: readonly SourceS
  * the Batch's scope root (WO5), e.g. "Fire Conversion" for "EXAMPLE TRAIT ENTRY > Fire Conversion". Paths are not unique
  * in real documents either; the evidence view confirms the right section by finding the anchored node in it.
  */
-export function sectionsForPath(path: unknown, sections: readonly SourceSectionDto[]): SourceSectionDto[] {
+function sectionsForPath(path: unknown, sections: readonly SourceSectionDto[]): SourceSectionDto[] {
   if (typeof path !== "string") return [];
   const index = indexFor(sections);
   let hit = index.resolved.get(path); // memoized: queue rows re-render often, outlines are large

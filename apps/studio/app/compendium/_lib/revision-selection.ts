@@ -103,7 +103,7 @@ function sortKeys(value: unknown): unknown {
 }
 
 /** JSON with object keys sorted, so key ORDER alone never reads as a difference. */
-export function stableStringify(value: unknown): string | undefined {
+function stableStringify(value: unknown): string | undefined {
   return JSON.stringify(sortKeys(value));
 }
 

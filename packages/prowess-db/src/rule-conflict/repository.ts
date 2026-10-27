@@ -29,7 +29,7 @@ import type {
  * status. It writes no status other than the initial one.
  */
 
-export function toDomainRuleConflict(row: PrismaRuleConflictRow): RuleConflict {
+function toDomainRuleConflict(row: PrismaRuleConflictRow): RuleConflict {
   return {
     id: RuleConflictId.of(row.id),
     rulesetId: RulesetId.of(row.rulesetId),
@@ -44,7 +44,7 @@ export function toDomainRuleConflict(row: PrismaRuleConflictRow): RuleConflict {
 }
 
 /** The redundant `entityId` column is a database-integrity device only; it is not part of the domain shape. */
-export function toDomainRuleConflictCandidate(row: PrismaCandidateRow): RuleConflictCandidate {
+function toDomainRuleConflictCandidate(row: PrismaCandidateRow): RuleConflictCandidate {
   return {
     id: RuleConflictCandidateId.of(row.id),
     ruleConflictId: RuleConflictId.of(row.ruleConflictId),
@@ -75,7 +75,7 @@ export interface RuleConflictCandidateInsert {
 type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
 /** Inserts the conflict header. Status is always the initial one — there is no parameter for it. */
-export async function insertRuleConflict(tx: Tx, conflict: RuleConflictInsert): Promise<string> {
+async function insertRuleConflict(tx: Tx, conflict: RuleConflictInsert): Promise<string> {
   const row = await tx.ruleConflict.create({
     data: { ...conflict, status: INITIAL_RULE_CONFLICT_STATUS },
     select: { id: true },
@@ -88,7 +88,7 @@ export async function insertRuleConflict(tx: Tx, conflict: RuleConflictInsert): 
  * Entity (never caller-supplied): with the two composite foreign keys this makes a
  * candidate Version of another Entity impossible to store.
  */
-export async function insertRuleConflictCandidates(
+async function insertRuleConflictCandidates(
   tx: Tx,
   ruleConflictId: string,
   conflictEntityId: string,
@@ -138,7 +138,7 @@ export async function selectRuleConflictById(id: string): Promise<RuleConflict |
  * deterministic and independent of input order. A DISPLAY order, never a ranking: it
  * does not suggest that the higher revision wins.
  */
-export async function selectRuleConflictCandidates(ruleConflictId: string): Promise<RuleConflictCandidate[]> {
+async function selectRuleConflictCandidates(ruleConflictId: string): Promise<RuleConflictCandidate[]> {
   const rows = await prisma.ruleConflictCandidate.findMany({
     where: { ruleConflictId },
     orderBy: [{ entityVersion: { revisionNumber: "asc" } }, { id: "asc" }],
@@ -176,7 +176,7 @@ export async function selectRuleConflictsForEntity(rulesetId: string, entityId: 
 }
 
 /** Constraint names fixed by the M2-WO5 migration (and pinned by its static audit). */
-export const RULE_CONFLICT_CONSTRAINTS = {
+const RULE_CONFLICT_CONSTRAINTS = {
   duplicateCandidate: "rule_conflict_candidates_conflict_version_key",
   conflictEntity: "rule_conflict_candidates_conflict_entity_fkey",
   versionEntity: "rule_conflict_candidates_version_entity_fkey",

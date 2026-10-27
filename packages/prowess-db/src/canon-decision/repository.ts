@@ -30,7 +30,7 @@ import type {
  * decision's disposition. It never touches a manifest, an EntityVersion, a policy, or a Ruleset.
  */
 
-export function toDomainCanonDecision(row: PrismaDecisionRow): CanonDecision {
+function toDomainCanonDecision(row: PrismaDecisionRow): CanonDecision {
   return {
     id: CanonDecisionId.of(row.id),
     rulesetId: RulesetId.of(row.rulesetId),
@@ -45,7 +45,7 @@ export function toDomainCanonDecision(row: PrismaDecisionRow): CanonDecision {
 }
 
 /** The redundant `ruleConflictId` integrity column is not part of the domain shape. */
-export function toDomainCanonDecisionSelection(row: PrismaSelectionRow): CanonDecisionSelection {
+function toDomainCanonDecisionSelection(row: PrismaSelectionRow): CanonDecisionSelection {
   return {
     id: CanonDecisionSelectionId.of(row.id),
     canonDecisionId: CanonDecisionId.of(row.canonDecisionId),
@@ -132,14 +132,14 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (value: string) => UUID.test(value);
 
 /** UUID-safe: a malformed id simply finds nothing. */
-export async function selectCanonDecisionById(id: string): Promise<CanonDecision | null> {
+async function selectCanonDecisionById(id: string): Promise<CanonDecision | null> {
   if (!isUuid(id)) return null;
   const row = await prisma.canonDecision.findUnique({ where: { id } });
   return row ? toDomainCanonDecision(row) : null;
 }
 
 /** Ordered by the selected candidate's EntityVersion revision ASC, then selection id ASC — display only. */
-export async function selectCanonDecisionSelections(canonDecisionId: string): Promise<CanonDecisionSelection[]> {
+async function selectCanonDecisionSelections(canonDecisionId: string): Promise<CanonDecisionSelection[]> {
   const rows = await prisma.canonDecisionSelection.findMany({
     where: { canonDecisionId },
     orderBy: [{ ruleConflictCandidate: { entityVersion: { revisionNumber: "asc" } } }, { id: "asc" }],
@@ -186,7 +186,7 @@ export async function selectCandidateOwners(ids: readonly string[]): Promise<Map
 }
 
 /** Constraint names fixed by the M2-WO6 migration (and pinned by its static audit). */
-export const CANON_DECISION_CONSTRAINTS = {
+const CANON_DECISION_CONSTRAINTS = {
   duplicateSelection: "canon_decision_selections_decision_candidate_key",
   conflict: "canon_decisions_conflict_fkey",
   policy: "canon_decisions_policy_fkey",

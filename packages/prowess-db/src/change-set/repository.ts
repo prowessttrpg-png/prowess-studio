@@ -30,7 +30,7 @@ import type {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (value: string) => UUID.test(value);
 
-export function toDomainChangeSet(row: PrismaChangeSetRow): ChangeSet {
+function toDomainChangeSet(row: PrismaChangeSetRow): ChangeSet {
   return {
     id: ChangeSetId.of(row.id),
     rulesetId: RulesetId.of(row.rulesetId),
@@ -43,7 +43,7 @@ export function toDomainChangeSet(row: PrismaChangeSetRow): ChangeSet {
 }
 
 /** The redundant `rulesetId` integrity column is not part of the domain shape. */
-export function toDomainChangeSetOperation(row: PrismaOperationRow): ChangeSetOperation {
+function toDomainChangeSetOperation(row: PrismaOperationRow): ChangeSetOperation {
   return {
     id: ChangeSetOperationId.of(row.id),
     changeSetId: ChangeSetId.of(row.changeSetId),
@@ -83,7 +83,7 @@ export async function insertChangeSet(tx: Tx, changeSet: ChangeSetInsert): Promi
 }
 
 /** Inserts operations in input order as sequence 1..n; each row's rulesetId is ALWAYS the ChangeSet's own. */
-export async function insertChangeSetOperations(
+async function insertChangeSetOperations(
   tx: Tx,
   changeSetId: string,
   rulesetId: string,
@@ -119,7 +119,7 @@ export async function selectChangeSetById(id: string): Promise<ChangeSet | null>
 }
 
 /** Operations in the author's order (`sequence` ASC). */
-export async function selectChangeSetOperations(changeSetId: string): Promise<ChangeSetOperation[]> {
+async function selectChangeSetOperations(changeSetId: string): Promise<ChangeSetOperation[]> {
   const rows = await prisma.changeSetOperation.findMany({ where: { changeSetId }, orderBy: { sequence: "asc" } });
   return rows.map(toDomainChangeSetOperation);
 }

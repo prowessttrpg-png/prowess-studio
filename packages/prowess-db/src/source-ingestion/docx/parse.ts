@@ -608,7 +608,7 @@ function cellContent(tc: XmlElement): XmlElement[] {
   return out;
 }
 
-export function tableRawText(structure: SourceTableStructure): string {
+function tableRawText(structure: SourceTableStructure): string {
   return structure.rows.map((row) => row.cells.map((c) => c.rawText.replace(/\n/g, " ")).join("\t")).join("\n");
 }
 

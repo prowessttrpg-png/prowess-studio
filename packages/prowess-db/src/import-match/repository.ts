@@ -36,7 +36,7 @@ import { isUniqueViolation } from "../prisma-errors.js";
  */
 const PAGE = 5_000;
 const ROWS = 2_000;
-export const RUN_FINGERPRINT_UNIQUE = "import_match_runs_run_fingerprint_key";
+const RUN_FINGERPRINT_UNIQUE = "import_match_runs_run_fingerprint_key";
 
 export class CatalogIntegrityError extends Error {}
 
@@ -170,7 +170,7 @@ export async function insertMatchRun(input: InsertMatchRunInput, output: Matcher
 
 // ---- reads --------------------------------------------------------------------------------------------------------
 
-export function toDomainRun(r: RunRow): ImportMatchRun {
+function toDomainRun(r: RunRow): ImportMatchRun {
   return {
     id: ImportMatchRunId.of(r.id),
     importBatchId: ImportBatchId.of(r.importBatchId),

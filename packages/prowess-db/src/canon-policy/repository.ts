@@ -24,7 +24,7 @@ import type {
  * another policy: a policy is a complete, self-contained snapshot.
  */
 
-export function toDomainCanonPolicy(row: PrismaCanonPolicyRow): CanonPolicy {
+function toDomainCanonPolicy(row: PrismaCanonPolicyRow): CanonPolicy {
   return {
     id: CanonPolicyId.of(row.id),
     rulesetId: RulesetId.of(row.rulesetId),
@@ -35,7 +35,7 @@ export function toDomainCanonPolicy(row: PrismaCanonPolicyRow): CanonPolicy {
   };
 }
 
-export function toDomainAuthorityRecord(row: PrismaAuthorityRow): SourceAuthorityRecord {
+function toDomainAuthorityRecord(row: PrismaAuthorityRow): SourceAuthorityRecord {
   return {
     id: SourceAuthorityRecordId.of(row.id),
     canonPolicyId: CanonPolicyId.of(row.canonPolicyId),
@@ -137,7 +137,7 @@ export async function selectCanonPolicyById(id: string): Promise<CanonPolicy | n
 }
 
 /** Ordered `scope_key ASC, source_document_id ASC` — deterministic (scope_key uses the database collation, like canonical keys). */
-export async function selectSourceAuthorityRecords(canonPolicyId: string): Promise<SourceAuthorityRecord[]> {
+async function selectSourceAuthorityRecords(canonPolicyId: string): Promise<SourceAuthorityRecord[]> {
   const rows = await prisma.sourceAuthorityRecord.findMany({
     where: { canonPolicyId },
     orderBy: [{ scopeKey: "asc" }, { sourceDocumentId: "asc" }],

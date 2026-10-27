@@ -72,7 +72,7 @@ export interface ConstructionFormula {
 }
 
 /** The construction Formula slots and the inputs each may read (§59–§63, §93–§94). */
-export const CONSTRUCTION_FORMULA_INPUTS = {
+const CONSTRUCTION_FORMULA_INPUTS = {
   remainingEffects: ["base_effects", "trades", "effect_slots_per_exchange"],
   effectiveTraits: ["base_traits", "trades", "trait_slots_per_exchange"],
   maximumTrades: ["base_effects", "minimum_effects_remaining", "effect_slots_per_exchange"],

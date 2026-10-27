@@ -25,7 +25,7 @@ import type {
  * Ruleset.
  */
 
-export function toDomainManifest(row: PrismaManifestRow): RulesetManifest {
+function toDomainManifest(row: PrismaManifestRow): RulesetManifest {
   return {
     id: RulesetManifestId.of(row.id),
     rulesetId: RulesetId.of(row.rulesetId),
@@ -35,7 +35,7 @@ export function toDomainManifest(row: PrismaManifestRow): RulesetManifest {
   };
 }
 
-export function toDomainManifestEntry(row: PrismaManifestEntryRow): RulesetManifestEntry {
+function toDomainManifestEntry(row: PrismaManifestEntryRow): RulesetManifestEntry {
   return {
     id: RulesetManifestEntryId.of(row.id),
     manifestId: RulesetManifestId.of(row.manifestId),

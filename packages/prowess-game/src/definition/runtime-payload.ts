@@ -143,14 +143,14 @@ export interface TerrainDefinitionPayload {
   readonly source: CoreDefinitionSource;
 }
 
-export const RUNTIME_PAYLOAD_FIELDS = Object.freeze({
+const RUNTIME_PAYLOAD_FIELDS = Object.freeze({
   RESOURCE: ["resourceKey", "m4Kind", "minimum", "maximum", "refresh", "expiry", "spending", "restoration", "supportsReservation", "payment", "usageRestrictions", "exposesDepletion", "rules", "source"],
   ACTION: ["actionKey", "timing", "actionPointCost", "otherCosts", "movementGrant", "requiresTrigger", "costOverridableByExplicitRule", "rules", "source"],
   CREATURE_SIZE: ["sizeKey", "occupiedSpaceFeet", "orLarger", "baseMovement", "rules", "source"],
   TERRAIN: ["terrainKey", "allowanceCost", "rules", "source"],
 } as const);
 export type RuntimePayloadKind = keyof typeof RUNTIME_PAYLOAD_FIELDS;
-export const RUNTIME_PAYLOAD_KINDS = Object.freeze(Object.keys(RUNTIME_PAYLOAD_FIELDS) as RuntimePayloadKind[]);
+const RUNTIME_PAYLOAD_KINDS = Object.freeze(Object.keys(RUNTIME_PAYLOAD_FIELDS) as RuntimePayloadKind[]);
 export const isRuntimePayloadKind = (kind: string): kind is RuntimePayloadKind => (RUNTIME_PAYLOAD_KINDS as readonly string[]).includes(kind);
 
 function readBoolean(value: unknown, at: readonly PathSegment[], p: Problems, what: string): boolean | null {

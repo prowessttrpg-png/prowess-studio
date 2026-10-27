@@ -237,7 +237,7 @@ function forbiddenKeyPaths(value: unknown, forbidden: readonly string[], at: rea
  * Every string value or canonical-key segment in `value` that is a LEGACY source term (§7, §218): canonical structured
  * content uses the canonical term. Provenance (envelope `legacyTerms`) is the only place a legacy term is recorded.
  */
-export function legacyTermUses(value: unknown, at: readonly PathSegment[]): { path: PathSegment[]; term: string; canonical: string }[] {
+function legacyTermUses(value: unknown, at: readonly PathSegment[]): { path: PathSegment[]; term: string; canonical: string }[] {
   if (typeof value === "string") {
     const hits = [value, ...value.split(".")]
       .map((candidate) => legacyTermFor(candidate))

@@ -23,9 +23,9 @@ import { isUniqueViolation } from "../prisma-errors.js";
  * `import_batches` row, always with status CREATED — and never updates or deletes one. Summaries are COMPUTED from
  * Candidates on every read; no counter is ever stored.
  */
-export const BATCH_FINGERPRINT_UNIQUE = "import_batches_batch_fingerprint_key";
+const BATCH_FINGERPRINT_UNIQUE = "import_batches_batch_fingerprint_key";
 
-export function toDomainImportBatch(row: BatchRow): ImportBatch {
+function toDomainImportBatch(row: BatchRow): ImportBatch {
   return {
     id: ImportBatchId.of(row.id),
     sourceSnapshotId: SourceSnapshotId.of(row.sourceSnapshotId),
