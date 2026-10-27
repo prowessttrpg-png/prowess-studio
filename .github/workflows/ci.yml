@@ -1,27 +1,171 @@
-# Prowess Studio CI — the permanent Phase 1 quality gate.
+# Prowess Studio CI — the permanent quality gate (restructured in M5-CLOSEOUT-03).
 #
-# Runs automatically on every push to main and every pull request, plus
-# on-demand via workflow_dispatch. This supersedes the temporary M0-WO3
-# verification workflow (now removed — see docs/architecture/database.md
-# and docs/architecture/ci.md for why): every check that workflow performed
-# is covered here, plus architecture-boundary enforcement, Playwright e2e,
-# and a dedicated production-build step, none of which that workflow had.
+# One workflow, one deliberate job graph (docs/architecture/ci.md, docs/reports/m0-m5-ci-optimization-report.md):
+#
+#   static ─────────┐
+#   unit-packages ──┤  Tier 1 — fast feedback (lint, architecture, typecheck, every package / Studio unit suite)
+#   unit-game ──────┤
+#   unit-studio ────┤
+#   db-api ─────────┤  Prisma validate / generate / migrate / drift, API integration, test-database guards
+#   db-integration ─┤  database integration, two shards on two independent PostgreSQL services
+#                   └─► controls-1 … controls-6  every named M1 / M4 / M5 gate: verified from THIS run's authoritative
+#                                                 suite reports, then its negative / mutation controls (each job is its
+#                                                 own checkout, so no two controls ever mutate the same files)
+#   e2e                Next.js production build once → Playwright against that build
+#   tier-1 / tier-2    summaries: Tier 1 needs the fast jobs, Tier 2 (merge readiness) needs every job
+#
+# Every suite runs ONCE per run and writes a vitest JSON report; gates verify their files from those reports
+# (scripts/ci/verify-gate.mjs) instead of re-running them. The permanent inventory of suites, gates, controls and
+# checks is scripts/ci/gates.json; apps/studio/tests/unit/ci-gate-inventory.test.ts proves it matches this file and
+# covers everything the pre-CLOSEOUT-03 workflows ran (scripts/ci/legacy-inventory.json).
+#
+# Tier 3 — clean certification: run this workflow manually with `certification: true` — no dependency, browser or
+# Next.js cache is used. Pull-request runs superseded by a newer commit are cancelled; main and certification runs never
+# are (each has its own concurrency group).
 name: Prowess Studio CI
 
 on:
   push:
     branches: [main]
   pull_request:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      certification:
+        description: "Tier 3 clean certification: no dependency / browser / Next.js caches"
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}', github.event.pull_request.number) || format('ci-run-{0}', github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CERTIFICATION: ${{ github.event_name == 'workflow_dispatch' && inputs.certification && 'true' || 'false' }}
 
 jobs:
-  ci:
+  # ---- Tier 1 ---------------------------------------------------------------------------------------------------------
+  static:
+    name: Static — lint, architecture, typecheck, gate inventory
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Build workspace packages
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+      - name: Lint
+        run: pnpm lint
+      - name: Architecture boundary checks
+        run: pnpm run test:architecture
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Gate inventory — every permanent gate, suite, control and legacy check represented
+        run: node scripts/ci/gate-inventory.mjs
+      - name: Control harness self-test — uncaught, misattributed and unrestored controls fail
+        run: node scripts/lib/control-harness.selftest.mjs
 
-    # Postgres 16 as a disposable service container, scoped to this one job
-    # run. Not production credentials, not a shared database — isolated,
-    # disposable, created fresh every run (see "Create dev and test
-    # databases" below).
+  unit-packages:
+    name: Unit — model, ui, import, rules, db
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Build workspace packages
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+      # The independent package suites run concurrently on the runner's cores; each writes its own JSON report.
+      - name: Unit tests (packages)
+        run: pnpm --workspace-concurrency=4 --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/db" --filter "@prowess/test-fixtures" run test:unit --reporter=default --reporter=json --outputFile.json=vitest-report.json
+      - name: Collect authoritative reports
+        run: node scripts/ci/collect-reports.mjs model-unit ui-unit import-unit rules-unit db-unit
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-unit-packages
+          path: reports/
+          if-no-files-found: error
+          retention-days: 7
+
+  unit-game:
+    name: Unit — @prowess/game
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Build workspace packages
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+      - name: Unit tests (@prowess/game)
+        run: pnpm --filter "@prowess/game" run test:unit --reporter=default --reporter=json --outputFile.json=vitest-report.json
+      - name: Collect authoritative reports
+        run: node scripts/ci/collect-reports.mjs game-unit
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-unit-game
+          path: reports/
+          if-no-files-found: error
+          retention-days: 7
+
+  unit-studio:
+    name: Unit — Studio UI / component / static audits
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Build workspace packages
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+      - name: UI/component tests (apps/studio)
+        run: pnpm --filter "@prowess/studio" run test:unit --reporter=default --reporter=json --outputFile.json=vitest-report.json
+      - name: Collect authoritative reports
+        run: node scripts/ci/collect-reports.mjs studio-unit
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-unit-studio
+          path: reports/
+          if-no-files-found: error
+          retention-days: 7
+
+  # ---- Database / API (Tier 2) ----------------------------------------------------------------------------------------
+  db-api:
+    name: Database — Prisma checks, API integration, test-database guards
+    runs-on: ubuntu-latest
+    # Postgres 16 as a disposable service container, scoped to this one job run: isolated, never shared with another
+    # job, created fresh every run.
     services:
       postgres:
         image: postgres:16
@@ -35,27 +179,16 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      # No `version:` input — reads the "packageManager" field from the
-      # repo's own root package.json, so the pinned pnpm version lives in
-      # exactly one place.
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "pnpm"
-
-      # Distinct from the service container's own --health-cmd (which only
-      # gates when the service is considered "started", not when the job's
-      # own steps run) — guarantees Postgres genuinely accepts connections
-      # before any step relies on it.
+          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
       - name: Wait for PostgreSQL to be ready
         run: |
           for i in $(seq 1 30); do
@@ -68,54 +201,33 @@ jobs:
           done
           echo "::error::PostgreSQL did not become ready in time."
           exit 1
-
-      # Two isolated, disposable databases — matching the names
-      # apps/studio/.env.development / .env.test already commit to (M0-WO2)
-      # — created fresh every run, never persisted, never production.
+      # Two isolated, disposable databases — the names apps/studio/.env.development / .env.test commit to (M0-WO2).
       - name: Create dev and test databases
         env:
           PGPASSWORD: postgres
         run: |
           psql -h localhost -U postgres -d postgres -c "CREATE DATABASE prowess_studio_dev;"
           psql -h localhost -U postgres -d postgres -c "CREATE DATABASE prowess_studio_test;"
-
-      # Frozen lockfile: fails loudly if package.json and pnpm-lock.yaml
-      # have drifted, rather than silently re-resolving dependencies.
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
-
       - name: Prisma schema validation
         run: pnpm run db:validate
-
       - name: Prisma Client generation
         run: pnpm run db:generate
-
       - name: Deploy migrations (development database)
         env:
           NODE_ENV: development
         run: pnpm run db:migrate:deploy
-
       - name: Deploy migrations (test database)
         env:
           NODE_ENV: test
         run: pnpm run db:migrate:deploy
 
-      # M1-WO11 §28: schema drift check — a REQUIRED gate. Compares the database
-      # produced by `migrate deploy` (above) against schema.prisma using Prisma's
-      # own non-interactive diff (no shadow database, no `migrate dev`).
-      # Prisma exit codes: 0 = no differences, 2 = differences, 1 = the command
-      # itself failed. ANY non-zero exit fails CI, and the full diff is printed
-      # unfiltered (and repeated in the job summary).
-      #
-      # History: first added non-blocking because it was unverified in the
-      # authoring sandbox. The first real run confirmed drift (UUID id defaults on
-      # nine tables, plus EntityVersion.updated_at) and schema.prisma was then
-      # aligned to the approved migrations — no new migration (audit F-1).
-      #
-      # Prisma is invoked directly rather than via `pnpm --filter ... exec`:
-      # pnpm's recursive runner reports every child failure as exit 1, which made
-      # the earlier version of this step label real drift (exit 2) as "the command
-      # itself failed" (audit F-14).
+      # M1-WO11 §28: schema drift check — a REQUIRED gate. Compares the database produced by `migrate deploy` (above)
+      # against schema.prisma using Prisma's own non-interactive diff (no shadow database, no `migrate dev`). Prisma exit
+      # codes: 0 = no differences, 2 = differences, 1 = the command itself failed. ANY non-zero exit fails CI, and the
+      # full diff is printed unfiltered (and repeated in the job summary). Prisma is invoked directly rather than via
+      # `pnpm --filter ... exec` so real drift (exit 2) is reported as drift (audit F-14).
       - name: Schema drift check — migrations vs schema.prisma (blocking)
         working-directory: packages/prowess-db
         env:
@@ -141,327 +253,27 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           exit "$code"
 
-      # Workspace packages must be built before anything can resolve their
-      # compiled type declarations (each package's package.json "types"
-      # field points at its own dist/ output), and before lint/typecheck/
-      # test can import @prowess/model or @prowess/ui. apps/studio itself
-      # is deliberately NOT built here — that's its own dedicated step
-      # later, which needs application config env vars this step doesn't
-      # have.
+      # Workspace packages are built before anything resolves their compiled declarations.
       - name: Build workspace packages
         run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Architecture boundary checks
-        run: pnpm run test:architecture
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      # Split into named, separately-reported layers (packages / database /
-      # UI) rather than one big "pnpm test" step, so a failure's layer is
-      # immediately obvious from the Actions UI without opening logs.
-      - name: Unit tests (packages)
-        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run test:unit
-
-      - name: Database integration tests
-        run: pnpm --filter "@prowess/db" run test:integration
-
-      - name: UI/component tests (apps/studio)
-        run: pnpm --filter "@prowess/studio" run test:unit
-
-      # M1-WO8: API route-handler tests, calling each Next.js route
-      # handler directly as a function (no running server needed) against
-      # the real prowess_studio_test database — same safety-guard
-      # infrastructure as @prowess/db's own integration tests above. Only
-      # needs @prowess/db already built (done above) and the test database
-      # already migrated (also done above); does not depend on apps/studio's
-      # own production build, which happens later.
+      # M1-WO8: API route-handler tests, calling each Next.js route handler directly against prowess_studio_test.
       - name: API integration tests (apps/studio)
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
-        run: pnpm --filter "@prowess/studio" run test:integration
-
-      # M1-WO11: the M1 audit gate, reported as its own named steps. These
-      # files also run inside the generic suites above (so `pnpm test` covers
-      # them locally); re-running them here gives the milestone a separately
-      # visible pass/fail.
-      - name: M1 audit gate — static invariants (no current-version state, enum parity, errors, migrations, layering)
-        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m1-audit-static.test.ts
-
-      - name: M1 audit gate — database-level suite
-        run: pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/m1-audit.test.ts
-
-      - name: M1 audit gate — API-level reproducibility suite
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
-        run: pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m1-audit-api.test.ts
-
-      # M4-WO1: the Rules Engine foundation's static gate, reported as its own named step (it also runs inside the
-      # studio unit suite above). @prowess/rules' own unit tests run in "Unit tests (packages)".
-      - name: M4-WO1 audit gate — Rules Engine boundaries & purity (static)
-        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo1-static.test.ts
-
-      # M4-WO2: the exact Ruleset resolver's static gate (call-graph reuse of M2 inheritance / release integrity, no
-      # hidden latest, read-only) and its database-level suite (historical reproducibility, frozen releases, tamper
-      # refusal, read-only fingerprints, no N+1). Both also run inside the generic suites above.
-      - name: M4-WO2 audit gate — exact Ruleset resolver (static)
-        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo2-static.test.ts
-
-      - name: M4-WO2 audit gate — exact Ruleset resolver (database)
-        run: pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/ruleset-context.test.ts
-
-      # M4-WO3: the Formula Engine's static gate (no authored-code execution, no hidden rounding / locale / dynamic
-      # lookup, grammar owned by the hand-written lexer and parser, no persistence). Its unit suites run in
-      # "Unit tests (packages)" with the rest of @prowess/rules.
-      - name: M4-WO3 audit gate — Formula Engine safety & determinism
-        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo3-static.test.ts
-
-      # M4-WO4: Keyword Resolution's static gate (Keywords are metadata only: no mechanics, game names, alias / display
-      # / fuzzy / locale matching, registry, removal, hierarchy, Canon / import, Formula or persistence coupling) and
-      # its narrow database check (exact M1 Keyword data maps into resolution read-only).
-      - name: M4-WO4 audit gate — Keyword metadata & resolution (static)
-        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo4-static.test.ts
-
-      - name: M4-WO4 audit gate — Keyword metadata & resolution (database)
-        run: pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/m1-keyword-resolution.test.ts
-
-      # M4-WO5: the Requirement Engine's static gate (explicit facts only, no callbacks / prose / Formula execution,
-      # no rank ladder or game keys, every group child evaluated — no short-circuit — and Keyword presence through
-      # M4-WO4). Its unit suites run in "Unit tests (packages)" with the rest of @prowess/rules.
-      - name: M4-WO5 audit gate — Requirement evaluation & predicate safety
-        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo5-static.test.ts
-
-      # M4-WO6: the Modifier Engine's static gate (exact formulas only — no rounding or percentage combining; caller-
-      # defined phases / targets / ladders; no dice, cancellation or payment semantics; conditions through M4-WO5).
-      # Its unit suite runs in "Unit tests (packages)" with the rest of @prowess/rules.
-      - name: M4-WO6 audit gate — Modifier ordering, stacking & safety
-        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo6-static.test.ts
-
-      # M4-WO7: the Resource Engine's static gate (listed cost never rewritten; one allocation for preview and apply;
-      # atomic payment; reservation never spends, release never restores, refresh never lowers; no kind-based
-      # behaviour, timing, rounding, game resources or Formula / Modifier execution). Its unit suite runs in
-      # "Unit tests (packages)" with the rest of @prowess/rules.
-      - name: M4-WO7 audit gate — Resource state, payment & capacity safety
-        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo7-static.test.ts
-
-      # M4-WO8: the Validation Engine's static gate (consumes exact results — no Formula / Requirement / Modifier /
-      # Resource / Keyword / Ruleset re-implementation or reclassification; explicit severities; no short-circuit;
-      # WO1 vocabularies and envelope reused). Its unit suite runs in "Unit tests (packages)".
-      - name: M4-WO8 audit gate — Validation aggregation & diagnostic safety
-        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo8-static.test.ts
-
-      # M4-WO9: the Explanation Engine's static gate (describes exact results — no WO2–WO8 evaluator, rounding,
-      # arithmetic on results, effective cost, randomness, AI / network, templates or game rules; WO1 trace is the
-      # authority; summary only filters the canonical detailed document). Its unit suite runs in "Unit tests (packages)".
-      - name: M4-WO9 audit gate — Trace composition & explanation integrity
-        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo9-static.test.ts
-
-      # M4-WO10: the orchestration static gate (closed static dispatch, one exact context set per run, bindings that
-      # only copy, no automatic blocking, no game operations; a thin read-only route with an exact Manifest / Release
-      # selector) and the exact-Ruleset HTTP evaluation flow against the test database. Both suites also run in the
-      # generic suites above; these named steps report the milestone separately.
-      - name: M4-WO10 audit gate — Rules orchestration integrity
-        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo10-static.test.ts
-
-      - name: M4-WO11 audit gate — Rules Inspector presentation integrity
-        run: pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-wo11-static.test.ts tests/unit/m4-rules-api-client.test.ts tests/unit/m4-rules-lab.test.tsx
-
-      - name: M4-WO10 integration gate — Exact Ruleset evaluation HTTP flow
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
-        run: pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m4-rules-evaluation-api.test.ts
-
-      # WO12 retains earlier gates and adds the cross-system audit, exact-history HTTP fixture,
-      # full invariant traceability, purity controls and descriptor-safety regressions.
-      - name: M4-WO12 final audit — M4 integration & reproducibility
-        run: |
-          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m4-final-static.test.ts tests/unit/m4-final-engine.test.ts tests/unit/m4-final-ui.test.tsx tests/unit/m4-final-limits.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m4-final-api.test.ts
-          node scripts/m4-final-negative-controls.mjs
-
-      # M5-WO1: the Prowess domain & shared Ability Construction boundary — @prowess/game's own suites (contracts,
-      # catalogs, bundles, compilation contract), the static architecture audit with in-memory controls, legacy source
-      # terminology preservation, exact Definition materialization through the real M4-WO2 resolver, and the
-      # behavioural negative controls (each mutates real source, must be caught, and is restored byte-for-byte).
-      - name: M5-WO1 audit — Prowess domain & shared ability construction boundary
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
-        run: |
-          pnpm --filter "@prowess/game" run test:unit
-          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo1-static.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-source-terminology.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-definition-materialization.test.ts
-          node scripts/m5-wo1-negative-controls.mjs
-
-      # M5-WO2: core resolution, Ability Scores, Character Dice & rank primitives — the golden fixtures and contracts in
-      # @prowess/game, the static audit over @prowess/game / @prowess/rules / the canonical core content with in-memory
-      # controls, exact Release history and cross-Ruleset isolation against the real database, and the behavioural
-      # negative controls §183–§200 (each mutates real source or content, must be caught, and is restored byte-for-byte).
-      - name: M5-WO2 audit — Core resolution, stats, dice & ranks
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
-        run: |
-          pnpm --filter "@prowess/game" exec vitest run src/core-resolution-golden.test.ts src/core-contracts.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo2-static.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo2-inspector-fixture.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-core-resolution-history.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo2-core-api.test.ts
-          node scripts/m5-wo2-negative-controls.mjs
-
-      # M5-WO3: runtime Resources, action economy, movement & roll-state resolution — the golden fixtures and runtime
-      # contracts in @prowess/game, the static audit over @prowess/game / @prowess/rules / the canonical core + runtime
-      # content with in-memory controls, the regenerated Rules Inspector fixture, exact Release history / isolation / no
-      # persistence against the real database, WO3 plans through the existing evaluate endpoint, and the behavioural
-      # negative controls §174–§194 (each mutates real source, content or docs, must be caught, and is restored).
-      - name: M5-WO3 audit — Runtime resources, action economy & movement
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
-        run: |
-          pnpm --filter "@prowess/game" exec vitest run src/runtime-resources-golden.test.ts src/runtime-contracts.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo3-static.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo3-inspector-fixture.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-runtime-resources-history.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo3-runtime-api.test.ts
-          node scripts/m5-wo3-negative-controls.mjs
-
-      # M5-WO4: Affinity identity, rank, authority, keyword alignment & cost modifier foundation (plus the post-WO3
-      # Movement / Sprint amendment) — the golden fixtures and contracts in @prowess/game, the static audit over
-      # @prowess/game / @prowess/rules / the canonical Affinity + amended Movement content with in-memory controls, the
-      # regenerated Rules Inspector fixture, exact Release history / isolation / M1 Keyword identity / no persistence
-      # against the real database, Affinity plans through the existing evaluate endpoint, and the behavioural negative
-      # controls §243–§265 (each mutates real source, content or docs, must be caught, and is restored).
-      - name: M5-WO4 audit — Affinity identity, rank, authority & keyword alignment
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
-        run: |
-          pnpm --filter "@prowess/game" exec vitest run src/affinity-golden.test.ts src/affinity-contracts.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo4-static.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo4-inspector-fixture.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-affinity-history.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo4-affinity-api.test.ts
-          node scripts/m5-wo4-negative-controls.mjs
-
-      - name: M5 canon rulings audit — Size Base Movement & Level 9 Affinity rank
-        run: |
-          pnpm --filter "@prowess/game" exec vitest run src/runtime-resources-golden.test.ts src/runtime-contracts.test.ts src/core-resolution-golden.test.ts src/affinity-contracts.test.ts src/vocabulary.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-canon-rulings-static.test.ts
-
-      # M5-WO5: Shared modular ability construction — Spell Authority (Arcane / Affinity, explicit), Martial training,
-      # Effect / Trait / Condition capacity, the Spell Trait exchange, structure, Foundation, prerequisites, explicit
-      # stacking, Affinity access and Signature slots. Runs the golden fixtures and contracts in @prowess/game, the static
-      # audit (AST rules over the construction modules, structural rules over the construction content, invariants,
-      # terminology, docs and this step), the regenerated Rules Inspector fixture, exact Release history / isolation / no
-      # persistence against the real database, construction plans through the existing evaluate endpoint, and the
-      # behavioural negative controls (each mutates real source or content, must be caught, and is restored).
-      - name: M5-WO5 audit — Shared modular ability construction
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
-        run: |
-          pnpm --filter "@prowess/game" exec vitest run src/construction-legality-golden.test.ts src/construction-legality-contracts.test.ts src/vocabulary.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo5-static.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo5-inspector-fixture.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-construction-history.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo5-construction-api.test.ts
-          node scripts/m5-wo5-negative-controls.mjs
-
-      # M5-WO6: Targeting framework, geometry, range & Spell / Maneuver Targeting catalogs — the golden fixtures and
-      # contracts in @prowess/game, the static audit (AST rules over the Targeting modules, structural rules over the
-      # Targeting content, no Studio geometry math, the register, terminology, invariants, docs and this step), the
-      # regenerated Rules Inspector fixture, exact Release history / isolation / no persistence against the real database,
-      # Targeting plans through the existing evaluate endpoint, and the behavioural negative controls §174–§189.
-      - name: M5-WO6 audit — Targeting framework, geometry & branch catalogs
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
-        run: |
-          pnpm --filter "@prowess/game" exec vitest run src/targeting-golden.test.ts src/targeting-contracts.test.ts src/vocabulary.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo6-static.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo6-inspector-fixture.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-targeting-history.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo6-targeting-api.test.ts
-          node scripts/m5-wo6-negative-controls.mjs
-
-      - name: M5-WO7 regression — Effect framework & Spell/Maneuver contracts
-        run: |
-          pnpm --filter "@prowess/game" exec vitest run src/effect-golden.test.ts src/effect-contracts.test.ts src/effect-security.test.ts src/effect-inspector.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo7-static.test.ts
-
-      - name: M5-WO9 audit — Duration & Ability Condition Framework
-        run: |
-          node --input-type=module -e 'await import("./packages/prowess-game/dist/index.js")'
-          pnpm --filter "@prowess/game" exec vitest run src/duration-condition.test.ts src/duration-condition-negative.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo9-static.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo9-inspector-fixture.test.ts
-          node scripts/m5-wo9-negative-controls.mjs
-
-      - name: M5-WO8 audit — Traits & authored Spell/Maneuver definitions
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
-        run: |
-          pnpm --filter "@prowess/game" exec vitest run src/ability-definitions.test.ts src/ability-negative.test.ts src/ability-security.test.ts src/trait-contracts.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo8-static.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo8-inspector-fixture.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-authored-ability-history.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo8-ability-api.test.ts
-          node scripts/m5-wo8-negative-controls.mjs
-
-      # M5-WO10: Final Spell cost, percentage netting & AP derivation — goldens and contracts in @prowess/game, the static
-      # audit (WO10 module / policy, register, invariants, docs, CI, frozen M4 / Prisma / routes), the regenerated Rules
-      # Inspector traces A–H, exact Release history against the real database, the traces through the existing evaluate
-      # endpoint, and the behavioural mutation controls (each mutates real source, must be caught, and is restored).
-      - name: M5-WO10 audit — Final Spell Cost & AP Derivation
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
-        run: |
-          pnpm --filter "@prowess/game" exec vitest run src/spell-cost-golden.test.ts src/spell-cost-contracts.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo10-static.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo10-inspector-fixture.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-spell-cost-history.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo10-spell-cost-api.test.ts
-          node scripts/m5-wo10-negative-controls.mjs
-
-      - name: M5-WO11 audit — Final Maneuver Cost & Attack Floors
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
-        run: |
-          pnpm --filter "@prowess/game" exec vitest run src/maneuver-cost-golden.test.ts src/maneuver-cost-contracts.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo11-static.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo11-inspector-fixture.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-maneuver-cost-history.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo11-maneuver-cost-api.test.ts
-          node scripts/m5-wo11-negative-controls.mjs
-
-      - name: M5-WO12 audit — Effect Chain Execution & Runtime Routing
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
-        run: |
-          pnpm --filter "@prowess/game" exec vitest run src/effect-execution-golden.test.ts src/effect-execution-contracts.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo12-static.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo12-inspector-fixture.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-effect-execution-history.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo12-effect-execution-api.test.ts
-          node scripts/m5-wo12-negative-controls.mjs
-
-      - name: M5-WO13 audit — Active Magic Runtime
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
-        run: |
-          pnpm --filter "@prowess/game" exec vitest run src/active-magic-golden.test.ts src/active-magic-contracts.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run tests/unit/m5-wo13-static.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.unit.config.ts tests/unit/m5-wo13-inspector-fixture.test.ts
-          pnpm --filter "@prowess/db" exec vitest run --config vitest.integration.config.ts tests/integration/prowess-active-magic-history.test.ts
-          pnpm --filter "@prowess/studio" exec vitest run --config vitest.integration.config.ts tests/integration/m5-wo13-active-magic-api.test.ts
-          node scripts/m5-wo13-negative-controls.mjs
-
-      # Re-confirms the destructive-reset safety guard on every CI run, not
-      # just at M0-WO3 setup time — this resets prowess_studio_test, the
-      # disposable CI-only database created above, never a developer's own
-      # database.
+        run: pnpm --filter "@prowess/studio" run test:integration --reporter=default --reporter=json --outputFile.json=vitest-report.integration.json
+      - name: Collect authoritative reports
+        run: node scripts/ci/collect-reports.mjs studio-integration
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-db-api
+          path: reports/
+          if-no-files-found: error
+          retention-days: 7
+      # Re-confirms the destructive-reset safety guard on every run — this resets prowess_studio_test, the disposable
+      # CI-only database created above, never a developer's own database.
       - name: Guarded reset of the test database
         run: pnpm run db:reset:test
-
       - name: Verify safety guard refuses a non-test target
         run: |
           set +e
@@ -474,30 +286,420 @@ jobs:
           fi
           echo "Safety guard correctly refused (exit code $status), as expected."
 
-      # Installs the actual browser binary + OS dependencies — this is the
-      # step the original Claude sandbox could never perform (blocked
-      # network egress to cdn.playwright.dev). GitHub Actions has normal
-      # internet access, so this resolves that M0-WO1 limitation for real.
-      - name: Install Playwright browsers
-        run: pnpm --filter "@prowess/studio" exec playwright install --with-deps chromium
-
-      # Explicit, standalone production-build step — gives fast, clearly-
-      # attributed failure if the build breaks, rather than only
-      # discovering it buried inside Playwright's own webServer startup.
-      - name: Build (production)
+  db-integration:
+    name: Database integration (shard ${{ matrix.shard }}/2)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    # Each shard has its OWN disposable PostgreSQL service: no database is shared between concurrent jobs.
+    services:
+      postgres:
+        image: postgres:16
         env:
-          APP_URL: http://127.0.0.1:3100
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
-          LOG_LEVEL: warn
-          DEVELOPMENT_MODE: "false"
-        run: pnpm build
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+      - name: Create test database
+        env:
+          PGPASSWORD: postgres
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres > /dev/null 2>&1; do sleep 2; done
+          psql -h localhost -U postgres -d postgres -c "CREATE DATABASE prowess_studio_test;"
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Prisma Client generation and test-database migrations
+        env:
+          NODE_ENV: test
+        run: |
+          pnpm run db:generate
+          pnpm run db:migrate:deploy
+      - name: Build workspace packages
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+      - name: Database integration tests
+        run: pnpm --filter "@prowess/db" run test:integration --shard=${{ matrix.shard }}/2 --reporter=default --reporter=json --outputFile.json=vitest-report.integration.json
+      - name: Collect authoritative reports
+        env:
+          PROWESS_SHARD: ${{ matrix.shard }}
+        run: node scripts/ci/collect-reports.mjs db-integration
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-db-integration-${{ matrix.shard }}
+          path: reports/
+          if-no-files-found: error
+          retention-days: 7
 
-      # Playwright's own webServer re-runs `pnpm run build` (see
-      # apps/studio/playwright.config.ts) before starting the app — fast
-      # and harmless given the build above already primed everything; this
-      # is what actually boots the production server and exercises /,
-      # /compendium, /developer end-to-end.
+  # ---- Named permanent gates + controls (Tier 2) ----------------------------------------------------------------------
+  # Each gate step first verifies, from this run's authoritative suite reports, that every file of the gate passed
+  # (scripts/ci/verify-gate.mjs — the list is cross-checked against scripts/ci/gates.json), then runs the gate's own
+  # negative / mutation controls with the exact inventory count. Every controls job is a separate checkout.
+  controls-1:
+    name: Gates — M1, M4, M5-WO1…WO3
+    needs: [unit-packages, unit-game, unit-studio, db-api, db-integration]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Build workspace packages
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+      - name: Download authoritative reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: reports-*
+          path: reports
+          merge-multiple: true
+      - name: M1 audit gate — static invariants (no current-version state, enum parity, errors, migrations, layering)
+        run: node scripts/ci/verify-gate.mjs M1-STATIC apps/studio/tests/unit/m1-audit-static.test.ts
+      - name: M1 audit gate — database-level suite
+        run: node scripts/ci/verify-gate.mjs M1-DB packages/prowess-db/tests/integration/m1-audit.test.ts
+      - name: M1 audit gate — API-level reproducibility suite
+        run: node scripts/ci/verify-gate.mjs M1-API apps/studio/tests/integration/m1-audit-api.test.ts
+      - name: M4-WO1 audit gate — Rules Engine boundaries & purity (static)
+        run: node scripts/ci/verify-gate.mjs M4-WO1 apps/studio/tests/unit/m4-wo1-static.test.ts
+      - name: M4-WO2 audit gate — exact Ruleset resolver (static)
+        run: node scripts/ci/verify-gate.mjs M4-WO2-STATIC apps/studio/tests/unit/m4-wo2-static.test.ts
+      - name: M4-WO2 audit gate — exact Ruleset resolver (database)
+        run: node scripts/ci/verify-gate.mjs M4-WO2-DB packages/prowess-db/tests/integration/ruleset-context.test.ts
+      - name: M4-WO3 audit gate — Formula Engine safety & determinism
+        run: node scripts/ci/verify-gate.mjs M4-WO3 apps/studio/tests/unit/m4-wo3-static.test.ts
+      - name: M4-WO4 audit gate — Keyword metadata & resolution (static)
+        run: node scripts/ci/verify-gate.mjs M4-WO4-STATIC apps/studio/tests/unit/m4-wo4-static.test.ts
+      - name: M4-WO4 audit gate — Keyword metadata & resolution (database)
+        run: node scripts/ci/verify-gate.mjs M4-WO4-DB packages/prowess-db/tests/integration/m1-keyword-resolution.test.ts
+      - name: M4-WO5 audit gate — Requirement evaluation & predicate safety
+        run: node scripts/ci/verify-gate.mjs M4-WO5 apps/studio/tests/unit/m4-wo5-static.test.ts
+      - name: M4-WO6 audit gate — Modifier ordering, stacking & safety
+        run: node scripts/ci/verify-gate.mjs M4-WO6 apps/studio/tests/unit/m4-wo6-static.test.ts
+      - name: M4-WO7 audit gate — Resource state, payment & capacity safety
+        run: node scripts/ci/verify-gate.mjs M4-WO7 apps/studio/tests/unit/m4-wo7-static.test.ts
+      - name: M4-WO8 audit gate — Validation aggregation & diagnostic safety
+        run: node scripts/ci/verify-gate.mjs M4-WO8 apps/studio/tests/unit/m4-wo8-static.test.ts
+      - name: M4-WO9 audit gate — Trace composition & explanation integrity
+        run: node scripts/ci/verify-gate.mjs M4-WO9 apps/studio/tests/unit/m4-wo9-static.test.ts
+      - name: M4-WO10 audit gate — Rules orchestration integrity
+        run: node scripts/ci/verify-gate.mjs M4-WO10 apps/studio/tests/unit/m4-wo10-static.test.ts
+      - name: M4-WO11 audit gate — Rules Inspector presentation integrity
+        run: node scripts/ci/verify-gate.mjs M4-WO11 apps/studio/tests/unit/m4-wo11-static.test.ts apps/studio/tests/unit/m4-rules-api-client.test.ts apps/studio/tests/unit/m4-rules-lab.test.tsx
+      - name: M4-WO10 integration gate — Exact Ruleset evaluation HTTP flow
+        run: node scripts/ci/verify-gate.mjs M4-WO10-HTTP apps/studio/tests/integration/m4-rules-evaluation-api.test.ts
+      - name: M4-WO12 final audit — M4 integration & reproducibility
+        run: |
+          node scripts/ci/verify-gate.mjs M4-WO12 apps/studio/tests/unit/m4-final-static.test.ts apps/studio/tests/unit/m4-final-engine.test.ts apps/studio/tests/unit/m4-final-ui.test.tsx apps/studio/tests/unit/m4-final-limits.test.ts apps/studio/tests/integration/m4-final-api.test.ts
+          PROWESS_EXPECT_CONTROLS=3 node scripts/m4-final-negative-controls.mjs
+      - name: M5-WO1 audit — Prowess domain & shared ability construction boundary
+        run: |
+          node scripts/ci/verify-gate.mjs M5-WO1 apps/studio/tests/unit/m5-wo1-static.test.ts packages/prowess-db/tests/unit/m5-source-terminology.test.ts packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts
+          PROWESS_EXPECT_CONTROLS=17 node scripts/m5-wo1-negative-controls.mjs
+      - name: M5-WO2 audit — Core resolution, stats, dice & ranks
+        run: |
+          node scripts/ci/verify-gate.mjs M5-WO2 packages/prowess-game/src/core-resolution-golden.test.ts packages/prowess-game/src/core-contracts.test.ts apps/studio/tests/unit/m5-wo2-static.test.ts packages/prowess-db/tests/unit/m5-wo2-inspector-fixture.test.ts packages/prowess-db/tests/integration/prowess-core-resolution-history.test.ts apps/studio/tests/integration/m5-wo2-core-api.test.ts
+          PROWESS_EXPECT_CONTROLS=18 node scripts/m5-wo2-negative-controls.mjs
+      - name: M5-WO3 audit — Runtime resources, action economy & movement
+        run: |
+          node scripts/ci/verify-gate.mjs M5-WO3 packages/prowess-game/src/runtime-resources-golden.test.ts packages/prowess-game/src/runtime-contracts.test.ts apps/studio/tests/unit/m5-wo3-static.test.ts packages/prowess-db/tests/unit/m5-wo3-inspector-fixture.test.ts packages/prowess-db/tests/integration/prowess-runtime-resources-history.test.ts apps/studio/tests/integration/m5-wo3-runtime-api.test.ts
+          PROWESS_EXPECT_CONTROLS=21 node scripts/m5-wo3-negative-controls.mjs
+
+  controls-2:
+    name: Gates — M5-WO4, canon rulings, M5-WO5
+    needs: [unit-packages, unit-game, unit-studio, db-api, db-integration]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Build workspace packages
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+      - name: Download authoritative reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: reports-*
+          path: reports
+          merge-multiple: true
+      - name: M5-WO4 audit — Affinity identity, rank, authority & keyword alignment
+        run: |
+          node scripts/ci/verify-gate.mjs M5-WO4 packages/prowess-game/src/affinity-golden.test.ts packages/prowess-game/src/affinity-contracts.test.ts apps/studio/tests/unit/m5-wo4-static.test.ts packages/prowess-db/tests/unit/m5-wo4-inspector-fixture.test.ts packages/prowess-db/tests/integration/prowess-affinity-history.test.ts apps/studio/tests/integration/m5-wo4-affinity-api.test.ts
+          PROWESS_EXPECT_CONTROLS=34 node scripts/m5-wo4-negative-controls.mjs
+      - name: M5 canon rulings audit — Size Base Movement & Level 9 Affinity rank
+        run: node scripts/ci/verify-gate.mjs M5-CANON packages/prowess-game/src/runtime-resources-golden.test.ts packages/prowess-game/src/runtime-contracts.test.ts packages/prowess-game/src/core-resolution-golden.test.ts packages/prowess-game/src/affinity-contracts.test.ts packages/prowess-game/src/vocabulary.test.ts apps/studio/tests/unit/m5-canon-rulings-static.test.ts
+      - name: M5-WO5 audit — Shared modular ability construction
+        run: |
+          node scripts/ci/verify-gate.mjs M5-WO5 packages/prowess-game/src/construction-legality-golden.test.ts packages/prowess-game/src/construction-legality-contracts.test.ts packages/prowess-game/src/vocabulary.test.ts apps/studio/tests/unit/m5-wo5-static.test.ts packages/prowess-db/tests/unit/m5-wo5-inspector-fixture.test.ts packages/prowess-db/tests/integration/prowess-construction-history.test.ts apps/studio/tests/integration/m5-wo5-construction-api.test.ts
+          PROWESS_EXPECT_CONTROLS=29 node scripts/m5-wo5-negative-controls.mjs
+
+  controls-3:
+    name: Gates — M5-WO6…WO10
+    needs: [unit-packages, unit-game, unit-studio, db-api, db-integration]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Build workspace packages
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+      - name: Download authoritative reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: reports-*
+          path: reports
+          merge-multiple: true
+      - name: M5-WO6 audit — Targeting framework, geometry & branch catalogs
+        run: |
+          node scripts/ci/verify-gate.mjs M5-WO6 packages/prowess-game/src/targeting-golden.test.ts packages/prowess-game/src/targeting-contracts.test.ts packages/prowess-game/src/vocabulary.test.ts apps/studio/tests/unit/m5-wo6-static.test.ts packages/prowess-db/tests/unit/m5-wo6-inspector-fixture.test.ts packages/prowess-db/tests/integration/prowess-targeting-history.test.ts apps/studio/tests/integration/m5-wo6-targeting-api.test.ts
+          PROWESS_EXPECT_CONTROLS=16 node scripts/m5-wo6-negative-controls.mjs
+      - name: M5-WO7 audit — Effect framework & Spell/Maneuver contracts
+        run: |
+          node scripts/ci/verify-gate.mjs M5-WO7 packages/prowess-game/src/effect-golden.test.ts packages/prowess-game/src/effect-contracts.test.ts packages/prowess-game/src/effect-security.test.ts packages/prowess-game/src/effect-inspector.test.ts apps/studio/tests/unit/m5-wo7-static.test.ts
+          PROWESS_EXPECT_CONTROLS=22 node scripts/m5-wo7-negative-controls.mjs
+      - name: M5-WO8 audit — Traits & authored Spell/Maneuver definitions
+        run: |
+          node scripts/ci/verify-gate.mjs M5-WO8 packages/prowess-game/src/ability-definitions.test.ts packages/prowess-game/src/ability-negative.test.ts packages/prowess-game/src/ability-security.test.ts packages/prowess-game/src/trait-contracts.test.ts apps/studio/tests/unit/m5-wo8-static.test.ts packages/prowess-db/tests/unit/m5-wo8-inspector-fixture.test.ts packages/prowess-db/tests/integration/prowess-authored-ability-history.test.ts apps/studio/tests/integration/m5-wo8-ability-api.test.ts
+          PROWESS_EXPECT_CONTROLS=8 node scripts/m5-wo8-negative-controls.mjs
+      - name: M5-WO9 audit — Duration & Ability Condition Framework
+        run: |
+          node --input-type=module -e 'await import("./packages/prowess-game/dist/index.js")'
+          node scripts/ci/verify-gate.mjs M5-WO9 packages/prowess-game/src/duration-condition.test.ts packages/prowess-game/src/duration-condition-negative.test.ts apps/studio/tests/unit/m5-wo9-static.test.ts packages/prowess-db/tests/unit/m5-wo9-inspector-fixture.test.ts packages/prowess-db/tests/integration/prowess-duration-condition-history.test.ts apps/studio/tests/integration/m5-wo9-ability-api.test.ts
+          PROWESS_EXPECT_CONTROLS=12 node scripts/m5-wo9-negative-controls.mjs
+      - name: M5-WO10 audit — Final Spell Cost & AP Derivation
+        run: |
+          node --input-type=module -e 'await import("./packages/prowess-game/dist/index.js")'
+          node scripts/ci/verify-gate.mjs M5-WO10 packages/prowess-game/src/spell-cost-golden.test.ts packages/prowess-game/src/spell-cost-contracts.test.ts apps/studio/tests/unit/m5-wo10-static.test.ts packages/prowess-db/tests/unit/m5-wo10-inspector-fixture.test.ts packages/prowess-db/tests/integration/prowess-spell-cost-history.test.ts apps/studio/tests/integration/m5-wo10-spell-cost-api.test.ts
+          PROWESS_EXPECT_CONTROLS=18 node scripts/m5-wo10-negative-controls.mjs
+
+  controls-4:
+    name: Gates — M5-WO11
+    needs: [unit-packages, unit-game, unit-studio, db-api, db-integration]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Build workspace packages
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+      - name: Download authoritative reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: reports-*
+          path: reports
+          merge-multiple: true
+      - name: M5-WO11 audit — Final Maneuver Cost & Attack Floors
+        run: |
+          node --input-type=module -e 'await import("./packages/prowess-game/dist/index.js")'
+          node scripts/ci/verify-gate.mjs M5-WO11 packages/prowess-game/src/maneuver-cost-golden.test.ts packages/prowess-game/src/maneuver-cost-contracts.test.ts apps/studio/tests/unit/m5-wo11-static.test.ts packages/prowess-db/tests/unit/m5-wo11-inspector-fixture.test.ts packages/prowess-db/tests/integration/prowess-maneuver-cost-history.test.ts apps/studio/tests/integration/m5-wo11-maneuver-cost-api.test.ts
+          PROWESS_EXPECT_CONTROLS=26 node scripts/m5-wo11-negative-controls.mjs
+
+  controls-5:
+    name: Gates — M5-WO12
+    needs: [unit-packages, unit-game, unit-studio, db-api, db-integration]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Build workspace packages
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+      - name: Download authoritative reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: reports-*
+          path: reports
+          merge-multiple: true
+      - name: M5-WO12 audit — Effect Chain Execution & Runtime Routing
+        run: |
+          node --input-type=module -e 'await import("./packages/prowess-game/dist/index.js")'
+          node scripts/ci/verify-gate.mjs M5-WO12 packages/prowess-game/src/effect-execution-golden.test.ts packages/prowess-game/src/effect-execution-contracts.test.ts apps/studio/tests/unit/m5-wo12-static.test.ts packages/prowess-db/tests/unit/m5-wo12-inspector-fixture.test.ts packages/prowess-db/tests/integration/prowess-effect-execution-history.test.ts apps/studio/tests/integration/m5-wo12-effect-execution-api.test.ts
+          PROWESS_EXPECT_CONTROLS=26 node scripts/m5-wo12-negative-controls.mjs
+
+  controls-6:
+    name: Gates — M5-WO13
+    needs: [unit-packages, unit-game, unit-studio, db-api, db-integration]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Build workspace packages
+        run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" --filter "@prowess/test-fixtures" run build
+      - name: Download authoritative reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: reports-*
+          path: reports
+          merge-multiple: true
+      - name: M5-WO13 audit — Active Magic Runtime
+        run: |
+          node --input-type=module -e 'await import("./packages/prowess-game/dist/index.js")'
+          node scripts/ci/verify-gate.mjs M5-WO13 packages/prowess-game/src/active-magic-golden.test.ts packages/prowess-game/src/active-magic-contracts.test.ts apps/studio/tests/unit/m5-wo13-static.test.ts packages/prowess-db/tests/unit/m5-wo13-inspector-fixture.test.ts packages/prowess-db/tests/integration/prowess-active-magic-history.test.ts apps/studio/tests/integration/m5-wo13-active-magic-api.test.ts
+          PROWESS_EXPECT_CONTROLS=30 node scripts/m5-wo13-negative-controls.mjs
+
+  # ---- Production build + browser (Tier 2) ----------------------------------------------------------------------------
+  e2e:
+    name: Build (production) + end-to-end (Playwright)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      APP_URL: http://127.0.0.1:3100
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+      LOG_LEVEL: warn
+      DEVELOPMENT_MODE: "false"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+      - name: Create test database
+        env:
+          PGPASSWORD: postgres
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres > /dev/null 2>&1; do sleep 2; done
+          psql -h localhost -U postgres -d postgres -c "CREATE DATABASE prowess_studio_test;"
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Prisma Client generation and test-database migrations
+        env:
+          NODE_ENV: test
+        run: |
+          pnpm run db:generate
+          pnpm run db:migrate:deploy
+      # Browser binaries are cached per exact Playwright version (a performance aid; Tier 3 never restores it). The OS
+      # dependencies are always installed.
+      - name: Resolve Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('./apps/studio/node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Restore Playwright browsers
+        id: browsers
+        if: env.CERTIFICATION != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-chromium
+      - name: Install Playwright browsers
+        if: steps.browsers.outputs.cache-hit != 'true'
+        run: pnpm --filter "@prowess/studio" exec playwright install --with-deps chromium
+      - name: Install Playwright OS dependencies (cached browsers)
+        if: steps.browsers.outputs.cache-hit == 'true'
+        run: pnpm --filter "@prowess/studio" exec playwright install-deps chromium
+      - name: Restore Next.js build cache
+        if: env.CERTIFICATION != 'true'
+        uses: actions/cache@v4
+        with:
+          path: apps/studio/.next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+      # The one production build of this commit (all workspace packages, then Next.js): a clearly attributed failure if
+      # the build breaks, and the exact artifact Playwright serves below.
+      - name: Build (production)
+        run: pnpm build
+      # PROWESS_E2E_PREBUILT=1: Playwright's webServer serves the build above (`next start`) instead of building the
+      # same commit a second time; it refuses to start without that build's BUILD_ID.
       - name: End-to-end tests (Playwright)
+        env:
+          PROWESS_E2E_PREBUILT: "1"
         run: pnpm run test:e2e
 
-# WO9 DB/API regression discovery: prowess-duration-condition-history.test.ts; m5-wo9-ability-api.test.ts.
+  # ---- Tier summaries ---------------------------------------------------------------------------------------------------
+  tier-1:
+    name: Tier 1 — fast feedback
+    if: always()
+    needs: [static, unit-packages, unit-game, unit-studio]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every Tier 1 job succeeded
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node scripts/ci/require-success.mjs
+
+  tier-2:
+    name: ${{ github.event_name == 'workflow_dispatch' && inputs.certification && 'Tier 3 — clean certification' || 'Tier 2 — merge readiness' }}
+    if: always()
+    needs: [static, unit-packages, unit-game, unit-studio, db-api, db-integration, controls-1, controls-2, controls-3, controls-4, controls-5, controls-6, e2e]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every job succeeded
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node scripts/ci/require-success.mjs
