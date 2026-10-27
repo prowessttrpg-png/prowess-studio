@@ -1,9 +1,22 @@
 // @vitest-environment node
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { auditM5Source } from "./m5-wo1-audit-helpers";
 const root = resolve(import.meta.dirname, "../../../.."), text = (p: string) => readFileSync(resolve(root, p), "utf8");
+
+/**
+ * M5-CLOSEOUT-03 C5: the dedicated `m5-wo8.yml` workflow was retired after its checks moved into the consolidated
+ * permanent CI. The same file-level assertions now run against that gate's entry in the machine-checked inventory
+ * (scripts/ci/gates.json, which ci-gate-inventory.test.ts ties to ci.yml), and the old workflow must stay retired.
+ */
+const consolidated = (id: string, workflow: string): string => {
+  const gate = (JSON.parse(text("scripts/ci/gates.json")) as { gates: { id: string; previous: string[] }[] }).gates.find((g) => g.id === id);
+  expect(gate, id).toBeTruthy();
+  expect(gate!.previous.some((prev) => prev.startsWith(`${workflow}#`)), workflow).toBe(true);
+  expect(existsSync(resolve(root, ".github/workflows", workflow)), workflow).toBe(false);
+  return JSON.stringify(gate);
+};
 const files = ["ability/compile.ts", "definition/trait-payload.ts", "definition/authored-ability-payload.ts"].map(f => `packages/prowess-game/src/${f}`);
 export function auditWo8Source(source: string): string[] {
   const errors = new Set<string>();
@@ -43,7 +56,7 @@ describe("M5-WO8 audit — Traits and authored Spell/Maneuver definitions", () =
     expect(text("docs/architecture/m5-core-playtest-source-conflicts.md")).toContain("M5-SC-041");
   });
   it("preserves schema, M4 engine and previous permanent gates", () => {
-    const ci = text(".github/workflows/ci.yml"), dedicated = text(".github/workflows/m5-wo8.yml");
+    const ci = text(".github/workflows/ci.yml"), dedicated = consolidated("M5-WO8", "m5-wo8.yml");
     for (let n = 1; n <= 8; n++) expect(ci).toContain(`M5-WO${n}`);
     for (const file of ["ability-definitions.test.ts", "ability-negative.test.ts", "ability-security.test.ts", "trait-contracts.test.ts", "m5-wo8-static.test.ts", "m5-wo8-negative-controls.mjs"]) expect(dedicated).toContain(file);
     expect(ci).toContain("prowess-authored-ability-history.test.ts"); expect(ci).toContain("m5-wo8-ability-api.test.ts");

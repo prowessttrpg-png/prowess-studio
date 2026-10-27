@@ -7,6 +7,19 @@ import { describe, expect, it } from "vitest";
 import { CONDITION_POLICY, DURATION_CONDITION_CONTENT } from "../../../../packages/prowess-game/src/content/core-playtest-v0.1/duration-conditions";
 import { auditM5Source } from "./m5-wo1-audit-helpers";
 const root = resolve(import.meta.dirname, "../../../.."), read = (p: string) => readFileSync(resolve(root, p), "utf8");
+
+/**
+ * M5-CLOSEOUT-03 C5: the dedicated `m5-wo9.yml` workflow was retired after its checks moved into the consolidated
+ * permanent CI. The same file-level assertions now run against that gate's entry in the machine-checked inventory
+ * (scripts/ci/gates.json, which ci-gate-inventory.test.ts ties to ci.yml), and the old workflow must stay retired.
+ */
+const consolidated = (id: string, workflow: string): string => {
+  const gate = (JSON.parse(read("scripts/ci/gates.json")) as { gates: { id: string; previous: string[] }[] }).gates.find((g) => g.id === id);
+  expect(gate, id).toBeTruthy();
+  expect(gate!.previous.some((prev) => prev.startsWith(`${workflow}#`)), workflow).toBe(true);
+  expect(existsSync(resolve(root, ".github/workflows", workflow)), workflow).toBe(false);
+  return JSON.stringify(gate);
+};
 const files = ["ability/duration-conditions.ts", "definition/duration-condition-payload.ts", "definition/condition-policy.ts", "content/core-playtest-v0.1/duration-conditions.ts", "ability/compile.ts"].map(p => `packages/prowess-game/src/${p}`);
 const hash = (s: string | Buffer) => createHash("sha256").update(s).digest("hex");
 const walk = (p: string): string[] => readdirSync(resolve(root, p)).flatMap(n => statSync(resolve(root, p, n)).isDirectory() ? walk(`${p}/${n}`) : [`${p}/${n}`]);
@@ -78,7 +91,7 @@ describe("M5-WO9 audit — Duration & Ability Condition Framework", () => {
     for (let n = 225; n <= 242; n++) { const row = inv.find(x => x.id === `M5-I${n}`)!; expect(row).toBeTruthy(); for (const path of row.guards) expect(existsSync(resolve(root, path))).toBe(true); }
   });
   it("retains every permanent gate and adds dedicated tests, audit, controls, history, API and Inspector coverage", () => {
-    const ci = read(".github/workflows/ci.yml"), dedicated = read(".github/workflows/m5-wo9.yml");
+    const ci = read(".github/workflows/ci.yml"), dedicated = consolidated("M5-WO9", "m5-wo9.yml");
     for (let i = 1; i <= 9; i++) expect(ci).toContain(`M5-WO${i}`);
     for (const path of ["duration-condition.test.ts", "duration-condition-negative.test.ts", "m5-wo9-static.test.ts", "m5-wo9-negative-controls.mjs"]) { expect(ci).toContain(path); expect(dedicated).toContain(path); }
     expect(ci).toContain("prowess-duration-condition-history.test.ts"); expect(ci).toContain("m5-wo9-ability-api.test.ts");

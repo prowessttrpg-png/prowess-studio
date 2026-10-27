@@ -2,7 +2,7 @@
 
 **Status: in service.** `Prowess Studio CI` (`.github/workflows/ci.yml`) is the verification authority for the project.
 Since M5-CLOSEOUT-03 it is one workflow with a deliberate parallel job graph; the dedicated per-Work-Order workflows
-(`m5-wo7.yml` … `m5-wo13.yml`) are retired once their unique checks run here
+(`m5-wo7.yml` … `m5-wo13.yml`) were retired after their unique checks moved into it
 (`docs/reports/m0-m5-ci-optimization-report.md`).
 
 ## What runs, and when

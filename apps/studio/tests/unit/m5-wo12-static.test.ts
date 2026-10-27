@@ -17,6 +17,19 @@ import { EFFECT_EXECUTION_POLICY } from "../../../../packages/prowess-game/src/c
  */
 const root = resolve(import.meta.dirname, "../../../..");
 const read = (p: string) => readFileSync(resolve(root, p), "utf8");
+
+/**
+ * M5-CLOSEOUT-03 C5: the dedicated `m5-wo12.yml` workflow was retired after its checks moved into the consolidated
+ * permanent CI. The same file-level assertions now run against that gate's entry in the machine-checked inventory
+ * (scripts/ci/gates.json, which ci-gate-inventory.test.ts ties to ci.yml), and the old workflow must stay retired.
+ */
+const consolidated = (id: string, workflow: string): string => {
+  const gate = (JSON.parse(read("scripts/ci/gates.json")) as { gates: { id: string; previous: string[] }[] }).gates.find((g) => g.id === id);
+  expect(gate, id).toBeTruthy();
+  expect(gate!.previous.some((prev) => prev.startsWith(`${workflow}#`)), workflow).toBe(true);
+  expect(existsSync(resolve(root, ".github/workflows", workflow)), workflow).toBe(false);
+  return JSON.stringify(gate);
+};
 const hash = (s: string | Buffer) => createHash("sha256").update(s).digest("hex");
 const walk = (p: string): string[] => readdirSync(resolve(root, p)).flatMap((n) => (statSync(resolve(root, p, n)).isDirectory() ? walk(`${p}/${n}`) : [`${p}/${n}`]));
 const MODULE = "packages/prowess-game/src/ability/effect-execution.ts";
@@ -186,8 +199,8 @@ describe("M5-WO12 audit — Effect Chain Execution & Runtime Routing", () => {
     expect(read("docs/reports/m5-wo12-implementation-report.md")).toContain("M5-WO12");
   });
 
-  it("CI keeps every permanent gate and adds the WO12 gate after WO11 plus a dedicated workflow", () => {
-    const ci = read(".github/workflows/ci.yml"), dedicated = read(".github/workflows/m5-wo12.yml");
+  it("CI keeps every permanent gate and adds the WO12 gate after WO11; its former dedicated workflow lives in the consolidated gate", () => {
+    const ci = read(".github/workflows/ci.yml"), dedicated = consolidated("M5-WO12", "m5-wo12.yml");
     for (let i = 1; i <= 11; i++) expect(ci).toContain(`M5-WO${String(i)}`);
     expect(ci.indexOf("M5-WO12 audit — Effect Chain Execution & Runtime Routing")).toBeGreaterThan(ci.indexOf("M5-WO11 audit — Final Maneuver Cost & Attack Floors"));
     for (const path of ["effect-execution-golden.test.ts", "effect-execution-contracts.test.ts", "m5-wo12-static.test.ts", "m5-wo12-inspector-fixture.test.ts", "prowess-effect-execution-history.test.ts", "m5-wo12-effect-execution-api.test.ts", "m5-wo12-negative-controls.mjs"]) {
