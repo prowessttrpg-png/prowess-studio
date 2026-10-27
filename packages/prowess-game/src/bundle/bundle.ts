@@ -33,6 +33,10 @@ export function rulesetProvenanceOf(ruleset: RulesetContext): ProwessRulesetProv
   };
 }
 
+/** The exact five-field identity `isSameExactDefinition` compares, as one collision-free key (JSON of the tuple). */
+const exactDefinitionKey = (e: ProwessDefinitionEnvelope): string =>
+  JSON.stringify([e.entityId, e.entityVersionId, e.canonicalKey, e.definitionKind, e.systemFamily]);
+
 /**
  * Builds a bundle from an exact RulesetContext and Definition envelopes. Fails closed on: unsafe data, malformed or
  * unsupported envelopes, a version the context does not pin (injection), a canonical-key or EntityType disagreement
@@ -57,6 +61,8 @@ export function createProwessDefinitionBundle(input: unknown): ProwessOutcome<Pr
   }
 
   const accepted: ProwessDefinitionEnvelope[] = [];
+  /** Exact-identity keys of `accepted` — the same five fields `isSameExactDefinition` compares (O(1) duplicate check). */
+  const acceptedKeys = new Set<string>();
   raw.forEach((item: unknown, i: number) => {
     const at = ["definitions", i];
     const envelope = readEnvelope(item, at, p);
@@ -84,11 +90,12 @@ export function createProwessDefinitionBundle(input: unknown): ProwessOutcome<Pr
       p.add(B.RULESET_MISMATCH, [...at, "provenance"], "pin provenance must equal the exact context's (sourceRulesetId / sourceManifestId)");
       return;
     }
-    const ref = definitionRefOf(envelope);
-    if (accepted.some((a) => isSameExactDefinition(definitionRefOf(a), ref))) {
+    const key = exactDefinitionKey(envelope);
+    if (acceptedKeys.has(key)) {
       p.add(B.DUPLICATE_DEFINITION, at, "the same exact Definition version is supplied twice");
       return;
     }
+    acceptedKeys.add(key);
     accepted.push(envelope);
   });
 
