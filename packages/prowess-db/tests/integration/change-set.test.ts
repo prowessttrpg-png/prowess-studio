@@ -562,7 +562,10 @@ describe("ChangeSet (prowess_studio_test only)", () => {
       const names = Object.keys(await import("../../src/index"));
       // M2-WO8 added the explicit review transitions (submit/approve/reject), audited in ruleset-release.test.ts.
       const review = ["submitChangeSetForReview", "approveChangeSet", "rejectChangeSet"];
-      expect(names.filter((n) => /changeset/i.test(n) && !review.includes(n)).sort()).toEqual([
+      // M6-WO1's Compendium hand-off proposeDefinitionChangeSet only DELEGATES to createChangeSet (one exact
+      // PIN_ENTITY_VERSION proposal; pinned by apps/studio/tests/unit/m6-wo1-static.test.ts) — not a ChangeSet operation.
+      const handOff = ["proposeDefinitionChangeSet"];
+      expect(names.filter((n) => /changeset/i.test(n) && !review.includes(n) && !handOff.includes(n)).sort()).toEqual([
         "analyzeChangeSetImpact",
         "createChangeSet",
         "getChangeSet",

@@ -4,6 +4,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+import { withLaterMilestoneRoutes } from "./later-milestone-routes";
 import { ACTIVE_MAGIC_POLICY } from "../../../../packages/prowess-game/src/content/core-playtest-v0.1/active-magic";
 
 /**
@@ -175,7 +176,7 @@ describe("M5-WO13 audit — Active Magic Runtime", () => {
     const files = [...walk("packages/prowess-rules/src"), ...walk("packages/prowess-db/prisma")].sort();
     expect(files).toEqual(Object.keys(baseline.frozenFiles).sort());
     for (const [path, expected] of Object.entries(baseline.frozenFiles)) expect(hash(readFileSync(resolve(root, path))), path).toBe(expected);
-    expect(walk("apps/studio/app/api").filter((f) => f.endsWith("route.ts")).sort()).toEqual(baseline.apiRoutes);
+    expect(walk("apps/studio/app/api").filter((f) => f.endsWith("route.ts")).sort()).toEqual(withLaterMilestoneRoutes(baseline.apiRoutes));
     for (const f of [...walk("apps/studio/app"), ...walk("apps/studio/src")].filter((x) => /\.(ts|tsx)$/.test(x))) expect(read(f), f).not.toMatch(/@prowess\/game|\/api\/(active-magic|sustain|concentration|channel)/);
   });
 

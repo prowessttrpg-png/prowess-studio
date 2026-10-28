@@ -1,0 +1,125 @@
+[
+  {
+    "id": "M6-I001",
+    "title": "Authored Definitions Use The Existing Entity / EntityVersion Storage",
+    "group": "Storage",
+    "meaning": "A Prowess Definition is authored as an ordinary Entity plus EntityVersions holding structuredData.prowessDefinition; WO1 adds no table, schema change or migration.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo1-static.test.ts",
+      "apps/studio/tests/integration/m6-wo1-compendium-authoring-api.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo1-compendium-authoring.test.ts",
+      "scripts/m6-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I002",
+    "title": "The Studio UI Never Owns Mechanics Or A Second Definition Catalog",
+    "group": "Presentation",
+    "meaning": "Definition kinds, allowed EntityTypes, schema versions and option vocabularies are a projection of the M5 registry served by @prowess/db; descriptors hold labels and vocabulary NAMES only; Studio never imports the M5 domain package.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo1-static.test.ts",
+      "packages/prowess-db/tests/unit/m6-wo1-authoring-catalog.test.ts",
+      "apps/studio/tests/unit/m6-wo1-authoring-lib.test.ts",
+      "apps/studio/tests/unit/m6-wo1-compendium-admin-ui.test.tsx",
+      "scripts/m6-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I003",
+    "title": "Authoring Validates Against The Real M5 Contract On The Server",
+    "group": "Validation",
+    "meaning": "Validation, Save and Create run @prowess/game's validateStoredProwessDefinition \u2014 the same readers the materializer runs; client checks are never authoritative; unsafe input is refused with no authoring bypass.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo1-static.test.ts",
+      "packages/prowess-game/src/stored-definition-validation.test.ts",
+      "apps/studio/tests/integration/m6-wo1-compendium-authoring-api.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo1-compendium-authoring.test.ts",
+      "scripts/m6-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I004",
+    "title": "Historical Revisions Are Immutable",
+    "group": "History",
+    "meaning": "Only a DRAFT is editable (M1 atomic guard); any other status is read-only and changes only through Create New Revision; a newer save is never silently overwritten.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo1-static.test.ts",
+      "apps/studio/tests/integration/m6-wo1-compendium-authoring-api.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo1-compendium-authoring.test.ts",
+      "apps/studio/tests/unit/m6-wo1-compendium-admin-ui.test.tsx",
+      "scripts/m6-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I005",
+    "title": "Ruleset Publication Remains M2-Owned",
+    "group": "Governance",
+    "meaning": "Authoring never publishes, pins a Manifest or sets an 'active' status: its hand-off creates an ordinary DRAFT ChangeSet through M2's createChangeSet in an explicitly chosen Ruleset.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo1-static.test.ts",
+      "apps/studio/tests/integration/m6-wo1-compendium-authoring-api.test.ts",
+      "apps/studio/tests/unit/m6-wo1-compendium-admin-ui.test.tsx",
+      "scripts/m6-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I006",
+    "title": "Reference Pickers Store Exact Identity",
+    "group": "References",
+    "meaning": "Pickers search by human discovery fields but store the exact five-field Definition reference; references are checked against the exact EntityVersion, never by name or 'latest'.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo1-static.test.ts",
+      "apps/studio/tests/integration/m6-wo1-compendium-authoring-api.test.ts",
+      "apps/studio/tests/unit/m6-wo1-compendium-admin-ui.test.tsx",
+      "scripts/m6-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I007",
+    "title": "Validation And Preview Do Not Persist",
+    "group": "Validation",
+    "meaning": "Validate, stored-revision validation, the reference / Keyword searches and the Preview are side-effect free; no validity flag is stored.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo1-static.test.ts",
+      "apps/studio/tests/integration/m6-wo1-compendium-authoring-api.test.ts",
+      "apps/studio/tests/unit/m6-wo1-compendium-admin-ui.test.tsx",
+      "scripts/m6-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I008",
+    "title": "Revision Numbers Are Server-Allocated",
+    "group": "History",
+    "meaning": "Create New Revision uses the M1 allocator; no route accepts a revision number or status from the client.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo1-static.test.ts",
+      "apps/studio/tests/integration/m6-wo1-compendium-authoring-api.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo1-compendium-authoring.test.ts",
+      "apps/studio/tests/unit/m6-wo1-authoring-lib.test.ts",
+      "scripts/m6-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I009",
+    "title": "Payload Keywords Come From The Approved Keyword Vocabulary",
+    "group": "References",
+    "meaning": "Every payload Keyword must be an existing Keyword Definition; Entity-level, EntityVersion-level and payload Keywords stay separate systems.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo1-static.test.ts",
+      "apps/studio/tests/integration/m6-wo1-compendium-authoring-api.test.ts",
+      "apps/studio/tests/unit/m6-wo1-compendium-admin-ui.test.tsx"
+    ]
+  },
+  {
+    "id": "M6-I010",
+    "title": "No Definition Kind Is Inferred",
+    "group": "Storage",
+    "meaning": "An Entity without a stored Prowess Definition is generic content; authoring never infers, attaches or changes a Definition kind from names, text or EntityType.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo1-static.test.ts",
+      "apps/studio/tests/integration/m6-wo1-compendium-authoring-api.test.ts",
+      "apps/studio/tests/unit/m6-wo1-compendium-admin-ui.test.tsx",
+      "scripts/m6-wo1-negative-controls.mjs"
+    ]
+  }
+]

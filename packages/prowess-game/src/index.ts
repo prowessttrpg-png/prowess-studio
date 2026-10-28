@@ -103,7 +103,14 @@ export {
   type TargetingDefinitionPayload,
   type TraitDefinitionPayload,
 } from "./definition/payload.js";
-export { PROWESS_DEFINITION_STORAGE_KEY, readStoredProwessDefinition, type StoredDefinitionReading } from "./definition/storage.js";
+export {
+  PROWESS_DEFINITION_STORAGE_KEY,
+  readStoredProwessDefinition,
+  validateStoredProwessDefinition,
+  type StoredDefinitionContent,
+  type StoredDefinitionReading,
+  type StoredDefinitionValidation,
+} from "./definition/storage.js";
 
 export {
   bundleMatchesRuleset,

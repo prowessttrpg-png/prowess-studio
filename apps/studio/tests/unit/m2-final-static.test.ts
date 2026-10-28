@@ -133,6 +133,9 @@ describe("§50 public service surface", () => {
         "createRuleConflict", "createRuleset", "createRulesetManifest", "createSourceDocument", "createSourceReference", "createSourceSnapshot", "proposeChangeSetFromCanonDecision",
         "publishRulesetRelease", "rejectChangeSet", "removeEntityAlias", "removeEntityRelationship", "removeKeywordFromEntity", "removeKeywordFromEntityVersion",
         "removeSourceReference", "submitChangeSetForReview", "submitRulesetForReview", "transitionEntityVersionStatus", "updateDraftEntityVersion",
+        // M6-WO1 Compendium authoring (pinned by m6-wo1-static): two creations composed of M1 creations, one DRAFT-only
+        // edit, and two named commands that delegate to M1's lifecycle transition and M2's own createChangeSet.
+        "createAuthoredDefinition", "createAuthoredRevision", "updateAuthoredDraftDefinition", "proposeDefinitionChangeSet", "submitAuthoredRevisionForReview",
       ].sort(),
     );
   });

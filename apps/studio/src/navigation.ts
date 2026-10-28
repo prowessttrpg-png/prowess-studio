@@ -74,6 +74,14 @@ export const PRIMARY_NAVIGATION: readonly NavEntry[] = [
  * `/compendium/spells/fireball` still highlights "Compendium"), so a future
  * nested/detail route doesn't need its own active-state logic.
  */
+/**
+ * The Canon Manager page of one ChangeSet (M6-WO1 §32): the single place other workspaces (Compendium Admin) build a
+ * link into the M2 governance UI, so they hand off to it instead of re-implementing any of it.
+ */
+export function canonManagerChangeSetHref(rulesetId: string, changeSetId: string): string {
+  return `/developer/rulesets/${encodeURIComponent(rulesetId)}/change-sets/${encodeURIComponent(changeSetId)}`;
+}
+
 export function isNavEntryActive(entry: NavEntry, pathname: string): boolean {
   if (entry.href === "/") {
     return pathname === "/";

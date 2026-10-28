@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 /**
  * EntityVersion lifecycle & mutation integration tests (PAS-10 M1-WO3
  * §20–29).
@@ -449,6 +450,22 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "resolveEntityVersionFromManifest",
         "transitionEntityVersionStatus",
         "updateDraftEntityVersion",
+        // M6-WO1 Compendium authoring: two creations composed of M1 creations (createAuthoredDefinition,
+        // createAuthoredRevision — DRAFT only, server-allocated numbers), one DRAFT-only edit through M1's atomic guard
+        // (updateAuthoredDraftDefinition), two named commands delegating to M1 / M2 (submitAuthoredRevisionForReview,
+        // proposeDefinitionChangeSet), and side-effect-free reads / validation. No generic setter, no delete.
+        "AUTHORING_ISSUE_CODES",
+        "createAuthoredDefinition",
+        "createAuthoredRevision",
+        "getAuthoringCatalog",
+        "listAuthoringDefinitions",
+        "proposeDefinitionChangeSet",
+        "searchAuthoringKeywords",
+        "searchDefinitionReferences",
+        "submitAuthoredRevisionForReview",
+        "updateAuthoredDraftDefinition",
+        "validateAuthoringCandidate",
+        "validateStoredRevision",
       ].sort(),
     );
 
@@ -457,6 +474,12 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     // lifecycle-aware updateDraftEntityVersion (+ status transition). No
     // generic bypass may appear, whatever else is added to the surface.
     const mutatorLike = exportedNames.filter((n) => /^(update|set|patch|overwrite|delete|upsert)/i.test(n));
-    expect(mutatorLike).toEqual(["updateDraftEntityVersion"]);
+    // M6-WO1: updateAuthoredDraftDefinition is not a second write path — it validates, then DELEGATES to the
+    // lifecycle-aware updateDraftEntityVersion (its only write). Proven from its source here.
+    expect(mutatorLike).toEqual(["updateAuthoredDraftDefinition", "updateDraftEntityVersion"]);
+    const authoring = readFileSync(new URL("../../src/compendium-authoring/service.ts", import.meta.url), "utf8");
+    const body = authoring.slice(authoring.indexOf("export async function updateAuthoredDraftDefinition("), authoring.indexOf("\n}\n", authoring.indexOf("export async function updateAuthoredDraftDefinition(")));
+    expect(body).toMatch(/await updateDraftEntityVersion\(versionId, \{/);
+    expect(body).not.toMatch(/prisma|createEntityVersion|transitionEntityVersionStatus/);
   });
 });

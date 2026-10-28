@@ -1,0 +1,652 @@
+{
+  "kinds": [
+    {
+      "definitionKind": "ABILITY_CONSTRUCTION_RULE",
+      "systemFamily": "ABILITY",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "ACTION",
+      "systemFamily": "ACTION_ECONOMY",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "AFFINITY",
+      "systemFamily": "AFFINITY",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1,
+        2
+      ],
+      "authoringSchemaVersion": 2,
+      "authorable": true
+    },
+    {
+      "definitionKind": "AFFINITY_PROGRESSION",
+      "systemFamily": "AFFINITY",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "AFFINITY_RANK_RULE",
+      "systemFamily": "AFFINITY",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "AFFINITY_WEAKNESS_SEVERITY",
+      "systemFamily": "AFFINITY",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "ANCESTRY",
+      "systemFamily": "ANCESTRY",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [],
+      "authoringSchemaVersion": null,
+      "authorable": false
+    },
+    {
+      "definitionKind": "ARMOR",
+      "systemFamily": "EQUIPMENT",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [],
+      "authoringSchemaVersion": null,
+      "authorable": false
+    },
+    {
+      "definitionKind": "CHARACTER_DIE_PROGRESSION",
+      "systemFamily": "CORE",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "CORE_RESOLUTION",
+      "systemFamily": "CORE",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "CREATURE_SIZE",
+      "systemFamily": "CHARACTER",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "DERIVED_STAT",
+      "systemFamily": "CHARACTER",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "EQUIPMENT_TRAIT",
+      "systemFamily": "EQUIPMENT",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [],
+      "authoringSchemaVersion": null,
+      "authorable": false
+    },
+    {
+      "definitionKind": "MAGE_ART",
+      "systemFamily": "MAGE_ART",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [],
+      "authoringSchemaVersion": null,
+      "authorable": false
+    },
+    {
+      "definitionKind": "MANEUVER_CONDITION",
+      "systemFamily": "MANEUVER",
+      "branch": "MANEUVER",
+      "sharedContract": "ABILITY_CONDITION",
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "MANEUVER_DEFINITION",
+      "systemFamily": "MANEUVER",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "MANEUVER_DURATION",
+      "systemFamily": "MANEUVER",
+      "branch": "MANEUVER",
+      "sharedContract": "DURATION",
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "MANEUVER_EFFECT",
+      "systemFamily": "MANEUVER",
+      "branch": "MANEUVER",
+      "sharedContract": "EFFECT",
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "MANEUVER_FOUNDATION",
+      "systemFamily": "MANEUVER",
+      "branch": "MANEUVER",
+      "sharedContract": "FOUNDATION",
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "MANEUVER_TARGETING",
+      "systemFamily": "MANEUVER",
+      "branch": "MANEUVER",
+      "sharedContract": "TARGETING",
+      "allowedEntityTypes": [
+        "TARGETING"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "MANEUVER_TRAIT",
+      "systemFamily": "MANEUVER",
+      "branch": "MANEUVER",
+      "sharedContract": "TRAIT",
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "MISSION_RULE",
+      "systemFamily": "MISSION",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [],
+      "authoringSchemaVersion": null,
+      "authorable": false
+    },
+    {
+      "definitionKind": "RANK_LADDER",
+      "systemFamily": "SKILL",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "RESOURCE",
+      "systemFamily": "RESOURCE",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "RESOURCE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "SHARED_TRAIT",
+      "systemFamily": "ABILITY",
+      "branch": null,
+      "sharedContract": "TRAIT",
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "SKILL",
+      "systemFamily": "SKILL",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [],
+      "authoringSchemaVersion": null,
+      "authorable": false
+    },
+    {
+      "definitionKind": "SKILL_RANK",
+      "systemFamily": "SKILL",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "systemFamily": "SPELL",
+      "branch": "SPELL",
+      "sharedContract": "ABILITY_CONDITION",
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "SPELL_DEFINITION",
+      "systemFamily": "SPELL",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "SPELL_DURATION",
+      "systemFamily": "SPELL",
+      "branch": "SPELL",
+      "sharedContract": "DURATION",
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "SPELL_EFFECT",
+      "systemFamily": "SPELL",
+      "branch": "SPELL",
+      "sharedContract": "EFFECT",
+      "allowedEntityTypes": [
+        "SPELL_EFFECT"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "SPELL_TARGETING",
+      "systemFamily": "SPELL",
+      "branch": "SPELL",
+      "sharedContract": "TARGETING",
+      "allowedEntityTypes": [
+        "TARGETING"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "SPELL_TRAIT",
+      "systemFamily": "SPELL",
+      "branch": "SPELL",
+      "sharedContract": "TRAIT",
+      "allowedEntityTypes": [
+        "SPELL_TRAIT"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "STAT",
+      "systemFamily": "CHARACTER",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "STATUS_CONDITION",
+      "systemFamily": "CONDITION",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [],
+      "authoringSchemaVersion": null,
+      "authorable": false
+    },
+    {
+      "definitionKind": "SUMMON_ACTION_MODEL",
+      "systemFamily": "SUMMON",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [],
+      "authoringSchemaVersion": null,
+      "authorable": false
+    },
+    {
+      "definitionKind": "SUMMON_TRAIT",
+      "systemFamily": "SUMMON",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [],
+      "authoringSchemaVersion": null,
+      "authorable": false
+    },
+    {
+      "definitionKind": "SUMMON_TYPE",
+      "systemFamily": "SUMMON",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [],
+      "authoringSchemaVersion": null,
+      "authorable": false
+    },
+    {
+      "definitionKind": "TERRAIN",
+      "systemFamily": "ACTION_ECONOMY",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "WEAPON",
+      "systemFamily": "EQUIPMENT",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [],
+      "authoringSchemaVersion": null,
+      "authorable": false
+    }
+  ],
+  "systemFamilies": [
+    "CORE",
+    "CHARACTER",
+    "ANCESTRY",
+    "SKILL",
+    "RESOURCE",
+    "ACTION_ECONOMY",
+    "AFFINITY",
+    "ABILITY",
+    "SPELL",
+    "MANEUVER",
+    "MAGE_ART",
+    "EQUIPMENT",
+    "SUMMON",
+    "CONDITION",
+    "MISSION"
+  ],
+  "vocabularies": {
+    "targetingSemanticShapes": [
+      "SELF",
+      "TOUCH",
+      "SINGLE_TARGET",
+      "MULTI_TARGET",
+      "PROJECTILE",
+      "LINE",
+      "CONE",
+      "RADIUS",
+      "ZONE",
+      "AURA",
+      "CHAIN",
+      "TRIGGERED",
+      "ANCHOR"
+    ],
+    "resolutionModes": [
+      "ATTACK_ROLL",
+      "SAVING_THROW",
+      "AUTOMATIC"
+    ],
+    "traitScopes": [
+      "EFFECT_SPECIFIC",
+      "ABILITY_WIDE",
+      "TARGETING",
+      "DURATION",
+      "CONDITION",
+      "RESOLUTION"
+    ],
+    "durationConcepts": [
+      "INSTANT",
+      "UNTIL_NEXT_TURN",
+      "ROUNDS",
+      "COMBAT",
+      "SCENE",
+      "MISSION",
+      "SUSTAINED",
+      "MANA_LOCK",
+      "PERMANENT_BY_SPECIAL_RULE"
+    ],
+    "costCurrencies": [
+      "MP",
+      "AP",
+      "HP"
+    ],
+    "canonicalAffinities": [
+      "EVOCATION",
+      "CONJURATION",
+      "TRANSMUTATION",
+      "DIVINATION",
+      "ENHANCEMENT",
+      "MANIPULATION"
+    ],
+    "componentContracts": [
+      "TARGETING",
+      "EFFECT",
+      "TRAIT",
+      "DURATION",
+      "ABILITY_CONDITION",
+      "FOUNDATION"
+    ]
+  },
+  "legacyTerms": [
+    {
+      "legacyTerm": "Arcana Rank",
+      "canonicalTerm": "Arcane Rank"
+    },
+    {
+      "legacyTerm": "Emission",
+      "canonicalTerm": "Evocation"
+    },
+    {
+      "legacyTerm": "Evasion",
+      "canonicalTerm": "Dodge"
+    },
+    {
+      "legacyTerm": "Final Movement",
+      "canonicalTerm": "Movement"
+    },
+    {
+      "legacyTerm": "Player Dice",
+      "canonicalTerm": "Character Dice"
+    },
+    {
+      "legacyTerm": "Player Die",
+      "canonicalTerm": "Character Die"
+    },
+    {
+      "legacyTerm": "Total Movement",
+      "canonicalTerm": "Movement"
+    }
+  ]
+}

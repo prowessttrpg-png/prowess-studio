@@ -29,6 +29,7 @@ import {
   IMPORT_REVIEW_ERROR_CODES,
   RULESET_RESOLUTION_ERROR_CODES,
   PROWESS_MATERIALIZATION_ERROR_CODES,
+  COMPENDIUM_AUTHORING_ERROR_CODES,
   type EntityAliasErrorCode,
   type EntityErrorCode,
   type EntityVersionErrorCode,
@@ -58,6 +59,7 @@ import {
   type ImportReviewErrorCode,
   type RulesetResolutionErrorCode,
   type ProwessMaterializationErrorCode,
+  type CompendiumAuthoringErrorCode,
 } from "@prowess/model";
 import { NextResponse } from "next/server";
 
@@ -136,7 +138,8 @@ type KnownDomainErrorCode =
   | ImportDecisionErrorCode
   | ImportReviewErrorCode
   | RulesetResolutionErrorCode
-  | ProwessMaterializationErrorCode;
+  | ProwessMaterializationErrorCode
+  | CompendiumAuthoringErrorCode;
 
 /**
  * Centralized `DomainError.code` -> HTTP status mapping (PAS-10 M1-WO8
@@ -424,6 +427,23 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [PROWESS_MATERIALIZATION_ERROR_CODES.PINNED_VERSION_MISSING]: 409,
   [PROWESS_MATERIALIZATION_ERROR_CODES.INVALID_STORED_DEFINITION]: 409,
   [PROWESS_MATERIALIZATION_ERROR_CODES.INVALID_BUNDLE]: 409,
+  // Compendium authoring (M6-WO1 §45). Malformed requests, unsupported / reserved kinds, incompatible EntityTypes,
+  // refused Definitions, unknown referenced records and a base revision of another Entity are invalid request input
+  // (400). A Draft that changed since it was loaded, a kind change, an action that needs a passing Definition, or an
+  // Entity that is not a Definition conflict with current state (409). A creation that failed after its Entity was
+  // written is a server-side failure part-way through a staged write — an explicit, safe 500 whose message names the
+  // Entity to finish (never a stack trace).
+  [COMPENDIUM_AUTHORING_ERROR_CODES.INVALID_INPUT]: 400,
+  [COMPENDIUM_AUTHORING_ERROR_CODES.UNSUPPORTED_DEFINITION_KIND]: 400,
+  [COMPENDIUM_AUTHORING_ERROR_CODES.INCOMPATIBLE_ENTITY_TYPE]: 400,
+  [COMPENDIUM_AUTHORING_ERROR_CODES.DEFINITION_REFUSED]: 400,
+  [COMPENDIUM_AUTHORING_ERROR_CODES.REFERENCE_NOT_FOUND]: 400,
+  [COMPENDIUM_AUTHORING_ERROR_CODES.INVALID_BASE_REVISION]: 400,
+  [COMPENDIUM_AUTHORING_ERROR_CODES.DEFINITION_NOT_VALID]: 409,
+  [COMPENDIUM_AUTHORING_ERROR_CODES.DEFINITION_KIND_CHANGE]: 409,
+  [COMPENDIUM_AUTHORING_ERROR_CODES.STALE_REVISION]: 409,
+  [COMPENDIUM_AUTHORING_ERROR_CODES.NOT_A_DEFINITION]: 409,
+  [COMPENDIUM_AUTHORING_ERROR_CODES.PARTIAL_CREATE]: 500,
 } satisfies Record<KnownDomainErrorCode, number>;
 
 /**
