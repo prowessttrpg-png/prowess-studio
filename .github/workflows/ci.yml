@@ -738,6 +738,11 @@ jobs:
     needs: [static, unit-packages, unit-game, unit-studio]
     runs-on: ubuntu-latest
     steps:
+      # The summary script lives in the repository: a summary job checks out just scripts/ci (no install, no build).
+      - name: Checkout (scripts/ci only)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/ci
       - name: Every Tier 1 job succeeded
         env:
           NEEDS: ${{ toJSON(needs) }}
@@ -749,6 +754,11 @@ jobs:
     needs: [static, unit-packages, unit-game, unit-studio, db-api, db-integration, controls-1, controls-2, controls-3, controls-4, controls-5, controls-6, e2e]
     runs-on: ubuntu-latest
     steps:
+      # The summary script lives in the repository: a summary job checks out just scripts/ci (no install, no build).
+      - name: Checkout (scripts/ci only)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/ci
       - name: Every job succeeded
         env:
           NEEDS: ${{ toJSON(needs) }}
