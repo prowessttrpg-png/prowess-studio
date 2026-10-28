@@ -205,7 +205,7 @@ integration is sharded (`--shard=k/2`) across two independent databases.
 
 | Cache | Key | Tier 3 |
 |---|---|---|
-| pnpm store (`setup-node`) | lockfile hash | not used |
+| pnpm store (`setup-node`) | lockfile hash | intended: not used — **used by mistake until the CLOSEOUT-04 correction** (§37) |
 | Playwright Chromium (`~/.cache/ms-playwright`) | runner OS + exact Playwright version | not used; OS deps always installed |
 | Next.js `.next/cache` | lockfile hash + commit (restore: latest for the lockfile) | not used |
 
@@ -254,7 +254,8 @@ newer commit, so every `main` run finishes authoritatively.
   drift, guarded reset, production build, Playwright.
 - **Tier 3 — clean certification**: the same workflow dispatched with `certification: true` — no pnpm-store, browser or
   Next.js cache; the summary job reports "Tier 3 — clean certification". Branch protection is not configured on `main`
-  (checked via the API); renaming jobs therefore breaks no required check.
+  (checked via the API); renaming jobs therefore breaks no required check. As first implemented, Tier 3 still restored
+  the pnpm store — see §37.
 
 ## 27–28. Retired workflows and replacement mapping
 
@@ -298,7 +299,7 @@ product finding.
 | Workflow, inventory and gate drift apart | Each gate step names its files; `verify-gate` requires them to equal `gates.json`; `gate-inventory.mjs` + the static test tie both to `ci.yml` and to the legacy snapshot. |
 | A tier summary turns partial verification green | `require-success.mjs` fails on any non-success need, including skipped / cancelled. |
 | Control residue or concurrent mutation | One checkout per controls job; per-control byte check; whole-tree check; harness self-test. |
-| Cache masks an environment problem | Caches are performance-only and absent in Tier 3. |
+| Cache masks an environment problem | Caches are performance-only and absent in Tier 3 (pnpm store only since the §37 correction). |
 | Removing a re-run hides an order-dependence | The named re-runs were the same files in the same CI environment; suites still run with their own configuration. A file that only passes in isolation would now be caught by the suite. |
 | Reports read as repository content | Reports are moved outside the checkout (found by the local run: M3-I19's path scan saw an in-tree report). |
 
@@ -310,3 +311,28 @@ both local Playwright flakes fixed at their root cause (45/45 on GitHub without 
 path 2,038 s (≈ 34 min, #219) → 424 s (7 m 04 s, #222 / #223), ≈ 4.8× faster; runner time 3,629 s → 2,042–2,065 s,
 ≈ 44 % less, before the legacy workflows are removed. Three new-graph runs agree within 30 s of wall clock; the old graph
 varied by 1,143 s on identical code.
+
+## 37. Post-closeout defect: Tier 3 restored the pnpm store (found by M5-CLOSEOUT-04)
+
+**Intended.** Tier 3 (`certification: true`) restores no pnpm-store, Playwright-browser or Next.js cache.
+
+**Implemented by CLOSEOUT-03.** The browser and Next.js restore steps were correctly skipped with
+`if: env.CERTIFICATION != 'true'`, but the pnpm store was selected with
+`cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}`. GitHub expressions treat `''` as falsy, so this always
+evaluated to `'pnpm'`.
+
+**Discovered.** Tier 3 attempt **#226** (`73809a2`, `workflow_dispatch`, `certification: true`): all 16 jobs green —
+inventory, 280 controls, every suite, DB / API, Prisma, drift "No difference detected", build, Playwright 45/45 — but all
+14 installing jobs logged `Cache restored from key: node-cache-Linux-x64-pnpm-…` and installed with
+`reused 572, downloaded 0`. Playwright downloaded Chromium fresh and the Next.js cache restore was skipped. **#226 is
+therefore invalid as a clean certification run**; it remains valid evidence that every functional gate passes.
+
+**Correction** (`m5-closeout-04-tier3-cache-fix`, CLOSEOUT-04 authorization): each job now has two explicit steps —
+`Set up Node.js` (`if: env.CERTIFICATION != 'true'`, `cache: pnpm`) and `Set up Node.js (Tier 3 — no dependency cache)`
+(`if: env.CERTIFICATION == 'true'`, no `cache` input). `checkCertificationCaches` in `scripts/ci/gate-inventory.mjs`
+(static job + `ci-gate-inventory.test.ts`, one new Studio test) enforces the contract and is shown to reject the exact
+#226 expression and an unconditional cache restore. No gate, check, control or assertion changed.
+
+**Valid certification.** The authoritative Tier 3 run is the one on the merged `main` SHA containing this correction; it
+is recorded in `docs/reports/m0-m5-final-architecture-certification.md`.
+

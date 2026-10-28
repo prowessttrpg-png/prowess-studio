@@ -20,7 +20,10 @@
 # covers everything the pre-CLOSEOUT-03 workflows ran (scripts/ci/legacy-inventory.json).
 #
 # Tier 3 — clean certification: run this workflow manually with `certification: true` — no dependency, browser or
-# Next.js cache is used. Pull-request runs superseded by a newer commit are cancelled; main and certification runs never
+# Next.js cache is used. Each job has two explicit Node setup steps: the normal one (`cache: pnpm`) and the Tier 3 one
+# (no cache input); every cache restore step runs only outside certification. scripts/ci/gate-inventory.mjs
+# (checkCertificationCaches) enforces this — an expression such as `cache: ${{ cond && '' || 'pnpm' }}` always yields
+# 'pnpm' and let Tier 3 attempt #226 restore the pnpm store. Pull-request runs superseded by a newer commit are cancelled; main and certification runs never
 # are (each has its own concurrency group).
 name: Prowess Studio CI
 
@@ -56,10 +59,16 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
       - name: Set up Node.js
+        if: env.CERTIFICATION != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+          cache: pnpm
+      - name: Set up Node.js (Tier 3 — no dependency cache)
+        if: env.CERTIFICATION == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
@@ -88,10 +97,16 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
       - name: Set up Node.js
+        if: env.CERTIFICATION != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+          cache: pnpm
+      - name: Set up Node.js (Tier 3 — no dependency cache)
+        if: env.CERTIFICATION == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
@@ -122,10 +137,16 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
       - name: Set up Node.js
+        if: env.CERTIFICATION != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+          cache: pnpm
+      - name: Set up Node.js (Tier 3 — no dependency cache)
+        if: env.CERTIFICATION == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
@@ -155,10 +176,16 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
       - name: Set up Node.js
+        if: env.CERTIFICATION != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+          cache: pnpm
+      - name: Set up Node.js (Tier 3 — no dependency cache)
+        if: env.CERTIFICATION == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
@@ -204,10 +231,16 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
       - name: Set up Node.js
+        if: env.CERTIFICATION != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+          cache: pnpm
+      - name: Set up Node.js (Tier 3 — no dependency cache)
+        if: env.CERTIFICATION == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Wait for PostgreSQL to be ready
         run: |
           for i in $(seq 1 30); do
@@ -332,10 +365,16 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
       - name: Set up Node.js
+        if: env.CERTIFICATION != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+          cache: pnpm
+      - name: Set up Node.js (Tier 3 — no dependency cache)
+        if: env.CERTIFICATION == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       # Both databases, as the pre-CLOSEOUT-03 job had them: the integration suite also proves dev/test isolation
       # (data written through the test client never appears in prowess_studio_dev), which needs a migrated dev database.
       - name: Create dev and test databases
@@ -387,10 +426,16 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
       - name: Set up Node.js
+        if: env.CERTIFICATION != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+          cache: pnpm
+      - name: Set up Node.js (Tier 3 — no dependency cache)
+        if: env.CERTIFICATION == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
@@ -466,10 +511,16 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
       - name: Set up Node.js
+        if: env.CERTIFICATION != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+          cache: pnpm
+      - name: Set up Node.js (Tier 3 — no dependency cache)
+        if: env.CERTIFICATION == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
@@ -505,10 +556,16 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
       - name: Set up Node.js
+        if: env.CERTIFICATION != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+          cache: pnpm
+      - name: Set up Node.js (Tier 3 — no dependency cache)
+        if: env.CERTIFICATION == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
@@ -556,10 +613,16 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
       - name: Set up Node.js
+        if: env.CERTIFICATION != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+          cache: pnpm
+      - name: Set up Node.js (Tier 3 — no dependency cache)
+        if: env.CERTIFICATION == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
@@ -590,10 +653,16 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
       - name: Set up Node.js
+        if: env.CERTIFICATION != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+          cache: pnpm
+      - name: Set up Node.js (Tier 3 — no dependency cache)
+        if: env.CERTIFICATION == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
@@ -624,10 +693,16 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
       - name: Set up Node.js
+        if: env.CERTIFICATION != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+          cache: pnpm
+      - name: Set up Node.js (Tier 3 — no dependency cache)
+        if: env.CERTIFICATION == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
       # The generated Prisma Client is gitignored; @prowess/db cannot build (and nothing importing it can typecheck or
@@ -676,10 +751,16 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
       - name: Set up Node.js
+        if: env.CERTIFICATION != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}
+          cache: pnpm
+      - name: Set up Node.js (Tier 3 — no dependency cache)
+        if: env.CERTIFICATION == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Create test database
         env:
           PGPASSWORD: postgres

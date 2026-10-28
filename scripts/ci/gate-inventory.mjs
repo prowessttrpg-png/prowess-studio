@@ -16,6 +16,7 @@
  *      controls with the exact inventory count;
  *   3. every suite is executed in its job and delivers its report; every check command is present in its job;
  *   4. every control script in scripts/ belongs to exactly one gate; every listed file exists.
+ *   5. the Tier 3 no-cache contract holds (`checkCertificationCaches`).
  * Run by apps/studio/tests/unit/ci-gate-inventory.test.ts and by `node scripts/ci/gate-inventory.mjs`.
  */
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
@@ -70,11 +71,44 @@ export function stepText(job, name) {
   return job.slice(at, next === -1 ? undefined : next);
 }
 
+/**
+ * The Tier 3 no-cache contract (M5-CLOSEOUT-04 cache correction). Tier 3 attempt #226 restored the pnpm store because
+ * `cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}` always yields 'pnpm' ('' is falsy in GitHub expressions).
+ * The contract is therefore written as explicit, conditional steps and checked here:
+ *   - every job that sets up Node has exactly one normal step (`if: env.CERTIFICATION != 'true'`, `cache: pnpm`) and
+ *     exactly one Tier 3 step (`if: env.CERTIFICATION == 'true'`, no `cache` input);
+ *   - no `cache:` input is computed by an expression;
+ *   - every `actions/cache` restore step (Playwright browsers, Next.js build cache) runs only outside certification.
+ * Returns every problem (empty = the contract holds).
+ */
+export function checkCertificationCaches(ci) {
+  const problems = [];
+  const NORMAL = "if: env.CERTIFICATION != 'true'";
+  const TIER3 = "if: env.CERTIFICATION == 'true'";
+  for (const [id, job] of Object.entries(workflowJobs(ci))) {
+    const steps = job.split("\n      - name:").slice(1);
+    const node = steps.filter((s) => s.includes("uses: actions/setup-node@"));
+    if (node.length > 0) {
+      const normal = node.filter((s) => s.includes(NORMAL) && /\n\s+cache: pnpm\s*(\n|$)/.test(s));
+      const tier3 = node.filter((s) => s.includes(TIER3) && !/\n\s+cache:/.test(s));
+      if (normal.length !== 1) problems.push(`${id}: needs exactly one Node setup with "${NORMAL}" and "cache: pnpm" (found ${normal.length})`);
+      if (tier3.length !== 1) problems.push(`${id}: needs exactly one Node setup with "${TIER3}" and no cache input (found ${tier3.length})`);
+      if (node.length !== normal.length + tier3.length) problems.push(`${id}: a Node setup step is neither the normal (cache: pnpm) nor the Tier 3 (no cache) form`);
+    }
+    for (const s of steps.filter((x) => x.includes("uses: actions/cache@"))) {
+      if (!s.includes(NORMAL)) problems.push(`${id}: cache step "${s.split("\n")[0].trim()}" must run only with "${NORMAL}"`);
+    }
+  }
+  if (/\n\s+cache: \$\{\{/.test(ci)) problems.push("a cache input is computed by an expression; Tier 3 caching must be explicit conditional steps");
+  return problems;
+}
+
 export function checkInventory(root) {
   const problems = [];
   const fail = (m) => problems.push(m);
   const inventory = loadInventory(root);
   const ci = readFileSync(path.join(root, ".github/workflows/ci.yml"), "utf8");
+  checkCertificationCaches(ci).forEach(fail);
   const jobs = workflowJobs(ci);
   const ids = new Set();
   const gateFiles = new Set();
