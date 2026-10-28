@@ -269,7 +269,6 @@ const WORKSPACE_PACKAGE_DIRS = [
   "packages/prowess-import",
   "packages/prowess-rules",
   "packages/prowess-game",
-  "packages/prowess-test-fixtures",
   "apps/studio",
 ];
 

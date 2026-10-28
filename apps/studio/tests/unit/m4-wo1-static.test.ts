@@ -160,7 +160,7 @@ describe("M4-WO1 boundaries elsewhere in the repository", () => {
   });
 
   it("no lower layer depends on @prowess/rules (it sits above @prowess/model only)", () => {
-    for (const dir of ["packages/prowess-model", "packages/prowess-import", "packages/prowess-ui", "packages/prowess-test-fixtures"]) {
+    for (const dir of ["packages/prowess-model", "packages/prowess-import", "packages/prowess-ui"]) {
       expect(read(...dir.split("/"), "package.json"), dir).not.toContain("@prowess/rules");
     }
   });

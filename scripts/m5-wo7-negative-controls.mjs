@@ -1,16 +1,14 @@
 /**
  * M5-WO7 behavioural negative controls. Each control mutates real branch source/content, requires a WO7 guard to fail,
- * restores the original bytes in finally, and re-runs the guard green. Never commit a mutated control state.
+ * restores the original bytes in finally (shared harness, scripts/lib/control-harness.mjs). Never commit a mutated control state.
  */
 import assert from "node:assert/strict";
-import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { runControls, vitestGuard } from "./lib/control-harness.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const abs = (file) => path.join(root, file);
-const vitest = (pkgDir, args) => () => spawnSync(process.execPath, [path.join(root, pkgDir, "node_modules/vitest/vitest.mjs"), "run", ...args], { cwd: path.join(root, pkgDir), encoding: "utf8", timeout: 180_000, env: { ...process.env, CI: "1" } });
+const vitest = (pkgDir, args) => vitestGuard(root, pkgDir, args, { timeout: 180_000 });
 const STATIC = vitest("apps/studio", ["tests/unit/m5-wo7-static.test.ts"]);
 const GOLDEN = vitest("packages/prowess-game", ["src/effect-golden.test.ts", "src/effect-contracts.test.ts"]);
 const SECURITY = vitest("packages/prowess-game", ["src/effect-security.test.ts"]);
@@ -57,34 +55,17 @@ const controls = [
   { name: "§213 Effect resolves through latest version", file: C, mutate: append('export const latestEffect = true;'), guard: STATIC },
 ];
 
-const originals = new Map();
-const restore = () => { for (const [file, text] of originals) writeFileSync(abs(file), text); };
-try {
-  for (const control of controls) {
-    if (!originals.has(control.file)) originals.set(control.file, readFileSync(abs(control.file), "utf8"));
-    const original = originals.get(control.file);
-    const baseline = control.guard();
-    assert.equal(baseline.status, 0, `baseline guard not green for ${control.name}:\n${baseline.stdout}${baseline.stderr}`);
-    assert.doesNotMatch(baseline.stdout, /No test files found|\b0 passed/i, `baseline selected no tests for ${control.name}`);
-    const mutated = control.mutate(original);
-    assert.notEqual(mutated, original);
-    writeFileSync(abs(control.file), mutated);
-    try {
-      const result = control.guard();
-      assert.notEqual(result.status, 0, `negative control was not caught: ${control.name}`);
-      assert.match(`${result.stdout}${result.stderr}`, /AssertionError|expected|failed|Error:/i, `negative control failed for infrastructure rather than guard: ${control.name}`);
-    } finally {
-      writeFileSync(abs(control.file), original);
-    }
-    assert.equal(readFileSync(abs(control.file), "utf8"), original, `file not restored byte-for-byte: ${control.file}`);
-    assert.equal(control.guard().status, 0, `guard not green after restore: ${control.name}`);
-    console.log(`Negative control caught: ${control.name}`);
-  }
-
+runControls({
+  root,
+  title: "M5-WO7",
+  controls,
+  expect: /AssertionError|expected|failed|Error:/i,
+  emptyBaseline: /No test files found|\b0 passed/i,
+  caught: (name) => `Negative control caught: ${name}`,
+  done: (count) => `All ${count} M5-WO7 source/content negative controls caught and reverted.`,
   // Behavioural parser/evaluator security suite is itself a negative-control surface for malformed runtime data.
-  assert.equal(SECURITY().status, 0, "WO7 security controls must remain green");
-  assert.equal(GOLDEN().status, 0, "WO7 golden/contract suite must remain green after all controls restore");
-} finally {
-  restore();
-}
-console.log(`All ${controls.length} M5-WO7 source/content negative controls caught and reverted.`);
+  after: () => {
+    assert.equal(SECURITY().status, 0, "WO7 security controls must remain green");
+    assert.equal(GOLDEN().status, 0, "WO7 golden/contract suite must remain green after all controls restore");
+  },
+});

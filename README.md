@@ -36,8 +36,6 @@ packages/
   prowess-db/            Centralized PostgreSQL / Prisma persistence boundary and the domain services
                          (Entities, Rulesets & Canon, Source & Import). Migrations live in
                          packages/prowess-db/prisma/migrations/.
-  prowess-test-fixtures/ Reserved for shared cross-package fixtures (currently a placeholder; suites keep
-                         their fixtures beside them).
 database/
   migrations/            Pointer only — the canonical migrations are in packages/prowess-db/prisma/migrations/.
 docs/

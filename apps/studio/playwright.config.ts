@@ -17,7 +17,13 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm run build && ./node_modules/.bin/next start -p 3100",
+    // CI (M5-CLOSEOUT-03 C8) builds this exact commit once in its "Build (production)" step and sets
+    // PROWESS_E2E_PREBUILT=1, so the server starts that build instead of building the same commit a second time; it
+    // refuses to start if the build's BUILD_ID is missing. Locally (unset) it builds first, as before.
+    command:
+      process.env.PROWESS_E2E_PREBUILT === "1"
+        ? "test -f .next/BUILD_ID && ./node_modules/.bin/next start -p 3100"
+        : "pnpm run build && ./node_modules/.bin/next start -p 3100",
     url: "http://127.0.0.1:3100",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

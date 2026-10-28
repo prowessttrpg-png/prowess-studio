@@ -91,7 +91,7 @@ describe("M5-WO1 audit — Prowess domain & shared ability construction boundary
   it("M5-I003 / M5-I030 the generic M4 package is untouched: still model-only, no dependency on @prowess/game", () => {
     const rules = JSON.parse(read("packages/prowess-rules/package.json")) as { dependencies: Record<string, string> };
     expect(Object.keys(rules.dependencies)).toEqual(["@prowess/model"]);
-    for (const dir of ["packages/prowess-model", "packages/prowess-rules", "packages/prowess-import", "packages/prowess-ui", "packages/prowess-test-fixtures"]) {
+    for (const dir of ["packages/prowess-model", "packages/prowess-rules", "packages/prowess-import", "packages/prowess-ui"]) {
       expect(read(`${dir}/package.json`), dir).not.toContain("@prowess/game");
     }
   });

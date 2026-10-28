@@ -1,27 +1,115 @@
-# Continuous Integration — M0-WO4
+# Continuous Integration
 
-**Status: in service.** This workflow has run on every approved Work Order since M0 and is the verification authority for the project. Earlier revisions of this document said it was "not yet verified by an actual GitHub Actions run"; that was true only at M0-WO4 authoring time and has long been resolved.
+**Status: in service.** `Prowess Studio CI` (`.github/workflows/ci.yml`) is the verification authority for the project.
+Since M5-CLOSEOUT-03 it is one workflow with a deliberate parallel job graph; the dedicated per-Work-Order workflows
+(`m5-wo7.yml` … `m5-wo13.yml`) are retired once their unique checks run here
+(`docs/reports/m0-m5-ci-optimization-report.md`).
 
 ## What runs, and when
 
-**`Prowess Studio CI`** (`.github/workflows/ci.yml`) runs automatically:
+The workflow runs:
 
 - on every push to `main`;
 - on every pull request (against any base branch);
-- on demand via `workflow_dispatch` (Actions tab → "Prowess Studio CI" →
-  "Run workflow").
+- on demand via `workflow_dispatch` (Actions tab → "Prowess Studio CI" → "Run workflow"), optionally with
+  `certification: true` for a Tier 3 clean certification run.
 
-There is exactly one job (`ci`), running every check in sequence. A single
-job with clearly-named steps was chosen over splitting into several
-parallel jobs: GitHub's Actions UI already shows each step's own pass/fail
-status and name, which gives the same "which layer failed" clarity this
-Work Order asked for, without the added complexity and duplicated
-setup/install cost of multiple jobs. If CI runtime ever becomes a problem,
-splitting into parallel jobs (e.g. a separate "database" job and a separate
-"e2e" job) is the natural next step — nothing about this design prevents
-that later.
+**Concurrency.** A pull-request run is cancelled when a newer commit is pushed to the same pull request (group
+`ci-pr-<number>`). Every `main` push and every manual / certification run gets its own group (`ci-run-<run id>`), so a
+`main` run always finishes authoritatively — a newer `main` commit never cancels it.
 
-## The sequence
+**No path filters.** Every run executes every job; no check is skipped because of which files changed.
+
+## The job graph
+
+```
+static ─────────┐  lint · architecture boundaries · typecheck · gate inventory · control-harness self-test
+unit-packages ──┤  model / ui / import / rules / db unit suites (concurrently)          ┐
+unit-game ──────┤  @prowess/game unit suite                                            │ each suite runs ONCE and
+unit-studio ────┤  Studio UI / component / static-audit suite                           │ writes its authoritative
+db-api ─────────┤  Prisma validate · generate · migrate · drift · API integration ·      │ vitest JSON report
+                │  guarded test-DB reset · safety-guard refusal                          │
+db-integration ─┤  database integration, shard 1/2 and 2/2 (own PostgreSQL each)        ┘
+                └──► controls-1 … controls-6  every named gate (below), then its controls
+e2e                 one production build → Playwright against that build
+tier-1              summary: static + unit-* succeeded          ("Tier 1 — fast feedback")
+tier-2              summary: EVERY job succeeded                 ("Tier 2 — merge readiness" / "Tier 3 — clean certification")
+```
+
+Jobs that need a database each have their **own** disposable PostgreSQL 16 service container; no database is shared
+between concurrent jobs. The workspace package build (`@prowess/model`, `ui`, `import`, `rules`, `game`, `db`) runs
+in each job that needs it; the placeholder `@prowess/test-fixtures` package was removed in M5-CLOSEOUT-03 (R6) — it had
+no tests, source beyond a version constant, or dependents.
+
+### Named permanent gates
+
+Every named gate of M1, M4-WO1 … WO12 and M5-WO1 … WO13 keeps its exact step name, in the same order, in one of the
+`controls-*` jobs:
+
+| Job | Gates |
+|---|---|
+| `controls-1` | M1 audit gate (static / database / API), M4-WO1 … WO11 audit gates, M4-WO10 integration gate, M4-WO12 final audit, M5-WO1, M5-WO2, M5-WO3 |
+| `controls-2` | M5-WO4, M5 canon rulings, M5-WO5 |
+| `controls-3` | M5-WO6, M5-WO7, M5-WO8, M5-WO9, M5-WO10 |
+| `controls-4` | M5-WO11 |
+| `controls-5` | M5-WO12 |
+| `controls-6` | M5-WO13 |
+
+A gate step does two things:
+
+1. `node scripts/ci/verify-gate.mjs <GATE> <files…>` — verifies, from **this commit's** authoritative suite reports, that
+   every test file of the gate passed (status, at least one passing assertion, no failure; complete-suite coverage for
+   `allOf` gates such as M5-WO1's whole `@prowess/game` suite). The file list in the workflow must equal the gate's
+   list in `scripts/ci/gates.json`, and a report from another commit is refused. The files are **not re-run**: the
+   suite jobs already ran them once.
+2. `PROWESS_EXPECT_CONTROLS=<n> node scripts/<gate>-negative-controls.mjs` — the gate's behavioural negative / mutation
+   controls, with the exact control count pinned (the run fails if the inventory changes).
+
+Each `controls-*` job is its own checkout, so controls of different jobs never mutate the same files concurrently;
+inside a job they run sequentially.
+
+### The permanent gate inventory
+
+`scripts/ci/gates.json` lists every suite (job, report, include rule), every gate (test files, complete suites, control
+script and count, smoke checks, the job and the workflow / step it ran in before CLOSEOUT-03) and every non-vitest check
+(Prisma validate / generate / migrate / drift, lint, architecture, typecheck, guarded reset, safety-guard refusal,
+production build, Playwright, game `dist` import smoke). `scripts/ci/legacy-inventory.json` is a frozen snapshot of
+everything the pre-CLOSEOUT-03 workflows executed. `node scripts/ci/gate-inventory.mjs` — run in the `static` job and by
+`apps/studio/tests/unit/ci-gate-inventory.test.ts` in the Studio suite — proves:
+
+- old unique assertion inventory ⊆ new consolidated inventory (every legacy test file, suite, control script and
+  command is represented; explicit retirements carry a reason);
+- every gate is a named step of its job that verifies exactly its files and runs its controls with the exact count;
+- every suite is run and collected in its job; every check command is present in its job;
+- every control script belongs to exactly one gate.
+
+### Controls harness
+
+`scripts/lib/control-harness.mjs` runs every M5 control: one green baseline per **distinct** guard command on the
+pristine tree, the mutation run (must fail for the control's own behavioural reason), restore in a `finally`, a
+byte-for-byte check per control, and a whole-tree check (git status + bytes of every modified / untracked file
+identical before and after). `scripts/lib/control-harness.selftest.mjs` (in the `static` job) proves the harness fails
+on uncaught, misattributed, red-baseline, no-op, residue and inventory-change runs.
+
+### Verification tiers
+
+- **Tier 1 — fast feedback**: `static`, `unit-packages`, `unit-game`, `unit-studio`; summarized by the `tier-1` job.
+  Useful early signal while developing; **not** merge certification.
+- **Tier 2 — merge readiness**: every job; summarized by `tier-2`, which fails unless every job succeeded (a skipped or
+  cancelled job fails it). Required before merge.
+- **Tier 3 — clean certification**: the same workflow run manually with `certification: true` — no pnpm-store, browser
+  or Next.js cache is restored, so every dependency, browser and build is produced cold. Used for milestone, release and
+  major-architecture certification; it proves the Tier 1 / 2 caches hide nothing.
+
+Any failing step fails its job, and the tier summaries fail with it — no step swallows a real failure.
+
+## Gate history (what each milestone added)
+
+The paragraphs below record what each milestone's gate contains. Before M5-CLOSEOUT-03 every gate re-ran its files
+inside its own step; since then the same files are run once by their suite and the gate verifies them from the
+authoritative reports (above), then runs its controls.
+
+### The original M0-WO4 sequence (historical, one sequential job)
 
 1. Checkout
 2. Set up pnpm (version read from `package.json`'s `packageManager` field)
@@ -222,6 +310,14 @@ credentials.
 
 ## Playwright
 
+**Since M5-CLOSEOUT-03:** the `e2e` job builds the commit once (`pnpm build`, step "Build (production)") and runs
+Playwright with `PROWESS_E2E_PREBUILT=1`, so `apps/studio/playwright.config.ts`'s `webServer` starts that build
+(`next start`, refusing to start without its `.next/BUILD_ID`) instead of building the same commit a second time.
+Locally, without the variable, the `webServer` still builds first. Chromium is cached per exact Playwright version
+(`~/.cache/ms-playwright`; OS dependencies are always installed); Tier 3 certification restores no cache. CI keeps its
+single existing retry; the two local flakes were fixed at their root cause (data-dependent nav-link locator; geometry
+read before layout settled) — see `docs/reports/m0-m5-ci-optimization-report.md`.
+
 The original Claude sandbox used for most of this project's development
 could not download Playwright's browser binaries (network egress blocked
 `cdn.playwright.dev`) — this was carried forward from M0-WO1 as an open
@@ -298,6 +394,10 @@ assumed to work):
   keyed on the lockfile's hash — safe, standard, and does not cache
   anything that could make test results non-deterministic (no database
   state, no generated Prisma output, no build artifacts are cached).
+- Since M5-CLOSEOUT-03 two more performance-only caches exist: Playwright's Chromium binaries (keyed on the exact
+  Playwright version) and Next.js's own `.next/cache` (keyed on the lockfile, restored from the latest entry). Neither is
+  a correctness requirement — a cold run works — and the Tier 3 `certification: true` run restores none of the three
+  caches. Never cached: database state, Ruleset resolution, application runtime state.
 
 ## Environment configuration in CI
 
@@ -329,10 +429,14 @@ Work Order.
 - **Postgres connection errors in CI** — check the "Wait for PostgreSQL to
   be ready" step's output first; if Postgres itself never became ready,
   every later database-dependent step fails for the same root reason.
-- **Playwright failures** — `apps/studio/playwright.config.ts`'s
-  `webServer` re-runs `pnpm run build` itself before starting the app
-  (fast/incremental, since CI already built once); check that step's
-  output, not just the test assertions, if a run fails unexpectedly.
+- **Playwright failures** — in CI the `webServer` serves the build produced by the "Build (production)" step of the same
+  job (`PROWESS_E2E_PREBUILT=1`); check that step's output first. Locally the `webServer` builds before starting.
+- **A gate step fails in `verify-gate.mjs`** — the gate's own files did not pass (or did not run) in the suite job that
+  owns them: open that suite job (`unit-*`, `db-api`, `db-integration`) for the real failure. A "file list differs from
+  scripts/ci/gates.json" error means the workflow and the inventory were edited inconsistently.
+- **`gate-inventory.mjs` fails** — a gate, suite, control script or check was added, renamed or removed without updating
+  `scripts/ci/gates.json` (or a legacy check lost its replacement). Fix the inventory or the workflow; never delete the
+  legacy snapshot entry.
 
 ## Sandbox limitations (unchanged from M0-WO3)
 

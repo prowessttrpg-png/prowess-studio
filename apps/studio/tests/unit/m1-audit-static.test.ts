@@ -284,7 +284,6 @@ describe("M1 audit — workspace layering (§29)", () => {
   const ALLOWED: Record<string, string[]> = {
     "packages/prowess-model": [],
     "packages/prowess-ui": [],
-    "packages/prowess-test-fixtures": [],
     // M3-WO2: @prowess/db may use @prowess/import's pure helpers; @prowess/import depends only on @prowess/model.
     // M4-WO2: @prowess/db's exact Ruleset resolver builds @prowess/rules' RulesetContext.
     // M5-WO1: @prowess/db's exact Prowess Definition materializer builds @prowess/game's ProwessDefinitionBundle.

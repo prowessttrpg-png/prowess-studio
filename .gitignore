@@ -12,3 +12,6 @@ coverage/
 .turbo/
 playwright-report/
 test-results/
+
+# M5-CLOSEOUT-03: transient vitest JSON reports (moved out of the tree by scripts/ci/collect-reports.mjs)
+vitest-report*.json

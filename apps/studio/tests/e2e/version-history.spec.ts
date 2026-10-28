@@ -332,12 +332,16 @@ test.describe("M1-WO10 mobile regression", () => {
     const cmp = page.getByTestId("revision-comparison");
     await expect(cmp).toBeVisible();
 
-    const a = await cmp.getByTestId("compare-display-name-a").boundingBox();
-    const b = await cmp.getByTestId("compare-display-name-b").boundingBox();
-    expect(a).not.toBeNull();
-    expect(b).not.toBeNull();
-    // Stacked: B sits below A rather than beside it.
-    expect(b!.y).toBeGreaterThan(a!.y + a!.height - 1);
+    // Stacked: B sits below A rather than beside it. The geometry is polled until layout settles: a single read taken
+    // right after `toBeVisible` can land mid-layout when the machine is loaded (the local full-suite flake,
+    // M5-CLOSEOUT-03 C8 — 20/20 green in isolation, intermittent only under parallel load). The settled layout must
+    // still be stacked; nothing about the assertion is relaxed.
+    const geometry = async () => {
+      const a = await cmp.getByTestId("compare-display-name-a").boundingBox();
+      const b = await cmp.getByTestId("compare-display-name-b").boundingBox();
+      return a !== null && b !== null && b.y > a.y + a.height - 1;
+    };
+    await expect.poll(geometry, { timeout: 10_000 }).toBe(true);
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,

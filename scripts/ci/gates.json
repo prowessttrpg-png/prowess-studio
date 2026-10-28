@@ -1,0 +1,992 @@
+{
+  "$comment": "M5-CLOSEOUT-03 permanent gate inventory. Machine-checked by scripts/ci/gate-inventory.mjs (static test apps/studio/tests/unit/ci-gate-inventory.test.ts) and enforced at run time by scripts/ci/verify-gate.mjs. Paths are repository-relative.",
+  "version": 1,
+  "suites": {
+    "model-unit": {
+      "package": "packages/prowess-model",
+      "config": null,
+      "include": {
+        "dir": "src",
+        "suffixes": [
+          ".test.ts"
+        ]
+      },
+      "report": "packages/prowess-model/vitest-report.json",
+      "job": "unit-packages",
+      "kind": "unit"
+    },
+    "ui-unit": {
+      "package": "packages/prowess-ui",
+      "config": null,
+      "include": {
+        "dir": "src",
+        "suffixes": [
+          ".test.ts",
+          ".test.tsx"
+        ]
+      },
+      "report": "packages/prowess-ui/vitest-report.json",
+      "job": "unit-packages",
+      "kind": "unit"
+    },
+    "import-unit": {
+      "package": "packages/prowess-import",
+      "config": null,
+      "include": {
+        "dir": "src",
+        "suffixes": [
+          ".test.ts"
+        ]
+      },
+      "report": "packages/prowess-import/vitest-report.json",
+      "job": "unit-packages",
+      "kind": "unit"
+    },
+    "rules-unit": {
+      "package": "packages/prowess-rules",
+      "config": null,
+      "include": {
+        "dir": "src",
+        "suffixes": [
+          ".test.ts"
+        ]
+      },
+      "report": "packages/prowess-rules/vitest-report.json",
+      "job": "unit-packages",
+      "kind": "unit"
+    },
+    "db-unit": {
+      "package": "packages/prowess-db",
+      "config": "vitest.unit.config.ts",
+      "include": {
+        "dir": "tests/unit",
+        "suffixes": [
+          ".test.ts"
+        ]
+      },
+      "report": "packages/prowess-db/vitest-report.json",
+      "job": "unit-packages",
+      "kind": "unit"
+    },
+    "game-unit": {
+      "package": "packages/prowess-game",
+      "config": null,
+      "include": {
+        "dir": "src",
+        "suffixes": [
+          ".test.ts"
+        ]
+      },
+      "report": "packages/prowess-game/vitest-report.json",
+      "job": "unit-game",
+      "kind": "unit"
+    },
+    "studio-unit": {
+      "package": "apps/studio",
+      "config": null,
+      "include": {
+        "dir": "tests/unit",
+        "suffixes": [
+          ".test.ts",
+          ".test.tsx"
+        ]
+      },
+      "report": "apps/studio/vitest-report.json",
+      "job": "unit-studio",
+      "kind": "unit"
+    },
+    "db-integration": {
+      "package": "packages/prowess-db",
+      "config": "vitest.integration.config.ts",
+      "include": {
+        "dir": "tests/integration",
+        "suffixes": [
+          ".test.ts"
+        ]
+      },
+      "report": "packages/prowess-db/vitest-report.integration.json",
+      "job": "db-integration",
+      "kind": "integration",
+      "shards": 2
+    },
+    "studio-integration": {
+      "package": "apps/studio",
+      "config": "vitest.integration.config.ts",
+      "include": {
+        "dir": "tests/integration",
+        "suffixes": [
+          ".test.ts"
+        ]
+      },
+      "report": "apps/studio/vitest-report.integration.json",
+      "job": "db-api",
+      "kind": "integration"
+    }
+  },
+  "gates": [
+    {
+      "id": "M1-STATIC",
+      "name": "M1 audit gate — static invariants (no current-version state, enum parity, errors, migrations, layering)",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/m1-audit-static.test.ts"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M1 audit gate — static invariants (no current-version state, enum parity, errors, migrations, layering)"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M1-DB",
+      "name": "M1 audit gate — database-level suite",
+      "job": "controls-1",
+      "kind": "integration",
+      "tests": [
+        "packages/prowess-db/tests/integration/m1-audit.test.ts"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M1 audit gate — database-level suite"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M1-API",
+      "name": "M1 audit gate — API-level reproducibility suite",
+      "job": "controls-1",
+      "kind": "integration",
+      "tests": [
+        "apps/studio/tests/integration/m1-audit-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M1 audit gate — API-level reproducibility suite"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M4-WO1",
+      "name": "M4-WO1 audit gate — Rules Engine boundaries & purity (static)",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/m4-wo1-static.test.ts"
+      ],
+      "allOf": [
+        "rules-unit"
+      ],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M4-WO1 audit gate — Rules Engine boundaries & purity (static)"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M4-WO2-STATIC",
+      "name": "M4-WO2 audit gate — exact Ruleset resolver (static)",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/m4-wo2-static.test.ts"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M4-WO2 audit gate — exact Ruleset resolver (static)"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M4-WO2-DB",
+      "name": "M4-WO2 audit gate — exact Ruleset resolver (database)",
+      "job": "controls-1",
+      "kind": "integration",
+      "tests": [
+        "packages/prowess-db/tests/integration/ruleset-context.test.ts"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M4-WO2 audit gate — exact Ruleset resolver (database)"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M4-WO3",
+      "name": "M4-WO3 audit gate — Formula Engine safety & determinism",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/m4-wo3-static.test.ts"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M4-WO3 audit gate — Formula Engine safety & determinism"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M4-WO4-STATIC",
+      "name": "M4-WO4 audit gate — Keyword metadata & resolution (static)",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/m4-wo4-static.test.ts"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M4-WO4 audit gate — Keyword metadata & resolution (static)"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M4-WO4-DB",
+      "name": "M4-WO4 audit gate — Keyword metadata & resolution (database)",
+      "job": "controls-1",
+      "kind": "integration",
+      "tests": [
+        "packages/prowess-db/tests/integration/m1-keyword-resolution.test.ts"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M4-WO4 audit gate — Keyword metadata & resolution (database)"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M4-WO5",
+      "name": "M4-WO5 audit gate — Requirement evaluation & predicate safety",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/m4-wo5-static.test.ts"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M4-WO5 audit gate — Requirement evaluation & predicate safety"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M4-WO6",
+      "name": "M4-WO6 audit gate — Modifier ordering, stacking & safety",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/m4-wo6-static.test.ts"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M4-WO6 audit gate — Modifier ordering, stacking & safety"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M4-WO7",
+      "name": "M4-WO7 audit gate — Resource state, payment & capacity safety",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/m4-wo7-static.test.ts"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M4-WO7 audit gate — Resource state, payment & capacity safety"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M4-WO8",
+      "name": "M4-WO8 audit gate — Validation aggregation & diagnostic safety",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/m4-wo8-static.test.ts"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M4-WO8 audit gate — Validation aggregation & diagnostic safety"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M4-WO9",
+      "name": "M4-WO9 audit gate — Trace composition & explanation integrity",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/m4-wo9-static.test.ts"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M4-WO9 audit gate — Trace composition & explanation integrity"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M4-WO10",
+      "name": "M4-WO10 audit gate — Rules orchestration integrity",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/m4-wo10-static.test.ts"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M4-WO10 audit gate — Rules orchestration integrity"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M4-WO11",
+      "name": "M4-WO11 audit gate — Rules Inspector presentation integrity",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/m4-wo11-static.test.ts",
+        "apps/studio/tests/unit/m4-rules-api-client.test.ts",
+        "apps/studio/tests/unit/m4-rules-lab.test.tsx"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M4-WO11 audit gate — Rules Inspector presentation integrity"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M4-WO10-HTTP",
+      "name": "M4-WO10 integration gate — Exact Ruleset evaluation HTTP flow",
+      "job": "controls-1",
+      "kind": "integration",
+      "tests": [
+        "apps/studio/tests/integration/m4-rules-evaluation-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M4-WO10 integration gate — Exact Ruleset evaluation HTTP flow"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M4-WO12",
+      "name": "M4-WO12 final audit — M4 integration & reproducibility",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/m4-final-static.test.ts",
+        "apps/studio/tests/unit/m4-final-engine.test.ts",
+        "apps/studio/tests/unit/m4-final-ui.test.tsx",
+        "apps/studio/tests/unit/m4-final-limits.test.ts",
+        "apps/studio/tests/integration/m4-final-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m4-final-negative-controls.mjs",
+        "count": 3,
+        "kind": "negative"
+      },
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M4-WO12 final audit — M4 integration & reproducibility"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M5-WO1",
+      "name": "M5-WO1 audit — Prowess domain & shared ability construction boundary",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/m5-wo1-static.test.ts",
+        "packages/prowess-db/tests/unit/m5-source-terminology.test.ts",
+        "packages/prowess-db/tests/integration/prowess-definition-materialization.test.ts"
+      ],
+      "allOf": [
+        "game-unit"
+      ],
+      "controls": {
+        "script": "scripts/m5-wo1-negative-controls.mjs",
+        "count": 17,
+        "kind": "negative"
+      },
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M5-WO1 audit — Prowess domain & shared ability construction boundary"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M5-WO2",
+      "name": "M5-WO2 audit — Core resolution, stats, dice & ranks",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "packages/prowess-game/src/core-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo2-static.test.ts",
+        "packages/prowess-db/tests/unit/m5-wo2-inspector-fixture.test.ts",
+        "packages/prowess-db/tests/integration/prowess-core-resolution-history.test.ts",
+        "apps/studio/tests/integration/m5-wo2-core-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m5-wo2-negative-controls.mjs",
+        "count": 18,
+        "kind": "negative"
+      },
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M5-WO2 audit — Core resolution, stats, dice & ranks"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M5-WO3",
+      "name": "M5-WO3 audit — Runtime resources, action economy & movement",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo3-static.test.ts",
+        "packages/prowess-db/tests/unit/m5-wo3-inspector-fixture.test.ts",
+        "packages/prowess-db/tests/integration/prowess-runtime-resources-history.test.ts",
+        "apps/studio/tests/integration/m5-wo3-runtime-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m5-wo3-negative-controls.mjs",
+        "count": 21,
+        "kind": "negative"
+      },
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M5-WO3 audit — Runtime resources, action economy & movement"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M5-WO4",
+      "name": "M5-WO4 audit — Affinity identity, rank, authority & keyword alignment",
+      "job": "controls-2",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-game/src/affinity-golden.test.ts",
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo4-static.test.ts",
+        "packages/prowess-db/tests/unit/m5-wo4-inspector-fixture.test.ts",
+        "packages/prowess-db/tests/integration/prowess-affinity-history.test.ts",
+        "apps/studio/tests/integration/m5-wo4-affinity-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m5-wo4-negative-controls.mjs",
+        "count": 34,
+        "kind": "negative"
+      },
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M5-WO4 audit — Affinity identity, rank, authority & keyword alignment"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M5-CANON",
+      "name": "M5 canon rulings audit — Size Base Movement & Level 9 Affinity rank",
+      "job": "controls-2",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-game/src/runtime-resources-golden.test.ts",
+        "packages/prowess-game/src/runtime-contracts.test.ts",
+        "packages/prowess-game/src/core-resolution-golden.test.ts",
+        "packages/prowess-game/src/affinity-contracts.test.ts",
+        "packages/prowess-game/src/vocabulary.test.ts",
+        "apps/studio/tests/unit/m5-canon-rulings-static.test.ts"
+      ],
+      "allOf": [],
+      "controls": null,
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M5 canon rulings audit — Size Base Movement & Level 9 Affinity rank"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M5-WO5",
+      "name": "M5-WO5 audit — Shared modular ability construction",
+      "job": "controls-2",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-game/src/construction-legality-golden.test.ts",
+        "packages/prowess-game/src/construction-legality-contracts.test.ts",
+        "packages/prowess-game/src/vocabulary.test.ts",
+        "apps/studio/tests/unit/m5-wo5-static.test.ts",
+        "packages/prowess-db/tests/unit/m5-wo5-inspector-fixture.test.ts",
+        "packages/prowess-db/tests/integration/prowess-construction-history.test.ts",
+        "apps/studio/tests/integration/m5-wo5-construction-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m5-wo5-negative-controls.mjs",
+        "count": 29,
+        "kind": "negative"
+      },
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M5-WO5 audit — Shared modular ability construction"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M5-WO6",
+      "name": "M5-WO6 audit — Targeting framework, geometry & branch catalogs",
+      "job": "controls-3",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-game/src/targeting-golden.test.ts",
+        "packages/prowess-game/src/targeting-contracts.test.ts",
+        "packages/prowess-game/src/vocabulary.test.ts",
+        "apps/studio/tests/unit/m5-wo6-static.test.ts",
+        "packages/prowess-db/tests/unit/m5-wo6-inspector-fixture.test.ts",
+        "packages/prowess-db/tests/integration/prowess-targeting-history.test.ts",
+        "apps/studio/tests/integration/m5-wo6-targeting-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m5-wo6-negative-controls.mjs",
+        "count": 16,
+        "kind": "negative"
+      },
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M5-WO6 audit — Targeting framework, geometry & branch catalogs"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M5-WO7",
+      "name": "M5-WO7 audit — Effect framework & Spell/Maneuver contracts",
+      "job": "controls-3",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-game/src/effect-golden.test.ts",
+        "packages/prowess-game/src/effect-contracts.test.ts",
+        "packages/prowess-game/src/effect-security.test.ts",
+        "packages/prowess-game/src/effect-inspector.test.ts",
+        "apps/studio/tests/unit/m5-wo7-static.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m5-wo7-negative-controls.mjs",
+        "count": 22,
+        "kind": "negative"
+      },
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M5-WO7 regression — Effect framework & Spell/Maneuver contracts",
+        "m5-wo7.yml#m5-wo7: M5-WO7 audit — Effect framework & Spell/Maneuver contracts"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M5-WO8",
+      "name": "M5-WO8 audit — Traits & authored Spell/Maneuver definitions",
+      "job": "controls-3",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-game/src/ability-definitions.test.ts",
+        "packages/prowess-game/src/ability-negative.test.ts",
+        "packages/prowess-game/src/ability-security.test.ts",
+        "packages/prowess-game/src/trait-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo8-static.test.ts",
+        "packages/prowess-db/tests/unit/m5-wo8-inspector-fixture.test.ts",
+        "packages/prowess-db/tests/integration/prowess-authored-ability-history.test.ts",
+        "apps/studio/tests/integration/m5-wo8-ability-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m5-wo8-negative-controls.mjs",
+        "count": 8,
+        "kind": "negative"
+      },
+      "smoke": [],
+      "previous": [
+        "ci.yml#ci: M5-WO8 audit — Traits & authored Spell/Maneuver definitions",
+        "m5-wo8.yml#m5-wo8: M5-WO8 audit — Traits & authored Spell/Maneuver definitions"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M5-WO9",
+      "name": "M5-WO9 audit — Duration & Ability Condition Framework",
+      "job": "controls-3",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-game/src/duration-condition.test.ts",
+        "packages/prowess-game/src/duration-condition-negative.test.ts",
+        "apps/studio/tests/unit/m5-wo9-static.test.ts",
+        "packages/prowess-db/tests/unit/m5-wo9-inspector-fixture.test.ts",
+        "packages/prowess-db/tests/integration/prowess-duration-condition-history.test.ts",
+        "apps/studio/tests/integration/m5-wo9-ability-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m5-wo9-negative-controls.mjs",
+        "count": 12,
+        "kind": "negative"
+      },
+      "smoke": [
+        "game-dist-import"
+      ],
+      "previous": [
+        "ci.yml#ci: M5-WO9 audit — Duration & Ability Condition Framework",
+        "m5-wo9.yml#m5-wo9: M5-WO9 audit — Duration & Ability Condition Framework"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M5-WO10",
+      "name": "M5-WO10 audit — Final Spell Cost & AP Derivation",
+      "job": "controls-3",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-game/src/spell-cost-golden.test.ts",
+        "packages/prowess-game/src/spell-cost-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo10-static.test.ts",
+        "packages/prowess-db/tests/unit/m5-wo10-inspector-fixture.test.ts",
+        "packages/prowess-db/tests/integration/prowess-spell-cost-history.test.ts",
+        "apps/studio/tests/integration/m5-wo10-spell-cost-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m5-wo10-negative-controls.mjs",
+        "count": 18,
+        "kind": "mutation"
+      },
+      "smoke": [
+        "game-dist-import"
+      ],
+      "previous": [
+        "ci.yml#ci: M5-WO10 audit — Final Spell Cost & AP Derivation",
+        "m5-wo10.yml#m5-wo10: M5-WO10 audit — Final Spell Cost & AP Derivation"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M5-WO11",
+      "name": "M5-WO11 audit — Final Maneuver Cost & Attack Floors",
+      "job": "controls-4",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-game/src/maneuver-cost-golden.test.ts",
+        "packages/prowess-game/src/maneuver-cost-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo11-static.test.ts",
+        "packages/prowess-db/tests/unit/m5-wo11-inspector-fixture.test.ts",
+        "packages/prowess-db/tests/integration/prowess-maneuver-cost-history.test.ts",
+        "apps/studio/tests/integration/m5-wo11-maneuver-cost-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m5-wo11-negative-controls.mjs",
+        "count": 26,
+        "kind": "mutation"
+      },
+      "smoke": [
+        "game-dist-import"
+      ],
+      "previous": [
+        "ci.yml#ci: M5-WO11 audit — Final Maneuver Cost & Attack Floors",
+        "m5-wo11.yml#m5-wo11: M5-WO11 audit — Final Maneuver Cost & Attack Floors"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M5-WO12",
+      "name": "M5-WO12 audit — Effect Chain Execution & Runtime Routing",
+      "job": "controls-5",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-game/src/effect-execution-golden.test.ts",
+        "packages/prowess-game/src/effect-execution-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo12-static.test.ts",
+        "packages/prowess-db/tests/unit/m5-wo12-inspector-fixture.test.ts",
+        "packages/prowess-db/tests/integration/prowess-effect-execution-history.test.ts",
+        "apps/studio/tests/integration/m5-wo12-effect-execution-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m5-wo12-negative-controls.mjs",
+        "count": 26,
+        "kind": "mutation"
+      },
+      "smoke": [
+        "game-dist-import"
+      ],
+      "previous": [
+        "ci.yml#ci: M5-WO12 audit — Effect Chain Execution & Runtime Routing",
+        "m5-wo12.yml#m5-wo12: M5-WO12 audit — Effect Chain Execution & Runtime Routing"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "M5-WO13",
+      "name": "M5-WO13 audit — Active Magic Runtime",
+      "job": "controls-6",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-game/src/active-magic-golden.test.ts",
+        "packages/prowess-game/src/active-magic-contracts.test.ts",
+        "apps/studio/tests/unit/m5-wo13-static.test.ts",
+        "packages/prowess-db/tests/unit/m5-wo13-inspector-fixture.test.ts",
+        "packages/prowess-db/tests/integration/prowess-active-magic-history.test.ts",
+        "apps/studio/tests/integration/m5-wo13-active-magic-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m5-wo13-negative-controls.mjs",
+        "count": 30,
+        "kind": "mutation"
+      },
+      "smoke": [
+        "game-dist-import"
+      ],
+      "previous": [
+        "ci.yml#ci: M5-WO13 audit — Active Magic Runtime",
+        "m5-wo13.yml#m5-wo13: M5-WO13 audit — Active Magic Runtime"
+      ],
+      "tiers": [
+        2,
+        3
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": "PRISMA-VALIDATE",
+      "job": "db-api",
+      "kind": "static",
+      "command": "pnpm run db:validate"
+    },
+    {
+      "id": "PRISMA-GENERATE",
+      "job": "db-api",
+      "kind": "static",
+      "command": "pnpm run db:generate"
+    },
+    {
+      "id": "PRISMA-MIGRATE",
+      "job": "db-api",
+      "kind": "integration",
+      "command": "pnpm run db:migrate:deploy"
+    },
+    {
+      "id": "PRISMA-DRIFT",
+      "job": "db-api",
+      "kind": "integration",
+      "command": "prisma migrate diff"
+    },
+    {
+      "id": "LINT",
+      "job": "static",
+      "kind": "static",
+      "command": "pnpm lint"
+    },
+    {
+      "id": "ARCHITECTURE",
+      "job": "static",
+      "kind": "static",
+      "command": "pnpm run test:architecture"
+    },
+    {
+      "id": "TYPECHECK",
+      "job": "static",
+      "kind": "static",
+      "command": "pnpm typecheck"
+    },
+    {
+      "id": "TEST-DB-GUARD-RESET",
+      "job": "db-api",
+      "kind": "integration",
+      "command": "pnpm run db:reset:test"
+    },
+    {
+      "id": "TEST-DB-GUARD-REFUSAL",
+      "job": "db-api",
+      "kind": "integration",
+      "command": "Safety guard correctly refused"
+    },
+    {
+      "id": "BUILD-PRODUCTION",
+      "job": "e2e",
+      "kind": "static",
+      "command": "pnpm build"
+    },
+    {
+      "id": "E2E",
+      "job": "e2e",
+      "kind": "e2e",
+      "command": "pnpm run test:e2e"
+    },
+    {
+      "id": "GAME-DIST-IMPORT",
+      "job": "controls-3",
+      "kind": "smoke",
+      "command": "node --input-type=module -e 'await import(\"./packages/prowess-game/dist/index.js\")'"
+    },
+    {
+      "id": "GATE-INVENTORY",
+      "job": "static",
+      "kind": "static",
+      "command": "node scripts/ci/gate-inventory.mjs"
+    },
+    {
+      "id": "CONTROL-HARNESS-SELFTEST",
+      "job": "static",
+      "kind": "static",
+      "command": "node scripts/lib/control-harness.selftest.mjs"
+    }
+  ],
+  "retired": [
+    {
+      "type": "suite",
+      "value": "test-fixtures-unit",
+      "reason": "R6 (M5-CLOSEOUT-03): the placeholder @prowess/test-fixtures package was removed; it had no tests of its own (its test:unit script only echoed), so there is no assertion to carry"
+    },
+    {
+      "type": "command",
+      "value": "pnpm --filter \"@prowess/model\" --filter \"@prowess/rules\" --filter \"@prowess/game\" run build",
+      "reason": "dedicated WO7–WO9 workflows built a package subset; every consolidated job builds the full workspace package set (a superset)"
+    },
+    {
+      "type": "command",
+      "value": "pnpm --filter \"@prowess/model\" --filter \"@prowess/ui\" --filter \"@prowess/import\" --filter \"@prowess/rules\" --filter \"@prowess/game\" --filter \"@prowess/db\" --filter \"@prowess/test-fixtures\" run build",
+      "reason": "R6 (M5-CLOSEOUT-03): the same workspace package build/test without the removed placeholder @prowess/test-fixtures package (it had no source beyond a version constant and no dependents)"
+    }
+  ]
+}
