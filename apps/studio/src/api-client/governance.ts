@@ -14,6 +14,19 @@ const enc = encodeURIComponent;
 
 // Rulesets
 export const listRulesets = (f: { status?: string; channel?: string } = {}) => apiList<RulesetDto>(`/api/rulesets${query({ ...all, ...f })}`);
+/**
+ * EVERY Ruleset, page by page (M6-WO1 §35 — the M5 certification recorded that the top-bar selector listed only the
+ * first 100). Follows the API's own pagination until its last page; `maxPages` bounds a runaway loop.
+ */
+export async function listAllRulesets(maxPages = 100): Promise<RulesetDto[]> {
+  const out: RulesetDto[] = [];
+  for (let page = 1; page <= maxPages; page += 1) {
+    const { items, pagination } = await apiList<RulesetDto>(`/api/rulesets${query({ ...all, page })}`);
+    out.push(...items);
+    if (pagination === null || page >= pagination.totalPages) break;
+  }
+  return out;
+}
 export const getRuleset = (id: string) => apiGet<RulesetDto>(`/api/rulesets/${enc(id)}`);
 export const createRuleset = (body: Record<string, unknown>) => apiPost<RulesetDto>("/api/rulesets", body);
 export const submitRulesetForReview = (id: string) => apiPost<RulesetDto>(`/api/rulesets/${enc(id)}/submit-review`);

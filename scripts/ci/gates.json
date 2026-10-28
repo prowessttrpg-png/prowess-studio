@@ -884,6 +884,33 @@
         2,
         3
       ]
+    },
+    {
+      "id": "M6-WO1",
+      "name": "M6-WO1 audit — Compendium Administration Foundation",
+      "job": "controls-2",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-game/src/stored-definition-validation.test.ts",
+        "packages/prowess-db/tests/unit/m6-wo1-authoring-catalog.test.ts",
+        "packages/prowess-db/tests/integration/m6-wo1-compendium-authoring.test.ts",
+        "apps/studio/tests/unit/m6-wo1-static.test.ts",
+        "apps/studio/tests/unit/m6-wo1-compendium-admin-ui.test.tsx",
+        "apps/studio/tests/unit/m6-wo1-authoring-lib.test.ts",
+        "apps/studio/tests/integration/m6-wo1-compendium-authoring-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m6-wo1-negative-controls.mjs",
+        "count": 18,
+        "kind": "mutation"
+      },
+      "smoke": [],
+      "previous": [],
+      "tiers": [
+        2,
+        3
+      ]
     }
   ],
   "checks": [

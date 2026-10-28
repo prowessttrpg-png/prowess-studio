@@ -736,3 +736,37 @@ export const PROWESS_MATERIALIZATION_ERROR_CODES = {
 } as const;
 
 export type ProwessMaterializationErrorCode = (typeof PROWESS_MATERIALIZATION_ERROR_CODES)[keyof typeof PROWESS_MATERIALIZATION_ERROR_CODES];
+
+/**
+ * Compendium authoring error codes (PAS-10 M6-WO1 §45) — the designer-facing authoring service that creates and edits
+ * Prowess Definitions as ordinary versioned Entity content. Conditions existing vocabularies already express keep their
+ * codes (ENTITY.CANONICAL_KEY_CONFLICT, ENTITY_VERSION.IMMUTABLE, ENTITY_VERSION.NOT_FOUND …); these cover only what
+ * authoring adds. Mechanical legality is never decided here — it is the M5 contract's, reported as validation issues.
+ */
+export const COMPENDIUM_AUTHORING_ERROR_CODES = {
+  /** A request body field is missing, of the wrong type, or not allowed. */
+  INVALID_INPUT: "COMPENDIUM_AUTHORING.INVALID_INPUT",
+  /** The Definition kind is not in the M5 catalog, or is known but RESERVED (no payload contract yet) — fail closed. */
+  UNSUPPORTED_DEFINITION_KIND: "COMPENDIUM_AUTHORING.UNSUPPORTED_DEFINITION_KIND",
+  /** The EntityType is not one the M5 catalog allows for this Definition kind. */
+  INCOMPATIBLE_ENTITY_TYPE: "COMPENDIUM_AUTHORING.INCOMPATIBLE_ENTITY_TYPE",
+  /** The candidate cannot be stored even as a Draft: unsafe data, unknown kind / family, unsupported schema version,
+   *  wrong EntityType or a stored blob claiming identity. Payload incompleteness is a validation issue, not this. */
+  DEFINITION_REFUSED: "COMPENDIUM_AUTHORING.DEFINITION_REFUSED",
+  /** The action requires a Definition that passes validation (proposal, review submission). */
+  DEFINITION_NOT_VALID: "COMPENDIUM_AUTHORING.DEFINITION_NOT_VALID",
+  /** A revision would change the Entity's Definition kind — a Definition kind is part of the Entity's semantic identity. */
+  DEFINITION_KIND_CHANGE: "COMPENDIUM_AUTHORING.DEFINITION_KIND_CHANGE",
+  /** The Draft changed after the editor loaded it (its updatedAt differs): nothing was overwritten. */
+  STALE_REVISION: "COMPENDIUM_AUTHORING.STALE_REVISION",
+  /** The base revision named for a new revision does not belong to the Entity. */
+  INVALID_BASE_REVISION: "COMPENDIUM_AUTHORING.INVALID_BASE_REVISION",
+  /** A referenced Keyword, SourceDocument or Ruleset does not exist. */
+  REFERENCE_NOT_FOUND: "COMPENDIUM_AUTHORING.REFERENCE_NOT_FOUND",
+  /** The Entity is not a Prowess Definition (generic content): no Definition is inferred for it. */
+  NOT_A_DEFINITION: "COMPENDIUM_AUTHORING.NOT_A_DEFINITION",
+  /** The Entity was created but a later creation step failed; the message names the Entity to finish. */
+  PARTIAL_CREATE: "COMPENDIUM_AUTHORING.PARTIAL_CREATE",
+} as const;
+
+export type CompendiumAuthoringErrorCode = (typeof COMPENDIUM_AUTHORING_ERROR_CODES)[keyof typeof COMPENDIUM_AUTHORING_ERROR_CODES];

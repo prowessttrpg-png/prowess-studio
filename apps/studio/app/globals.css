@@ -1191,3 +1191,40 @@ body {
   .imp-grid-table tr { display: block; border-bottom: 1px solid var(--color-border); padding: var(--space-1) 0; }
   .imp-grid-table td { display: block; border: none; padding: 0 var(--space-1); }
 }
+
+/* M6-WO1 Compendium Admin — the authoring workspace reuses the governance (gov-*) primitives; these add only what the
+   structured Definition editor needs. Stacks vertically at narrow widths; JSON inspection scrolls internally (§48). */
+.prowess-authoring { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+.prowess-authoring__form { max-width: 64rem; }
+.prowess-authoring .gov-panel, .prowess-authoring .gov-form { max-width: 64rem; }
+.prowess-authoring__purpose { font-weight: 600; margin: 0; }
+.prowess-authoring__groups { border: 0; padding: 0; margin: 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.prowess-authoring__group { border: 1px solid var(--color-border); border-radius: 6px; padding: var(--space-3); min-width: 0; }
+.prowess-authoring__group > h4 { margin: 0 0 var(--space-2); }
+.prowess-authoring__field { min-width: 0; border: 1px solid var(--color-border); border-radius: 4px; padding: var(--space-2) var(--space-3); margin: 0 0 var(--space-3); }
+.prowess-authoring__field[aria-invalid="true"], .prowess-authoring__field:has([aria-invalid="true"]) { border-left: 4px solid var(--color-border-strong); }
+.prowess-authoring__field input, .prowess-authoring__field select, .prowess-authoring__field textarea,
+.prowess-authoring__data-row input, .prowess-authoring__data-row select { font: inherit; padding: var(--space-1) var(--space-2); border: 1px solid var(--color-border); border-radius: 4px; background: transparent; color: inherit; max-width: 100%; min-width: 0; }
+.prowess-authoring__field-errors { margin: var(--space-2) 0 0; padding-left: var(--space-4); font-weight: 600; }
+.prowess-authoring__nested { border: 1px dashed var(--color-border); border-radius: 4px; min-width: 0; margin: var(--space-2) 0; }
+.prowess-authoring__rows, .prowess-authoring__data-list ol, .prowess-authoring__data-group ul { padding-left: var(--space-4); margin: var(--space-2) 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.prowess-authoring__data-group ul { list-style: none; padding-left: var(--space-2); }
+.prowess-authoring__row, .prowess-authoring__data-row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: flex-start; min-width: 0; }
+.prowess-authoring__data-row > .prowess-authoring__data-group, .prowess-authoring__data-row > .prowess-authoring__data-list { flex-basis: 100%; border-left: 2px solid var(--color-border); padding-left: var(--space-2); }
+.prowess-authoring__inline { display: inline-flex; gap: var(--space-2); align-items: center; }
+.prowess-authoring__chips { display: flex; flex-wrap: wrap; gap: var(--space-2); list-style: none; padding: 0; margin: var(--space-2) 0; }
+.prowess-authoring__picker { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.prowess-authoring__reference { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; min-width: 0; overflow-wrap: anywhere; }
+.prowess-authoring__issues { padding-left: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); }
+.prowess-authoring__verdict { font-size: 1.05rem; }
+.prowess-authoring__table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+.prowess-authoring__table th, .prowess-authoring__table td { text-align: left; padding: var(--space-2); border-bottom: 1px solid var(--color-border); vertical-align: top; overflow-wrap: anywhere; }
+.prowess-authoring__sections ul { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); list-style: none; padding: 0; margin: 0; font-size: 0.9rem; }
+.prowess-authoring__savebar { position: sticky; bottom: 0; background: Canvas; padding: var(--space-2) 0; border-top: 1px solid var(--color-border); z-index: 1; }
+.prowess-authoring__save-state { font-weight: 600; }
+.prowess-authoring__raw .lab-json { max-height: 360px; }
+.prowess-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.prowess-authoring :focus-visible { outline: 2px solid var(--color-border-strong); outline-offset: 2px; }
+@media (max-width: 899px) {
+  .prowess-authoring__row, .prowess-authoring__data-row { flex-direction: column; align-items: stretch; }
+}

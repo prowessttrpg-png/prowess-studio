@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { withLaterMilestoneRoutes } from "./later-milestone-routes";
 import { auditWo4Content, auditWo4Source, type Wo4Layer } from "./m5-wo4-audit-helpers";
 
 /**
@@ -99,7 +100,7 @@ describe("M5-WO4 audit — Affinity identity, rank, authority & keyword alignmen
     expect(Object.fromEntries(walk("packages/prowess-db/prisma/migrations").filter((f) => f.endsWith("migration.sql")).map((f) => [f, hash(read(f))]))).toEqual(wo1.migrations);
     const wo3 = JSON.parse(read("docs/architecture/m5-wo3-baseline.json")) as { apiRoutes: string[] };
     const wo4 = JSON.parse(read("docs/architecture/m5-wo4-baseline.json")) as { apiRoutes: string[] };
-    expect(walk("apps/studio/app/api").filter((f) => f.endsWith("route.ts")).sort()).toEqual(wo3.apiRoutes);
+    expect(walk("apps/studio/app/api").filter((f) => f.endsWith("route.ts")).sort()).toEqual(withLaterMilestoneRoutes(wo3.apiRoutes));
     expect(wo4.apiRoutes).toEqual(wo3.apiRoutes);
     expect(walk("apps/studio/app/api").join("\n")).not.toMatch(/affinit/i);
     expect(Object.keys((JSON.parse(read("packages/prowess-game/package.json")) as { dependencies: Record<string, string> }).dependencies).sort()).toEqual(["@prowess/model", "@prowess/rules"]);

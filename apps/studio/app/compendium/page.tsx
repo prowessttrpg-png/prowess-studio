@@ -1,6 +1,7 @@
 "use client";
 
 import { EmptyState, Pagination } from "@prowess/ui";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { EntityFilters, type EntityFiltersValue } from "./_components/EntityFilters";
@@ -223,6 +224,10 @@ export default function CompendiumPage() {
           An internal browser for the Prowess Entity system — identities, their latest
           authored revision, aliases, Keywords, relationships, and source provenance. This
           is a development tool, not the final published Prowess rulebook.
+        </p>
+        {/* M6-WO1: authoring lives in its own workspace; this browser stays read-only. */}
+        <p className="prowess-compendium__admin-link">
+          <Link href="/compendium/admin">Compendium Admin — author and edit Definitions</Link>
         </p>
       </header>
 

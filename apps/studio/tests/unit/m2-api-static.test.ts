@@ -25,7 +25,9 @@ const methods = (src: string) => [...src.matchAll(/export async function (GET|PO
 const M1_PREFIXES = ["entities", "entity-aliases", "entity-versions", "keyword-categories", "keywords", "relationships", "source-documents", "source-references"];
 // M3-WO7's /api/import/* routes are the M3 Import API, pinned by m3-import-api-static (not part of the M2 surface).
 // M4-WO10's /api/rules/evaluate is the Rules Engine API, pinned by m4-wo10-static (not part of the M2 surface).
-const m2Files = files.filter((f) => ![...M1_PREFIXES, "import", "rules"].some((p) => rel(f) === p || rel(f).startsWith(`${p}/`)));
+// M6-WO1's /api/compendium-authoring/* is the Compendium authoring API, pinned by m6-wo1-static (not part of the M2
+// surface; its one M2 hand-off calls M2's own createChangeSet through @prowess/db).
+const m2Files = files.filter((f) => ![...M1_PREFIXES, "import", "rules", "compendium-authoring"].some((p) => rel(f) === p || rel(f).startsWith(`${p}/`)));
 const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
 
 const EXPECTED: Record<string, string[]> = {

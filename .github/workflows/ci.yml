@@ -502,7 +502,7 @@ jobs:
           PROWESS_EXPECT_CONTROLS=21 node scripts/m5-wo3-negative-controls.mjs
 
   controls-2:
-    name: Gates — M5-WO4, canon rulings, M5-WO5
+    name: Gates — M5-WO4, canon rulings, M5-WO5, M6-WO1
     needs: [unit-packages, unit-game, unit-studio, db-api, db-integration]
     runs-on: ubuntu-latest
     steps:
@@ -545,6 +545,10 @@ jobs:
         run: |
           node scripts/ci/verify-gate.mjs M5-WO5 packages/prowess-game/src/construction-legality-golden.test.ts packages/prowess-game/src/construction-legality-contracts.test.ts packages/prowess-game/src/vocabulary.test.ts apps/studio/tests/unit/m5-wo5-static.test.ts packages/prowess-db/tests/unit/m5-wo5-inspector-fixture.test.ts packages/prowess-db/tests/integration/prowess-construction-history.test.ts apps/studio/tests/integration/m5-wo5-construction-api.test.ts
           PROWESS_EXPECT_CONTROLS=29 node scripts/m5-wo5-negative-controls.mjs
+      - name: M6-WO1 audit — Compendium Administration Foundation
+        run: |
+          node scripts/ci/verify-gate.mjs M6-WO1 packages/prowess-game/src/stored-definition-validation.test.ts packages/prowess-db/tests/unit/m6-wo1-authoring-catalog.test.ts packages/prowess-db/tests/integration/m6-wo1-compendium-authoring.test.ts apps/studio/tests/unit/m6-wo1-static.test.ts apps/studio/tests/unit/m6-wo1-compendium-admin-ui.test.tsx apps/studio/tests/unit/m6-wo1-authoring-lib.test.ts apps/studio/tests/integration/m6-wo1-compendium-authoring-api.test.ts
+          PROWESS_EXPECT_CONTROLS=18 node scripts/m6-wo1-negative-controls.mjs
 
   controls-3:
     name: Gates — M5-WO6…WO10

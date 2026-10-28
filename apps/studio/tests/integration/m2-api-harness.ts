@@ -49,7 +49,21 @@ export async function sourceFor(entityVersionId: string, label: string) {
 
 /** Removes everything this harness created, in foreign-key order. */
 export async function cleanupM2Api(): Promise<void> {
-  const rulesetIds = (await prisma.ruleset.findMany({ where: { canonicalKey: { startsWith: PREFIX } }, select: { id: true } })).map((r: { id: string }) => r.id);
+  // Zero-argument on purpose: it is passed directly to afterAll, which hands hooks a context object.
+  const prefix = PREFIX;
+  await cleanupM2Rulesets(prefix);
+  const entityIds = (await prisma.entity.findMany({ where: { canonicalKey: { startsWith: prefix } }, select: { id: true } })).map((e: { id: string }) => e.id);
+  const versionIds = (await prisma.entityVersion.findMany({ where: { entityId: { in: entityIds } }, select: { id: true } })).map((v: { id: string }) => v.id);
+  await prisma.sourceReference.deleteMany({ where: { entityVersionId: { in: versionIds } } });
+  await prisma.sourceDocument.deleteMany({ where: { title: { startsWith: prefix } } });
+  await prisma.entityVersion.updateMany({ where: { id: { in: versionIds } }, data: { parentVersionId: null } });
+  await prisma.entityVersion.deleteMany({ where: { id: { in: versionIds } } });
+  await prisma.entity.deleteMany({ where: { id: { in: entityIds } } });
+}
+
+/** Removes every Ruleset (and everything that belongs to one) whose canonical key starts with `prefix`, in FK order. */
+export async function cleanupM2Rulesets(prefix: string): Promise<void> {
+  const rulesetIds = (await prisma.ruleset.findMany({ where: { canonicalKey: { startsWith: prefix } }, select: { id: true } })).map((r: { id: string }) => r.id);
   const inR = { rulesetId: { in: rulesetIds } };
   await prisma.rulesetRelease.deleteMany({ where: inR });
   await prisma.changeSetOperation.deleteMany({ where: inR });
@@ -65,13 +79,6 @@ export async function cleanupM2Api(): Promise<void> {
   await prisma.rulesetManifest.deleteMany({ where: inR });
   await prisma.ruleset.updateMany({ where: { id: { in: rulesetIds } }, data: { parentRulesetId: null } });
   await prisma.ruleset.deleteMany({ where: { id: { in: rulesetIds } } });
-  const entityIds = (await prisma.entity.findMany({ where: { canonicalKey: { startsWith: PREFIX } }, select: { id: true } })).map((e: { id: string }) => e.id);
-  const versionIds = (await prisma.entityVersion.findMany({ where: { entityId: { in: entityIds } }, select: { id: true } })).map((v: { id: string }) => v.id);
-  await prisma.sourceReference.deleteMany({ where: { entityVersionId: { in: versionIds } } });
-  await prisma.sourceDocument.deleteMany({ where: { title: { startsWith: PREFIX } } });
-  await prisma.entityVersion.updateMany({ where: { id: { in: versionIds } }, data: { parentVersionId: null } });
-  await prisma.entityVersion.deleteMany({ where: { id: { in: versionIds } } });
-  await prisma.entity.deleteMany({ where: { id: { in: entityIds } } });
 }
 
 /** A content fingerprint of the given tables, to prove read-only routes write nothing. */

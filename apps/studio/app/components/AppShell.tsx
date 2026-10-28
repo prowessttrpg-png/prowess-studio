@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { listRulesets } from "../../src/api-client";
+import { listAllRulesets } from "../../src/api-client";
 import { isNavEntryActive, PRIMARY_NAVIGATION } from "../../src/navigation";
 
 const PRIMARY_NAV_ID = "prowess-primary-nav";
@@ -38,8 +38,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [rulesetOptions, setRulesetOptions] = useState<Array<{ id: string; label: string }>>([]);
   const viewedRulesetId = /^\/developer\/rulesets\/([0-9a-f-]{36})(\/|$)/i.exec(pathname)?.[1] ?? "";
   useEffect(() => {
-    listRulesets().then(
-      ({ items }) => setRulesetOptions(items.map((r) => ({ id: r.id, label: r.name }))),
+    // M6-WO1 §35: every page of Rulesets, not only the first 100. Still a VIEWING control: choosing navigates.
+    listAllRulesets().then(
+      (items) => setRulesetOptions(items.map((r) => ({ id: r.id, label: r.name }))),
       () => setRulesetOptions([]),
     );
   }, [viewedRulesetId]);

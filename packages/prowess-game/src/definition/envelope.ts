@@ -73,6 +73,38 @@ function readNullableUuid(value: unknown, at: readonly PathSegment[], p: Problem
   return null;
 }
 
+/**
+ * Internal reader for recorded legacy terminology (§13, §161): only inventoried LEGACY → CANONICAL pairs, no duplicates,
+ * canonical order by legacy term. Shared by the envelope's provenance and by stored-Definition content validation
+ * (M6-WO1 §81), so both read legacy terms through this one reader.
+ */
+export function readLegacyTerms(rawTerms: unknown, at: readonly PathSegment[], p: Problems, code: string): LegacyTermUse[] | null {
+  const before = p.count;
+  const legacyTerms: LegacyTermUse[] = [];
+  if (!Array.isArray(rawTerms)) p.add(code, at, "legacyTerms is an array");
+  else
+    rawTerms.forEach((t: unknown, i: number) => {
+      const tr = readRecord(t, [...at, i], p, code, ["legacyTerm", "canonicalTerm"], ["legacyTerm", "canonicalTerm"]);
+      if (tr === null) return;
+      const legacyTerm = own(tr, "legacyTerm");
+      const canonicalTerm = own(tr, "canonicalTerm");
+      const known = typeof legacyTerm === "string" ? legacyTermFor(legacyTerm) : null;
+      // Only inventoried LEGACY → CANONICAL pairs are accepted: no arbitrary aliases (§13).
+      if (known === null || known.term !== legacyTerm || known.canonicalTerm !== canonicalTerm) {
+        p.add(code, [...at, i], "only an inventoried LEGACY → CANONICAL terminology pair may be recorded");
+        return;
+      }
+      if (legacyTerms.some((x) => x.legacyTerm === legacyTerm)) {
+        p.add(code, [...at, i], `duplicate legacy term ${legacyTerm}`);
+        return;
+      }
+      legacyTerms.push({ legacyTerm, canonicalTerm });
+    });
+  if (p.count > before) return null;
+  legacyTerms.sort((a, b) => (a.legacyTerm < b.legacyTerm ? -1 : a.legacyTerm > b.legacyTerm ? 1 : 0));
+  return legacyTerms;
+}
+
 function readProvenance(value: unknown, at: readonly PathSegment[], p: Problems): ProwessDefinitionProvenance | null {
   const r = readRecord(value, at, p, C.INVALID_PROVENANCE, PROVENANCE_FIELDS, ["rulesetId", "manifestId"]);
   if (r === null) return null;
@@ -84,50 +116,25 @@ function readProvenance(value: unknown, at: readonly PathSegment[], p: Problems)
   const releaseId = readNullableUuid(own(r, "releaseId"), [...at, "releaseId"], p);
   const sourceRulesetId = readNullableUuid(own(r, "sourceRulesetId"), [...at, "sourceRulesetId"], p);
   const sourceManifestId = readNullableUuid(own(r, "sourceManifestId"), [...at, "sourceManifestId"], p);
-  const rawTerms = own(r, "legacyTerms") ?? [];
-  const legacyTerms: LegacyTermUse[] = [];
-  if (!Array.isArray(rawTerms)) p.add(C.INVALID_PROVENANCE, [...at, "legacyTerms"], "legacyTerms is an array");
-  else
-    rawTerms.forEach((t: unknown, i: number) => {
-      const tr = readRecord(t, [...at, "legacyTerms", i], p, C.INVALID_PROVENANCE, ["legacyTerm", "canonicalTerm"], ["legacyTerm", "canonicalTerm"]);
-      if (tr === null) return;
-      const legacyTerm = own(tr, "legacyTerm");
-      const canonicalTerm = own(tr, "canonicalTerm");
-      const known = typeof legacyTerm === "string" ? legacyTermFor(legacyTerm) : null;
-      // Only inventoried LEGACY → CANONICAL pairs are accepted: no arbitrary aliases (§13).
-      if (known === null || known.term !== legacyTerm || known.canonicalTerm !== canonicalTerm) {
-        p.add(C.INVALID_PROVENANCE, [...at, "legacyTerms", i], "only an inventoried LEGACY → CANONICAL terminology pair may be recorded");
-        return;
-      }
-      if (legacyTerms.some((x) => x.legacyTerm === legacyTerm)) {
-        p.add(C.INVALID_PROVENANCE, [...at, "legacyTerms", i], `duplicate legacy term ${legacyTerm}`);
-        return;
-      }
-      legacyTerms.push({ legacyTerm, canonicalTerm });
-    });
-  if (p.count > before) return null;
-  legacyTerms.sort((a, b) => (a.legacyTerm < b.legacyTerm ? -1 : a.legacyTerm > b.legacyTerm ? 1 : 0));
+  const legacyTerms = readLegacyTerms(own(r, "legacyTerms") ?? [], [...at, "legacyTerms"], p, C.INVALID_PROVENANCE);
+  if (p.count > before || legacyTerms === null) return null;
   return { rulesetId: rulesetId as string, manifestId: manifestId as string, releaseId, sourceRulesetId, sourceManifestId, legacyTerms };
 }
 
+/** The family, kind and payload-contract version of a Definition — its content head, without identity or provenance. */
+export interface DefinitionContentHead {
+  readonly schemaVersion: number;
+  readonly systemFamily: ProwessSystemFamily;
+  readonly definitionKind: ProwessDefinitionKind;
+}
+
 /**
- * Internal reader used by the envelope, the bundle and stored-definition readers. `containerChecked` is passed ONLY by
- * the bundle factory, whose whole input — every envelope included — has already passed `checkPlainData` in the same
- * call (M5-CLOSEOUT-02 R3); every other reader inspects the envelope here.
+ * Internal reader for a Definition's family, kind and payload-contract version (§75–77, §81–83). Shared by the envelope
+ * reader and by stored-Definition content validation (M6-WO1 §81): both decide family / kind / schemaVersion legality
+ * through this one reader. Returns the head when all three are legal, otherwise null (problems recorded).
  */
-export function readEnvelope(input: unknown, at: readonly PathSegment[], p: Problems, containerChecked = false): ProwessDefinitionEnvelope | null {
+export function readDefinitionContentHead(r: Record<string, unknown>, at: readonly PathSegment[], p: Problems): DefinitionContentHead | null {
   const before = p.count;
-  if (!containerChecked && !checkPlainData(input, at, p, C.NOT_PLAIN_DATA)) return null;
-  const r = readRecord(input, at, p, C.INVALID_ENVELOPE, ENVELOPE_FIELDS, ENVELOPE_FIELDS);
-  if (r === null) return null;
-
-  const entityId = own(r, "entityId");
-  const entityVersionId = own(r, "entityVersionId");
-  const canonicalKey = own(r, "canonicalKey");
-  if (!isExactUuid(entityId)) p.add(C.MISSING_EXACT_IDENTITY, [...at, "entityId"], "every canonical Definition carries its exact Entity id");
-  if (!isExactUuid(entityVersionId)) p.add(C.MISSING_EXACT_IDENTITY, [...at, "entityVersionId"], "every canonical Definition carries its exact EntityVersion id — never a floating latest version");
-  if (!isExactCanonicalKey(canonicalKey)) p.add(C.MISSING_EXACT_IDENTITY, [...at, "canonicalKey"], "every canonical Definition carries its exact canonical key");
-
   const family = own(r, "systemFamily");
   const kind = own(r, "definitionKind");
   if (!isProwessSystemFamily(family)) p.add(C.UNKNOWN_SYSTEM_FAMILY, [...at, "systemFamily"], `unknown Prowess system family ${JSON.stringify(family)}`);
@@ -149,14 +156,42 @@ export function readEnvelope(input: unknown, at: readonly PathSegment[], p: Prob
         : `${kind as string} payload schemaVersion ${schemaVersion} is not supported (supported: ${spec.schemaVersions.join(", ")})`,
     );
   }
+  if (p.count > before) return null;
+  return { schemaVersion: schemaVersion as number, systemFamily: family as ProwessSystemFamily, definitionKind: kind as ProwessDefinitionKind };
+}
+
+/** Internal reader for the payload of a legal content head: the kind's contract at its schemaVersion. */
+export function readDefinitionContentPayload(head: DefinitionContentHead, payload: unknown, at: readonly PathSegment[], p: Problems): JsonObject | null {
+  return readDefinitionPayload(head.definitionKind, PROWESS_DEFINITION_KINDS[head.definitionKind].contract, payload, at, p, head.schemaVersion);
+}
+
+/**
+ * Internal reader used by the envelope, the bundle and stored-definition readers. `containerChecked` is passed ONLY by
+ * the bundle factory, whose whole input — every envelope included — has already passed `checkPlainData` in the same
+ * call (M5-CLOSEOUT-02 R3); every other reader inspects the envelope here.
+ */
+export function readEnvelope(input: unknown, at: readonly PathSegment[], p: Problems, containerChecked = false): ProwessDefinitionEnvelope | null {
+  const before = p.count;
+  if (!containerChecked && !checkPlainData(input, at, p, C.NOT_PLAIN_DATA)) return null;
+  const r = readRecord(input, at, p, C.INVALID_ENVELOPE, ENVELOPE_FIELDS, ENVELOPE_FIELDS);
+  if (r === null) return null;
+
+  const entityId = own(r, "entityId");
+  const entityVersionId = own(r, "entityVersionId");
+  const canonicalKey = own(r, "canonicalKey");
+  if (!isExactUuid(entityId)) p.add(C.MISSING_EXACT_IDENTITY, [...at, "entityId"], "every canonical Definition carries its exact Entity id");
+  if (!isExactUuid(entityVersionId)) p.add(C.MISSING_EXACT_IDENTITY, [...at, "entityVersionId"], "every canonical Definition carries its exact EntityVersion id — never a floating latest version");
+  if (!isExactCanonicalKey(canonicalKey)) p.add(C.MISSING_EXACT_IDENTITY, [...at, "canonicalKey"], "every canonical Definition carries its exact canonical key");
+
+  const head = readDefinitionContentHead(r, at, p);
 
   const provenance = readProvenance(own(r, "provenance"), [...at, "provenance"], p);
-  const payload = p.count === before && spec !== null ? readDefinitionPayload(kind as ProwessDefinitionKind, spec.contract, own(r, "payload"), [...at, "payload"], p, schemaVersion as number) : null;
-  if (p.count > before || payload === null || provenance === null) return null;
+  const payload = p.count === before && head !== null ? readDefinitionContentPayload(head, own(r, "payload"), [...at, "payload"], p) : null;
+  if (p.count > before || payload === null || provenance === null || head === null) return null;
   return {
-    schemaVersion: schemaVersion as number,
-    systemFamily: family as ProwessSystemFamily,
-    definitionKind: kind as ProwessDefinitionKind,
+    schemaVersion: head.schemaVersion,
+    systemFamily: head.systemFamily,
+    definitionKind: head.definitionKind,
     entityId: entityId as EntityId,
     entityVersionId: entityVersionId as EntityVersionId,
     canonicalKey: canonicalKey as CanonicalKey,

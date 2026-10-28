@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { withLaterMilestoneRoutes } from "./later-milestone-routes";
 import { auditWo5Content, auditWo5Source, type ConstructionDoc } from "./m5-wo5-audit-helpers";
 
 /**
@@ -92,7 +93,7 @@ describe("M5-WO5 audit — Shared modular ability construction", () => {
     expect([files.length, tree.digest("hex")]).toEqual([wo2.rulesSrcFileCount, wo2.rulesSrcTreeHash]);
     expect([wo5.rulesSrcFileCount, wo5.rulesSrcTreeHash]).toEqual([wo2.rulesSrcFileCount, wo2.rulesSrcTreeHash]);
     expect(wo5.baseCommit).toMatch(/^58a9ba8[0-9a-f]{33}$/);
-    expect(walk("apps/studio/app/api").filter((f) => f.endsWith("route.ts")).sort()).toEqual(wo5.apiRoutes);
+    expect(walk("apps/studio/app/api").filter((f) => f.endsWith("route.ts")).sort()).toEqual(withLaterMilestoneRoutes(wo5.apiRoutes));
     const wo1 = JSON.parse(read("docs/architecture/m5-wo1-baseline.json")) as { schemaHash: string; migrations: Record<string, string> };
     expect(hash(read("packages/prowess-db/prisma/schema.prisma"))).toBe(wo1.schemaHash);
     expect(Object.fromEntries(walk("packages/prowess-db/prisma/migrations").filter((f) => f.endsWith("migration.sql")).map((f) => [f, hash(read(f))]))).toEqual(wo1.migrations);

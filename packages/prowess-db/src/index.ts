@@ -184,3 +184,30 @@ export {
   verifyRulesetReleaseManifestHash,
 } from "./ruleset-release/index.js";
 export { createMigrationPlan, getMigrationPlan, listMigrationPlans, previewRulesetMigration } from "./migration-plan/index.js";
+export {
+  AUTHORING_ISSUE_CODES,
+  createAuthoredDefinition,
+  createAuthoredRevision,
+  getAuthoringCatalog,
+  listAuthoringDefinitions,
+  proposeDefinitionChangeSet,
+  updateAuthoredDraftDefinition,
+  searchAuthoringKeywords,
+  searchDefinitionReferences,
+  submitAuthoredRevisionForReview,
+  validateAuthoringCandidate,
+  validateStoredRevision,
+} from "./compendium-authoring/index.js";
+export type {
+  AuthoredDefinitionResult,
+  AuthoringCatalog,
+  AuthoringDefinitionKind,
+  AuthoringDefinitionListItem,
+  AuthoringValidationIssue,
+  AuthoringValidationResult,
+  CreateAuthoredDefinitionInput,
+  CreateAuthoredRevisionInput,
+  DefinitionReferenceCandidate,
+  ProposeDefinitionChangeSetInput,
+  UpdateAuthoredDraftDefinitionInput,
+} from "./compendium-authoring/index.js";

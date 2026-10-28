@@ -11,14 +11,12 @@ vi.mock("next/navigation", () => ({
 }));
 
 // M2-WO10: the shell loads Rulesets for the VIEWING selector through the client layer only (no network here).
-const mockListRulesets = vi.fn(async () => ({
-  items: [
-    { id: "11111111-1111-4111-8111-111111111111", name: "Core Playtest" },
-    { id: "22222222-2222-4222-8222-222222222222", name: "Experimental" },
-  ],
-  pagination: null,
-}));
-vi.mock("../../src/api-client", () => ({ listRulesets: () => mockListRulesets() }));
+// M6-WO1 §35: it now asks for EVERY page (listAllRulesets), not only the first 100.
+const mockListRulesets = vi.fn(async () => [
+  { id: "11111111-1111-4111-8111-111111111111", name: "Core Playtest" },
+  { id: "22222222-2222-4222-8222-222222222222", name: "Experimental" },
+]);
+vi.mock("../../src/api-client", () => ({ listAllRulesets: () => mockListRulesets() }));
 
 vi.mock("next/link", () => ({
   // A minimal stand-in sufficient for rendering/assertions — real

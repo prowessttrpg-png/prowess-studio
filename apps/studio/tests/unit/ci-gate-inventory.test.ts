@@ -19,7 +19,7 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
     expect(checkInventory(ROOT)).toEqual([]);
   });
 
-  it("keeps the complete negative / mutation control inventory: 280 controls across 14 scripts", () => {
+  it("keeps the complete negative / mutation control inventory: 298 controls across 15 scripts (M6-WO1 added 18)", () => {
     const counts = Object.fromEntries(inventory.gates.filter((g) => g.controls).map((g) => [g.controls!.script, g.controls!.count]));
     expect(counts).toEqual({
       "scripts/m4-final-negative-controls.mjs": 3,
@@ -36,6 +36,7 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
       "scripts/m5-wo11-negative-controls.mjs": 26,
       "scripts/m5-wo12-negative-controls.mjs": 26,
       "scripts/m5-wo13-negative-controls.mjs": 30,
+      "scripts/m6-wo1-negative-controls.mjs": 18,
     });
   });
 
