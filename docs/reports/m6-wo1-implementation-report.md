@@ -16,7 +16,7 @@ Local run on the m6-wo1 working tree (PostgreSQL 16, clean test database, Node 2
 | @prowess/game unit | 35 / 921 | 36 / 937 | +1 file / +16 (validator parity) |
 | @prowess/db unit | 18 / 96 | 19 / 143 | +1 / +47 (catalog projection) |
 | @prowess/db integration | 43 / 527 | 44 / 532 | +1 / +5 (service, cross-kind M5 bridge, concurrency) |
-| Studio unit / component / static | 80 / 2,854 | 83 / 2,963 | +3 files; +58 new tests, +51 from existing parameterized audits now scanning the new files |
+| Studio unit / component / static | 80 / 2,854 | 84 / 2,970 | +4 files; +65 new tests, +51 from existing parameterized audits now scanning the new files |
 | Studio API integration | 29 / 165 | 30 / 196 | +1 / +31 |
 | Playwright (production build) | 45 | 46 | +1 (§85 UX acceptance) |
 
@@ -108,6 +108,8 @@ edit is explicitly enabled. UI tests run against a catalog fixture generated fro
 - Public-surface allowlists (`m2-final-static`, `entity-version-lifecycle`, `change-set`, `m1-audit-static`,
   `ci-gate-inventory`) list the new exports / vocabulary / control script explicitly; the lifecycle test additionally
   proves `updateAuthoredDraftDefinition` delegates its only write to `updateDraftEntityVersion`.
+- `51fa2de` was followed by one local commit adding Entity-workspace UI tests (aliases, Entity-level Keywords, relationships,
+  history links, Create New Revision, error states, generic content — §65), registered in the M6-WO1 gate.
 - `app-shell.test` mocks the paginated `listAllRulesets`; `m2-api-harness` gained a prefix-scoped Ruleset cleanup.
 
 ## 10. Ruleset Selector (§35)

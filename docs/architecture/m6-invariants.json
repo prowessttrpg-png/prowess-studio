@@ -119,6 +119,7 @@
       "apps/studio/tests/unit/m6-wo1-static.test.ts",
       "apps/studio/tests/integration/m6-wo1-compendium-authoring-api.test.ts",
       "apps/studio/tests/unit/m6-wo1-compendium-admin-ui.test.tsx",
+      "apps/studio/tests/unit/m6-wo1-entity-workspace.test.tsx",
       "scripts/m6-wo1-negative-controls.mjs"
     ]
   }
