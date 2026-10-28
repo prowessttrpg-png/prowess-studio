@@ -101,6 +101,19 @@ on uncaught, misattributed, red-baseline, no-op, residue and inventory-change ru
   or Next.js cache is restored, so every dependency, browser and build is produced cold. Used for milestone, release and
   major-architecture certification; it proves the Tier 1 / 2 caches hide nothing.
 
+  How the contract is written: every job has two explicit Node setup steps — `Set up Node.js` (`if: env.CERTIFICATION !=
+  'true'`, `cache: pnpm`) and `Set up Node.js (Tier 3 — no dependency cache)` (`if: env.CERTIFICATION == 'true'`, no
+  `cache` input) — and the Playwright-browser and Next.js cache restore steps run only outside certification.
+  `checkCertificationCaches` in `scripts/ci/gate-inventory.mjs` (run by the `static` job and by
+  `ci-gate-inventory.test.ts`) fails if any job loses either form, if a cache input is computed by an expression, or if a
+  cache restore step can run in certification.
+
+  History: CLOSEOUT-03 first implemented this as `cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}`. In GitHub
+  expressions `''` is falsy, so the expression always yielded `'pnpm'`. **Tier 3 attempt #226** (`73809a2`) passed every
+  check but restored the pnpm store in all 14 installing jobs (`Cache restored from key: node-cache-Linux-x64-pnpm-…`,
+  `reused 572, downloaded 0`), so it is **invalid as a clean certification**. The browser and Next.js bypasses worked in
+  that run. The explicit-step form above is the correction (M5-CLOSEOUT-04).
+
 Any failing step fails its job, and the tier summaries fail with it — no step swallows a real failure.
 
 ## Gate history (what each milestone added)

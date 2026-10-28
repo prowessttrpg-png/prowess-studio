@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { checkInventory, loadInventory, workflowJobs } from "../../../../scripts/ci/gate-inventory.mjs";
+import { checkCertificationCaches, checkInventory, loadInventory, workflowJobs } from "../../../../scripts/ci/gate-inventory.mjs";
 
 /**
  * M5-CLOSEOUT-03 §5: the permanent gate inventory is part of the architecture. scripts/ci/gates.json must match the
@@ -57,6 +57,21 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
     expect(ci).toContain("cancel-in-progress: ${{ github.event_name == 'pull_request' }}");
     expect(ci).toMatch(/group: \$\{\{ github\.event_name == 'pull_request' && format\('ci-pr-\{0\}', github\.event\.pull_request\.number\) \|\| format\('ci-run-\{0\}', github\.run_id\) \}\}/);
     expect(ci).not.toMatch(/paths(-ignore)?:/); // no path filter: Tier 2 / Tier 3 never skip a check
+  });
+
+  it("Tier 3 uses no dependency, browser or Next.js cache; Tier 1 / 2 keep the pnpm store cache (CLOSEOUT-04 correction)", () => {
+    const ci = readFileSync(path.join(ROOT, ".github/workflows/ci.yml"), "utf8");
+    expect(checkCertificationCaches(ci)).toEqual([]);
+    const jobs = workflowJobs(ci) as Record<string, string>;
+    const withNode = Object.keys(jobs).filter((id) => jobs[id]!.includes("actions/setup-node@"));
+    expect(withNode.length).toBe(13); // every job except the two tier summaries (db-integration is one matrix job)
+    // The exact defect of Tier 3 attempt #226 is rejected: '' is falsy, so this expression always yields 'pnpm'.
+    const node = /( +)- name: Set up Node\.js\n[\s\S]*?cache: pnpm\n\1- name: Set up Node\.js \(Tier 3[^\n]*\n(?:\1 [^\n]*\n)+/;
+    const defective = ci.replace(node, "$1- name: Set up Node.js\n$1  uses: actions/setup-node@v4\n$1  with:\n$1    node-version: \"22\"\n$1    cache: ${{ env.CERTIFICATION == 'true' && '' || 'pnpm' }}\n");
+    expect(defective).not.toBe(ci);
+    expect(checkCertificationCaches(defective).length).toBeGreaterThan(0);
+    // An unconditional cache restore is rejected as well.
+    expect(checkCertificationCaches(ci.replace("      - name: Restore Next.js build cache\n        if: env.CERTIFICATION != 'true'\n", "      - name: Restore Next.js build cache\n")).length).toBeGreaterThan(0);
   });
 
   it("R6: the placeholder @prowess/test-fixtures package is gone and nothing references it as a workspace package", () => {
