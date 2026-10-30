@@ -19,15 +19,15 @@ describe("PRIMARY_NAVIGATION", () => {
     );
   });
 
-  it("marks Dashboard, Compendium, and Developer as functional (not placeholders)", () => {
-    for (const id of ["dashboard", "compendium", "developer"]) {
+  it("marks Dashboard, Compendium, Characters (M6-WO3) and Developer as functional (not placeholders)", () => {
+    for (const id of ["dashboard", "compendium", "characters", "developer"]) {
       const entry = PRIMARY_NAVIGATION.find((e) => e.id === id);
       expect(entry?.placeholder).toBeFalsy();
     }
   });
 
-  it("marks Studio, Characters, World, GM, and Publishing as placeholders", () => {
-    for (const id of ["studio", "characters", "world", "gm", "publishing"]) {
+  it("marks Studio, World, GM, and Publishing as placeholders", () => {
+    for (const id of ["studio", "world", "gm", "publishing"]) {
       const entry = PRIMARY_NAVIGATION.find((e) => e.id === id);
       expect(entry?.placeholder).toBe(true);
     }

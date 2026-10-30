@@ -4,6 +4,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 import { withLaterMilestoneRoutes } from "./later-milestone-routes";
 import { ACTIVE_MAGIC_POLICY } from "../../../../packages/prowess-game/src/content/core-playtest-v0.1/active-magic";
 
@@ -173,9 +174,9 @@ describe("M5-WO13 audit — Active Magic Runtime", () => {
   it("M4 sources, Prisma schema / migrations and API routes are unchanged; no WO13-only endpoint or UI", () => {
     const baseline = JSON.parse(read("docs/architecture/m5-wo13-baseline.json")) as { baseCommit: string; frozenFiles: Record<string, string>; apiRoutes: string[]; priorInvariantCount: number };
     expect([baseline.baseCommit, baseline.priorInvariantCount]).toEqual(["feed5df72187f4c2c7a896d8dc2a6338ad96ac1a", 315]);
-    const files = [...walk("packages/prowess-rules/src"), ...walk("packages/prowess-db/prisma")].sort();
+    const files = [...walk("packages/prowess-rules/src"), ...walk("packages/prowess-db/prisma").filter(notLaterMigration)].sort(); // M6-WO3: registered later migrations excluded
     expect(files).toEqual(Object.keys(baseline.frozenFiles).sort());
-    for (const [path, expected] of Object.entries(baseline.frozenFiles)) expect(hash(readFileSync(resolve(root, path))), path).toBe(expected);
+    for (const [path, expected] of Object.entries(baseline.frozenFiles)) expect(hash(frozenFileContent(resolve(root, path))), path).toBe(expected);
     expect(walk("apps/studio/app/api").filter((f) => f.endsWith("route.ts")).sort()).toEqual(withLaterMilestoneRoutes(baseline.apiRoutes));
     for (const f of [...walk("apps/studio/app"), ...walk("apps/studio/src")].filter((x) => /\.(ts|tsx)$/.test(x))) expect(read(f), f).not.toMatch(/@prowess\/game|\/api\/(active-magic|sustain|concentration|channel)/);
   });

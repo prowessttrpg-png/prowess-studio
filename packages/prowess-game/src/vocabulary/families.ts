@@ -86,9 +86,12 @@ const DEFINITION_KIND_TABLE = {
   DERIVED_STAT: active("CHARACTER"),
   RANK_LADDER: active("SKILL"),
   SKILL_RANK: active("SKILL"),
-  // Ancestry / Skill catalogs — known, reserved for a later M5 Work Order.
-  ANCESTRY: reserved("ANCESTRY"),
-  SKILL: reserved("SKILL"),
+  // Ancestry / Skill catalogs — reserved by M5; activated at version 1 by PAS-10 M6-WO3 (definition/character-payload.ts)
+  // so Character creation can select Release-pinned Ancestries and Skills.
+  ANCESTRY: active("ANCESTRY"),
+  SKILL: active("SKILL"),
+  /** M6-WO3: the Level-1 creation values (point budget, free Skill count, starting rank) as authored Definition data. */
+  CHARACTER_CREATION_RULE: active("CHARACTER"),
   // Runtime resources, the action catalog and the tactical movement identities — v1 payloads defined by M5-WO3
   // (definition/runtime-payload.ts). RESOURCE keeps the M1 RESOURCE storage type it was reserved under in WO1.
   RESOURCE: active("RESOURCE", ["RESOURCE"]),

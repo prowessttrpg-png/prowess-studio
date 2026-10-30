@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 
 /**
  * M3-WO5 static audit — Formula, Requirement & Keyword Semantic Extraction. Implementation logic only (comments
@@ -31,7 +32,7 @@ const LOGIC = CODE.replace(/\/(?:\\.|[^/\n\\])+\/[giuy]*/g, "/RE/").replace(/"(?
 describe("M3-WO5 database / migration status", () => {
   it("adds no migration (the 21 approved migrations are the whole chain) and no schema change", () => {
     const dir = path.join(ROOT, "packages", "prowess-db", "prisma", "migrations");
-    const names = readdirSync(dir).filter((e) => statSync(path.join(dir, e)).isDirectory()).sort();
+    const names = readdirSync(dir).filter((e) => statSync(path.join(dir, e)).isDirectory()).filter(notLaterMigration).sort(); // M6-WO3: registered later migrations excluded
     // WO5 itself appended nothing after WO4's migration (later Work Orders append their own, e.g. M3-WO6).
     expect(names.indexOf("20261014010000_add_import_entity_matching")).toBe(20);
     expect(names.slice(21)).toEqual(["20261015010000_add_import_decisions"]);

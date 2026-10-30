@@ -237,6 +237,15 @@ const RULES = [
     forbiddenSubstrings: ["generated/prisma"],
     reason: "the Compendium frontend must consume only the HTTP API layer — no Prisma, no @prowess/db at all (bare or deep)",
   },
+  {
+    // PAS-10 M6-WO3: the Character frontend (index, New Character, creation wizard) consumes only the Studio HTTP API.
+    // Characters are validated and resolved on the server; the browser never imports the database or the M5 domain.
+    name: "apps/studio (app/characters/)",
+    srcDir: path.join(ROOT, "apps/studio/app/characters"),
+    forbidden: ["@prisma/client", "@prisma/adapter-pg", "prisma", "@prowess/db", "@prowess/game", "@prowess/rules"],
+    forbiddenSubstrings: ["generated/prisma"],
+    reason: "the Character frontend must consume only the HTTP API layer — no Prisma, no @prowess/db, no @prowess/game / @prowess/rules",
+  },
 ];
 
 const violations = [];

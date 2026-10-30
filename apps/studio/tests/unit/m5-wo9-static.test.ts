@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { resolve } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 import { CONDITION_POLICY, DURATION_CONDITION_CONTENT } from "../../../../packages/prowess-game/src/content/core-playtest-v0.1/duration-conditions";
 import { auditM5Source } from "./m5-wo1-audit-helpers";
 const root = resolve(import.meta.dirname, "../../../.."), read = (p: string) => readFileSync(resolve(root, p), "utf8");
@@ -83,9 +84,9 @@ describe("M5-WO9 audit — Duration & Ability Condition Framework", () => {
   });
   it("freezes the entire M4 source inventory, Prisma schema/migrations, and all earlier invariants", () => {
     const baseline = JSON.parse(read("docs/architecture/m5-wo9-baseline.json")) as { frozenFiles: Record<string, string>; priorInvariants: unknown[] };
-    const files = [...walk("packages/prowess-rules/src"), ...walk("packages/prowess-db/prisma")].sort();
+    const files = [...walk("packages/prowess-rules/src"), ...walk("packages/prowess-db/prisma").filter(notLaterMigration)].sort(); // M6-WO3: registered later migrations excluded
     expect(files).toEqual(Object.keys(baseline.frozenFiles).sort());
-    for (const [path, expected] of Object.entries(baseline.frozenFiles)) expect(hash(readFileSync(resolve(root, path))), path).toBe(expected);
+    for (const [path, expected] of Object.entries(baseline.frozenFiles)) expect(hash(frozenFileContent(resolve(root, path))), path).toBe(expected);
     const inv = JSON.parse(read("docs/architecture/m5-invariants.json")) as { id: string; guards: string[] }[];
     expect(inv.slice(0, 224)).toEqual(baseline.priorInvariants); expect(inv.length).toBe(337); // M5-WO10 appended M5-I243–I260; M5-WO11 appended M5-I261–I293; M5-WO12 appended M5-I294–I315; M5-WO13 appended M5-I316–I337
     for (let n = 225; n <= 242; n++) { const row = inv.find(x => x.id === `M5-I${n}`)!; expect(row).toBeTruthy(); for (const path of row.guards) expect(existsSync(resolve(root, path))).toBe(true); }

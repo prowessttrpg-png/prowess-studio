@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 
 /**
  * M2 FINAL static audit (PAS-10 M2-WO12): cross-cutting guarantees of the whole M2 system — no hidden "latest",
@@ -25,7 +26,7 @@ const walk = (dir: string, out: string[] = []) => {
 const DB_SRC = walk(path.join(ROOT, "packages", "prowess-db", "src"));
 const MODEL_SRC = walk(path.join(ROOT, "packages", "prowess-model", "src"));
 const rel = (f: string) => path.relative(ROOT, f).split(path.sep).join("/");
-const SCHEMA = read("packages", "prowess-db", "prisma", "schema.prisma").replace(/\/\/.*$/gm, "");
+const SCHEMA = frozenSchemaText().replace(/\/\/.*$/gm, ""); // M6-WO3: the certified schema (registered later additions removed)
 const M2_DB_DIRS = ["ruleset", "ruleset-manifest", "ruleset-inheritance", "canon-policy", "rule-conflict", "canon-decision", "change-set", "review-lifecycle", "ruleset-release", "migration-plan"];
 const inDir = (f: string, dirs: string[]) => dirs.some((d) => rel(f).startsWith(`packages/prowess-db/src/${d}/`));
 
@@ -119,7 +120,7 @@ describe("§44–§45 migration chain", () => {
     // 20261011010000_add_source_structure (hash pinned in m3-source-structure-static.test.ts). Nothing is inserted
     // before, squashed into, or reordered among the M1/M2 migrations.
     const appendedAfterM2 = ["20261011010000_add_source_structure", "20261012010000_add_import_batches_candidates", "20261013010000_add_import_batch_extraction_output", "20261014010000_add_import_entity_matching", "20261015010000_add_import_decisions"];
-    expect(readdirSync(dir).filter((e) => statSync(path.join(dir, e)).isDirectory()).sort()).toEqual([...pins.map(([n]) => n), ...appendedAfterM2]);
+    expect(readdirSync(dir).filter((e) => statSync(path.join(dir, e)).isDirectory()).filter(notLaterMigration).sort()).toEqual([...pins.map(([n]) => n), ...appendedAfterM2]);
     for (const [n, h] of pins) expect(createHash("sha256").update(readFileSync(path.join(dir, n, "migration.sql"))).digest("hex"), n).toBe(h);
   });
 });
@@ -140,6 +141,9 @@ describe("§50 public service surface", () => {
         // M6-WO1 Compendium authoring (pinned by m6-wo1-static): two creations composed of M1 creations, one DRAFT-only
         // edit, and two named commands that delegate to M1's lifecycle transition and M2's own createChangeSet.
         "createAuthoredDefinition", "createAuthoredRevision", "updateAuthoredDraftDefinition", "proposeDefinitionChangeSet", "submitAuthoredRevisionForReview",
+        // M6-WO3 Character domain (pinned by m6-wo3-static): Characters are player state in their own tables, never
+        // Entity / EntityVersion / Release rows. One creation, and a profile edit that touches no mechanics.
+        "createCharacter", "updateCharacterProfile",
       ].sort(),
     );
   });

@@ -2,6 +2,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 
 /**
  * M4-WO10 Rules Evaluation Orchestration & HTTP API — static audit (PAS-10 M4-WO10 §153–165). Invariant ids refer to
@@ -195,7 +196,7 @@ describe("M4-WO10 static audit — the Studio HTTP / application layer", () => {
 
   it("no evaluation persistence, migration or schema change; only the WO11 UI page", () => {
     expect(read("packages", "prowess-db", "prisma", "schema.prisma")).not.toMatch(/model\s+(EvaluationRun|RulesEvaluation|EvaluationPlan)\w*|evaluation_(runs|plans|results)/i);
-    expect(readdirSync(path.join(ROOT, "packages", "prowess-db", "prisma", "migrations")).filter((e) => /^\d{14}_/.test(e))).toHaveLength(22);
+    expect(readdirSync(path.join(ROOT, "packages", "prowess-db", "prisma", "migrations")).filter((e) => /^\d{14}_/.test(e)).filter(notLaterMigration)).toHaveLength(22);
     expect(existsSync(path.join(ROOT, "apps", "studio", "app", "developer", "rules", "page.tsx"))).toBe(true);
     for (const f of walk(path.join(ROOT, "apps", "studio", "app")).filter((x) => /\.tsx$/.test(x))) expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/\/api\/rules\/evaluate|orchestrateRulesEvaluation/);
   });

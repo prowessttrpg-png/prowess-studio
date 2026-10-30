@@ -1,4 +1,4 @@
-# M6 Invariant Catalog (M6-WO1, M6-WO2)
+# M6 Invariant Catalog (M6-WO1, M6-WO2, M6-WO3)
 
 Machine-readable twin: `m6-invariants.json`. The permanent M6-WO1 gate (`apps/studio/tests/unit/m6-wo1-static.test.ts`)
 requires every id below, each with executing automated guards that cite it. M4 (M4-I01–I188, M4-I162A) and M5 (M5-I001–I337)
@@ -127,3 +127,63 @@ Required by the permanent M6-WO2 gate (`apps/studio/tests/unit/m6-wo2-static.tes
 - **Group:** Boundaries
 - **Meaning:** The reference routes export GET only and the reference service performs no write; reading writes nothing (fingerprinted). No schema, migration, M4 or M5 change; no publication, ChangeSet or lifecycle call; editing is a hand-off to Compendium Admin.
 - **Guards:** `apps/studio/tests/unit/m6-wo2-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo2-compendium-reference.test.ts`, `apps/studio/tests/integration/m6-wo2-compendium-reference-api.test.ts`, `scripts/m6-wo2-negative-controls.mjs`
+
+### M6-I021 — A Character Is Pinned To One Exact, Immutable Release
+
+- **Group:** Character Identity
+- **Meaning:** A Character stores the exact RulesetRelease id it was created on (never a Ruleset id, channel, label or 'latest'); the foreign key is RESTRICT and a database trigger refuses any change of ruleset_release_id. A wrong Release means a new Character Draft.
+- **Guards:** `apps/studio/tests/unit/m6-wo3-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo3-character.test.ts`, `apps/studio/tests/integration/m6-wo3-character-api.test.ts`, `packages/prowess-db/tests/integration/m6-wo3-migration-compat.test.ts`, `scripts/m6-wo3-negative-controls.mjs`
+
+### M6-I022 — Every Mechanical Selection Belongs To The Character's Release
+
+- **Group:** Release Isolation
+- **Meaning:** Ancestry, Skills and Primary Affinity are exact (entityId, entityVersionId) pairs that the Character's own Release pins, of the expected kind; a revision pinned only by another Release is rejected even when its canonical key matches. Content is never looked up outside the Release.
+- **Guards:** `apps/studio/tests/unit/m6-wo3-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo3-character.test.ts`, `apps/studio/tests/integration/m6-wo3-character-api.test.ts`, `packages/prowess-game/src/character-creation.test.ts`, `scripts/m6-wo3-negative-controls.mjs`
+
+### M6-I023 — Derived Statistics Are Recalculated From Stored Inputs
+
+- **Group:** Derived State
+- **Meaning:** Only creation inputs are stored (Ancestry, Stat-choice selections, points spent, Skill selections, Primary Affinity). Maximum HP / MP, Dodge, Character DC, Signature Ability capacity and every other derived value are recalculated on read from those inputs and the exact Release; no derived column exists.
+- **Guards:** `apps/studio/tests/unit/m6-wo3-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo3-character.test.ts`, `packages/prowess-game/src/character-creation.test.ts`, `scripts/m6-wo3-negative-controls.mjs`
+
+### M6-I024 — Characters Are Player State, Not Compendium Content
+
+- **Group:** Player Separation
+- **Meaning:** Characters live in their own typed tables (characters, character_stat_allocations, character_ancestry_stat_choices, character_skill_ranks) added by the one authorized M6-WO3 migration; they are never Entity / EntityVersion rows and the Character services never write Compendium, Canon or Release tables.
+- **Guards:** `apps/studio/tests/unit/m6-wo3-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo3-character.test.ts`, `packages/prowess-db/tests/integration/m6-wo3-migration-compat.test.ts`, `scripts/m6-wo3-negative-controls.mjs`
+
+### M6-I025 — Core Creation Completion Freezes The Mechanical Choices
+
+- **Group:** Finalization
+- **Meaning:** Completing core creation records coreCreationCompletedAt only after Release integrity verification and a READY server validation; afterwards the creation save is refused (service and database triggers) while name and concept stay editable through the profile path.
+- **Guards:** `apps/studio/tests/unit/m6-wo3-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo3-character.test.ts`, `apps/studio/tests/integration/m6-wo3-character-api.test.ts`, `apps/studio/tests/unit/m6-wo3-character-ui.test.tsx`, `scripts/m6-wo3-negative-controls.mjs`
+
+### M6-I026 — Character Writes Use Atomic Optimistic Concurrency
+
+- **Group:** Concurrency
+- **Meaning:** Every mutable Character write is a compare-and-set on lockVersion (UPDATE … WHERE id AND lockVersion = expected) that increments it; a stale version is HTTP 409. A creation save replaces the Character fields and every child row in one transaction, so a failure leaves the previous build intact.
+- **Guards:** `apps/studio/tests/unit/m6-wo3-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo3-character.test.ts`, `apps/studio/tests/integration/m6-wo3-character-api.test.ts`, `scripts/m6-wo3-negative-controls.mjs`
+
+### M6-I027 — Creation Options Come From Published Release Content
+
+- **Group:** Content Authority
+- **Meaning:** Races, Skills, Affinities, the creation rule, Stat bounds, the Character Die and the Skill rank all come from the Character's exact Release through one server creation context; Studio holds no option list, budget or bound, and each option links to its exact Release Rules Reference page.
+- **Guards:** `apps/studio/tests/unit/m6-wo3-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo3-character.test.ts`, `apps/studio/tests/unit/m6-wo3-character-ui.test.tsx`, `packages/prowess-db/tests/integration/m6-wo3-authoring-to-character.test.ts`, `apps/studio/tests/unit/m6-wo3-compendium-integration.test.tsx`, `scripts/m6-wo3-negative-controls.mjs`
+
+### M6-I028 — M6-WO3 Creates Level 1 Characters Only
+
+- **Group:** Level Ownership
+- **Meaning:** The server sets the Character's Level from the Release's creation rule (Level 1); no create or save input accepts a Level, and no advancement, respec, equipment or ability record exists.
+- **Guards:** `apps/studio/tests/unit/m6-wo3-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo3-character.test.ts`, `apps/studio/tests/integration/m6-wo3-character-api.test.ts`, `scripts/m6-wo3-negative-controls.mjs`
+
+### M6-I029 — M4 And M5 Own Every Rules Calculation
+
+- **Group:** Formula Ownership
+- **Meaning:** Totals and derived values are produced by @prowess/game through the M4 modifier and Formula engine and the Release's DERIVED_STAT Definitions; no formula is copied into Studio or the database services. The Definition registry changes only by ANCESTRY v1, SKILL v1 and CHARACTER_CREATION_RULE v1 — every other kind is byte-for-byte unchanged.
+- **Guards:** `apps/studio/tests/unit/m6-wo3-static.test.ts`, `packages/prowess-game/src/m6-wo3-registry.test.ts`, `packages/prowess-game/src/character-creation.test.ts`, `apps/studio/tests/unit/m6-wo3-compendium-integration.test.tsx`, `scripts/m6-wo3-negative-controls.mjs`
+
+### M6-I030 — A Newer Release Never Changes An Existing Character
+
+- **Group:** No Automatic Migration
+- **Meaning:** Publishing a later Release (new Ancestry, Skill or Affinity revisions) leaves every existing Character on its own Release with an identical resolution; nothing rebases a Character.
+- **Guards:** `apps/studio/tests/unit/m6-wo3-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo3-character.test.ts`, `apps/studio/tests/integration/m6-wo3-character-api.test.ts`, `scripts/m6-wo3-negative-controls.mjs`

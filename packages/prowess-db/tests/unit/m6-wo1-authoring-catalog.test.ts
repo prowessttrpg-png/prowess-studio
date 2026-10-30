@@ -3,11 +3,14 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   ABILITY_COMPONENT_CONTRACTS,
+  ANCESTRY_SKILL_SELECTION_KINDS,
+  ANCESTRY_STAT_GRANT_KINDS,
   CANONICAL_AFFINITIES,
   COST_CURRENCIES,
   DURATION_CONCEPTS,
   PROWESS_DEFINITION_KINDS,
   PROWESS_DEFINITION_KIND_NAMES,
+  PROWESS_STATS,
   PROWESS_SYSTEM_FAMILIES,
   RESOLUTION_MODES,
   TARGETING_SEMANTIC_SHAPES,
@@ -66,6 +69,10 @@ describe("M6-WO1 authoring catalog (M6-I002 no second Definition catalog)", () =
       costCurrencies: [...COST_CURRENCIES],
       canonicalAffinities: [...CANONICAL_AFFINITIES],
       componentContracts: [...ABILITY_COMPONENT_CONTRACTS],
+      // M6-WO3 character-facing vocabularies.
+      prowessStats: [...PROWESS_STATS],
+      ancestryStatGrantKinds: [...ANCESTRY_STAT_GRANT_KINDS],
+      ancestrySkillSelectionKinds: [...ANCESTRY_SKILL_SELECTION_KINDS],
     });
   });
 

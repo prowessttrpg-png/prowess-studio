@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 import { withLaterMilestoneRoutes } from "./later-milestone-routes";
 import { auditCoreContent, auditWo2Source, type Wo2Layer } from "./m5-wo2-audit-helpers";
 
@@ -95,8 +96,8 @@ describe("M5-WO2 audit — Core resolution, stats, dice & ranks", () => {
 
   it("no schema change, no migration, no new HTTP endpoint, no UI dependency, no database dependency in @prowess/game", () => {
     const wo1 = JSON.parse(read("docs/architecture/m5-wo1-baseline.json")) as { schemaHash: string; migrations: Record<string, string> };
-    expect(hash(read("packages/prowess-db/prisma/schema.prisma"))).toBe(wo1.schemaHash);
-    expect(Object.fromEntries(walk("packages/prowess-db/prisma/migrations").filter((f) => f.endsWith("migration.sql")).map((f) => [f, hash(read(f))]))).toEqual(wo1.migrations);
+    expect(hash(frozenSchemaText())).toBe(wo1.schemaHash);
+    expect(Object.fromEntries(walk("packages/prowess-db/prisma/migrations").filter((f) => f.endsWith("migration.sql")).filter(notLaterMigration).map((f) => [f, hash(read(f))]))).toEqual(wo1.migrations);
     const baseline = JSON.parse(read("docs/architecture/m5-wo2-baseline.json")) as { apiRoutes: string[] };
     expect(walk("apps/studio/app/api").filter((f) => f.endsWith("route.ts")).sort()).toEqual(withLaterMilestoneRoutes(baseline.apiRoutes));
     expect(Object.keys((JSON.parse(read("apps/studio/package.json")) as { dependencies: Record<string, string> }).dependencies)).not.toContain("@prowess/game");

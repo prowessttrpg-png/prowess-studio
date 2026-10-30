@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 import { auditM5Source, type M5Layer } from "./m5-wo1-audit-helpers";
 
 /**
@@ -103,8 +104,8 @@ describe("M5-WO1 audit — Prowess domain & shared ability construction boundary
     expect(hash(read("docs/architecture/m4-final-invariants.json"))).toBe(baseline.m4InvariantCatalogHash);
     expect(hash(m4Definitions)).toBe(baseline.m4InvariantDefinitionsHash);
     expect(hash(read("packages/prowess-rules/src/contract-version.ts"))).toBe(baseline.m4ContractVersionHash);
-    expect(hash(read("packages/prowess-db/prisma/schema.prisma"))).toBe(baseline.schemaHash);
-    const migrations = Object.fromEntries(walk("packages/prowess-db/prisma/migrations").filter((f) => f.endsWith("migration.sql")).map((f) => [f, hash(read(f))]));
+    expect(hash(frozenSchemaText())).toBe(baseline.schemaHash);
+    const migrations = Object.fromEntries(walk("packages/prowess-db/prisma/migrations").filter((f) => f.endsWith("migration.sql")).filter(notLaterMigration).map((f) => [f, hash(read(f))]));
     expect(migrations).toEqual(baseline.migrations);
   });
 

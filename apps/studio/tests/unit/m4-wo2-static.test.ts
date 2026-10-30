@@ -2,6 +2,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 
 /**
  * M4-WO2 Exact Ruleset Resolver — static audit (PAS-10 M4-WO2 §31, §63–§68, §71–§73). Invariant ids refer to
@@ -181,7 +182,7 @@ describe("M4-WO2 public surface and boundaries (§32, §63–64, §67)", () => {
   it("adds no schema, migration, persisted context table, route or UI (§58–62)", () => {
     const schema = read("packages", "prowess-db", "prisma", "schema.prisma");
     expect(schema).not.toMatch(/evaluation_rulesets|resolved_rulesets|ruleset_contexts|active_rules|current_rule_versions|model\s+(RulesetContext|ResolvedRuleset|ActiveRule)/);
-    const migrations = readdirSync(path.join(ROOT, "packages", "prowess-db", "prisma", "migrations")).filter((e) => /^\d{14}_/.test(e));
+    const migrations = readdirSync(path.join(ROOT, "packages", "prowess-db", "prisma", "migrations")).filter((e) => /^\d{14}_/.test(e)).filter(notLaterMigration);
     expect(migrations).toHaveLength(22);
     for (const f of walk(path.join(ROOT, "apps", "studio")).filter((file) => /\.(ts|tsx)$/.test(file) && !rel(file).includes("/tests/"))) {
       // M4-WO10: only its application service resolves a context (through this resolver) and calls @prowess/rules.

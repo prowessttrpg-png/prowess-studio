@@ -1,10 +1,13 @@
 import {
   ABILITY_COMPONENT_CONTRACTS,
+  ANCESTRY_SKILL_SELECTION_KINDS,
+  ANCESTRY_STAT_GRANT_KINDS,
   CANONICAL_AFFINITIES,
   COST_CURRENCIES,
   DURATION_CONCEPTS,
   PROWESS_DEFINITION_KINDS,
   PROWESS_DEFINITION_KIND_NAMES,
+  PROWESS_STATS,
   PROWESS_SYSTEM_FAMILIES,
   RESOLUTION_MODES,
   TARGETING_SEMANTIC_SHAPES,
@@ -71,6 +74,10 @@ export function getAuthoringCatalog(): AuthoringCatalog {
       costCurrencies: [...COST_CURRENCIES],
       canonicalAffinities: [...CANONICAL_AFFINITIES],
       componentContracts: [...ABILITY_COMPONENT_CONTRACTS],
+      // M6-WO3: the character-facing contracts (ANCESTRY / CHARACTER_CREATION_RULE) — Stat tokens and grant grammar.
+      prowessStats: [...PROWESS_STATS],
+      ancestryStatGrantKinds: [...ANCESTRY_STAT_GRANT_KINDS],
+      ancestrySkillSelectionKinds: [...ANCESTRY_SKILL_SELECTION_KINDS],
     },
     legacyTerms: TERMINOLOGY_INVENTORY.filter((t) => t.status === "LEGACY" && t.canonicalTerm !== null)
       .map((t) => ({ legacyTerm: t.term, canonicalTerm: t.canonicalTerm as string }))

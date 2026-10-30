@@ -340,6 +340,9 @@ model EntityVersion {
 
   /// M3-WO6 back-relation (list only): exact comparison Versions pinned by review decisions.
   importDecisions ImportDecision[]
+  charactersAsAncestry        Character[]          @relation("CharacterAncestryVersion") // M6-WO3 back-relation
+  charactersAsPrimaryAffinity Character[]          @relation("CharacterPrimaryAffinityVersion") // M6-WO3 back-relation
+  characterSkillRanks         CharacterSkillRank[] // M6-WO3 back-relation
 
   @@unique([entityId, revisionNumber])
   /// Exists so RulesetManifestEntry can reference (id, entityId) together — a composite
@@ -1466,6 +1469,7 @@ model RulesetRelease {
   /// assessment never modifies, archives, deprecates or hides a Release.
   migrationPlansAsSource MigrationPlan[] @relation("MigrationPlanSourceRelease")
   migrationPlansAsTarget MigrationPlan[] @relation("MigrationPlanTargetRelease")
+  characters Character[] // M6-WO3 back-relation
 
   publishedAt DateTime @default(now()) @map("published_at") @db.Timestamptz(6)
 
@@ -2360,3 +2364,93 @@ model ImportDecision {
   @@index([targetEntityId], map: "import_decisions_target_entity_id_idx")
   @@map("import_decisions")
 }
+
+// >>> M6-WO3 Character domain (PAS-10 M6-WO3) — player state, never Compendium Entity content.
+/// A player Character (M6-WO3). Pinned at creation to ONE exact, immutable RulesetRelease: every mechanical selection
+/// is an exact (Entity, EntityVersion) pair the service proves that Release pins. Only player CHOICES are stored —
+/// derived statistics (Maximum HP / MP, Dodge, AP, Signature slots …) are always recalculated from these inputs and the
+/// Release's Definitions. `ruleset_release_id` and `level` are guarded in the database (triggers); mechanical choices
+/// freeze once `core_creation_completed_at` is set. Every mutable write is an optimistic `lock_version` compare-and-set.
+model Character {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  name    String
+  concept String?
+
+  rulesetReleaseId String         @map("ruleset_release_id") @db.Uuid
+  rulesetRelease   RulesetRelease @relation(fields: [rulesetReleaseId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  level Int @default(1)
+
+  ancestryEntityId        String?        @map("ancestry_entity_id") @db.Uuid
+  ancestryEntityVersionId String?        @map("ancestry_entity_version_id") @db.Uuid
+  ancestryVersion         EntityVersion? @relation("CharacterAncestryVersion", fields: [ancestryEntityVersionId, ancestryEntityId], references: [id, entityId], onDelete: Restrict, onUpdate: Restrict, map: "characters_ancestry_version_fkey")
+
+  primaryAffinityEntityId        String?        @map("primary_affinity_entity_id") @db.Uuid
+  primaryAffinityEntityVersionId String?        @map("primary_affinity_entity_version_id") @db.Uuid
+  primaryAffinityVersion         EntityVersion? @relation("CharacterPrimaryAffinityVersion", fields: [primaryAffinityEntityVersionId, primaryAffinityEntityId], references: [id, entityId], onDelete: Restrict, onUpdate: Restrict, map: "characters_primary_affinity_version_fkey")
+
+  coreCreationCompletedAt DateTime? @map("core_creation_completed_at") @db.Timestamptz(6)
+
+  lockVersion Int @default(1) @map("lock_version")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  statAllocations      CharacterStatAllocation[]
+  ancestryStatChoices  CharacterAncestryStatChoice[]
+  skillRanks           CharacterSkillRank[]
+
+  @@index([rulesetReleaseId], map: "characters_ruleset_release_id_idx")
+  @@index([ancestryEntityVersionId], map: "characters_ancestry_entity_version_id_idx")
+  @@index([primaryAffinityEntityVersionId], map: "characters_primary_affinity_entity_version_id_idx")
+  @@map("characters")
+}
+
+/// Stat points a Character spent at creation, per Stat token. The final Stat is the Release STAT baseline + the exact
+/// Ancestry grants + these points — computed, never stored.
+model CharacterStatAllocation {
+  characterId String    @map("character_id") @db.Uuid
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  stat        String
+  pointsSpent Int    @map("points_spent")
+
+  @@id([characterId, stat], map: "character_stat_allocations_pkey")
+  @@map("character_stat_allocations")
+}
+
+/// The player's choice for a choice-based Ancestry Stat grant (one row per chosen Stat). The amount is read from the
+/// exact Ancestry Definition, never stored here.
+model CharacterAncestryStatChoice {
+  characterId String    @map("character_id") @db.Uuid
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  grantKey String @map("grant_key")
+  stat     String
+
+  @@id([characterId, grantKey, stat], map: "character_ancestry_stat_choices_pkey")
+  @@map("character_ancestry_stat_choices")
+}
+
+/// A Character's Skill rank on one exact SKILL EntityVersion. `source_kind` is an extensible domain token (ANCESTRY,
+/// FREE; later Work Orders add advancement sources without a migration). A Skill appears at most once per Character.
+model CharacterSkillRank {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  characterId String    @map("character_id") @db.Uuid
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  skillEntityId        String        @map("skill_entity_id") @db.Uuid
+  skillEntityVersionId String        @map("skill_entity_version_id") @db.Uuid
+  skillVersion         EntityVersion @relation(fields: [skillEntityVersionId, skillEntityId], references: [id, entityId], onDelete: Restrict, onUpdate: Restrict, map: "character_skill_ranks_skill_version_fkey")
+
+  rankKey        String  @map("rank_key")
+  sourceKind     String  @map("source_kind")
+  sourceGrantKey String? @map("source_grant_key")
+
+  @@unique([characterId, skillEntityId], map: "character_skill_ranks_character_id_skill_entity_id_key")
+  @@index([skillEntityVersionId], map: "character_skill_ranks_skill_entity_version_id_idx")
+  @@map("character_skill_ranks")
+}
+// <<< M6-WO3 Character domain

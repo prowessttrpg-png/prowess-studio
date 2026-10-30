@@ -237,3 +237,15 @@ export type {
   ReferenceRulesetSummary,
   ReferenceSource,
 } from "./compendium-reference/index.js";
+export {
+  createCharacter,
+  finalizeCharacterCoreCreation,
+  getCharacter,
+  getCharacterCreationContext,
+  getReleaseCharacterCreationCapability,
+  listCharacters,
+  saveCharacterCreation,
+  updateCharacterProfile,
+  validateCharacterCandidate,
+} from "./character/index.js";
+export type { CharacterCreationContext, CharacterDetail, CharacterListItem, CharacterReleaseSummary, CharacterStoredChoices, CreationOption } from "./character/index.js";

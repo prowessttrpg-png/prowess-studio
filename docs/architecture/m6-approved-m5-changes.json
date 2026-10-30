@@ -1,0 +1,21 @@
+{
+  "$comment": "Exact M5 (@prowess/game) file changes approved by later M6 Work Orders. Earlier frozen gates accept ONLY these exact hashes for these exact paths, and ONLY these exact added files; any other edit, addition or removal still fails them. Each Work Order's own gate pins its entry and characterizes the change (M6-WO3 \u00a710, \u00a784: ANCESTRY v1, SKILL v1, CHARACTER_CREATION_RULE v1; no M5 mechanical result changes).",
+  "M6-WO3": {
+    "changedFiles": {
+      "packages/prowess-game/src/compilation/compile.ts": "788d5268cdb9add7735d033ac1d7fa428d113097a6d6e8bd08ae38f243838b36",
+      "packages/prowess-game/src/core-contracts.test.ts": "dce712229fd66bd84d4925b529a97e972f6665a0b20285d0895127ec0725c260",
+      "packages/prowess-game/src/definition/payload.ts": "5696bfca8ea8020b904096532ea3a7ef83dd6c5619aa0db92302a72bc7e66be0",
+      "packages/prowess-game/src/index.ts": "33438b851659882ed09e32027996e05e39ffd5b62cd3e656582245fea577566b",
+      "packages/prowess-game/src/vocabulary/families.ts": "933e55b5ad7d10fd6fb41c57faada984bdd1f1727208e0d13fce31fd62142d0f"
+    },
+    "addedFiles": {
+      "packages/prowess-game/src/testing/m6-wo3-registry-baseline.json": "486b0a7df80e7ea8f778c3af45cea3cc76e148fc954fa37eadd396582c45bfa4",
+      "packages/prowess-game/src/character-creation.test.ts": "3805d2654f63501dfe2463b9617ca548a62136d0ce6836b75a0777a4f9fdf939",
+      "packages/prowess-game/src/m6-wo3-registry.test.ts": "7bc3edbee29139247887e141603e15eb8f849cb64691ccbfbf2519126f25e316",
+      "packages/prowess-game/src/character/creation.ts": "b0a875a127ed255fb15b1b68665f5984e9c3eb9f2dfaeccf8bbc6b0e4b6f1b5f",
+      "packages/prowess-game/src/definition/character-payload.ts": "b9f828761e67d395e3ab1a38104a4a2e1233c731b0dac67401e494df0bbe960a",
+      "packages/prowess-game/src/testing/character-fixtures.ts": "344436c8118d87a6d8c92926d974e0d7c8b25868b6ab4b565deaa911e034a58a",
+      "packages/prowess-game/src/vocabulary/character.ts": "f3cabe2d8e5913cf023d670b00eb49e58bfad9a2e641a6ef09cb3ecd73e40a3a"
+    }
+  }
+}

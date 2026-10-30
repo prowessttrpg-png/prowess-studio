@@ -46,7 +46,8 @@ export const PRIMARY_NAVIGATION: readonly NavEntry[] = [
       { label: "Cards", href: "/studio/cards" },
     ],
   },
-  { id: "characters", label: "Characters", href: "/characters", placeholder: true },
+  // M6-WO3: Character creation is functional (a minimal index, New Character and the core creation wizard).
+  { id: "characters", label: "Characters", href: "/characters" },
   { id: "world", label: "World", href: "/world", placeholder: true },
   { id: "gm", label: "GM", href: "/gm", placeholder: true },
   { id: "publishing", label: "Publishing", href: "/publishing", placeholder: true },

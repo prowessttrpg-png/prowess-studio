@@ -5,6 +5,7 @@ import type { AuthoringCatalogDto, AuthoringKindDto, ValidationIssueDto } from "
 import { descriptorFor, groupsOf, GENERIC_DESCRIPTOR, type FieldDescriptor } from "../_lib/descriptors";
 import { fieldDomId, fieldErrorId, issuesForField, stableStringify, type DefinitionCandidate } from "../_lib/definition-form";
 import { AuthoredDataEditor } from "./AuthoredDataEditor";
+import { DefinitionReferencePicker } from "./DefinitionReferencePicker";
 import { KeywordPicker } from "./KeywordPicker";
 
 /**
@@ -277,7 +278,202 @@ function FieldControl({ field, value, onChange, catalog, issues }: { field: Fiel
           <AuthoredDataEditor value={asObject(value)} onChange={onChange as (v: Record<string, unknown>) => void} label={field.label} />
         </Shell>
       );
+    // ---- M6-WO3 character-facing inputs (structured, never raw JSON) ----------------------------------------------
+    case "integer":
+      return (
+        <LabeledControl field={field} issues={issues}>
+          {(p) => (
+            <input
+              {...p}
+              type="number"
+              step={1}
+              value={typeof value === "number" ? value : ""}
+              onChange={(e) => onChange(e.target.value === "" ? null : Number(e.target.value))}
+            />
+          )}
+        </LabeledControl>
+      );
+    case "source": {
+      const src = asObject(value);
+      const list = (k: string) => (Array.isArray(src[k]) ? (src[k] as string[]) : []);
+      const setList = (k: string, text: string) => onChange({ ...src, [k]: text.split(",").map((x) => x.trim()).filter((x) => x !== "") });
+      return (
+        <Shell field={field} issues={issues} composite>
+          <label className="gov-field">
+            <span>Source sections (comma-separated, e.g. s20, s21)</span>
+            <input value={list("locators").join(", ")} onChange={(e) => setList("locators", e.target.value)} autoComplete="off" spellCheck={false} />
+          </label>
+          <label className="gov-field">
+            <span>Source-conflict keys (comma-separated, optional)</span>
+            <input value={list("conflicts").join(", ")} onChange={(e) => setList("conflicts", e.target.value)} autoComplete="off" spellCheck={false} />
+          </label>
+        </Shell>
+      );
+    }
+    case "statGrants":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <StatGrantsEditor rows={asArray(value)} onChange={onChange} catalog={catalog} />
+        </Shell>
+      );
+    case "skillGrants":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <SkillGrantsEditor rows={asArray(value)} onChange={onChange} catalog={catalog} optionKind={field.optionKind} />
+        </Shell>
+      );
   }
+}
+
+/** M6-WO3 Ancestry Stat grants: FIXED (one Stat) or CHOOSE_DISTINCT (count of different allowed Stats). */
+function StatGrantsEditor({ rows, onChange, catalog }: { rows: Array<Record<string, unknown>>; onChange: (v: unknown) => void; catalog: AuthoringCatalogDto }) {
+  const stats = catalog.vocabularies.prowessStats ?? [];
+  const kinds = catalog.vocabularies.ancestryStatGrantKinds ?? [];
+  const set = (i: number, next: Record<string, unknown>) => onChange(rows.map((r, j) => (j === i ? next : r)));
+  return (
+    <div>
+      {rows.length === 0 ? <p className="gov-muted">No Stat grants.</p> : null}
+      {rows.map((r, i) => {
+        const choice = r.kind !== undefined && r.kind !== kinds[0];
+        const allowed = Array.isArray(r.allowedStats) ? (r.allowedStats as string[]) : [];
+        return (
+          <fieldset key={i} className="prowess-authoring__nested" aria-label={`Stat grant ${i + 1}`}>
+            <legend>Stat grant {i + 1}</legend>
+            <label className="gov-field">
+              <span>Grant key</span>
+              <input value={String(r.grantKey ?? "")} onChange={(e) => set(i, { ...r, grantKey: e.target.value })} autoComplete="off" spellCheck={false} />
+            </label>
+            <label className="gov-field">
+              <span>Grant kind</span>
+              <select
+                value={String(r.kind ?? "")}
+                onChange={(e) => set(i, e.target.value === kinds[0] ? { grantKey: r.grantKey ?? "", kind: e.target.value, stat: "", amount: r.amount ?? 1 } : { grantKey: r.grantKey ?? "", kind: e.target.value, count: 1, amount: r.amount ?? 1, allowedStats: [] })}
+              >
+                <option value="">Choose…</option>
+                {kinds.map((k) => (
+                  <option key={k} value={k}>
+                    {k}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {!choice ? (
+              <label className="gov-field">
+                <span>Stat</span>
+                <select value={String(r.stat ?? "")} onChange={(e) => set(i, { ...r, stat: e.target.value })}>
+                  <option value="">Choose…</option>
+                  {stats.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : (
+              <>
+                <label className="gov-field">
+                  <span>Number of different Stats</span>
+                  <input type="number" step={1} value={typeof r.count === "number" ? r.count : ""} onChange={(e) => set(i, { ...r, count: e.target.value === "" ? null : Number(e.target.value) })} />
+                </label>
+                <fieldset className="prowess-authoring__nested">
+                  <legend>Allowed Stats</legend>
+                  {stats.map((s) => (
+                    <label key={s} className="prowess-authoring__inline">
+                      <input type="checkbox" checked={allowed.includes(s)} onChange={(e) => set(i, { ...r, allowedStats: e.target.checked ? [...allowed, s] : allowed.filter((x) => x !== s) })} /> {s}
+                    </label>
+                  ))}
+                </fieldset>
+              </>
+            )}
+            <label className="gov-field">
+              <span>Amount</span>
+              <input type="number" step={1} value={typeof r.amount === "number" ? r.amount : ""} onChange={(e) => set(i, { ...r, amount: e.target.value === "" ? null : Number(e.target.value) })} />
+            </label>
+            <button type="button" className="gov-link-button" onClick={() => onChange(rows.filter((_, j) => j !== i))}>
+              Remove Stat grant {i + 1}
+            </button>
+          </fieldset>
+        );
+      })}
+      <button type="button" className="gov-button" onClick={() => onChange([...rows, { grantKey: "", kind: kinds[0] ?? "", stat: "", amount: 1 }])}>
+        Add Stat grant
+      </button>
+    </div>
+  );
+}
+
+/** M6-WO3 Ancestry starting-Skill grants; options are EXACT SKILL references chosen with the reference picker. */
+function SkillGrantsEditor({ rows, onChange, catalog, optionKind }: { rows: Array<Record<string, unknown>>; onChange: (v: unknown) => void; catalog: AuthoringCatalogDto; optionKind: string }) {
+  const kinds = catalog.vocabularies.ancestrySkillSelectionKinds ?? [];
+  const [picking, setPicking] = useState<number | null>(null);
+  const set = (i: number, next: Record<string, unknown>) => onChange(rows.map((r, j) => (j === i ? next : r)));
+  return (
+    <div>
+      {rows.length === 0 ? <p className="gov-muted">No starting Skill grants.</p> : null}
+      {rows.map((r, i) => {
+        const options = Array.isArray(r.options) ? (r.options as Array<Record<string, unknown>>) : [];
+        return (
+          <fieldset key={i} className="prowess-authoring__nested" aria-label={`Skill grant ${i + 1}`}>
+            <legend>Skill grant {i + 1}</legend>
+            <label className="gov-field">
+              <span>Grant key</span>
+              <input value={String(r.grantKey ?? "")} onChange={(e) => set(i, { ...r, grantKey: e.target.value })} autoComplete="off" spellCheck={false} />
+            </label>
+            <label className="gov-field">
+              <span>Selection</span>
+              <select value={String(r.selectionKind ?? "")} onChange={(e) => set(i, { ...r, selectionKind: e.target.value })}>
+                <option value="">Choose…</option>
+                {kinds.map((k) => (
+                  <option key={k} value={k}>
+                    {k}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="gov-field">
+              <span>Number of Skills</span>
+              <input type="number" step={1} value={typeof r.count === "number" ? r.count : ""} onChange={(e) => set(i, { ...r, count: e.target.value === "" ? null : Number(e.target.value) })} />
+            </label>
+            <label className="gov-field">
+              <span>Starting rank</span>
+              <input value={String(r.rankKey ?? "")} onChange={(e) => set(i, { ...r, rankKey: e.target.value })} autoComplete="off" spellCheck={false} />
+            </label>
+            <ul aria-label={`Skill options of grant ${i + 1}`}>
+              {options.map((o, j) => (
+                <li key={j}>
+                  <code>{String(o.canonicalKey)}</code>{" "}
+                  <button type="button" className="gov-link-button" onClick={() => set(i, { ...r, options: options.filter((_, k) => k !== j) })}>
+                    Remove option {String(o.canonicalKey)}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {picking === i ? (
+              <DefinitionReferencePicker
+                label={`Add an exact Skill to grant ${i + 1}`}
+                definitionKind={optionKind}
+                onSelect={(ref) => {
+                  set(i, { ...r, options: [...options, ref] });
+                  setPicking(null);
+                }}
+                onCancel={() => setPicking(null)}
+              />
+            ) : (
+              <button type="button" className="gov-button" onClick={() => setPicking(i)}>
+                Add Skill option
+              </button>
+            )}
+            <button type="button" className="gov-link-button" onClick={() => onChange(rows.filter((_, j) => j !== i))}>
+              Remove Skill grant {i + 1}
+            </button>
+          </fieldset>
+        );
+      })}
+      <button type="button" className="gov-button" onClick={() => onChange([...rows, { grantKey: "", rankKey: "", selectionKind: kinds[0] ?? "", count: 1, options: [] }])}>
+        Add Skill grant
+      </button>
+    </div>
+  );
 }
 
 function LegacyTermsEditor({ candidate, onChange, catalog }: { candidate: DefinitionCandidate; onChange: (c: DefinitionCandidate) => void; catalog: AuthoringCatalogDto }) {

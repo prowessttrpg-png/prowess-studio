@@ -121,7 +121,53 @@ function FieldValue({ field, payload, context, keywordName }: { field: FieldDesc
       ) : (
         <span className="gov-muted">—</span>
       );
+    // M6-WO3 character-facing fields (§51): shown exactly as authored, labelled for readers. Skill options are exact
+    // references, rendered as exact-Release links by the StructuredValue reference renderer.
+    case "integer":
+      return typeof value === "number" ? <span data-field={field.key}>{value}</span> : <span className="gov-muted">—</span>;
+    case "statGrants":
+      return Array.isArray(value) && value.length > 0 ? (
+        <ul className="prowess-reference__list" aria-label={field.label}>
+          {value.map((g, i) =>
+            isRecord(g) ? (
+              <li key={i} data-testid="reference-stat-grant">
+                <code>{String(g.grantKey ?? "")}</code>{" "}
+                {g.kind === "FIXED" ? (
+                  <>
+                    +{String(g.amount ?? "")} <TokenText value={String(g.stat ?? "")} /> (fixed)
+                  </>
+                ) : (
+                  <>
+                    +{String(g.amount ?? "")} to {String(g.count ?? "")} different Stats, chosen from{" "}
+                    {Array.isArray(g.allowedStats) ? g.allowedStats.map(String).join(", ") : "—"}
+                  </>
+                )}
+              </li>
+            ) : null,
+          )}
+        </ul>
+      ) : (
+        <span className="gov-muted">none</span>
+      );
+    case "skillGrants":
+      return Array.isArray(value) && value.length > 0 ? (
+        <ul className="prowess-reference__list" aria-label={field.label}>
+          {value.map((g, i) =>
+            isRecord(g) ? (
+              <li key={i} data-testid="reference-skill-grant">
+                <code>{String(g.grantKey ?? "")}</code> <TokenText value={String(g.selectionKind ?? "")} />
+                {g.selectionKind === "CHOOSE_ANY" ? ` — any ${String(g.count ?? "")} published Skill(s)` : g.selectionKind === "CHOOSE_FROM" ? ` — choose ${String(g.count ?? "")} of:` : " —"}{" "}
+                rank <TokenText value={String(g.rankKey ?? "")} />
+                {Array.isArray(g.options) && g.options.length > 0 ? <StructuredValue value={g.options} path={`${path}[${i}].options`} context={context} /> : null}
+              </li>
+            ) : null,
+          )}
+        </ul>
+      ) : (
+        <span className="gov-muted">none</span>
+      );
     case "authoredData":
+    case "source":
       return <StructuredValue value={value} path={path} context={context} />;
   }
 }

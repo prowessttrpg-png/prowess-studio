@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 import { auditSource, type Layer } from "./m4-final-audit-helpers";
 
 const root = path.resolve(process.cwd(), "../..");
@@ -56,8 +57,8 @@ describe("M4 Final Static Architecture Audit", () => {
   it("schema and all migrations equal the approved pre-WO11 baseline", () => {
     const baseline = JSON.parse(read("docs/architecture/m4-wo11-baseline.json")) as { schemaHash: string; migrations: Record<string, string> };
     const hash = (s: string) => createHash("sha256").update(s).digest("hex");
-    expect(hash(read("packages/prowess-db/prisma/schema.prisma"))).toBe(baseline.schemaHash);
-    expect(Object.fromEntries(walk("packages/prowess-db/prisma/migrations").filter(f => f.endsWith("migration.sql")).map(f => [f, hash(read(f))]))).toEqual(baseline.migrations);
+    expect(hash(frozenSchemaText())).toBe(baseline.schemaHash);
+    expect(Object.fromEntries(walk("packages/prowess-db/prisma/migrations").filter(f => f.endsWith("migration.sql")).filter(notLaterMigration).map(f => [f, hash(read(f))]))).toEqual(baseline.migrations);
   });
   it("WO1–WO11, WO10A protection, final audit and actual browser workflows remain permanent CI gates", () => {
     const ci = read(".github/workflows/ci.yml");

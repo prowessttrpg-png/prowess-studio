@@ -2,6 +2,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 
 /**
  * M4-WO8 Validation Engine — static audit (PAS-10 M4-WO8 §141–150). Invariant ids refer to
@@ -159,7 +160,7 @@ describe("M4-WO8 boundaries (§4–6, §141)", () => {
 
   it("adds no validation persistence, migration, route, UI or DB service", () => {
     expect(read("packages", "prowess-db", "prisma", "schema.prisma")).not.toMatch(/model\s+Validation\w*|validation_(rules|runs|results|findings)/i);
-    expect(readdirSync(path.join(ROOT, "packages", "prowess-db", "prisma", "migrations")).filter((e) => /^\d{14}_/.test(e))).toHaveLength(22);
+    expect(readdirSync(path.join(ROOT, "packages", "prowess-db", "prisma", "migrations")).filter((e) => /^\d{14}_/.test(e)).filter(notLaterMigration)).toHaveLength(22);
     for (const f of [...walk(path.join(ROOT, "apps", "studio")), ...walk(path.join(ROOT, "packages", "prowess-db", "src"))].filter((file) => /\.(ts|tsx)$/.test(file) && !rel(file).includes("/tests/"))) {
       expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/evaluateValidation/);
     }

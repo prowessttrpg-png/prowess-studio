@@ -4,6 +4,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import * as model from "@prowess/model";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 import { statusForDomainErrorCode, toErrorResponse } from "../../src/api/errors";
 
 /**
@@ -70,7 +71,7 @@ const MIGRATIONS: Array<[string, string]> = [
 describe("M3-WO10 migration chain", () => {
   it("is exactly the 22 approved migrations, in order, byte-for-byte (no history rewritten)", () => {
     const dir = path.join(ROOT, "packages", "prowess-db", "prisma", "migrations");
-    const names = readdirSync(dir).filter((e) => statSync(path.join(dir, e)).isDirectory()).sort();
+    const names = readdirSync(dir).filter((e) => statSync(path.join(dir, e)).isDirectory()).filter(notLaterMigration).sort(); // M6-WO3: registered later migrations excluded
     expect(names).toEqual(MIGRATIONS.map(([n]) => n));
     for (const [n, hash] of MIGRATIONS) {
       const h = execSync(`node -e "process.stdout.write(require('crypto').createHash('sha256').update(require('fs').readFileSync(process.argv[1])).digest('hex'))" "${path.join(dir, n, "migration.sql")}"`).toString();
