@@ -46,6 +46,10 @@ describe("§5 no hidden 'latest' selection", () => {
         "packages/prowess-db/src/ruleset-manifest/service.ts → selectLatestRulesetManifest", // inside getLatestRulesetManifest (convenience)
         "packages/prowess-db/src/ruleset-release/service.ts → selectLatestRelease", // WO8 §39 linear-history baseline (mandated)
         "packages/prowess-db/src/ruleset-release/service.ts → selectLatestRelease", // inside getLatestRulesetRelease (convenience)
+        // M6-WO2 Rules Reference: the explicit "View Latest Release" action resolves to an EXACT Release id (never stored,
+        // never substituted), and the pinned-vs-latest INDICATOR reads the highest revision number (never content).
+        "packages/prowess-db/src/compendium-reference/service.ts → getLatestRulesetRelease",
+        "packages/prowess-db/src/compendium-reference/service.ts → selectLatestRevisionNumber",
       ].sort(),
     );
   });

@@ -141,7 +141,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
   >;
   const allCodes = vocabularies.flatMap(([, codes]) => Object.values(codes));
 
-  it("exports the thirty vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5, CanonDecision M2-WO6, ChangeSet M2-WO7, RulesetRelease M2-WO8, MigrationPlan M2-WO11, SourceSnapshot / SourceStructure / SourceAsset / SourceParse M3-WO1, ImportBatch / ExtractionCandidate M3-WO2, ImportMatch M3-WO4, ImportDecision / ImportReview M3-WO6, RulesetResolution M4-WO2, ProwessMaterialization M5-WO1, CompendiumAuthoring M6-WO1)", () => {
+  it("exports the thirty-one vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5, CanonDecision M2-WO6, ChangeSet M2-WO7, RulesetRelease M2-WO8, MigrationPlan M2-WO11, SourceSnapshot / SourceStructure / SourceAsset / SourceParse M3-WO1, ImportBatch / ExtractionCandidate M3-WO2, ImportMatch M3-WO4, ImportDecision / ImportReview M3-WO6, RulesetResolution M4-WO2, ProwessMaterialization M5-WO1, CompendiumAuthoring M6-WO1, CompendiumReference M6-WO2)", () => {
     expect(vocabularies.map(([name]) => name).sort()).toEqual(
       [
         "ENTITY_ALIAS_ERROR_CODES",
@@ -174,6 +174,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
         "RULESET_RESOLUTION_ERROR_CODES",
         "PROWESS_MATERIALIZATION_ERROR_CODES",
         "COMPENDIUM_AUTHORING_ERROR_CODES",
+        "COMPENDIUM_REFERENCE_ERROR_CODES",
       ].sort(),
     );
   });
@@ -192,7 +193,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
   });
 
   const CONTROLLED_UNIONS =
-    "Entity|EntityVersion|EntityAlias|KeywordCategory|Keyword|KeywordAssignment|Relationship|SourceDocument|SourceReference|ImportBatch|ImportMatch|ImportDecision|ImportReview|RulesetResolution|CompendiumAuthoring".split("|").map((n) => `${n}ErrorCode`).join("|");
+    "Entity|EntityVersion|EntityAlias|KeywordCategory|Keyword|KeywordAssignment|Relationship|SourceDocument|SourceReference|ImportBatch|ImportMatch|ImportDecision|ImportReview|RulesetResolution|CompendiumAuthoring|CompendiumReference".split("|").map((n) => `${n}ErrorCode`).join("|");
 
   it("every DomainError thrown in @prowess/db uses a controlled constant (or a parameter typed with a controlled union) — never a raw string", () => {
     const files = walk(path.join(ROOT, "packages", "prowess-db", "src"), isSource);

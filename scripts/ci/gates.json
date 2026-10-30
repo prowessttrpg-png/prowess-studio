@@ -912,6 +912,31 @@
         2,
         3
       ]
+    },
+    {
+      "id": "M6-WO2",
+      "name": "M6-WO2 — Compendium Rules Reference & Structured Browsing",
+      "job": "controls-2",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-db/tests/integration/m6-wo2-compendium-reference.test.ts",
+        "apps/studio/tests/unit/m6-wo2-static.test.ts",
+        "apps/studio/tests/unit/m6-wo2-rules-reference-ui.test.tsx",
+        "apps/studio/tests/unit/m6-wo2-reference-lib.test.ts",
+        "apps/studio/tests/integration/m6-wo2-compendium-reference-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m6-wo2-negative-controls.mjs",
+        "count": 18,
+        "kind": "mutation"
+      },
+      "smoke": [],
+      "previous": [],
+      "tiers": [
+        2,
+        3
+      ]
     }
   ],
   "checks": [

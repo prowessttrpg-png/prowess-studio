@@ -73,7 +73,8 @@ describe("M6-WO1 gate — layering (§37–38, M6-I002)", () => {
 
   it("the route inventory equals the reviewed M6 route registry (the M5 freezes accept exactly these additions)", () => {
     const registry = JSON.parse(read("docs/architecture/m6-api-routes.json")) as Record<string, unknown>;
-    expect(Object.keys(registry).filter((k) => k !== "$comment")).toEqual(["M6-WO1"]);
+    // Later Work Orders add their own keys (each pinned by its own gate); M6-WO1's entry stays exactly these routes.
+    expect(Object.keys(registry).filter((k) => k !== "$comment")[0]).toBe("M6-WO1");
     expect([...(registry["M6-WO1"] as string[])].sort()).toEqual([...ROUTES].sort());
     for (const r of registry["M6-WO1"] as string[]) expect(r).toMatch(/^apps\/studio\/app\/api\/compendium-authoring\//);
   });
@@ -247,7 +248,8 @@ describe("M6-WO1 gate — frozen M4 / M5 / schema (§80–81)", () => {
 });
 
 describe("M6-WO1 gate — invariants, documentation and CI (§77, §79, §83)", () => {
-  const inv = JSON.parse(read("docs/architecture/m6-invariants.json")) as Array<{ id: string; title: string; guards: string[] }>;
+  // M6-WO1 owns M6-I001–I010; later Work Orders append theirs (each pinned by its own gate).
+  const inv = (JSON.parse(read("docs/architecture/m6-invariants.json")) as Array<{ id: string; title: string; guards: string[] }>).slice(0, 10);
   it("M6-I001–I010 are sequential, documented, and each guarded by executing files that cite it", () => {
     expect(inv.map((x) => x.id)).toEqual(Array.from({ length: 10 }, (_, i) => `M6-I${String(i + 1).padStart(3, "0")}`));
     const md = read("docs/architecture/m6-invariants.md");

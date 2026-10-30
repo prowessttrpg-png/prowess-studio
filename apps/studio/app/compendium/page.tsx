@@ -225,15 +225,29 @@ export default function CompendiumPage() {
           authored revision, aliases, Keywords, relationships, and source provenance. This
           is a development tool, not the final published Prowess rulebook.
         </p>
-        {/* M6-WO1: authoring lives in its own workspace; this browser stays read-only. */}
-        <p className="prowess-compendium__admin-link">
-          <Link href="/compendium/admin">Compendium Admin — author and edit Definitions</Link>
-        </p>
+        {/* M6-WO2: the Compendium offers three ways in. The Rules Reference reads one published Release exactly; the
+            Entity Library (below) browses every Entity and every revision; Compendium Admin is where authoring happens. */}
+        <nav className="prowess-compendium__choices" aria-label="Compendium sections">
+          <ul>
+            <li>
+              <Link href="/compendium/rulesets">Rules Reference</Link> — the rules exactly as a published Release defines them.
+            </li>
+            <li>
+              <a href="#entity-library">Entity Library</a> — every Entity and every revision, not tied to a Release.
+            </li>
+            <li>
+              <Link href="/compendium/admin">Compendium Admin — author and edit Definitions</Link>
+            </li>
+          </ul>
+        </nav>
       </header>
 
-      <Suspense fallback={<LoadingState label="Loading Entities…" />}>
-        <CompendiumBrowser />
-      </Suspense>
+      <section id="entity-library" aria-labelledby="entity-library-heading">
+        <h2 id="entity-library-heading">Entity Library</h2>
+        <Suspense fallback={<LoadingState label="Loading Entities…" />}>
+          <CompendiumBrowser />
+        </Suspense>
+      </section>
     </div>
   );
 }

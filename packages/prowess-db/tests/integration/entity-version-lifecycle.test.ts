@@ -466,6 +466,14 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "updateAuthoredDraftDefinition",
         "validateAuthoringCandidate",
         "validateStoredRevision",
+        // M6-WO2 Compendium Rules Reference: read-only, Release-scoped reads (no write of any kind).
+        "GENERIC_KIND_FACET",
+        "compareReferenceReleases",
+        "getReferenceEntry",
+        "getReferenceRelease",
+        "listReferenceEntries",
+        "listReferenceReleases",
+        "resolveLatestReferenceRelease",
       ].sort(),
     );
 

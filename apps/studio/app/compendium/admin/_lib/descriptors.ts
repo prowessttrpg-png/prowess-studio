@@ -141,6 +141,35 @@ export function descriptorFor(kind: { definitionKind: string; sharedContract: st
   return GENERIC_DESCRIPTOR;
 }
 
+/**
+ * Version-2 AFFINITY, for READ-ONLY presentation in the Rules Reference (PAS-10 M6-WO2): the Affinity identity, its
+ * themes and its authored Strength / Weakness rules, shown exactly as stored. Authoring of version 2 still uses the
+ * generic editor (descriptorFor is unchanged); this only labels and groups the stored fields for readers.
+ */
+const AFFINITY_V2_PRESENTATION: ContractDescriptor = {
+  purpose: "An Affinity: its identity, themes, and the authored Strengths and Weaknesses that match Keywords. Percentages are shown as authored — never applied here.",
+  fields: [
+    { key: "affinity", label: "Affinity", group: "Classification", input: "select", vocabulary: "canonicalAffinities", required: true },
+    { key: "identity", label: "Identity", group: "Identity", input: "authoredData", required: true },
+    { key: "strengths", label: "Strengths", group: "Strengths & Weaknesses", input: "authoredData", required: false },
+    { key: "weaknesses", label: "Weaknesses", group: "Strengths & Weaknesses", input: "authoredData", required: false },
+    { key: "source", label: "Source", group: "Source", input: "authoredData", required: false },
+  ],
+};
+
+/**
+ * The read-only presentation descriptor for a STORED Definition (PAS-10 M6-WO2 Rules Reference): the same descriptor
+ * the editor uses for the kind's shared contract (no second catalog), plus the version-2 Affinity presentation. Null
+ * means "present generically": a kind without a dedicated descriptor, or a schema version the catalog does not list as
+ * supported for the kind (historical / future content renders as stored — never migrated on view).
+ */
+export function presentationDescriptorFor(kind: { definitionKind: string; sharedContract: string | null; supportedSchemaVersions: readonly number[] }, schemaVersion: number | null): ContractDescriptor | null {
+  if (schemaVersion === null || !kind.supportedSchemaVersions.includes(schemaVersion)) return null;
+  if (kind.definitionKind === "AFFINITY" && schemaVersion === 2) return AFFINITY_V2_PRESENTATION;
+  const descriptor = descriptorFor(kind, schemaVersion);
+  return descriptor === GENERIC_DESCRIPTOR ? null : descriptor;
+}
+
 /** Field groups in first-appearance order. */
 export function groupsOf(descriptor: ContractDescriptor): string[] {
   return [...new Set(descriptor.fields.map((f) => f.group))];

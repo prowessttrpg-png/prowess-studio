@@ -30,6 +30,7 @@ import {
   RULESET_RESOLUTION_ERROR_CODES,
   PROWESS_MATERIALIZATION_ERROR_CODES,
   COMPENDIUM_AUTHORING_ERROR_CODES,
+  COMPENDIUM_REFERENCE_ERROR_CODES,
   type EntityAliasErrorCode,
   type EntityErrorCode,
   type EntityVersionErrorCode,
@@ -60,6 +61,7 @@ import {
   type RulesetResolutionErrorCode,
   type ProwessMaterializationErrorCode,
   type CompendiumAuthoringErrorCode,
+  type CompendiumReferenceErrorCode,
 } from "@prowess/model";
 import { NextResponse } from "next/server";
 
@@ -139,7 +141,8 @@ type KnownDomainErrorCode =
   | ImportReviewErrorCode
   | RulesetResolutionErrorCode
   | ProwessMaterializationErrorCode
-  | CompendiumAuthoringErrorCode;
+  | CompendiumAuthoringErrorCode
+  | CompendiumReferenceErrorCode;
 
 /**
  * Centralized `DomainError.code` -> HTTP status mapping (PAS-10 M1-WO8
@@ -444,6 +447,11 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [COMPENDIUM_AUTHORING_ERROR_CODES.STALE_REVISION]: 409,
   [COMPENDIUM_AUTHORING_ERROR_CODES.NOT_A_DEFINITION]: 409,
   [COMPENDIUM_AUTHORING_ERROR_CODES.PARTIAL_CREATE]: 500,
+  // Compendium Rules Reference (M6-WO2). A malformed filter is invalid input (400); a Release outside the URL's Ruleset
+  // and an Entity the Release does not pin are not found in that Release context (404) — never a fallback.
+  [COMPENDIUM_REFERENCE_ERROR_CODES.INVALID_INPUT]: 400,
+  [COMPENDIUM_REFERENCE_ERROR_CODES.RELEASE_NOT_IN_RULESET]: 404,
+  [COMPENDIUM_REFERENCE_ERROR_CODES.ENTITY_NOT_IN_RELEASE]: 404,
 } satisfies Record<KnownDomainErrorCode, number>;
 
 /**

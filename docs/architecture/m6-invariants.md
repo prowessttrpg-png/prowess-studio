@@ -1,4 +1,4 @@
-# M6 Invariant Catalog (M6-WO1)
+# M6 Invariant Catalog (M6-WO1, M6-WO2)
 
 Machine-readable twin: `m6-invariants.json`. The permanent M6-WO1 gate (`apps/studio/tests/unit/m6-wo1-static.test.ts`)
 requires every id below, each with executing automated guards that cite it. M4 (M4-I01–I188, M4-I162A) and M5 (M5-I001–I337)
@@ -63,3 +63,67 @@ invariants are frozen and are not repeated, renumbered or rewritten here.
 - **Group:** Storage
 - **Meaning:** An Entity without a stored Prowess Definition is generic content; authoring never infers, attaches or changes a Definition kind from names, text or EntityType.
 - **Guards:** `apps/studio/tests/unit/m6-wo1-static.test.ts`, `apps/studio/tests/integration/m6-wo1-compendium-authoring-api.test.ts`, `apps/studio/tests/unit/m6-wo1-compendium-admin-ui.test.tsx`, `apps/studio/tests/unit/m6-wo1-entity-workspace.test.tsx`, `scripts/m6-wo1-negative-controls.mjs`
+
+## M6-WO2 — Compendium Rules Reference & Structured Browsing
+
+Required by the permanent M6-WO2 gate (`apps/studio/tests/unit/m6-wo2-static.test.ts`).
+
+### M6-I011 — The Rules Reference Is Scoped To One Exact Release
+
+- **Group:** Release Scoping
+- **Meaning:** Rules Reference content is Ruleset → exact RulesetRelease → its flattened Release Manifest → the exact EntityVersion each entry pins. Membership is the manifest's entries only; a Release of another Ruleset is never readable under a Ruleset's URL; no inheritance is reconstructed.
+- **Guards:** `apps/studio/tests/unit/m6-wo2-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo2-compendium-reference.test.ts`, `apps/studio/tests/integration/m6-wo2-compendium-reference-api.test.ts`, `apps/studio/tests/unit/m6-wo2-rules-reference-ui.test.tsx`, `scripts/m6-wo2-negative-controls.mjs`
+
+### M6-I012 — A Release Pin Is Never Substituted
+
+- **Group:** Release Scoping
+- **Meaning:** Every entry shows the revision its Release pins. The Entity's latest revision appears only as an indicator next to the pin and never selects content; an Entity the Release does not pin is an explicit not-in-Release state, never a fallback.
+- **Guards:** `apps/studio/tests/unit/m6-wo2-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo2-compendium-reference.test.ts`, `apps/studio/tests/integration/m6-wo2-compendium-reference-api.test.ts`, `apps/studio/tests/unit/m6-wo2-rules-reference-ui.test.tsx`, `scripts/m6-wo2-negative-controls.mjs`
+
+### M6-I013 — Historical Releases Read Identically Over Time
+
+- **Group:** Release Scoping
+- **Meaning:** Reading a Release after later revisions and later Releases exist returns exactly what it returned before; nothing is migrated, re-validated or re-resolved on view.
+- **Guards:** `apps/studio/tests/unit/m6-wo2-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo2-compendium-reference.test.ts`, `apps/studio/tests/integration/m6-wo2-compendium-reference-api.test.ts`
+
+### M6-I014 — Browsing Facets Are Server-Side And Deterministic
+
+- **Group:** Browsing
+- **Meaning:** Search, kind, family, branch, EntityType and Keyword (by id) filter on the server inside one Release, with server paging and a deterministic order (display name, canonical key, Entity id); facet options come from the one M5-derived catalog.
+- **Guards:** `apps/studio/tests/unit/m6-wo2-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo2-compendium-reference.test.ts`, `apps/studio/tests/integration/m6-wo2-compendium-reference-api.test.ts`, `apps/studio/tests/unit/m6-wo2-rules-reference-ui.test.tsx`, `scripts/m6-wo2-negative-controls.mjs`
+
+### M6-I015 — Presentation Reuses The One Descriptor Set And Computes Nothing
+
+- **Group:** Presentation
+- **Meaning:** Dedicated presenters are the WO1 shared-contract descriptors (plus Affinity); everything else, and any unsupported schema version, renders generically as stored. Generic content has no inferred kind. Costs and formulas are shown as authored, never computed; raw JSON appears only under Developer details.
+- **Guards:** `apps/studio/tests/unit/m6-wo2-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo2-compendium-reference.test.ts`, `apps/studio/tests/unit/m6-wo2-rules-reference-ui.test.tsx`, `apps/studio/tests/unit/m6-wo2-reference-lib.test.ts`, `scripts/m6-wo2-negative-controls.mjs`
+
+### M6-I016 — Exact References Are Shown As Authored, Next To The Pin
+
+- **Group:** References
+- **Meaning:** An exact Definition reference is reported with the revision it names and the revision this Release pins for that Entity; a mismatch or absence is stated and never rewritten. Referenced By is bounded to the Release and needs no new table; relationships infer no inverse; Related by Keyword is labelled as such.
+- **Guards:** `apps/studio/tests/unit/m6-wo2-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo2-compendium-reference.test.ts`, `apps/studio/tests/integration/m6-wo2-compendium-reference-api.test.ts`, `apps/studio/tests/unit/m6-wo2-rules-reference-ui.test.tsx`, `scripts/m6-wo2-negative-controls.mjs`
+
+### M6-I017 — Release Integrity And The Latest Release Come From The Server
+
+- **Group:** Releases
+- **Meaning:** Manifest verification is M2's verifyRulesetReleaseManifestHash on the server (a failure is a serious warning). View Latest Release is an explicit action that resolves, by M2 query, to an exact Release URL; no current / active Release pointer exists.
+- **Guards:** `apps/studio/tests/unit/m6-wo2-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo2-compendium-reference.test.ts`, `apps/studio/tests/integration/m6-wo2-compendium-reference-api.test.ts`, `apps/studio/tests/unit/m6-wo2-rules-reference-ui.test.tsx`, `scripts/m6-wo2-negative-controls.mjs`
+
+### M6-I018 — Release Comparison Is M2's Composition Diff
+
+- **Group:** Releases
+- **Meaning:** Comparison reuses compareRulesetReleases: added, removed and changed-revision entries plus the unchanged count, both Releases in the URL's Ruleset; a changed revision links to the existing revision comparison. No semantic diff is computed.
+- **Guards:** `apps/studio/tests/unit/m6-wo2-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo2-compendium-reference.test.ts`, `apps/studio/tests/integration/m6-wo2-compendium-reference-api.test.ts`, `apps/studio/tests/unit/m6-wo2-rules-reference-ui.test.tsx`, `scripts/m6-wo2-negative-controls.mjs`
+
+### M6-I019 — Every Rules Reference URL Names The Exact Release
+
+- **Group:** Navigation
+- **Meaning:** Rules Reference routes carry the Ruleset and Release ids; links between entries, comparisons and history keep that Release, so a bookmark always shows the same pins. Nothing remembers a current Release.
+- **Guards:** `apps/studio/tests/unit/m6-wo2-static.test.ts`, `apps/studio/tests/unit/m6-wo2-rules-reference-ui.test.tsx`, `apps/studio/tests/unit/m6-wo2-reference-lib.test.ts`, `scripts/m6-wo2-negative-controls.mjs`
+
+### M6-I020 — The Rules Reference Is Read-Only
+
+- **Group:** Boundaries
+- **Meaning:** The reference routes export GET only and the reference service performs no write; reading writes nothing (fingerprinted). No schema, migration, M4 or M5 change; no publication, ChangeSet or lifecycle call; editing is a hand-off to Compendium Admin.
+- **Guards:** `apps/studio/tests/unit/m6-wo2-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo2-compendium-reference.test.ts`, `apps/studio/tests/integration/m6-wo2-compendium-reference-api.test.ts`, `scripts/m6-wo2-negative-controls.mjs`

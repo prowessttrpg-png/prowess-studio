@@ -133,6 +133,10 @@ describe("M2-WO8 — scope boundaries", () => {
         if (path.join(d, entry) === path.join(ROOT, "apps", "studio", "app", "api")) continue;
         // M2-WO10: the Ruleset & Canon governance UI now exists; its boundaries are pinned by m2-ui-static.
         if (path.join(d, entry) === path.join(ROOT, "apps", "studio", "app", "developer", "rulesets")) continue;
+        // M6-WO2: the read-only Compendium Rules Reference (Ruleset → exact Release → pinned entries) lives here. It
+        // governs and publishes nothing — no Ruleset, Release or publishing write is reachable from it; that boundary is
+        // pinned by m6-wo2-static. Governance UI is still only the M2-WO10 workspace above.
+        if (path.join(d, entry) === path.join(ROOT, "apps", "studio", "app", "compendium", "rulesets")) continue;
         const full = path.join(d, entry);
         if (/release|publish|change|impact|decision|conflict|canon/i.test(entry)) found.push(path.relative(ROOT, full));
         if (statSync(full).isDirectory()) walk(full);
