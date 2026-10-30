@@ -82,6 +82,14 @@ export function canonManagerChangeSetHref(rulesetId: string, changeSetId: string
   return `/developer/rulesets/${encodeURIComponent(rulesetId)}/change-sets/${encodeURIComponent(changeSetId)}`;
 }
 
+/**
+ * The Canon Manager page of one Ruleset (M6-WO2): where a Ruleset's Releases are governed and published. The Rules
+ * Reference links here (e.g. from its "no Releases yet" state) and never publishes anything itself.
+ */
+export function canonManagerRulesetHref(rulesetId: string): string {
+  return `/developer/rulesets/${encodeURIComponent(rulesetId)}`;
+}
+
 export function isNavEntryActive(entry: NavEntry, pathname: string): boolean {
   if (entry.href === "/") {
     return pathname === "/";

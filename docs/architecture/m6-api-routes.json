@@ -1,5 +1,5 @@
 {
-  "$comment": "Routes added after the certified M0\u2013M5 baseline, by Work Order. The frozen M5 route inventories (docs/architecture/m5-wo*-baseline.json) stay byte-identical; their static gates accept exactly baseline + these registered routes (apps/studio/tests/unit/later-milestone-routes.ts) and fail on any unregistered route. Pinned by apps/studio/tests/unit/m6-wo1-static.test.ts.",
+  "$comment": "Routes added after the certified M0\u2013M5 baseline, by Work Order. The frozen M5 route inventories (docs/architecture/m5-wo*-baseline.json) stay byte-identical; their static gates accept exactly baseline + these registered routes (apps/studio/tests/unit/later-milestone-routes.ts) and fail on any unregistered route. Pinned by apps/studio/tests/unit/m6-wo1-static.test.ts (M6-WO1) and apps/studio/tests/unit/m6-wo2-static.test.ts (M6-WO2).",
   "M6-WO1": [
     "apps/studio/app/api/compendium-authoring/catalog/route.ts",
     "apps/studio/app/api/compendium-authoring/definition-references/route.ts",
@@ -11,5 +11,13 @@
     "apps/studio/app/api/compendium-authoring/entity-versions/[versionId]/validation/route.ts",
     "apps/studio/app/api/compendium-authoring/keywords/route.ts",
     "apps/studio/app/api/compendium-authoring/validate/route.ts"
+  ],
+  "M6-WO2": [
+    "apps/studio/app/api/compendium-reference/rulesets/[rulesetId]/latest-release/route.ts",
+    "apps/studio/app/api/compendium-reference/rulesets/[rulesetId]/releases/[releaseId]/compare/[otherReleaseId]/route.ts",
+    "apps/studio/app/api/compendium-reference/rulesets/[rulesetId]/releases/[releaseId]/entities/[entityId]/route.ts",
+    "apps/studio/app/api/compendium-reference/rulesets/[rulesetId]/releases/[releaseId]/entities/route.ts",
+    "apps/studio/app/api/compendium-reference/rulesets/[rulesetId]/releases/[releaseId]/route.ts",
+    "apps/studio/app/api/compendium-reference/rulesets/[rulesetId]/releases/route.ts"
   ]
 }

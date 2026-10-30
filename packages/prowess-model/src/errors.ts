@@ -770,3 +770,19 @@ export const COMPENDIUM_AUTHORING_ERROR_CODES = {
 } as const;
 
 export type CompendiumAuthoringErrorCode = (typeof COMPENDIUM_AUTHORING_ERROR_CODES)[keyof typeof COMPENDIUM_AUTHORING_ERROR_CODES];
+
+/**
+ * Compendium Rules Reference (PAS-10 M6-WO2) — the read-only, Release-scoped reference API. A Release that exists but
+ * belongs to another Ruleset than the one in the URL, and an Entity that has no pin in the Release, are explicit
+ * not-found conditions: the Rules Reference never falls back to another Release or to a Latest Revision.
+ */
+export const COMPENDIUM_REFERENCE_ERROR_CODES = {
+  /** A query parameter is malformed or names an unknown filter value (kind, family, branch, EntityType, Keyword). */
+  INVALID_INPUT: "COMPENDIUM_REFERENCE.INVALID_INPUT",
+  /** The Release exists but belongs to a different Ruleset than the one the URL names. */
+  RELEASE_NOT_IN_RULESET: "COMPENDIUM_REFERENCE.RELEASE_NOT_IN_RULESET",
+  /** The Entity is not pinned by this Release's flattened manifest — it is not part of this Release. */
+  ENTITY_NOT_IN_RELEASE: "COMPENDIUM_REFERENCE.ENTITY_NOT_IN_RELEASE",
+} as const;
+
+export type CompendiumReferenceErrorCode = (typeof COMPENDIUM_REFERENCE_ERROR_CODES)[keyof typeof COMPENDIUM_REFERENCE_ERROR_CODES];

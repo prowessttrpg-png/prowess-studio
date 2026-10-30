@@ -211,3 +211,29 @@ export type {
   ProposeDefinitionChangeSetInput,
   UpdateAuthoredDraftDefinitionInput,
 } from "./compendium-authoring/index.js";
+
+export {
+  GENERIC_KIND_FACET,
+  compareReferenceReleases,
+  getReferenceEntry,
+  getReferenceRelease,
+  listReferenceEntries,
+  listReferenceReleases,
+  resolveLatestReferenceRelease,
+} from "./compendium-reference/index.js";
+export type {
+  DeclaredDefinition,
+  ReferenceComparison,
+  ReferenceComparisonEntry,
+  ReferenceDefinitionReference,
+  ReferenceEntryCard,
+  ReferenceEntryDetail,
+  ReferenceEntryPage,
+  ReferenceEntryQuery,
+  ReferenceKindInfo,
+  ReferenceRelationship,
+  ReferenceReleaseDetail,
+  ReferenceReleaseSummary,
+  ReferenceRulesetSummary,
+  ReferenceSource,
+} from "./compendium-reference/index.js";
