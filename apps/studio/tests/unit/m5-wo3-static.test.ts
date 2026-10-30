@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 import { withLaterMilestoneRoutes } from "./later-milestone-routes";
 import { auditWo3Content, auditWo3Source, type Wo3Layer } from "./m5-wo3-audit-helpers";
 
@@ -94,8 +95,8 @@ describe("M5-WO3 audit — Runtime resources, action economy & movement", () => 
 
   it("M5-I105 no schema change, no migration, no new endpoint, no persistence path and no UI dependency", () => {
     const wo1 = JSON.parse(read("docs/architecture/m5-wo1-baseline.json")) as { schemaHash: string; migrations: Record<string, string> };
-    expect(hash(read("packages/prowess-db/prisma/schema.prisma"))).toBe(wo1.schemaHash);
-    expect(Object.fromEntries(walk("packages/prowess-db/prisma/migrations").filter((f) => f.endsWith("migration.sql")).map((f) => [f, hash(read(f))]))).toEqual(wo1.migrations);
+    expect(hash(frozenSchemaText())).toBe(wo1.schemaHash);
+    expect(Object.fromEntries(walk("packages/prowess-db/prisma/migrations").filter((f) => f.endsWith("migration.sql")).filter(notLaterMigration).map((f) => [f, hash(read(f))]))).toEqual(wo1.migrations);
     const wo3 = JSON.parse(read("docs/architecture/m5-wo3-baseline.json")) as { apiRoutes: string[] };
     expect(walk("apps/studio/app/api").filter((f) => f.endsWith("route.ts")).sort()).toEqual(withLaterMilestoneRoutes(wo3.apiRoutes));
     expect(walk("apps/studio/app/api").join("\n")).not.toMatch(/commit-turn|spend|apply-to-character|evaluate-and-save|encounter/i);

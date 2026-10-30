@@ -1,0 +1,7 @@
+{
+  "$comment": "Schema / migration additions after the certified M0–M5 baseline, by Work Order. Each addition is MARKED in packages/prowess-db/prisma/schema.prisma (back-relation lines end with `// <WO> back-relation`; new models sit between `// >>> <WO>` and `// <<< <WO>`). The frozen M1–M6-WO2 gates compare the schema with exactly these marked additions removed (apps/studio/tests/unit/later-milestone-schema.ts) and the migration chain without exactly these registered migrations — so the certified baseline stays byte-identical and any UNREGISTERED schema edit or migration still fails every earlier gate. Each Work Order's own gate pins its entry (M6-WO3: apps/studio/tests/unit/m6-wo3-static.test.ts).",
+  "M6-WO3": {
+    "migrations": ["20261029010000_m6_wo3_character_foundation"],
+    "models": ["Character", "CharacterAncestryStatChoice", "CharacterSkillRank", "CharacterStatAllocation"]
+  }
+}

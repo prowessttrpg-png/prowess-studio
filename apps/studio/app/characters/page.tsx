@@ -1,12 +1,8 @@
+"use client";
+
+import { CharacterIndex } from "./_components/CharacterIndex";
+
+/** /characters — the minimal Character index (PAS-10 M6-WO3 §54). The full Character Library is a later Work Order. */
 export default function CharactersPage() {
-  return (
-    <section>
-      <h1>Characters</h1>
-      <p>
-        Placeholder — M0-WO5 establishes this route and its place in the
-        primary navigation only. Character creation and the character
-        workspace are not implemented yet.
-      </p>
-    </section>
-  );
+  return <CharacterIndex />;
 }

@@ -65,9 +65,10 @@ describe("canonical core content", () => {
     }
   });
 
-  it("the WO2 kinds have v1 contracts; M5-WO3 activates Resource / Action; Skill / Ancestry stay reserved", () => {
+  it("the WO2 kinds have v1 contracts; M5-WO3 activates Resource / Action; Skill / Ancestry stayed reserved through M5 and are activated at exactly v1 by M6-WO3", () => {
     for (const kind of ["STAT", "CHARACTER_DIE_PROGRESSION", "RANK_LADDER", "SKILL_RANK", "DERIVED_STAT", "CORE_RESOLUTION", "RESOURCE", "ACTION"] as const) expect(PROWESS_DEFINITION_KINDS[kind].schemaVersions, kind).toEqual([1]);
-    for (const kind of ["SKILL", "ANCESTRY"] as const) expect(PROWESS_DEFINITION_KINDS[kind].schemaVersions, kind).toEqual([]);
+    // PAS-10 M6-WO3 §10: the one approved registry extension (pinned by apps/studio/tests/unit/m6-wo3-static.test.ts).
+    for (const kind of ["SKILL", "ANCESTRY"] as const) expect(PROWESS_DEFINITION_KINDS[kind].schemaVersions, kind).toEqual([1]);
   });
 });
 

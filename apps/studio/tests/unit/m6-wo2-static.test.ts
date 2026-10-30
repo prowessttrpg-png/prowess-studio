@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { expectedFrozenHash, frozenFileContent, frozenSchemaText, notLaterFile } from "./later-milestone-schema";
 import catalog from "./fixtures/m6-wo1-catalog.json";
 
 /**
@@ -82,7 +83,8 @@ describe("M6-WO2 gate — layering and read-only surface (M6-I020)", () => {
 
   it("the route inventory equals the reviewed M6-WO2 registry entry (the M5 freezes accept exactly these additions)", () => {
     const registry = JSON.parse(read("docs/architecture/m6-api-routes.json")) as Record<string, unknown>;
-    expect(Object.keys(registry).filter((k) => k !== "$comment")).toEqual(["M6-WO1", "M6-WO2"]);
+    // Later Work Orders append their own keys (each pinned by its own gate); M6-WO2's entry stays exactly these routes.
+    expect(Object.keys(registry).filter((k) => k !== "$comment").slice(0, 2)).toEqual(["M6-WO1", "M6-WO2"]);
     expect([...(registry["M6-WO2"] as string[])].sort()).toEqual([...ROUTES].sort());
   });
 
@@ -195,8 +197,8 @@ describe("M6-WO2 gate — boundaries with M2 / M4 / M5 and the shell (§108)", (
 
   it("no schema, migration, M4 source or M5 source changed since the M6-WO2 base (no file added, removed or edited)", () => {
     expect(baseline.baseCommit).toBe("799f1b2dcb2939184d4c8703cb06b0678bfa5482");
-    for (const [f, h] of Object.entries(baseline.frozenFiles)) expect(hash(readFileSync(path.join(ROOT, f))), f).toBe(h);
-    const now = [...walk("packages/prowess-rules/src"), ...walk("packages/prowess-db/prisma"), ...walk("packages/prowess-game/src")].sort();
+    for (const [f, h] of Object.entries(baseline.frozenFiles)) expect(hash(frozenFileContent(f)), f).toBe(expectedFrozenHash(f, h)); // M6-WO3: registered later changes only
+    const now = [...walk("packages/prowess-rules/src"), ...walk("packages/prowess-db/prisma"), ...walk("packages/prowess-game/src")].filter(notLaterFile).sort();
     expect(now).toEqual(Object.keys(baseline.frozenFiles).sort());
   });
 
@@ -231,10 +233,10 @@ describe("M6-WO2 gate — boundaries with M2 / M4 / M5 and the shell (§108)", (
 
 describe("M6-WO2 gate — invariants, documentation and CI", () => {
   const inv = JSON.parse(read("docs/architecture/m6-invariants.json")) as Array<{ id: string; title: string; guards: string[] }>;
-  it("M6-I011–I020 follow M6-I001–I010, are documented, and each is guarded by executing files that cite it", () => {
-    expect(inv.map((x) => x.id)).toEqual(Array.from({ length: 20 }, (_, i) => `M6-I${String(i + 1).padStart(3, "0")}`));
+  it("M6-I011–I020 follow M6-I001–I010 (later Work Orders append after them), are documented, and each is guarded by executing files that cite it", () => {
+    expect(inv.slice(0, 20).map((x) => x.id)).toEqual(Array.from({ length: 20 }, (_, i) => `M6-I${String(i + 1).padStart(3, "0")}`));
     const md = read("docs/architecture/m6-invariants.md");
-    for (const row of inv.slice(10)) {
+    for (const row of inv.slice(10, 20)) {
       expect(md).toContain(`### ${row.id} — ${row.title}`);
       expect(row.guards).toContain("apps/studio/tests/unit/m6-wo2-static.test.ts");
       for (const g of row.guards) {

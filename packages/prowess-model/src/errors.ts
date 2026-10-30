@@ -786,3 +786,28 @@ export const COMPENDIUM_REFERENCE_ERROR_CODES = {
 } as const;
 
 export type CompendiumReferenceErrorCode = (typeof COMPENDIUM_REFERENCE_ERROR_CODES)[keyof typeof COMPENDIUM_REFERENCE_ERROR_CODES];
+
+/**
+ * Character domain (PAS-10 M6-WO3). A Character is pinned to one exact Release; its writes are optimistic
+ * compare-and-set on `lockVersion`; its mechanical creation choices freeze when core creation completes.
+ */
+export const CHARACTER_ERROR_CODES = {
+  /** No Character with this id. */
+  NOT_FOUND: "CHARACTER.NOT_FOUND",
+  /** A request field is missing, malformed or not accepted (e.g. a client-supplied Level or derived value). */
+  INVALID_INPUT: "CHARACTER.INVALID_INPUT",
+  /** The expected lockVersion is not the Character's current one: it changed since it was loaded. Reload and review. */
+  STALE_WRITE: "CHARACTER.STALE_WRITE",
+  /** Core creation is complete; mechanical creation choices are frozen (profile fields stay editable). */
+  CORE_FROZEN: "CHARACTER.CORE_FROZEN",
+  /** The submitted creation choices contain an ERROR (illegal in any state) — nothing was saved. */
+  INVALID_CREATION: "CHARACTER.INVALID_CREATION",
+  /** Finalization needs a complete, valid build (every INCOMPLETE item resolved). */
+  CREATION_INCOMPLETE: "CHARACTER.CREATION_INCOMPLETE",
+  /** The Release does not contain the content Character creation requires. */
+  RELEASE_NOT_CAPABLE: "CHARACTER.RELEASE_NOT_CAPABLE",
+  /** The Release's manifest failed the M2 integrity verification; no Character is built from it. */
+  RELEASE_INTEGRITY_FAILED: "CHARACTER.RELEASE_INTEGRITY_FAILED",
+} as const;
+
+export type CharacterErrorCode = (typeof CHARACTER_ERROR_CODES)[keyof typeof CHARACTER_ERROR_CODES];

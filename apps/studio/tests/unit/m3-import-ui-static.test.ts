@@ -2,6 +2,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 
 /**
  * M3-WO8 static audit — the Import Studio is UI only: no backend, schema, migration or route change; no database or
@@ -38,7 +39,7 @@ describe("M3-WO8 — UI only", () => {
 
   it("introduces no schema change, migration or new Import API route", () => {
     const dir = path.join(ROOT, "packages", "prowess-db", "prisma", "migrations");
-    const migrations = readdirSync(dir).filter((e) => statSync(path.join(dir, e)).isDirectory()).sort();
+    const migrations = readdirSync(dir).filter((e) => statSync(path.join(dir, e)).isDirectory()).filter(notLaterMigration).sort(); // M6-WO3: registered later migrations excluded
     expect(migrations.length).toBe(22);
     expect(migrations.at(-1)).toBe("20261015010000_add_import_decisions");
     const routes: string[] = [];

@@ -31,6 +31,7 @@ import {
   PROWESS_MATERIALIZATION_ERROR_CODES,
   COMPENDIUM_AUTHORING_ERROR_CODES,
   COMPENDIUM_REFERENCE_ERROR_CODES,
+  CHARACTER_ERROR_CODES,
   type EntityAliasErrorCode,
   type EntityErrorCode,
   type EntityVersionErrorCode,
@@ -62,6 +63,7 @@ import {
   type ProwessMaterializationErrorCode,
   type CompendiumAuthoringErrorCode,
   type CompendiumReferenceErrorCode,
+  type CharacterErrorCode,
 } from "@prowess/model";
 import { NextResponse } from "next/server";
 
@@ -142,7 +144,8 @@ type KnownDomainErrorCode =
   | RulesetResolutionErrorCode
   | ProwessMaterializationErrorCode
   | CompendiumAuthoringErrorCode
-  | CompendiumReferenceErrorCode;
+  | CompendiumReferenceErrorCode
+  | CharacterErrorCode;
 
 /**
  * Centralized `DomainError.code` -> HTTP status mapping (PAS-10 M1-WO8
@@ -452,6 +455,17 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [COMPENDIUM_REFERENCE_ERROR_CODES.INVALID_INPUT]: 400,
   [COMPENDIUM_REFERENCE_ERROR_CODES.RELEASE_NOT_IN_RULESET]: 404,
   [COMPENDIUM_REFERENCE_ERROR_CODES.ENTITY_NOT_IN_RELEASE]: 404,
+  // Character domain (M6-WO3). Malformed requests and illegal creation choices are invalid input (400 / 422); a stale
+  // lockVersion, a frozen core build, an incomplete build at finalization, an incapable or corrupt Release conflict
+  // with current state (409).
+  [CHARACTER_ERROR_CODES.NOT_FOUND]: 404,
+  [CHARACTER_ERROR_CODES.INVALID_INPUT]: 400,
+  [CHARACTER_ERROR_CODES.INVALID_CREATION]: 422,
+  [CHARACTER_ERROR_CODES.STALE_WRITE]: 409,
+  [CHARACTER_ERROR_CODES.CORE_FROZEN]: 409,
+  [CHARACTER_ERROR_CODES.CREATION_INCOMPLETE]: 409,
+  [CHARACTER_ERROR_CODES.RELEASE_NOT_CAPABLE]: 409,
+  [CHARACTER_ERROR_CODES.RELEASE_INTEGRITY_FAILED]: 409,
 } satisfies Record<KnownDomainErrorCode, number>;
 
 /**

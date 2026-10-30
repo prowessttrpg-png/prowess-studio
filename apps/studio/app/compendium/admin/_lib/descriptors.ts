@@ -15,7 +15,17 @@
  */
 
 /** Names a vocabulary in the catalog response (`catalog.vocabularies[name]`) — never the values themselves. */
-export type VocabularyName = "targetingSemanticShapes" | "resolutionModes" | "traitScopes" | "durationConcepts" | "costCurrencies" | "canonicalAffinities" | "componentContracts";
+export type VocabularyName =
+  | "targetingSemanticShapes"
+  | "resolutionModes"
+  | "traitScopes"
+  | "durationConcepts"
+  | "costCurrencies"
+  | "canonicalAffinities"
+  | "componentContracts"
+  | "prowessStats"
+  | "ancestryStatGrantKinds"
+  | "ancestrySkillSelectionKinds";
 
 interface FieldBase {
   /** The payload key this field edits. */
@@ -35,7 +45,12 @@ export type FieldDescriptor =
   | (FieldBase & { readonly input: "outcomes" })
   | (FieldBase & { readonly input: "resolution" })
   | (FieldBase & { readonly input: "restriction" })
-  | (FieldBase & { readonly input: "authoredData" });
+  | (FieldBase & { readonly input: "authoredData" })
+  // M6-WO3 character-facing inputs.
+  | (FieldBase & { readonly input: "integer" })
+  | (FieldBase & { readonly input: "statGrants" })
+  | (FieldBase & { readonly input: "skillGrants"; readonly optionKind: string })
+  | (FieldBase & { readonly input: "source" });
 
 export interface ContractDescriptor {
   /** Short explanation of what this kind of Definition is FOR (§59) — presentation only. */
@@ -129,6 +144,41 @@ const AFFINITY_V1: ContractDescriptor = {
   fields: [{ key: "affinity", label: "Affinity", group: "Classification", input: "select", vocabulary: "canonicalAffinities", required: true }],
 };
 
+const SOURCE: FieldDescriptor = { key: "source", label: "Source", group: "Source", input: "source", required: true, help: "Core Playtest section keys (sNNN) this content is structured from, and any source-conflict keys (M5-SC-NNN)." };
+
+/**
+ * PAS-10 M6-WO3: the character-facing Definition kinds activated at version 1. They have no Ability shared contract, so
+ * they are described per KIND (presentation only — every value is authored and validated by the M5 contract).
+ */
+export const CHARACTER_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescriptor>> = {
+  ANCESTRY: {
+    purpose: "An Ancestry (Race): the structured values Character creation reads — Base HP / MP and the Stat and starting-Skill grants. Racial features and history stay in Rules Text.",
+    fields: [
+      { key: "baseHp", label: "Base HP", group: "Base values", input: "integer", required: true, help: "Feeds the Release's Maximum HP Derived Stat — never a Maximum HP itself." },
+      { key: "baseMp", label: "Base MP", group: "Base values", input: "integer", required: true, help: "Feeds the Release's Maximum MP Derived Stat." },
+      { key: "statGrants", label: "Stat grants", group: "Stat grants", input: "statGrants", required: false, help: "Fixed Stat adjustments, or a choice of different Stats. Each grant needs a stable key." },
+      { key: "skillGrants", label: "Starting Skill grants", group: "Skill grants", input: "skillGrants", optionKind: "SKILL", required: false, help: "Skills granted at creation: fixed, choose from a list of exact Skills, or choose any published Skill." },
+      SOURCE,
+    ],
+  },
+  SKILL: {
+    purpose: "A Skill's identity: what Characters are trained in. Skill Actions evolve separately; describe the Skill in Rules Text.",
+    fields: [{ key: "ladderKey", label: "Rank ladder", group: "Identity", input: "token", required: true, help: "The rank ladder this Skill is trained on (the Skill rank ladder: SKILL)." }, SOURCE],
+  },
+  CHARACTER_CREATION_RULE: {
+    purpose: "The Level-1 creation values: starting Level, Stat point budget, free trained Skills, the starting Skill rank and required selections.",
+    fields: [
+      { key: "startingLevel", label: "Starting Level", group: "Creation", input: "integer", required: true },
+      { key: "statPointBudget", label: "Stat point budget", group: "Creation", input: "integer", required: true, help: "Points a player distributes at creation. Stat minimum / maximum come from the STAT Definitions." },
+      { key: "freeTrainedSkillCount", label: "Free trained Skills", group: "Creation", input: "integer", required: true },
+      { key: "startingSkillRankKey", label: "Starting Skill rank", group: "Creation", input: "token", required: true, help: "A rank of the Skill rank ladder (e.g. TRAINED)." },
+      { key: "requiredAncestryCount", label: "Required Ancestries", group: "Required selections", input: "integer", required: true, help: "Version 1: exactly 1." },
+      { key: "requiredPrimaryAffinityCount", label: "Required Primary Affinities", group: "Required selections", input: "integer", required: true, help: "Version 1: exactly 1." },
+      SOURCE,
+    ],
+  },
+};
+
 /** Kinds without a dedicated descriptor: the whole payload is edited as structured authored data. */
 export const GENERIC_DESCRIPTOR: ContractDescriptor = {
   purpose: "This kind has no dedicated authoring descriptor yet: author its payload as structured data. The M5 contract still validates every field.",
@@ -137,6 +187,7 @@ export const GENERIC_DESCRIPTOR: ContractDescriptor = {
 
 export function descriptorFor(kind: { definitionKind: string; sharedContract: string | null }, schemaVersion: number | null): ContractDescriptor {
   if (kind.sharedContract !== null && CONTRACT_DESCRIPTORS[kind.sharedContract] !== undefined) return CONTRACT_DESCRIPTORS[kind.sharedContract] as ContractDescriptor;
+  if (schemaVersion === 1 && CHARACTER_KIND_DESCRIPTORS[kind.definitionKind] !== undefined) return CHARACTER_KIND_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
   if (kind.definitionKind === "AFFINITY" && schemaVersion === 1) return AFFINITY_V1;
   return GENERIC_DESCRIPTOR;
 }
@@ -192,6 +243,13 @@ export function initialFieldValue(field: FieldDescriptor): unknown {
       return { restrictionKey: "", data: {} };
     case "authoredData":
       return {};
+    case "integer":
+      return null;
+    case "statGrants":
+    case "skillGrants":
+      return [];
+    case "source":
+      return { locators: [], conflicts: [] };
   }
 }
 

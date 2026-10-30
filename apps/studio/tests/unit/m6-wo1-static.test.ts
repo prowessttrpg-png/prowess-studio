@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { expectedFrozenHash, frozenFileContent, frozenSchemaText, notLaterFile } from "./later-milestone-schema";
 import catalog from "./fixtures/m6-wo1-catalog.json";
 
 /**
@@ -91,8 +92,10 @@ describe("M6-WO1 gate — one Definition catalog, no duplicated M5 validation, n
     for (const f of [...ADMIN_UI, ...code("apps/studio/src")]) {
       const src = strip(read(f));
       const kinds = KIND_NAMES.filter((k) => src.includes(`"${k}"`));
-      // descriptors.ts may select the AFFINITY version-1 PRESENTATION by kind name — the one sanctioned literal.
-      expect(kinds, f).toEqual(f.endsWith("_lib/descriptors.ts") ? ["AFFINITY"] : []);
+      // descriptors.ts may select the AFFINITY version-1 PRESENTATION by kind name — the one sanctioned literal — and,
+      // since PAS-10 M6-WO3, name SKILL as the exact kind an Ancestry Skill-grant option picker searches (pinned by
+      // m6-wo3-static).
+      expect(kinds, f).toEqual(f.endsWith("_lib/descriptors.ts") ? ["AFFINITY", "SKILL"] : []);
       const values = VOCABULARY_VALUES.filter((v) => new RegExp(`["'\`]${v}["'\`]`).test(src));
       expect(values, f).toEqual([]);
       expect(src, f).not.toMatch(/ABILITY_SLOT_KINDS|PROWESS_DEFINITION_STORAGE_KEY|compileProwessAbility|TARGETING_FORBIDDEN_KEYS/);
@@ -203,7 +206,7 @@ describe("M6-WO1 gate — exact references and side-effect-free preview (M6-I006
     }
     // No validity flag (§62): the schema is byte-identical to the certified baseline.
     const baseline = JSON.parse(read("docs/architecture/m6-wo1-baseline.json")) as { frozenFiles: Record<string, string> };
-    expect(hash(readFileSync(path.join(ROOT, "packages/prowess-db/prisma/schema.prisma")))).toBe(baseline.frozenFiles["packages/prowess-db/prisma/schema.prisma"]);
+    expect(hash(frozenSchemaText())).toBe(baseline.frozenFiles["packages/prowess-db/prisma/schema.prisma"]);
   });
 
   it("M6-I009 payload Keywords are checked against the Keyword vocabulary; pickers offer only existing Keywords", () => {
@@ -225,8 +228,8 @@ describe("M6-WO1 gate — frozen M4 / M5 / schema (§80–81)", () => {
 
   it("M6-I001 no M4 source, no schema or migration, and no M5 mechanics file changed since the certified baseline", () => {
     expect(baseline.baseCommit).toBe("91658f717bc8c09e7e973175bb5370071d5442b3");
-    for (const [f, h] of Object.entries(baseline.frozenFiles)) expect(hash(readFileSync(path.join(ROOT, f))), f).toBe(h);
-    const now = [...walk("packages/prowess-rules/src"), ...walk("packages/prowess-db/prisma"), ...walk("packages/prowess-game/src")].sort();
+    for (const [f, h] of Object.entries(baseline.frozenFiles)) expect(hash(frozenFileContent(f)), f).toBe(expectedFrozenHash(f, h)); // M6-WO3: registered later changes only
+    const now = [...walk("packages/prowess-rules/src"), ...walk("packages/prowess-db/prisma"), ...walk("packages/prowess-game/src")].filter(notLaterFile).sort();
     expect(now).toEqual([...Object.keys(baseline.frozenFiles), ...Object.keys(baseline.approvedM5SurfaceChange.files), "packages/prowess-game/src/stored-definition-validation.test.ts"].sort());
   });
 

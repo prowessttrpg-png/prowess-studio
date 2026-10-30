@@ -2,6 +2,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 
 /**
  * M4-WO4 Keyword Resolution — static audit (PAS-10 M4-WO4 §87–89). Invariant ids refer to
@@ -129,7 +130,7 @@ describe("M4-WO4 boundaries (§5–7, §84, §97)", () => {
 
   it("adds no Keyword persistence, migration, route or UI", () => {
     expect(read("packages", "prowess-db", "prisma", "schema.prisma")).not.toMatch(/keyword_(sets|contributions|resolutions)|model\s+(ResolvedKeyword|KeywordContribution|KeywordSet)\b/);
-    expect(readdirSync(path.join(ROOT, "packages", "prowess-db", "prisma", "migrations")).filter((e) => /^\d{14}_/.test(e))).toHaveLength(22);
+    expect(readdirSync(path.join(ROOT, "packages", "prowess-db", "prisma", "migrations")).filter((e) => /^\d{14}_/.test(e)).filter(notLaterMigration)).toHaveLength(22);
     for (const f of walk(path.join(ROOT, "apps", "studio")).filter((file) => /\.(ts|tsx)$/.test(file) && !rel(file).includes("/tests/"))) {
       // M4-WO10: only its application service imports @prowess/rules — and even it never calls this primitive directly.
       expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/resolveKeywords|hasKeywordBy/);

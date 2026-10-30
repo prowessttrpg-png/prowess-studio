@@ -536,3 +536,42 @@ export type { ActiveEffectStatus, ActiveEffectEndReason, ActiveMagicEventKind, A
 export { ACTIVE_MAGIC_DISMISSAL, ACTIVE_MAGIC_DURATIONS, readActiveMagicPolicy } from "./definition/active-magic-policy.js";
 export type { ActiveMagicDismissal, ActiveMagicDuration, ActiveMagicPolicy, ManaLockAmountRule } from "./definition/active-magic-policy.js";
 export { ACTIVE_MAGIC_POLICY, ACTIVE_MAGIC_CONTENT } from "./content/core-playtest-v0.1/active-magic.js";
+// PAS-10 M6-WO3 — character-facing Definition contracts (ANCESTRY v1, SKILL v1, CHARACTER_CREATION_RULE v1) and the
+// pure Character creation validator / derived preview.
+export {
+  ANCESTRY_SKILL_SELECTION_KINDS,
+  ANCESTRY_STAT_GRANT_KINDS,
+  CHARACTER_CREATION_REQUIRED_DERIVED_STATISTICS,
+  CHARACTER_SKILL_SOURCE_KINDS,
+  EXECUTABLE_AFFINITY_SCHEMA_VERSIONS,
+  type AncestrySkillSelectionKind,
+  type AncestryStatGrantKind,
+  type CharacterSkillSourceKind,
+} from "./vocabulary/character.js";
+export {
+  CHARACTER_PAYLOAD_KINDS,
+  type AncestryChoiceStatGrant,
+  type AncestryDefinitionPayload,
+  type AncestryFixedStatGrant,
+  type AncestrySkillGrant,
+  type AncestryStatGrant,
+  type CharacterCreationRulePayload,
+  type SkillDefinitionPayload,
+} from "./definition/character-payload.js";
+export {
+  CHARACTER_CREATION_ERROR_CODES,
+  characterCreationContent,
+  getCharacterCreationCapability,
+  validateCharacterCreation,
+  type CharacterCreationCandidate,
+  type CharacterCreationCapability,
+  type CharacterCreationCapabilityStatus,
+  type CharacterCreationContent,
+  type CharacterCreationIssue,
+  type CharacterCreationIssueSeverity,
+  type CharacterCreationResult,
+  type CharacterCreationSelection,
+  type CharacterDerivedValue,
+  type ResolvedCharacterSkill,
+  type ResolvedCharacterStat,
+} from "./character/creation.js";

@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 
 /**
  * M2-WO11 static audit — migration PLANNING never becomes execution: planning code writes only its own two tables,
@@ -12,7 +13,7 @@ import { describe, expect, it } from "vitest";
 const ROOT = path.resolve(process.cwd(), "..", "..");
 const read = (...p: string[]) => readFileSync(path.join(ROOT, ...p), "utf8");
 const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
-const SCHEMA = read("packages", "prowess-db", "prisma", "schema.prisma").replace(/\/\/.*$/gm, "");
+const SCHEMA = frozenSchemaText().replace(/\/\/.*$/gm, ""); // M6-WO3: the certified schema (registered later additions removed)
 const models = [...SCHEMA.matchAll(/^model (\w+) \{([\s\S]*?)^\}/gm)].map((m) => ({ name: m[1] as string, body: m[2] as string }));
 const find = (n: string) => models.find((m) => m.name === n);
 const fields = (b: string | undefined) => [...(b ?? "").matchAll(/^\s+(\w+)\s+[A-Z]/gm)].map((m) => m[1]).sort();

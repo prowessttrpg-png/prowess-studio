@@ -27,7 +27,7 @@ const M1_PREFIXES = ["entities", "entity-aliases", "entity-versions", "keyword-c
 // M4-WO10's /api/rules/evaluate is the Rules Engine API, pinned by m4-wo10-static (not part of the M2 surface).
 // M6-WO1's /api/compendium-authoring/* is the Compendium authoring API, pinned by m6-wo1-static (not part of the M2
 // surface; its one M2 hand-off calls M2's own createChangeSet through @prowess/db).
-const m2Files = files.filter((f) => ![...M1_PREFIXES, "import", "rules", "compendium-authoring", "compendium-reference"].some((p) => rel(f) === p || rel(f).startsWith(`${p}/`)));
+const m2Files = files.filter((f) => ![...M1_PREFIXES, "import", "rules", "compendium-authoring", "compendium-reference", "characters", "character-creation"].some((p) => rel(f) === p || rel(f).startsWith(`${p}/`)));
 const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
 
 const EXPECTED: Record<string, string[]> = {

@@ -474,6 +474,17 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "listReferenceEntries",
         "listReferenceReleases",
         "resolveLatestReferenceRelease",
+        // M6-WO3 Character domain: player state in its own tables (never an EntityVersion write). Creation, an
+        // all-or-nothing creation save, a profile edit, finalization and read-only reads.
+        "createCharacter",
+        "finalizeCharacterCoreCreation",
+        "getCharacter",
+        "getCharacterCreationContext",
+        "getReleaseCharacterCreationCapability",
+        "listCharacters",
+        "saveCharacterCreation",
+        "updateCharacterProfile",
+        "validateCharacterCandidate",
       ].sort(),
     );
 
@@ -484,7 +495,11 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     const mutatorLike = exportedNames.filter((n) => /^(update|set|patch|overwrite|delete|upsert)/i.test(n));
     // M6-WO1: updateAuthoredDraftDefinition is not a second write path — it validates, then DELEGATES to the
     // lifecycle-aware updateDraftEntityVersion (its only write). Proven from its source here.
-    expect(mutatorLike).toEqual(["updateAuthoredDraftDefinition", "updateDraftEntityVersion"]);
+    // M6-WO3: updateCharacterProfile edits a Character's name / concept only — the character repository never touches
+    // entity_versions (proven from its source here).
+    expect(mutatorLike).toEqual(["updateAuthoredDraftDefinition", "updateCharacterProfile", "updateDraftEntityVersion"]);
+    const characterRepo = readFileSync(new URL("../../src/character/repository.ts", import.meta.url), "utf8");
+    expect(characterRepo).not.toMatch(/entityVersion\.(create|update|upsert|delete)/);
     const authoring = readFileSync(new URL("../../src/compendium-authoring/service.ts", import.meta.url), "utf8");
     const body = authoring.slice(authoring.indexOf("export async function updateAuthoredDraftDefinition("), authoring.indexOf("\n}\n", authoring.indexOf("export async function updateAuthoredDraftDefinition(")));
     expect(body).toMatch(/await updateDraftEntityVersion\(versionId, \{/);

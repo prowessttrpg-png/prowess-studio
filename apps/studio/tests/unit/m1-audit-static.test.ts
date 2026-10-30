@@ -3,6 +3,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import * as model from "@prowess/model";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 import { statusForDomainErrorCode } from "../../src/api/errors";
 
 /**
@@ -27,7 +28,7 @@ const stripTsComments = (s: string) =>
   s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
 const stripPrismaComments = (s: string) => s.replace(/\/\/.*$/gm, "");
 
-const SCHEMA = read("packages", "prowess-db", "prisma", "schema.prisma");
+const SCHEMA = frozenSchemaText(); // M6-WO3: the schema as certified (registered later additions removed)
 const SCHEMA_CODE = stripPrismaComments(SCHEMA);
 
 describe("M1 audit — no global current-version state (§14)", () => {
@@ -141,7 +142,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
   >;
   const allCodes = vocabularies.flatMap(([, codes]) => Object.values(codes));
 
-  it("exports the thirty-one vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5, CanonDecision M2-WO6, ChangeSet M2-WO7, RulesetRelease M2-WO8, MigrationPlan M2-WO11, SourceSnapshot / SourceStructure / SourceAsset / SourceParse M3-WO1, ImportBatch / ExtractionCandidate M3-WO2, ImportMatch M3-WO4, ImportDecision / ImportReview M3-WO6, RulesetResolution M4-WO2, ProwessMaterialization M5-WO1, CompendiumAuthoring M6-WO1, CompendiumReference M6-WO2)", () => {
+  it("exports the thirty-two vocabularies (nine from M1, Ruleset M2-WO1, RulesetManifest M2-WO2, CanonPolicy and SourceAuthority M2-WO4, RuleConflict M2-WO5, CanonDecision M2-WO6, ChangeSet M2-WO7, RulesetRelease M2-WO8, MigrationPlan M2-WO11, SourceSnapshot / SourceStructure / SourceAsset / SourceParse M3-WO1, ImportBatch / ExtractionCandidate M3-WO2, ImportMatch M3-WO4, ImportDecision / ImportReview M3-WO6, RulesetResolution M4-WO2, ProwessMaterialization M5-WO1, CompendiumAuthoring M6-WO1, CompendiumReference M6-WO2, Character M6-WO3)", () => {
     expect(vocabularies.map(([name]) => name).sort()).toEqual(
       [
         "ENTITY_ALIAS_ERROR_CODES",
@@ -175,6 +176,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
         "PROWESS_MATERIALIZATION_ERROR_CODES",
         "COMPENDIUM_AUTHORING_ERROR_CODES",
         "COMPENDIUM_REFERENCE_ERROR_CODES",
+        "CHARACTER_ERROR_CODES",
       ].sort(),
     );
   });
@@ -193,7 +195,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
   });
 
   const CONTROLLED_UNIONS =
-    "Entity|EntityVersion|EntityAlias|KeywordCategory|Keyword|KeywordAssignment|Relationship|SourceDocument|SourceReference|ImportBatch|ImportMatch|ImportDecision|ImportReview|RulesetResolution|CompendiumAuthoring|CompendiumReference".split("|").map((n) => `${n}ErrorCode`).join("|");
+    "Entity|EntityVersion|EntityAlias|KeywordCategory|Keyword|KeywordAssignment|Relationship|SourceDocument|SourceReference|ImportBatch|ImportMatch|ImportDecision|ImportReview|RulesetResolution|CompendiumAuthoring|CompendiumReference|Character".split("|").map((n) => `${n}ErrorCode`).join("|");
 
   it("every DomainError thrown in @prowess/db uses a controlled constant (or a parameter typed with a controlled union) — never a raw string", () => {
     const files = walk(path.join(ROOT, "packages", "prowess-db", "src"), isSource);
@@ -224,7 +226,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
 
 describe("M1 audit — migration chain (§26)", () => {
   const dir = path.join(ROOT, "packages", "prowess-db", "prisma", "migrations");
-  const names = readdirSync(dir).filter((e) => statSync(path.join(dir, e)).isDirectory());
+  const names = readdirSync(dir).filter((e) => statSync(path.join(dir, e)).isDirectory()).filter(notLaterMigration); // M6-WO3: registered later migrations excluded
 
   it("is exactly the eight frozen M1 migrations followed by the deliberately-added M2 and M3 ones, in timestamp order", () => {
     const M1 = [
@@ -330,6 +332,7 @@ describe("M1 audit — schema.prisma agrees with the migrations' defaults (F-1/F
   const migrationsDir = path.join(ROOT, "packages", "prowess-db", "prisma", "migrations");
   const sql = readdirSync(migrationsDir)
     .filter((entry) => statSync(path.join(migrationsDir, entry)).isDirectory())
+    .filter(notLaterMigration) // M6-WO3: compared with the certified schema (later-milestone-schema.ts)
     .sort()
     .map((entry) => readFileSync(path.join(migrationsDir, entry, "migration.sql"), "utf8"))
     .join("\n");

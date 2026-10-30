@@ -4,6 +4,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 
 const root = path.resolve(process.cwd(), "../..");
 const read = (file: string) => readFileSync(path.join(root, file), "utf8");
@@ -103,8 +104,8 @@ describe("WO11 static audit — M4-I163–I188 presentation integrity", () => {
   it("no schema or migration change; exact baseline hash stays pinned", () => {
     const baseline = JSON.parse(read("docs/architecture/m4-wo11-baseline.json")) as { schemaHash: string; migrations: Record<string, string> };
     const hash = (source: string) => createHash("sha256").update(source).digest("hex");
-    expect(hash(read("packages/prowess-db/prisma/schema.prisma"))).toBe(baseline.schemaHash);
-    const migrations = walk("packages/prowess-db/prisma/migrations").filter(file => file.endsWith("migration.sql"));
+    expect(hash(frozenSchemaText())).toBe(baseline.schemaHash);
+    const migrations = walk("packages/prowess-db/prisma/migrations").filter(file => file.endsWith("migration.sql")).filter(notLaterMigration);
     expect(Object.fromEntries(migrations.map(file => [file, hash(read(file))]))).toEqual(baseline.migrations);
     expect(read(".github/workflows/ci.yml")).toContain("M4-WO11 audit gate — Rules Inspector presentation integrity");
   });

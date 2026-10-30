@@ -2,6 +2,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
 
 /**
  * M4-WO9 Calculation Trace & Explanation Engine — static audit (PAS-10 M4-WO9 §139–149). Invariant ids refer to
@@ -145,7 +146,7 @@ describe("M4-WO9 boundaries (§4–6, §139)", () => {
 
   it("adds no explanation persistence, trace cache, migration, route, UI or DB service", () => {
     expect(read("packages", "prowess-db", "prisma", "schema.prisma")).not.toMatch(/model\s+(Explanation|Trace)\w*|(explanation|trace)_(documents|cache|runs)/i);
-    expect(readdirSync(path.join(ROOT, "packages", "prowess-db", "prisma", "migrations")).filter((e) => /^\d{14}_/.test(e))).toHaveLength(22);
+    expect(readdirSync(path.join(ROOT, "packages", "prowess-db", "prisma", "migrations")).filter((e) => /^\d{14}_/.test(e)).filter(notLaterMigration)).toHaveLength(22);
     for (const f of [...walk(path.join(ROOT, "apps", "studio")), ...walk(path.join(ROOT, "packages", "prowess-db", "src"))].filter((file) => /\.(ts|tsx)$/.test(file) && !rel(file).includes("/tests/"))) {
       expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/buildExplanation|projectExplanation/);
     }
