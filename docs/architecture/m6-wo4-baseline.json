@@ -1,0 +1,8 @@
+{
+  "$comment": "M6-WO4 starting point (PAS-10 M6-WO4). baseCommit is the merged M6-WO3 main the Work Order started from. frozenFiles are sha256 hashes at that commit: removing exactly the marked M6-WO4 schema additions must restore the M6-WO3 schema byte-for-byte, and the M6-WO3 migration is never edited. Pinned by apps/studio/tests/unit/m6-wo4-static.test.ts.",
+  "baseCommit": "77f9430f68caf60babfb0c54496090d5ace11f86",
+  "frozenFiles": {
+    "packages/prowess-db/prisma/schema.prisma": "0039f1562c92b6b4beabef1e4ebd7a8001d7b677d08de01dd9b0ffd645990a04",
+    "packages/prowess-db/prisma/migrations/20261029010000_m6_wo3_character_foundation/migration.sql": "9916d5ce3c30b1f94f96ef264387a0de224f8e658b597d1824003047438f6feb"
+  }
+}

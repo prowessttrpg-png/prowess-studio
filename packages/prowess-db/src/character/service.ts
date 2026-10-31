@@ -7,8 +7,14 @@ import {
   type CharacterCreationCandidate,
   type CharacterCreationCapability,
   type CharacterCreationResult,
+  type AdvancementIssue,
+  type CharacterMechanicalProfile,
   type ProwessDefinitionRef,
+  getCharacterCapability,
+  type AdvancementCapability,
 } from "@prowess/game";
+import { selectCharacterSnapshot, type AdvancementRow } from "./advancement-repository.js";
+import { profileOf, progressionOf } from "./progression.js";
 import { materializeProwessDefinitionsFromRelease } from "../prowess-definition/service.js";
 import { isUuid, selectReleaseById } from "../ruleset-release/repository.js";
 import { verifyRulesetReleaseManifestHash } from "../ruleset-release/service.js";
@@ -73,8 +79,39 @@ export interface CharacterDetail {
   readonly choices: CharacterStoredChoices;
   /** The same choices resolved against the Character's Release right now (validation, provenance, derived preview). */
   readonly resolution: CharacterCreationResult;
-  /** Display names of the exact Definitions the resolution cites (presentation only). */
+  /** Display names of the exact Definitions the resolution and the profile cite (presentation only). */
   readonly names: Readonly<Record<string, string>>;
+  /**
+   * PAS-10 M6-WO4: the Character's PRESENT mechanical state — creation + committed advancement history rebuilt against
+   * its exact Release (null for a Draft, or when the Release cannot rebuild it; `profileIssues` then says why). The
+   * `resolution` above stays the Level-1 creation record.
+   */
+  readonly profile: CharacterMechanicalProfile | null;
+  readonly profileIssues: readonly AdvancementIssue[];
+  /** Committed advancements, in Level order, exactly as stored (labels resolved separately in `names`). */
+  readonly advancementHistory: readonly CharacterAdvancementHistoryEntry[];
+  /** Whether the Character's Release can advance Characters (a Character stays readable either way). */
+  readonly advancementCapability: AdvancementCapability;
+}
+
+export interface CharacterAdvancementHistoryEntry {
+  readonly fromLevel: number;
+  readonly toLevel: number;
+  readonly createdAt: Date;
+  readonly statAllocations: Readonly<Record<string, number>>;
+  readonly skillAdvancements: ReadonlyArray<{ readonly action: string; readonly skill: { readonly entityId: string; readonly entityVersionId: string } }>;
+  readonly affinityChoice: { readonly optionKey: string; readonly affinity: { readonly entityId: string; readonly entityVersionId: string } | null } | null;
+}
+
+export function historyEntriesOf(rows: readonly AdvancementRow[]): CharacterAdvancementHistoryEntry[] {
+  return rows.map((r) => ({
+    fromLevel: r.fromLevel,
+    toLevel: r.toLevel,
+    createdAt: r.createdAt,
+    statAllocations: Object.fromEntries(r.statAdvancements.map((x) => [x.stat, x.pointsSpent])),
+    skillAdvancements: r.skillAdvancements.map((x) => ({ action: x.action, skill: { entityId: x.skillEntityId, entityVersionId: x.skillEntityVersionId } })),
+    affinityChoice: r.affinityChoice === null ? null : { optionKey: r.affinityChoice.optionKey, affinity: r.affinityChoice.affinityEntityId !== null && r.affinityChoice.affinityEntityVersionId !== null ? { entityId: r.affinityChoice.affinityEntityId, entityVersionId: r.affinityChoice.affinityEntityVersionId } : null },
+  }));
 }
 
 export interface CharacterListItem {
@@ -86,7 +123,7 @@ export interface CharacterListItem {
   readonly release: Omit<CharacterReleaseSummary, "rulesetId"> & { readonly rulesetId: string };
 }
 
-const fail = (code: CharacterErrorCode, message: string) => new DomainError(code, message);
+export const fail = (code: CharacterErrorCode, message: string) => new DomainError(code, message);
 const normalizeId = (v: string) => v.trim().toLowerCase();
 
 function readName(value: unknown): string {
@@ -98,12 +135,12 @@ function readConcept(value: unknown): string | null {
   if (typeof value !== "string" || value.length > MAX_CONCEPT_LENGTH) throw fail(CHARACTER_ERROR_CODES.INVALID_INPUT, `concept is optional text (≤ ${MAX_CONCEPT_LENGTH} characters)`);
   return value;
 }
-function readExpectedLockVersion(value: unknown): number {
+export function readExpectedLockVersion(value: unknown): number {
   if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 1) throw fail(CHARACTER_ERROR_CODES.INVALID_INPUT, "expectedLockVersion is the lockVersion the Character was loaded at");
   return value;
 }
 
-async function releaseSummary(releaseId: string): Promise<CharacterReleaseSummary> {
+export async function releaseSummary(releaseId: string): Promise<CharacterReleaseSummary> {
   const release = await selectReleaseById(releaseId);
   if (release === null) throw new DomainError(RULESET_RELEASE_ERROR_CODES.NOT_FOUND, `RulesetRelease not found: ${releaseId}`);
   const ruleset = await selectRulesetById(release.rulesetId);
@@ -111,11 +148,11 @@ async function releaseSummary(releaseId: string): Promise<CharacterReleaseSummar
 }
 
 /** The exact Release's materialized rules (integrity-verified by M2 / M4-WO2 on every load). */
-async function releaseRules(releaseId: string) {
+export async function releaseRules(releaseId: string) {
   return materializeProwessDefinitionsFromRelease(releaseId);
 }
 
-function choicesOf(c: CharacterWithChildren): CharacterStoredChoices {
+export function choicesOf(c: CharacterWithChildren): CharacterStoredChoices {
   return {
     ancestry: c.ancestryEntityId && c.ancestryEntityVersionId ? { entityId: c.ancestryEntityId, entityVersionId: c.ancestryEntityVersionId } : null,
     ancestryStatChoices: c.ancestryStatChoices.map((x) => ({ grantKey: x.grantKey, stat: x.stat })),
@@ -126,7 +163,7 @@ function choicesOf(c: CharacterWithChildren): CharacterStoredChoices {
 }
 
 /** Stored choices as a validator candidate. The stored rank is not an input: the Release decides each Skill's rank. */
-const candidateOf = (choices: CharacterStoredChoices): CharacterCreationCandidate => ({
+export const candidateOf = (choices: CharacterStoredChoices): CharacterCreationCandidate => ({
   ancestry: choices.ancestry,
   ancestryStatChoices: choices.ancestryStatChoices,
   statAllocations: choices.statAllocations,
@@ -134,19 +171,27 @@ const candidateOf = (choices: CharacterStoredChoices): CharacterCreationCandidat
   primaryAffinity: choices.primaryAffinity,
 });
 
-async function namesOf(refs: ReadonlyArray<ProwessDefinitionRef | null | undefined>): Promise<Record<string, string>> {
+export async function namesOf(refs: ReadonlyArray<ProwessDefinitionRef | null | undefined>): Promise<Record<string, string>> {
   const ids = refs.filter((r): r is ProwessDefinitionRef => r !== null && r !== undefined).map((r) => r.entityVersionId);
   return Object.fromEntries((await selectVersionDisplay(ids)).map((v) => [v.id, v.displayName]));
 }
 
-async function requireCharacter(id: string): Promise<CharacterWithChildren> {
+/** The Character and its committed advancement history from one consistent snapshot (M6-WO4). */
+export async function requireCharacterSnapshot(id: string): Promise<{ c: CharacterWithChildren; history: AdvancementRow[] }> {
+  const nid = normalizeId(id);
+  const snapshot = isUuid(nid) ? await selectCharacterSnapshot(nid) : { character: null, history: [] };
+  if (snapshot.character === null) throw fail(CHARACTER_ERROR_CODES.NOT_FOUND, `Character not found: ${id}`);
+  return { c: snapshot.character, history: snapshot.history };
+}
+
+export async function requireCharacter(id: string): Promise<CharacterWithChildren> {
   const nid = normalizeId(id);
   const c = isUuid(nid) ? await selectCharacter(nid) : null;
   if (c === null) throw fail(CHARACTER_ERROR_CODES.NOT_FOUND, `Character not found: ${id}`);
   return c;
 }
 
-function explain(outcome: WriteOutcome, id: string): never {
+export function explain(outcome: WriteOutcome, id: string): never {
   if (outcome.outcome === "not_found") throw fail(CHARACTER_ERROR_CODES.NOT_FOUND, `Character not found: ${id}`);
   if (outcome.outcome === "stale") throw fail(CHARACTER_ERROR_CODES.STALE_WRITE, `This Character changed since it was loaded (now at version ${outcome.current}). Reload it and review before saving again.`);
   throw fail(CHARACTER_ERROR_CODES.CORE_FROZEN, "Core creation is complete: the Character's mechanical creation choices are frozen. Name and concept stay editable.");
@@ -202,12 +247,21 @@ export async function listCharacters(query: { readonly page: number; readonly pa
 
 /** The Character as stored, resolved against ITS Release (validation, provenance, M5 / M4 derived preview). Read-only. */
 export async function getCharacter(id: string): Promise<CharacterDetail> {
-  const c = await requireCharacter(id);
+  const { c, history } = await requireCharacterSnapshot(id);
   const release = await releaseSummary(c.rulesetReleaseId);
   const { bundle, ruleset } = await releaseRules(c.rulesetReleaseId);
   const choices = choicesOf(c);
   const resolution = validateCharacterCreation({ bundle, ruleset, candidate: candidateOf(choices) });
-  const names = await namesOf([resolution.resolved.ancestry, resolution.resolved.primaryAffinity, resolution.resolved.creationRule, ...resolution.resolved.skills.map((s) => s.skill), ...(resolution.derivedPreview ?? []).map((d) => d.definition)]);
+  const built = c.coreCreationCompletedAt === null ? null : profileOf(bundle, ruleset, progressionOf(candidateOf(choices), c.level, history));
+  const profile = built?.profile ?? null;
+  const names = await namesOf([
+    resolution.resolved.ancestry,
+    resolution.resolved.primaryAffinity,
+    resolution.resolved.creationRule,
+    ...resolution.resolved.skills.map((s) => s.skill),
+    ...(resolution.derivedPreview ?? []).map((d) => d.definition),
+    ...(profile === null ? [] : [...profile.skills.map((s) => s.skill), ...profile.affinities.map((a) => a.affinity), ...profile.derivedStatistics.map((d) => d.definition)]),
+  ]);
   return {
     id: c.id,
     name: c.name,
@@ -222,6 +276,10 @@ export async function getCharacter(id: string): Promise<CharacterDetail> {
     choices,
     resolution,
     names,
+    profile,
+    profileIssues: built?.issues ?? [],
+    advancementHistory: historyEntriesOf(history),
+    advancementCapability: getCharacterCapability(bundle).advancement,
   };
 }
 

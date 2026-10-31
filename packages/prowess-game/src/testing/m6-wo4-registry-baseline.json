@@ -1,0 +1,446 @@
+{
+  "$comment": "PAS-10 M6-WO4 \u00a76 / \u00a7133 \u2014 the Prowess Definition registry (PROWESS_DEFINITION_KINDS) exactly as certified at the M6-WO4 base commit (after M6-WO3). src/m6-wo4-registry.test.ts proves every pre-WO4 kind spec is unchanged and the only addition is CHARACTER_ADVANCEMENT_RULE.",
+  "baseCommit": "77f9430f68caf60babfb0c54496090d5ace11f86",
+  "approvedChanges": {
+    "CHARACTER_ADVANCEMENT_RULE": {
+      "from": "absent",
+      "to": "new, CHARACTER family, v1"
+    }
+  },
+  "kinds": {
+    "ABILITY_CONSTRUCTION_RULE": {
+      "family": "ABILITY",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "ACTION": {
+      "family": "ACTION_ECONOMY",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "AFFINITY": {
+      "family": "AFFINITY",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1,
+        2
+      ]
+    },
+    "AFFINITY_PROGRESSION": {
+      "family": "AFFINITY",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "AFFINITY_RANK_RULE": {
+      "family": "AFFINITY",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "AFFINITY_WEAKNESS_SEVERITY": {
+      "family": "AFFINITY",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "ANCESTRY": {
+      "family": "ANCESTRY",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "ARMOR": {
+      "family": "EQUIPMENT",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": []
+    },
+    "CHARACTER_CREATION_RULE": {
+      "family": "CHARACTER",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "CHARACTER_DIE_PROGRESSION": {
+      "family": "CORE",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "CORE_RESOLUTION": {
+      "family": "CORE",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "CREATURE_SIZE": {
+      "family": "CHARACTER",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "DERIVED_STAT": {
+      "family": "CHARACTER",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "EQUIPMENT_TRAIT": {
+      "family": "EQUIPMENT",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": []
+    },
+    "MAGE_ART": {
+      "family": "MAGE_ART",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": []
+    },
+    "MANEUVER_CONDITION": {
+      "family": "MANEUVER",
+      "branch": "MANEUVER",
+      "contract": "ABILITY_CONDITION",
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "MANEUVER_DEFINITION": {
+      "family": "MANEUVER",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "MANEUVER_DURATION": {
+      "family": "MANEUVER",
+      "branch": "MANEUVER",
+      "contract": "DURATION",
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "MANEUVER_EFFECT": {
+      "family": "MANEUVER",
+      "branch": "MANEUVER",
+      "contract": "EFFECT",
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "MANEUVER_FOUNDATION": {
+      "family": "MANEUVER",
+      "branch": "MANEUVER",
+      "contract": "FOUNDATION",
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "MANEUVER_TARGETING": {
+      "family": "MANEUVER",
+      "branch": "MANEUVER",
+      "contract": "TARGETING",
+      "entityTypes": [
+        "TARGETING"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "MANEUVER_TRAIT": {
+      "family": "MANEUVER",
+      "branch": "MANEUVER",
+      "contract": "TRAIT",
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "MISSION_RULE": {
+      "family": "MISSION",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": []
+    },
+    "RANK_LADDER": {
+      "family": "SKILL",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "RESOURCE": {
+      "family": "RESOURCE",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "RESOURCE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "SHARED_TRAIT": {
+      "family": "ABILITY",
+      "branch": null,
+      "contract": "TRAIT",
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "SKILL": {
+      "family": "SKILL",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "SKILL_RANK": {
+      "family": "SKILL",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "SPELL_CASTING_CONDITION": {
+      "family": "SPELL",
+      "branch": "SPELL",
+      "contract": "ABILITY_CONDITION",
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "SPELL_DEFINITION": {
+      "family": "SPELL",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "SPELL_DURATION": {
+      "family": "SPELL",
+      "branch": "SPELL",
+      "contract": "DURATION",
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "SPELL_EFFECT": {
+      "family": "SPELL",
+      "branch": "SPELL",
+      "contract": "EFFECT",
+      "entityTypes": [
+        "SPELL_EFFECT"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "SPELL_TARGETING": {
+      "family": "SPELL",
+      "branch": "SPELL",
+      "contract": "TARGETING",
+      "entityTypes": [
+        "TARGETING"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "SPELL_TRAIT": {
+      "family": "SPELL",
+      "branch": "SPELL",
+      "contract": "TRAIT",
+      "entityTypes": [
+        "SPELL_TRAIT"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "STAT": {
+      "family": "CHARACTER",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "STATUS_CONDITION": {
+      "family": "CONDITION",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": []
+    },
+    "SUMMON_ACTION_MODEL": {
+      "family": "SUMMON",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": []
+    },
+    "SUMMON_TRAIT": {
+      "family": "SUMMON",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": []
+    },
+    "SUMMON_TYPE": {
+      "family": "SUMMON",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": []
+    },
+    "TERRAIN": {
+      "family": "ACTION_ECONOMY",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": [
+        1
+      ]
+    },
+    "WEAPON": {
+      "family": "EQUIPMENT",
+      "branch": null,
+      "contract": null,
+      "entityTypes": [
+        "GENERIC_RULE"
+      ],
+      "schemaVersions": []
+    }
+  }
+}

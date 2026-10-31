@@ -31,7 +31,7 @@ export interface CharacterChildren {
 
 export type CharacterWithChildren = CharacterRow & CharacterChildren;
 
-const CHILDREN = {
+export const CHARACTER_CHILDREN = {
   statAllocations: { select: { stat: true, pointsSpent: true }, orderBy: { stat: "asc" as const } },
   ancestryStatChoices: { select: { grantKey: true, stat: true }, orderBy: [{ grantKey: "asc" as const }, { stat: "asc" as const }] },
   skillRanks: { select: { skillEntityId: true, skillEntityVersionId: true, rankKey: true, sourceKind: true, sourceGrantKey: true }, orderBy: { skillEntityId: "asc" as const } },
@@ -42,7 +42,7 @@ export async function insertCharacter(input: { name: string; concept: string | n
 }
 
 export async function selectCharacter(id: string): Promise<CharacterWithChildren | null> {
-  return prisma.character.findUnique({ where: { id }, include: CHILDREN });
+  return prisma.character.findUnique({ where: { id }, include: CHARACTER_CHILDREN });
 }
 
 export async function countCharacters(): Promise<number> {

@@ -112,6 +112,20 @@
       "authorable": false
     },
     {
+      "definitionKind": "CHARACTER_ADVANCEMENT_RULE",
+      "systemFamily": "CHARACTER",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
       "definitionKind": "CHARACTER_CREATION_RULE",
       "systemFamily": "CHARACTER",
       "branch": null,

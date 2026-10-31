@@ -17,5 +17,24 @@
       "packages/prowess-game/src/testing/character-fixtures.ts": "344436c8118d87a6d8c92926d974e0d7c8b25868b6ab4b565deaa911e034a58a",
       "packages/prowess-game/src/vocabulary/character.ts": "f3cabe2d8e5913cf023d670b00eb49e58bfad9a2e641a6ef09cb3ecd73e40a3a"
     }
+  },
+  "M6-WO4": {
+    "changedFiles": {
+      "packages/prowess-game/src/compilation/compile.ts": "a58c1f98ebcd8b5e71edb55d6a4e48ae816b803318743aac9b6d55288faeae26",
+      "packages/prowess-game/src/definition/payload.ts": "5ce940c5eded64606b1e05736a37f5de5f3d9ba192ee6cf6395b8bc44876c22d",
+      "packages/prowess-game/src/index.ts": "5accfd9abe69f4dacb1a367e486fcb807f733d37844af749c0ec7b86ea9cf512",
+      "packages/prowess-game/src/m6-wo3-registry.test.ts": "186541d938a1a715b95260f5aa6cc3b625e761ca6939dbca5f383729dad663b4",
+      "packages/prowess-game/src/vocabulary/families.ts": "a3bfb44fbe3209ea0aad03c5ef7c1fc47dde1d7e76444076130521c7ccf91866"
+    },
+    "addedFiles": {
+      "packages/prowess-game/src/character-advancement.test.ts": "34503a6e128d0079450c745c3db075e6fbd723d70de88bfe4639e6bca6f04e1c",
+      "packages/prowess-game/src/character/advancement.ts": "451876893acd544ee5b7e81078ca55a2b66b7c41015657ed8334763529b1b40c",
+      "packages/prowess-game/src/character/eligibility.ts": "f73bde55680d1dc30899ffa931efac861a630ee860c996469ab2ca68d1e38802",
+      "packages/prowess-game/src/character/requirements.ts": "ff412da8acdf48acb00824b9ea5e0ed8dfaa324b4030172249d9f09109f93349",
+      "packages/prowess-game/src/definition/advancement-payload.ts": "84e41bbdd192fc5ffe5ab5c0098b909c8eb3bc3a2734aafa073af1d6b849c49b",
+      "packages/prowess-game/src/m6-wo4-registry.test.ts": "b7198a53377342668d06fb31d3ba71705ab563d309386c9a98a45473a851b29f",
+      "packages/prowess-game/src/testing/advancement-fixtures.ts": "36c61972e7f93669f817ca15743caf9af72df71b5125a66efe2e48dfd1fab49b",
+      "packages/prowess-game/src/testing/m6-wo4-registry-baseline.json": "9c5bfb322d15c8d0719373fc85e48d4a5378219da5707a71e80360180dd359d6"
+    }
   }
 }

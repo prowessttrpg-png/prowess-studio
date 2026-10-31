@@ -966,6 +966,33 @@
         2,
         3
       ]
+    },
+    {
+      "id": "M6-WO4",
+      "name": "M6-WO4 — Character Advancement, Access & Eligibility",
+      "job": "controls-2",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-game/src/character-advancement.test.ts",
+        "packages/prowess-game/src/m6-wo4-registry.test.ts",
+        "packages/prowess-db/tests/integration/m6-wo4-advancement.test.ts",
+        "packages/prowess-db/tests/integration/m6-wo4-migration-compat.test.ts",
+        "apps/studio/tests/unit/m6-wo4-static.test.ts",
+        "apps/studio/tests/unit/m6-wo4-advancement-ui.test.tsx",
+        "apps/studio/tests/integration/m6-wo4-advancement-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m6-wo4-negative-controls.mjs",
+        "count": 37,
+        "kind": "mutation"
+      },
+      "smoke": [],
+      "previous": [],
+      "tiers": [
+        2,
+        3
+      ]
     }
   ],
   "checks": [

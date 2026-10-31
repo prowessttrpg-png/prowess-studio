@@ -575,3 +575,43 @@ export {
   type ResolvedCharacterSkill,
   type ResolvedCharacterStat,
 } from "./character/creation.js";
+// PAS-10 M6-WO4 — CHARACTER_ADVANCEMENT_RULE v1, Character advancement (one Level at a time, from the exact Release),
+// the CharacterMechanicalProfile and read-only Character access / eligibility.
+export { ADVANCEMENT_PAYLOAD_KINDS, type CharacterAdvancementLevel, type CharacterAdvancementRulePayload } from "./definition/advancement-payload.js";
+export {
+  CHARACTER_ADVANCEMENT_ERROR_CODES,
+  SKILL_ADVANCEMENT_ACTIONS,
+  buildCharacterMechanicalProfile,
+  getCharacterCapability,
+  previewCharacterAdvancement,
+  type AdvancementCapability,
+  type AdvancementChoices,
+  type AdvancementEntitlements,
+  type AdvancementIssue,
+  type AdvancementPreview,
+  type AdvancementPreviewStatus,
+  type AdvancementSelection,
+  type CharacterCapability,
+  type CharacterMechanicalProfile,
+  type CharacterProgressionState,
+  type CommittedAdvancement,
+  type ProfileAffinity,
+  type ProfileResult,
+  type ProfileSkill,
+  type ProfileStat,
+  type SkillAdvancementAction,
+  type StatPointsReading,
+} from "./character/advancement.js";
+export {
+  accessChanges,
+  characterAccessSummary,
+  componentEligibilityMap,
+  evaluateComponentEligibility,
+  listComponentEligibility,
+  type AccessChanges,
+  type AccessSummary,
+  type AccessTrack,
+  type ComponentEligibility,
+  type EligibilityStatus,
+  type RequirementResult,
+} from "./character/eligibility.js";

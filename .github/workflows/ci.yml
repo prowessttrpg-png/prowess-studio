@@ -502,7 +502,7 @@ jobs:
           PROWESS_EXPECT_CONTROLS=21 node scripts/m5-wo3-negative-controls.mjs
 
   controls-2:
-    name: Gates — M5-WO4, canon rulings, M5-WO5, M6-WO1, M6-WO2, M6-WO3
+    name: Gates — M5-WO4, canon rulings, M5-WO5, M6-WO1, M6-WO2, M6-WO3, M6-WO4
     needs: [unit-packages, unit-game, unit-studio, db-api, db-integration]
     runs-on: ubuntu-latest
     steps:
@@ -557,6 +557,10 @@ jobs:
         run: |
           node scripts/ci/verify-gate.mjs M6-WO3 packages/prowess-game/src/character-creation.test.ts packages/prowess-game/src/m6-wo3-registry.test.ts packages/prowess-db/tests/integration/m6-wo3-character.test.ts packages/prowess-db/tests/integration/m6-wo3-authoring-to-character.test.ts packages/prowess-db/tests/integration/m6-wo3-migration-compat.test.ts apps/studio/tests/unit/m6-wo3-static.test.ts apps/studio/tests/unit/m6-wo3-character-ui.test.tsx apps/studio/tests/unit/m6-wo3-compendium-integration.test.tsx apps/studio/tests/integration/m6-wo3-character-api.test.ts
           PROWESS_EXPECT_CONTROLS=28 node scripts/m6-wo3-negative-controls.mjs
+      - name: M6-WO4 — Character Advancement, Access & Eligibility
+        run: |
+          node scripts/ci/verify-gate.mjs M6-WO4 packages/prowess-game/src/character-advancement.test.ts packages/prowess-game/src/m6-wo4-registry.test.ts packages/prowess-db/tests/integration/m6-wo4-advancement.test.ts packages/prowess-db/tests/integration/m6-wo4-migration-compat.test.ts apps/studio/tests/unit/m6-wo4-static.test.ts apps/studio/tests/unit/m6-wo4-advancement-ui.test.tsx apps/studio/tests/integration/m6-wo4-advancement-api.test.ts
+          PROWESS_EXPECT_CONTROLS=37 node scripts/m6-wo4-negative-controls.mjs
 
   controls-3:
     name: Gates — M5-WO6…WO10

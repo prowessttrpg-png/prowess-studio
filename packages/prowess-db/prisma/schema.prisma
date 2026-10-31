@@ -343,6 +343,8 @@ model EntityVersion {
   charactersAsAncestry        Character[]          @relation("CharacterAncestryVersion") // M6-WO3 back-relation
   charactersAsPrimaryAffinity Character[]          @relation("CharacterPrimaryAffinityVersion") // M6-WO3 back-relation
   characterSkillRanks         CharacterSkillRank[] // M6-WO3 back-relation
+  characterSkillAdvancements  CharacterSkillAdvancement[] // M6-WO4 back-relation
+  characterAffinityAdvancements CharacterAffinityAdvancementChoice[] // M6-WO4 back-relation
 
   @@unique([entityId, revisionNumber])
   /// Exists so RulesetManifestEntry can reference (id, entityId) together — a composite
@@ -2400,6 +2402,7 @@ model Character {
   statAllocations      CharacterStatAllocation[]
   ancestryStatChoices  CharacterAncestryStatChoice[]
   skillRanks           CharacterSkillRank[]
+  advancements         CharacterAdvancement[] // M6-WO4 back-relation
 
   @@index([rulesetReleaseId], map: "characters_ruleset_release_id_idx")
   @@index([ancestryEntityVersionId], map: "characters_ancestry_entity_version_id_idx")
@@ -2454,3 +2457,74 @@ model CharacterSkillRank {
   @@map("character_skill_ranks")
 }
 // <<< M6-WO3 Character domain
+
+// >>> M6-WO4 Character advancement (PAS-10 M6-WO4) — registered in docs/architecture/m6-schema-changes.json
+/// One committed Level advancement of a Character: exactly one Level (to = from + 1, enforced by CHECK and trigger),
+/// append-only once committed. The Level-1 creation rows are never rewritten; current state is rebuilt from creation +
+/// these rows against the Character's exact Release.
+model CharacterAdvancement {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  characterId String    @map("character_id") @db.Uuid
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  fromLevel         Int @map("from_level")
+  toLevel           Int @map("to_level")
+  lockVersionBefore Int @map("lock_version_before")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  statAdvancements  CharacterStatAdvancement[]
+  skillAdvancements CharacterSkillAdvancement[]
+  affinityChoice    CharacterAffinityAdvancementChoice?
+
+  @@unique([characterId, toLevel], map: "character_advancements_character_id_to_level_key")
+  @@map("character_advancements")
+}
+
+/// Stat Points spent by one advancement (positive only; the Level-1 allocation stays in character_stat_allocations).
+model CharacterStatAdvancement {
+  advancementId String               @map("advancement_id") @db.Uuid
+  advancement   CharacterAdvancement @relation(fields: [advancementId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  stat        String
+  pointsSpent Int    @map("points_spent")
+
+  @@id([advancementId, stat], map: "character_stat_advancements_pkey")
+  @@map("character_stat_advancements")
+}
+
+/// One Skill advancement choice (TRAIN_NEW / UPGRADE) on an exact SKILL EntityVersion. The resulting rank is derived.
+model CharacterSkillAdvancement {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  advancementId String               @map("advancement_id") @db.Uuid
+  advancement   CharacterAdvancement @relation(fields: [advancementId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  skillEntityId        String        @map("skill_entity_id") @db.Uuid
+  skillEntityVersionId String        @map("skill_entity_version_id") @db.Uuid
+  skillVersion         EntityVersion @relation(fields: [skillEntityVersionId, skillEntityId], references: [id, entityId], onDelete: Restrict, onUpdate: Restrict, map: "character_skill_advancements_skill_version_fkey")
+
+  action String
+
+  @@unique([advancementId, skillEntityId], map: "character_skill_advancements_advancement_id_skill_entity_id_key")
+  @@index([skillEntityVersionId], map: "character_skill_advancements_skill_entity_version_id_idx")
+  @@map("character_skill_advancements")
+}
+
+/// The authored AFFINITY_PROGRESSION option chosen at a Level that requires a choice (automatic steps store nothing),
+/// with the exact Affinity it names when it names one. The resulting Affinity profile is derived and M5-validated.
+model CharacterAffinityAdvancementChoice {
+  advancementId String               @id @map("advancement_id") @db.Uuid
+  advancement   CharacterAdvancement @relation(fields: [advancementId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  optionKey String @map("option_key")
+
+  affinityEntityId        String?        @map("affinity_entity_id") @db.Uuid
+  affinityEntityVersionId String?        @map("affinity_entity_version_id") @db.Uuid
+  affinityVersion         EntityVersion? @relation(fields: [affinityEntityVersionId, affinityEntityId], references: [id, entityId], onDelete: Restrict, onUpdate: Restrict, map: "character_affinity_advancement_choices_affinity_version_fkey")
+
+  @@index([affinityEntityVersionId], map: "character_affinity_adv_choices_affinity_version_id_idx")
+  @@map("character_affinity_advancement_choices")
+}
+// <<< M6-WO4 Character advancement

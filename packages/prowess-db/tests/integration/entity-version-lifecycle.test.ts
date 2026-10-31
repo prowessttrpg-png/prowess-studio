@@ -485,6 +485,14 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "saveCharacterCreation",
         "updateCharacterProfile",
         "validateCharacterCandidate",
+        // M6-WO4 Character advancement: one append-only advancement per atomic commit (Character tables only) and
+        // read-only context / preview / access / eligibility reads.
+        "advanceCharacter",
+        "getCharacterAccess",
+        "getCharacterAdvancementContext",
+        "getCharacterDefinitionEligibility",
+        "listCharacterEligibleDefinitions",
+        "previewCharacterAdvancementFor",
       ].sort(),
     );
 
@@ -500,6 +508,8 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     expect(mutatorLike).toEqual(["updateAuthoredDraftDefinition", "updateCharacterProfile", "updateDraftEntityVersion"]);
     const characterRepo = readFileSync(new URL("../../src/character/repository.ts", import.meta.url), "utf8");
     expect(characterRepo).not.toMatch(/entityVersion\.(create|update|upsert|delete)/);
+    const advancementRepo = readFileSync(new URL("../../src/character/advancement-repository.ts", import.meta.url), "utf8");
+    expect(advancementRepo).not.toMatch(/entityVersion\.(create|update|upsert|delete)/);
     const authoring = readFileSync(new URL("../../src/compendium-authoring/service.ts", import.meta.url), "utf8");
     const body = authoring.slice(authoring.indexOf("export async function updateAuthoredDraftDefinition("), authoring.indexOf("\n}\n", authoring.indexOf("export async function updateAuthoredDraftDefinition(")));
     expect(body).toMatch(/await updateDraftEntityVersion\(versionId, \{/);

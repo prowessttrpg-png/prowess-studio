@@ -374,5 +374,183 @@
       "apps/studio/tests/integration/m6-wo3-character-api.test.ts",
       "scripts/m6-wo3-negative-controls.mjs"
     ]
+  },
+  {
+    "id": "M6-I031",
+    "title": "Advancement Uses The Character's Exact Release",
+    "group": "Release Pin",
+    "meaning": "Every advancement read, preview and commit resolves the Character's own stored RulesetRelease (manifest-verified before a commit); every Skill, Affinity and component selection must be the exact EntityVersion that Release pins \u2014 never a canonical-key match, another revision or a latest pointer.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo4-static.test.ts",
+      "packages/prowess-game/src/character-advancement.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo4-advancement.test.ts",
+      "apps/studio/tests/integration/m6-wo4-advancement-api.test.ts",
+      "scripts/m6-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I032",
+    "title": "A Character Advances Exactly One Level At A Time",
+    "group": "Level Ownership",
+    "meaning": "An advancement commits exactly fromLevel \u2192 fromLevel + 1, chosen by the server from the Release's Level sequence; no input names a Level, and the database refuses any Level change without the matching advancement row, any skip, repeat or decrement, and any advance of a Character whose core creation is incomplete.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo4-static.test.ts",
+      "packages/prowess-game/src/character-advancement.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo4-advancement.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo4-migration-compat.test.ts",
+      "apps/studio/tests/integration/m6-wo4-advancement-api.test.ts",
+      "scripts/m6-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I033",
+    "title": "Advancement Entitlements Are Published Content",
+    "group": "Content Authority",
+    "meaning": "Stat Points, Skill advancements, the maximum Level, the Character Die and Affinity progression come from the Release's CHARACTER_ADVANCEMENT_RULE, CHARACTER_DIE_PROGRESSION and AFFINITY_PROGRESSION Definitions, which must agree Level for Level; no cadence, cap, die band or option is coded in @prowess/game, the services or Studio.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo4-static.test.ts",
+      "packages/prowess-game/src/character-advancement.test.ts",
+      "packages/prowess-game/src/m6-wo4-registry.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo4-advancement.test.ts",
+      "scripts/m6-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I034",
+    "title": "Creation State Is Immutable After Advancement",
+    "group": "Creation Immutability",
+    "meaning": "The completed Level 1 creation choices are never rewritten by advancement: the WO3 freeze and Release immutability stay in the database guard, advancement writes only its own tables, and the Level 1 creation record is still shown as it was.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo4-static.test.ts",
+      "packages/prowess-game/src/character-advancement.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo4-advancement.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo4-migration-compat.test.ts",
+      "scripts/m6-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I035",
+    "title": "Committed Advancement History Is Append-Only",
+    "group": "History",
+    "meaning": "Each committed advancement (with its Stat, Skill and Affinity choice rows) is inserted once, atomically with the Level change and a lockVersion compare-and-set; database triggers refuse any UPDATE or DELETE of history and any child row added after its Level is reached.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo4-static.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo4-advancement.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo4-migration-compat.test.ts",
+      "apps/studio/tests/integration/m6-wo4-advancement-api.test.ts",
+      "scripts/m6-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I036",
+    "title": "Effective Stats Are Derived",
+    "group": "Derived State",
+    "meaning": "A Stat is baseline + Ancestry + creation + \u03a3 advancement, summed through the M4 modifier engine and bounded by the STAT Definition's maximum; the sum is recalculated on every read and never stored or computed in Studio.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo4-static.test.ts",
+      "packages/prowess-game/src/character-advancement.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo4-advancement.test.ts",
+      "apps/studio/tests/unit/m6-wo4-advancement-ui.test.tsx",
+      "scripts/m6-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I037",
+    "title": "Skill Ranks Are Derived From The Exact Ladder",
+    "group": "Derived State",
+    "meaning": "TRAIN_NEW gives an untrained Skill the Release's starting rank and UPGRADE moves an owned Skill exactly one step up the Release's SKILL rank ladder; duplicate training, upgrading an untrained Skill or passing the top rank is refused, and ranks are rebuilt, not stored.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo4-static.test.ts",
+      "packages/prowess-game/src/character-advancement.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo4-advancement.test.ts",
+      "scripts/m6-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I038",
+    "title": "The Affinity Profile Is Derived And M5-Validated",
+    "group": "Derived State",
+    "meaning": "Automatic Affinity steps store nothing and chosen steps store only the authored option (and exact Affinity); the resulting profile is rebuilt and must pass the existing M5 validateAffinityProfile and validateAffinityProgression at every Level; unresolved canon options are never guessed.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo4-static.test.ts",
+      "packages/prowess-game/src/character-advancement.test.ts",
+      "packages/prowess-game/src/m6-wo4-registry.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo4-advancement.test.ts",
+      "scripts/m6-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I039",
+    "title": "Derived Values Are Never Persisted",
+    "group": "Derived State",
+    "meaning": "Final Stats, ranks, the Character Die, Maximum HP / MP and every other derived statistic are recalculated from creation + history against the exact Release on every read; no table stores them and no request may supply them.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo4-static.test.ts",
+      "packages/prowess-game/src/character-advancement.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo4-advancement.test.ts",
+      "apps/studio/tests/integration/m6-wo4-advancement-api.test.ts",
+      "scripts/m6-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I040",
+    "title": "Eligibility Reuses M5 Structured Prerequisites",
+    "group": "Eligibility",
+    "meaning": "Component eligibility reads only the structured SKILL_RANK_AT_LEAST and AFFINITY_RANK_AT_LEAST prerequisites M5's readComponentConstructionRules reads, and evaluates them as the same M4 Requirements; no new prerequisite kind and no unlock table exist.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo4-static.test.ts",
+      "packages/prowess-game/src/character-advancement.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo4-advancement.test.ts",
+      "apps/studio/tests/integration/m6-wo4-advancement-api.test.ts",
+      "scripts/m6-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I041",
+    "title": "Eligibility Is Not Ability Legality",
+    "group": "Eligibility",
+    "meaning": "An ELIGIBLE component only means the Character meets its structured prerequisites; capacity, structure, stacking, Signature slots and Affinity Authority keyword access remain M5's complete construction compiler's, and the UI says so.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo4-static.test.ts",
+      "packages/prowess-game/src/character-advancement.test.ts",
+      "apps/studio/tests/unit/m6-wo4-advancement-ui.test.tsx",
+      "scripts/m6-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I042",
+    "title": "Rules Text Is Never Parsed For Mechanics",
+    "group": "Eligibility",
+    "meaning": "Advancement and eligibility read only structured Definition payloads; Rules Text, descriptions and display names never decide an entitlement, a requirement or a verdict.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo4-static.test.ts",
+      "packages/prowess-game/src/character-advancement.test.ts",
+      "scripts/m6-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I043",
+    "title": "No Automatic Release Migration Or Respec",
+    "group": "No Automatic Migration",
+    "meaning": "Publishing a later Release (even with a different advancement schedule) leaves every existing Character, its history, its profile and its next entitlements on its own Release; nothing rebases, re-levels or respecs a Character.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo4-static.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo4-advancement.test.ts",
+      "apps/studio/tests/integration/m6-wo4-advancement-api.test.ts",
+      "scripts/m6-wo4-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I044",
+    "title": "The CharacterMechanicalProfile Is The One Bridge",
+    "group": "Profile",
+    "meaning": "One @prowess/game builder turns creation + history + the exact Release into the CharacterMechanicalProfile; the services, eligibility, access and Studio consume that profile and never assemble Stats, ranks or Affinities themselves.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo4-static.test.ts",
+      "packages/prowess-game/src/character-advancement.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo4-advancement.test.ts",
+      "apps/studio/tests/unit/m6-wo4-advancement-ui.test.tsx",
+      "scripts/m6-wo4-negative-controls.mjs"
+    ]
   }
 ]

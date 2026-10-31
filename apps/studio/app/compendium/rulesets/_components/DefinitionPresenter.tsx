@@ -166,6 +166,31 @@ function FieldValue({ field, payload, context, keywordName }: { field: FieldDesc
       ) : (
         <span className="gov-muted">none</span>
       );
+    case "advancementLevels":
+      return Array.isArray(value) && value.length > 0 ? (
+        <table className="prowess-reference__table" aria-label={field.label} data-testid="reference-advancement-levels">
+          <thead>
+            <tr>
+              <th scope="col">Level</th>
+              <th scope="col">Stat Points</th>
+              <th scope="col">Skill advancements</th>
+            </tr>
+          </thead>
+          <tbody>
+            {value.map((row, i) =>
+              isRecord(row) ? (
+                <tr key={i}>
+                  <th scope="row">{String(row.level ?? "")}</th>
+                  <td>{String(row.statPoints ?? "")}</td>
+                  <td>{String(row.skillAdvancements ?? "")}</td>
+                </tr>
+              ) : null,
+            )}
+          </tbody>
+        </table>
+      ) : (
+        <span className="gov-muted">none</span>
+      );
     case "authoredData":
     case "source":
       return <StructuredValue value={value} path={path} context={context} />;
