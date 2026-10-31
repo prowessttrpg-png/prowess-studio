@@ -19,6 +19,12 @@ import { ADVANCEMENT_RULE_KEY, PLAYTEST_ADVANCEMENT_LEVELS, advancementFixture, 
  * immutable · M6-I036 Stats · M6-I037 Skill ranks · M6-I038 Affinity profile · M6-I039 derived values recalculated ·
  * M6-I040 M5 prerequisites reused · M6-I041 eligibility ≠ legality · M6-I042 no Rules Text · M6-I044 one profile builder.
  */
+/**
+ * Per-test ceiling for the cases that replay a long progression (Levels 6, 9 and 10 rebuild and M5-validate every
+ * earlier Level). They run ~5 s on slower CI runners, just over Vitest's 5 s default; 15 s gives runner headroom while
+ * still catching a hang or a major performance regression. Every other test keeps the default.
+ */
+const HEAVY_ADVANCEMENT_TEST_TIMEOUT_MS = 15_000;
 const none: AdvancementChoices = { statAllocations: {}, skillAdvancements: [], affinityChoice: null };
 const stats = (s: Record<string, number>): AdvancementChoices => ({ ...none, statAllocations: s });
 const train = (f: AdvancementFixture, key: string) => ({ action: "TRAIN_NEW", skill: f.sel(key) });
@@ -134,7 +140,7 @@ describe("M6-WO4 Level advancement (§108–§114, M6-I032)", () => {
     expect(p.status).toBe("READY");
   });
 
-  it("Level 6: an exact Affinity branch choice — both authored branches are legal; others are not", () => {
+  it("Level 6: an exact Affinity branch choice — both authored branches are legal; others are not", { timeout: HEAVY_ADVANCEMENT_TEST_TIMEOUT_MS }, () => {
     const expert = profileAt(f, 5, "PRIMARY_EXPERT");
     expect(expert.affinities).toEqual([expect.objectContaining({ role: "PRIMARY", rank: "EXPERT" })]);
     const secondary = profileAt(f, 5, "GAIN_SECONDARY_TRAINED");
@@ -148,7 +154,7 @@ describe("M6-WO4 Level advancement (§108–§114, M6-I032)", () => {
     expect(codes(preview(f, 4, { ...base, affinityChoice: { optionKey: "GAIN_SECONDARY_TRAINED", affinity: f.sel("affinity.evocation") } }))).toContain(E.AFFINITY_ALREADY_OWNED);
   });
 
-  it("Level 9: d12, the advanced Affinity option; a newly gained Affinity starts at TRAINED", () => {
+  it("Level 9: d12, the advanced Affinity option; a newly gained Affinity starts at TRAINED", { timeout: HEAVY_ADVANCEMENT_TEST_TIMEOUT_MS }, () => {
     const p = profileAt(f, 8, "PRIMARY_EXPERT", "GAIN_NEW_AFFINITY");
     expect(p.characterDie).toEqual({ dieKey: "D12", faces: 12 });
     expect(p.affinities.find((a) => a.affinity.canonicalKey === "affinity.divination")).toMatchObject({ rank: "TRAINED", role: "SECONDARY", acquisition: { level: 9, optionKey: "GAIN_NEW_AFFINITY" } });
@@ -158,7 +164,7 @@ describe("M6-WO4 Level advancement (§108–§114, M6-I032)", () => {
     expect(upgraded.affinities.find((a) => a.affinity.canonicalKey === "affinity.conjuration")?.rank).toBe("EXPERT");
   });
 
-  it("Level 10: +2 Stat Points, one Skill, no Affinity step, d12; Stat Mastery is derived at the Release's thresholds", () => {
+  it("Level 10: +2 Stat Points, one Skill, no Affinity step, d12; Stat Mastery is derived at the Release's thresholds", { timeout: HEAVY_ADVANCEMENT_TEST_TIMEOUT_MS }, () => {
     const p9 = profileAt(f, 8);
     expect(p9.stats.find((s) => s.stat === "STR")).toMatchObject({ final: 9, mastery: false });
     const p = preview(f, 8, script(f)[8]!);

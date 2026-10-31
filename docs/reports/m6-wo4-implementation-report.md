@@ -82,3 +82,13 @@ The WO2 control-hardening commit (`b2f0a0f`) is not folded into this Work Order 
 
 See the architecture document §11. The canonical Core Playtest content ships no authored Character Creation or
 Advancement Rule yet; all tests use test-only rules under `test.*` canonical keys.
+
+## 8. Post-Merge CI Correction
+
+PR #65 was merged at `03ece3d` (outside the agreed merge boundary). The merged-`main` run #241 failed `Unit —
+@prowess/game`: three tests in `character-advancement.test.ts` (Levels 6, 9 and 10) exceeded Vitest's 5 s default
+timeout (5.204 s, 5.439 s, 5.143 s), with no failed assertion. These cases replay and M5-validate the whole progression
+(~3.2–3.9 s locally). Branch `m6-wo4-ci-timeout-fix` gives exactly those three tests a 15 s per-test ceiling
+(`HEAVY_ADVANCEMENT_TEST_TIMEOUT_MS`); assertions, mechanics, the global timeout and CI configuration are unchanged. The
+test file's hash in `m6-approved-m5-changes.json` is updated accordingly (the only registry change). The next slowest
+default-timeout test (MAX_LEVEL, ~2.4 s locally) is left at the default and noted for watch.

@@ -27,7 +27,7 @@
       "packages/prowess-game/src/vocabulary/families.ts": "a3bfb44fbe3209ea0aad03c5ef7c1fc47dde1d7e76444076130521c7ccf91866"
     },
     "addedFiles": {
-      "packages/prowess-game/src/character-advancement.test.ts": "34503a6e128d0079450c745c3db075e6fbd723d70de88bfe4639e6bca6f04e1c",
+      "packages/prowess-game/src/character-advancement.test.ts": "cd106d371eca8760d34f0a5d7b49771cedac165d0fa328a3f6c0124bd75bec17",
       "packages/prowess-game/src/character/advancement.ts": "451876893acd544ee5b7e81078ca55a2b66b7c41015657ed8334763529b1b40c",
       "packages/prowess-game/src/character/eligibility.ts": "f73bde55680d1dc30899ffa931efac861a630ee860c996469ab2ca68d1e38802",
       "packages/prowess-game/src/character/requirements.ts": "ff412da8acdf48acb00824b9ea5e0ed8dfaa324b4030172249d9f09109f93349",
