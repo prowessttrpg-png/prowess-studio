@@ -92,6 +92,8 @@ const DEFINITION_KIND_TABLE = {
   SKILL: active("SKILL"),
   /** M6-WO3: the Level-1 creation values (point budget, free Skill count, starting rank) as authored Definition data. */
   CHARACTER_CREATION_RULE: active("CHARACTER"),
+  /** M6-WO4: per-Level advancement entitlements (Stat Points, Skill advancements) as authored Definition data. */
+  CHARACTER_ADVANCEMENT_RULE: active("CHARACTER"),
   // Runtime resources, the action catalog and the tactical movement identities — v1 payloads defined by M5-WO3
   // (definition/runtime-payload.ts). RESOURCE keeps the M1 RESOURCE storage type it was reserved under in WO1.
   RESOURCE: active("RESOURCE", ["RESOURCE"]),

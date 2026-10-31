@@ -100,6 +100,11 @@ export interface CharacterDto {
   choices: CandidateDto & { skills: Array<{ skill: SelectionDto; rankKey: string; sourceKind: string; sourceGrantKey: string | null }> };
   resolution: ResolutionDto;
   names: Record<string, string>;
+  /** PAS-10 M6-WO4: the present mechanical profile (null for a Draft) and the committed advancement history. */
+  profile?: ProfileDto | null;
+  profileIssues?: AdvancementIssueDto[];
+  advancementHistory?: HistoryEntryDto[];
+  advancementCapability?: { status: string; missing: Array<{ requirement: string; message: string }> };
 }
 export interface CharacterListItemDto {
   id: string;
@@ -162,3 +167,122 @@ export function candidateFrom(choices: CharacterDto["choices"]): CandidateDto {
     primaryAffinity: choices.primaryAffinity,
   };
 }
+
+// --- PAS-10 M6-WO4: advancement, the mechanical profile, access & eligibility --------------------------------------
+
+export interface ProfileDto {
+  level: number;
+  maximumLevel: number;
+  characterDie: { dieKey: string; faces: number };
+  baseHp: number;
+  baseMp: number;
+  stats: Array<{ stat: string; baseline: number; ancestry: number; creation: number; advancement: number; final: number; minimum: number; maximum: number; mastery: boolean | null; definition: DefinitionRefDto }>;
+  skills: Array<{ skill: DefinitionRefDto; rankKey: string; source: { kind: string; grantKey: string | null; level: number }; history: Array<{ level: number; action: string; fromRankKey: string; toRankKey: string }> }>;
+  affinities: Array<{ affinity: DefinitionRefDto; identity: string; role: string; rank: string; acquisition: { level: number; optionKey: string }; history: Array<{ level: number; optionKey: string; from: string; to: string }> }>;
+  derivedStatistics: Array<{ statistic: string; value: number; unit: string | null; definition: DefinitionRefDto }>;
+  signatureCapacity: number | null;
+}
+export interface AdvancementIssueDto {
+  code: string;
+  severity: "ERROR" | "INCOMPLETE";
+  path: string;
+  message: string;
+  source: { canonicalKey: string; entityVersionId: string } | null;
+}
+export interface HistoryEntryDto {
+  fromLevel: number;
+  toLevel: number;
+  createdAt: string;
+  statAllocations: Record<string, number>;
+  skillAdvancements: Array<{ action: string; skill: SelectionDto }>;
+  affinityChoice: { optionKey: string; affinity: SelectionDto | null } | null;
+}
+export interface AffinityOptionDto {
+  optionKey: string;
+  action: "CHOOSE_PRIMARY_AFFINITY" | "RANK_UP" | "GAIN_AFFINITY";
+  target?: string;
+  from?: string;
+  to?: string;
+  role?: string;
+  startingRank?: string | null;
+  conflictKey?: string | null;
+}
+export interface EntitlementsDto {
+  fromLevel: number;
+  toLevel: number;
+  statPoints: number;
+  skillAdvancements: number;
+  characterDie: { before: { dieKey: string; faces: number }; after: { dieKey: string; faces: number } };
+  affinity: { mode: string; automatic: boolean; options: AffinityOptionDto[]; source: DefinitionRefDto } | null;
+  source: DefinitionRefDto;
+}
+export interface AccessChangesDto {
+  tracks: Array<{ track: string; before: string; after: string; eligibleBefore: boolean | null; eligibleAfter: boolean | null }>;
+  signatureCapacity: { before: number | null; after: number | null };
+  newlyEligible: DefinitionRefDto[];
+  newlyIneligible: DefinitionRefDto[];
+}
+export interface AdvancementChoicesDto {
+  statAllocations: Record<string, number>;
+  skillAdvancements: Array<{ action: "TRAIN_NEW" | "UPGRADE"; skill: SelectionDto }>;
+  affinityChoice: { optionKey: string; affinity: SelectionDto | null } | null;
+}
+export interface AdvancementPreviewDto {
+  status: "READY" | "INCOMPLETE" | "INVALID" | "MAX_LEVEL";
+  issues: AdvancementIssueDto[];
+  fromLevel: number | null;
+  toLevel: number | null;
+  entitlements: EntitlementsDto | null;
+  before: ProfileDto | null;
+  after: ProfileDto | null;
+  accessChanges: AccessChangesDto | null;
+  statPoints: { granted: number; spent: number; remaining: number } | null;
+}
+export interface AdvancementOptionDto {
+  ref: DefinitionRefDto;
+  displayName: string;
+  rankKey: string | null;
+}
+export interface AdvancementContextDto {
+  character: { id: string; name: string; level: number; lockVersion: number };
+  release: ReleaseSummaryDto;
+  capability: { creation: { status: string; missing: Array<{ requirement: string; message: string }> }; advancement: { status: string; missing: Array<{ requirement: string; message: string }> } };
+  profile: ProfileDto;
+  next: EntitlementsDto | null;
+  maximumLevelReached: boolean;
+  skillOptions: { trainNew: AdvancementOptionDto[]; upgrade: AdvancementOptionDto[] };
+  affinityOptions: { gain: AdvancementOptionDto[]; owned: AdvancementOptionDto[] };
+  history: HistoryEntryDto[];
+  names: Record<string, string>;
+}
+export interface AccessTrackDto {
+  skillKey: string;
+  skill: DefinitionRefDto | null;
+  rankKey: string;
+  minimumRankKey: string;
+  eligible: boolean | null;
+}
+export interface AccessDto {
+  character: { id: string; level: number };
+  release: ReleaseSummaryDto;
+  summary: {
+    status: "RESOLVED" | "UNRESOLVED";
+    unresolved: string[];
+    spell: { arcaneAuthority: AccessTrackDto | null; affinityAuthorities: Array<{ affinity: DefinitionRefDto; identity: string; role: string; rank: string; minimumRank: string; eligible: boolean | null }> };
+    maneuver: { martial: AccessTrackDto | null };
+    signatureCapacity: number | null;
+    constructionRule: DefinitionRefDto | null;
+  };
+}
+/** The WO4 fields every Character read carries (the present profile and the committed history). */
+export interface CharacterProgressDto {
+  profile: ProfileDto | null;
+  profileIssues: AdvancementIssueDto[];
+  advancementHistory: HistoryEntryDto[];
+  advancementCapability: { status: string; missing: Array<{ requirement: string; message: string }> };
+}
+
+export const getAdvancementContext = async (id: string) => (await request<AdvancementContextDto>("GET", `/api/characters/${enc(id)}/advancement`)).data;
+export const previewAdvancement = async (id: string, choices: AdvancementChoicesDto) => (await request<AdvancementPreviewDto>("POST", `/api/characters/${enc(id)}/advancement/preview`, { choices })).data;
+export const advanceCharacter = async (id: string, expectedLockVersion: number, choices: AdvancementChoicesDto) => (await request<CharacterDto>("POST", `/api/characters/${enc(id)}/advance`, { expectedLockVersion, choices })).data;
+export const getAccess = async (id: string) => (await request<AccessDto>("GET", `/api/characters/${enc(id)}/access`)).data;

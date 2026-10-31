@@ -249,3 +249,13 @@ export {
   validateCharacterCandidate,
 } from "./character/index.js";
 export type { CharacterCreationContext, CharacterDetail, CharacterListItem, CharacterReleaseSummary, CharacterStoredChoices, CreationOption } from "./character/index.js";
+// PAS-10 M6-WO4 — Character advancement (one Level per atomic commit, from the exact Release) and read-only access.
+export {
+  advanceCharacter,
+  getCharacterAccess,
+  getCharacterAdvancementContext,
+  getCharacterDefinitionEligibility,
+  listCharacterEligibleDefinitions,
+  previewCharacterAdvancementFor,
+} from "./character/index.js";
+export type { AdvancementOption, CharacterAccess, CharacterAdvancementContext, CharacterAdvancementHistoryEntry } from "./character/index.js";

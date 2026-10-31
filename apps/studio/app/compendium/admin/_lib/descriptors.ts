@@ -50,7 +50,9 @@ export type FieldDescriptor =
   | (FieldBase & { readonly input: "integer" })
   | (FieldBase & { readonly input: "statGrants" })
   | (FieldBase & { readonly input: "skillGrants"; readonly optionKind: string })
-  | (FieldBase & { readonly input: "source" });
+  | (FieldBase & { readonly input: "source" })
+  // M6-WO4: the per-Level advancement entitlement table.
+  | (FieldBase & { readonly input: "advancementLevels" });
 
 export interface ContractDescriptor {
   /** Short explanation of what this kind of Definition is FOR (§59) — presentation only. */
@@ -177,6 +179,13 @@ export const CHARACTER_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescrip
       SOURCE,
     ],
   },
+  CHARACTER_ADVANCEMENT_RULE: {
+    purpose: "The advancement entitlements of each Level after creation: Stat Points and Skill advancements. The Character Die (Character Die Progression) and Affinity advancement (Affinity Progression) are owned by their own Definitions.",
+    fields: [
+      { key: "levels", label: "Levels", group: "Advancement by Level", input: "advancementLevels", required: true, help: "One row per Level a Character can reach after creation, in ascending order. They must be exactly the Character Die progression's Levels after the creation Level." },
+      SOURCE,
+    ],
+  },
 };
 
 /** Kinds without a dedicated descriptor: the whole payload is edited as structured authored data. */
@@ -247,6 +256,7 @@ export function initialFieldValue(field: FieldDescriptor): unknown {
       return null;
     case "statGrants":
     case "skillGrants":
+    case "advancementLevels":
       return [];
     case "source":
       return { locators: [], conflicts: [] };

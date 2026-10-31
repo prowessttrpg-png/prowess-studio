@@ -150,3 +150,9 @@ Deferred by design (§115): Job Class presets; gear / equipment / weapons; curre
 Character, Skill and Affinity advancement; secondary Affinities; Signature Ability, Spell and Maneuver records; respec;
 Release migration; accounts / ownership; Character deletion / archive; import / export. There is no authentication:
 Characters are application records. M5-SC-042…053 remain unresolved and are not touched by Character creation.
+
+**M6-WO4 update.** Character, Skill and Affinity advancement (Levels 2 → maximum, secondary Affinities) now exist —
+see [m6-character-advancement-access.md](m6-character-advancement-access.md). Creation as described here is unchanged:
+the Level 1 creation rows stay frozen, and the `characters` guard keeps Release immutability and the creation freeze
+while its Level rule now allows exactly one +1 step per committed advancement. Everything else listed above remains
+deferred.

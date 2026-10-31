@@ -8,6 +8,7 @@ export {
   saveCharacterCreation,
   updateCharacterProfile,
   validateCharacterCandidate,
+  type CharacterAdvancementHistoryEntry,
   type CharacterCreationContext,
   type CharacterDetail,
   type CharacterListItem,
@@ -15,3 +16,14 @@ export {
   type CharacterStoredChoices,
   type CreationOption,
 } from "./service.js";
+export {
+  advanceCharacter,
+  getCharacterAccess,
+  getCharacterAdvancementContext,
+  getCharacterDefinitionEligibility,
+  listCharacterEligibleDefinitions,
+  previewCharacterAdvancementFor,
+  type AdvancementOption,
+  type CharacterAccess,
+  type CharacterAdvancementContext,
+} from "./advancement-service.js";

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { CharacterApiError, getCharacter, saveProfile, type CharacterDto } from "../_lib/character-client";
+import { CharacterProgress } from "./CharacterProgress";
 import { CharacterReview, releaseLabel } from "./CharacterReview";
 
 /**
@@ -57,10 +58,18 @@ export function CharacterSheetSummary({ characterId }: { characterId: string }) 
             </Link>
           </p>
         ) : (
-          <p className="gov-muted">Character Sheet, Equipment and Ability Builders arrive in later M6 Work Orders.</p>
+          <p className="gov-muted">The Character Sheet, Equipment and Ability Builders arrive in later M6 Work Orders.</p>
         )}
       </header>
-      <CharacterReview release={c.release} resolution={c.resolution} names={names} level={c.level} />
+      {c.status === "CORE_COMPLETE" ? <CharacterProgress character={c} /> : null}
+      {c.status === "CORE_COMPLETE" && c.level !== c.resolution.resolved.level ? (
+        <details className="gov-panel">
+          <summary>Level 1 creation record</summary>
+          <CharacterReview release={c.release} resolution={c.resolution} names={names} level={c.resolution.resolved.level ?? c.level} />
+        </details>
+      ) : (
+        <CharacterReview release={c.release} resolution={c.resolution} names={names} level={c.level} />
+      )}
       <form
         className="gov-panel"
         aria-label="Profile"

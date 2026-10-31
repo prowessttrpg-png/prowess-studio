@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { frozenSchemaText, laterMigrations } from "./later-milestone-schema";
+import { expectedFrozenHash, frozenSchemaText, laterMigrations } from "./later-milestone-schema";
 
 /**
  * M6-WO3 permanent architecture gate — Character Domain Model & Character Creation (PAS-10 M6-WO3 §107).
@@ -35,7 +35,11 @@ const fn = (src: string, name: string) => {
 };
 
 const UI = code("apps/studio/app/characters");
-const ROUTES = [...walk("apps/studio/app/api/characters"), ...walk("apps/studio/app/api/character-creation")].filter((f) => f.endsWith("route.ts"));
+// Routes registered by LATER Work Orders under the same folders (M6-WO4 advancement / access) are their gates' concern.
+const LATER_ROUTES = Object.entries(JSON.parse(read("docs/architecture/m6-api-routes.json")) as Record<string, unknown>)
+  .filter(([k, v]) => /^M\d+-WO\d+$/.test(k) && !["M6-WO1", "M6-WO2", "M6-WO3"].includes(k) && Array.isArray(v))
+  .flatMap(([, v]) => v as string[]);
+const ROUTES = [...walk("apps/studio/app/api/characters"), ...walk("apps/studio/app/api/character-creation")].filter((f) => f.endsWith("route.ts") && !LATER_ROUTES.includes(f));
 const SERVICE = strip(read("packages/prowess-db/src/character/service.ts"));
 const REPOSITORY = strip(read("packages/prowess-db/src/character/repository.ts"));
 const CREATION = strip(read("packages/prowess-game/src/character/creation.ts"));
@@ -53,7 +57,7 @@ describe("M6-WO3 gate — registered schema change and migration (§28–§35, �
   it("M6-I024 the schema registry entry is exactly the four Character models and the one WO3 migration", () => {
     const registry = JSON.parse(read("docs/architecture/m6-schema-changes.json")) as Record<string, unknown>;
     expect(registry["M6-WO3"]).toEqual({ migrations: [MIGRATION_NAME], models: ["Character", "CharacterAncestryStatChoice", "CharacterSkillRank", "CharacterStatAllocation"] });
-    expect(laterMigrations()).toEqual([MIGRATION_NAME]);
+    expect(laterMigrations()[0]).toBe(MIGRATION_NAME); // later registered Work Orders append after it
     const models = [...WO3_BLOCK.matchAll(/^model (\w+) \{/gm)].map((m) => m[1]).sort();
     expect(models).toEqual(["Character", "CharacterAncestryStatChoice", "CharacterSkillRank", "CharacterStatAllocation"]);
     // Every other schema line is unchanged since M6-WO2: removing exactly the marked WO3 additions restores the
@@ -209,7 +213,9 @@ describe("M6-WO3 gate — Studio presents, never decides (§52, §60, §65, §70
 
   it("WO3 builds no equipment, ability, advancement or job-class feature (§75–§80, §115)", () => {
     const all = [...UI, ...ROUTES].map((f) => strip(read(f))).join("\n");
-    expect(all).not.toMatch(/inventory|addWeapon|equipItem|createSpell|createManeuver|levelUp|advance\w*Level|respec|jobClass|secondaryAffinit/i);
+    // Advancement, Level-up and secondary Affinities arrived with M6-WO4 (its own gate); WO3 still builds no equipment,
+    // ability records, respec or job class.
+    expect(all).not.toMatch(/inventory|addWeapon|equipItem|createSpell|createManeuver|respec|jobClass/i);
     expect(ROUTES.map((f) => f.replace("apps/studio/app/api/", "")).sort()).toEqual([
       "character-creation/releases/[releaseId]/capability/route.ts",
       "characters/[characterId]/creation-context/route.ts",
@@ -277,7 +283,8 @@ describe("M6-WO3 gate — approved M5 change, invariants, documentation and CI (
       "packages/prowess-game/src/testing/m6-wo3-registry-baseline.json",
       "packages/prowess-game/src/vocabulary/character.ts",
     ]);
-    for (const [f, h] of [...Object.entries(wo3.changedFiles), ...Object.entries(wo3.addedFiles)]) expect(hash(readFileSync(path.join(ROOT, f))), f).toBe(h);
+    // Later Work Orders may change these files again only through their own registered entry (expectedFrozenHash).
+    for (const [f, h] of [...Object.entries(wo3.changedFiles), ...Object.entries(wo3.addedFiles)]) expect(hash(readFileSync(path.join(ROOT, f))), f).toBe(expectedFrozenHash(f, h));
     // The changed M5 files gain only additive WO3 lines (no existing kind, reader or compiler is rewritten).
     const families = read("packages/prowess-game/src/vocabulary/families.ts");
     expect(families).toMatch(/ANCESTRY: active\("ANCESTRY"\),\n\s+SKILL: active\("SKILL"\),/);
@@ -295,7 +302,7 @@ describe("M6-WO3 gate — approved M5 change, invariants, documentation and CI (
 
   const inv = JSON.parse(read("docs/architecture/m6-invariants.json")) as Array<{ id: string; title: string; guards: string[] }>;
   it("M6-I021–I030 follow M6-I001–I020, are documented, and each is guarded by executing files that cite it", () => {
-    expect(inv.map((x) => x.id)).toEqual(Array.from({ length: 30 }, (_, i) => `M6-I${String(i + 1).padStart(3, "0")}`));
+    expect(inv.slice(0, 30).map((x) => x.id)).toEqual(Array.from({ length: 30 }, (_, i) => `M6-I${String(i + 1).padStart(3, "0")}`));
     const md = read("docs/architecture/m6-invariants.md");
     for (const row of inv.slice(20, 30)) {
       expect(md).toContain(`### ${row.id} — ${row.title}`);

@@ -27,6 +27,7 @@ export const COMPONENT_COMPILERS: Readonly<Record<ProwessDefinitionKind, Compone
   SKILL: null,
   // M6-WO3: Character creation reads this content through its own entry point (character/creation.ts).
   CHARACTER_CREATION_RULE: null,
+  CHARACTER_ADVANCEMENT_RULE: null,
   RANK_LADDER: null,
   SKILL_RANK: null,
   RESOURCE: null,

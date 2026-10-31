@@ -808,6 +808,17 @@ export const CHARACTER_ERROR_CODES = {
   RELEASE_NOT_CAPABLE: "CHARACTER.RELEASE_NOT_CAPABLE",
   /** The Release's manifest failed the M2 integrity verification; no Character is built from it. */
   RELEASE_INTEGRITY_FAILED: "CHARACTER.RELEASE_INTEGRITY_FAILED",
+  // ---- PAS-10 M6-WO4 Character advancement ----
+  /** Only a Character whose core creation is complete can advance. */
+  CORE_CREATION_INCOMPLETE: "CHARACTER.CORE_CREATION_INCOMPLETE",
+  /** The Character is at the maximum Level its Release defines. */
+  MAX_LEVEL: "CHARACTER.MAX_LEVEL",
+  /** The submitted advancement choices contain an ERROR — nothing was committed. */
+  INVALID_ADVANCEMENT: "CHARACTER.INVALID_ADVANCEMENT",
+  /** The advancement is not complete (every entitlement must be spent / chosen before committing). */
+  ADVANCEMENT_INCOMPLETE: "CHARACTER.ADVANCEMENT_INCOMPLETE",
+  /** The Character's Release does not contain coherent advancement content. */
+  ADVANCEMENT_NOT_CAPABLE: "CHARACTER.ADVANCEMENT_NOT_CAPABLE",
 } as const;
 
 export type CharacterErrorCode = (typeof CHARACTER_ERROR_CODES)[keyof typeof CHARACTER_ERROR_CODES];

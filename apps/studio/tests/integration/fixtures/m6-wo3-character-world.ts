@@ -68,7 +68,14 @@ const ancestryPayload = (pins: Map<string, Pin>, baseHp = 10) => ({
 });
 
 /** Seeds and publishes Release 1 under `prefix`. */
-export async function seedCharacterWorld(prefix: string, label = "R1"): Promise<CharacterWorld> {
+/** The playtest advancement cadence (Levels 2–10) as a TEST Character Advancement Rule payload (M6-WO4). */
+export const ADVANCEMENT_RULE_KEY = "test.m6wo4.advancement_rule";
+export const advancementRulePayload = (statPoints: (level: number) => number = (l) => (l === 10 ? 2 : 1)) => ({
+  levels: [2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => ({ level, statPoints: statPoints(level), skillAdvancements: [3, 5, 6, 8, 9, 10].includes(level) ? 1 : 0 })),
+  source: { locators: ["s159"], conflicts: [] },
+});
+
+export async function seedCharacterWorld(prefix: string, label = "R1", options: { advancement?: boolean } = {}): Promise<CharacterWorld> {
   const k = await kinds();
   const tag = `${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
   const pins = new Map<string, Pin>();
@@ -83,6 +90,22 @@ export async function seedCharacterWorld(prefix: string, label = "R1"): Promise<
   await add(RULE_KEY, "CHARACTER_CREATION_RULE", 1, { startingLevel: 1, statPointBudget: 15, freeTrainedSkillCount: 2, startingSkillRankKey: "TRAINED", requiredAncestryCount: 1, requiredPrimaryAffinityCount: 1, source: SOURCE });
   for (const s of SKILL_KEYS) await add(s, "SKILL", 1, { ladderKey: "SKILL", source: SOURCE });
   await add(ANCESTRY_KEY, "ANCESTRY", 1, ancestryPayload(pins));
+  if (options.advancement === true) {
+    // M6-WO4: the advancement rule, the canonical Ability Construction Rule (Skills renamed to this world's test-scoped
+    // Arcana / Martial Skills) and one component whose structured prerequisite is Arcana EXPERT.
+    await add(ADVANCEMENT_RULE_KEY, "CHARACTER_ADVANCEMENT_RULE", 1, advancementRulePayload());
+    for (const k of ["skill.arcana", "skill.martial"]) await add(k, "SKILL", 1, { ladderKey: "SKILL", source: SOURCE });
+    const rule = JSON.parse(JSON.stringify(rows("ability-construction.json")[0]!.payload)) as { spell: { arcaneAuthority: { skillKey: string } }; maneuver: { martial: { skillKey: string } } };
+    rule.spell.arcaneAuthority.skillKey = pins.get("skill.arcana")!.canonicalKey;
+    rule.maneuver.martial.skillKey = pins.get("skill.martial")!.canonicalKey;
+    await add("construction.ability_rules", "ABILITY_CONSTRUCTION_RULE", 1, rule);
+    await add("test.m6wo4.effect.expert_lore", "SPELL_EFFECT", 1, {
+      effectFamily: "UTILITY",
+      resolution: { mode: "SAVING_THROW", data: { authored: true } },
+      outcomes: [{ outcomeKey: "on-fail", data: { authored: true } }],
+      rules: { construction: { prerequisites: [{ prerequisiteKey: "ARCANA_EXPERT", kind: "SKILL_RANK_AT_LEAST", skillKey: pins.get("skill.arcana")!.canonicalKey, minimumRank: "EXPERT" }] } },
+    });
+  }
 
   const r = await createRuleset({ canonicalKey: `${prefix}.ruleset_${tag}`, name: `M6-WO3 API ${tag}`, channel: "CORE_PLAYTEST", versionLabel: label });
   await submitRulesetForReview(r.id);
@@ -117,7 +140,7 @@ export function workedChoices(pins: Map<string, Pin>) {
 }
 
 /** Publishes the next Release with NEW approved revisions of the given content keys (Ancestry revision: Base HP 12). */
-export async function publishNextRelease(world: CharacterWorld, contentKeys: readonly string[], label: string): Promise<CharacterWorld> {
+export async function publishNextRelease(world: CharacterWorld, contentKeys: readonly string[], label: string, overrides: Readonly<Record<string, unknown>> = {}): Promise<CharacterWorld> {
   const pins = new Map(world.pins);
   const operations = [];
   const ordered = [...contentKeys].sort((a, b) => (a === ANCESTRY_KEY ? 1 : b === ANCESTRY_KEY ? -1 : 0));
@@ -125,7 +148,7 @@ export async function publishNextRelease(world: CharacterWorld, contentKeys: rea
     const old = pins.get(key)!;
     const current = await prisma.entityVersion.findUniqueOrThrow({ where: { id: old.entityVersionId } });
     const data = current.structuredData as { prowessDefinition: { schemaVersion: number; systemFamily: string; definitionKind: string; payload: unknown } };
-    const payload = key === ANCESTRY_KEY ? ancestryPayload(pins, 12) : data.prowessDefinition.payload;
+    const payload = overrides[key] ?? (key === ANCESTRY_KEY ? ancestryPayload(pins, 12) : data.prowessDefinition.payload);
     const v = await approvedVersion(old.entityId, `${current.displayName} (revised)`, { prowessDefinition: { ...data.prowessDefinition, payload } });
     pins.set(key, { ...old, entityVersionId: v.id });
     operations.push({ operationType: "REPLACE_ENTITY_VERSION" as const, targetEntityId: old.entityId, fromEntityVersionId: old.entityVersionId, toEntityVersionId: v.id });
@@ -150,6 +173,18 @@ export async function cleanupCharacterWorlds(prefix: string): Promise<void> {
     await prisma.characterStatAllocation.deleteMany({ where: { characterId: { in: characterIds } } });
   } finally {
     for (const t of guards) await prisma.$executeRawUnsafe(`ALTER TABLE "${t}" ENABLE TRIGGER "${t}_guard"`);
+  }
+  // M6-WO4: committed advancement history is append-only (database guard); test teardown lifts it for its own rows.
+  const advancementGuards = ["character_advancements", "character_stat_advancements", "character_skill_advancements", "character_affinity_advancement_choices"];
+  for (const t of advancementGuards) await prisma.$executeRawUnsafe(`ALTER TABLE "${t}" DISABLE TRIGGER "${t}_guard"`);
+  try {
+    const advancementIds = (await prisma.characterAdvancement.findMany({ where: { characterId: { in: characterIds } }, select: { id: true } })).map((a: { id: string }) => a.id);
+    await prisma.characterStatAdvancement.deleteMany({ where: { advancementId: { in: advancementIds } } });
+    await prisma.characterSkillAdvancement.deleteMany({ where: { advancementId: { in: advancementIds } } });
+    await prisma.characterAffinityAdvancementChoice.deleteMany({ where: { advancementId: { in: advancementIds } } });
+    await prisma.characterAdvancement.deleteMany({ where: { id: { in: advancementIds } } });
+  } finally {
+    for (const t of advancementGuards) await prisma.$executeRawUnsafe(`ALTER TABLE "${t}" ENABLE TRIGGER "${t}_guard"`);
   }
   await prisma.character.deleteMany({ where: { id: { in: characterIds } } });
   const inR = { rulesetId: { in: rulesetIds } };

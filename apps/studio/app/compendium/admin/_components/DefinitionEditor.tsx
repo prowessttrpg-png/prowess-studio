@@ -322,7 +322,57 @@ function FieldControl({ field, value, onChange, catalog, issues }: { field: Fiel
           <SkillGrantsEditor rows={asArray(value)} onChange={onChange} catalog={catalog} optionKind={field.optionKind} />
         </Shell>
       );
+    case "advancementLevels":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <AdvancementLevelsEditor rows={asArray(value)} onChange={onChange} />
+        </Shell>
+      );
   }
+}
+
+/** M6-WO4 Character Advancement Rule: one row per Level — Stat Points and Skill advancements gained on reaching it. */
+function AdvancementLevelsEditor({ rows, onChange }: { rows: Array<Record<string, unknown>>; onChange: (v: unknown) => void }) {
+  const set = (i: number, key: string, raw: string) => onChange(rows.map((r, j) => (j === i ? { ...r, [key]: raw === "" ? "" : Number(raw) } : r)));
+  const num = (v: unknown) => (typeof v === "number" ? String(v) : "");
+  return (
+    <div>
+      {rows.length === 0 ? <p className="gov-muted">No Levels yet.</p> : null}
+      <table className="prowess-reference__table" aria-label="Advancement by Level">
+        <thead>
+          <tr>
+            <th scope="col">Level</th>
+            <th scope="col">Stat Points</th>
+            <th scope="col">Skill advancements</th>
+            <th scope="col">Remove</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i}>
+              <td>
+                <input type="number" step={1} aria-label={`Level of row ${i + 1}`} value={num(r.level)} onChange={(e) => set(i, "level", e.target.value)} />
+              </td>
+              <td>
+                <input type="number" step={1} aria-label={`Stat Points of row ${i + 1}`} value={num(r.statPoints)} onChange={(e) => set(i, "statPoints", e.target.value)} />
+              </td>
+              <td>
+                <input type="number" step={1} aria-label={`Skill advancements of row ${i + 1}`} value={num(r.skillAdvancements)} onChange={(e) => set(i, "skillAdvancements", e.target.value)} />
+              </td>
+              <td>
+                <button type="button" className="gov-link-button" onClick={() => onChange(rows.filter((_, j) => j !== i))}>
+                  Remove row {i + 1}
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <button type="button" className="gov-button" onClick={() => onChange([...rows, { level: "", statPoints: "", skillAdvancements: "" }])}>
+        Add Level
+      </button>
+    </div>
+  );
 }
 
 /** M6-WO3 Ancestry Stat grants: FIXED (one Stat) or CHOOSE_DISTINCT (count of different allowed Stats). */
