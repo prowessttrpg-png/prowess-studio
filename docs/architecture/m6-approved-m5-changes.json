@@ -45,5 +45,36 @@
       "packages/prowess-game/src/character-sheet.test.ts": "99a987b3fd44e468bff098777b4ba3def2c2336a0c07a9d5e70987f88d26cd8e",
       "packages/prowess-game/src/character/sheet.ts": "b85ec9e850c62dab0f8fbd354d83ac7f8a3b7f92d356dc7c4561ca3bd3b9b838"
     }
+  },
+  "M6-WO6": {
+    "changedFiles": {
+      "packages/prowess-game/src/character/advancement.ts": "a3fafe92b119aa770f553b7073b0ecd641d5b9e91d9a78abd43d6a3a5f85f3bb",
+      "packages/prowess-game/src/character/sheet.ts": "4ec1ce9c913436d33e6f468f5de76e6bb47bebb7456987359d2bc5023a9d4615",
+      "packages/prowess-game/src/compilation/compile.ts": "c42159e16d0e925565d1258a0668a1715aa4cb0ee7a5c5daa31458ecbe72abb2",
+      "packages/prowess-game/src/definition/authored-ability-payload.ts": "6ca1795c75526b4efd96bee71cbb979d11be7f1b0ef494677208eb5a36ce0e64",
+      "packages/prowess-game/src/definition/payload.ts": "89154894f52f0b596e9a5e825638d024ee3375f1172a1072992471e6576034ff",
+      "packages/prowess-game/src/index.ts": "3678b181d7264538dc81513c35214b5abfd77f21aa88fbda7423d154e03f1b21",
+      "packages/prowess-game/src/m6-wo3-registry.test.ts": "db363ff85d92b36c6eb37c2607d27836c090d69710dfd62835738aea34b20c69",
+      "packages/prowess-game/src/m6-wo4-registry.test.ts": "cfd673d375d34b752cd9cf6376dd52a068ab6d4bf85405bf55310decca20885b",
+      "packages/prowess-game/src/stored-definition-validation.test.ts": "60c8e9bb15f19817a9b116930ee3bb1ded125b6095e07da1b88da5fd7411dff5",
+      "packages/prowess-game/src/vocabulary/families.ts": "4d6291f0e7b20bd5eaa83e2a891abce7173af4c38d3c2da9135f97fa80be7fb5"
+    },
+    "addedFiles": {
+      "packages/prowess-game/src/content/core-playtest-v0.1/weapons.json": "574453a4aae4ce309a4a0cd0b602e99c123b2ab2a7281aecd4ebe208d10947f9",
+      "packages/prowess-game/src/definition/equipment-payload.ts": "e6ee8c4746ac1e035e9b159550d28006d9810b93308c1b5adc2d8bf50e1fa309",
+      "packages/prowess-game/src/equipment/bridge.ts": "5cbfaee78e1d05830d9449fa3e926d59e152ca00cb35a4468567d8a042bdef1f",
+      "packages/prowess-game/src/equipment/catalog.ts": "eb1c70b205780e72d44b2311d8bf8fcef44200770897f030ea0a5690a14d4706",
+      "packages/prowess-game/src/equipment/damage.ts": "2a8330339a9284d6b5da2ee83e554dcb7f319090c71e201fd9e087b56b779a1c",
+      "packages/prowess-game/src/equipment/library.ts": "a92fad3c4f90954922ca9d51e7ab6373b5199d5c0a15d78fded8c44b2c254bad",
+      "packages/prowess-game/src/equipment/loadout.ts": "ac26b88d66ed7e70235a643270ef2996b6697df248d42826760dd6fd73578909",
+      "packages/prowess-game/src/m6-wo6-registry.test.ts": "ab81653af1991a0ecda8d8aea0fa92885597196bc85afe6930cb9ae12cbc268e",
+      "packages/prowess-game/src/testing/m6-wo6-registry-baseline.json": "db07126b520178b531f66f07a908c00c85501a3662e565bb288309fe8bf56e42",
+      "packages/prowess-game/src/testing/weapon-fixtures.ts": "f90e7886236cd3a191b0a349632240ee2415edf2b48f92725f1186935055fd4d",
+      "packages/prowess-game/src/vocabulary/equipment.ts": "b54111ccc4b701e6a6e133bc251329233dedf8d6fa80a1e8983a5884dcdbbb1c",
+      "packages/prowess-game/src/weapon-bridge.test.ts": "bd5bb780018d52b8e80f965eff43844e18214ba9ceb7c742b5213eef4601f677",
+      "packages/prowess-game/src/weapon-catalog-completeness.test.ts": "82f320a208c60f7e430589b797a79d00d43862c89300712a2a40589fda57a964",
+      "packages/prowess-game/src/weapon-definitions.test.ts": "4be5ce2a51c7338687110a49a760582e73b8b78ca4a280088770cbdf0e76aa31",
+      "packages/prowess-game/src/weapon-library.test.ts": "917824da42edb1c27e545e3dcd71b67af437dbc57a3648f1362527a357e1cb04"
+    }
   }
 }

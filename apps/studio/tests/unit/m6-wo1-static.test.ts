@@ -94,8 +94,9 @@ describe("M6-WO1 gate — one Definition catalog, no duplicated M5 validation, n
       const kinds = KIND_NAMES.filter((k) => src.includes(`"${k}"`));
       // descriptors.ts may select the AFFINITY version-1 PRESENTATION by kind name — the one sanctioned literal — and,
       // since PAS-10 M6-WO3, name SKILL as the exact kind an Ancestry Skill-grant option picker searches (pinned by
-      // m6-wo3-static).
-      expect(kinds, f).toEqual(f.endsWith("_lib/descriptors.ts") ? ["AFFINITY", "SKILL"] : []);
+      // m6-wo3-static), and since PAS-10 M6-WO6 name ATTACK and EQUIPMENT_TRAIT as the exact kinds the Weapon editors'
+      // reference pickers search (pinned by m6-wo6-static).
+      expect([...kinds].sort(), f).toEqual(f.endsWith("_lib/descriptors.ts") ? ["AFFINITY", "ATTACK", "EQUIPMENT_TRAIT", "SKILL"] : []);
       const values = VOCABULARY_VALUES.filter((v) => new RegExp(`["'\`]${v}["'\`]`).test(src));
       expect(values, f).toEqual([]);
       expect(src, f).not.toMatch(/ABILITY_SLOT_KINDS|PROWESS_DEFINITION_STORAGE_KEY|compileProwessAbility|TARGETING_FORBIDDEN_KEYS/);

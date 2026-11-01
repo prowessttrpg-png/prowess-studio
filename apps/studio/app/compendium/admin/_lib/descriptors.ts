@@ -25,7 +25,25 @@ export type VocabularyName =
   | "componentContracts"
   | "prowessStats"
   | "ancestryStatGrantKinds"
-  | "ancestrySkillSelectionKinds";
+  | "ancestrySkillSelectionKinds"
+  // M6-WO6 Weapon & Attack Library vocabularies.
+  | "weaponCategories"
+  | "weaponHandedness"
+  | "weaponScalingModels"
+  | "attackScalings"
+  | "weaponProfileKinds"
+  | "equipmentRoles"
+  | "damageTypes"
+  | "traitExecutionStatuses"
+  | "traitUseSites"
+  | "traitParameterKinds"
+  | "attackTargetingModes"
+  | "attackAreaShapes"
+  | "attackResolutionModes"
+  | "damageOutcomes"
+  | "savingThrowDcs"
+  | "equipmentModifierTargets"
+  | "weaponRequirementKinds";
 
 interface FieldBase {
   /** The payload key this field edits. */
@@ -52,7 +70,24 @@ export type FieldDescriptor =
   | (FieldBase & { readonly input: "skillGrants"; readonly optionKind: string })
   | (FieldBase & { readonly input: "source" })
   // M6-WO4: the per-Level advancement entitlement table.
-  | (FieldBase & { readonly input: "advancementLevels" });
+  | (FieldBase & { readonly input: "advancementLevels" })
+  // M6-WO6 Weapon / Attack / Equipment Trait inputs (structured, never raw JSON).
+  | (FieldBase & { readonly input: "nullableSelect"; readonly vocabulary: VocabularyName })
+  | (FieldBase & { readonly input: "text" })
+  | (FieldBase & { readonly input: "textList" })
+  | (FieldBase & { readonly input: "traitUses"; readonly refKind: string })
+  | (FieldBase & { readonly input: "traitUse"; readonly refKind: string })
+  | (FieldBase & { readonly input: "attackRefs"; readonly refKind: string })
+  | (FieldBase & { readonly input: "damageProfiles" })
+  | (FieldBase & { readonly input: "weaponRequirements" })
+  | (FieldBase & { readonly input: "equippedModifiers" })
+  | (FieldBase & { readonly input: "grantedFeatures" })
+  | (FieldBase & { readonly input: "attackTargeting" })
+  | (FieldBase & { readonly input: "attackResolution" })
+  | (FieldBase & { readonly input: "traitParameters" })
+  | (FieldBase & { readonly input: "useSites" })
+  | (FieldBase & { readonly input: "equipmentSource" })
+  | (FieldBase & { readonly input: "traitContract" });
 
 export interface ContractDescriptor {
   /** Short explanation of what this kind of Definition is FOR (§59) — presentation only. */
@@ -188,6 +223,78 @@ export const CHARACTER_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescrip
   },
 };
 
+/** The exact kinds the Weapon editors' reference pickers search (sanctioned kind names, like SKILL above; m6-wo6-static). */
+const ATTACK_KIND = "ATTACK";
+const EQUIPMENT_TRAIT_KIND = "EQUIPMENT_TRAIT";
+
+const EQUIPMENT_SOURCE: FieldDescriptor = {
+  key: "source",
+  label: "Source",
+  group: "Source",
+  input: "equipmentSource",
+  required: true,
+  help: "Core Playtest section keys (sNNN), source-conflict keys and the designer rulings (e.g. M6-WO6 §103) this content applies.",
+};
+
+/**
+ * PAS-10 M6-WO6: the EQUIPMENT-family kinds activated at version 1 (WEAPON, ATTACK, EQUIPMENT_TRAIT). Presentation only
+ * — every value is authored and validated by the WO6 contract. Recommended order (§93): author the Attacks first, then
+ * the Weapon, choosing the exact Attack revisions for its Moveset (no circular references).
+ */
+export const EQUIPMENT_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescriptor>> = {
+  WEAPON: {
+    purpose: "A Weapon profile: its family, role, handedness and explicit damage scaling, its Weapon properties and its Moveset — an ordered list of EXACT Attack revisions. Author the Attacks first. The Move owns its AP; the Category never does.",
+    fields: [
+      { key: "familyKey", label: "Weapon family", group: "Identity", input: "token", required: true, help: "Stable family token (e.g. LONG_BLADE). Every Moveset Attack names the same family." },
+      { key: "profileKind", label: "Profile kind", group: "Identity", input: "select", vocabulary: "weaponProfileKinds", required: true, help: "STANDARD (held), UNARMED (intrinsic, by Martial rank — never equipped) or IMPROVISED (generated profile)." },
+      { key: "equipmentRole", label: "Equipment role", group: "Identity", input: "select", vocabulary: "equipmentRoles", required: true, help: "A Shield is explicit — never recognized by name. Shield + Weapon is not Dual Wielding." },
+      { key: "martialRankKey", label: "Martial rank (Unarmed only)", group: "Identity", input: "token", required: false, help: "Only an Unarmed profile names the exact Martial rank it belongs to." },
+      { key: "exampleForms", label: "Example forms", group: "Identity", input: "textList", required: false, help: "Descriptive forms (katana, saber …). A form never has its own mechanics." },
+      { key: "category", label: "Category", group: "Profile", input: "nullableSelect", vocabulary: "weaponCategories", required: false, help: "General role only — never AP, damage, Power or handedness." },
+      { key: "handedness", label: "Handedness", group: "Profile", input: "nullableSelect", vocabulary: "weaponHandedness", required: false, help: "Leave unset only where canon authors none (the profile is then shown but never equipped)." },
+      { key: "scalingModel", label: "Damage scaling", group: "Scaling", input: "select", vocabulary: "weaponScalingModels", required: true, help: "Mandatory and explicit: POWER, STATIC or HYBRID. Never inferred from Power." },
+      { key: "power", label: "Power", group: "Scaling", input: "integer", required: false, help: "Empty on a STATIC Weapon — never a fake 0." },
+      { key: "scalingRule", label: "Power scaling rule", group: "Scaling", input: "traitUse", refKind: EQUIPMENT_TRAIT_KIND, required: false, help: "The exact POWER_SCALING Equipment Trait (Power-scaled Weapons only)." },
+      { key: "versatileRule", label: "Versatile die-step rule", group: "Scaling", input: "traitUse", refKind: EQUIPMENT_TRAIT_KIND, required: false, help: "The exact Versatile Equipment Trait (VERSATILE Weapons only)." },
+      { key: "weaponProperties", label: "Weapon properties", group: "Properties", input: "traitUses", refKind: EQUIPMENT_TRAIT_KIND, required: false, help: "Exact Equipment Traits with explicit parameters (e.g. Loading capacity 12, Loud radius 200)." },
+      { key: "moveset", label: "Moveset", group: "Moveset", input: "attackRefs", refKind: ATTACK_KIND, required: true, help: "Ordered, exact Attack revisions of the same Weapon family. No generic Weapon Attack exists." },
+      { key: "requirements", label: "Requirements", group: "Requirements & equipment", input: "weaponRequirements", required: false, help: "Structured: a Martial rank or a Stat minimum — evaluated by the Rules Engine, never parsed from text." },
+      { key: "equippedModifiers", label: "While-equipped modifiers", group: "Requirements & equipment", input: "equippedModifiers", required: false, help: "Armor / Dodge / Movement adjustments applied to the Character profile while equipped — derived, never stored." },
+      { key: "grantedFeatures", label: "Granted features", group: "Requirements & equipment", input: "grantedFeatures", required: false, help: "Reference-only rule text (e.g. Deflect Shot). WO6 executes none." },
+      EQUIPMENT_SOURCE,
+    ],
+  },
+  ATTACK: {
+    purpose: "One exact Weapon Move: its own AP and MP, structured damage profiles, targeting and resolution. The Weapon names this exact revision in its Moveset; the Attack names only its Weapon family (no circular reference).",
+    fields: [
+      { key: "moveKey", label: "Move key", group: "Identity", input: "token", required: true, help: "e.g. SLASH. Display text, never identity — two Weapons may both have a Bash." },
+      { key: "weaponFamilyKey", label: "Weapon family", group: "Identity", input: "token", required: true },
+      { key: "apCost", label: "AP cost", group: "Cost", input: "integer", required: true, help: "The Move owns its AP — never inferred from the Weapon Category." },
+      { key: "mpCost", label: "MP cost", group: "Cost", input: "integer", required: true },
+      { key: "damageProfiles", label: "Damage profiles", group: "Damage", input: "damageProfiles", required: true, help: "Dice (count × sides) and damage type. Several profiles are explicit selectable options — never auto-selected." },
+      { key: "scaling", label: "Scaling (HYBRID Weapons only)", group: "Damage", input: "nullableSelect", vocabulary: "attackScalings", required: false, help: "Required on a HYBRID Weapon's Attacks; empty otherwise (the Attack follows its Weapon)." },
+      { key: "accuracyModifier", label: "Accuracy adjustment", group: "Damage", input: "integer", required: true, help: "e.g. −2 for Burst. Accuracy — never a separate To-Hit statistic." },
+      { key: "targeting", label: "Targeting", group: "Targeting & resolution", input: "attackTargeting", required: true },
+      { key: "resolution", label: "Resolution", group: "Targeting & resolution", input: "attackResolution", required: true },
+      { key: "moveProperties", label: "Move properties", group: "Properties", input: "traitUses", refKind: EQUIPMENT_TRAIT_KIND, required: false },
+      { key: "requirements", label: "Requirements", group: "Properties", input: "weaponRequirements", required: false },
+      EQUIPMENT_SOURCE,
+    ],
+  },
+  EQUIPMENT_TRAIT: {
+    purpose: "A reusable Weapon / Attack property. EXECUTABLE only with a complete machine-readable contract; otherwise REFERENCE_ONLY (valid but not executed) or DEFERRED (canon incomplete). Behavior is never invented.",
+    fields: [
+      { key: "traitKey", label: "Trait key", group: "Identity", input: "token", required: true },
+      { key: "useSites", label: "Used on", group: "Identity", input: "useSites", required: true },
+      { key: "executionStatus", label: "Execution status", group: "Execution", input: "select", vocabulary: "traitExecutionStatuses", required: true },
+      { key: "contract", label: "Executable contract", group: "Execution", input: "traitContract", required: false, help: "Only for EXECUTABLE traits: one complete contract the Rules Engine understands." },
+      { key: "parameters", label: "Parameters", group: "Parameters", input: "traitParameters", required: false, help: "Declared parameters (e.g. amount for Pierce X)." },
+      { key: "summary", label: "Summary", group: "Summary", input: "text", required: true, help: "Inert reference text — never parsed for behavior." },
+      EQUIPMENT_SOURCE,
+    ],
+  },
+};
+
 /** Kinds without a dedicated descriptor: the whole payload is edited as structured authored data. */
 export const GENERIC_DESCRIPTOR: ContractDescriptor = {
   purpose: "This kind has no dedicated authoring descriptor yet: author its payload as structured data. The M5 contract still validates every field.",
@@ -197,6 +304,7 @@ export const GENERIC_DESCRIPTOR: ContractDescriptor = {
 export function descriptorFor(kind: { definitionKind: string; sharedContract: string | null }, schemaVersion: number | null): ContractDescriptor {
   if (kind.sharedContract !== null && CONTRACT_DESCRIPTORS[kind.sharedContract] !== undefined) return CONTRACT_DESCRIPTORS[kind.sharedContract] as ContractDescriptor;
   if (schemaVersion === 1 && CHARACTER_KIND_DESCRIPTORS[kind.definitionKind] !== undefined) return CHARACTER_KIND_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
+  if (schemaVersion === 1 && EQUIPMENT_KIND_DESCRIPTORS[kind.definitionKind] !== undefined) return EQUIPMENT_KIND_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
   if (kind.definitionKind === "AFFINITY" && schemaVersion === 1) return AFFINITY_V1;
   return GENERIC_DESCRIPTOR;
 }
@@ -260,6 +368,28 @@ export function initialFieldValue(field: FieldDescriptor): unknown {
       return [];
     case "source":
       return { locators: [], conflicts: [] };
+    case "nullableSelect":
+    case "traitUse":
+    case "traitContract":
+      return null;
+    case "text":
+      return "";
+    case "textList":
+    case "traitUses":
+    case "attackRefs":
+    case "damageProfiles":
+    case "weaponRequirements":
+    case "equippedModifiers":
+    case "grantedFeatures":
+    case "traitParameters":
+    case "useSites":
+      return [];
+    case "attackTargeting":
+    case "attackResolution":
+      // The author chooses the mode from the catalog; the editor then shapes that mode's fields.
+      return { mode: "" };
+    case "equipmentSource":
+      return { locators: [], conflicts: [], designerAuthority: [] };
   }
 }
 

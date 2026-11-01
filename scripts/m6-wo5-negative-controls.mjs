@@ -58,7 +58,8 @@ const controls = [
   ["resource above its maximum accepted", GAME, replace('else if (numericCompare(`resource.${key}`, raw, "<=", r.maximum) !== true) issues.push({ code: E.ABOVE_MAXIMUM', 'else if (numericCompare(`resource.${key}`, raw, "<=", r.maximum) === null) issues.push({ code: E.ABOVE_MAXIMUM'), game],
   // ---- Exact Release and the one profile (M6-I045, M6-I052) ----
   // 14 · The sheet uses the latest Release.
-  ["sheet uses latest Release", SERVICE, replace("  const { c, bundle, ruleset, history, progression } = await loadCompleted(id);", "  const { c, bundle, ruleset, history, progression } = await loadCompleted(await latestCharacterRelease(id));"), studio],
+  //      (Since M6-WO6 the sheet loads the Character through loadEquippedCharacter — the same exact-Release read.)
+  ["sheet uses latest Release", SERVICE, replace("  const state = await loadEquippedCharacter(id);", "  const state = await loadEquippedCharacter(await latestCharacterRelease(id));"), studio],
   // 15 · The sheet rebuilds the profile itself.
   ["sheet rebuilds the mechanical profile", GAME, append("export const sheetProfile = (r: Parameters<typeof buildCharacterSheetMechanics>[0]) => buildCharacterMechanicalProfile({ bundle: r.bundle, ruleset: r.ruleset, character: { creation: {} as never, level: 1, history: [] } });"), studio],
   // 16 · Performance omitted despite being in the Release.

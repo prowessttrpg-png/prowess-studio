@@ -147,6 +147,9 @@ describe("§50 public service surface", () => {
         // M6-WO5 Digital Character Sheet (pinned by m6-wo5-static): player play state, sheet text and portrait framing
         // in their own tables, each a lockVersion compare-and-set; none touches Entities, Releases or mechanics.
         "removeCharacterPortrait", "updateCharacterPlayState", "updateCharacterPortraitFraming", "updateCharacterSheetNotes",
+        // M6-WO6 Weapon & Attack Library (pinned by m6-wo6-static): the Character's weapon loadout — exact pinned WEAPON
+        // revisions in its own table, a lockVersion compare-and-set; it touches no Entity, Release or mechanics.
+        "updateCharacterWeaponLoadout",
       ].sort(),
     );
   });

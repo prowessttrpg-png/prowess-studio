@@ -1,8 +1,7 @@
 import { CHARACTER_ERROR_CODES } from "@prowess/model";
-import { buildCharacterSheetMechanics, validateSheetPlayState, type CharacterSheetMechanics, type ProwessDefinitionRef, type SheetResource } from "@prowess/game";
-import { loadCompleted, requireProfile } from "./advancement-service.js";
+import { buildCharacterAttackLibrary, buildCharacterSheetMechanics, validateSheetPlayState, type CharacterAttack, type CharacterSheetMechanics, type ProwessDefinitionRef, type SheetResource } from "@prowess/game";
 import { checkPortraitImage, PORTRAIT_MAX_BYTES } from "./portrait-image.js";
-import { profileOf } from "./progression.js";
+import { libraryRefs, loadEquippedCharacter, loadoutSummary, type CharacterWeaponsView } from "./weapon-service.js";
 import { clearPortrait, selectPortraitImage, selectSheetState, writePlayState, writePortraitFraming, writePortraitImage, writeSheetNotes, type SheetWriteOutcome, type StoredSheetState } from "./sheet-repository.js";
 import { choicesOf, fail, namesOf, releaseSummary, requireCharacter, type CharacterReleaseSummary } from "./service.js";
 
@@ -59,8 +58,24 @@ export interface CharacterSheetView {
   };
   /** Structured effects currently applying. No persisted Character effect instances exist yet (M5-WO13 owns the lifecycle). */
   readonly grantedEffects: readonly never[];
-  /** Integration boundary for M6-WO6: no equipment domain exists yet. */
-  readonly equipment: { readonly available: false; readonly mainHand: null; readonly offHand: null; readonly armor: null; readonly accessorySlots: number | null; readonly accessories: readonly never[] };
+  /**
+   * M6-WO6: the Weapon loadout (Main-hand / Off-hand) from the Character's exact Release. Armor and Accessories stay
+   * outside WO6 (placeholders). `available` is false when the Release offers no coherent Weapon Library.
+   */
+  readonly equipment: {
+    readonly available: boolean;
+    readonly mainHand: CharacterWeaponsView["loadout"]["mainHand"];
+    readonly offHand: CharacterWeaponsView["loadout"]["offHand"];
+    readonly loadoutVersion: number;
+    readonly loadoutStatus: CharacterWeaponsView["loadout"]["status"];
+    readonly loadoutIssues: CharacterWeaponsView["loadout"]["issues"];
+    readonly armor: null;
+    readonly accessorySlots: number | null;
+    readonly accessories: readonly never[];
+  };
+  /** M6-WO6: compact Weapon Attack rows for the Actions panel (Unarmed, Main-hand, Off-hand) — previews, never rolls. */
+  readonly weaponAttacks: readonly CharacterAttack[];
+  readonly dualWield: { readonly available: boolean; readonly reasons: readonly string[] };
   readonly advancementHistoryCount: number;
   readonly names: Readonly<Record<string, string>>;
 }
@@ -77,10 +92,11 @@ const possessionsOf = (raw: unknown): CharacterSheetView["notes"]["possessions"]
     : [];
 
 async function loadSheet(id: string) {
-  const { c, bundle, ruleset, history, progression } = await loadCompleted(id);
-  const profile = requireProfile(profileOf(bundle, ruleset, progression));
+  // M6-WO6: the ONE profile, with the equipped Weapons' additive equipment context (unequipped ⇒ the M6-WO5 profile).
+  const state = await loadEquippedCharacter(id);
+  const { c, bundle, ruleset, history, profile } = state;
   const mechanics = buildCharacterSheetMechanics({ bundle, ruleset, profile });
-  return { c, bundle, profile, mechanics, history };
+  return { c, bundle, profile, mechanics, history, state };
 }
 
 function resourcesOf(mechanics: CharacterSheetMechanics, state: StoredSheetState): CharacterSheetView["resources"] {
@@ -92,14 +108,17 @@ function resourcesOf(mechanics: CharacterSheetMechanics, state: StoredSheetState
 
 /** The whole Character Sheet in ONE read (§79). Read-only: it never creates play state. */
 export async function getCharacterSheet(id: string): Promise<CharacterSheetView> {
-  const { c, bundle, profile, mechanics, history } = await loadSheet(id);
+  const { c, bundle, profile, mechanics, history, state: equipped } = await loadSheet(id);
   const state = await selectSheetState(c.id);
+  const library = buildCharacterAttackLibrary({ bundle, characterProfile: equipped.base, loadout: equipped.choice });
+  const weaponAttacks = [...(library.unarmed?.attacks ?? []), ...(library.mainHand?.attacks ?? []), ...(library.offHand?.attacks ?? [])];
+  const loadout = loadoutSummary(equipped);
   const choices = choicesOf(c);
   const ancestry = refFrom(bundle, choices.ancestry);
   const primaryAffinity = refFrom(bundle, choices.primaryAffinity);
   const portrait = state.portrait;
   const hasImage = portrait !== null && portrait.mimeType !== null && portrait.contentHash !== null;
-  const names = await namesOf([ancestry, primaryAffinity, ...mechanics.skills.map((s) => s.skill), ...mechanics.affinities.map((a) => a.affinity), ...mechanics.resources.map((r) => r.definition)]);
+  const names = await namesOf([ancestry, primaryAffinity, ...mechanics.skills.map((s) => s.skill), ...mechanics.affinities.map((a) => a.affinity), ...mechanics.resources.map((r) => r.definition), ...libraryRefs(library)]);
   return {
     identity: { id: c.id, name: c.name, concept: c.concept, level: profile.level, maximumLevel: profile.maximumLevel, status: "CORE_COMPLETE", ancestry, primaryAffinity, companyPac: state.notes?.companyPac ?? null },
     release: await releaseSummary(c.rulesetReleaseId),
@@ -120,7 +139,19 @@ export async function getCharacterSheet(id: string): Promise<CharacterSheetView>
     playStateVersion: state.playState?.lockVersion ?? 0,
     notes: { actionNotes: state.notes?.actionNotes ?? "", characterNotes: state.notes?.characterNotes ?? "", possessions: possessionsOf(state.notes?.possessions), version: state.notes?.lockVersion ?? 0, limits: SHEET_TEXT_LIMITS },
     grantedEffects: [],
-    equipment: { available: false, mainHand: null, offHand: null, armor: null, accessorySlots: mechanics.attunement.maximum.value, accessories: [] },
+    equipment: {
+      available: library.capability.weaponLibrary.status === "WEAPON_LIBRARY_READY",
+      mainHand: loadout.mainHand,
+      offHand: loadout.offHand,
+      loadoutVersion: loadout.version,
+      loadoutStatus: loadout.status,
+      loadoutIssues: loadout.issues,
+      armor: null,
+      accessorySlots: mechanics.attunement.maximum.value,
+      accessories: [],
+    },
+    weaponAttacks,
+    dualWield: { available: library.dualWield.available, reasons: library.dualWield.reasons },
     advancementHistoryCount: history.length,
     names,
   };

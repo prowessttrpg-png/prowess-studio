@@ -30,7 +30,11 @@ export const advancementRule = (statPoints: (level: number) => number) => ({
   source: SOURCE,
 });
 
-export async function seed(request: APIRequestContext): Promise<World> {
+/** Adds one test Definition (Entity + approved EntityVersion) and pins it under its content key. */
+export type AddDefinition = (contentKey: string, kind: string, payload: unknown, displayName: string, schemaVersion?: number) => Promise<void>;
+
+/** `extra` (M6-WO6) adds more test content before the Release is published; the WO5 world is unchanged without it. */
+export async function seed(request: APIRequestContext, extra?: (add: AddDefinition, pins: Map<string, Pin>) => Promise<void>): Promise<World> {
   const tag = `${Date.now()}_${Math.floor(Math.random() * 1e4)}`;
   const catalog = (await (await request.get("/api/compendium-authoring/catalog")).json()).data as { kinds: Array<{ definitionKind: string; systemFamily: string; allowedEntityTypes: string[] }> };
   const kind = (k: string) => catalog.kinds.find((x) => x.definitionKind === k)!;
@@ -79,6 +83,7 @@ export async function seed(request: APIRequestContext): Promise<World> {
     },
     "Expert Lore E2E",
   );
+  if (extra !== undefined) await extra(add, pins);
   const rulesetName = `Sheet E2E ${tag}`;
   const rs = await post<Id>(request, "/api/rulesets", { canonicalKey: `test.e2e_m6wo5.ruleset_${tag}`, name: rulesetName, channel: "CORE_PLAYTEST" });
   await post(request, `/api/rulesets/${rs.id}/submit-review`);

@@ -1,5 +1,5 @@
 import type { RulesetContext } from "@prowess/rules";
-import { buildCharacterMechanicalProfile, type CharacterCreationCandidate, type CharacterProgressionState, type CommittedAdvancement, type ProfileResult, type ProwessDefinitionBundle } from "@prowess/game";
+import { buildCharacterMechanicalProfile, type CharacterCreationCandidate, type CharacterProgressionState, type CommittedAdvancement, type ProfileEquipmentContext, type ProfileResult, type ProwessDefinitionBundle } from "@prowess/game";
 import type { AdvancementRow } from "./advancement-repository.js";
 
 /**
@@ -23,7 +23,11 @@ export function progressionOf(creation: CharacterCreationCandidate, level: numbe
   return { creation, level, history: history.map(committedOf) };
 }
 
-/** The Character's present mechanical profile, rebuilt against its exact Release bundle. */
-export function profileOf(bundle: ProwessDefinitionBundle, ruleset: RulesetContext, progression: CharacterProgressionState): ProfileResult {
-  return buildCharacterMechanicalProfile({ bundle, ruleset, character: progression });
+/**
+ * The Character's present mechanical profile, rebuilt against its exact Release bundle. PAS-10 M6-WO6: an optional
+ * equipment context (the equipped Weapons' while-equipped modifiers) goes to the SAME builder; without it the call is
+ * exactly the M6-WO4 call.
+ */
+export function profileOf(bundle: ProwessDefinitionBundle, ruleset: RulesetContext, progression: CharacterProgressionState, equipment: ProfileEquipmentContext | null = null): ProfileResult {
+  return equipment === null ? buildCharacterMechanicalProfile({ bundle, ruleset, character: progression }) : buildCharacterMechanicalProfile({ bundle, ruleset, character: progression, equipment });
 }

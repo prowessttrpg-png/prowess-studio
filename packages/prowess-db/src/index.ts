@@ -275,3 +275,8 @@ export {
   uploadCharacterPortrait,
 } from "./character/index.js";
 export type { CharacterSheetView } from "./character/index.js";
+export { getReferenceAttackLibrary, getReferenceWeaponLibrary } from "./weapon-library/index.js";
+export type { ReferenceAttack, ReferenceTraitUse, ReferenceWeapon, ReferenceWeaponLibrary } from "./weapon-library/index.js";
+// PAS-10 M6-WO6 — Weapon & Attack Library (loadout choice; the Attack Library and shield bonuses are derived by @prowess/game).
+export { getCharacterAttacks, getCharacterWeapons, updateCharacterWeaponLoadout } from "./character/index.js";
+export type { CharacterAttacksView, CharacterWeaponOption, CharacterWeaponsView, EquippedSummary } from "./character/index.js";

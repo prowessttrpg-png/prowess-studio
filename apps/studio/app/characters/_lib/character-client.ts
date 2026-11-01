@@ -355,7 +355,10 @@ export interface CharacterSheetDto {
   playStateVersion: number;
   notes: { actionNotes: string; characterNotes: string; possessions: PossessionDto[]; version: number; limits: { companyPac: number; actionNotes: number; characterNotes: number; possessions: number; category: number; item: number; weight: number } };
   grantedEffects: Array<{ source: DefinitionRefDto | null; effect: string; duration: string | null; notes: string | null }>;
-  equipment: { available: boolean; mainHand: null; offHand: null; armor: null; accessorySlots: number | null; accessories: unknown[] };
+  equipment: { available: boolean; mainHand: EquippedSummaryDto | null; offHand: EquippedSummaryDto | null; loadoutVersion: number; loadoutStatus: string; loadoutIssues: LoadoutIssueDto[]; armor: null; accessorySlots: number | null; accessories: unknown[] };
+  /** M6-WO6: Unarmed, Main-hand and Off-hand Weapon Attacks — server previews, never rolls. */
+  weaponAttacks: CharacterAttackDto[];
+  dualWield: { available: boolean; reasons: string[] };
   advancementHistoryCount: number;
   names: Record<string, string>;
 }
@@ -378,3 +381,102 @@ export const uploadPortrait = async (id: string, expectedVersion: number, file: 
 };
 export const updatePortraitTransform = async (id: string, expectedVersion: number, framing: { zoom: number; offsetX: number; offsetY: number }) => (await request<CharacterSheetDto>("PUT", `/api/characters/${enc(id)}/portrait-transform`, { expectedVersion, ...framing })).data;
 export const removePortrait = async (id: string, expectedVersion: number) => (await request<CharacterSheetDto>("DELETE", `/api/characters/${enc(id)}/portrait${query({ expectedVersion })}`)).data;
+
+// ---- PAS-10 M6-WO6 Weapon & Attack Library ---------------------------------------------------------------------------
+
+export interface TraitUseDto {
+  trait: DefinitionRefDto;
+  traitKey: string;
+  executionStatus: string;
+  parameters: Record<string, number>;
+  summary: string;
+}
+export interface EquippedSummaryDto {
+  weapon: DefinitionRefDto;
+  grip: "ONE_HANDED" | "TWO_HANDED";
+  occupies: string[];
+  familyKey: string;
+  category: string | null;
+  handedness: string | null;
+  scalingModel: string;
+  power: number | null;
+  equipmentRole: string;
+  properties: Array<{ traitKey: string; parameters: Record<string, number>; executionStatus: string }>;
+}
+export interface LoadoutIssueDto {
+  code: string;
+  hand: string | null;
+  message: string;
+}
+export interface DamagePreviewDto {
+  profileKey: string;
+  damageType: string;
+  status: "PREVIEWED" | "FAIL_CLOSED";
+  reason: string | null;
+  scaling: string;
+  base: { count: number; sides: number; expression: string };
+  gripAdjusted: { expression: string } | null;
+  power: { authored: number; adjustment: number; adjusted: number; minimum: number; scalingStat: string; statScore: number } | null;
+  multiplier: number | null;
+  final: { count: number; sides: number; expression: string } | null;
+  steps: Array<{ step: string; detail: string }>;
+}
+export interface CharacterAttackDto {
+  attackKey: string;
+  hand: "UNARMED" | "MAIN_HAND" | "OFF_HAND";
+  weapon: DefinitionRefDto;
+  attack: DefinitionRefDto;
+  moveKey: string;
+  grip: string;
+  apCost: number;
+  mpCost: number;
+  damage: DamagePreviewDto[];
+  range: { mode: string; reachFeet: number | null; rangeFeet: number | null; lengthFeet: number | null; area: { shape: string; radiusFeet: number } | null; basis: { stat: string; statScore: number; feetPerPoint: number } | null };
+  resolution: { mode: string; onMiss?: string; savingThrowStat?: string; onFailure?: string; onSuccess?: string; reason?: string };
+  accuracyModifier: number;
+  weaponProperties: TraitUseDto[];
+  moveProperties: TraitUseDto[];
+  notExecuted: string[];
+  eligibility: string;
+}
+export interface WeaponOptionDto {
+  weapon: DefinitionRefDto;
+  familyKey: string;
+  profileKind: string;
+  equipmentRole: string;
+  category: string | null;
+  handedness: string | null;
+  scalingModel: string;
+  power: number | null;
+  equippable: boolean;
+  reasons: string[];
+}
+export interface CharacterWeaponsDto {
+  capability: { weaponLibrary: { status: string; missing: Array<{ requirement: string; message: string }> }; attackLibrary: { status: string; missing: Array<{ requirement: string; message: string }> } };
+  loadout: { version: number; status: string; issues: LoadoutIssueDto[]; mainHand: EquippedSummaryDto | null; offHand: EquippedSummaryDto | null };
+  options: WeaponOptionDto[];
+  names: Record<string, string>;
+}
+export interface WeaponLoadoutInputDto {
+  mainHand: { entityId: string; entityVersionId: string } | null;
+  mainHandGrip: "ONE_HANDED" | "TWO_HANDED" | null;
+  offHand: { entityId: string; entityVersionId: string } | null;
+}
+
+export const getWeapons = async (id: string) => (await request<CharacterWeaponsDto>("GET", `/api/characters/${enc(id)}/weapons`)).data;
+/** Sends the loadout CHOICE only — exact Weapon pairs and the Versatile grip. Power, damage and bonuses stay the server's. */
+export const updateWeaponLoadout = async (id: string, expectedVersion: number, loadout: WeaponLoadoutInputDto) => (await request<CharacterWeaponsDto>("PUT", `/api/characters/${enc(id)}/weapon-loadout`, { expectedVersion, ...loadout })).data;
+export interface CharacterAttacksDto {
+  loadoutVersion: number;
+  library: {
+    capability: CharacterWeaponsDto["capability"];
+    martialRank: string | null;
+    unarmed: { weapon: DefinitionRefDto; attacks: CharacterAttackDto[]; grantedFeatures: Array<{ featureKey: string; executionStatus: string; summary: string }> } | null;
+    mainHand: { weapon: DefinitionRefDto; grip: string; attacks: CharacterAttackDto[] } | null;
+    offHand: { weapon: DefinitionRefDto; grip: string; attacks: CharacterAttackDto[] } | null;
+    dualWield: { available: boolean; reasons: string[]; sequences: Array<{ sequenceIndex: number; apCost: number; attacks: [CharacterAttackDto, CharacterAttackDto]; powerfulBlow: false }> };
+    issues: LoadoutIssueDto[];
+  };
+  names: Record<string, string>;
+}
+export const getAttacks = async (id: string) => (await request<CharacterAttacksDto>("GET", `/api/characters/${enc(id)}/attacks`)).data;

@@ -75,15 +75,33 @@ export const advancementRulePayload = (statPoints: (level: number) => number = (
   source: { locators: ["s159"], conflicts: [] },
 });
 
-export async function seedCharacterWorld(prefix: string, label = "R1", options: { advancement?: boolean } = {}): Promise<CharacterWorld> {
+/** M6-WO6: replaces every `{ "$ref": "<content key>" }` of a content payload with this world's exact pin. */
+export function resolveContentRefs(value: unknown, pins: Map<string, Pin>): unknown {
+  if (Array.isArray(value)) return value.map((v) => resolveContentRefs(v, pins));
+  if (value !== null && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const keys = Object.keys(record);
+    if (keys.length === 1 && keys[0] === "$ref") {
+      const p = pins.get(record.$ref as string);
+      if (p === undefined) throw new Error(`no pin for ${String(record.$ref)}`);
+      return { entityId: p.entityId, entityVersionId: p.entityVersionId, canonicalKey: p.canonicalKey, definitionKind: p.definitionKind, systemFamily: p.systemFamily };
+    }
+    return Object.fromEntries(keys.map((k) => [k, resolveContentRefs(record[k], pins)]));
+  }
+  return value;
+}
+/** M6-WO6: the approved baseline Weapon catalog content file (source data, read as JSON — never a runtime constant). */
+export const weaponRows = () => (JSON.parse(readFileSync(path.join(CONTENT, "weapons.json"), "utf8")) as { definitions: (Row & { displayName: string })[] }).definitions;
+
+export async function seedCharacterWorld(prefix: string, label = "R1", options: { advancement?: boolean; weapons?: boolean } = {}): Promise<CharacterWorld> {
   const k = await kinds();
   const tag = `${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
   const pins = new Map<string, Pin>();
   const stored = (kind: string, schemaVersion: number, payload: unknown) => ({ prowessDefinition: { schemaVersion, systemFamily: k.get(kind)!.family, definitionKind: kind, payload } });
-  const add = async (contentKey: string, kind: string, schemaVersion: number, payload: unknown) => {
+  const add = async (contentKey: string, kind: string, schemaVersion: number, payload: unknown, displayName = contentKey) => {
     const canonicalKey = `${prefix}.${contentKey.replace(/\./g, "_")}_${tag}`;
     const e = await createEntity({ entityType: k.get(kind)!.entityType, canonicalKey });
-    const v = await approvedVersion(e.id, contentKey, stored(kind, schemaVersion, payload));
+    const v = await approvedVersion(e.id, displayName, stored(kind, schemaVersion, payload));
     pins.set(contentKey, { entityId: e.id, entityVersionId: v.id, canonicalKey, definitionKind: kind, systemFamily: k.get(kind)!.family });
   };
   for (const d of [...rows("core-resolution.json"), ...rows("runtime-resources.json"), ...rows("affinity.json")]) await add(d.canonicalKey, d.definitionKind, d.schemaVersion ?? 1, d.payload);
@@ -105,6 +123,11 @@ export async function seedCharacterWorld(prefix: string, label = "R1", options: 
       outcomes: [{ outcomeKey: "on-fail", data: { authored: true } }],
       rules: { construction: { prerequisites: [{ prerequisiteKey: "ARCANA_EXPERT", kind: "SKILL_RANK_AT_LEAST", skillKey: pins.get("skill.arcana")!.canonicalKey, minimumRank: "EXPERT" }] } },
     });
+  }
+
+  // M6-WO6: the approved baseline Weapon catalog — Equipment Traits, Attacks, then Weapons (exact refs to this world's pins).
+  if (options.weapons === true) {
+    for (const kind of ["EQUIPMENT_TRAIT", "ATTACK", "WEAPON"]) for (const d of weaponRows().filter((x) => x.definitionKind === kind)) await add(d.canonicalKey, kind, 1, resolveContentRefs(d.payload, pins), d.displayName);
   }
 
   const r = await createRuleset({ canonicalKey: `${prefix}.ruleset_${tag}`, name: `M6-WO3 API ${tag}`, channel: "CORE_PLAYTEST", versionLabel: label });
@@ -148,7 +171,9 @@ export async function publishNextRelease(world: CharacterWorld, contentKeys: rea
     const old = pins.get(key)!;
     const current = await prisma.entityVersion.findUniqueOrThrow({ where: { id: old.entityVersionId } });
     const data = current.structuredData as { prowessDefinition: { schemaVersion: number; systemFamily: string; definitionKind: string; payload: unknown } };
-    const payload = overrides[key] ?? (key === ANCESTRY_KEY ? ancestryPayload(pins, 12) : data.prowessDefinition.payload);
+    // An override may be a function of the new Release's pins (M6-WO6: a revised Weapon naming its revised Attack).
+    const override = typeof overrides[key] === "function" ? (overrides[key] as (p: Map<string, Pin>) => unknown)(pins) : overrides[key];
+    const payload = override ?? (key === ANCESTRY_KEY ? ancestryPayload(pins, 12) : data.prowessDefinition.payload);
     const v = await approvedVersion(old.entityId, `${current.displayName} (revised)`, { prowessDefinition: { ...data.prowessDefinition, payload } });
     pins.set(key, { ...old, entityVersionId: v.id });
     operations.push({ operationType: "REPLACE_ENTITY_VERSION" as const, targetEntityId: old.entityId, fromEntityVersionId: old.entityVersionId, toEntityVersionId: v.id });
@@ -193,6 +218,8 @@ export async function cleanupCharacterWorlds(prefix: string): Promise<void> {
   await prisma.characterSheetNotes.deleteMany(sheetWhere);
   await prisma.characterPortraitImage.deleteMany(sheetWhere);
   await prisma.characterPortrait.deleteMany(sheetWhere);
+  // M6-WO6: the Weapon loadout references the Character and the exact Weapon EntityVersions (RESTRICT).
+  await prisma.characterWeaponLoadout.deleteMany(sheetWhere);
   await prisma.character.deleteMany({ where: { id: { in: characterIds } } });
   const inR = { rulesetId: { in: rulesetIds } };
   await prisma.rulesetRelease.deleteMany({ where: inR });

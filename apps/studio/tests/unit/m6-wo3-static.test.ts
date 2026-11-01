@@ -44,7 +44,11 @@ const SERVICE = strip(read("packages/prowess-db/src/character/service.ts"));
 const REPOSITORY = strip(read("packages/prowess-db/src/character/repository.ts"));
 const CREATION = strip(read("packages/prowess-game/src/character/creation.ts"));
 const SCHEMA = read("packages/prowess-db/prisma/schema.prisma");
-const WO3_BLOCK = SCHEMA.slice(SCHEMA.indexOf("// >>> M6-WO3"), SCHEMA.indexOf("// <<< M6-WO3")).replace(/^\s*\/\/.*$/gm, ""); // declarations only
+// Declarations only; a later Work Order's registered, marked back-relation line (pinned by that Work Order's gate) is
+// not part of the WO3 block.
+const WO3_BLOCK = SCHEMA.slice(SCHEMA.indexOf("// >>> M6-WO3"), SCHEMA.indexOf("// <<< M6-WO3"))
+  .replace(/^[^\n]*\/\/ M6-WO(?!3\b)\d+ back-relation[^\n]*$/gm, "")
+  .replace(/^\s*\/\/.*$/gm, "");
 const MIGRATION_NAME = "20261029010000_m6_wo3_character_foundation";
 const MIGRATION = read(`packages/prowess-db/prisma/migrations/${MIGRATION_NAME}/migration.sql`);
 const model = (name: string) => {

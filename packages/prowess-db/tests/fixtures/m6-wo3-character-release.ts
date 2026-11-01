@@ -29,6 +29,7 @@ import affinityContent from "../../../prowess-game/src/content/core-playtest-v0.
 import { ADVANCEMENT_RULE_KEY, advancementRulePayload } from "../../../prowess-game/src/testing/advancement-fixtures.js";
 import { CONSTRUCTION_RULE_PAYLOAD } from "../../../prowess-game/src/testing/construction-fixtures.js";
 import { effectPayload } from "../../../prowess-game/src/testing/fixtures.js";
+import { WEAPON_DEFINITIONS, resolveContentRefs } from "../../../prowess-game/src/testing/weapon-fixtures.js";
 
 export interface Pin {
   entityId: string;
@@ -69,7 +70,7 @@ export interface CharacterReleaseWorld {
 }
 
 /** Seeds and publishes Release 1. Every stored canonical key is `${prefix}.<content key>_<tag>`. */
-export async function seedCharacterRelease(prefix: string, label = "R1", options: { characterContent?: boolean; advancement?: boolean } = {}): Promise<CharacterReleaseWorld> {
+export async function seedCharacterRelease(prefix: string, label = "R1", options: { characterContent?: boolean; advancement?: boolean; weapons?: boolean } = {}): Promise<CharacterReleaseWorld> {
   const tag = `${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
   const key = (k: string) => `${prefix}.${k.replace(/\./g, "_")}_${tag}`;
   const pins = new Map<string, Pin>();
@@ -104,6 +105,17 @@ export async function seedCharacterRelease(prefix: string, label = "R1", options
     const construction = (prerequisites: unknown[]) => ({ rules: { construction: { prerequisites } } });
     await add("test.m6wo4.effect.expert_lore", "SPELL_EFFECT", 1, effectPayload("UTILITY", construction([{ prerequisiteKey: "ARCANA_EXPERT", kind: "SKILL_RANK_AT_LEAST", skillKey: arcana, minimumRank: "EXPERT" }])));
     await add("test.m6wo4.effect.evocation_trained", "SPELL_EFFECT", 1, effectPayload("DAMAGE", construction([{ prerequisiteKey: "EVOCATION_TRAINED", kind: "AFFINITY_RANK_AT_LEAST", affinity: refOf(pins, "affinity.evocation"), minimumRank: "TRAINED" }])));
+  }
+
+  // `weapons: true` (M6-WO6): the approved baseline Weapon catalog (content file), in dependency order — Equipment Traits,
+  // Attacks, then Weapons — each reference resolved to the exact revision this Release pins (needs `advancement: true`
+  // for the Martial Skill named by the construction rule).
+  if (options.weapons === true) {
+    for (const kind of ["EQUIPMENT_TRAIT", "ATTACK", "WEAPON"] as const)
+      for (const d of WEAPON_DEFINITIONS.filter((x) => x.definitionKind === kind)) {
+        DISPLAY[d.canonicalKey] = d.displayName;
+        await add(d.canonicalKey, d.definitionKind, 1, resolveContentRefs(d.payload, (k) => refOf(pins, k)));
+      }
   }
 
   const r = await createRuleset({ canonicalKey: key("ruleset"), name: `M6-WO3 Characters ${tag}`, channel: "CORE_PLAYTEST", versionLabel: label });
@@ -155,7 +167,9 @@ export async function publishNextRelease(world: CharacterReleaseWorld, contentKe
     const old = pins.get(k)!;
     const current = await prisma.entityVersion.findUniqueOrThrow({ where: { id: old.entityVersionId } });
     const data = current.structuredData as { prowessDefinition: { schemaVersion: number; payload: Record<string, unknown> } };
-    const payload = overrides[k] ?? (k === TEST_ANCESTRY_KEY ? ancestryPayload((x) => refOf(pins, x), { baseHp: 12 }) : data.prowessDefinition.payload);
+    // An override may be a function of the new Release's pins (M6-WO6: a revised Weapon naming its revised Attack).
+    const override = typeof overrides[k] === "function" ? (overrides[k] as (p: Map<string, Pin>) => unknown)(pins) : overrides[k];
+    const payload = override ?? (k === TEST_ANCESTRY_KEY ? ancestryPayload((x) => refOf(pins, x), { baseHp: 12 }) : data.prowessDefinition.payload);
     const v = await approvedVersion(old.entityId, `${current.displayName} (revised)`, stored(old.definitionKind, data.prowessDefinition.schemaVersion, payload));
     pins.set(k, { ...old, entityVersionId: v.id });
     operations.push({ operationType: "REPLACE_ENTITY_VERSION", targetEntityId: old.entityId, fromEntityVersionId: old.entityVersionId, toEntityVersionId: v.id });
@@ -204,6 +218,8 @@ export async function cleanupCharacterWorlds(prefix: string): Promise<void> {
   await prisma.characterSheetNotes.deleteMany(sheetWhere);
   await prisma.characterPortraitImage.deleteMany(sheetWhere);
   await prisma.characterPortrait.deleteMany(sheetWhere);
+  // M6-WO6: the Weapon loadout references the Character and the exact Weapon EntityVersions (RESTRICT).
+  await prisma.characterWeaponLoadout.deleteMany(sheetWhere);
   await prisma.character.deleteMany({ where: { id: { in: characterIds } } });
   const inR = { rulesetId: { in: rulesetIds } };
   await prisma.rulesetRelease.deleteMany({ where: inR });

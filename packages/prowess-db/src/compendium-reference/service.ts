@@ -227,7 +227,7 @@ function summary(release: RulesetRelease): ReferenceReleaseSummary {
   return { id: release.id, rulesetId: release.rulesetId, releaseNumber: release.releaseNumber, versionLabel: release.versionLabel, channel: release.channel, publishedAt: release.publishedAt };
 }
 
-async function requireRuleset(rulesetId: string): Promise<ReferenceRulesetSummary> {
+export async function requireRuleset(rulesetId: string): Promise<ReferenceRulesetSummary> {
   const id = normalizeId(rulesetId);
   const ruleset = isUuid(id) ? await selectRulesetById(id) : null;
   if (ruleset === null) throw new DomainError(RULESET_RELEASE_ERROR_CODES.RULESET_NOT_FOUND, `Ruleset not found: ${rulesetId}`);
@@ -235,7 +235,7 @@ async function requireRuleset(rulesetId: string): Promise<ReferenceRulesetSummar
 }
 
 /** The exact Release, which must belong to the Ruleset the URL names — never another Release as a fallback. */
-async function requireRelease(ruleset: ReferenceRulesetSummary, releaseId: string): Promise<RulesetRelease> {
+export async function requireRelease(ruleset: ReferenceRulesetSummary, releaseId: string): Promise<RulesetRelease> {
   const release = await selectReleaseById(normalizeId(releaseId));
   if (release === null) throw new DomainError(RULESET_RELEASE_ERROR_CODES.NOT_FOUND, `RulesetRelease not found: ${releaseId}`);
   if (release.rulesetId !== ruleset.id) {

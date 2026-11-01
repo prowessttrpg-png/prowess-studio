@@ -240,3 +240,50 @@
 .character-tabs [role="tab"] { font: inherit; background: none; border: 1px solid transparent; border-bottom: none; padding: 0.4rem 0.9rem; cursor: pointer; border-radius: 4px 4px 0 0; }
 .character-tabs [role="tab"][aria-selected="true"] { background: #1d2a3d; color: #d6b46a; border-color: #b48a3c; }
 .character-tabs [role="tab"]:focus-visible { outline: 2px solid #1d2a3d; outline-offset: 2px; }
+
+/* ---- PAS-10 M6-WO6: Weapon slots, loadout controls and compact Weapon Attack rows ---------------------------------- */
+.sheet-weapon__props {
+  font-size: 0.85em;
+}
+.sheet-loadout {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.sheet-loadout label {
+  display: grid;
+  gap: 0.15rem;
+}
+.sheet-loadout__controls {
+  grid-column: 1 / -1;
+}
+.sheet-attacks {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+.sheet-table--attacks caption {
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.85em;
+}
+.sheet-table--attacks th,
+.sheet-table--attacks td {
+  font-size: 0.82em;
+  padding: 0.1rem 0.3rem;
+}
+@media print {
+  .sheet-table--attacks th,
+  .sheet-table--attacks td {
+    font-size: 7.5pt;
+    padding: 0 0.15rem;
+    line-height: 1.15;
+  }
+  .sheet-table--attacks caption {
+    font-size: 7.5pt;
+  }
+  .sheet-attacks {
+    gap: 0.1rem;
+    margin-bottom: 0.15rem;
+  }
+}

@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { laterMigrations } from "./later-milestone-schema";
+import { expectedFrozenHash, laterMigrations } from "./later-milestone-schema";
 
 /**
  * M6-WO5 permanent architecture gate — Digital Character Sheet (PAS-10 M6-WO5 §119–§121).
@@ -120,7 +120,9 @@ describe("M6-WO5 gate — the read model consumes the profile (§79–§80, M6-I
 
   it("the service builds the sheet from the WO4 profile of the Character's OWN Release; reads never write", () => {
     const get = fn(SERVICE, "getCharacterSheet");
-    expect(SERVICE).toMatch(/const \{ c, bundle, ruleset, history, progression \} = await loadCompleted\(id\);\n\s+const profile = requireProfile\(profileOf\(bundle, ruleset, progression\)\);\n\s+const mechanics = buildCharacterSheetMechanics\(\{ bundle, ruleset, profile \}\);/);
+    // Since PAS-10 M6-WO6 the ONE profile is loaded with the equipped Weapons' additive context (loadEquippedCharacter
+    // builds it from the Character's own Release through profileOf — pinned by m6-wo6-static).
+    expect(SERVICE).toMatch(/const state = await loadEquippedCharacter\(id\);\n\s+const \{ c, bundle, ruleset, history, profile \} = state;\n\s+const mechanics = buildCharacterSheetMechanics\(\{ bundle, ruleset, profile \}\);/);
     expect(SERVICE).not.toMatch(/latest|newest|findFirst|current\w*Release|rulesetId:|prisma\.|\$queryRaw|\$executeRaw/i);
     expect(get).not.toMatch(/write\w*\(|clearPortrait|update\w*\(/);
     expect(get).toMatch(/identity: \{ id: c\.id, name: c\.name, concept: c\.concept, level: profile\.level, maximumLevel: profile\.maximumLevel,/);
@@ -202,7 +204,7 @@ describe("M6-WO5 gate — Studio presents, never decides (§17–§45, §77–§
       expect(src, f).not.toMatch(/from "(@prowess\/(db|game|rules)|@prisma\/client)[^"]*"/);
       if (!f.endsWith("_lib/character-client.ts")) expect(strip(src), f).not.toMatch(/\bfetch\(/);
     }
-    expect(SHEET_UI.map((f) => path.basename(f)).sort()).toEqual(["CharacterSheet.tsx", "PortraitFrame.tsx", "SheetIcons.tsx", "SheetPanels.tsx", "portrait-framing.ts"]);
+    expect(SHEET_UI.map((f) => path.basename(f)).sort()).toEqual(["CharacterSheet.tsx", "PortraitFrame.tsx", "SheetIcons.tsx", "SheetPanels.tsx", "WeaponPanels.tsx", "portrait-framing.ts"]); // WeaponPanels: M6-WO6
   });
 
   it("no mechanical arithmetic or formula text in the sheet: every number is the server's, formatted only", () => {
@@ -221,7 +223,9 @@ describe("M6-WO5 gate — Studio presents, never decides (§17–§45, §77–§
   });
 
   it("M6-I055 Equipment & Gear and Granted Effects are explicit boundaries; Actions stay player text (M6-I049)", () => {
-    expect(SERVICE).toMatch(/equipment: \{ available: false, mainHand: null, offHand: null, armor: null, accessorySlots: mechanics\.attunement\.maximum\.value, accessories: \[\] \},/);
+    // Since PAS-10 M6-WO6 the Weapon slots are the Character's loadout (pinned by m6-wo6-static); Armor and
+    // accessories stay explicit boundaries.
+    expect(SERVICE).toMatch(/equipment: \{\n\s+available: library\.capability\.weaponLibrary\.status === "WEAPON_LIBRARY_READY",\n\s+mainHand: loadout\.mainHand,\n\s+offHand: loadout\.offHand,[\s\S]*?armor: null,\n\s+accessorySlots: mechanics\.attunement\.maximum\.value,\n\s+accessories: \[\],\n\s+\},/);
     expect(SERVICE).toMatch(/grantedEffects: \[\],/);
     const all = [...SHEET_UI, ...ROUTES].map((f) => strip(read(f))).join("\n");
     expect(all).not.toMatch(/equipItem|addWeapon|createSpell|createManeuver|abilityCard|turnOrder|initiativeTracker/i);
@@ -276,7 +280,8 @@ describe("M6-WO5 gate — approved M5 change, invariants, documentation and CI (
     const wo5 = approved["M6-WO5"] as { changedFiles: Record<string, string>; addedFiles: Record<string, string> };
     expect(Object.keys(wo5.changedFiles).sort()).toEqual(["packages/prowess-game/src/index.ts"]);
     expect(Object.keys(wo5.addedFiles).sort()).toEqual(["packages/prowess-game/src/character-sheet.test.ts", "packages/prowess-game/src/character/sheet.ts"]);
-    for (const [f, h] of [...Object.entries(wo5.changedFiles), ...Object.entries(wo5.addedFiles)]) expect(hash(readFileSync(path.join(ROOT, f))), f).toBe(h);
+    // A later registered approved change (docs/architecture/m6-approved-m5-changes.json) supersedes a WO5 hash.
+    for (const [f, h] of [...Object.entries(wo5.changedFiles), ...Object.entries(wo5.addedFiles)]) expect(hash(readFileSync(path.join(ROOT, f))), f).toBe(expectedFrozenHash(f, h));
   });
 
   it("M4 source is untouched (frozen hashes since M6-WO2)", () => {
@@ -288,7 +293,7 @@ describe("M6-WO5 gate — approved M5 change, invariants, documentation and CI (
 
   const inv = JSON.parse(read("docs/architecture/m6-invariants.json")) as Array<{ id: string; title: string; guards: string[] }>;
   it("M6-I045–I056 follow M6-I001–I044, are documented, and each is guarded by executing files that cite it", () => {
-    expect(inv.map((x) => x.id)).toEqual(Array.from({ length: 56 }, (_, i) => `M6-I${String(i + 1).padStart(3, "0")}`));
+    expect(inv.slice(0, 56).map((x) => x.id)).toEqual(Array.from({ length: 56 }, (_, i) => `M6-I${String(i + 1).padStart(3, "0")}`));
     const md = read("docs/architecture/m6-invariants.md");
     for (const row of inv.slice(44, 56)) {
       expect(md).toContain(`### ${row.id} — ${row.title}`);

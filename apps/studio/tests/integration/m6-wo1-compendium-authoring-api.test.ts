@@ -93,7 +93,7 @@ describe("M6-WO1 Compendium authoring API (prowess_studio_test only)", () => {
       expect(r.status).toBe(200);
       const effect = r.data.kinds.find((k: { definitionKind: string }) => k.definitionKind === "SPELL_EFFECT");
       expect(effect).toEqual({ definitionKind: "SPELL_EFFECT", systemFamily: "SPELL", branch: "SPELL", sharedContract: "EFFECT", allowedEntityTypes: ["SPELL_EFFECT"], supportedSchemaVersions: [1], authoringSchemaVersion: 1, authorable: true });
-      expect(r.data.kinds.find((k: { definitionKind: string }) => k.definitionKind === "WEAPON")).toMatchObject({ authorable: false, supportedSchemaVersions: [] });
+      expect(r.data.kinds.find((k: { definitionKind: string }) => k.definitionKind === "ARMOR")).toMatchObject({ authorable: false, supportedSchemaVersions: [] }); // ARMOR: still reserved after M6-WO6 activated WEAPON
       expect(r.data.vocabularies.resolutionModes).toContain("SAVING_THROW");
       expect(r.data.legacyTerms).toContainEqual({ legacyTerm: "Emission", canonicalTerm: "Evocation" });
     });
@@ -295,7 +295,7 @@ describe("M6-WO1 Compendium authoring API (prowess_studio_test only)", () => {
 
     it.each([
       ["unknown Definition kind", { definitionKind: "SPELL_FIREBALL" }, 400, "COMPENDIUM_AUTHORING.UNSUPPORTED_DEFINITION_KIND"],
-      ["reserved Definition kind", { definitionKind: "WEAPON" }, 400, "COMPENDIUM_AUTHORING.UNSUPPORTED_DEFINITION_KIND"],
+      ["reserved Definition kind", { definitionKind: "ARMOR" }, 400, "COMPENDIUM_AUTHORING.UNSUPPORTED_DEFINITION_KIND"],
       ["incompatible EntityType", { entityType: "TARGETING" }, 400, "COMPENDIUM_AUTHORING.INCOMPATIBLE_ENTITY_TYPE"],
       ["unsupported schema version", { prowessDefinition: { ...forcePushStatic(), schemaVersion: 9 } }, 400, "COMPENDIUM_AUTHORING.DEFINITION_REFUSED"],
       ["cross-branch content", { prowessDefinition: { ...forcePushStatic(), systemFamily: "MANEUVER" } }, 400, "COMPENDIUM_AUTHORING.DEFINITION_REFUSED"],

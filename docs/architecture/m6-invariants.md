@@ -1,4 +1,4 @@
-# M6 Invariant Catalog (M6-WO1, M6-WO2, M6-WO3, M6-WO4, M6-WO5)
+# M6 Invariant Catalog (M6-WO1, M6-WO2, M6-WO3, M6-WO4, M6-WO5, M6-WO6)
 
 Machine-readable twin: `m6-invariants.json`. The permanent M6-WO1 gate (`apps/studio/tests/unit/m6-wo1-static.test.ts`)
 requires every id below, each with executing automated guards that cite it. M4 (M4-I01–I188, M4-I162A) and M5 (M5-I001–I337)
@@ -347,3 +347,123 @@ Required by the permanent M6-WO2 gate (`apps/studio/tests/unit/m6-wo2-static.tes
 - **Group:** Presentation
 - **Meaning:** The print view reuses the same components in print mode — no controls, explicit continuation instead of clipping — and no formula text or rule lives in artwork or the stylesheet.
 - **Guards:** `apps/studio/tests/unit/m6-wo5-static.test.ts`, `apps/studio/tests/unit/m6-wo5-sheet-ui.test.tsx`, `scripts/m6-wo5-negative-controls.mjs`
+
+### M6-I057 — Every Executable Weapon Move Has Exact Attack Identity
+
+- **Group:** Attack Identity
+- **Meaning:** Every Move a Character can use is an exact ATTACK (Entity + EntityVersion) pinned in the same Release as its Weapon; there is no generic Weapon Attack and no Move without an Attack.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo6-authoring-to-release.test.ts`, `packages/prowess-game/src/m6-wo6-registry.test.ts`, `packages/prowess-game/src/weapon-definitions.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I058 — Weapon Moves Own Their AP Cost
+
+- **Group:** Move Cost
+- **Meaning:** The AP (and MP) of a Move is authored on its ATTACK and read from it; it is never derived from the Weapon's category, handedness or family.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `packages/prowess-game/src/weapon-definitions.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I059 — Weapon And Move Properties Remain Distinct
+
+- **Group:** Properties
+- **Meaning:** Weapon properties and Move properties are separate exact Equipment Trait uses with their own declared use sites; a trait is accepted only at a site it declares.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `packages/prowess-game/src/weapon-definitions.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I060 — Every Weapon Declares Power, Static Or Hybrid Scaling
+
+- **Group:** Scaling
+- **Meaning:** Each Weapon states POWER, STATIC or HYBRID; a HYBRID Weapon's Attacks each state their own scaling. Nothing infers scaling from a category or name.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `packages/prowess-game/src/weapon-definitions.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I061 — Static Damage Never Uses Power
+
+- **Group:** Scaling
+- **Meaning:** A STATIC Attack's damage is its authored (grip-adjusted) dice; no Power, scaling Stat or Dual Wield Power adjustment is applied, and the Maneuver binding carries power: null, stat: null.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `packages/prowess-game/src/weapon-definitions.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I062 — Power Scaling Repeats The Full Base Dice Expression
+
+- **Group:** Damage
+- **Meaning:** The Release's POWER_SCALING Formulas give the multiplier and the repeated dice count; the full base expression (count and sides) is repeated, never only one die.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I063 — Power May Never Fall Below 2
+
+- **Group:** Damage
+- **Meaning:** Authored Power is at least 2 and the multiplier Formula reads max(minimum Power, Power) with the Release's minimum.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `packages/prowess-game/src/weapon-definitions.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I064 — Exact Weapon And Attack Refs Are Release Scoped
+
+- **Group:** Release Pin
+- **Meaning:** Every Weapon, Attack and Equipment Trait reference resolves inside the exact Release that pins it; a revision from another Release or an unpinned revision is refused, never substituted.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `apps/studio/tests/integration/m6-wo6-weapons-api.test.ts`, `packages/prowess-db/tests/integration/m6-wo6-authoring-to-release.test.ts`, `packages/prowess-db/tests/integration/m6-wo6-weapon-loadout.test.ts`, `packages/prowess-game/src/m6-wo6-registry.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I065 — Attack Display Names Are Never Identity
+
+- **Group:** Attack Identity
+- **Meaning:** Display names (Bash, Slash) are presentation only; identity, equality and Powerful Blow compatibility use exact Entity + EntityVersion refs.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `packages/prowess-game/src/weapon-definitions.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I066 — Character Loadout Cannot Mutate Release Identity
+
+- **Group:** Loadout
+- **Meaning:** The loadout stores only exact Weapon pairs and the Versatile grip, in its own table with a compare-and-set version; equipping never writes the Character row, its Release, creation, advancement history or sheet state.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `apps/studio/tests/integration/m6-wo6-weapons-api.test.ts`, `packages/prowess-db/tests/integration/m6-wo6-migration-compat.test.ts`, `packages/prowess-db/tests/integration/m6-wo6-weapon-loadout.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I067 — Two-Handed Weapons Occupy Both Hands
+
+- **Group:** Loadout
+- **Meaning:** A Two-Handed Weapon, or a Versatile Weapon held two-handed, leaves no Off hand; a Two-Handed Weapon is never held in the Off hand.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `apps/studio/tests/integration/m6-wo6-weapons-api.test.ts`, `packages/prowess-db/tests/integration/m6-wo6-weapon-loadout.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I068 — Versatile Grip Is Explicit
+
+- **Group:** Loadout
+- **Meaning:** A Versatile Main-hand Weapon needs an explicit grip; a grip on any other Weapon is refused. The Versatile die step applies before Power; a multi-die base fails closed.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo6-weapon-loadout.test.ts`, `packages/prowess-game/src/weapon-definitions.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I069 — Shield Modifiers Are Derived Equipment Effects
+
+- **Group:** Shields
+- **Meaning:** While-equipped Armor, Dodge and Movement modifiers enter the one CharacterMechanicalProfile builder as named, sourced equipment bonuses; no derived total is stored, and an unequipped profile is unchanged.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `apps/studio/tests/integration/m6-wo6-weapons-api.test.ts`, `packages/prowess-db/tests/integration/m6-wo6-weapon-loadout.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I070 — Dual Wield Retains Two Exact Attacks
+
+- **Group:** Dual Wield
+- **Meaning:** A Dual Wield sequence keeps the two exact Attacks, each from its own Weapon with its own binding; its AP comes from the Release's Dual Wield Formula (the higher of the two), never a sum or a merged Attack.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `packages/prowess-game/src/weapon-bridge.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I071 — Dual Wield Is Not Powerful Blow
+
+- **Group:** Dual Wield
+- **Meaning:** Dual Wielding is a separate equipment rule; it never forms an M5 Powerful Blow, and Powerful Blow compatibility stays M5-WO11's exact-Attack rule.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo6-weapon-loadout.test.ts`, `packages/prowess-game/src/weapon-bridge.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I072 — Unarmed Is Derived From Martial Rank
+
+- **Group:** Unarmed
+- **Meaning:** The Unarmed profile is the Release's Unarmed Weapon for the Character's Martial rank; it is never equipped in a hand or stored as mutable Weapon state.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo6-weapon-loadout.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I073 — Ammunition Definitions Are Distinct From Runtime Ammunition State
+
+- **Group:** Ammunition
+- **Meaning:** Ammo, Loading, Reload and Loud are authored trait data only; no ammunition count, reserve or reload progress is stored, and Loud is never inferred from a category.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo6-migration-compat.test.ts`, `packages/prowess-db/tests/integration/m6-wo6-weapon-loadout.test.ts`, `packages/prowess-game/src/weapon-definitions.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I074 — Weapon Preview Never Spends Resources Or Deals Damage
+
+- **Group:** Purity
+- **Meaning:** The Attack Library and damage preview are pure: nothing is rolled, spent, applied or written.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `apps/studio/tests/integration/m6-wo6-weapons-api.test.ts`, `packages/prowess-db/tests/integration/m6-wo6-weapon-loadout.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I075 — Maneuver Attack Binding Reuses The Exact Weapon Attack Contract
+
+- **Group:** Maneuver Bridge
+- **Meaning:** A Weapon Attack binds into M5 through the existing foundation reader and MANEUVER_FOUNDATION contract, keeping the exact Weapon + Attack provenance, the Move's own AP, the damage profile and its scaling.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `packages/prowess-game/src/weapon-bridge.test.ts`, `scripts/m6-wo6-negative-controls.mjs`
+
+### M6-I076 — No Weapon Or Attack Resolves Through A Latest Revision Lookup
+
+- **Group:** Release Pin
+- **Meaning:** Every Weapon and Attack read resolves the exact pinned revision of the Character's or the requested Release; nothing looks up a latest or current revision.
+- **Guards:** `apps/studio/tests/unit/m6-wo6-static.test.ts`, `apps/studio/tests/integration/m6-wo6-weapons-api.test.ts`, `packages/prowess-db/tests/integration/m6-wo6-weapon-loadout.test.ts`, `packages/prowess-game/src/weapon-library.test.ts`, `scripts/m6-wo6-negative-controls.mjs`

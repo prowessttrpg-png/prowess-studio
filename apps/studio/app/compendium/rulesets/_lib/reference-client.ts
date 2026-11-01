@@ -213,3 +213,77 @@ export const getCatalog = async () => (await get<CatalogDto>("/api/compendium-au
 
 export const searchKeywords = async (search: string) =>
   (await get<Array<{ id: string; canonicalKey: string; name: string; deprecated: boolean }>>(`/api/compendium-authoring/keywords${query({ search })}`)).data;
+
+// ---- PAS-10 M6-WO6 Weapon & Attack Library (the exact Release's pinned WEAPON / ATTACK / EQUIPMENT_TRAIT revisions) ----
+
+export interface ReferenceRefDto {
+  entityId: string;
+  entityVersionId: string;
+  canonicalKey: string;
+  definitionKind: string;
+  systemFamily: string;
+}
+export interface ReferenceTraitUseDto {
+  trait: ReferenceRefDto;
+  traitKey: string;
+  displayName: string;
+  parameters: Record<string, number>;
+  executionStatus: string;
+  summary: string;
+}
+export interface ReferenceAttackDto {
+  attack: ReferenceRefDto;
+  displayName: string;
+  revisionNumber: number | null;
+  scaling: string;
+  payload: {
+    moveKey: string;
+    weaponFamilyKey: string;
+    apCost: number;
+    mpCost: number;
+    damageProfiles: Array<{ profileKey: string; dice: { count: number; sides: number }; damageType: string }>;
+    scaling: string | null;
+    resolution: { mode: string; onMiss?: string; savingThrowStat?: string; dc?: string; onFailure?: string; onSuccess?: string; reason?: string };
+    targeting: { mode: string; reachFeet?: number; stat?: string; feetPerPoint?: number; area?: { shape: string; radiusFeet: number } | null; lengthFeet?: number };
+    accuracyModifier: number;
+    requirements: Array<Record<string, unknown>>;
+    source: { locators: string[]; conflicts: string[]; designerAuthority: string[] };
+  };
+  moveProperties: ReferenceTraitUseDto[];
+  weapons: Array<{ weapon: ReferenceRefDto; displayName: string }>;
+}
+export interface ReferenceWeaponDto {
+  weapon: ReferenceRefDto;
+  displayName: string;
+  revisionNumber: number | null;
+  payload: {
+    familyKey: string;
+    profileKind: string;
+    equipmentRole: string;
+    martialRankKey: string | null;
+    category: string | null;
+    handedness: string | null;
+    scalingModel: string;
+    power: number | null;
+    exampleForms: string[];
+    requirements: Array<{ requirementKey: string; kind: string; minimumRank?: string; stat?: string; minimum?: number }>;
+    equippedModifiers: Array<{ modifierKey: string; target: string; value: number }>;
+    grantedFeatures: Array<{ featureKey: string; executionStatus: string; summary: string }>;
+    source: { locators: string[]; conflicts: string[]; designerAuthority: string[] };
+  };
+  weaponProperties: ReferenceTraitUseDto[];
+  moveset: ReferenceAttackDto[];
+  scalingRule: ReferenceTraitUseDto | null;
+  versatileRule: ReferenceTraitUseDto | null;
+}
+export interface ReferenceWeaponLibraryDto {
+  ruleset: RulesetSummaryDto;
+  release: ReleaseSummaryDto;
+  capability: { weaponLibrary: { status: string; missing: Array<{ requirement: string; message: string }> }; attackLibrary: { status: string; missing: Array<{ requirement: string; message: string }> } };
+  weapons: ReferenceWeaponDto[];
+  excluded: Array<{ weapon: ReferenceRefDto; displayName: string }>;
+  traits: Array<{ trait: ReferenceRefDto; displayName: string; payload: { traitKey: string; executionStatus: string; summary: string } }>;
+  issues: Array<{ code: string; message: string }>;
+}
+export const getWeaponLibrary = async (rulesetId: string, releaseId: string) => (await get<ReferenceWeaponLibraryDto>(`${releaseBase(rulesetId, releaseId)}/weapons`)).data;
+export const getAttackLibrary = async (rulesetId: string, releaseId: string) => (await get<{ ruleset: RulesetSummaryDto; release: ReleaseSummaryDto; attacks: ReferenceAttackDto[] }>(`${releaseBase(rulesetId, releaseId)}/attacks`)).data;

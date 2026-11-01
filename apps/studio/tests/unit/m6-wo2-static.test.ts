@@ -37,7 +37,13 @@ const fn = (src: string, name: string) => {
 
 const UI_DIR = "apps/studio/app/compendium/rulesets";
 const UI = code(UI_DIR);
-const ROUTES = walk("apps/studio/app/api/compendium-reference").filter((f) => f.endsWith("route.ts"));
+/** Routes registered by a later Work Order (docs/architecture/m6-api-routes.json) are pinned by that Work Order's gate. */
+const LATER_ROUTES = new Set(
+  Object.entries(JSON.parse(read("docs/architecture/m6-api-routes.json")) as Record<string, unknown>)
+    .filter(([k, v]) => /^M6-WO\d+$/.test(k) && !["M6-WO1", "M6-WO2"].includes(k) && Array.isArray(v))
+    .flatMap(([, v]) => v as string[]),
+);
+const ROUTES = walk("apps/studio/app/api/compendium-reference").filter((f) => f.endsWith("route.ts") && !LATER_ROUTES.has(f));
 const DB = code("packages/prowess-db/src/compendium-reference");
 const SERVICE = strip(read("packages/prowess-db/src/compendium-reference/service.ts"));
 const REPOSITORY = strip(read("packages/prowess-db/src/compendium-reference/repository.ts"));

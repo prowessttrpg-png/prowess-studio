@@ -17,6 +17,9 @@ import { DERIVED_STATISTICS, PROWESS_STATS, type ProwessStat } from "../vocabula
 import { getCharacterCreationCapability, validateCharacterCreation, type CharacterCreationCandidate, type CharacterCreationCapability, type CharacterDerivedValue } from "./creation.js";
 import { numericCompare, requirementMet } from "./requirements.js";
 import { accessChanges, type AccessChanges } from "./eligibility.js";
+import type { ExplicitBonus } from "../core/character.js";
+import type { EquippedModifier } from "../definition/equipment-payload.js";
+import type { WeaponHand } from "../vocabulary/equipment.js";
 
 /**
  * Character advancement (PAS-10 M6-WO4) — pure, deterministic, side-effect free.
@@ -176,6 +179,27 @@ export interface CharacterMechanicalProfile {
     readonly skillLadder: ProwessDefinitionRef;
     readonly affinityProgression: ProwessDefinitionRef | null;
   };
+  /** M6-WO6: present ONLY when equipment is equipped (absent ⇒ byte-identical to the unequipped profile). */
+  readonly equipment?: ProfileEquipment;
+}
+
+/**
+ * PAS-10 M6-WO6 additive equipment context (§66–§67): the exact Weapons the Character has equipped and the modifiers
+ * they grant WHILE equipped. Shield bonuses are derived here through the same M5 / M4 pipeline — Dodge and Movement as
+ * named explicit bonuses of the core derived statistics, Armor as an M4 Modifier over STRENGTH_ARMOR — and are never
+ * stored as Character truth. Without it the profile is exactly the unequipped profile.
+ */
+export interface ProfileEquipmentContext {
+  /** `definition` is the exact equipped WEAPON Definition (provenance of each modifier). */
+  readonly equipped: readonly { readonly hand: WeaponHand; readonly definition: ProwessDefinitionRef; readonly modifiers: readonly EquippedModifier[] }[];
+}
+
+export interface ProfileEquipment {
+  readonly equipped: ProfileEquipmentContext["equipped"];
+  /** The named DODGE / MOVEMENT bonuses fed to core resolution (category EQUIPMENT, provenance = the Weapon). */
+  readonly explicitBonuses: readonly ExplicitBonus[];
+  /** Armor while equipped: the Release's STRENGTH_ARMOR plus each equipped ARMOR modifier (M4 Modifier total). */
+  readonly armor: { readonly base: number; readonly total: number; readonly contributions: readonly { readonly definition: ProwessDefinitionRef; readonly modifierKey: string; readonly value: number }[] } | null;
 }
 
 export interface ProfileResult {
@@ -624,7 +648,15 @@ function affinityProfileOf(state: ProgressionState): unknown {
 }
 
 /** Builds the profile of a coherent state: Stats, Skills, Affinity profile (M5-validated), die, derived values. */
-function profileOf(bundle: ProwessDefinitionBundle, ruleset: RulesetContext, c: AdvancementContent, state: ProgressionState, add: IssueSink): CharacterMechanicalProfile | null {
+/** The equipment context's DODGE / MOVEMENT modifiers as named core explicit bonuses (category EQUIPMENT). */
+function equipmentBonuses(equipment: ProfileEquipmentContext | null): ExplicitBonus[] {
+  if (equipment === null) return [];
+  return equipment.equipped.flatMap((e) =>
+    e.modifiers.flatMap((m): ExplicitBonus[] => (m.target === "ARMOR" ? [] : [{ bonusKey: `equipment_${e.hand.toLowerCase()}_${m.modifierKey}`, appliesTo: m.target, value: m.value, category: "EQUIPMENT", sourceKey: e.definition.canonicalKey }])),
+  );
+}
+
+function profileOf(bundle: ProwessDefinitionBundle, ruleset: RulesetContext, c: AdvancementContent, state: ProgressionState, add: IssueSink, equipment: ProfileEquipmentContext | null = null): CharacterMechanicalProfile | null {
   const die = resolveCharacterDie(c.core.progression.payload, state.level);
   if (die === null) {
     add(E.INCOHERENT_PROGRESSION, "ERROR", "", `no Character Die is declared for Level ${state.level}`, c.core.progression.ref);
@@ -671,7 +703,8 @@ function profileOf(bundle: ProwessDefinitionBundle, ruleset: RulesetContext, c: 
   });
   const skillRanks = state.skills.map((s) => ({ skillKey: s.skill.canonicalKey, rankKey: s.rankKey }));
   const statScores = Object.fromEntries(stats.map((s) => [s.stat, s.final])) as Partial<Record<ProwessStat, number>>;
-  const character = { level: state.level, characterDie: { dieKey: die.dieKey }, stats: statScores, baseHp: state.baseHp, baseMp: state.baseMp, skillRanks, explicitBonuses: [] };
+  const explicitBonuses = equipmentBonuses(equipment);
+  const character = { level: state.level, characterDie: { dieKey: die.dieKey }, stats: statScores, baseHp: state.baseHp, baseMp: state.baseMp, skillRanks, explicitBonuses };
   const plan = compileCoreResolution({ contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION, subject: { kind: "DERIVED_STATISTICS", subjectKey: "character-profile" }, definitions: bundle, ruleset, character });
   const contexts = plan.ok ? buildCoreResolutionContexts({ definitions: bundle, character, plan: plan.value }) : null;
   const response = plan.ok && contexts !== null && contexts.ok ? orchestrateRulesEvaluation({ evaluationKey: "m6-wo4.character-profile", contexts: { ruleset, actor: contexts.value.actor, runtime: contexts.value.runtime }, plan: plan.value.evaluationPlan }) : null;
@@ -694,6 +727,21 @@ function profileOf(bundle: ProwessDefinitionBundle, ruleset: RulesetContext, c: 
     derived.push({ statistic, value: data.finalValue, unit: entry.payload.formula.unit ?? null, definition: entry.ref });
   }
   const signature = derived.find((d) => d.statistic === "SIGNATURE_ABILITY_SLOTS");
+  let profileEquipment: ProfileEquipment | null = null;
+  if (equipment !== null) {
+    const strengthArmor = derived.find((d) => d.statistic === "STRENGTH_ARMOR");
+    const contributions = equipment.equipped.flatMap((e) => e.modifiers.flatMap((m) => (m.target === "ARMOR" ? [{ definition: e.definition, modifierKey: m.modifierKey, value: m.value }] : [])));
+    let armor: ProfileEquipment["armor"] = null;
+    if (strengthArmor !== undefined) {
+      const total = totals([{ key: "armor", base: strengthArmor.value }], contributions.map((x) => ({ target: "armor", amount: x.value, sourceType: "equipment.weapon", sourceKey: x.definition.canonicalKey })));
+      if (total === null) {
+        add(E.DERIVED_PREVIEW_FAILED, "ERROR", "equipment", "the equipped Armor total could not be evaluated");
+        return null;
+      }
+      armor = { base: strengthArmor.value, total: total.get("armor") as number, contributions };
+    }
+    profileEquipment = { equipped: equipment.equipped, explicitBonuses, armor };
+  }
   return deepFreeze({
     level: state.level,
     maximumLevel: c.levels.at(-1) as number,
@@ -711,6 +759,7 @@ function profileOf(bundle: ProwessDefinitionBundle, ruleset: RulesetContext, c: 
     signatureCapacity: signature?.value ?? null,
     constructionContext: { stats: statScores, skillRanks, affinityProfile: profileOut.value },
     provenance: { rulesetId: bundle.rulesetProvenance.rulesetId, manifestId: bundle.rulesetProvenance.manifestId, advancementRule: c.rule.ref, characterDieProgression: c.core.progression.ref, skillLadder: c.ladder.ref, affinityProgression: c.progression.ref },
+    ...(profileEquipment === null ? {} : { equipment: profileEquipment }),
   });
 }
 
@@ -745,7 +794,7 @@ function replay(bundle: ProwessDefinitionBundle, ruleset: RulesetContext, c: Adv
  * The Character's present mechanical profile, rebuilt from its creation choices and committed advancement history
  * against its exact Release (§49–§50). Pure and deterministic.
  */
-export function buildCharacterMechanicalProfile(request: { readonly bundle: ProwessDefinitionBundle; readonly ruleset: RulesetContext; readonly character: CharacterProgressionState }): ProfileResult {
+export function buildCharacterMechanicalProfile(request: { readonly bundle: ProwessDefinitionBundle; readonly ruleset: RulesetContext; readonly character: CharacterProgressionState; readonly equipment?: ProfileEquipmentContext | null }): ProfileResult {
   const issues: AdvancementIssue[] = [];
   const add: IssueSink = (code, severity, path, message, source = null) => issues.push({ code, severity, path, message, source: sourceOf(source) });
   const { content, capability } = readAdvancementContent(request.bundle);
@@ -754,7 +803,7 @@ export function buildCharacterMechanicalProfile(request: { readonly bundle: Prow
     return deepFreeze({ profile: null, issues });
   }
   const state = replay(request.bundle, request.ruleset, content, request.character, add);
-  const profile = state === null ? null : profileOf(request.bundle, request.ruleset, content, state, add);
+  const profile = state === null ? null : profileOf(request.bundle, request.ruleset, content, state, add, request.equipment ?? null);
   return deepFreeze({ profile, issues });
 }
 

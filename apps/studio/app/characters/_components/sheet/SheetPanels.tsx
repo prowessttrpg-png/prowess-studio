@@ -4,6 +4,7 @@ import { formatEnumLabel } from "@prowess/ui";
 import { createContext, useContext, useId, useState, type ReactNode } from "react";
 import type { CharacterSheetDto, PossessionDto, SheetResourceDto, SheetValueDto } from "../../_lib/character-client";
 import { RuleLink } from "../CharacterReview";
+import { WeaponAttackRows, WeaponSlots } from "./WeaponPanels";
 import { BoltIcon, DiamondIcon, DropIcon, EffectsIcon, EquipmentFigure, GearIcon, PlusIcon, QuillIcon, RingIcon, SatchelIcon, ShieldIcon, SkillsIcon, StatsIcon, SwordsIcon, TriadIcon, WeightIcon } from "./SheetIcons";
 
 /**
@@ -324,11 +325,18 @@ export function NotesText({ label, value, mode, onChange, max, testId, empty, pr
   );
 }
 
+/** Weapon Attack rows printed on page 1 (the digital sheet lists them all); the rest of the panel stays Action Notes. */
+const PRINT_ATTACK_ROWS = 6;
+/** Printed Action Note lines: the whole panel without Weapon Attacks, a short block below them otherwise. */
+export const actionNoteLines = (sheet: CharacterSheetDto) => (sheet.weaponAttacks.length === 0 ? 14 : 4);
+
 export function ActionsPanel({ sheet, mode, value, onChange }: { sheet: CharacterSheetDto; mode: SheetMode; value: string; onChange: (v: string) => void }) {
+  // M6-WO6: compact Weapon Attack rows sit above the Action Notes; on paper they take some of the notes' lines.
   return (
     <SheetSection id="actions" title="Actions" icon={<SwordsIcon />}>
-      <p className="sheet-muted sheet-digital-only">Action Notes are your own reminders — they never create or change an action. Spells, Maneuvers and attacks join this area in later updates.</p>
-      <NotesText label="Action Notes" value={value} mode={mode} onChange={onChange} max={sheet.notes.limits.actionNotes} testId="sheet-action-notes" empty="No action notes yet." printLines={14} continuation="Action Notes continue on the supplemental page." />
+      <p className="sheet-muted sheet-digital-only">Weapon Attacks are previews from your exact Release (nothing is rolled or spent). Action Notes are your own reminders — they never create or change an action. Spells and Maneuvers join this area in later updates.</p>
+      <WeaponAttackRows sheet={sheet} printRows={PRINT_ATTACK_ROWS} />
+      <NotesText label="Action Notes" value={value} mode={mode} onChange={onChange} max={sheet.notes.limits.actionNotes} testId="sheet-action-notes" empty="No action notes yet." printLines={actionNoteLines(sheet)} continuation="Action Notes continue on the supplemental page." />
     </SheetSection>
   );
 }
@@ -417,22 +425,18 @@ export function AffinityPanel({ sheet, mode }: { sheet: CharacterSheetDto; mode:
 }
 
 /** M6-WO6 integration boundary: intentional empty slots until the equipment domain exists (§54–§57). */
-export function EquipmentPanel({ sheet }: { sheet: CharacterSheetDto }) {
+export function EquipmentPanel({ sheet, onLoadoutSaved }: { sheet: CharacterSheetDto; onLoadoutSaved?: () => void }) {
   const slots = sheet.equipment.accessorySlots;
   return (
     <SheetSection id="equipment" title="Equipment & Gear" icon={<GearIcon />} collapsible>
       <div className="sheet-equipment" data-testid="sheet-equipment-slots" data-available={sheet.equipment.available}>
         <dl className="sheet-equipment__slots">
-          {[
-            ["Main-hand", sheet.equipment.mainHand],
-            ["Off-hand", sheet.equipment.offHand],
-            ["Armor", sheet.equipment.armor],
-          ].map(([label]) => (
-            <div key={label as string}>
-              <dt>{label as string}</dt>
-              <dd className="sheet-empty">Not equipped</dd>
-            </div>
-          ))}
+          {/* M6-WO6: the Main-hand / Off-hand Weapon slots; Armor stays a later equipment update. */}
+          <WeaponSlots sheet={sheet} onLoadoutSaved={onLoadoutSaved} />
+          <div>
+            <dt>Armor</dt>
+            <dd className="sheet-empty">Not equipped</dd>
+          </div>
           <div>
             <dt>Accessories (Attunement)</dt>
             <dd className="sheet-empty" data-testid="sheet-accessory-slots">
@@ -442,7 +446,7 @@ export function EquipmentPanel({ sheet }: { sheet: CharacterSheetDto }) {
         </dl>
         <EquipmentFigure className="sheet-equipment__figure" />
       </div>
-      <p className="sheet-muted sheet-digital-only">Weapons, armor and gear arrive with the equipment update.</p>
+      <p className="sheet-muted sheet-digital-only">{sheet.equipment.available ? "Weapons come from your exact Release. Armor and accessories arrive with a later equipment update." : "This Release has no Weapon Library yet. Armor and accessories arrive with a later equipment update."}</p>
     </SheetSection>
   );
 }

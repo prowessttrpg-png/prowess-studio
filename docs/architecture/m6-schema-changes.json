@@ -33,5 +33,13 @@
       "CharacterResourceState",
       "CharacterSheetNotes"
     ]
+  },
+  "M6-WO6": {
+    "migrations": [
+      "20261102010000_m6_wo6_character_weapon_loadout"
+    ],
+    "models": [
+      "CharacterWeaponLoadout"
+    ]
   }
 }
