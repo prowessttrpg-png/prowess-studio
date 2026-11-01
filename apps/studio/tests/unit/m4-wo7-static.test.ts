@@ -155,7 +155,9 @@ describe("M4-WO7 boundaries (§5–7, §136)", () => {
   });
 
   it("adds no resource persistence, migration, route, UI or DB service", () => {
-    expect(read("packages", "prowess-db", "prisma", "schema.prisma")).not.toMatch(/model\s+(ResourceState|ResourceSnapshot|RuntimeResource|Payment)\w*|resource_(states|snapshots|payments)/i);
+    // The certified schema: registered later Work Orders' marked additions removed (M6-WO5's Character play state is
+    // registered in docs/architecture/m6-schema-changes.json and pinned by m6-wo5-static) — M4 still persists nothing.
+    expect(frozenSchemaText()).not.toMatch(/model\s+(ResourceState|ResourceSnapshot|RuntimeResource|Payment)\w*|resource_(states|snapshots|payments)/i);
     expect(readdirSync(path.join(ROOT, "packages", "prowess-db", "prisma", "migrations")).filter((e) => /^\d{14}_/.test(e)).filter(notLaterMigration)).toHaveLength(22);
     for (const f of [...walk(path.join(ROOT, "apps", "studio")), ...walk(path.join(ROOT, "packages", "prowess-db", "src"))].filter((file) => /\.(ts|tsx)$/.test(file) && !rel(file).includes("/tests/"))) {
       expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/applyResourcePayment|previewResourcePayment|spendResource|reserveResourceCapacity/);

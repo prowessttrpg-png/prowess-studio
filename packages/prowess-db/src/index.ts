@@ -259,3 +259,19 @@ export {
   previewCharacterAdvancementFor,
 } from "./character/index.js";
 export type { AdvancementOption, CharacterAccess, CharacterAdvancementContext, CharacterAdvancementHistoryEntry } from "./character/index.js";
+// PAS-10 M6-WO5 — Digital Character Sheet (one read model; play state, sheet text and portrait framing; no mechanics).
+export {
+  PORTRAIT_MAX_BYTES,
+  PORTRAIT_MIME_TYPES,
+  SHEET_TEXT_LIMITS,
+  checkPortraitImage,
+  getCharacterPortraitImage,
+  getCharacterSheet,
+  removeCharacterPortrait,
+  sniffPortraitType,
+  updateCharacterPlayState,
+  updateCharacterPortraitFraming,
+  updateCharacterSheetNotes,
+  uploadCharacterPortrait,
+} from "./character/index.js";
+export type { CharacterSheetView } from "./character/index.js";

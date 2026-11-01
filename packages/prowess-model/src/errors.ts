@@ -819,6 +819,17 @@ export const CHARACTER_ERROR_CODES = {
   ADVANCEMENT_INCOMPLETE: "CHARACTER.ADVANCEMENT_INCOMPLETE",
   /** The Character's Release does not contain coherent advancement content. */
   ADVANCEMENT_NOT_CAPABLE: "CHARACTER.ADVANCEMENT_NOT_CAPABLE",
+  // ---- PAS-10 M6-WO5 Digital Character Sheet ----
+  /** A submitted current resource value is not legal for this Character's Release (bounds, whole number, known key). */
+  INVALID_PLAY_STATE: "CHARACTER.INVALID_PLAY_STATE",
+  /** The sheet text is malformed (too long, wrong shape). It is player text and never mechanics. */
+  INVALID_SHEET_NOTES: "CHARACTER.INVALID_SHEET_NOTES",
+  /** The uploaded portrait is not a decodable PNG, JPEG or WebP image, or its framing is out of range. */
+  INVALID_PORTRAIT: "CHARACTER.INVALID_PORTRAIT",
+  /** The uploaded portrait exceeds the size limit. */
+  PORTRAIT_TOO_LARGE: "CHARACTER.PORTRAIT_TOO_LARGE",
+  /** The Character has no portrait image. */
+  PORTRAIT_NOT_FOUND: "CHARACTER.PORTRAIT_NOT_FOUND",
 } as const;
 
 export type CharacterErrorCode = (typeof CHARACTER_ERROR_CODES)[keyof typeof CHARACTER_ERROR_CODES];

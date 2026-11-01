@@ -186,6 +186,13 @@ export async function cleanupCharacterWorlds(prefix: string): Promise<void> {
   } finally {
     for (const t of advancementGuards) await prisma.$executeRawUnsafe(`ALTER TABLE "${t}" ENABLE TRIGGER "${t}_guard"`);
   }
+  // M6-WO5: sheet state (play state, notes, portrait) references the Character (RESTRICT).
+  const sheetWhere = { where: { characterId: { in: characterIds } } };
+  await prisma.characterResourceState.deleteMany(sheetWhere);
+  await prisma.characterPlayState.deleteMany(sheetWhere);
+  await prisma.characterSheetNotes.deleteMany(sheetWhere);
+  await prisma.characterPortraitImage.deleteMany(sheetWhere);
+  await prisma.characterPortrait.deleteMany(sheetWhere);
   await prisma.character.deleteMany({ where: { id: { in: characterIds } } });
   const inR = { rulesetId: { in: rulesetIds } };
   await prisma.rulesetRelease.deleteMany({ where: inR });

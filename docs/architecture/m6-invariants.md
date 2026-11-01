@@ -1,4 +1,4 @@
-# M6 Invariant Catalog (M6-WO1, M6-WO2, M6-WO3, M6-WO4)
+# M6 Invariant Catalog (M6-WO1, M6-WO2, M6-WO3, M6-WO4, M6-WO5)
 
 Machine-readable twin: `m6-invariants.json`. The permanent M6-WO1 gate (`apps/studio/tests/unit/m6-wo1-static.test.ts`)
 requires every id below, each with executing automated guards that cite it. M4 (M4-I01–I188, M4-I162A) and M5 (M5-I001–I337)
@@ -273,3 +273,77 @@ Required by the permanent M6-WO2 gate (`apps/studio/tests/unit/m6-wo2-static.tes
 - **Group:** Profile
 - **Meaning:** One @prowess/game builder turns creation + history + the exact Release into the CharacterMechanicalProfile; the services, eligibility, access and Studio consume that profile and never assemble Stats, ranks or Affinities themselves.
 - **Guards:** `apps/studio/tests/unit/m6-wo4-static.test.ts`, `packages/prowess-game/src/character-advancement.test.ts`, `packages/prowess-db/tests/integration/m6-wo4-advancement.test.ts`, `apps/studio/tests/unit/m6-wo4-advancement-ui.test.tsx`, `scripts/m6-wo4-negative-controls.mjs`
+
+## M6-WO5 — Digital Character Sheet
+
+### M6-I045 — The Character Sheet Consumes The Canonical Mechanical Profile
+
+- **Group:** Profile
+- **Meaning:** The sheet's mechanical values come from ONE server read model built by @prowess/game from the M6-WO4 CharacterMechanicalProfile and the Character's exact Release; no second profile, Stat or sheet-statistics builder exists.
+- **Guards:** `apps/studio/tests/unit/m6-wo5-static.test.ts`, `packages/prowess-game/src/character-sheet.test.ts`, `packages/prowess-db/tests/integration/m6-wo5-character-sheet.test.ts`, `apps/studio/tests/integration/m6-wo5-character-sheet-api.test.ts`, `apps/studio/tests/unit/m6-wo5-sheet-ui.test.tsx`, `scripts/m6-wo5-negative-controls.mjs`
+
+### M6-I046 — Mechanical Values On The Sheet Are Read-Only Projections
+
+- **Group:** Derived State
+- **Meaning:** Stat totals, Saves, Character Die, Character DC, Accuracy, Dodge, Armor, Initiative, Movement, Range, Skill scores, resource maximums and Affinity Authority are server projections of published rules; no request may supply them, Studio only formats them, and a value the Release does not define is shown as unavailable rather than guessed.
+- **Guards:** `apps/studio/tests/unit/m6-wo5-static.test.ts`, `packages/prowess-game/src/character-sheet.test.ts`, `packages/prowess-db/tests/integration/m6-wo5-character-sheet.test.ts`, `apps/studio/tests/integration/m6-wo5-character-sheet-api.test.ts`, `apps/studio/tests/unit/m6-wo5-sheet-ui.test.tsx`, `scripts/m6-wo5-negative-controls.mjs`
+
+### M6-I047 — Mutable Play Resources Are Separate From Progression History
+
+- **Group:** Play State
+- **Meaning:** Current HP, MP, ME, AP and Counter values live in their own play-state rows with their own optimistic concurrency, are validated against the Release's minimum and derived maximum (refused, never clamped), never stored in creation or advancement history, and never refilled when a maximum changes.
+- **Guards:** `apps/studio/tests/unit/m6-wo5-static.test.ts`, `packages/prowess-game/src/character-sheet.test.ts`, `packages/prowess-db/tests/integration/m6-wo5-character-sheet.test.ts`, `packages/prowess-db/tests/integration/m6-wo5-migration-compat.test.ts`, `apps/studio/tests/integration/m6-wo5-character-sheet-api.test.ts`, `scripts/m6-wo5-negative-controls.mjs`
+
+### M6-I048 — Character Notes Never Create Mechanics
+
+- **Group:** Player Text
+- **Meaning:** Character Notes, Company / PAC and possessions are stored and shown exactly as written; nothing reads them as rules, numbers or entitlements.
+- **Guards:** `apps/studio/tests/unit/m6-wo5-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo5-character-sheet.test.ts`, `apps/studio/tests/unit/m6-wo5-sheet-ui.test.tsx`, `scripts/m6-wo5-negative-controls.mjs`
+
+### M6-I049 — Action Notes Never Create Mechanics
+
+- **Group:** Player Text
+- **Meaning:** Action Notes are convenience text only: they never create, cost or resolve an action; Spells, Maneuvers and attacks arrive through their own Work Orders.
+- **Guards:** `apps/studio/tests/unit/m6-wo5-static.test.ts`, `apps/studio/tests/unit/m6-wo5-sheet-ui.test.tsx`, `scripts/m6-wo5-negative-controls.mjs`
+
+### M6-I050 — Portrait Framing Is Nondestructive
+
+- **Group:** Portrait
+- **Meaning:** The uploaded source image is stored exactly as validated; zoom and offsets are saved as numbers and applied visually, so framing never crops, re-encodes or rewrites the source.
+- **Guards:** `apps/studio/tests/unit/m6-wo5-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo5-character-sheet.test.ts`, `packages/prowess-db/tests/integration/m6-wo5-migration-compat.test.ts`, `apps/studio/tests/integration/m6-wo5-character-sheet-api.test.ts`, `apps/studio/tests/unit/m6-wo5-sheet-ui.test.tsx`, `scripts/m6-wo5-negative-controls.mjs`
+
+### M6-I051 — Portraits Are Safe Raster Images Shown At Their Own Aspect Ratio
+
+- **Group:** Portrait
+- **Meaning:** Only PNG, JPEG and WebP within the size limit are accepted, by magic bytes and a full decode (never by filename or declared type alone; no SVG); bytes live only in their own table and are served by the application with nosniff and a sandboxing policy; the frame cover-fits the image without stretching it.
+- **Guards:** `apps/studio/tests/unit/m6-wo5-static.test.ts`, `apps/studio/tests/integration/m6-wo5-character-sheet-api.test.ts`, `scripts/m6-wo5-negative-controls.mjs`
+
+### M6-I052 — The Sheet Is Exact-Release Scoped
+
+- **Group:** Release Pin
+- **Meaning:** Every sheet read and write resolves the Character's own immutable Release; a newer Release never changes an existing Character's sheet and nothing looks up a latest Release.
+- **Guards:** `apps/studio/tests/unit/m6-wo5-static.test.ts`, `packages/prowess-game/src/character-sheet.test.ts`, `packages/prowess-db/tests/integration/m6-wo5-character-sheet.test.ts`, `scripts/m6-wo5-negative-controls.mjs`
+
+### M6-I053 — Frozen Character Creation Cannot Be Changed Through The Sheet
+
+- **Group:** Creation Immutability
+- **Meaning:** Sheet writes touch only the sheet-state tables; the Character row, its Level 1 creation rows and its Release are never written by any sheet operation.
+- **Guards:** `apps/studio/tests/unit/m6-wo5-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo5-character-sheet.test.ts`, `packages/prowess-db/tests/integration/m6-wo5-migration-compat.test.ts`, `apps/studio/tests/integration/m6-wo5-character-sheet-api.test.ts`, `scripts/m6-wo5-negative-controls.mjs`
+
+### M6-I054 — Advancement Cannot Be Bypassed Through The Sheet
+
+- **Group:** Level Ownership
+- **Meaning:** The sheet never changes the Level, Skill ranks or Affinity progression; those move only through Advance Character (M6-WO4).
+- **Guards:** `apps/studio/tests/unit/m6-wo5-static.test.ts`, `packages/prowess-db/tests/integration/m6-wo5-character-sheet.test.ts`, `scripts/m6-wo5-negative-controls.mjs`
+
+### M6-I055 — Equipment And Ability Panels Are Integration Boundaries
+
+- **Group:** Integration Boundaries
+- **Meaning:** Equipment & Gear, Attunement, Carry & Weight and Granted Effects show intentional empty or unavailable states until their owning Work Orders; WO5 adds no equipment, inventory, ability or encounter domain.
+- **Guards:** `apps/studio/tests/unit/m6-wo5-static.test.ts`, `apps/studio/tests/unit/m6-wo5-sheet-ui.test.tsx`, `scripts/m6-wo5-negative-controls.mjs`
+
+### M6-I056 — Print Presentation Is Not Rules Authority
+
+- **Group:** Presentation
+- **Meaning:** The print view reuses the same components in print mode — no controls, explicit continuation instead of clipping — and no formula text or rule lives in artwork or the stylesheet.
+- **Guards:** `apps/studio/tests/unit/m6-wo5-static.test.ts`, `apps/studio/tests/unit/m6-wo5-sheet-ui.test.tsx`, `scripts/m6-wo5-negative-controls.mjs`

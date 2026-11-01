@@ -156,3 +156,7 @@ see [m6-character-advancement-access.md](m6-character-advancement-access.md). Cr
 the Level 1 creation rows stay frozen, and the `characters` guard keeps Release immutability and the creation freeze
 while its Level rule now allows exactly one +1 step per committed advancement. Everything else listed above remains
 deferred.
+
+**M6-WO5 update.** Completed Characters now open on the Digital Character Sheet — see
+[m6-digital-character-sheet.md](m6-digital-character-sheet.md). WO5 adds mutable play state, sheet notes and a portrait
+in their own tables; it never writes the Character row, its creation rows or its advancement history.

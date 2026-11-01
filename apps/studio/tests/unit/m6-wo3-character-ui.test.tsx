@@ -339,6 +339,8 @@ describe("M6-WO3 Character index and page (§54, §69, §74)", () => {
     render(<CharacterSheetSummary characterId="c1" />);
     expect((await screen.findByTestId("character-pinned-release")).textContent).toBe("Pinned to Core Playtest — Release 3 (0.3.0)");
     expect(screen.queryByRole("link", { name: "Continue creation" })).toBeNull();
+    // M6-WO5: a completed Character opens on the Sheet view; the profile form lives on the Advancement view.
+    fireEvent.click(screen.getByRole("tab", { name: "Advancement" }));
     const form = screen.getByRole("form", { name: "Profile" });
     fireEvent.change(within(form).getByLabelText("Name"), { target: { value: "Grukk II" } });
     fireEvent.click(within(form).getByRole("button", { name: "Save profile" }));
