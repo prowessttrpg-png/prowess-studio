@@ -27,3 +27,16 @@ export {
   type CharacterAccess,
   type CharacterAdvancementContext,
 } from "./advancement-service.js";
+// PAS-10 M6-WO5 — Digital Character Sheet.
+export {
+  SHEET_TEXT_LIMITS,
+  getCharacterPortraitImage,
+  getCharacterSheet,
+  removeCharacterPortrait,
+  updateCharacterPlayState,
+  updateCharacterPortraitFraming,
+  updateCharacterSheetNotes,
+  uploadCharacterPortrait,
+  type CharacterSheetView,
+} from "./sheet-service.js";
+export { PORTRAIT_MAX_BYTES, PORTRAIT_MIME_TYPES, checkPortraitImage, sniffPortraitType } from "./portrait-image.js";

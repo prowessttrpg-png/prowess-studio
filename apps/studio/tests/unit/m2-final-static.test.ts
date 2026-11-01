@@ -144,6 +144,9 @@ describe("§50 public service surface", () => {
         // M6-WO3 Character domain (pinned by m6-wo3-static): Characters are player state in their own tables, never
         // Entity / EntityVersion / Release rows. One creation, and a profile edit that touches no mechanics.
         "createCharacter", "updateCharacterProfile",
+        // M6-WO5 Digital Character Sheet (pinned by m6-wo5-static): player play state, sheet text and portrait framing
+        // in their own tables, each a lockVersion compare-and-set; none touches Entities, Releases or mechanics.
+        "removeCharacterPortrait", "updateCharacterPlayState", "updateCharacterPortraitFraming", "updateCharacterSheetNotes",
       ].sort(),
     );
   });

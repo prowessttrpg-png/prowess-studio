@@ -135,6 +135,7 @@ test("a player advances a Character from Level 1 to 2 and 2 to 3; access opens f
   test.setTimeout(180_000);
   const c = await completedCharacter(request, world, `Grukk ${world.tag}`);
   await page.goto(`/characters/${c.id}`);
+  await page.getByRole("tab", { name: "Advancement" }).click(); // M6-WO5: completed Characters open on the Sheet view
   await expect(page.getByTestId("profile-level")).toHaveText("1 of 10");
   await expect(page.getByTestId("access-arcane")).toHaveText("Trained (needs Trained) — Available");
   await expect(page.getByTestId("advancement-history")).toHaveCount(0);
@@ -157,6 +158,7 @@ test("a player advances a Character from Level 1 to 2 and 2 to 3; access opens f
   await expect(page.getByTestId("advance-ready")).toBeVisible();
   await page.getByRole("button", { name: "Advance Character" }).click();
   await page.waitForURL(`**/characters/${c.id}`);
+  await page.getByRole("tab", { name: "Advancement" }).click(); // M6-WO5: completed Characters open on the Sheet view
   await expect(page.getByTestId("profile-level")).toHaveText("2 of 10");
   await expect(page.getByTestId("profile-final-PER")).toHaveText("4");
   await expect(page.getByTestId("history-level-2")).toContainText("+1 PER");
@@ -178,6 +180,7 @@ test("a player advances a Character from Level 1 to 2 and 2 to 3; access opens f
   await expect(page.getByTestId("advance-ready")).toBeVisible();
   await page.getByRole("button", { name: "Advance Character" }).click();
   await page.waitForURL(`**/characters/${c.id}`);
+  await page.getByRole("tab", { name: "Advancement" }).click(); // M6-WO5: completed Characters open on the Sheet view
   await expect(page.getByTestId("profile-level")).toHaveText("3 of 10");
   await expect(page.getByTestId("profile-die")).toHaveText("D6 (d6)");
   await expect(page.getByTestId("access-arcane")).toHaveText("Expert (needs Trained) — Available");
@@ -217,6 +220,7 @@ test("a complex Level (5 → 6) and a newer Release that changes nothing for thi
   await expect(page.getByTestId("advance-ready")).toBeVisible();
   await page.getByRole("button", { name: "Advance Character" }).click();
   await page.waitForURL(`**/characters/${c.id}`);
+  await page.getByRole("tab", { name: "Advancement" }).click(); // M6-WO5: completed Characters open on the Sheet view
   await expect(page.getByTestId("profile-level")).toHaveText("6 of 10");
   await expect(page.getByTestId("profile-affinity").first()).toContainText("Primary, Expert");
   await expect(page.getByTestId("access-martial")).toHaveText("Trained (needs Trained) — Available");

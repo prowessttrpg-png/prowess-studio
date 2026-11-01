@@ -36,5 +36,14 @@
       "packages/prowess-game/src/testing/advancement-fixtures.ts": "36c61972e7f93669f817ca15743caf9af72df71b5125a66efe2e48dfd1fab49b",
       "packages/prowess-game/src/testing/m6-wo4-registry-baseline.json": "9c5bfb322d15c8d0719373fc85e48d4a5378219da5707a71e80360180dd359d6"
     }
+  },
+  "M6-WO5": {
+    "changedFiles": {
+      "packages/prowess-game/src/index.ts": "17d0ac1d7d11e111e204ec701764e776998353ed1f304fec7d3f1bb8d309c545"
+    },
+    "addedFiles": {
+      "packages/prowess-game/src/character-sheet.test.ts": "99a987b3fd44e468bff098777b4ba3def2c2336a0c07a9d5e70987f88d26cd8e",
+      "packages/prowess-game/src/character/sheet.ts": "b85ec9e850c62dab0f8fbd354d83ac7f8a3b7f92d356dc7c4561ca3bd3b9b838"
+    }
   }
 }

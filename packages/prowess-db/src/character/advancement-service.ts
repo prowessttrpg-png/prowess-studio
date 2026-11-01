@@ -47,7 +47,7 @@ import {
 
 const MAX_PAGE_SIZE = 100;
 
-async function loadCompleted(id: string) {
+export async function loadCompleted(id: string) {
   const { c, history } = await requireCharacterSnapshot(id);
   if (c.coreCreationCompletedAt === null) throw fail(CHARACTER_ERROR_CODES.CORE_CREATION_INCOMPLETE, "Only a Character whose core creation is complete can advance or report access");
   const { bundle, ruleset } = await releaseRules(c.rulesetReleaseId);
@@ -55,7 +55,7 @@ async function loadCompleted(id: string) {
   return { c, bundle, ruleset, history, progression };
 }
 
-function requireProfile(built: ReturnType<typeof profileOf>): CharacterMechanicalProfile {
+export function requireProfile(built: ReturnType<typeof profileOf>): CharacterMechanicalProfile {
   if (built.profile === null) throw fail(CHARACTER_ERROR_CODES.ADVANCEMENT_NOT_CAPABLE, `This Character's Release cannot rebuild its profile: ${built.issues.map((i) => i.message).join("; ")}`);
   return built.profile;
 }

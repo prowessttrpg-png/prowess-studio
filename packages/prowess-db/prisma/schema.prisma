@@ -2403,6 +2403,9 @@ model Character {
   ancestryStatChoices  CharacterAncestryStatChoice[]
   skillRanks           CharacterSkillRank[]
   advancements         CharacterAdvancement[] // M6-WO4 back-relation
+  playState            CharacterPlayState? // M6-WO5 back-relation
+  sheetNotes           CharacterSheetNotes? // M6-WO5 back-relation
+  portrait             CharacterPortrait? // M6-WO5 back-relation
 
   @@index([rulesetReleaseId], map: "characters_ruleset_release_id_idx")
   @@index([ancestryEntityVersionId], map: "characters_ancestry_entity_version_id_idx")
@@ -2528,3 +2531,82 @@ model CharacterAffinityAdvancementChoice {
   @@map("character_affinity_advancement_choices")
 }
 // <<< M6-WO4 Character advancement
+
+// >>> M6-WO5 Character sheet state (PAS-10 M6-WO5) — registered in docs/architecture/m6-schema-changes.json
+/// The Character's MUTABLE play state (current resources). Separate from creation and the append-only advancement
+/// history; maximums are never stored — they are derived from the Character's exact Release on every read.
+model CharacterPlayState {
+  characterId String    @id @map("character_id") @db.Uuid
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  lockVersion Int      @default(1) @map("lock_version")
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  resources CharacterResourceState[]
+
+  @@map("character_play_states")
+}
+
+/// The current value of one RESOURCE (keyed by the Release's resourceKey, e.g. HP). Bounds are the Release's.
+model CharacterResourceState {
+  characterId String             @map("character_id") @db.Uuid
+  playState   CharacterPlayState @relation(fields: [characterId], references: [characterId], onDelete: Restrict, onUpdate: Restrict)
+
+  resourceKey String @map("resource_key")
+  current     Int
+
+  @@id([characterId, resourceKey], map: "character_resource_states_pkey")
+  @@map("character_resource_states")
+}
+
+/// Player-written sheet text: Company / PAC, Action Notes, Character Notes and freeform possessions. Never read as
+/// mechanics.
+model CharacterSheetNotes {
+  characterId String    @id @map("character_id") @db.Uuid
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  companyPac     String? @map("company_pac")
+  actionNotes    String  @default("") @map("action_notes")
+  characterNotes String  @default("") @map("character_notes")
+  possessions    Json    @default("[]")
+
+  lockVersion Int      @default(1) @map("lock_version")
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("character_sheet_notes")
+}
+
+/// The Character portrait's metadata and NONDESTRUCTIVE framing (zoom, offsets). The row outlives a removed image so
+/// its lockVersion only increases; the source bytes live in character_portrait_images, never on this row.
+model CharacterPortrait {
+  characterId String    @id @map("character_id") @db.Uuid
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  mimeType    String? @map("mime_type")
+  byteSize    Int?    @map("byte_size")
+  width       Int?
+  height      Int?
+  contentHash String? @map("content_hash")
+
+  zoom    Float
+  offsetX Float @map("offset_x")
+  offsetY Float @map("offset_y")
+
+  lockVersion Int      @default(1) @map("lock_version")
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  image CharacterPortraitImage?
+
+  @@map("character_portraits")
+}
+
+/// The uploaded source image, exactly as validated (never re-encoded or cropped). Isolated from frequently read rows.
+model CharacterPortraitImage {
+  characterId String            @id @map("character_id") @db.Uuid
+  portrait    CharacterPortrait @relation(fields: [characterId], references: [characterId], onDelete: Restrict, onUpdate: Restrict)
+
+  bytes Bytes
+
+  @@map("character_portrait_images")
+}
+// <<< M6-WO5 Character sheet state

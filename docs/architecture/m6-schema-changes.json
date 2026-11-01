@@ -21,5 +21,17 @@
       "CharacterSkillAdvancement",
       "CharacterStatAdvancement"
     ]
+  },
+  "M6-WO5": {
+    "migrations": [
+      "20261101010000_m6_wo5_character_sheet_state"
+    ],
+    "models": [
+      "CharacterPlayState",
+      "CharacterPortrait",
+      "CharacterPortraitImage",
+      "CharacterResourceState",
+      "CharacterSheetNotes"
+    ]
   }
 }

@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { laterMigrations } from "./later-milestone-schema";
+import { expectedFrozenHash, laterMigrations } from "./later-milestone-schema";
 
 /**
  * M6-WO4 permanent architecture gate — Character Advancement, Access & Eligibility (PAS-10 M6-WO4 §127–§131).
@@ -71,7 +71,15 @@ describe("M6-WO4 gate — registered schema change and migration (§43–§48, �
 
   it("M6-I034 removing exactly the marked WO4 additions restores the M6-WO3 schema; the WO3 migration is untouched", () => {
     expect(BASELINE.baseCommit).toBe("77f9430f68caf60babfb0c54496090d5ace11f86");
-    const withoutWo4 = SCHEMA.replace(/^[^\n]*\/\/ M6-WO4 back-relation[^\n]*\n/gm, "").replace(/\n\/\/ >>> M6-WO4[^\n]*\n[\s\S]*?\/\/ <<< M6-WO4[^\n]*\n/, "");
+    // M6-WO4 and every LATER registered Work Order (exactly their marked lines / blocks) are removed; WO3 stays.
+    const registered = Object.keys(JSON.parse(read("docs/architecture/m6-schema-changes.json")) as Record<string, unknown>).filter((k) => /^M\d+-WO\d+$/.test(k));
+    const wo4AndLater = registered.slice(registered.indexOf("M6-WO4"));
+    expect(wo4AndLater[0]).toBe("M6-WO4");
+    let withoutWo4 = SCHEMA;
+    for (const wo of wo4AndLater) {
+      const w = wo.replace(/-/g, "\\-");
+      withoutWo4 = withoutWo4.replace(new RegExp(`^[^\\n]*// ${w} back-relation[^\\n]*\\n`, "gm"), "").replace(new RegExp(`\\n// >>> ${w}[^\\n]*\\n[\\s\\S]*?// <<< ${w}[^\\n]*\\n`), "");
+    }
     expect(hash(withoutWo4)).toBe(BASELINE.frozenFiles[SCHEMA_PATH]);
     const wo3 = "packages/prowess-db/prisma/migrations/20261029010000_m6_wo3_character_foundation/migration.sql";
     expect(hash(readFileSync(path.join(ROOT, wo3))), wo3).toBe(BASELINE.frozenFiles[wo3]);
@@ -299,7 +307,8 @@ describe("M6-WO4 gate — approved M5 change, invariants, documentation and CI (
       `${GAME}/testing/advancement-fixtures.ts`,
       `${GAME}/testing/m6-wo4-registry-baseline.json`,
     ]);
-    for (const [f, h] of [...Object.entries(wo4.changedFiles), ...Object.entries(wo4.addedFiles)]) expect(hash(readFileSync(path.join(ROOT, f))), f).toBe(h);
+    // Later Work Orders may change these files again only through their own registered entry (expectedFrozenHash).
+    for (const [f, h] of [...Object.entries(wo4.changedFiles), ...Object.entries(wo4.addedFiles)]) expect(hash(readFileSync(path.join(ROOT, f))), f).toBe(expectedFrozenHash(f, h));
   });
 
   it("M4 source is untouched (frozen hashes since M6-WO2)", () => {
@@ -311,7 +320,7 @@ describe("M6-WO4 gate — approved M5 change, invariants, documentation and CI (
 
   const inv = JSON.parse(read("docs/architecture/m6-invariants.json")) as Array<{ id: string; title: string; guards: string[] }>;
   it("M6-I031–I044 follow M6-I001–I030, are documented, and each is guarded by executing files that cite it", () => {
-    expect(inv.map((x) => x.id)).toEqual(Array.from({ length: 44 }, (_, i) => `M6-I${String(i + 1).padStart(3, "0")}`));
+    expect(inv.slice(0, 44).map((x) => x.id)).toEqual(Array.from({ length: 44 }, (_, i) => `M6-I${String(i + 1).padStart(3, "0")}`));
     const md = read("docs/architecture/m6-invariants.md");
     for (const row of inv.slice(30, 44)) {
       expect(md).toContain(`### ${row.id} — ${row.title}`);

@@ -17,9 +17,10 @@ export class CharacterApiError extends Error {
   }
 }
 
-type Method = "GET" | "POST" | "PUT";
-async function request<T>(method: Method, path: string, body?: unknown): Promise<{ data: T; pagination?: { page: number; pageSize: number; total: number; totalPages: number } }> {
-  const sent = await fetchJsonBody(path, method === "GET" ? undefined : { method, headers: { "content-type": "application/json" }, body: JSON.stringify(body ?? {}) });
+type Method = "GET" | "POST" | "PUT" | "DELETE";
+async function request<T>(method: Method, path: string, body?: unknown, form?: FormData): Promise<{ data: T; pagination?: { page: number; pageSize: number; total: number; totalPages: number } }> {
+  const init: RequestInit | undefined = method === "GET" ? undefined : form !== undefined ? { method, body: form } : method === "DELETE" ? { method } : { method, headers: { "content-type": "application/json" }, body: JSON.stringify(body ?? {}) };
+  const sent = await fetchJsonBody(path, init);
   if (sent.kind === "NETWORK_FAILURE") throw new CharacterApiError("NETWORK_ERROR", "Could not reach the server.", 0);
   if (sent.kind === "UNREADABLE_BODY") throw new CharacterApiError("INVALID_RESPONSE", "The server returned an unreadable response.", sent.response.status);
   const json = sent.body as Record<string, unknown> | null;
@@ -286,3 +287,94 @@ export const getAdvancementContext = async (id: string) => (await request<Advanc
 export const previewAdvancement = async (id: string, choices: AdvancementChoicesDto) => (await request<AdvancementPreviewDto>("POST", `/api/characters/${enc(id)}/advancement/preview`, { choices })).data;
 export const advanceCharacter = async (id: string, expectedLockVersion: number, choices: AdvancementChoicesDto) => (await request<CharacterDto>("POST", `/api/characters/${enc(id)}/advance`, { expectedLockVersion, choices })).data;
 export const getAccess = async (id: string) => (await request<AccessDto>("GET", `/api/characters/${enc(id)}/access`)).data;
+
+// --- PAS-10 M6-WO5: the Digital Character Sheet ------------------------------------------------------------------------
+
+export interface SheetValueDto {
+  value: number | null;
+  unit: string | null;
+  unavailable: string | null;
+  source: DefinitionRefDto | null;
+}
+export interface SheetResourceDto {
+  resourceKey: string;
+  definition: DefinitionRefDto;
+  minimum: number;
+  maximum: number | null;
+  maximumSource: string | null;
+  refresh: Array<{ timing: string; target: string }>;
+  current: number | null;
+  stored: boolean;
+}
+export interface SheetSkillDto {
+  skill: DefinitionRefDto;
+  rankKey: string;
+  score: number | null;
+  attemptAllowed: boolean | null;
+  ranks: Array<{ rankKey: string; held: boolean }>;
+}
+export interface SheetAffinityDto {
+  affinity: DefinitionRefDto;
+  identity: string;
+  role: string;
+  rank: string;
+  authority: { minimumRank: string; eligible: boolean | null } | null;
+  strengths: Array<{ strengthKey: string; matchAny: string[] }>;
+  weaknesses: Array<{ weaknessKey: string; matchAny: string[]; activationPenaltyPercent: number; severity: string | null }>;
+}
+export interface PossessionDto {
+  category: string;
+  item: string;
+  weight: string;
+}
+export interface CharacterSheetDto {
+  identity: { id: string; name: string; concept: string | null; level: number; maximumLevel: number; status: string; ancestry: DefinitionRefDto | null; primaryAffinity: DefinitionRefDto | null; companyPac: string | null };
+  release: ReleaseSummaryDto;
+  portrait: { hasImage: boolean; mimeType: string | null; width: number | null; height: number | null; zoom: number; offsetX: number; offsetY: number; version: number; imageUrl: string | null; maxBytes: number };
+  mechanics: {
+    stats: Array<{ stat: string; total: number; savingThrow: SheetValueDto; definition: DefinitionRefDto }>;
+    combat: {
+      characterDie: { dieKey: string; faces: number };
+      characterDc: SheetValueDto;
+      accuracy: SheetValueDto;
+      armor: SheetValueDto;
+      dodge: SheetValueDto;
+      initiative: SheetValueDto;
+      movement: SheetValueDto;
+      range: SheetValueDto;
+      concentration: { maximum: SheetValueDto };
+    };
+    skills: SheetSkillDto[];
+    affinities: SheetAffinityDto[];
+    attunement: { maximum: SheetValueDto; used: SheetValueDto };
+    carry: { currentWeight: SheetValueDto; maximumLoad: SheetValueDto };
+    signatureCapacity: number | null;
+    issues: Array<{ code: string; path: string; message: string }>;
+  };
+  resources: SheetResourceDto[];
+  playStateVersion: number;
+  notes: { actionNotes: string; characterNotes: string; possessions: PossessionDto[]; version: number; limits: { companyPac: number; actionNotes: number; characterNotes: number; possessions: number; category: number; item: number; weight: number } };
+  grantedEffects: Array<{ source: DefinitionRefDto | null; effect: string; duration: string | null; notes: string | null }>;
+  equipment: { available: boolean; mainHand: null; offHand: null; armor: null; accessorySlots: number | null; accessories: unknown[] };
+  advancementHistoryCount: number;
+  names: Record<string, string>;
+}
+export interface SheetNotesInputDto {
+  companyPac: string | null;
+  actionNotes: string;
+  characterNotes: string;
+  possessions: PossessionDto[];
+}
+
+export const getSheet = async (id: string) => (await request<CharacterSheetDto>("GET", `/api/characters/${enc(id)}/sheet`)).data;
+/** Sends CURRENT resource values only — maximums and every derived value stay the server's. */
+export const updatePlayState = async (id: string, expectedVersion: number, resources: Record<string, number>) => (await request<CharacterSheetDto>("PUT", `/api/characters/${enc(id)}/play-state`, { expectedVersion, resources })).data;
+export const updateSheetNotes = async (id: string, expectedVersion: number, notes: SheetNotesInputDto) => (await request<CharacterSheetDto>("PUT", `/api/characters/${enc(id)}/notes`, { expectedVersion, ...notes })).data;
+export const uploadPortrait = async (id: string, expectedVersion: number, file: Blob) => {
+  const form = new FormData();
+  form.set("file", file);
+  form.set("expectedVersion", String(expectedVersion));
+  return (await request<CharacterSheetDto>("POST", `/api/characters/${enc(id)}/portrait`, undefined, form)).data;
+};
+export const updatePortraitTransform = async (id: string, expectedVersion: number, framing: { zoom: number; offsetX: number; offsetY: number }) => (await request<CharacterSheetDto>("PUT", `/api/characters/${enc(id)}/portrait-transform`, { expectedVersion, ...framing })).data;
+export const removePortrait = async (id: string, expectedVersion: number) => (await request<CharacterSheetDto>("DELETE", `/api/characters/${enc(id)}/portrait${query({ expectedVersion })}`)).data;

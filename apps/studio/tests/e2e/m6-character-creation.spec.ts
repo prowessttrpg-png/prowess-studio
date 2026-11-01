@@ -139,6 +139,7 @@ test("a player creates, completes and reopens a Level 1 Character pinned to its 
   await expectValues();
   await page.getByRole("button", { name: "Complete Core Creation" }).click();
   await page.waitForURL(`**/characters/${characterId}`);
+  await page.getByRole("tab", { name: "Advancement" }).click(); // M6-WO5: completed Characters open on the Sheet view
   await expect(page.getByTestId("character-status")).toHaveText("Core Creation Complete");
   await expect(page.getByTestId("character-pinned-release")).toHaveText(`Pinned to ${pinnedLabel}`);
   await expectValues();
@@ -155,6 +156,7 @@ test("a player creates, completes and reopens a Level 1 Character pinned to its 
   await post(request, `/api/change-sets/${cs.id}/approve`);
   await post(request, `/api/rulesets/${rs.id}/releases`, { baseManifestId: r1.manifestId, canonPolicyId: policy.id, changeSetId: cs.id, versionLabel: "0.2.0" });
   await page.goto(`/characters/${characterId}`);
+  await page.getByRole("tab", { name: "Advancement" }).click(); // M6-WO5: completed Characters open on the Sheet view
   await expect(page.getByTestId("character-pinned-release")).toHaveText(`Pinned to ${pinnedLabel}`);
   await expectValues();
 
@@ -166,5 +168,6 @@ test("a player creates, completes and reopens a Level 1 Character pinned to its 
   await expect(row.locator("td").first()).toHaveText("1");
   await row.getByRole("link", { name }).click();
   await page.waitForURL(`**/characters/${characterId}`);
+  await page.getByRole("tab", { name: "Advancement" }).click(); // M6-WO5: completed Characters open on the Sheet view
   await expectValues();
 });

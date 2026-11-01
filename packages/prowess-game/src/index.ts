@@ -615,3 +615,15 @@ export {
   type EligibilityStatus,
   type RequirementResult,
 } from "./character/eligibility.js";
+
+// PAS-10 M6-WO5 — Digital Character Sheet: the mechanical sheet read from the CharacterMechanicalProfile.
+export {
+  CHARACTER_SHEET_ERROR_CODES,
+  buildCharacterSheetMechanics,
+  validateSheetPlayState,
+  type CharacterSheetMechanics,
+  type SheetAffinity,
+  type SheetResource,
+  type SheetSkill,
+  type SheetValue,
+} from "./character/sheet.js";
