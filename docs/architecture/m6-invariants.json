@@ -952,5 +952,286 @@
       "packages/prowess-game/src/weapon-library.test.ts",
       "scripts/m6-wo6-negative-controls.mjs"
     ]
+  },
+  {
+    "id": "M6-I077",
+    "title": "Character Signature Spells Are Character-Owned Content, Not Compendium Canon",
+    "group": "Character Ownership",
+    "meaning": "A Signature Spell is a Character Signature Ability with append-only revisions in its own tables; no Entity, EntityVersion, ChangeSet, Manifest or Release is created or changed, and no synthetic Spell Definition enters the Character's bundle.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/integration/m6-wo7-signature-spells-api.test.ts",
+      "apps/studio/tests/e2e/m6-signature-spell.spec.ts",
+      "packages/prowess-db/tests/integration/m6-wo7-signature-spells.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo7-migration-compat.test.ts",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I078",
+    "title": "Every Mechanical Spell Component Is An Exact Release-Pinned Definition",
+    "group": "Release Pin",
+    "meaning": "Targeting, Effects, Traits, Duration, Casting Conditions and the governing Affinity are stored and resolved as exact references (entityId, entityVersionId, canonicalKey, definitionKind, systemFamily) pinned by the Character's Release; never by name.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/unit/m6-wo7-spell-ui.test.tsx",
+      "packages/prowess-db/tests/integration/m6-wo7-signature-spells.test.ts",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I079",
+    "title": "Spell Name And Description Never Create Mechanics",
+    "group": "Player Text",
+    "meaning": "The name, descriptions, notes and narrative tags are inert player text stored apart from the selections; the engine receives a fixed inert label and nothing is inferred from prose.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/unit/m6-wo7-spell-ui.test.tsx",
+      "apps/studio/tests/integration/m6-wo7-signature-spells-api.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo7-signature-spells.test.ts",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I080",
+    "title": "Authority Is Explicit And Never Automatically Switched",
+    "group": "Authority",
+    "meaning": "The player chooses Arcane or Affinity Authority (and any Affinity) explicitly; nothing is preselected, inferred or switched \u2014 an invalid choice is reported, never replaced.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/unit/m6-wo7-spell-ui.test.tsx",
+      "apps/studio/tests/e2e/m6-signature-spell.spec.ts",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I081",
+    "title": "Arcane And Affinity Capacities Never Stack",
+    "group": "Capacity",
+    "meaning": "Effect, Trait and Condition capacities come from the chosen Authority alone as M5 computes them; the Character path never adds capacities or self-grants access.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I082",
+    "title": "All Construction Legality Is Owned By M5",
+    "group": "Formula Ownership",
+    "meaning": "Access, prerequisites, capacity, compatibility, stacking and every component rule are decided by the M5 construction and authored-Ability compilers; Studio and the database only present the result.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/unit/m6-wo7-spell-ui.test.tsx",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I083",
+    "title": "All Spell Cost Is Owned By M5-WO10",
+    "group": "Formula Ownership",
+    "meaning": "Base MP, the single net percentage, the one final rounding, final MP and AP are the M5-WO10 cost pipeline's results evaluated by M4; nothing else computes or stores a Spell cost.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/unit/m6-wo7-spell-ui.test.tsx",
+      "apps/studio/tests/integration/m6-wo7-signature-spells-api.test.ts",
+      "apps/studio/tests/e2e/m6-signature-spell.spec.ts",
+      "packages/prowess-db/tests/integration/m6-wo7-signature-spells.test.ts",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I084",
+    "title": "ME Never Changes Listed Spell Cost",
+    "group": "Formula Ownership",
+    "meaning": "Mana Efficiency and current resources never enter the listed cost; the builder states that ME may pay part during casting.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/unit/m6-wo7-spell-ui.test.tsx",
+      "apps/studio/tests/e2e/m6-signature-spell.spec.ts",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I085",
+    "title": "Casting Condition Reduction Uses The Permanent 30% Effective Cap",
+    "group": "Formula Ownership",
+    "meaning": "Casting Condition percentage reductions are capped at the flat 30% effective cap of the permanent M5 policy, applied inside the one net percentage.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I086",
+    "title": "Effect Ordering Is Authored Spell Meaning",
+    "group": "Composition",
+    "meaning": "The player's Effect order is persisted exactly and drives the M5 Effect Chain; it is never re-sorted or discarded.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/unit/m6-wo7-spell-ui.test.tsx",
+      "apps/studio/tests/e2e/m6-signature-spell.spec.ts",
+      "packages/prowess-db/tests/integration/m6-wo7-signature-spells.test.ts",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I087",
+    "title": "Effect-Slot Trait Exchange Is Explicit",
+    "group": "Composition",
+    "meaning": "An Effect slot is traded for a Trait slot only by the player's explicit request, within the M5 maximum; it is never inferred.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/unit/m6-wo7-spell-ui.test.tsx",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I088",
+    "title": "Additional Affinity Trait Capacity Remains Fail-Closed While M5-SC-042 Is Unresolved",
+    "group": "Unresolved Rules",
+    "meaning": "A request to use additional Affinity Trait capacity is refused by M5 with the conflict key; Affinity Traits may use ordinary or exchanged slots.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I089",
+    "title": "Draft Spells Consume No Signature Slot",
+    "group": "Signature Capacity",
+    "meaning": "Drafts (and rebuild drafts) are working state: they may be incomplete or invalid, are never executable and use no Signature slot.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/unit/m6-wo7-spell-ui.test.tsx",
+      "apps/studio/tests/integration/m6-wo7-signature-spells-api.test.ts",
+      "apps/studio/tests/e2e/m6-signature-spell.spec.ts",
+      "packages/prowess-db/tests/integration/m6-wo7-signature-spells.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I090",
+    "title": "Finalized Spells Consume Exact Shared Signature Capacity",
+    "group": "Signature Capacity",
+    "meaning": "Each ACTIVE finalized Signature Spell uses the M5 Signature slot cost from the shared SIGNATURE_ABILITY_SLOTS capacity; there is no separate Spell slot count and no Signature discount.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/integration/m6-wo7-signature-spells-api.test.ts",
+      "apps/studio/tests/e2e/m6-signature-spell.spec.ts",
+      "packages/prowess-db/tests/integration/m6-wo7-signature-spells.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I091",
+    "title": "Signature Finalization Is Atomic Against Roster Capacity",
+    "group": "Concurrency",
+    "meaning": "Finalization locks the Character row, re-checks the Character and Spell versions, evaluates with the exact count of other active Signature Abilities and appends the revision in one transaction; two finalizations for the last slot cannot both succeed.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo7-signature-spells.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I092",
+    "title": "Spell Revisions Are Append-Only Historical Records",
+    "group": "History",
+    "meaning": "A finalized revision is never updated or deleted (database guard); a rebuild appends Revision N+1 naming its predecessor.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/integration/m6-wo7-signature-spells-api.test.ts",
+      "apps/studio/tests/e2e/m6-signature-spell.spec.ts",
+      "packages/prowess-db/tests/integration/m6-wo7-signature-spells.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo7-migration-compat.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I093",
+    "title": "Invalid Rebuilds Never Replace The Current Valid Revision",
+    "group": "History",
+    "meaning": "A rebuild draft that M5 does not accept is refused at finalization; the current revision stays in use until a valid rebuild is finalized.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/integration/m6-wo7-signature-spells-api.test.ts",
+      "apps/studio/tests/e2e/m6-signature-spell.spec.ts",
+      "packages/prowess-db/tests/integration/m6-wo7-signature-spells.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I094",
+    "title": "Retired Spells Release Slots Without Deleting History",
+    "group": "History",
+    "meaning": "Retiring a Spell removes it from the active roster and frees its slot; every revision stays readable.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/integration/m6-wo7-signature-spells-api.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo7-signature-spells.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I095",
+    "title": "Character Spell Validation Never Uses Latest Component Revisions",
+    "group": "Release Pin",
+    "meaning": "Every read re-evaluates the stored selections against the Character's exact pinned Release; a newer Release or revision never rebinds a Character's Spell.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/e2e/m6-signature-spell.spec.ts",
+      "packages/prowess-db/tests/integration/m6-wo7-signature-spells.test.ts",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I096",
+    "title": "The Character Spell Adapter May Reuse But Never Redefine M5 Semantics",
+    "group": "Purity",
+    "meaning": "The adapter calls the exported M5 cores (compileAuthoredAbilityCore, compileSpellCostCore, compileExecutionCore); the refactor is proven byte-identical against the M6-WO6 base by a permanent characterization of every golden Spell and Maneuver.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "packages/prowess-game/src/m6-wo7-m5-characterization.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I097",
+    "title": "Runtime-Deferred M5 Conflicts Are Surfaced, Never Guessed",
+    "group": "Unresolved Rules",
+    "meaning": "Mana Lock reservation (M5-SC-052), unpriceable target counts (M5-SC-046) and other unresolved M5 conflicts are shown with their exact keys; no amount or behaviour is invented.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/unit/m6-wo7-spell-ui.test.tsx",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I098",
+    "title": "WO7 Does Not Execute Live Spell Casting",
+    "group": "Boundaries",
+    "meaning": "The builder validates and previews only: it never spends AP / MP / ME, rolls, resolves a chain, activates Sustain, reserves Mana Lock or creates Active Effect state.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo7-static.test.ts",
+      "apps/studio/tests/unit/m6-wo7-spell-ui.test.tsx",
+      "apps/studio/tests/e2e/m6-signature-spell.spec.ts",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "scripts/m6-wo7-negative-controls.mjs"
+    ]
   }
 ]

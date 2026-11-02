@@ -32,6 +32,8 @@ import { RuntimeWarnings, SpellCost, SpellReview, SpellStateBadge } from "./Spel
 type SaveState = "saved" | "unsaved" | "saving" | "conflict" | "error";
 const SAVE_LABELS: Record<SaveState, string> = { saved: "Saved", unsaved: "Unsaved changes", saving: "Saving…", conflict: "Conflict — this Spell changed elsewhere", error: "Not saved" };
 const AUTOSAVE_MS = 600;
+/** The one M5 chain behaviour that names its successors (M5-WO12); the offered behaviours come from the catalog. */
+const BRANCH = "BRANCH";
 
 const nextKey = (prefix: string, used: readonly string[]): string => {
   let n = 1;
@@ -136,7 +138,7 @@ export function SpellBuilder({ characterId, spellId }: { characterId: string; sp
   const [busy, setBusy] = useState(false);
   const version = useRef(0);
   const inFlight = useRef<Promise<boolean> | null>(null);
-  const latest = useRef<SignatureSpellDraftDto | null>(null);
+  const pendingDraft = useRef<SignatureSpellDraftDto | null>(null);
   const dirty = useRef(false);
 
   const load = useCallback(async () => {
@@ -147,7 +149,7 @@ export function SpellBuilder({ characterId, spellId }: { characterId: string; sp
       setData(view);
       const working = view.spell.draft?.draft ?? null;
       setDraft(working);
-      latest.current = working;
+      pendingDraft.current = working;
       dirty.current = false;
       setEvaluation(view.spell.draft?.evaluation ?? null);
       setSave("saved");
@@ -160,11 +162,11 @@ export function SpellBuilder({ characterId, spellId }: { characterId: string; sp
     void load();
   }, [load]);
 
-  /** Saves the latest selections (one request at a time); returns whether everything is saved. */
+  /** Saves the pending selections (one request at a time); returns whether everything is saved. */
   const persist = useCallback(async (): Promise<boolean> => {
     if (inFlight.current) await inFlight.current;
-    if (!dirty.current || latest.current === null) return true;
-    const sending = latest.current;
+    if (!dirty.current || pendingDraft.current === null) return true;
+    const sending = pendingDraft.current;
     dirty.current = false;
     setSave("saving");
     const run = (async () => {
@@ -195,7 +197,7 @@ export function SpellBuilder({ characterId, spellId }: { characterId: string; sp
     setDraft((d) => {
       if (d === null) return d;
       const next = fn(d);
-      latest.current = next;
+      pendingDraft.current = next;
       dirty.current = true;
       return next;
     });
@@ -529,7 +531,7 @@ export function SpellBuilder({ characterId, spellId }: { characterId: string; sp
                           const cur = (d.effectChain ?? {}) as typeof chain;
                           const nodes = [...(cur?.nodes ?? [])].filter((n) => n.effectKey !== e.componentKey);
                           const merged = { effectKey: e.componentKey, behavior: node?.behavior ?? catalog.vocabularies.chainBehaviors[0]!, ...(node?.branch ? { branch: node.branch } : {}), ...patch };
-                          if (merged.behavior !== "BRANCH") delete (merged as { branch?: unknown }).branch;
+                          if (merged.behavior !== BRANCH) delete (merged as { branch?: unknown }).branch;
                           return { ...d, effectChain: { ...cur, nodes: [...nodes, merged] } };
                         });
                       const others = effects.filter((x) => x.componentKey !== e.componentKey);
@@ -537,7 +539,7 @@ export function SpellBuilder({ characterId, spellId }: { characterId: string; sp
                         <tr key={e.componentKey}>
                           <th scope="row">{refName(names, e.definition)}</th>
                           <td>
-                            <select aria-label={`Chain behaviour after ${refName(names, e.definition)}`} value={node?.behavior ?? ""} onChange={(ev) => setNode({ behavior: ev.target.value, ...(ev.target.value === "BRANCH" ? { branch: { success: others[0]?.componentKey ?? null, failure: others[1]?.componentKey ?? null } } : {}) })} data-testid="spell-chain-behavior">
+                            <select aria-label={`Chain behaviour after ${refName(names, e.definition)}`} value={node?.behavior ?? ""} onChange={(ev) => setNode({ behavior: ev.target.value, ...(ev.target.value === BRANCH ? { branch: { success: others[0]?.componentKey ?? null, failure: others[1]?.componentKey ?? null } } : {}) })} data-testid="spell-chain-behavior">
                               <option value="" disabled>
                                 Not listed
                               </option>
@@ -549,7 +551,7 @@ export function SpellBuilder({ characterId, spellId }: { characterId: string; sp
                             </select>
                           </td>
                           <td>
-                            {node?.behavior === "BRANCH" ? (
+                            {node?.behavior === BRANCH ? (
                               <>
                                 {(["success", "failure"] as const).map((side) => (
                                   <select key={side} aria-label={`On ${side} go to`} value={node.branch?.[side] ?? ""} onChange={(ev) => setNode({ branch: { success: node.branch?.success ?? null, failure: node.branch?.failure ?? null, [side]: ev.target.value === "" ? null : ev.target.value } })}>
@@ -661,7 +663,8 @@ export function SpellBuilder({ characterId, spellId }: { characterId: string; sp
               testId="spell-trait-picker"
               onPick={(o) =>
                 update((d) => {
-                  const scope = o.traitScope ?? "ABILITY_WIDE";
+                  // A Trait without an authored scope applies to the whole Spell (the M5 scope whose target slot is none).
+                  const scope = o.traitScope ?? Object.keys(scopeTargets).find((k) => scopeTargets[k] === null) ?? "";
                   const target = targetsFor(scope)[0]?.key ?? null;
                   const trait: SpellTraitUseDto = { componentKey: nextKey("trait", d.traits.map((x) => x.componentKey)), definition: o.ref, order: 0, parameters: {}, appliesTo: { scope, componentKey: target } };
                   return { ...d, traits: renumber([...d.traits, trait]) };
@@ -822,7 +825,7 @@ export function SpellBuilder({ characterId, spellId }: { characterId: string; sp
       </header>
       {save === "conflict" ? (
         <p className="gov-error" role="alert" data-testid="spell-conflict">
-          This Spell changed elsewhere since you loaded it. <button type="button" className="gov-link-button" onClick={() => void load()}>Reload the latest saved draft</button> (your unsaved edits will be replaced).
+          This Spell changed elsewhere since you loaded it. <button type="button" className="gov-link-button" onClick={() => void load()}>Reload the saved draft</button> (your unsaved edits will be replaced).
         </p>
       ) : null}
       {message ? (

@@ -359,7 +359,7 @@ describe("M6-WO6 gate — approved M5 change, invariants, documentation and CI (
 
   const inv = JSON.parse(read("docs/architecture/m6-invariants.json")) as Array<{ id: string; title: string; guards: string[] }>;
   it("M6-I057–I076 follow M6-I001–I056, are documented, and each is guarded by executing files that cite it", () => {
-    expect(inv.map((x) => x.id)).toEqual(Array.from({ length: 76 }, (_, i) => `M6-I${String(i + 1).padStart(3, "0")}`));
+    expect(inv.slice(0, 76).map((x) => x.id)).toEqual(Array.from({ length: 76 }, (_, i) => `M6-I${String(i + 1).padStart(3, "0")}`));
     const md = read("docs/architecture/m6-invariants.md");
     for (const row of inv.slice(56, 76)) {
       expect(md).toContain(`### ${row.id} — ${row.title}`);

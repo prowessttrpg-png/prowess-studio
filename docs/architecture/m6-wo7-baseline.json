@@ -1,0 +1,24 @@
+{
+  "$comment": "PAS-10 M6-WO7 baseline: the M6-WO7 base commit (M6-WO6 merged) and the files the M6-WO7 gate freezes \u2014 schema.prisma with exactly the marked M6-WO7 additions removed, the M6-WO3 / WO4 / WO5 / WO6 migrations and the permanent M5 Spell cost, construction, Affinity, Duration / Condition, execution and active-magic policy content \u2014 plus the base hashes of the five M5 files the approved additive core refactor touches (for the record; their current hashes are pinned by the approved M5 change registry).",
+  "baseCommit": "28bcfaecd98c0852446dbb278a88d6091d347cc9",
+  "frozenFiles": {
+    "packages/prowess-db/prisma/schema.prisma": "f00c50d3a339f4f5da2da483cf88a482321634421f49c626478fc114a63c9ac7",
+    "packages/prowess-db/prisma/migrations/20261029010000_m6_wo3_character_foundation/migration.sql": "9916d5ce3c30b1f94f96ef264387a0de224f8e658b597d1824003047438f6feb",
+    "packages/prowess-db/prisma/migrations/20261031010000_m6_wo4_character_advancement/migration.sql": "c3379236685b6b5e8c918c79ec814369b8868e4528e701f921eb2c25b6b09d7a",
+    "packages/prowess-db/prisma/migrations/20261101010000_m6_wo5_character_sheet_state/migration.sql": "4cfa1245813474e2faebca3995086b81f8c9f6042f11bf560878ff70bb6ad020",
+    "packages/prowess-db/prisma/migrations/20261102010000_m6_wo6_character_weapon_loadout/migration.sql": "8c677a9bac103808aee79579c6506fb7ed3893895fe656af6cb25355df9e3115",
+    "packages/prowess-game/src/content/core-playtest-v0.1/spell-cost.ts": "1bae0ebdf4b1ad6832a8429cc5c1b02d8029f615ed1cf761ccf29a85d0f776d5",
+    "packages/prowess-game/src/content/core-playtest-v0.1/ability-construction.json": "50d5a70ea28e203e27d80a6d6f423f3733cb5eb0331a0b8bc41a752f8e25e0b6",
+    "packages/prowess-game/src/content/core-playtest-v0.1/active-magic.ts": "05eff6499c8e6234c4d93e7c29365bbc0282c154f617f51f42e96659870a6e8c",
+    "packages/prowess-game/src/content/core-playtest-v0.1/affinity.json": "17256420148986606790e8a69c0cefd684d17a893b92291bbadeab43398fc8d5",
+    "packages/prowess-game/src/content/core-playtest-v0.1/duration-conditions.ts": "eadf80143ace9a17e9dc41c57c0e829bdf51de7d0f1abd2a135652c6390ef21a",
+    "packages/prowess-game/src/content/core-playtest-v0.1/effect-execution.ts": "de1742fa333cd5f47416f2975852b36aac100a4359dab46f838257ee106bfb5e"
+  },
+  "m5BaseFiles": {
+    "packages/prowess-game/src/ability/compile.ts": "98207b3f69d0a6cdd86fd774d95dae52233fd6cdbff9d79bcd7c9795dc7d048d",
+    "packages/prowess-game/src/ability/spell-cost.ts": "0550a5836273a86f49dfb35d5ad40ffe641f412f08f6687772916a9b83db23bd",
+    "packages/prowess-game/src/ability/effect-execution.ts": "fb0405a92805723c699253115bbc52b9a75c7d3d0fe228767ded6f4767fdf66b",
+    "packages/prowess-game/src/construction/composition.ts": "bf5abb7025ca21d877d758ee315967e6f192b755ce5cac8d5040d90700faa77c",
+    "packages/prowess-game/src/index.ts": "3678b181d7264538dc81513c35214b5abfd77f21aa88fbda7423d154e03f1b21"
+  }
+}

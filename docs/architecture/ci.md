@@ -49,7 +49,7 @@ Every named gate of M1, M4-WO1 … WO12 and M5-WO1 … WO13 keeps its exact step
 | Job | Gates |
 |---|---|
 | `controls-1` | M1 audit gate (static / database / API), M4-WO1 … WO11 audit gates, M4-WO10 integration gate, M4-WO12 final audit, M5-WO1, M5-WO2, M5-WO3 |
-| `controls-2` | M5-WO4, M5 canon rulings, M5-WO5, M6-WO1, M6-WO2, M6-WO3, M6-WO4, M6-WO5, M6-WO6 |
+| `controls-2` | M5-WO4, M5 canon rulings, M5-WO5, M6-WO1, M6-WO2, M6-WO3, M6-WO4, M6-WO5, M6-WO6, M6-WO7 |
 | `controls-3` | M5-WO6, M5-WO7, M5-WO8, M5-WO9, M5-WO10 |
 | `controls-4` | M5-WO11 |
 | `controls-5` | M5-WO12 |
@@ -507,3 +507,10 @@ catalog unit test, the authoring service DB suite, the M6-WO1 static gate, the C
 the authoring API suite — then runs `scripts/m6-wo1-negative-controls.mjs` (18 mutation controls on the shared harness).
 The inventory is 33 gates and 298 controls. The M5 route-freeze gates accept exactly their frozen baselines plus the
 reviewed route registry `docs/architecture/m6-api-routes.json`.
+
+**M6-WO7 additions.** **"M6-WO7 — Signature Spell Builder"** is a named step of `controls-2` (no `m6-wo7.yml`). It
+verifies its eight suites from this run's authoritative reports — the @prowess/game Signature Spell adapter, world-sync
+and permanent M5 characterization suites, the Signature Spell DB and migration-compatibility suites, the M6-WO7 static
+gate, the Signature Spell UI suite and the Signature Spell API suite — then runs `scripts/m6-wo7-negative-controls.mjs`
+(68 mutation controls on the shared harness). The inventory is 39 gates and 535 controls. The Playwright spec
+`m6-signature-spell.spec.ts` runs in the e2e job.
