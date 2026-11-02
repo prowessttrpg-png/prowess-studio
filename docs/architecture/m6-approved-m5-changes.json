@@ -93,7 +93,7 @@
       "packages/prowess-game/src/m6-wo7-m5-characterization.test.ts": "fb1a18880da2013ebf7d5de0a7d377d08af03b579f3700930aeaeaa2e619de15",
       "packages/prowess-game/src/testing/m6-wo7-m5-characterization.json": "5f9d77daf580cb1fe4e04fccbded718d0768a55e300b14aaa2638419de17ce2b",
       "packages/prowess-game/src/testing/m6-wo7-spell-world.json": "cef401b2d9db6e8645bc7d988efc023156c60e552b6f1d90c9d002bb4d823791",
-      "packages/prowess-game/src/testing/signature-spell-fixtures.ts": "020252b3f1b4809ac24ed73ce8c9f091c322aebc0267e11740ce30c4b801301a"
+      "packages/prowess-game/src/testing/signature-spell-fixtures.ts": "deb6d8870f5a9a3b7989cd75d27a26299336843efaf1be839ca69e4f0bedcd51"
     }
   }
 }

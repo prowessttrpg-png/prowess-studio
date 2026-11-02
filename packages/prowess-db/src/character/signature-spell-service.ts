@@ -26,7 +26,6 @@ import {
   insertSignatureSpellDraft,
   retireSignatureSpell,
   selectSignatureAbilities,
-  selectSignatureAbility,
   startSignatureSpellRebuild,
   writeSignatureSpellDraft,
   type FinalizeOutcome,
@@ -63,7 +62,12 @@ async function keywordCatalogFor(bundle: ProwessDefinitionBundle): Promise<Spell
   const keys = new Set<string>();
   const collect = (v: unknown): void => {
     if (Array.isArray(v)) for (const x of v) collect(x);
-    else if (v !== null && typeof v === "object") for (const [k, x] of Object.entries(v)) (k === "keywords" || k === "matchAny") && Array.isArray(x) ? x.forEach((y) => typeof y === "string" && keys.add(y)) : collect(x);
+    else if (v !== null && typeof v === "object")
+      for (const [k, x] of Object.entries(v)) {
+        if ((k === "keywords" || k === "matchAny") && Array.isArray(x)) {
+          for (const y of x) if (typeof y === "string") keys.add(y);
+        } else collect(x);
+      }
   };
   for (const d of bundle.definitions) collect(d.payload);
   if (keys.size === 0) return [];

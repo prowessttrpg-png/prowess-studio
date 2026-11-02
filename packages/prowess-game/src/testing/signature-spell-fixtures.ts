@@ -42,7 +42,12 @@ function toContentRefs(v: unknown): unknown {
 }
 function keywordsIn(v: unknown, out: Set<string>): void {
   if (Array.isArray(v)) v.forEach((x) => keywordsIn(x, out));
-  else if (typeof v === "object" && v !== null) for (const [k, x] of Object.entries(v)) (k === "keywords" || k === "matchAny") && Array.isArray(x) ? x.forEach((y) => typeof y === "string" && out.add(y)) : keywordsIn(x, out);
+  else if (typeof v === "object" && v !== null)
+    for (const [k, x] of Object.entries(v)) {
+      if ((k === "keywords" || k === "matchAny") && Array.isArray(x)) {
+        for (const y of x) if (typeof y === "string") out.add(y);
+      } else keywordsIn(x, out);
+    }
 }
 /**
  * The Signature Spell test-world content (M6-WO7 DB / API / E2E suites): the full current construction rule and every
