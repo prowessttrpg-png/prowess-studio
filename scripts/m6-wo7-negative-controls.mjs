@@ -63,7 +63,7 @@ const controls = [
   ["13 Studio calculates Trait capacity", BUILDER, replace('Traits: {c ? `${c.usage.traits} / ${c.traitCapacity.ordinary.effective ?? "—"}`', 'Traits: {c ? `${c.usage.traits} / ${(c.traitCapacity.ordinary.base ?? 0) + c.capacity.trades.requested}`'), studio],
   ["14 Studio calculates MP", FORMAT, replace("  return c === null ? null : `${c.finalMpCost} MP · ${c.finalApCost} AP`;", "  return c === null ? null : `${c.baseMp * c.netPercent / 100} MP · ${c.finalApCost} AP`;"), studio],
   ["15 Studio calculates AP", FORMAT, replace("  return c === null ? null : `${c.finalMpCost} MP · ${c.finalApCost} AP`;", "  return c === null ? null : `${c.finalMpCost} MP · ${Math.max(1, Math.floor(c.finalMpCost / c.pro))} AP`;"), studio],
-  ["16 Studio calculates the Affinity discount", BUILDER, replace("Strength discount ${a.rankRule.strengthDiscountPercent ?? 0}%", "Strength discount ${a.rankRule.strengthDiscountPercent ?? 0}% (saves ${(a.rankRule.strengthDiscountPercent ?? 0) / 100} per MP)"), studio],
+  ["16 Studio calculates the Affinity discount", BUILDER, replace("Strength discount ${a.rankRule.strengthDiscountPercent ?? 0}%", "Strength discount ${a.rankRule.strengthDiscountPercent ?? 0}% (saves ${a.rankRule.strengthDiscountPercent / 100} per MP)"), studio],
   ["17 Studio calculates the Weakness penalty", BUILDER, replace('${w.severity ? ` (${formatEnumLabel(w.severity)})` : ""}', '${w.severity ? ` (${formatEnumLabel(w.severity)}, +${w.activationPenaltyPercent ?? 0}%)` : ""}${w.activationPenaltyPercent ? ` ×${w.activationPenaltyPercent / 100}` : ""}'), studio],
   ["18 Studio calculates Sustain", BUILDER, replace('Sustain (M5-WO13 policy): {evaluation.runtime.sustain.mpPerRound ?? "unresolved"} MP', "Sustain (M5-WO13 policy): {evaluation.cost ? evaluation.cost.finalMpCost / evaluation.cost.pro : \"unresolved\"} MP"), studio],
   ["19 ME reduces the listed MP", ADAPTER, replace("    stats: profile.constructionContext.stats,\n", "    stats: profile.constructionContext.stats,\n    manaEfficiency: 1,\n"), studio],
@@ -105,7 +105,7 @@ const controls = [
   ["50 cached final MP persisted and trusted", SCHEMA, replace(WO7_END, '// cached cost\nmodel CharacterSignatureSpellCostCache {\n  abilityId String @id @db.Uuid\n  finalMpCost Int @map("final_mp_cost")\n}\n' + WO7_END), studio],
   // ---- No synthetic canon; M5 semantics reused, never redefined (M6-I077, M6-I096) ----
   ["51 synthetic canonical Spell Definition inserted into the bundle", ADAPTER, replace("    definitions: bundle,\n", '    definitions: { ...bundle, definitions: [...bundle.definitions, { definitionKind: "SPELL_DEFINITION" }] },\n'), studio],
-  ["52 adapter refactor changes an M5 golden", M5_COST, replace("  const spellRef = { canonicalKey: subject.sourceKey, entityVersionId: subject.sourceId };", "  const spellRef = { canonicalKey: subject.sourceKey, entityVersionId: subject.sourceKey };"), game],
+  ["52 adapter refactor changes an M5 golden", M5_COST, replace("{ subjectRefs: [plan.definition], sourceKey:", "{ subjectRefs: [], sourceKey:"), game],
   // ---- No live casting; no Ability Card framework (M6-I098, §99) ----
   ["53 builder spends AP / MP", BUILDER, append("export const spendMp = (current: number) => current;"), studio],
   ["54 builder resolves live damage", ADAPTER, append('export { executeAbilityResolution as castSignatureSpell } from "../ability/effect-execution.js";'), studio],
