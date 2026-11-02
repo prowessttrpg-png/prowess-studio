@@ -4,6 +4,7 @@ import { checkPortraitImage, PORTRAIT_MAX_BYTES } from "./portrait-image.js";
 import { libraryRefs, loadEquippedCharacter, loadoutSummary, type CharacterWeaponsView } from "./weapon-service.js";
 import { clearPortrait, selectPortraitImage, selectSheetState, writePlayState, writePortraitFraming, writePortraitImage, writeSheetNotes, type SheetWriteOutcome, type StoredSheetState } from "./sheet-repository.js";
 import { choicesOf, fail, namesOf, releaseSummary, requireCharacter, type CharacterReleaseSummary } from "./service.js";
+import { signatureSpellsForSheet, type SheetSignatureSpell } from "./signature-spell-service.js";
 
 /**
  * Digital Character Sheet service (PAS-10 M6-WO5). Orchestration and persistence only:
@@ -76,6 +77,8 @@ export interface CharacterSheetView {
   /** M6-WO6: compact Weapon Attack rows for the Actions panel (Unarmed, Main-hand, Off-hand) — previews, never rolls. */
   readonly weaponAttacks: readonly CharacterAttack[];
   readonly dualWield: { readonly available: boolean; readonly reasons: readonly string[] };
+  /** M6-WO7: compact Signature Spell lines (the current revision of each active Spell) — previews, never cast. */
+  readonly signatureSpells: readonly SheetSignatureSpell[];
   readonly advancementHistoryCount: number;
   readonly names: Readonly<Record<string, string>>;
 }
@@ -116,9 +119,10 @@ export async function getCharacterSheet(id: string): Promise<CharacterSheetView>
   const choices = choicesOf(c);
   const ancestry = refFrom(bundle, choices.ancestry);
   const primaryAffinity = refFrom(bundle, choices.primaryAffinity);
+  const spells = await signatureSpellsForSheet(c.id);
   const portrait = state.portrait;
   const hasImage = portrait !== null && portrait.mimeType !== null && portrait.contentHash !== null;
-  const names = await namesOf([ancestry, primaryAffinity, ...mechanics.skills.map((s) => s.skill), ...mechanics.affinities.map((a) => a.affinity), ...mechanics.resources.map((r) => r.definition), ...libraryRefs(library)]);
+  const names = await namesOf([ancestry, primaryAffinity, ...mechanics.skills.map((s) => s.skill), ...mechanics.affinities.map((a) => a.affinity), ...mechanics.resources.map((r) => r.definition), ...libraryRefs(library), ...spells.refs]);
   return {
     identity: { id: c.id, name: c.name, concept: c.concept, level: profile.level, maximumLevel: profile.maximumLevel, status: "CORE_COMPLETE", ancestry, primaryAffinity, companyPac: state.notes?.companyPac ?? null },
     release: await releaseSummary(c.rulesetReleaseId),
@@ -152,6 +156,7 @@ export async function getCharacterSheet(id: string): Promise<CharacterSheetView>
     },
     weaponAttacks,
     dualWield: { available: library.dualWield.available, reasons: library.dualWield.reasons },
+    signatureSpells: spells.spells,
     advancementHistoryCount: history.length,
     names,
   };

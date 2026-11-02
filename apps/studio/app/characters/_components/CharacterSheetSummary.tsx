@@ -8,6 +8,7 @@ import { AccessPanel, AdvancementHistory, CharacterProgress } from "./CharacterP
 import { CharacterReview, releaseLabel } from "./CharacterReview";
 import { CharacterSheet } from "./sheet/CharacterSheet";
 import { AttackLibraryPanel } from "./AttackLibraryPanel";
+import { AbilitiesPanel } from "./spells/AbilitiesPanel";
 
 /** PAS-10 M6-WO5 §66: a completed Character's views. The Sheet is the default; the others keep WO3 / WO4 content. */
 const VIEWS = [
@@ -16,6 +17,8 @@ const VIEWS = [
   { key: "access", label: "Rules / Access" },
   // M6-WO6: the Character Attack Library with the per-Attack damage inspector.
   { key: "attacks", label: "Attacks" },
+  // M6-WO7: the Character's Signature Abilities (Signature Spells).
+  { key: "abilities", label: "Abilities" },
   { key: "history", label: "History" },
 ] as const;
 type View = (typeof VIEWS)[number]["key"];
@@ -126,6 +129,7 @@ export function CharacterSheetSummary({ characterId }: { characterId: string }) 
             ) : null}
             {view === "access" ? <AccessPanel characterId={c.id} level={c.level} /> : null}
             {view === "attacks" ? <AttackLibraryPanel characterId={c.id} /> : null}
+            {view === "abilities" ? <AbilitiesPanel characterId={c.id} /> : null}
             {view === "history" ? (
               <section className="gov-panel" aria-labelledby="history-heading">
                 <h2 id="history-heading">Advancement history</h2>

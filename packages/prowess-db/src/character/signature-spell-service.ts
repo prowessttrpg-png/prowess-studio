@@ -140,6 +140,57 @@ export async function getCharacterAbilities(characterId: string): Promise<Charac
   };
 }
 
+/** One compact Signature Spell line for the Character Sheet's Actions (§94–§95, §134): the CURRENT revision only. */
+export interface SheetSignatureSpell {
+  readonly id: string;
+  readonly name: string;
+  readonly revisionNumber: number;
+  readonly state: SignatureSpellState;
+  readonly finalAp: number | null;
+  readonly finalMp: number | null;
+  readonly targeting: ProwessDefinitionRef | null;
+  readonly range: NonNullable<SignatureSpellSummary["targeting"]>["range"] | null;
+  readonly effectFamilies: readonly string[];
+  readonly keywords: readonly string[];
+  readonly duration: ProwessDefinitionRef | null;
+  readonly deferred: SignatureSpellSummary["runtime"]["deferred"];
+}
+
+/**
+ * The finalized, active Signature Spells for the Character Sheet (M6-WO7 §94). A Character with no Signature Ability
+ * row never loads the Spell context, so the M6-WO5 / WO6 sheet is unchanged for it.
+ */
+export async function signatureSpellsForSheet(characterId: string): Promise<{ readonly spells: readonly SheetSignatureSpell[]; readonly refs: readonly ProwessDefinitionRef[] }> {
+  const all = await selectSignatureAbilities(characterId);
+  const active = all.filter((a) => a.status === "ACTIVE" && a.currentRevisionId !== null);
+  if (active.length === 0) return { spells: [], refs: [] };
+  const ctx = await loadSpellContext(characterId);
+  const spells: SheetSignatureSpell[] = [];
+  const refs: ProwessDefinitionRef[] = [];
+  for (const a of active) {
+    const rev = a.revisions.find((r) => r.id === a.currentRevisionId);
+    const draft = rev === undefined ? null : storedDraft(rev.payload);
+    if (rev === undefined || draft === null) continue;
+    const e = evaluateStored(ctx, draft, activeCount(all, a.id), subjectOf(ctx, a, rev.revisionNumber));
+    refs.push(...signatureSpellComponentRefs(draft));
+    spells.push({
+      id: a.id,
+      name: draft.concept.name,
+      revisionNumber: rev.revisionNumber,
+      state: e.state,
+      finalAp: e.cost?.finalAp ?? null,
+      finalMp: e.cost?.finalMp ?? null,
+      targeting: draft.targeting?.definition ?? null,
+      range: e.targeting?.range ?? null,
+      effectFamilies: e.effects.map((x) => x.family),
+      keywords: e.keywords,
+      duration: draft.duration?.definition ?? null,
+      deferred: e.runtime.deferred,
+    });
+  }
+  return { spells, refs };
+}
+
 export interface SignatureSpellDetailView extends Omit<CharacterAbilitiesView, "spells"> {
   readonly spell: SignatureSpellEntry;
   /** Every finalized revision, oldest first, each re-evaluated against its own pinned Release (§133). */

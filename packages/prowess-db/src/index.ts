@@ -292,4 +292,4 @@ export {
   updateCharacterSignatureSpellDraft,
   validateCharacterSignatureSpell,
 } from "./character/index.js";
-export type { CharacterAbilitiesView, SignatureSpellBuilderView, SignatureSpellDetailView, SignatureSpellEntry } from "./character/index.js";
+export type { CharacterAbilitiesView, SignatureSpellBuilderView, SignatureSpellDetailView, SignatureSpellEntry, SheetSignatureSpell } from "./character/index.js";

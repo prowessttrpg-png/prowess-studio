@@ -56,5 +56,6 @@ export {
   type CharacterAbilitiesView,
   type SignatureSpellBuilderView,
   type SignatureSpellDetailView,
+  type SheetSignatureSpell,
   type SignatureSpellEntry,
 } from "./signature-spell-service.js";
