@@ -4,7 +4,7 @@ import { formatEnumLabel } from "@prowess/ui";
 import Link from "next/link";
 import { entryHref } from "../../../compendium/rulesets/_lib/reference-urls";
 import type { DefinitionRefDto, ReleaseSummaryDto, SignatureSpellDraftDto, SpellEvaluationDto } from "../../_lib/character-client";
-import { authorityLabel, costText, costUnresolvedReason, keywordLabel, rangeText, refName, STATE_LABELS } from "../../_lib/spell-format";
+import { authorityLabel, costText, costUnresolvedReason, keywordLabel, rangeText, refName, resolvedCost, STATE_LABELS } from "../../_lib/spell-format";
 
 /**
  * The Signature Spell review and cost inspector (PAS-10 M6-WO7 §69–§73, §96–§98). It shows the server's M5 evaluation
@@ -39,8 +39,8 @@ export function SpellCost({ evaluation }: { evaluation: SpellEvaluationDto | nul
     );
   return (
     <p className="prowess-spell__cost" data-testid="spell-cost" data-resolved="true">
-      <strong data-testid="spell-final-mp">{evaluation!.cost!.finalMpCost} MP</strong> · <strong data-testid="spell-final-ap">{evaluation!.cost!.finalApCost} AP</strong>
-      <span className="gov-muted"> — Spell Cost: {evaluation!.cost!.finalMpCost} MP; current ME may pay part during casting (ME never changes the listed cost).</span>
+      <strong data-testid="spell-final-mp">{resolvedCost(evaluation)!.finalMpCost} MP</strong> · <strong data-testid="spell-final-ap">{resolvedCost(evaluation)!.finalApCost} AP</strong>
+      <span className="gov-muted"> — Spell Cost: {resolvedCost(evaluation)!.finalMpCost} MP; current ME may pay part during casting (ME never changes the listed cost).</span>
     </p>
   );
 }
@@ -60,7 +60,7 @@ export function RuntimeWarnings({ evaluation }: { evaluation: SpellEvaluationDto
 
 /** The M5-WO10 cost breakdown, row by row as the server listed it (§70). */
 export function CostInspector({ evaluation, release, names }: { evaluation: SpellEvaluationDto; release: ReleaseSummaryDto; names: Record<string, string> }) {
-  const c = evaluation.cost;
+  const c = resolvedCost(evaluation);
   if (c === null) return <p className="gov-muted">No cost breakdown: {costUnresolvedReason(evaluation)}.</p>;
   return (
     <table className="gov-table" data-testid="spell-cost-inspector">

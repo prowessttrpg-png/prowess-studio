@@ -33,8 +33,12 @@ export const advancementRule = (statPoints: (level: number) => number) => ({
 /** Adds one test Definition (Entity + approved EntityVersion) and pins it under its content key. */
 export type AddDefinition = (contentKey: string, kind: string, payload: unknown, displayName: string, schemaVersion?: number) => Promise<void>;
 
-/** `extra` (M6-WO6) adds more test content before the Release is published; the WO5 world is unchanged without it. */
-export async function seed(request: APIRequestContext, extra?: (add: AddDefinition, pins: Map<string, Pin>) => Promise<void>): Promise<World> {
+/**
+ * `extra` (M6-WO6) adds more test content before the Release is published; `construction` (M6-WO7) replaces the Ability
+ * Construction Rule payload source (the current WO9–WO13 policies the Spell engine reads). The WO5 world is unchanged
+ * without them.
+ */
+export async function seed(request: APIRequestContext, extra?: (add: AddDefinition, pins: Map<string, Pin>) => Promise<void>, options: { construction?: object } = {}): Promise<World> {
   const tag = `${Date.now()}_${Math.floor(Math.random() * 1e4)}`;
   const catalog = (await (await request.get("/api/compendium-authoring/catalog")).json()).data as { kinds: Array<{ definitionKind: string; systemFamily: string; allowedEntityTypes: string[] }> };
   const kind = (k: string) => catalog.kinds.find((x) => x.definitionKind === k)!;
@@ -68,9 +72,12 @@ export async function seed(request: APIRequestContext, extra?: (add: AddDefiniti
     },
     `Orcani E2E ${tag}`,
   );
-  const construction = JSON.parse(JSON.stringify(rows("ability-construction.json")[0]!.payload)) as { spell: { arcaneAuthority: { skillKey: string } }; maneuver: { martial: { skillKey: string } } };
+  const construction = JSON.parse(JSON.stringify(options.construction ?? rows("ability-construction.json")[0]!.payload)) as { spell: { arcaneAuthority: { skillKey: string } }; maneuver: { martial: { skillKey: string } } };
   construction.spell.arcaneAuthority.skillKey = pins.get("skill.arcana")!.canonicalKey;
   construction.maneuver.martial.skillKey = pins.get("skill.martial")!.canonicalKey;
+  // M6-WO7: the current rule's Effect execution policy names the Martial Skill too (absent from the WO5 content file).
+  const execution = (construction as { effectExecutionPolicy?: { martialSkillKey?: string } }).effectExecutionPolicy;
+  if (execution?.martialSkillKey !== undefined) execution.martialSkillKey = pins.get("skill.martial")!.canonicalKey;
   await add("construction", "ABILITY_CONSTRUCTION_RULE", construction, "Ability Construction Rule E2E");
   await add(
     "effect.expert_lore",

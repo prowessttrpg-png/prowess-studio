@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { CharacterApiError, getSpell, retireSpell, type SignatureSpellDetailDto } from "../../_lib/character-client";
-import { authorityLabel, shownOf, STATUS_LABELS } from "../../_lib/spell-format";
+import { authorityLabel, resolvedCost, shownOf, STATUS_LABELS } from "../../_lib/spell-format";
 import { RuntimeWarnings, SpellReview, SpellStateBadge } from "./SpellReview";
 
 /**
@@ -134,8 +134,8 @@ export function SpellDetail({ characterId, spellId }: { characterId: string; spe
                   </th>
                   <td>{new Date(h.createdAt).toLocaleString()}</td>
                   <td>{authorityLabel(h.draft?.authority ?? null)}</td>
-                  <td data-testid="spell-history-mp">{h.evaluation?.cost ? `${h.evaluation.cost.finalMpCost} MP` : h.characterReleaseId !== release.id ? "Other Release" : "Unresolved"}</td>
-                  <td>{h.evaluation?.cost ? `${h.evaluation.cost.finalApCost} AP` : "—"}</td>
+                  <td data-testid="spell-history-mp">{resolvedCost(h.evaluation) ? `${resolvedCost(h.evaluation)!.finalMpCost} MP` : h.characterReleaseId !== release.id ? "Other Release" : "Unresolved"}</td>
+                  <td>{resolvedCost(h.evaluation) ? `${resolvedCost(h.evaluation)!.finalApCost} AP` : "—"}</td>
                   <td>{h.current ? (spell.status === "RETIRED" ? "Retired" : "Current") : "Historical"}</td>
                 </tr>
               ))}

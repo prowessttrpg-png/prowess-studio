@@ -183,6 +183,26 @@ describe("M6-WO7 Effects: order, capacity and exchange (§35–§42, §129–§1
   });
 });
 
+describe("M6-WO7 exact identity (§9, §150, M6-I078)", () => {
+  it("two components with the same display name stay distinct: the one added is the exact revision chosen", async () => {
+    const view = clone(EMPTY);
+    const [a, b] = view.catalog.effects.filter((o) => o.eligibility?.status === "ELIGIBLE");
+    view.names[a!.ref.entityVersionId] = "Fireball";
+    view.names[b!.ref.entityVersionId] = "Fireball";
+    await openBuilder(view);
+    client.saveSpellDraft.mockResolvedValue(savedFrom(view, 2));
+    fireEvent.click(screen.getByTestId("spell-step-EFFECTS"));
+    const picker = screen.getByTestId("spell-effect-picker");
+    const twins = within(picker).getAllByTestId("spell-option").filter((o) => o.textContent?.includes("Fireball"));
+    expect(twins).toHaveLength(2);
+    fireEvent.click(within(twins[1]!).getByTestId("spell-option-add"));
+    await waitFor(() => expect(client.saveSpellDraft).toHaveBeenCalled(), { timeout: 3000 });
+    const sent = client.saveSpellDraft.mock.calls[0]![3] as SignatureSpellDraftDto;
+    expect(sent.effects.map((e) => e.definition)).toEqual([twins[1]!.getAttribute("data-key") === b!.ref.canonicalKey ? b!.ref : a!.ref]);
+    expect(sent.effects[0]!.definition.entityVersionId).not.toBe("");
+  });
+});
+
 describe("M6-WO7 review, finalize and runtime deferrals (§69–§76, §100)", () => {
   it("a valid draft shows the server's MP / AP with the ME boundary and can be finalized", async () => {
     await openBuilder(validDraftView());

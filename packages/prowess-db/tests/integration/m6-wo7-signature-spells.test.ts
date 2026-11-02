@@ -18,6 +18,7 @@ import {
   finalizeCharacterCoreCreation,
   finalizeCharacterSignatureSpell,
   getCharacterAbilities,
+  getCharacterSheet,
   getCharacterSignatureSpell,
   getSignatureSpellBuilder,
   prisma,
@@ -112,6 +113,23 @@ describe("M6-WO7 Signature Spells (prowess_studio_test only)", () => {
     const again = await getCharacterSignatureSpell(c.id, out.spell.id);
     expect(again.spell.current!.evaluation).toEqual(e);
     expect((await getCharacterAbilities(c.id)).signature.used).toBe(1);
+  });
+
+  it("§94–§95 the Character Sheet lists the current revision of each active Spell compactly; drafts and retired Spells are absent", { timeout: TIMEOUT }, async () => {
+    const c = await caster("Sheet Caster");
+    expect((await getCharacterSheet(c.id)).signatureSpells).toEqual([]);
+    const out = await finalized(c.id, simple("Ember Bolt"));
+    await createCharacterSignatureSpell(c.id, { name: "Unfinished" });
+    const sheet = await getCharacterSheet(c.id);
+    expect(sheet.signatureSpells).toHaveLength(1);
+    const line = sheet.signatureSpells[0]!;
+    expect([line.id, line.name, line.revisionNumber, line.state, line.finalMpCost, line.finalApCost]).toEqual([out.spell.id, "Ember Bolt", 1, "VALID", 11, out.spell.current!.evaluation!.cost!.finalApCost]);
+    expect(line.targeting?.entityVersionId).toBe(refOf(world.pins, "spell.targeting.single_target").entityVersionId);
+    expect(line.range?.value).toBe(out.spell.current!.evaluation!.targeting!.range!.value);
+    expect(line.effectFamilies).toEqual(["DAMAGE"]);
+    expect(sheet.names[line.targeting!.entityVersionId]).toBeDefined();
+    await retireCharacterSignatureSpell(c.id, out.spell.id, { expectedVersion: out.spell.lockVersion });
+    expect((await getCharacterSheet(c.id)).signatureSpells).toEqual([]);
   });
 
   it("§6 / M6-I077 finalizing creates no Entity, EntityVersion, ChangeSet or Release and leaves the Character's Release pinned", { timeout: TIMEOUT }, async () => {

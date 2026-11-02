@@ -4,7 +4,7 @@ import { formatEnumLabel } from "@prowess/ui";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { CharacterApiError, getAbilities, type CharacterAbilitiesDto } from "../../_lib/character-client";
-import { authorityLabel, keywordLabel, refName, shownOf, STATUS_LABELS } from "../../_lib/spell-format";
+import { authorityLabel, keywordLabel, refName, resolvedCost, shownOf, STATUS_LABELS } from "../../_lib/spell-format";
 import { RuntimeWarnings, SpellStateBadge } from "./SpellReview";
 
 /**
@@ -72,8 +72,8 @@ export function AbilitiesPanel({ characterId }: { characterId: string }) {
                   </th>
                   <td>{authorityLabel(draft?.authority ?? null)}</td>
                   <td>{draft?.affinity ? refName(data.names, draft.affinity) : "—"}</td>
-                  <td data-testid="abilities-spell-ap">{evaluation?.cost ? evaluation.cost.finalApCost : "Unresolved"}</td>
-                  <td data-testid="abilities-spell-mp">{evaluation?.cost ? evaluation.cost.finalMpCost : "Unresolved"}</td>
+                  <td data-testid="abilities-spell-ap">{resolvedCost(evaluation)?.finalApCost ?? "Unresolved"}</td>
+                  <td data-testid="abilities-spell-mp">{resolvedCost(evaluation)?.finalMpCost ?? "Unresolved"}</td>
                   <td>{draft?.targeting ? refName(data.names, draft.targeting.definition) : "—"}</td>
                   <td>{draft?.duration ? refName(data.names, draft.duration.definition) : "—"}</td>
                   <td>{evaluation && evaluation.keywords.length > 0 ? evaluation.keywords.slice(0, 4).map(keywordLabel).join(", ") : "—"}</td>
