@@ -76,6 +76,12 @@ export type SpellComposition = AbilityCompositionBase<"SPELL", SpellBranchData>;
 export type ManeuverComposition = AbilityCompositionBase<"MANEUVER", ManeuverBranchData>;
 export type AbilityComposition = SpellComposition | ManeuverComposition;
 
+/**
+ * The composition slot a scoped Trait's target component belongs to (an ABILITY_WIDE Trait names none). Exported for
+ * presentation (PAS-10 M6-WO7 builder, approved additive change) — the rule itself is applied only here.
+ */
+export const TRAIT_SCOPE_TARGET_SLOTS: Readonly<Partial<Record<TraitScope, AbilitySlot>>> = Object.freeze({ EFFECT_SPECIFIC: "effects", TARGETING: "targeting", DURATION: "duration", CONDITION: "conditions", RESOLUTION: "effects" });
+
 const COMPOSITION_FIELDS = ["compositionKey", "abilityKind", "affinity", "authority", "keywords", "targeting", "effects", "traits", "duration", "conditions", "branch"];
 const BRANCH_FIELDS: Readonly<Record<AbilityKind, readonly string[]>> = {
   SPELL: ["kind", "effectChain", "sustain", "concentration", "data"],
@@ -244,7 +250,7 @@ export function validateAbilityComposition(input: unknown, options: { readonly b
     if (a === null) return [];
     const scope = readEnum(own(a, "scope"), TRAIT_SCOPES, [...at, "scope"], p, K.INVALID_TRAIT_TARGET, "trait scope");
     const target = own(a, "componentKey") ?? null;
-    const expectedSlot: Partial<Record<TraitScope, AbilitySlot>> = { EFFECT_SPECIFIC: "effects", TARGETING: "targeting", DURATION: "duration", CONDITION: "conditions", RESOLUTION: "effects" };
+    const expectedSlot = TRAIT_SCOPE_TARGET_SLOTS;
     if (scope === null) return [];
     if (scope === "ABILITY_WIDE") {
       if (target !== null) p.add(K.INVALID_TRAIT_TARGET, [...at, "componentKey"], "an ability-wide Trait names no single component");

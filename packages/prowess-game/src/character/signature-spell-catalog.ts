@@ -1,4 +1,7 @@
 import type { ProwessDefinitionBundle } from "../bundle/bundle.js";
+import { TRAIT_SCOPE_TARGET_SLOTS } from "../construction/composition.js";
+import { EFFECT_CHAIN_BEHAVIORS, EFFECT_CHAIN_FAILURE_POLICIES } from "../definition/effect-chain-payload.js";
+import { SPELL_AUTHORITIES } from "./signature-spell.js";
 import { definitionRefOf, type ProwessDefinitionEnvelope, type ProwessDefinitionRef } from "../definition/envelope.js";
 import { clonePlainData, deepFreeze, isPlainObject } from "../internal/plain-data.js";
 import { own } from "../internal/problems.js";
@@ -85,10 +88,19 @@ export interface SignatureSpellCatalog {
   readonly arcana: { readonly skillKey: string | null; readonly rankKey: string | null; readonly ranks: readonly { readonly rankKey: string; readonly effectCapacity: number | null; readonly traitCapacity: number | null; readonly conditionCapacity: number | null }[] };
   /** Mechanical Keywords the Release components author (§86): the only Keywords a Spell can carry. */
   readonly keywords: readonly string[];
+  /** The closed M5 vocabularies the builder offers (never re-declared in Studio). */
+  readonly vocabularies: {
+    readonly authorities: readonly string[];
+    readonly chainBehaviors: readonly string[];
+    readonly chainFailurePolicies: readonly string[];
+    /** Which composition slot a scoped Trait's target belongs to (M5 composition rule); ABILITY_WIDE targets nothing. */
+    readonly traitScopeTargets: Readonly<Record<string, string | null>>;
+  };
   /** Performance Casting Condition status (§68): present in the Release or reported as a content gap. */
   readonly performanceCondition: { readonly present: boolean; readonly definitions: readonly ProwessDefinitionRef[] };
 }
 
+const ROUNDS_PARAMETER = { parameter: "rounds", kind: "COUNT", minimum: 1, default: 1 };
 const dig = (value: unknown, path: readonly string[]): unknown => {
   let at: unknown = value;
   for (const k of path) at = isPlainObject(at) ? own(at, k) : undefined;
@@ -147,7 +159,8 @@ export function buildSignatureSpellCatalog(request: { readonly bundle: ProwessDe
     const access = list(dig(payload, ["rules", "construction", "affinityAccess"]));
     const rules = (key: string) => dig(payload, ["rules", key]);
     const category = kind === "SPELL_EFFECT" ? str(own(payload, "effectFamily")) : kind === "SPELL_TARGETING" ? str(own(payload, "semanticShape")) : kind === "SPELL_DURATION" ? str(own(payload, "durationConcept")) : kind === "SPELL_CASTING_CONDITION" ? str(dig(payload, ["restriction", "restrictionKey"])) : str(own(payload, "traitFamily"));
-    const declared = kind === "SPELL_EFFECT" ? dig(rules("effect"), ["parameters"]) : kind === "SPELL_TARGETING" ? dig(rules("targeting"), ["parameters"]) : kind === "SPELL_CASTING_CONDITION" ? dig(rules("condition"), ["parameters"]) : kind === "SPELL_DURATION" ? [] : dig(rules("trait"), ["parameters"]);
+    // A Duration declares no parameter list; the M5 authored-Ability rule accepts exactly one: a ROUNDS count (≥ 1).
+    const declared = kind === "SPELL_EFFECT" ? dig(rules("effect"), ["parameters"]) : kind === "SPELL_TARGETING" ? dig(rules("targeting"), ["parameters"]) : kind === "SPELL_CASTING_CONDITION" ? dig(rules("condition"), ["parameters"]) : kind === "SPELL_DURATION" ? (category === "ROUNDS" ? [ROUNDS_PARAMETER] : []) : dig(rules("trait"), ["parameters"]);
     const future = dig(rules("duration"), ["futureRuntime"]);
     return {
       ref: definitionRefOf(d),
@@ -195,6 +208,12 @@ export function buildSignatureSpellCatalog(request: { readonly bundle: ProwessDe
         ranks: arcaneRanks.map((r) => ({ rankKey: String(own(r, "rankKey")), effectCapacity: num(own(r, "effectCapacity")), traitCapacity: num(own(r, "traitCapacity")), conditionCapacity: num(own(conditionRanks.find((c) => own(c, "rankKey") === own(r, "rankKey")) ?? {}, "capacity")) })),
       },
       keywords: [...new Set(bundle.definitions.filter((d) => (SPELL_COMPONENT_KINDS as readonly string[]).includes(d.definitionKind)).flatMap((d) => strings(own(d.payload as Record<string, unknown>, "keywords"))))].sort(),
+      vocabularies: {
+        authorities: [...SPELL_AUTHORITIES],
+        chainBehaviors: [...EFFECT_CHAIN_BEHAVIORS],
+        chainFailurePolicies: [...EFFECT_CHAIN_FAILURE_POLICIES],
+        traitScopeTargets: { ABILITY_WIDE: null, ...TRAIT_SCOPE_TARGET_SLOTS },
+      },
       performanceCondition: { present: performance.length > 0, definitions: performance.map((c) => c.ref) },
     }),
   );
