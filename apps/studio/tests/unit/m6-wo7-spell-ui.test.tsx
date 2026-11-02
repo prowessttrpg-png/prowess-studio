@@ -109,7 +109,7 @@ describe("M6-WO7 autosave sends selections only, with optimistic concurrency (§
     expect([characterId, spellId, version]).toEqual([CID, SID, EMPTY.spell.lockVersion]);
     expect(draft.authority).toBe("ARCANE_AUTHORITY");
     expect(Object.keys(draft).sort()).toEqual(["additionalAffinityTraits", "affinity", "authority", "castingConditions", "concept", "constructionOptions", "duration", "effectChain", "effects", "schemaVersion", "targeting", "traits"]);
-    expect(JSON.stringify(draft)).not.toMatch(/finalMp|finalAp|capacity|discount|penalty|sustain|signature/i);
+    expect(JSON.stringify(draft)).not.toMatch(/finalMpCost|finalApCost|capacity|discount|penalty|sustain|signature/i);
     await act(async () => release(saved));
     expect(screen.getByTestId("spell-save-state")).toHaveTextContent("Saved");
   });
@@ -163,8 +163,8 @@ describe("M6-WO7 Effects: order, capacity and exchange (§35–§42, §129–§1
     await waitFor(() => expect(client.saveSpellDraft).toHaveBeenCalled(), { timeout: 3000 });
     const sent = client.saveSpellDraft.mock.calls[0]![3] as SignatureSpellDraftDto;
     expect(sent.effects.map((e) => [e.componentKey, e.order])).toEqual([
-      ["effect2", 10],
-      ["effect1", 20],
+      ["effect2", 1],
+      ["effect1", 2],
     ]);
   });
 
@@ -273,7 +273,7 @@ describe("M6-WO7 Abilities roster, Spell history and Sheet Actions (§18, §93�
 
   it("the Sheet Actions list each active Spell compactly from the server's evaluation; print stays compact", async () => {
     const t = FINAL.spell.current!.draft!.targeting!.definition;
-    const spell = { id: "s1", name: "Ember Bolt", revisionNumber: 1, state: "VALID" as const, finalAp: 2, finalMp: 11, targeting: t, range: { model: "DEFAULT_SPELL_RANGE", value: 45, unit: "ft", ruleText: null }, effectFamilies: ["DAMAGE"], keywords: ["keyword.damage"], duration: null, deferred: [] };
+    const spell = { id: "s1", name: "Ember Bolt", revisionNumber: 1, state: "VALID" as const, finalApCost: 2, finalMpCost: 11, targeting: t, range: { model: "DEFAULT_SPELL_RANGE", value: 45, unit: "ft", ruleText: null }, effectFamilies: ["DAMAGE"], keywords: ["keyword.damage"], duration: null, deferred: [] };
     client.getSheet.mockResolvedValue(sheetFixture({ signatureSpells: [spell], names: { ...sheetFixture().names, [t.entityVersionId]: "Single Target" } }));
     render(<CharacterSheet characterId="c1" />);
     const rows = await screen.findAllByTestId("sheet-spell-row");

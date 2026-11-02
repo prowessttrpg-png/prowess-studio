@@ -38,8 +38,8 @@ const nextKey = (prefix: string, used: readonly string[]): string => {
   while (used.includes(`${prefix}${n}`)) n += 1;
   return `${prefix}${n}`;
 };
-/** Effect order is the authored list position (§42, M6-I086): 10, 20, 30… in the order the player arranged. */
-const renumber = <T extends SpellOrderedUseDto>(list: readonly T[]): T[] => list.map((x, i) => ({ ...x, order: (i + 1) * 10 }));
+/** Effect order is the authored list position (§42, M6-I086): 1, 2, 3… in the order the player arranged. */
+const renumber = <T extends SpellOrderedUseDto>(list: readonly T[]): T[] => list.map((x, i) => ({ ...x, order: i + 1 }));
 const sortByOrder = <T extends { order: number }>(list: readonly T[]): T[] => [...list].sort((a, b) => a.order - b.order);
 
 function StepTabs({ step, onChoose, evaluation }: { step: BuilderStep; onChoose: (s: BuilderStep) => void; evaluation: SpellEvaluationDto | null }) {
@@ -337,7 +337,7 @@ export function SpellBuilder({ characterId, spellId }: { characterId: string; sp
                   {a === "ARCANE_AUTHORITY" ? (
                     <span className="gov-muted">
                       {" "}
-                      — your Arcana rank: <strong data-testid="spell-arcana-rank">{catalog.arcana.rankKey ? formatEnumLabel(catalog.arcana.rankKey) : "none"}</strong>
+                      — your Arcane Authority Skill rank: <strong data-testid="spell-arcana-rank">{catalog.arcana.rankKey ? formatEnumLabel(catalog.arcana.rankKey) : "none"}</strong>
                       {(() => {
                         const row = catalog.arcana.ranks.find((r) => r.rankKey === catalog.arcana.rankKey);
                         return row ? ` (Effects ${row.effectCapacity ?? "—"}, Traits ${row.traitCapacity ?? "—"}, Casting Conditions ${row.conditionCapacity ?? "—"})` : "";
@@ -702,14 +702,14 @@ export function SpellBuilder({ characterId, spellId }: { characterId: string; sp
           <section aria-labelledby="spell-conditions-heading">
             <h2 id="spell-conditions-heading">Casting Conditions</h2>
             <p data-testid="spell-condition-capacity">
-              Casting Conditions: {c ? `${c.usage.conditions} / ${c.capacity.conditions.capacity ?? "—"}` : `${draft.castingConditions.length} chosen`} <span className="gov-muted">(capacity always comes from your Arcana rank)</span>
+              Casting Conditions: {c ? `${c.usage.conditions} / ${c.capacity.conditions.capacity ?? "—"}` : `${draft.castingConditions.length} chosen`} <span className="gov-muted">(capacity always comes from your Arcane Authority Skill rank)</span>
             </p>
             {evaluation?.cost ? (
               <p>
                 Listed reduction {evaluation.cost.castingConditions.listedPercent}% → effective {evaluation.cost.castingConditions.effectivePercent}% (cap {evaluation.cost.castingConditions.maximumPercent}%)
               </p>
             ) : null}
-            {!catalog.performanceCondition.present ? <p className="gov-muted" data-testid="spell-performance-gap">The Performance Casting Condition is not part of this Release (content gap) and is not offered.</p> : null}
+            {!catalog.performanceCondition.present ? <p className="gov-muted" data-testid="spell-performance-gap">This Release authors no performance Casting Condition (content gap); none is offered.</p> : null}
             <ul>
               {sortByOrder(draft.castingConditions).map((x) => {
                 const o = optionOf(catalog.castingConditions, x.definition.entityVersionId);

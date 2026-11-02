@@ -471,11 +471,11 @@ export interface SignatureSpellSummary {
     readonly castingConditions: SpellCostResult["castingConditions"];
     readonly netPercent: number;
     readonly unroundedMp: number;
-    readonly finalMp: number;
+    readonly finalMpCost: number;
     readonly pro: number;
     readonly baseAp: number;
     readonly apModifiers: SpellCostResult["ap"]["modifiers"];
-    readonly finalAp: number;
+    readonly finalApCost: number;
   } | null;
   readonly costUnresolved: readonly { readonly path: string; readonly message: string }[];
   readonly chain: SignatureSpellEvaluation["chain"];
@@ -505,11 +505,11 @@ export function summarizeSignatureSpell(e: SignatureSpellEvaluation): SignatureS
               castingConditions: c.castingConditions,
               netPercent: c.netCostPercent,
               unroundedMp: c.unroundedFinalMpCost,
-              finalMp: c.finalMpCost,
+              finalMpCost: c.finalMpCost,
               pro: c.ap.pro,
               baseAp: c.ap.baseApCost,
               apModifiers: c.ap.modifiers,
-              finalAp: c.ap.finalApCost,
+              finalApCost: c.ap.finalApCost,
             },
       costUnresolved: e.costUnresolved,
       chain: e.chain,

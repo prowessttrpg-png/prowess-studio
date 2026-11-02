@@ -220,7 +220,7 @@ describe("the strict draft reader (§118, §121)", () => {
   it("refuses unknown fields, derived values, executable data and a wrong schema version", () => {
     const ok = JSON.parse(JSON.stringify(draftOf("fixture.wo10.spell.simple")));
     expect(readSignatureSpellDraft(ok).ok).toBe(true);
-    for (const bad of [{ ...ok, finalMp: 12 }, { ...ok, schemaVersion: 2 }, { ...ok, effects: [{ ...ok.effects[0], parameters: { dice: { $eval: "1+1" } } }] }, { ...ok, concept: { ...ok.concept, name: "" } }, { ...ok, targeting: { ...ok.targeting, definition: { canonicalKey: "spell.targeting.single_target" } } }]) {
+    for (const bad of [{ ...ok, finalMpCost: 12 }, { ...ok, schemaVersion: 2 }, { ...ok, effects: [{ ...ok.effects[0], parameters: { dice: { $eval: "1+1" } } }] }, { ...ok, concept: { ...ok.concept, name: "" } }, { ...ok, targeting: { ...ok.targeting, definition: { canonicalKey: "spell.targeting.single_target" } } }]) {
       expect(readSignatureSpellDraft(bad).ok).toBe(false);
     }
   });

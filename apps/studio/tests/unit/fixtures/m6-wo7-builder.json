@@ -304,8 +304,8 @@
         "value": 8
        }
       ],
-      "finalAp": 2,
-      "finalMp": 11,
+      "finalApCost": 2,
+      "finalMpCost": 11,
       "netPercent": 100,
       "percentages": [
        {
@@ -691,8 +691,8 @@
         "value": 8
        }
       ],
-      "finalAp": 2,
-      "finalMp": 11,
+      "finalApCost": 2,
+      "finalMpCost": 11,
       "netPercent": 100,
       "percentages": [
        {

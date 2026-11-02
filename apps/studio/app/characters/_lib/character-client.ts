@@ -369,8 +369,8 @@ export interface SheetSignatureSpellDto {
   name: string;
   revisionNumber: number;
   state: "INCOMPLETE" | "INVALID" | "VALID" | "VALID_WITH_RUNTIME_DEFERRED";
-  finalAp: number | null;
-  finalMp: number | null;
+  finalApCost: number | null;
+  finalMpCost: number | null;
   targeting: DefinitionRefDto | null;
   range: { model: string; value: number | null; unit: string | null; ruleText: string | null } | null;
   effectFamilies: string[];
@@ -587,11 +587,11 @@ export interface SpellEvaluationDto {
     castingConditions: { listedPercent: number; effectivePercent: number; maximumPercent: number };
     netPercent: number;
     unroundedMp: number;
-    finalMp: number;
+    finalMpCost: number;
     pro: number;
     baseAp: number;
     apModifiers: Array<{ source?: string; value?: number } & Record<string, unknown>>;
-    finalAp: number;
+    finalApCost: number;
   } | null;
   costUnresolved: Array<{ path: string; message: string }>;
   chain: { start: string | null; nodes: SpellChainNodeDto[] } | null;

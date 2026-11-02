@@ -134,8 +134,8 @@ export function SpellDetail({ characterId, spellId }: { characterId: string; spe
                   </th>
                   <td>{new Date(h.createdAt).toLocaleString()}</td>
                   <td>{authorityLabel(h.draft?.authority ?? null)}</td>
-                  <td data-testid="spell-history-mp">{h.evaluation?.cost ? `${h.evaluation.cost.finalMp} MP` : h.characterReleaseId !== release.id ? "Other Release" : "Unresolved"}</td>
-                  <td>{h.evaluation?.cost ? `${h.evaluation.cost.finalAp} AP` : "—"}</td>
+                  <td data-testid="spell-history-mp">{h.evaluation?.cost ? `${h.evaluation.cost.finalMpCost} MP` : h.characterReleaseId !== release.id ? "Other Release" : "Unresolved"}</td>
+                  <td>{h.evaluation?.cost ? `${h.evaluation.cost.finalApCost} AP` : "—"}</td>
                   <td>{h.current ? (spell.status === "RETIRED" ? "Retired" : "Current") : "Historical"}</td>
                 </tr>
               ))}

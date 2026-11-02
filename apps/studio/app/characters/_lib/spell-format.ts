@@ -40,7 +40,7 @@ export const isFinalizable = (state: SpellStateDto | undefined): boolean => stat
 /** "11 MP · 2 AP", or null when M5 could not determine the cost (the caller says "Cost unresolved", never zero; §128). */
 export function costText(e: SpellEvaluationDto | null | undefined): string | null {
   if (!e || e.cost === null) return null;
-  return `${e.cost.finalMp} MP · ${e.cost.finalAp} AP`;
+  return `${e.cost.finalMpCost} MP · ${e.cost.finalApCost} AP`;
 }
 /** Why the cost is unresolved: the M5 cost problems, else the first construction issue, else what is missing. */
 export function costUnresolvedReason(e: SpellEvaluationDto | null | undefined): string {
@@ -67,7 +67,7 @@ export function compactSpellLine(entry: SignatureSpellEntryDto, names: Record<st
   const { draft, evaluation } = shownOf(entry);
   return {
     name: draft?.concept.name ?? "Unreadable Spell",
-    cost: evaluation?.cost ? `${evaluation.cost.finalAp} AP · ${evaluation.cost.finalMp} MP` : "Cost unresolved",
+    cost: evaluation?.cost ? `${evaluation.cost.finalApCost} AP · ${evaluation.cost.finalMpCost} MP` : "Cost unresolved",
     targeting: draft?.targeting ? `${refName(names, draft.targeting.definition)} · ${rangeText(evaluation)}` : "—",
     effects: evaluation ? evaluation.effects.map((x) => formatEnumLabel(x.family)).join(", ") || "—" : "—",
   };

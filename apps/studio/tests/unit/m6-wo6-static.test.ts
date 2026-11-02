@@ -3,7 +3,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import catalog from "./fixtures/m6-wo1-catalog.json";
-import { laterMigrations } from "./later-milestone-schema";
+import { expectedFrozenHash, laterMigrations } from "./later-milestone-schema";
 import { auditM5Source } from "./m5-wo1-audit-helpers";
 
 /**
@@ -269,7 +269,13 @@ describe("M6-WO6 gate — registered schema change and migration (§140–§143,
 
   it("removing exactly the marked WO6 additions restores the M6-WO5 schema; earlier migrations are untouched", () => {
     expect(BASELINE.baseCommit).toBe("3cedeab83bb3890bc5b7cc4855b37e9e946094d9");
-    const without = SCHEMA.replace(/^[^\n]*\/\/ M6\-WO6 back-relation[^\n]*\n/gm, "").replace(/\n\/\/ >>> M6\-WO6[^\n]*\n[\s\S]*?\/\/ <<< M6\-WO6[^\n]*\n/, "");
+    // Since PAS-10 M6-WO7 every registered Work Order from WO6 on is stripped (as the WO5 gate does).
+    const registered = Object.keys(JSON.parse(read("docs/architecture/m6-schema-changes.json")) as Record<string, unknown>).filter((k) => /^M\d+-WO\d+$/.test(k));
+    let without = SCHEMA;
+    for (const wo of registered.slice(registered.indexOf("M6-WO6"))) {
+      const w = wo.replace(/-/g, "\\-");
+      without = without.replace(new RegExp(`^[^\\n]*// ${w} back-relation[^\\n]*\\n`, "gm"), "").replace(new RegExp(`\\n// >>> ${w}[^\\n]*\\n[\\s\\S]*?// <<< ${w}[^\\n]*\\n`), "");
+    }
     expect(hash(without)).toBe(BASELINE.frozenFiles[SCHEMA_PATH]);
     for (const [f, h] of Object.entries(BASELINE.frozenFiles).filter(([k]) => k.endsWith("migration.sql"))) expect(hash(readFileSync(path.join(ROOT, f))), f).toBe(h);
   });
@@ -337,7 +343,8 @@ describe("M6-WO6 gate — approved M5 change, invariants, documentation and CI (
     );
     expect(Object.keys(wo6.addedFiles).every((f) => f.startsWith(`${GAME_DIR}/`))).toBe(true);
     for (const f of [...WO6_GAME, CONTENT_PATH, `${GAME_DIR}/testing/weapon-fixtures.ts`]) expect(Object.keys(wo6.addedFiles), f).toContain(f);
-    for (const [f, h] of [...Object.entries(wo6.changedFiles), ...Object.entries(wo6.addedFiles)]) expect(hash(readFileSync(path.join(ROOT, f))), f).toBe(h);
+    // A later registered approved change (docs/architecture/m6-approved-m5-changes.json) supersedes a WO6 hash.
+    for (const [f, h] of [...Object.entries(wo6.changedFiles), ...Object.entries(wo6.addedFiles)]) expect(hash(readFileSync(path.join(ROOT, f))), f).toBe(expectedFrozenHash(f, h));
     const m5 = strip(read(`${GAME_DIR}/definition/authored-ability-payload.ts`));
     expect(m5).toMatch(/\| \{ readonly kind: "WEAPON"; readonly weaponKey: string; readonly baseDice: string; readonly power: number; readonly stat: ProwessStat; readonly enchantments: readonly string\[\] \}/);
     expect(m5).toMatch(/\| \{ readonly kind: "WEAPON"; readonly scaling: "STATIC"; readonly weaponKey: string; readonly baseDice: string; readonly power: null; readonly stat: null; readonly enchantments: readonly string\[\] \};/);

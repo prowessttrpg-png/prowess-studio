@@ -76,5 +76,24 @@
       "packages/prowess-game/src/weapon-definitions.test.ts": "4be5ce2a51c7338687110a49a760582e73b8b78ca4a280088770cbdf0e76aa31",
       "packages/prowess-game/src/weapon-library.test.ts": "917824da42edb1c27e545e3dcd71b67af437dbc57a3648f1362527a357e1cb04"
     }
+  },
+  "M6-WO7": {
+    "changedFiles": {
+      "packages/prowess-game/src/ability/compile.ts": "b711419059619b76f4a06985d1170b532b2406e312e4a7470b268183fa1b12f9",
+      "packages/prowess-game/src/ability/effect-execution.ts": "47b75d6dea46a8a1348a46e6985ea7cc5208271b167b4fcb52a1bcc82e62afff",
+      "packages/prowess-game/src/ability/spell-cost.ts": "4ab1e25149a7eeeb3b318e91d856a2a983c016f4d68fe80bb36f320d67a91229",
+      "packages/prowess-game/src/construction/composition.ts": "9250d31d4e0b4ed13469ac166658f70a4f7e873cd501968c325b62e0a116564c",
+      "packages/prowess-game/src/index.ts": "3d1b3d2d77664b64bfa535424b003b1a471ecc5edb18efecf3c0f8bb637fded7"
+    },
+    "addedFiles": {
+      "packages/prowess-game/src/character-signature-spell-world.test.ts": "be7133a5e65e8fb402a09ff9d425119fd9dfc69ce0bc918e7441a7576fdbb891",
+      "packages/prowess-game/src/character-signature-spell.test.ts": "f33bee92497538f7381702f0320e28aaa2889d45f1c1d09bdc068bcfacc3f16d",
+      "packages/prowess-game/src/character/signature-spell-catalog.ts": "ed28cd3e6602734f2704dfd4f2864569a1bb4f81607897d0027819fc4c98cf3e",
+      "packages/prowess-game/src/character/signature-spell.ts": "a6078b793fe18f1ea8c24b9a03dfb2cbe48317f8aec55fe0b4a159b178e5eb70",
+      "packages/prowess-game/src/m6-wo7-m5-characterization.test.ts": "fb1a18880da2013ebf7d5de0a7d377d08af03b579f3700930aeaeaa2e619de15",
+      "packages/prowess-game/src/testing/m6-wo7-m5-characterization.json": "5f9d77daf580cb1fe4e04fccbded718d0768a55e300b14aaa2638419de17ce2b",
+      "packages/prowess-game/src/testing/m6-wo7-spell-world.json": "cef401b2d9db6e8645bc7d988efc023156c60e552b6f1d90c9d002bb4d823791",
+      "packages/prowess-game/src/testing/signature-spell-fixtures.ts": "020252b3f1b4809ac24ed73ce8c9f091c322aebc0267e11740ce30c4b801301a"
+    }
   }
 }

@@ -150,6 +150,10 @@ describe("§50 public service surface", () => {
         // M6-WO6 Weapon & Attack Library (pinned by m6-wo6-static): the Character's weapon loadout — exact pinned WEAPON
         // revisions in its own table, a lockVersion compare-and-set; it touches no Entity, Release or mechanics.
         "updateCharacterWeaponLoadout",
+        // M6-WO7 Signature Spell Builder (pinned by m6-wo7-static): Character-owned Signature Spell drafts in their own
+        // tables — one creation and a lockVersion compare-and-set draft save; finalize / rebuild / retire are named
+        // commands. None creates or touches an Entity, EntityVersion, ChangeSet or Release.
+        "createCharacterSignatureSpell", "updateCharacterSignatureSpellDraft",
       ].sort(),
     );
   });

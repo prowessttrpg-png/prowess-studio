@@ -146,8 +146,8 @@ export interface SheetSignatureSpell {
   readonly name: string;
   readonly revisionNumber: number;
   readonly state: SignatureSpellState;
-  readonly finalAp: number | null;
-  readonly finalMp: number | null;
+  readonly finalApCost: number | null;
+  readonly finalMpCost: number | null;
   readonly targeting: ProwessDefinitionRef | null;
   readonly range: NonNullable<SignatureSpellSummary["targeting"]>["range"] | null;
   readonly effectFamilies: readonly string[];
@@ -178,8 +178,8 @@ export async function signatureSpellsForSheet(characterId: string): Promise<{ re
       name: draft.concept.name,
       revisionNumber: rev.revisionNumber,
       state: e.state,
-      finalAp: e.cost?.finalAp ?? null,
-      finalMp: e.cost?.finalMp ?? null,
+      finalApCost: e.cost?.finalApCost ?? null,
+      finalMpCost: e.cost?.finalMpCost ?? null,
       targeting: draft.targeting?.definition ?? null,
       range: e.targeting?.range ?? null,
       effectFamilies: e.effects.map((x) => x.family),

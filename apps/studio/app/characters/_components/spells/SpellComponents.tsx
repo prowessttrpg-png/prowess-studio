@@ -72,7 +72,7 @@ export function ParameterFields({ declared, values, onChange, label }: { declare
 
 const requirementText = (r: NonNullable<SpellComponentOptionDto["eligibility"]>["requirements"][number], arcanaKey: string | null): string => {
   const q = r.required as { rankKey?: string; skillKey?: string; affinity?: unknown };
-  const skill = q.skillKey === undefined ? "" : q.skillKey === arcanaKey ? "Arcana" : formatEnumLabel(String(q.skillKey).split(".").at(-1) ?? "");
+  const skill = q.skillKey === undefined ? "" : q.skillKey === arcanaKey ? "Arcane Authority Skill" : formatEnumLabel(String(q.skillKey).split(".").at(-1) ?? "");
   if (q.rankKey) return `Requires ${formatEnumLabel(q.rankKey)} ${skill}`.trim();
   return formatEnumLabel(r.prerequisiteKey);
 };

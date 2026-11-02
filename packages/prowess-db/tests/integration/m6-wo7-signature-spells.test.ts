@@ -105,8 +105,8 @@ describe("M6-WO7 Signature Spells (prowess_studio_test only)", () => {
     const e = out.spell.current!.evaluation!;
     expect(e.state).toBe("VALID");
     expect(e.cost?.baseMp).toBe(11);
-    expect(e.cost?.finalMp).toBe(11);
-    expect(e.cost?.finalAp).toBe(e.cost?.baseAp);
+    expect(e.cost?.finalMpCost).toBe(11);
+    expect(e.cost?.finalApCost).toBe(e.cost?.baseAp);
     expect(e.construction?.signature.candidateUse).toBe(1);
     expect(JSON.parse(JSON.stringify(out.spell.current!.draft))).toEqual(draft);
     const again = await getCharacterSignatureSpell(c.id, out.spell.id);
@@ -156,8 +156,8 @@ describe("M6-WO7 Signature Spells (prowess_studio_test only)", () => {
     const r2 = await finalizeCharacterSignatureSpell(c.id, r1.spell.id, { expectedVersion: fixed.spell.lockVersion });
     expect(r2.spell.current?.revisionNumber).toBe(2);
     expect(r2.history.map((h) => [h.revisionNumber, h.current])).toEqual([[1, false], [2, true]]);
-    expect(r2.history[0]!.evaluation?.cost?.finalMp).toBe(11);
-    expect(r2.history[1]!.evaluation?.cost?.finalMp).toBe(12);
+    expect(r2.history[0]!.evaluation?.cost?.finalMpCost).toBe(11);
+    expect(r2.history[1]!.evaluation?.cost?.finalMpCost).toBe(12);
     await expect(prisma.$executeRawUnsafe(`UPDATE character_signature_spell_revisions SET revision_number = 9 WHERE id = '${r2.history[0]!.revisionId}'`)).rejects.toThrow(/CHARACTER_SIGNATURE_SPELL_REVISION_IMMUTABLE/);
     await expect(prisma.$executeRawUnsafe(`DELETE FROM character_signature_spell_revisions WHERE id = '${r2.history[0]!.revisionId}'`)).rejects.toThrow(/CHARACTER_SIGNATURE_SPELL_REVISION_IMMUTABLE/);
   });
@@ -178,8 +178,8 @@ describe("M6-WO7 Signature Spells (prowess_studio_test only)", () => {
     const created = await createCharacterSignatureSpell(c.id, { name: "Race" });
     await updateCharacterSignatureSpellDraft(c.id, created.spell.id, { expectedVersion: created.spell.lockVersion, draft: simple("Race") });
     await expectCode(updateCharacterSignatureSpellDraft(c.id, created.spell.id, { expectedVersion: created.spell.lockVersion, draft: simple("Race 2") }), CHARACTER_ERROR_CODES.STALE_WRITE);
-    await expectCode(updateCharacterSignatureSpellDraft(c.id, created.spell.id, { expectedVersion: 2, draft: simple(), finalMp: 1 }), CHARACTER_ERROR_CODES.INVALID_INPUT);
-    await expectCode(updateCharacterSignatureSpellDraft(c.id, created.spell.id, { expectedVersion: 2, draft: { ...simple(), finalMp: 1 } }), CHARACTER_ERROR_CODES.INVALID_SIGNATURE_SPELL);
+    await expectCode(updateCharacterSignatureSpellDraft(c.id, created.spell.id, { expectedVersion: 2, draft: simple(), finalMpCost: 1 }), CHARACTER_ERROR_CODES.INVALID_INPUT);
+    await expectCode(updateCharacterSignatureSpellDraft(c.id, created.spell.id, { expectedVersion: 2, draft: { ...simple(), finalMpCost: 1 } }), CHARACTER_ERROR_CODES.INVALID_SIGNATURE_SPELL);
   });
 
   it("§153 / M6-I091 two simultaneous finalizations for the last Signature slot: exactly one succeeds", { timeout: 300_000 }, async () => {

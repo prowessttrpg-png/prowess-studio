@@ -39,8 +39,8 @@ export function SpellCost({ evaluation }: { evaluation: SpellEvaluationDto | nul
     );
   return (
     <p className="prowess-spell__cost" data-testid="spell-cost" data-resolved="true">
-      <strong data-testid="spell-final-mp">{evaluation!.cost!.finalMp} MP</strong> · <strong data-testid="spell-final-ap">{evaluation!.cost!.finalAp} AP</strong>
-      <span className="gov-muted"> — Spell Cost: {evaluation!.cost!.finalMp} MP; current ME may pay part during casting (ME never changes the listed cost).</span>
+      <strong data-testid="spell-final-mp">{evaluation!.cost!.finalMpCost} MP</strong> · <strong data-testid="spell-final-ap">{evaluation!.cost!.finalApCost} AP</strong>
+      <span className="gov-muted"> — Spell Cost: {evaluation!.cost!.finalMpCost} MP; current ME may pay part during casting (ME never changes the listed cost).</span>
     </p>
   );
 }
@@ -104,7 +104,7 @@ export function CostInspector({ evaluation, release, names }: { evaluation: Spel
         </tr>
         <tr>
           <th scope="row">Final MP (rounded once)</th>
-          <td>{c.finalMp} MP</td>
+          <td>{c.finalMpCost} MP</td>
         </tr>
         <tr>
           <th scope="row">PRO</th>
@@ -122,7 +122,7 @@ export function CostInspector({ evaluation, release, names }: { evaluation: Spel
         ))}
         <tr>
           <th scope="row">Final AP</th>
-          <td>{c.finalAp} AP</td>
+          <td>{c.finalApCost} AP</td>
         </tr>
       </tbody>
     </table>

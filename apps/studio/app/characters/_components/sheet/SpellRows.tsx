@@ -38,7 +38,7 @@ export function SignatureSpellRows({ sheet }: { sheet: CharacterSheetDto }) {
                 {mode === "digital" ? <a href={`/characters/${id}/spells/${encodeURIComponent(s.id)}`}>{s.name}</a> : s.name}
                 {s.deferred.length > 0 ? <span className="sheet-muted" data-testid="sheet-spell-deferred"> (runtime deferred: {s.deferred.map((d) => d.conflictKey).join(", ")})</span> : null}
               </th>
-              <td data-testid="sheet-spell-cost">{s.finalAp !== null && s.finalMp !== null ? `${s.finalAp} AP · ${s.finalMp} MP` : "Cost unresolved"}</td>
+              <td data-testid="sheet-spell-cost">{s.finalApCost !== null && s.finalMpCost !== null ? `${s.finalApCost} AP · ${s.finalMpCost} MP` : "Cost unresolved"}</td>
               <td data-testid="sheet-spell-targeting">
                 {s.targeting ? (sheet.names[s.targeting.entityVersionId] ?? s.targeting.canonicalKey) : "—"}
                 {spellRange(s) ? ` · ${spellRange(s)}` : ""}

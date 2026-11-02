@@ -168,7 +168,7 @@ export function compileSpellCostCore<S>(p: Problems, r: Record<string, unknown>,
   const steps: EvaluationStep[] = plan.evaluationPlan.steps.map((s) => clonePlainData(s));
   const entries: ProwessSourceMapEntry[] = plan.sourceMap.entries.map((e) => clonePlainData(e));
   const subjectRefs = subject.subjectRefs;
-  const subjectSource = { canonicalKey: subject.sourceKey, entityVersionId: subject.sourceId };
+  const spellRef = { canonicalKey: subject.sourceKey, entityVersionId: subject.sourceId };
   const subjectKey = plan.subject.subjectKey;
   const push = (step: Omit<EvaluationStep, "order">, entry: Omit<ProwessSourceMapEntry, "order" | "stepKey" | "operation">) => {
     if (steps.some((s) => s.stepKey === step.stepKey)) p.add(K.DUPLICATE_CONTRIBUTION, [step.stepKey], "duplicate compiled step identity");
@@ -335,7 +335,7 @@ export function compileSpellCostCore<S>(p: Problems, r: Record<string, unknown>,
           targets: [{ targetKey: AP_TARGET, kind: "NUMERIC", value: 0 }],
           modifiers: [
             ...apMods.map((c, i) => modifier(c.contributionKey, AP_TARGET, c.operation === "ADD_AP" ? "ADD" : "SUBTRACT", "spell.ap_modifiers", 1, i, c.definition)),
-            { ...modifier("spell.minimum_ap", AP_TARGET, "MAX", "spell.ap_minimum", 2, 0, subjectSource), operand: POLICY.minimumAp, source: provenance },
+            { ...modifier("spell.minimum_ap", AP_TARGET, "MAX", "spell.ap_minimum", 2, 0, spellRef), operand: POLICY.minimumAp, source: provenance },
           ],
           facts: emptyFacts(),
         },
