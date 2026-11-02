@@ -30,6 +30,7 @@ import { ADVANCEMENT_RULE_KEY, advancementRulePayload } from "../../../prowess-g
 import { CONSTRUCTION_RULE_PAYLOAD } from "../../../prowess-game/src/testing/construction-fixtures.js";
 import { effectPayload } from "../../../prowess-game/src/testing/fixtures.js";
 import { WEAPON_DEFINITIONS, resolveContentRefs } from "../../../prowess-game/src/testing/weapon-fixtures.js";
+import spellWorld from "../../../prowess-game/src/testing/m6-wo7-spell-world.json";
 
 export interface Pin {
   entityId: string;
@@ -38,6 +39,7 @@ export interface Pin {
   definitionKind: ProwessDefinitionKind;
 }
 
+const SPELL_WORLD = spellWorld as unknown as { keywords: string[]; definitions: Array<{ canonicalKey: string; definitionKind: ProwessDefinitionKind; schemaVersion: number; payload: Record<string, unknown> }> };
 const AFFINITIES = (affinityContent as unknown as { definitions: Array<{ canonicalKey: string; definitionKind: ProwessDefinitionKind; schemaVersion: number; payload: Record<string, unknown> }> }).definitions;
 
 const DISPLAY: Record<string, string> = {
@@ -70,7 +72,7 @@ export interface CharacterReleaseWorld {
 }
 
 /** Seeds and publishes Release 1. Every stored canonical key is `${prefix}.<content key>_<tag>`. */
-export async function seedCharacterRelease(prefix: string, label = "R1", options: { characterContent?: boolean; advancement?: boolean; weapons?: boolean } = {}): Promise<CharacterReleaseWorld> {
+export async function seedCharacterRelease(prefix: string, label = "R1", options: { characterContent?: boolean; advancement?: boolean; weapons?: boolean; spells?: boolean } = {}): Promise<CharacterReleaseWorld> {
   const tag = `${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
   const key = (k: string) => `${prefix}.${k.replace(/\./g, "_")}_${tag}`;
   const pins = new Map<string, Pin>();
@@ -98,13 +100,26 @@ export async function seedCharacterRelease(prefix: string, label = "R1", options
     // Skills are identified by their exact canonical key in M5 construction content; the stored keys are test-scoped.
     const arcana = pins.get("skill.arcana")!.canonicalKey;
     const martial = pins.get("skill.martial")!.canonicalKey;
-    const rule = JSON.parse(JSON.stringify(CONSTRUCTION_RULE_PAYLOAD)) as { spell: { arcaneAuthority: { skillKey: string } }; maneuver: { martial: { skillKey: string } } };
+    // `spells: true` (M6-WO7) pins the CURRENT construction rule (WO9 … WO13 policies) the Spell engine reads.
+    const ruleSource = options.spells === true ? (SPELL_WORLD.definitions.find((d) => d.definitionKind === "ABILITY_CONSTRUCTION_RULE")!.payload as object) : CONSTRUCTION_RULE_PAYLOAD;
+    const rule = JSON.parse(JSON.stringify(ruleSource)) as { spell: { arcaneAuthority: { skillKey: string } }; maneuver: { martial: { skillKey: string } } };
     rule.spell.arcaneAuthority.skillKey = arcana;
     rule.maneuver.martial.skillKey = martial;
+    if (options.spells === true) (rule as unknown as { effectExecutionPolicy: { martialSkillKey: string } }).effectExecutionPolicy.martialSkillKey = martial;
     await add("construction.ability_rules", "ABILITY_CONSTRUCTION_RULE", 1, rule);
     const construction = (prerequisites: unknown[]) => ({ rules: { construction: { prerequisites } } });
     await add("test.m6wo4.effect.expert_lore", "SPELL_EFFECT", 1, effectPayload("UTILITY", construction([{ prerequisiteKey: "ARCANA_EXPERT", kind: "SKILL_RANK_AT_LEAST", skillKey: arcana, minimumRank: "EXPERT" }])));
     await add("test.m6wo4.effect.evocation_trained", "SPELL_EFFECT", 1, effectPayload("DAMAGE", construction([{ prerequisiteKey: "EVOCATION_TRAINED", kind: "AFFINITY_RANK_AT_LEAST", affinity: refOf(pins, "affinity.evocation"), minimumRank: "TRAINED" }])));
+  }
+
+  // `spells: true` (M6-WO7): every Spell component of the M5 Spell fixture (Targeting, Effects, Traits, Durations, Casting
+  // Conditions — test content, never canon), references resolved to this Release's exact pins and Skill keys to its
+  // test-scoped Skills, plus the M1 Keywords they author (needs `advancement: true`).
+  if (options.spells === true) {
+    for (const k of SPELL_WORLD.keywords) await prisma.keywordDefinition.upsert({ where: { canonicalKey: k }, create: { canonicalKey: k, name: k.replace(/^keyword\./, "").replaceAll("_", " ") }, update: {} });
+    const skills: Record<string, string> = { "skill.arcana": pins.get("skill.arcana")!.canonicalKey, "skill.martial": pins.get("skill.martial")!.canonicalKey };
+    const rekey = (v: unknown): unknown => (Array.isArray(v) ? v.map(rekey) : v !== null && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, k === "skillKey" && typeof x === "string" ? (skills[x] ?? x) : rekey(x)])) : v);
+    for (const d of SPELL_WORLD.definitions.filter((x) => x.definitionKind !== "ABILITY_CONSTRUCTION_RULE")) await add(d.canonicalKey, d.definitionKind, d.schemaVersion, rekey(resolveContentRefs(d.payload, (k) => refOf(pins, k))));
   }
 
   // `weapons: true` (M6-WO6): the approved baseline Weapon catalog (content file), in dependency order — Equipment Traits,
@@ -220,6 +235,7 @@ export async function cleanupCharacterWorlds(prefix: string): Promise<void> {
   await prisma.characterPortrait.deleteMany(sheetWhere);
   // M6-WO6: the Weapon loadout references the Character and the exact Weapon EntityVersions (RESTRICT).
   await prisma.characterWeaponLoadout.deleteMany(sheetWhere);
+  await cleanupSignatureAbilities(characterIds);
   await prisma.character.deleteMany({ where: { id: { in: characterIds } } });
   const inR = { rulesetId: { in: rulesetIds } };
   await prisma.rulesetRelease.deleteMany({ where: inR });
@@ -237,4 +253,24 @@ export async function cleanupCharacterWorlds(prefix: string): Promise<void> {
   await prisma.entityVersion.updateMany({ where: { entityId: { in: entityIds } }, data: { parentVersionId: null } });
   await prisma.entityVersion.deleteMany({ where: { entityId: { in: entityIds } } });
   await prisma.entity.deleteMany({ where: { id: { in: entityIds } } });
+}
+
+/**
+ * M6-WO7 teardown (test database only): Signature Spell revisions are append-only — the guard trigger is disabled for
+ * the deletion only, then re-enabled; revisions are removed newest first (each names its predecessor, RESTRICT).
+ */
+export async function cleanupSignatureAbilities(characterIds: readonly string[]): Promise<void> {
+  if (characterIds.length === 0) return;
+  const abilities = await prisma.characterSignatureAbility.findMany({ where: { characterId: { in: [...characterIds] } }, select: { id: true } });
+  if (abilities.length === 0) return;
+  const ids = abilities.map((a) => a.id);
+  await prisma.characterSignatureAbility.updateMany({ where: { id: { in: ids } }, data: { currentRevisionId: null, status: "DRAFT", retiredAt: null } });
+  await prisma.$executeRawUnsafe('ALTER TABLE "character_signature_spell_revisions" DISABLE TRIGGER "character_signature_spell_revisions_append_only"');
+  try {
+    const revisions = await prisma.characterSignatureSpellRevision.findMany({ where: { abilityId: { in: ids } }, select: { id: true }, orderBy: { revisionNumber: "desc" } });
+    for (const r of revisions) await prisma.characterSignatureSpellRevision.delete({ where: { id: r.id } });
+  } finally {
+    await prisma.$executeRawUnsafe('ALTER TABLE "character_signature_spell_revisions" ENABLE TRIGGER "character_signature_spell_revisions_append_only"');
+  }
+  await prisma.characterSignatureAbility.deleteMany({ where: { id: { in: ids } } });
 }

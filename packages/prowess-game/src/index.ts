@@ -723,3 +723,31 @@ export {
 } from "./equipment/loadout.js";
 export { buildCharacterAttackLibrary, previewDualWieldSequence, type AttackHand, type AttackRange, type CharacterAttack, type CharacterAttackLibrary, type DualWieldSequence, type DualWieldStatus } from "./equipment/library.js";
 export { WEAPON_BRIDGE_ERROR_CODES, bindWeaponAttackToManeuver, type WeaponAttackBinding } from "./equipment/bridge.js";
+// PAS-10 M6-WO7 — Signature Spell Builder: the Character-owned Spell composition, its ONE adapter onto the M5 Spell
+// engine (construction, cost, chain — reused, never redefined) and the Release component catalog. Not Compendium canon.
+export {
+  SIGNATURE_SPELL_ERROR_CODES,
+  SIGNATURE_SPELL_SCHEMA_VERSION,
+  SIGNATURE_SPELL_STATES,
+  SIGNATURE_SPELL_STEPS,
+  SPELL_AUTHORITIES,
+  emptySignatureSpellDraft,
+  evaluateCharacterSignatureSpell,
+  readSignatureSpellDraft,
+  signatureSpellComponentRefs,
+  summarizeSignatureSpell,
+  type CharacterSpellSubject,
+  type SignatureSpellSummary,
+  type RuntimeDeferral,
+  type SignatureSpellConcept,
+  type SignatureSpellDraft,
+  type SignatureSpellEvaluation,
+  type SignatureSpellIssue,
+  type SignatureSpellOrderedUse,
+  type SignatureSpellState,
+  type SignatureSpellStep,
+  type SignatureSpellTraitUse,
+  type SignatureSpellUse,
+  type SpellAuthority,
+} from "./character/signature-spell.js";
+export { SPELL_COMPONENT_KINDS, buildSignatureSpellCatalog, type AffinityAlignment as SpellComponentAffinityAlignment, type DeclaredParameter, type ListedContribution, type OwnedAffinityView, type SignatureSpellCatalog, type SpellComponentKind, type SpellComponentOption } from "./character/signature-spell-catalog.js";

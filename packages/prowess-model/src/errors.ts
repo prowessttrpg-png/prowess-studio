@@ -833,6 +833,17 @@ export const CHARACTER_ERROR_CODES = {
   // ---- PAS-10 M6-WO6 Weapon & Attack Library ----
   /** The Weapon loadout is not legal for this Character (exact Release membership, hands, grip or requirements). */
   INVALID_LOADOUT: "CHARACTER.INVALID_LOADOUT",
+  // ---- PAS-10 M6-WO7 Signature Spell Builder ----
+  /** No Signature Spell with this id belongs to this Character. */
+  SIGNATURE_SPELL_NOT_FOUND: "CHARACTER.SIGNATURE_SPELL_NOT_FOUND",
+  /** The Signature Spell draft is malformed (closed fields, exact refs, inert prose). Nothing was saved. */
+  INVALID_SIGNATURE_SPELL: "CHARACTER.INVALID_SIGNATURE_SPELL",
+  /** Finalization needs a complete Spell that M5 validates and prices; the draft stays saved and the current revision stays current. */
+  SIGNATURE_SPELL_NOT_FINALIZABLE: "CHARACTER.SIGNATURE_SPELL_NOT_FINALIZABLE",
+  /** The Character has no Signature slot left for another finalized Signature Ability. */
+  SIGNATURE_CAPACITY_EXCEEDED: "CHARACTER.SIGNATURE_CAPACITY_EXCEEDED",
+  /** The requested lifecycle step does not apply to the Signature Spell's current state (e.g. editing a retired Spell). */
+  SIGNATURE_SPELL_STATE: "CHARACTER.SIGNATURE_SPELL_STATE",
 } as const;
 
 export type CharacterErrorCode = (typeof CHARACTER_ERROR_CODES)[keyof typeof CHARACTER_ERROR_CODES];

@@ -1474,6 +1474,7 @@ model RulesetRelease {
   migrationPlansAsSource MigrationPlan[] @relation("MigrationPlanSourceRelease")
   migrationPlansAsTarget MigrationPlan[] @relation("MigrationPlanTargetRelease")
   characters Character[] // M6-WO3 back-relation
+  signatureSpellRevisions CharacterSignatureSpellRevision[] // M6-WO7 back-relation
 
   publishedAt DateTime @default(now()) @map("published_at") @db.Timestamptz(6)
 
@@ -2409,6 +2410,7 @@ model Character {
   sheetNotes           CharacterSheetNotes? // M6-WO5 back-relation
   portrait             CharacterPortrait? // M6-WO5 back-relation
   weaponLoadout        CharacterWeaponLoadout? // M6-WO6 back-relation
+  signatureAbilities   CharacterSignatureAbility[] // M6-WO7 back-relation
 
   @@index([rulesetReleaseId], map: "characters_ruleset_release_id_idx")
   @@index([ancestryEntityVersionId], map: "characters_ancestry_entity_version_id_idx")
@@ -2640,3 +2642,53 @@ model CharacterWeaponLoadout {
   @@map("character_weapon_loadouts")
 }
 // <<< M6-WO6 Character weapon loadout
+
+// >>> M6-WO7 Character Signature Abilities (PAS-10 M6-WO7) — registered in docs/architecture/m6-schema-changes.json
+/// A Character-owned Signature Ability (the shared roster header; M6-WO7 supports abilityKind SPELL only). It is NOT
+/// Compendium canon: never an Entity or EntityVersion, never in a Release. `draftPayload` is the working (new or
+/// rebuild) composition — selections only; `currentRevisionId` is the ONE finalized revision the Character uses. No
+/// cost, capacity or other derived value is stored: every read re-evaluates against the Character's exact Release.
+model CharacterSignatureAbility {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  characterId String    @map("character_id") @db.Uuid
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  abilityKind String    @map("ability_kind")
+  status      String
+
+  currentRevisionId String?                          @unique @map("current_revision_id") @db.Uuid
+  currentRevision   CharacterSignatureSpellRevision? @relation("CurrentSignatureSpellRevision", fields: [currentRevisionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  draftPayload      Json?                            @map("draft_payload")
+
+  lockVersion Int       @default(1) @map("lock_version")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  retiredAt   DateTime? @map("retired_at") @db.Timestamptz(6)
+
+  revisions CharacterSignatureSpellRevision[] @relation("SignatureSpellRevisions")
+
+  @@index([characterId], map: "character_signature_abilities_character_id_idx")
+  @@map("character_signature_abilities")
+}
+
+/// One finalized Signature Spell revision — append-only (a database trigger refuses UPDATE and DELETE). It pins the
+/// Character's exact Release and stores the authored selections (`payload`, the strict Character Spell schema) and its
+/// predecessor; mechanics are always recomputed from that Release, never read from here.
+model CharacterSignatureSpellRevision {
+  id                 String                            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  abilityId          String                            @map("ability_id") @db.Uuid
+  ability            CharacterSignatureAbility         @relation("SignatureSpellRevisions", fields: [abilityId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  revisionNumber     Int                               @map("revision_number")
+  characterReleaseId String                            @map("character_release_id") @db.Uuid
+  characterRelease   RulesetRelease                    @relation(fields: [characterReleaseId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  previousRevisionId String?                           @unique @map("previous_revision_id") @db.Uuid
+  previousRevision   CharacterSignatureSpellRevision?  @relation("SignatureSpellRevisionHistory", fields: [previousRevisionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  nextRevision       CharacterSignatureSpellRevision?  @relation("SignatureSpellRevisionHistory")
+  payload            Json
+  createdAt          DateTime                          @default(now()) @map("created_at") @db.Timestamptz(6)
+  currentOf          CharacterSignatureAbility?        @relation("CurrentSignatureSpellRevision")
+
+  @@unique([abilityId, revisionNumber], map: "character_signature_spell_revisions_ability_revision_key")
+  @@index([characterReleaseId], map: "character_signature_spell_revisions_character_release_id_idx")
+  @@map("character_signature_spell_revisions")
+}
+// <<< M6-WO7 Character Signature Abilities

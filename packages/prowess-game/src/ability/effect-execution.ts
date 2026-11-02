@@ -10,7 +10,7 @@ import type { EffectOutcomeReading } from "../definition/effect-payload.js";
 import { definitionRefOf, type ProwessDefinitionRef } from "../definition/envelope.js";
 import { clonePlainData, deepFreeze, isPlainObject } from "../internal/plain-data.js";
 import { Problems, checkPlainData, finish, isExactLabel, own, readEnum, readRecord, readSafeInteger, type ProwessOutcome } from "../internal/problems.js";
-import { compileAbilityDefinition, readAbilityDefinitionRun, type AuthoredAbilityResult } from "./compile.js";
+import { compileAbilityDefinition, readAbilityDefinitionRun, type AuthoredAbilityResult, type ProwessAbilityDefinitionCompiledPlan } from "./compile.js";
 
 /**
  * M5-WO12 EFFECT CHAIN EXECUTION & RUNTIME RESOLUTION ROUTING. Two stages over the canonical authored Ability (WO8):
@@ -89,13 +89,13 @@ export interface ExecutionGroup {
   /** One target per resolution unless an attached exact Targeting Conversion (Sweep, Line, Cone …) widens it. */
   readonly targetLimit: number | null;
 }
-export interface ProwessAbilityExecutionPlan {
+export interface ProwessAbilityExecutionPlan<S = ProwessDefinitionRef> {
   readonly contractVersion: 1;
   readonly subject: { readonly kind: "ABILITY_EXECUTION"; readonly subjectKey: string; readonly abilityKind: "SPELL" | "MANEUVER" };
   /** Binds every runtime input to THIS plan: Ruleset, manifest, exact Ability version and subject. */
   readonly executionKey: string;
   readonly rulesetProvenance: ProwessRulesetProvenance;
-  readonly definition: ProwessDefinitionRef;
+  readonly definition: S;
   readonly policy: ProwessDefinitionRef;
   readonly targetLimit: { readonly kind: string; readonly maximum: number | null };
   readonly delivery: { readonly check: "RANGED_ATTACK_ROLL"; readonly targeting: ProwessDefinitionRef } | null;
@@ -189,7 +189,7 @@ const EXECUTION_FIELD = "execution";
 const json = (v: unknown) => v as JsonObject;
 const resolutionOf = (mode: string | null): ExecutionResolution | null => (mode === "ATTACK_ROLL" || mode === "SAVING_THROW" || mode === "AUTOMATIC" ? mode : null);
 
-interface Compiled { readonly plan: ProwessAbilityExecutionPlan; readonly bundle: ProwessDefinitionBundle; readonly ruleset: unknown; readonly authored: AuthoredAbilityResult }
+interface Compiled<S = ProwessDefinitionRef> { readonly plan: ProwessAbilityExecutionPlan<S>; readonly bundle: ProwessDefinitionBundle; readonly ruleset: unknown; readonly authored: AuthoredAbilityResult<S> }
 
 /** Stage A: the exact authored Ability → its execution plan. Pure; never mutates its input. */
 export function compileAbilityExecution(request: unknown): ProwessOutcome<ProwessAbilityExecutionPlan> {
@@ -213,7 +213,16 @@ function compileInternal(request: unknown): ProwessOutcome<Compiled> {
     for (const q of evaluated.value.problems) p.add(K.INVALID_ABILITY, ["authored", q.path], `${q.code}: ${q.message}`);
     return finish(p, () => null as never);
   }
-  const plan = compiled.value, authored = evaluated.value;
+  return compileExecutionCore(p, request, compiled.value, evaluated.value, compiled.value.definition.entityVersionId);
+}
+
+/**
+ * Stage A over an already compiled and VALID authored plan — shared by the canonical path and the PAS-10 M6-WO7
+ * Character Signature Spell adapter (approved additive change; the subject is the only difference: `executionId` binds
+ * runtime inputs to the exact Ability version — the Definition's EntityVersion, or the Character Spell revision).
+ * Internal (not part of the public surface).
+ */
+export function compileExecutionCore<S>(p: Problems, request: Record<string, unknown>, plan: ProwessAbilityDefinitionCompiledPlan<S>, authored: AuthoredAbilityResult<S>, executionId: string): ProwessOutcome<Compiled<S>> {
   const context = createRulesetContext(own(request, "ruleset"));
   const rawDefinitions = own(request, "definitions") as Record<string, unknown>;
   const bundleOut = !context.ok ? null : isPlainObject(rawDefinitions) && Object.hasOwn(rawDefinitions, "definitions") ? createBundleWithinCheckedRequest(context.value, own(rawDefinitions, "definitions"), false) : createProwessDefinitionBundle({ ruleset: context.value, definitions: rawDefinitions.definitions });
@@ -270,7 +279,7 @@ function compileInternal(request: unknown): ProwessOutcome<Compiled> {
     }
   }
   const strip = ({ policy: _p, ...rest }: ExecutionEffect & { readonly policy: string }): ExecutionEffect => { void _p; return rest; };
-  const executionKey = `${plan.rulesetProvenance.rulesetId}:${plan.rulesetProvenance.manifestId}:${plan.definition.entityVersionId}:${plan.subject.subjectKey}`;
+  const executionKey = `${plan.rulesetProvenance.rulesetId}:${plan.rulesetProvenance.manifestId}:${executionId}:${plan.subject.subjectKey}`;
   const cardinality = plan.targeting.outputs.cardinality;
   const targetLimit = { kind: cardinality.kind, maximum: cardinality.kind === "ONE" ? 1 : cardinality.kind === "SELECTED" ? cardinality.count : null };
   let delivery: ProwessAbilityExecutionPlan["delivery"] = null, chain: ProwessAbilityExecutionPlan["chain"] = null, groups: ExecutionGroup[] | null = null;
@@ -333,7 +342,7 @@ function compileInternal(request: unknown): ProwessOutcome<Compiled> {
       executionKey, rulesetProvenance: plan.rulesetProvenance, definition: plan.definition, policy: definitionRefOf(policyDef), targetLimit, delivery, chain, groups, martialRank,
     },
     bundle, ruleset: own(request, "ruleset"), authored,
-  })) as Compiled);
+  })) as Compiled<S>);
 }
 
 // ---- Stage B ----------------------------------------------------------------------------------------------------------

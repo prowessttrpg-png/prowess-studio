@@ -1,7 +1,7 @@
 import { TRAIT_PARAMETER_INCREMENT_FORMULA } from "../content/core-playtest-v0.1/traits.js";
 import type { JsonObject } from "@prowess/model";
 import { createRulesetContext, orchestrateRulesEvaluation, type EvaluationPlan, type EvaluationRun, type EvaluationStep, type EvaluationBinding } from "@prowess/rules";
-import { createProwessDefinitionBundle, findBundleDefinition, type ProwessRulesetProvenance } from "../bundle/bundle.js";
+import { createProwessDefinitionBundle, findBundleDefinition, type ProwessDefinitionBundle, type ProwessRulesetProvenance } from "../bundle/bundle.js";
 import { readDefinitionRef, definitionRefOf, isSameExactDefinition, type ProwessDefinitionRef } from "../definition/envelope.js";
 import { readComponentConstructionRules } from "../definition/ability-construction-payload.js";
 import { readFoundationProfile, isAttackFoundation, AUTHORED_ABILITY_ERROR_CODES as A, type AuthoredAbilityPayload, type FoundationProfile, type ManeuverDefinitionPayload, type SpellDefinitionPayload } from "../definition/authored-ability-payload.js";
@@ -34,12 +34,26 @@ export interface CompiledTrait {
   readonly costs: readonly (EffectCostRule & { readonly selected: number | string | boolean | null })[];
 }
 interface EffectCompilation { readonly actionKey: string | null; readonly plan: ProwessEffectCompiledPlan; readonly targeting: ProwessTargetingCompiledPlan; }
-export interface ProwessAbilityDefinitionCompiledPlan {
+/**
+ * The subject an authored plan is compiled for. The canonical path compiles an exact Release `SPELL_DEFINITION` /
+ * `MANEUVER_DEFINITION` (the subject IS its Definition ref, cited on every source-map entry). PAS-10 M6-WO7 adds one
+ * non-canonical subject — a Character-owned Signature Spell — which is NOT a Release Definition: it cites no subject
+ * Definition, only its exact canonical components (approved additive change, m6-approved-m5-changes.json).
+ */
+export interface AuthoredAbilitySource<S> {
+  readonly authored: AuthoredAbilityPayload;
+  readonly spell: boolean;
+  /** The Definition refs every compiled entry cites for the subject: [the authored Definition] or [] (Character-owned). */
+  readonly subjectRefs: readonly ProwessDefinitionRef[];
+  /** What the plan reports as its subject. */
+  readonly definition: S;
+}
+export interface ProwessAbilityDefinitionCompiledPlan<S = ProwessDefinitionRef> {
   readonly durationConditions?: CompiledDurationConditions;
   readonly contractVersion: 1;
   readonly subject: { readonly kind: "AUTHORED_ABILITY"; readonly subjectKey: string; readonly abilityKind: "SPELL" | "MANEUVER" };
   readonly rulesetProvenance: ProwessRulesetProvenance;
-  readonly definition: ProwessDefinitionRef;
+  readonly definition: S;
   readonly evaluationPlan: EvaluationPlan;
   readonly sourceMap: ProwessCompilationSourceMap;
   readonly authored: AuthoredAbilityPayload;
@@ -53,12 +67,12 @@ export interface ProwessAbilityDefinitionCompiledPlan {
   readonly actionConstruction: readonly ProwessConstructionCompiledPlan[];
   readonly explanationStepKey: string;
 }
-export interface AuthoredAbilityResult {
+export interface AuthoredAbilityResult<S = ProwessDefinitionRef> {
   readonly durationConditions?: DurationConditionResult;
   readonly valid: boolean;
   readonly status: "VALID" | "INVALID";
   readonly abilityKind: "SPELL" | "MANEUVER";
-  readonly definition: ProwessDefinitionRef;
+  readonly definition: S;
   readonly rulesetProvenance: ProwessRulesetProvenance;
   readonly construction: AbilityConstructionResult;
   readonly targeting: AbilityTargetingResult;
@@ -89,8 +103,17 @@ export function compileAbilityDefinition(request: unknown): ProwessOutcome<Prowe
   const d = ref ? findBundleDefinition(bundle, ref) : null;
   if (!d || !["SPELL_DEFINITION", "MANEUVER_DEFINITION"].includes(d.definitionKind)) { p.add(A.REFERENCE, ["definition"], "exact authored Spell or Maneuver Definition required"); return finish(p, () => null as never); }
   const catalog = readKeywordCatalog(own(r, "keywords"), ["keywords"], p); if (p.count || !catalog) return finish(p, () => null as never);
-  const authored = d.payload as unknown as AuthoredAbilityPayload;
-  const spell = d.definitionKind === "SPELL_DEFINITION";
+  return compileAuthoredAbilityCore(p, r, subjectKey as string, context.value, bundle, catalog, { authored: d.payload as unknown as AuthoredAbilityPayload, spell: d.definitionKind === "SPELL_DEFINITION", subjectRefs: [definitionRefOf(d)], definition: definitionRefOf(d) });
+}
+
+/**
+ * The canonical authored-Ability compilation, shared by `compileAbilityDefinition` (an exact Release Definition) and the
+ * M6-WO7 Character Signature Spell adapter. The request has been read; nothing here differs by subject except the refs
+ * each entry cites. Internal (not part of the public surface).
+ */
+export function compileAuthoredAbilityCore<S>(p: Problems, r: Record<string, unknown>, subjectKey: string, ruleset: unknown, bundle: ProwessDefinitionBundle, catalog: NonNullable<ReturnType<typeof readKeywordCatalog>>, source: AuthoredAbilitySource<S>): ProwessOutcome<ProwessAbilityDefinitionCompiledPlan<S>> {
+  const context = { value: ruleset };
+  const { authored, spell, subjectRefs } = source;
   const spellData = spell ? authored as SpellDefinitionPayload : null;
   const constructionOptions = spellData?.constructionOptions ?? { effectSlotsTradedForTraits: 0 };
   if (own(r, "constructionOptions") !== undefined && JSON.stringify(clonePlainData(own(r, "constructionOptions"))) !== JSON.stringify(clonePlainData(constructionOptions))) p.add(A.INVALID, ["constructionOptions"], "validation cannot override the authored Effect-slot exchange selection");
@@ -134,15 +157,15 @@ export function compileAbilityDefinition(request: unknown): ProwessOutcome<Prowe
     for (const step of plan.evaluationPlan.steps) {
       if (steps.some(s => s.stepKey === step.stepKey)) { p.add(A.INVALID, [], "duplicate compiled step identity"); continue; }
       const order = steps.length; steps.push({ ...step, order });
-      const source = plan.sourceMap.entries.find(e => e.stepKey === step.stepKey)!;
-      entries.push({ ...source, order, definitions: [...source.definitions, definitionRefOf(d)] });
+      const entry = plan.sourceMap.entries.find(e => e.stepKey === step.stepKey)!;
+      entries.push({ ...entry, order, definitions: [...entry.definitions, ...subjectRefs] });
     }
   };
   append(construction.value);
   const rules: { ruleKey: string; stepKey: string; code: string }[] = [];
   const emit = (key: string, operation: EvaluationStep["operation"], input: JsonObject, refs: readonly ProwessDefinitionRef[], componentKeys: readonly string[], bindings: readonly EvaluationBinding[] = []) => {
     const stepKey = `authored.${subjectKey}.${key}`, order = steps.length;
-    steps.push({ stepKey, order, operation, input, bindings }); entries.push({ stepKey, order, operation, role: key, componentKeys, definitions: [definitionRefOf(d), ...refs] }); return stepKey;
+    steps.push({ stepKey, order, operation, input, bindings }); entries.push({ stepKey, order, operation, role: key, componentKeys, definitions: [...subjectRefs, ...refs] }); return stepKey;
   };
   const check = (key: string, requirement: JsonObject, facts: JsonObject, refs: readonly ProwessDefinitionRef[], componentKeys: readonly string[], code: string = T.INCOMPATIBLE, bindings: readonly EvaluationBinding[] = []) => {
     const stepKey = emit(key, "REQUIREMENT", { requirement, facts }, refs, componentKeys, bindings); rules.push({ ruleKey: key, stepKey, code });
@@ -265,11 +288,11 @@ export function compileAbilityDefinition(request: unknown): ProwessOutcome<Prowe
   const durationConditions = compileDurationConditions({ bundle, composition, construction: construction.value, effects, traits, actions, targeting: targeting.value, stats: character.stats }, emit, check, p);
   if (p.count) return finish(p, () => null as never);
   const explained = [...steps];
-  const explanationStepKey = emit("explanation", "EXPLANATION", { input: { explanationKey: `authored.${subjectKey}`, contributions: explained.map((s, i) => ({ contributionKey: s.stepKey, order: i, kind: s.operation === "FORMULA" ? "FORMULA" : s.operation === "KEYWORD" ? "KEYWORD" : s.operation === "MODIFIER" ? "MODIFIER" : s.operation === "EXPLANATION" ? "GENERIC" : "REQUIREMENT", response: null })) } }, [definitionRefOf(d)], [composition.compositionKey], explained.map((s, i) => ({ target: `/input/contributions/${i}/response`, source: { kind: "STEP", stepKey: s.stepKey, pointer: "" } })));
-  return finish(p, () => clonePlainData({ contractVersion: 1 as const, subject: { kind: "AUTHORED_ABILITY" as const, subjectKey: subjectKey as string, abilityKind: composition.abilityKind }, rulesetProvenance: bundle.rulesetProvenance, definition: definitionRefOf(d), evaluationPlan: { steps, primaryStepKey: null, validationStepKey: null, explanationStepKey }, sourceMap: { entries }, authored, construction: construction.value, targeting: targeting.value, effects, traits, rules, actions, targetingChanges, actionConstruction, ...(durationConditions ? { durationConditions } : {}), explanationStepKey }));
+  const explanationStepKey = emit("explanation", "EXPLANATION", { input: { explanationKey: `authored.${subjectKey}`, contributions: explained.map((s, i) => ({ contributionKey: s.stepKey, order: i, kind: s.operation === "FORMULA" ? "FORMULA" : s.operation === "KEYWORD" ? "KEYWORD" : s.operation === "MODIFIER" ? "MODIFIER" : s.operation === "EXPLANATION" ? "GENERIC" : "REQUIREMENT", response: null })) } }, [...subjectRefs], [composition.compositionKey], explained.map((s, i) => ({ target: `/input/contributions/${i}/response`, source: { kind: "STEP", stepKey: s.stepKey, pointer: "" } })));
+  return finish(p, () => clonePlainData({ contractVersion: 1 as const, subject: { kind: "AUTHORED_ABILITY" as const, subjectKey: subjectKey as string, abilityKind: composition.abilityKind }, rulesetProvenance: bundle.rulesetProvenance, definition: source.definition, evaluationPlan: { steps, primaryStepKey: null, validationStepKey: null, explanationStepKey }, sourceMap: { entries }, authored, construction: construction.value, targeting: targeting.value, effects, traits, rules, actions, targetingChanges, actionConstruction, ...(durationConditions ? { durationConditions } : {}), explanationStepKey }));
 }
 
-export function readAbilityDefinitionRun(plan: ProwessAbilityDefinitionCompiledPlan, run: unknown): ProwessOutcome<AuthoredAbilityResult> {
+export function readAbilityDefinitionRun<S = ProwessDefinitionRef>(plan: ProwessAbilityDefinitionCompiledPlan<S>, run: unknown): ProwessOutcome<AuthoredAbilityResult<S>> {
   const p = new Problems(); if (!checkPlainData(run, [], p, A.INCOMPLETE_RUN)) return finish(p, () => null as never);
   if (!isPlainObject(run) || !Array.isArray(run.steps)) { p.add(A.INCOMPLETE_RUN, [], "exact EvaluationRun required"); return finish(p, () => null as never); }
   if (!run.steps.every(s => isPlainObject(s) && isPlainObject(s.response) && isPlainObject(s.response.data) && Array.isArray(s.blockedBy) && s.blockedBy.length === 0)) { p.add(A.INCOMPLETE_RUN, [], "each executed step needs a structured successful response and no blocked bindings"); return finish(p, () => null as never); }
