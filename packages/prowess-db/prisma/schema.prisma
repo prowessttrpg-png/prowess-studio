@@ -345,6 +345,8 @@ model EntityVersion {
   characterSkillRanks         CharacterSkillRank[] // M6-WO3 back-relation
   characterSkillAdvancements  CharacterSkillAdvancement[] // M6-WO4 back-relation
   characterAffinityAdvancements CharacterAffinityAdvancementChoice[] // M6-WO4 back-relation
+  weaponLoadoutsAsMainHand    CharacterWeaponLoadout[] @relation("CharacterWeaponLoadoutMainHand") // M6-WO6 back-relation
+  weaponLoadoutsAsOffHand     CharacterWeaponLoadout[] @relation("CharacterWeaponLoadoutOffHand") // M6-WO6 back-relation
 
   @@unique([entityId, revisionNumber])
   /// Exists so RulesetManifestEntry can reference (id, entityId) together — a composite
@@ -2406,6 +2408,7 @@ model Character {
   playState            CharacterPlayState? // M6-WO5 back-relation
   sheetNotes           CharacterSheetNotes? // M6-WO5 back-relation
   portrait             CharacterPortrait? // M6-WO5 back-relation
+  weaponLoadout        CharacterWeaponLoadout? // M6-WO6 back-relation
 
   @@index([rulesetReleaseId], map: "characters_ruleset_release_id_idx")
   @@index([ancestryEntityVersionId], map: "characters_ancestry_entity_version_id_idx")
@@ -2610,3 +2613,30 @@ model CharacterPortraitImage {
   @@map("character_portrait_images")
 }
 // <<< M6-WO5 Character sheet state
+
+// >>> M6-WO6 Character weapon loadout (PAS-10 M6-WO6) — registered in docs/architecture/m6-schema-changes.json
+/// The Character's Weapon loadout CHOICE: the exact Weapon (Entity + EntityVersion) in each hand and the explicit grip
+/// of a Versatile Main-hand Weapon. Nothing derived is stored — no Attacks, damage, Power, Armor / Dodge / Movement
+/// bonuses, ammunition, ownership or inventory. Release membership and requirements are validated by the service
+/// against the Character's exact Release on every write and read.
+model CharacterWeaponLoadout {
+  characterId String    @id @map("character_id") @db.Uuid
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  mainHandEntityId        String?        @map("main_hand_entity_id") @db.Uuid
+  mainHandEntityVersionId String?        @map("main_hand_entity_version_id") @db.Uuid
+  mainHandVersion         EntityVersion? @relation("CharacterWeaponLoadoutMainHand", fields: [mainHandEntityVersionId, mainHandEntityId], references: [id, entityId], onDelete: Restrict, onUpdate: Restrict, map: "character_weapon_loadouts_main_hand_fkey")
+  mainHandGrip            String?        @map("main_hand_grip")
+
+  offHandEntityId        String?        @map("off_hand_entity_id") @db.Uuid
+  offHandEntityVersionId String?        @map("off_hand_entity_version_id") @db.Uuid
+  offHandVersion         EntityVersion? @relation("CharacterWeaponLoadoutOffHand", fields: [offHandEntityVersionId, offHandEntityId], references: [id, entityId], onDelete: Restrict, onUpdate: Restrict, map: "character_weapon_loadouts_off_hand_fkey")
+
+  lockVersion Int      @default(1) @map("lock_version")
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@index([mainHandEntityVersionId], map: "character_weapon_loadouts_main_hand_entity_version_id_idx")
+  @@index([offHandEntityVersionId], map: "character_weapon_loadouts_off_hand_entity_version_id_idx")
+  @@map("character_weapon_loadouts")
+}
+// <<< M6-WO6 Character weapon loadout

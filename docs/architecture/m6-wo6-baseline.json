@@ -1,0 +1,10 @@
+{
+  "$comment": "PAS-10 M6-WO6 baseline: the M6-WO6 base commit (M6-WO5 merged) and the files the M6-WO6 gate freezes \u2014 schema.prisma with exactly the marked M6-WO6 additions removed, and the M6-WO3 / WO4 / WO5 migrations.",
+  "baseCommit": "3cedeab83bb3890bc5b7cc4855b37e9e946094d9",
+  "frozenFiles": {
+    "packages/prowess-db/prisma/schema.prisma": "7feca74254387df2cbd0630e82c8c9ad7b63e20104dafc15d99a0cae23c12266",
+    "packages/prowess-db/prisma/migrations/20261029010000_m6_wo3_character_foundation/migration.sql": "9916d5ce3c30b1f94f96ef264387a0de224f8e658b597d1824003047438f6feb",
+    "packages/prowess-db/prisma/migrations/20261031010000_m6_wo4_character_advancement/migration.sql": "c3379236685b6b5e8c918c79ec814369b8868e4528e701f921eb2c25b6b09d7a",
+    "packages/prowess-db/prisma/migrations/20261101010000_m6_wo5_character_sheet_state/migration.sql": "4cfa1245813474e2faebca3995086b81f8c9f6042f11bf560878ff70bb6ad020"
+  }
+}

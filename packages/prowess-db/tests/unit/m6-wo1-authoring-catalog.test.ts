@@ -16,6 +16,23 @@ import {
   TARGETING_SEMANTIC_SHAPES,
   TRAIT_SCOPES,
   legacyTermFor,
+  ATTACK_AREA_SHAPES,
+  ATTACK_RESOLUTION_MODES,
+  ATTACK_SCALINGS,
+  ATTACK_TARGETING_MODES,
+  DAMAGE_OUTCOMES,
+  EQUIPMENT_MODIFIER_TARGETS,
+  SAVING_THROW_DCS,
+  TRAIT_PARAMETER_KINDS,
+  TRAIT_USE_SITES,
+  WEAPON_REQUIREMENT_KINDS,
+  DAMAGE_TYPES,
+  EQUIPMENT_ROLES,
+  TRAIT_EXECUTION_STATUSES,
+  WEAPON_CATEGORIES,
+  WEAPON_HANDEDNESS,
+  WEAPON_PROFILE_KINDS,
+  WEAPON_SCALING_MODELS,
 } from "@prowess/game";
 import { authoringKind, getAuthoringCatalog } from "../../src/compendium-authoring/catalog.js";
 
@@ -52,7 +69,9 @@ describe("M6-WO1 authoring catalog (M6-I002 no second Definition catalog)", () =
     const reserved = catalog.kinds.filter((k) => !k.authorable).map((k) => k.definitionKind);
     expect(reserved.length).toBeGreaterThan(0);
     for (const kind of reserved) expect(PROWESS_DEFINITION_KINDS[kind].schemaVersions).toEqual([]);
-    expect(reserved).toContain("WEAPON");
+    // M6-WO6 activated WEAPON / EQUIPMENT_TRAIT and added ATTACK; ARMOR stays reserved.
+    expect(reserved).toContain("ARMOR");
+    expect(reserved).not.toContain("WEAPON");
   });
 
   it("unknown values are not kinds — nothing is guessed from a name", () => {
@@ -73,6 +92,24 @@ describe("M6-WO1 authoring catalog (M6-I002 no second Definition catalog)", () =
       prowessStats: [...PROWESS_STATS],
       ancestryStatGrantKinds: [...ANCESTRY_STAT_GRANT_KINDS],
       ancestrySkillSelectionKinds: [...ANCESTRY_SKILL_SELECTION_KINDS],
+      // M6-WO6 EQUIPMENT-family vocabularies.
+      weaponCategories: [...WEAPON_CATEGORIES],
+      weaponHandedness: [...WEAPON_HANDEDNESS],
+      weaponScalingModels: [...WEAPON_SCALING_MODELS],
+      attackScalings: [...ATTACK_SCALINGS],
+      weaponProfileKinds: [...WEAPON_PROFILE_KINDS],
+      equipmentRoles: [...EQUIPMENT_ROLES],
+      damageTypes: [...DAMAGE_TYPES],
+      traitExecutionStatuses: [...TRAIT_EXECUTION_STATUSES],
+      traitUseSites: [...TRAIT_USE_SITES],
+      traitParameterKinds: [...TRAIT_PARAMETER_KINDS],
+      attackTargetingModes: [...ATTACK_TARGETING_MODES],
+      attackAreaShapes: [...ATTACK_AREA_SHAPES],
+      attackResolutionModes: [...ATTACK_RESOLUTION_MODES],
+      damageOutcomes: [...DAMAGE_OUTCOMES],
+      savingThrowDcs: [...SAVING_THROW_DCS],
+      equipmentModifierTargets: [...EQUIPMENT_MODIFIER_TARGETS],
+      weaponRequirementKinds: [...WEAPON_REQUIREMENT_KINDS],
     });
   });
 

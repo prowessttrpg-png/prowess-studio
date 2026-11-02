@@ -44,7 +44,10 @@ export function sheetFixture(over: Partial<CharacterSheetDto> = {}): CharacterSh
     playStateVersion: 3,
     notes: { actionNotes: "", characterNotes: "", possessions: [], version: 0, limits: { companyPac: 120, actionNotes: 20000, characterNotes: 20000, possessions: 200, category: 60, item: 200, weight: 20 } },
     grantedEffects: [],
-    equipment: { available: false, mainHand: null, offHand: null, armor: null, accessorySlots: null, accessories: [] },
+    // M6-WO6: an empty loadout (None / None) on a Release with no Weapon Library; no Weapon Attack rows.
+    equipment: { available: false, mainHand: null, offHand: null, loadoutVersion: 0, loadoutStatus: "VALID", loadoutIssues: [], armor: null, accessorySlots: null, accessories: [] },
+    weaponAttacks: [],
+    dualWield: { available: false, reasons: [] },
     advancementHistoryCount: 5,
     names: { "orcani-v": "Orcani", "evocation-v": "Evocation", "conjuration-v": "Conjuration", "arcana-v": "Arcana", "athletics-v": "Athletics", "performance-v": "Performance", "stealth-v": "Stealth" },
     ...over,

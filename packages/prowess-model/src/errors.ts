@@ -830,6 +830,9 @@ export const CHARACTER_ERROR_CODES = {
   PORTRAIT_TOO_LARGE: "CHARACTER.PORTRAIT_TOO_LARGE",
   /** The Character has no portrait image. */
   PORTRAIT_NOT_FOUND: "CHARACTER.PORTRAIT_NOT_FOUND",
+  // ---- PAS-10 M6-WO6 Weapon & Attack Library ----
+  /** The Weapon loadout is not legal for this Character (exact Release membership, hands, grip or requirements). */
+  INVALID_LOADOUT: "CHARACTER.INVALID_LOADOUT",
 } as const;
 
 export type CharacterErrorCode = (typeof CHARACTER_ERROR_CODES)[keyof typeof CHARACTER_ERROR_CODES];

@@ -112,6 +112,20 @@
       "authorable": false
     },
     {
+      "definitionKind": "ATTACK",
+      "systemFamily": "EQUIPMENT",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
       "definitionKind": "CHARACTER_ADVANCEMENT_RULE",
       "systemFamily": "CHARACTER",
       "branch": null,
@@ -203,9 +217,11 @@
       "allowedEntityTypes": [
         "GENERIC_RULE"
       ],
-      "supportedSchemaVersions": [],
-      "authoringSchemaVersion": null,
-      "authorable": false
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
     },
     {
       "definitionKind": "MAGE_ART",
@@ -567,9 +583,11 @@
       "allowedEntityTypes": [
         "GENERIC_RULE"
       ],
-      "supportedSchemaVersions": [],
-      "authoringSchemaVersion": null,
-      "authorable": false
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
     }
   ],
   "systemFamilies": [
@@ -666,6 +684,91 @@
       "FIXED",
       "CHOOSE_FROM",
       "CHOOSE_ANY"
+    ],
+    "weaponCategories": [
+      "LIGHT",
+      "BALANCED",
+      "HEAVY"
+    ],
+    "weaponHandedness": [
+      "ONE_HANDED",
+      "TWO_HANDED",
+      "VERSATILE"
+    ],
+    "weaponScalingModels": [
+      "POWER",
+      "STATIC",
+      "HYBRID"
+    ],
+    "attackScalings": [
+      "POWER",
+      "STATIC"
+    ],
+    "weaponProfileKinds": [
+      "STANDARD",
+      "UNARMED",
+      "IMPROVISED"
+    ],
+    "equipmentRoles": [
+      "WEAPON",
+      "SHIELD"
+    ],
+    "damageTypes": [
+      "SLASHING",
+      "PIERCING",
+      "BLUDGEONING",
+      "FIRE",
+      "ENERGY",
+      "SHOCK",
+      "ELEMENTAL"
+    ],
+    "traitExecutionStatuses": [
+      "EXECUTABLE",
+      "REFERENCE_ONLY",
+      "DEFERRED"
+    ],
+    "traitUseSites": [
+      "WEAPON_PROPERTY",
+      "MOVE_PROPERTY"
+    ],
+    "traitParameterKinds": [
+      "COUNT",
+      "FEET",
+      "AP",
+      "MP",
+      "DICE"
+    ],
+    "attackTargetingModes": [
+      "MELEE",
+      "CLOSE",
+      "RANGED_MULTIPLIER",
+      "LINE",
+      "CONE"
+    ],
+    "attackAreaShapes": [
+      "BLAST"
+    ],
+    "attackResolutionModes": [
+      "ATTACK_ROLL",
+      "SAVING_THROW",
+      "DEFERRED"
+    ],
+    "damageOutcomes": [
+      "FULL",
+      "HALF",
+      "NO_DAMAGE"
+    ],
+    "savingThrowDcs": [
+      "ATTACKER_CHARACTER_DC"
+    ],
+    "equipmentModifierTargets": [
+      "ARMOR",
+      "DODGE",
+      "MOVEMENT"
+    ],
+    "weaponRequirementKinds": [
+      "MARTIAL_RANK_AT_LEAST",
+      "STAT_AT_LEAST"
     ]
   },
   "legacyTerms": [

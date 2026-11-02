@@ -32,8 +32,17 @@ export interface AttackFoundationProfile {
   readonly targeting: ComponentUse;
   readonly range: { readonly kind: "WEAPON_RANGE"; readonly feet: number };
   readonly resolution: { readonly mode: "ATTACK_ROLL"; readonly stat: ProwessStat };
-  readonly damage: { readonly kind: "WEAPON"; readonly weaponKey: string; readonly baseDice: string; readonly power: number; readonly stat: ProwessStat; readonly enchantments: readonly string[] };
+  readonly damage: WeaponDamageProfile;
 }
+/**
+ * The weapon damage an Attack foundation retains. The M5-WO11 shape (Power + scaling Stat) is unchanged and is what an
+ * Attack WITHOUT `scaling` means. PAS-10 M6-WO6 (approved additive change, m6-approved-m5-changes.json) adds the one
+ * shape M5 previously could not express: a STATIC Weapon Attack (`scaling: "STATIC"`), which has NO Power and NO
+ * scaling Stat — never a fake value. M5 still never computes damage from either shape.
+ */
+export type WeaponDamageProfile =
+  | { readonly kind: "WEAPON"; readonly weaponKey: string; readonly baseDice: string; readonly power: number; readonly stat: ProwessStat; readonly enchantments: readonly string[] }
+  | { readonly kind: "WEAPON"; readonly scaling: "STATIC"; readonly weaponKey: string; readonly baseDice: string; readonly power: null; readonly stat: null; readonly enchantments: readonly string[] };
 
 /** A non-attack Maneuver foundation (Move, Run, Sprint, Block, Guard): an exact action with its own Targeting and NO Attack
  * resolution, damage profile or weapon requirement. It contributes its authored AP and never counts as an attack. */
@@ -156,11 +165,19 @@ function readAttackFoundationProfile(v: unknown, at: readonly PathSegment[], p: 
   const resolution = readRecord(own(r, "resolution"), [...at, "resolution"], p, C, ["mode", "stat"], ["mode", "stat"]);
   const stat = resolution ? readEnum(resolution.stat, PROWESS_STATS, at, p, C, "attack Stat") : null;
   if (resolution?.mode !== "ATTACK_ROLL") p.add(C, at, "ordinary foundation has its own Attack Roll");
-  const damage = readRecord(own(r, "damage"), [...at, "damage"], p, C, ["kind", "weaponKey", "baseDice", "power", "stat", "enchantments"], ["kind", "weaponKey", "baseDice", "power", "stat", "enchantments"]);
-  const damageStat = damage ? readEnum(damage.stat, PROWESS_STATS, at, p, C, "weapon scaling Stat") : null;
-  if (!damage || damage.kind !== "WEAPON" || !isExactLabel(damage.weaponKey) || typeof damage.baseDice !== "string" || !/^[1-9][0-9]*d(4|6|8|10|12|20)$/.test(damage.baseDice) || !Number.isSafeInteger(damage.power) || (damage.power as number) < 0) p.add(C, at, "ordinary Maneuver damage retains weapon base dice, Power and Stat; never Spell Character Dice");
+  const damage = readRecord(own(r, "damage"), [...at, "damage"], p, C, ["kind", "weaponKey", "baseDice", "power", "stat", "enchantments", "scaling"], ["kind", "weaponKey", "baseDice", "power", "stat", "enchantments"]);
+  // PAS-10 M6-WO6 additive: `scaling` absent = the unchanged M5-WO11 Power-scaled shape; STATIC = no Power, no Stat.
+  const isStatic = damage !== null && own(damage, "scaling") === "STATIC";
+  if (damage && own(damage, "scaling") !== undefined && !isStatic) p.add(C, [...at, "damage", "scaling"], "scaling is either absent (Power-scaled) or STATIC");
+  const damageStat = damage && !isStatic ? readEnum(damage.stat, PROWESS_STATS, at, p, C, "weapon scaling Stat") : null;
+  if (isStatic && (own(damage, "power") !== null || own(damage, "stat") !== null)) p.add(C, [...at, "damage"], "STATIC weapon damage has no Power and no scaling Stat (power: null, stat: null) — never a fake value");
+  if (!damage || damage.kind !== "WEAPON" || !isExactLabel(damage.weaponKey) || typeof damage.baseDice !== "string" || !/^[1-9][0-9]*d(4|6|8|10|12|20)$/.test(damage.baseDice) || (!isStatic && (!Number.isSafeInteger(damage.power) || (damage.power as number) < 0))) p.add(C, at, "ordinary Maneuver damage retains weapon base dice, Power and Stat; never Spell Character Dice");
   const enchantments = labels(damage?.enchantments, [...at, "damage", "enchantments"], p);
-  return p.count > before || !category || !targeting || feet === null || !stat || !damage || !damageStat ? null : { category, targeting, range: { kind: "WEAPON_RANGE", feet }, resolution: { mode: "ATTACK_ROLL", stat }, damage: { kind: "WEAPON", weaponKey: damage.weaponKey as string, baseDice: damage.baseDice as string, power: damage.power as number, stat: damageStat, enchantments } };
+  if (p.count > before || !category || !targeting || feet === null || !stat || !damage || (!isStatic && !damageStat)) return null;
+  const retained: WeaponDamageProfile = isStatic
+    ? { kind: "WEAPON", scaling: "STATIC", weaponKey: damage.weaponKey as string, baseDice: damage.baseDice as string, power: null, stat: null, enchantments }
+    : { kind: "WEAPON", weaponKey: damage.weaponKey as string, baseDice: damage.baseDice as string, power: damage.power as number, stat: damageStat as ProwessStat, enchantments };
+  return { category, targeting, range: { kind: "WEAPON_RANGE", feet }, resolution: { mode: "ATTACK_ROLL", stat }, damage: retained };
 }
 function readActionFoundationProfile(v: unknown, at: readonly PathSegment[], p: Problems): ActionFoundationProfile | null {
   const before = p.count, C = AUTHORED_ABILITY_ERROR_CODES.FOUNDATION;

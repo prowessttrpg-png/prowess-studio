@@ -7,6 +7,23 @@ import { fieldDomId, fieldErrorId, issuesForField, stableStringify, type Definit
 import { AuthoredDataEditor } from "./AuthoredDataEditor";
 import { DefinitionReferencePicker } from "./DefinitionReferencePicker";
 import { KeywordPicker } from "./KeywordPicker";
+import {
+  AttackRefsEditor,
+  AttackResolutionEditor,
+  AttackTargetingEditor,
+  DamageProfilesEditor,
+  EquipmentSourceEditor,
+  EquippedModifiersEditor,
+  GrantedFeaturesEditor,
+  NullableSelect,
+  TextListEditor,
+  TraitContractEditor,
+  TraitParametersEditor,
+  TraitUseEditor,
+  TraitUsesEditor,
+  UseSitesEditor,
+  WeaponRequirementsEditor,
+} from "./WeaponEditors";
 
 /**
  * The structured Prowess Definition editor (PAS-10 M6-WO1 §12–13, §28, §57–59, §68). It renders the fields the
@@ -326,6 +343,99 @@ function FieldControl({ field, value, onChange, catalog, issues }: { field: Fiel
       return (
         <Shell field={field} issues={issues} composite>
           <AdvancementLevelsEditor rows={asArray(value)} onChange={onChange} />
+        </Shell>
+      );
+    // ---- M6-WO6 Weapon / Attack / Equipment Trait inputs (structured, never raw JSON) -----------------------------
+    case "nullableSelect":
+      return (
+        <LabeledControl field={field} issues={issues}>
+          {(p) => <NullableSelect {...p} value={value} options={catalog.vocabularies[field.vocabulary] ?? []} onChange={onChange} emptyLabel="Not authored" />}
+        </LabeledControl>
+      );
+    case "text":
+      return <LabeledControl field={field} issues={issues}>{(p) => <textarea {...p} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(e.target.value)} />}</LabeledControl>;
+    case "textList":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <TextListEditor rows={value} onChange={onChange} label={field.label} />
+        </Shell>
+      );
+    case "traitUses":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <TraitUsesEditor rows={value} onChange={onChange} label={field.label} refKind={field.refKind} />
+        </Shell>
+      );
+    case "traitUse":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <TraitUseEditor value={value} onChange={onChange} label={field.label} refKind={field.refKind} />
+        </Shell>
+      );
+    case "attackRefs":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <AttackRefsEditor rows={value} onChange={onChange} refKind={field.refKind} />
+        </Shell>
+      );
+    case "damageProfiles":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <DamageProfilesEditor rows={value} onChange={onChange} catalog={catalog} />
+        </Shell>
+      );
+    case "weaponRequirements":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <WeaponRequirementsEditor rows={value} onChange={onChange} catalog={catalog} />
+        </Shell>
+      );
+    case "equippedModifiers":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <EquippedModifiersEditor rows={value} onChange={onChange} catalog={catalog} />
+        </Shell>
+      );
+    case "grantedFeatures":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <GrantedFeaturesEditor rows={value} onChange={onChange} catalog={catalog} />
+        </Shell>
+      );
+    case "attackTargeting":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <AttackTargetingEditor value={value} onChange={onChange} catalog={catalog} />
+        </Shell>
+      );
+    case "attackResolution":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <AttackResolutionEditor value={value} onChange={onChange} catalog={catalog} />
+        </Shell>
+      );
+    case "traitParameters":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <TraitParametersEditor rows={value} onChange={onChange} catalog={catalog} />
+        </Shell>
+      );
+    case "useSites":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <UseSitesEditor rows={value} onChange={onChange} catalog={catalog} />
+        </Shell>
+      );
+    case "traitContract":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <TraitContractEditor value={value} onChange={onChange} />
+        </Shell>
+      );
+    case "equipmentSource":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <EquipmentSourceEditor value={value} onChange={onChange} />
         </Shell>
       );
   }

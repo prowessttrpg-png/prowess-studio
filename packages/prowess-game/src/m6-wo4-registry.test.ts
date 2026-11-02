@@ -22,12 +22,14 @@ describe("M6-WO4 registry characterization", () => {
   });
 
   it("every pre-WO4 kind is byte-for-byte unchanged (CHARACTER_DIE_PROGRESSION and AFFINITY_PROGRESSION included)", () => {
-    for (const [kind, spec] of Object.entries(baseline.kinds)) expect(JSON.stringify(current[kind]), kind).toBe(JSON.stringify(spec));
+    // WEAPON / EQUIPMENT_TRAIT are activated by the LATER M6-WO6 and characterized by m6-wo6-registry.test.ts.
+    const later = ["WEAPON", "EQUIPMENT_TRAIT"];
+    for (const [kind, spec] of Object.entries(baseline.kinds)) if (!later.includes(kind)) expect(JSON.stringify(current[kind]), kind).toBe(JSON.stringify(spec));
     expect(Object.keys(baseline.kinds).filter((k) => !(k in current))).toEqual([]);
   });
 
   it("the only new kind is CHARACTER_ADVANCEMENT_RULE: CHARACTER family, no shared contract, v1", () => {
-    expect(Object.keys(current).filter((k) => !(k in baseline.kinds))).toEqual(["CHARACTER_ADVANCEMENT_RULE"]);
+    expect(Object.keys(current).filter((k) => !(k in baseline.kinds) && k !== "ATTACK")).toEqual(["CHARACTER_ADVANCEMENT_RULE"]);
     expect(current.CHARACTER_ADVANCEMENT_RULE).toEqual({ family: "CHARACTER", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1] });
     expect([...ADVANCEMENT_PAYLOAD_KINDS]).toEqual(["CHARACTER_ADVANCEMENT_RULE"]);
   });

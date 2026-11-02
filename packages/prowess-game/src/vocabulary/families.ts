@@ -141,9 +141,13 @@ const DEFINITION_KIND_TABLE = {
 
   // Later families — known, reserved.
   MAGE_ART: reserved("MAGE_ART"),
-  WEAPON: reserved("EQUIPMENT"),
+  // Weapons & Attacks — reserved by M5; WEAPON and EQUIPMENT_TRAIT are activated at version 1 and ATTACK is added by
+  // PAS-10 M6-WO6 (definition/equipment-payload.ts). ARMOR stays reserved (worn Armor is later equipment work, §7).
+  WEAPON: active("EQUIPMENT"),
+  /** M6-WO6: one exact Weapon Move (a Moveset entry) — its own AP, damage, targeting and resolution (§12). */
+  ATTACK: active("EQUIPMENT"),
   ARMOR: reserved("EQUIPMENT"),
-  EQUIPMENT_TRAIT: reserved("EQUIPMENT"),
+  EQUIPMENT_TRAIT: active("EQUIPMENT"),
   SUMMON_TYPE: reserved("SUMMON"),
   SUMMON_TRAIT: reserved("SUMMON"),
   SUMMON_ACTION_MODEL: reserved("SUMMON"),

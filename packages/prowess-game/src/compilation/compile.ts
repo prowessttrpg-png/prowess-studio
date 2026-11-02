@@ -56,7 +56,9 @@ export const COMPONENT_COMPILERS: Readonly<Record<ProwessDefinitionKind, Compone
   MANEUVER_DURATION: null,
   MANEUVER_FOUNDATION: null,
   MAGE_ART: null,
+  // M6-WO6: Weapons and Attacks are read through their own entry points (equipment/), never compiled as components.
   WEAPON: null,
+  ATTACK: null,
   ARMOR: null,
   EQUIPMENT_TRAIT: null,
   SUMMON_TYPE: null,

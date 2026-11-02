@@ -17,7 +17,7 @@ import {
   type ReleaseDetailDto,
   type ReleaseSummaryDto,
 } from "../_lib/reference-client";
-import { entryHref, formatDate, readableToken, releaseName, rulesReferenceHref, rulesetReferenceHref } from "../_lib/reference-urls";
+import { entryHref, formatDate, readableToken, releaseName, rulesReferenceHref, rulesetReferenceHref, weaponLibraryHref } from "../_lib/reference-urls";
 import { EntryCard } from "./EntryCard";
 import { ReferenceFilters, type ReferenceFilterValue } from "./ReferenceFilters";
 import { CompareWithSelector, IntegrityNotice, ReleaseSelector, ViewLatestReleaseButton } from "./ReleaseControls";
@@ -140,6 +140,10 @@ export function ReleaseBrowser({ rulesetId, releaseId }: { rulesetId: string; re
           <ReleaseSelector rulesetId={rulesetId} releaseId={releaseId} releases={releases} />
           <ViewLatestReleaseButton rulesetId={rulesetId} />
           <CompareWithSelector rulesetId={rulesetId} releaseId={releaseId} releases={releases} />
+          {/* M6-WO6: this exact Release's Weapon & Attack Library. */}
+          <Link className="gov-button" href={weaponLibraryHref(rulesetId, releaseId)} data-testid="reference-weapon-library-link">
+            Weapon Library
+          </Link>
         </div>
         <IntegrityNotice release={release} />
       </header>

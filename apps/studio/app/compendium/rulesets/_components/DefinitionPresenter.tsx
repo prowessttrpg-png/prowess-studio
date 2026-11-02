@@ -193,7 +193,24 @@ function FieldValue({ field, payload, context, keywordName }: { field: FieldDesc
       );
     case "authoredData":
     case "source":
-      return <StructuredValue value={value} path={path} context={context} />;
+    // M6-WO6 Weapon / Attack / Equipment Trait fields: shown exactly as stored (exact references link to this Release's pins).
+    case "nullableSelect":
+    case "text":
+    case "textList":
+    case "traitUses":
+    case "traitUse":
+    case "attackRefs":
+    case "damageProfiles":
+    case "weaponRequirements":
+    case "equippedModifiers":
+    case "grantedFeatures":
+    case "attackTargeting":
+    case "attackResolution":
+    case "traitParameters":
+    case "useSites":
+    case "traitContract":
+    case "equipmentSource":
+      return value === null || value === undefined ? <span className="gov-muted">not authored</span> : <StructuredValue value={value} path={path} context={context} />;
   }
 }
 

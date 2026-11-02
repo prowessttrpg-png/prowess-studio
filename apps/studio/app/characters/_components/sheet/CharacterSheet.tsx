@@ -6,7 +6,7 @@ import { CharacterApiError, getSheet, updatePlayState, updateSheetNotes, type Ch
 import { releaseLabel } from "../CharacterReview";
 import { PortraitFrame } from "./PortraitFrame";
 import { CompassStar } from "./SheetIcons";
-import { ActionsPanel, AffinityPanel, AttunementPanel, CarryPanel, CharacterNotesPanel, CoreValuesPanel, EquipmentPanel, GrantedEffectsPanel, PersonnelHeader, PossessionsPanel, ResourcesPanel, SheetModeContext, SkillsPanel, StatsPanel, type SheetMode } from "./SheetPanels";
+import { ActionsPanel, actionNoteLines, AffinityPanel, AttunementPanel, CarryPanel, CharacterNotesPanel, CoreValuesPanel, EquipmentPanel, GrantedEffectsPanel, PersonnelHeader, PossessionsPanel, ResourcesPanel, SheetModeContext, SkillsPanel, StatsPanel, type SheetMode } from "./SheetPanels";
 import "./character-sheet.css";
 
 /**
@@ -107,7 +107,8 @@ export function CharacterSheet({ characterId, mode = "digital" }: { characterId:
 
   const possessionsOverflow = notes.possessions.length > PRINT_POSSESSION_ROWS;
   const textOverflow = (value: string, lines: number) => value.split("\n").length > lines || value.length > lines * 90;
-  const supplemental = mode === "print" && (possessionsOverflow || textOverflow(notes.actionNotes, 14) || textOverflow(notes.characterNotes, 14));
+  const actionLines = actionNoteLines(sheet);
+  const supplemental = mode === "print" && (possessionsOverflow || textOverflow(notes.actionNotes, actionLines) || textOverflow(notes.characterNotes, 14));
 
   return (
     <SheetModeContext.Provider value={mode}>
@@ -152,7 +153,7 @@ export function CharacterSheet({ characterId, mode = "digital" }: { characterId:
           <PageHeader />
           <GrantedEffectsPanel sheet={sheet} mode={mode} />
           <AffinityPanel sheet={sheet} mode={mode} />
-          <EquipmentPanel sheet={sheet} />
+          <EquipmentPanel sheet={sheet} onLoadoutSaved={() => void getSheet(characterId).then((next) => accept(next, false))} />
           <div className="sheet-p2-pair">
             <AttunementPanel sheet={sheet} />
             <CarryPanel sheet={sheet} />
@@ -167,7 +168,7 @@ export function CharacterSheet({ characterId, mode = "digital" }: { characterId:
           <article className="sheet-page sheet-page--supplement" aria-label="Character Sheet supplemental page" data-testid="sheet-page-supplement">
             <PageHeader />
             <h2 className="sheet-section__banner sheet-section__heading">Supplemental — continued text</h2>
-            {textOverflow(notes.actionNotes, 14) ? (
+            {textOverflow(notes.actionNotes, actionLines) ? (
               <section>
                 <h3>Action Notes (complete)</h3>
                 <p className="sheet-lines__text">{notes.actionNotes}</p>

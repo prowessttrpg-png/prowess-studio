@@ -313,7 +313,8 @@ describe("new Definition form (§10–11, §55)", () => {
     render(<NewDefinitionForm />);
     fireEvent.change(await screen.findByLabelText("Definition family"), { target: { value: "EQUIPMENT" } });
     const kindSelect = screen.getByLabelText("Definition kind") as HTMLSelectElement;
-    expect([...kindSelect.options].find((o) => o.value === "WEAPON")).toMatchObject({ disabled: true });
+    // M6-WO6 activated WEAPON; ARMOR is still a reserved Equipment kind.
+    expect([...kindSelect.options].find((o) => o.value === "ARMOR")).toMatchObject({ disabled: true });
     fireEvent.change(screen.getByLabelText("Definition family"), { target: { value: "SPELL" } });
     fireEvent.change(screen.getByLabelText("Definition kind"), { target: { value: "SPELL_EFFECT" } });
     expect(screen.getByText(/Stored as Entity Type/)).toHaveTextContent("SPELL_EFFECT");

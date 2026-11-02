@@ -11,6 +11,10 @@ export const rulesReferenceHref = () => "/compendium/rulesets";
 export const rulesetReferenceHref = (rulesetId: string) => `/compendium/rulesets/${enc(rulesetId)}`;
 export const releaseHref = (rulesetId: string, releaseId: string) => `/compendium/rulesets/${enc(rulesetId)}/releases/${enc(releaseId)}`;
 export const entryHref = (rulesetId: string, releaseId: string, entityId: string) => `${releaseHref(rulesetId, releaseId)}/entities/${enc(entityId)}`;
+/** M6-WO6: the exact Release's Weapon Library, one Weapon, one Attack (always Release-scoped — never latest). */
+export const weaponLibraryHref = (rulesetId: string, releaseId: string) => `${releaseHref(rulesetId, releaseId)}/weapons`;
+export const weaponHref = (rulesetId: string, releaseId: string, entityId: string) => `${weaponLibraryHref(rulesetId, releaseId)}/${enc(entityId)}`;
+export const attackHref = (rulesetId: string, releaseId: string, entityId: string) => `${releaseHref(rulesetId, releaseId)}/attacks/${enc(entityId)}`;
 export const comparisonHref = (rulesetId: string, releaseId: string, otherReleaseId: string) => `${releaseHref(rulesetId, releaseId)}/compare/${enc(otherReleaseId)}`;
 
 /** The Entity Library (all revisions, not Release-scoped) — revision history and revision comparison live there. */

@@ -157,7 +157,10 @@ describe("M6-WO4 gate — persistence and service (§39–§42, §49–§50)", (
 
   it("M6-I044 one CharacterMechanicalProfile builder — the service and Studio never assemble a profile themselves", () => {
     expect([...ADVANCEMENT.matchAll(/export function buildCharacterMechanicalProfile\(/g)]).toHaveLength(1);
-    const builders = [...code("packages/prowess-game/src"), ...code("packages/prowess-db/src"), ...code("packages/prowess-model/src"), ...code("apps/studio/app"), ...code("apps/studio/src")].filter((f) => /buildCharacterMechanicalProfile\(/.test(strip(read(f))));
+    const builders = [...code("packages/prowess-game/src"), ...code("packages/prowess-db/src"), ...code("packages/prowess-model/src"), ...code("apps/studio/app"), ...code("apps/studio/src")]
+      // Test-only fixtures (src/testing/, never exported) may build a profile exactly as a test does (M6-WO6 weapon fixtures).
+      .filter((f) => !f.startsWith("packages/prowess-game/src/testing/"))
+      .filter((f) => /buildCharacterMechanicalProfile\(/.test(strip(read(f))));
     expect(builders.sort()).toEqual(["packages/prowess-db/src/character/progression.ts", "packages/prowess-game/src/character/advancement.ts"]);
     expect(ELIGIBILITY).toMatch(/profile: CharacterMechanicalProfile/);
     expect(ELIGIBILITY).not.toMatch(/validateCharacterCreation|statAllocations|history/);

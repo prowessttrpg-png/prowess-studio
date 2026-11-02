@@ -110,7 +110,8 @@ function characterOf(profile: CharacterMechanicalProfile) {
     baseHp: profile.baseHp,
     baseMp: profile.baseMp,
     skillRanks: profile.constructionContext.skillRanks,
-    explicitBonuses: [],
+    // M6-WO6: equipped Weapons' derived bonuses travel with the profile (absent when nothing is equipped).
+    explicitBonuses: profile.equipment?.explicitBonuses ?? [],
   };
 }
 
@@ -247,7 +248,8 @@ export function buildCharacterSheetMechanics(request: { readonly bundle: Prowess
       characterDie: profile.characterDie,
       characterDc: derived("CHARACTER_DC"),
       accuracy: derived("ACCURACY"),
-      armor: derived("STRENGTH_ARMOR"),
+      // M6-WO6: while equipped, Armor is the profile's derived equipment total (STRENGTH_ARMOR + equipped modifiers).
+      armor: profile.equipment?.armor ? { ...derived("STRENGTH_ARMOR"), value: profile.equipment.armor.total } : derived("STRENGTH_ARMOR"),
       dodge: derived("DODGE"),
       initiative: modifier("INITIATIVE", null),
       movement: derived("MOVEMENT"),

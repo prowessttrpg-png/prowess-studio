@@ -56,6 +56,14 @@ const WO1_LATER_MILESTONE_FILES = new Set([
   "packages/prowess-game/src/ability/compile.ts",
   "packages/prowess-game/src/definition/trait-payload.ts",
   "packages/prowess-game/src/definition/authored-ability-payload.ts",
+  // PAS-10 M6-WO6 Weapon & Attack Library: the authored Move AP / MP fields and exact Weapon references are audited by the
+  // dedicated M6-WO6 gate (apps/studio/tests/unit/m6-wo6-static.test.ts), with exactly those two allowances.
+  "packages/prowess-game/src/definition/equipment-payload.ts",
+  "packages/prowess-game/src/equipment/bridge.ts",
+  "packages/prowess-game/src/equipment/catalog.ts",
+  "packages/prowess-game/src/equipment/damage.ts",
+  "packages/prowess-game/src/equipment/library.ts",
+  "packages/prowess-game/src/equipment/loadout.ts",
 ]);
 const WO1_GAME = GAME.filter((f) => !WO1_LATER_MILESTONE_FILES.has(f));
 const RULES = production("packages/prowess-rules/src");
