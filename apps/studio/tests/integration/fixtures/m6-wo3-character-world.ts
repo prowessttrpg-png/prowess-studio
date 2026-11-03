@@ -93,7 +93,11 @@ export function resolveContentRefs(value: unknown, pins: Map<string, Pin>): unkn
 /** M6-WO6: the approved baseline Weapon catalog content file (source data, read as JSON — never a runtime constant). */
 export const weaponRows = () => (JSON.parse(readFileSync(path.join(CONTENT, "weapons.json"), "utf8")) as { definitions: (Row & { displayName: string })[] }).definitions;
 
-export async function seedCharacterWorld(prefix: string, label = "R1", options: { advancement?: boolean; weapons?: boolean } = {}): Promise<CharacterWorld> {
+/** M6-WO7: the M5 Spell test components (packages/prowess-game/src/testing/m6-wo7-spell-world.json; test content, never canon). */
+const SPELL_WORLD = path.resolve(__dirname, "../../../../../packages/prowess-game/src/testing/m6-wo7-spell-world.json");
+export const spellWorld = () => JSON.parse(readFileSync(SPELL_WORLD, "utf8")) as { keywords: string[]; definitions: Array<Row & { schemaVersion: number }> };
+
+export async function seedCharacterWorld(prefix: string, label = "R1", options: { advancement?: boolean; weapons?: boolean; spells?: boolean } = {}): Promise<CharacterWorld> {
   const k = await kinds();
   const tag = `${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
   const pins = new Map<string, Pin>();
@@ -113,9 +117,12 @@ export async function seedCharacterWorld(prefix: string, label = "R1", options: 
     // Arcana / Martial Skills) and one component whose structured prerequisite is Arcana EXPERT.
     await add(ADVANCEMENT_RULE_KEY, "CHARACTER_ADVANCEMENT_RULE", 1, advancementRulePayload());
     for (const k of ["skill.arcana", "skill.martial"]) await add(k, "SKILL", 1, { ladderKey: "SKILL", source: SOURCE });
-    const rule = JSON.parse(JSON.stringify(rows("ability-construction.json")[0]!.payload)) as { spell: { arcaneAuthority: { skillKey: string } }; maneuver: { martial: { skillKey: string } } };
+    // `spells: true` (M6-WO7) pins the CURRENT construction rule (WO9 … WO13 policies) the Spell engine reads.
+    const ruleSource = options.spells === true ? spellWorld().definitions.find((d) => d.definitionKind === "ABILITY_CONSTRUCTION_RULE")!.payload : rows("ability-construction.json")[0]!.payload;
+    const rule = JSON.parse(JSON.stringify(ruleSource)) as { spell: { arcaneAuthority: { skillKey: string } }; maneuver: { martial: { skillKey: string } }; effectExecutionPolicy?: { martialSkillKey: string } };
     rule.spell.arcaneAuthority.skillKey = pins.get("skill.arcana")!.canonicalKey;
     rule.maneuver.martial.skillKey = pins.get("skill.martial")!.canonicalKey;
+    if (rule.effectExecutionPolicy !== undefined) rule.effectExecutionPolicy.martialSkillKey = pins.get("skill.martial")!.canonicalKey;
     await add("construction.ability_rules", "ABILITY_CONSTRUCTION_RULE", 1, rule);
     await add("test.m6wo4.effect.expert_lore", "SPELL_EFFECT", 1, {
       effectFamily: "UTILITY",
@@ -123,6 +130,16 @@ export async function seedCharacterWorld(prefix: string, label = "R1", options: 
       outcomes: [{ outcomeKey: "on-fail", data: { authored: true } }],
       rules: { construction: { prerequisites: [{ prerequisiteKey: "ARCANA_EXPERT", kind: "SKILL_RANK_AT_LEAST", skillKey: pins.get("skill.arcana")!.canonicalKey, minimumRank: "EXPERT" }] } },
     });
+  }
+
+  // M6-WO7: every Spell component of the M5 Spell test fixture, refs resolved to this world's pins and Skill keys to its
+  // test-scoped Skills, plus the M1 Keywords they author (needs `advancement: true`).
+  if (options.spells === true) {
+    const world = spellWorld();
+    for (const key of world.keywords) await prisma.keywordDefinition.upsert({ where: { canonicalKey: key }, create: { canonicalKey: key, name: key.replace(/^keyword\./, "").replaceAll("_", " ") }, update: {} });
+    const skills: Record<string, string> = { "skill.arcana": pins.get("skill.arcana")!.canonicalKey, "skill.martial": pins.get("skill.martial")!.canonicalKey };
+    const rekey = (v: unknown): unknown => (Array.isArray(v) ? v.map(rekey) : v !== null && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([key, x]) => [key, key === "skillKey" && typeof x === "string" ? (skills[x] ?? x) : rekey(x)])) : v);
+    for (const d of world.definitions.filter((x) => x.definitionKind !== "ABILITY_CONSTRUCTION_RULE")) await add(d.canonicalKey, d.definitionKind, d.schemaVersion, rekey(resolveContentRefs(d.payload, pins)));
   }
 
   // M6-WO6: the approved baseline Weapon catalog — Equipment Traits, Attacks, then Weapons (exact refs to this world's pins).
@@ -220,6 +237,20 @@ export async function cleanupCharacterWorlds(prefix: string): Promise<void> {
   await prisma.characterPortrait.deleteMany(sheetWhere);
   // M6-WO6: the Weapon loadout references the Character and the exact Weapon EntityVersions (RESTRICT).
   await prisma.characterWeaponLoadout.deleteMany(sheetWhere);
+  // M6-WO7: Signature Spell revisions are append-only (database guard); teardown lifts it for its own rows only,
+  // removing revisions newest first (each names its predecessor, RESTRICT).
+  const abilityIds = (await prisma.characterSignatureAbility.findMany(sheetWhere)).map((a: { id: string }) => a.id);
+  if (abilityIds.length > 0) {
+    await prisma.characterSignatureAbility.updateMany({ where: { id: { in: abilityIds } }, data: { currentRevisionId: null, status: "DRAFT", retiredAt: null } });
+    await prisma.$executeRawUnsafe('ALTER TABLE "character_signature_spell_revisions" DISABLE TRIGGER "character_signature_spell_revisions_append_only"');
+    try {
+      const revisions = await prisma.characterSignatureSpellRevision.findMany({ where: { abilityId: { in: abilityIds } }, select: { id: true }, orderBy: { revisionNumber: "desc" } });
+      for (const r of revisions) await prisma.characterSignatureSpellRevision.delete({ where: { id: r.id } });
+    } finally {
+      await prisma.$executeRawUnsafe('ALTER TABLE "character_signature_spell_revisions" ENABLE TRIGGER "character_signature_spell_revisions_append_only"');
+    }
+    await prisma.characterSignatureAbility.deleteMany({ where: { id: { in: abilityIds } } });
+  }
   await prisma.character.deleteMany({ where: { id: { in: characterIds } } });
   const inR = { rulesetId: { in: rulesetIds } };
   await prisma.rulesetRelease.deleteMany({ where: inR });

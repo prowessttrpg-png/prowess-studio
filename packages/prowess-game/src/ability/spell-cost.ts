@@ -75,15 +75,15 @@ export interface SpellCostPercentPlan {
   readonly definitions: readonly ProwessDefinitionRef[];
 }
 
-export interface ProwessSpellCostCompiledPlan {
+export interface ProwessSpellCostCompiledPlan<S = ProwessDefinitionRef> {
   readonly contractVersion: 1;
   readonly subject: { readonly kind: "SPELL_COST"; readonly subjectKey: string };
   readonly rulesetProvenance: ProwessRulesetProvenance;
-  readonly definition: ProwessDefinitionRef;
+  readonly definition: S;
   readonly evaluationPlan: EvaluationPlan;
   readonly sourceMap: ProwessCompilationSourceMap;
   /** The canonical authored Ability plan this cost plan extends (its steps are the first steps of `evaluationPlan`). */
-  readonly ability: ProwessAbilityDefinitionCompiledPlan;
+  readonly ability: ProwessAbilityDefinitionCompiledPlan<S>;
   /** The WO4 Affinity steps included (null when the Spell has no governing Affinity). Its listed-cost step is never included. */
   readonly affinity: { readonly governing: ProwessDefinitionRef; readonly stepKeys: readonly string[] } | null;
   readonly contributions: readonly SpellCostContributionPlan[];
@@ -101,12 +101,12 @@ export interface ProwessSpellCostCompiledPlan {
   };
 }
 
-export interface SpellCostResult {
+export interface SpellCostResult<S = ProwessDefinitionRef> {
   readonly status: "VALID" | "INVALID";
   readonly valid: boolean;
-  readonly definition: ProwessDefinitionRef;
+  readonly definition: S;
   readonly rulesetProvenance: ProwessRulesetProvenance;
-  readonly authored: AuthoredAbilityResult;
+  readonly authored: AuthoredAbilityResult<S>;
   readonly mp: {
     readonly contributions: readonly (Omit<SpellCostContributionPlan, "stepKey"> & { readonly value: number; readonly stepKey: string })[];
     readonly baseMpCost: number;
@@ -124,7 +124,7 @@ export interface SpellCostResult {
     readonly modifiers: readonly { readonly contributionKey: string; readonly operation: string; readonly value: number; readonly applied: boolean }[];
     readonly finalApCost: number;
   };
-  readonly steps: ProwessSpellCostCompiledPlan["steps"];
+  readonly steps: ProwessSpellCostCompiledPlan<S>["steps"];
   readonly problems: readonly { readonly code: string; readonly path: string; readonly message: string }[];
 }
 
@@ -155,10 +155,20 @@ export function compileSpellCost(request: unknown): ProwessOutcome<ProwessSpellC
     p.add(K.INVALID_PRO, ["character", "stats", "PRO"], "Spell AP divides final MP by the caster's Prowess Score: an explicit positive integer is required");
     return finish(p, () => null as never);
   }
+  return compileSpellCostCore(p, r, plan, pro, { subjectRefs: [plan.definition], sourceKey: plan.definition.canonicalKey, sourceId: plan.definition.entityVersionId });
+}
 
+/**
+ * The WO10 cost plan over an already compiled authored Spell plan — shared by `compileSpellCost` (an exact Release
+ * `SPELL_DEFINITION`) and the PAS-10 M6-WO7 Character Signature Spell adapter (approved additive change). Only the
+ * subject citation differs: `subjectRefs` (the Spell Definition, or none for a Character-owned Spell) and the source
+ * identity of the minimum-AP modifier. Internal (not part of the public surface).
+ */
+export function compileSpellCostCore<S>(p: Problems, r: Record<string, unknown>, plan: ProwessAbilityDefinitionCompiledPlan<S>, pro: number, subject: { readonly subjectRefs: readonly ProwessDefinitionRef[]; readonly sourceKey: string; readonly sourceId: string }): ProwessOutcome<ProwessSpellCostCompiledPlan<S>> {
   const steps: EvaluationStep[] = plan.evaluationPlan.steps.map((s) => clonePlainData(s));
   const entries: ProwessSourceMapEntry[] = plan.sourceMap.entries.map((e) => clonePlainData(e));
-  const spellRef = plan.definition;
+  const subjectRefs = subject.subjectRefs;
+  const spellRef = { canonicalKey: subject.sourceKey, entityVersionId: subject.sourceId };
   const subjectKey = plan.subject.subjectKey;
   const push = (step: Omit<EvaluationStep, "order">, entry: Omit<ProwessSourceMapEntry, "order" | "stepKey" | "operation">) => {
     if (steps.some((s) => s.stepKey === step.stepKey)) p.add(K.DUPLICATE_CONTRIBUTION, [step.stepKey], "duplicate compiled step identity");
@@ -169,7 +179,7 @@ export function compileSpellCost(request: unknown): ProwessOutcome<ProwessSpellC
   };
   const key = (k: string) => `wo10.${subjectKey}.${k}`;
   const formula = (k: string, slot: keyof typeof POLICY.formulas, variables: Record<string, number>, bindings: EvaluationBinding[], role: string, definitions: readonly ProwessDefinitionRef[], componentKeys: readonly string[]) =>
-    push({ stepKey: key(k), operation: "FORMULA", input: { program: { expression: POLICY.formulas[slot].expression, rounding: "NONE" }, variables } as unknown as JsonObject, bindings }, { role, componentKeys, definitions: [spellRef, ...definitions] });
+    push({ stepKey: key(k), operation: "FORMULA", input: { program: { expression: POLICY.formulas[slot].expression, rounding: "NONE" }, variables } as unknown as JsonObject, bindings }, { role, componentKeys, definitions: [...subjectRefs, ...definitions] });
 
   // ---- 1. Listed component contributions (exact WO6 / WO7 / WO8 / WO9 outputs; nothing re-priced) -------------------
   const contributions: SpellCostContributionPlan[] = [];
@@ -234,8 +244,8 @@ export function compileSpellCost(request: unknown): ProwessOutcome<ProwessSpellC
     }
   }
   if (p.count > 0) return finish(p, () => null as never);
-  const provenance = { sourceType: "prowess.spell_cost", sourceKey: spellRef.canonicalKey, sourceId: spellRef.entityVersionId };
-  const modifier = (modifierKey: string, targetKey: string, operation: string, phaseKey: string, phaseOrder: number, order: number, sourceRef: ProwessDefinitionRef) => ({
+  const provenance = { sourceType: "prowess.spell_cost", sourceKey: subject.sourceKey, sourceId: subject.sourceId };
+  const modifier = (modifierKey: string, targetKey: string, operation: string, phaseKey: string, phaseOrder: number, order: number, sourceRef: { readonly canonicalKey: string; readonly entityVersionId: string }) => ({
     modifierKey,
     targetKey,
     operation,
@@ -258,7 +268,7 @@ export function compileSpellCost(request: unknown): ProwessOutcome<ProwessSpellC
       input: { request: { targets: [{ targetKey: BASE_TARGET, kind: "NUMERIC", value: 0 }], modifiers: mp.map((c, i) => modifier(c.contributionKey, BASE_TARGET, c.operation === "ADD_MP" ? "ADD" : "SUBTRACT", "spell.base_mp", 1, i, c.definition)), facts: emptyFacts() } } as unknown as JsonObject,
       bindings: mp.map((c, i) => bind(`/request/modifiers/${String(i)}/operand`, c.stepKey)),
     },
-    { role: "spell-base-mp", componentKeys: [...new Set(mp.map((c) => c.componentKey))], definitions: [spellRef, ...mp.map((c) => c.definition)] },
+    { role: "spell-base-mp", componentKeys: [...new Set(mp.map((c) => c.componentKey))], definitions: [...subjectRefs, ...mp.map((c) => c.definition)] },
   );
 
   // ---- 3. ONE net percentage (M5-SC-028): the WO4 Strength / Weakness stages + the WO9 EFFECTIVE Condition reduction --
@@ -283,7 +293,7 @@ export function compileSpellCost(request: unknown): ProwessOutcome<ProwessSpellC
     for (const s of a.evaluationPlan.steps) {
       if (excluded.has(s.stepKey)) continue;
       const entry = a.sourceMap.entries.find((e) => e.stepKey === s.stepKey)!;
-      kept.push(push({ stepKey: s.stepKey, operation: s.operation, input: clonePlainData(s.input), bindings: clonePlainData(s.bindings) }, { role: entry.role, componentKeys: entry.componentKeys, definitions: [spellRef, ...entry.definitions] }));
+      kept.push(push({ stepKey: s.stepKey, operation: s.operation, input: clonePlainData(s.input), bindings: clonePlainData(s.bindings) }, { role: entry.role, componentKeys: entry.componentKeys, definitions: [...subjectRefs, ...entry.definitions] }));
     }
     const net = a.evaluationPlan.steps.find((s) => s.stepKey === a.outputs.cost!.netStepKey)!;
     const request = (net.input as { request: { modifiers: JsonObject[] } }).request;
@@ -302,14 +312,14 @@ export function compileSpellCost(request: unknown): ProwessOutcome<ProwessSpellC
   }
   const netPercent = push(
     { stepKey: key("net_percent"), operation: "MODIFIER", input: { request: { targets: [{ targetKey: NET_TARGET, kind: "NUMERIC", value: POLICY.fullPricePercent }], modifiers: netModifiers, facts: emptyFacts() } } as unknown as JsonObject, bindings: netBindings },
-    { role: "spell-net-cost-percent", componentKeys: [], definitions: [spellRef, ...percentages.flatMap((q) => q.definitions)] },
+    { role: "spell-net-cost-percent", componentKeys: [], definitions: [...subjectRefs, ...percentages.flatMap((q) => q.definitions)] },
   );
 
   // ---- 4. Applied once; rounded once ----------------------------------------------------------------------------------
   const unrounded = formula("unrounded_mp", "unrounded", { base: 0, net: 0 }, [bind("/variables/base", baseMp, "/data/finalTargets/0/value"), bind("/variables/net", netPercent, "/data/finalTargets/0/value")], "spell-unrounded-final-mp", [], []);
   const nonNegative = push(
     { stepKey: key("non_negative"), operation: "REQUIREMENT", input: { requirement: { kind: "NUMERIC_COMPARE", factKey: "spell.unrounded_mp", operator: ">=", expected: 0, provenance: null }, facts: { ...emptyFacts(), numeric: [{ key: "spell.unrounded_mp", value: 0, provenance: null }] } } as unknown as JsonObject, bindings: [bind("/facts/numeric/0/value", unrounded)] },
-    { role: "spell-final-mp-non-negative", componentKeys: [], definitions: [spellRef] },
+    { role: "spell-final-mp-non-negative", componentKeys: [], definitions: [...subjectRefs] },
   );
   const finalMp = formula("final_mp", "finalMp", { unrounded: 0 }, [bind("/variables/unrounded", unrounded)], "spell-final-mp-rounding", [], []);
 
@@ -332,7 +342,7 @@ export function compileSpellCost(request: unknown): ProwessOutcome<ProwessSpellC
       } as unknown as JsonObject,
       bindings: [bind("/request/targets/0/value", baseAp), ...apMods.map((c, i) => bind(`/request/modifiers/${String(i)}/operand`, c.stepKey))],
     },
-    { role: "spell-final-ap", componentKeys: [...new Set(apMods.map((c) => c.componentKey))], definitions: [spellRef, ...apMods.map((c) => c.definition)] },
+    { role: "spell-final-ap", componentKeys: [...new Set(apMods.map((c) => c.componentKey))], definitions: [...subjectRefs, ...apMods.map((c) => c.definition)] },
   );
 
   // ---- 6. Explanation of every cost step -------------------------------------------------------------------------------
@@ -344,7 +354,7 @@ export function compileSpellCost(request: unknown): ProwessOutcome<ProwessSpellC
       input: { input: { explanationKey: key("explanation"), contributions: explained.map((s, i) => ({ contributionKey: s.stepKey, order: i, kind: s.operation === "FORMULA" ? "FORMULA" : s.operation === "KEYWORD" ? "KEYWORD" : s.operation === "MODIFIER" ? "MODIFIER" : "REQUIREMENT", response: null })) } } as unknown as JsonObject,
       bindings: explained.map((s, i) => bind(`/input/contributions/${String(i)}/response`, s.stepKey, "")),
     },
-    { role: "spell-cost-explanation", componentKeys: [], definitions: [spellRef] },
+    { role: "spell-cost-explanation", componentKeys: [], definitions: [...subjectRefs] },
   );
   if (p.count > 0) return finish(p, () => null as never);
   return finish(p, () =>
@@ -352,7 +362,7 @@ export function compileSpellCost(request: unknown): ProwessOutcome<ProwessSpellC
       contractVersion: 1 as const,
       subject: { kind: "SPELL_COST" as const, subjectKey },
       rulesetProvenance: plan.rulesetProvenance,
-      definition: spellRef,
+      definition: plan.definition,
       evaluationPlan: { steps, primaryStepKey: finalMp, validationStepKey: null, explanationStepKey: explanation },
       sourceMap: { entries },
       ability: plan,
@@ -366,7 +376,7 @@ export function compileSpellCost(request: unknown): ProwessOutcome<ProwessSpellC
 }
 
 /** Reads an M4 run of a Spell cost plan. Every number comes from M4; nothing here computes. */
-export function readSpellCostRun(plan: ProwessSpellCostCompiledPlan, run: unknown): ProwessOutcome<SpellCostResult> {
+export function readSpellCostRun<S = ProwessDefinitionRef>(plan: ProwessSpellCostCompiledPlan<S>, run: unknown): ProwessOutcome<SpellCostResult<S>> {
   const p = new Problems();
   if (!checkPlainData(run, [], p, K.INCOMPLETE_RUN)) return finish(p, () => null as never);
   if (!isPlainObject(run) || !Array.isArray(run.steps)) {

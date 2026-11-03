@@ -280,3 +280,16 @@ export type { ReferenceAttack, ReferenceTraitUse, ReferenceWeapon, ReferenceWeap
 // PAS-10 M6-WO6 — Weapon & Attack Library (loadout choice; the Attack Library and shield bonuses are derived by @prowess/game).
 export { getCharacterAttacks, getCharacterWeapons, updateCharacterWeaponLoadout } from "./character/index.js";
 export type { CharacterAttacksView, CharacterWeaponOption, CharacterWeaponsView, EquippedSummary } from "./character/index.js";
+// PAS-10 M6-WO7 — Signature Spell Builder (Character-owned Spells; the M5 engine evaluates every read and write).
+export {
+  createCharacterSignatureSpell,
+  finalizeCharacterSignatureSpell,
+  getCharacterAbilities,
+  getCharacterSignatureSpell,
+  getSignatureSpellBuilder,
+  rebuildCharacterSignatureSpell,
+  retireCharacterSignatureSpell,
+  updateCharacterSignatureSpellDraft,
+  validateCharacterSignatureSpell,
+} from "./character/index.js";
+export type { CharacterAbilitiesView, SignatureSpellBuilderView, SignatureSpellDetailView, SignatureSpellEntry, SheetSignatureSpell } from "./character/index.js";

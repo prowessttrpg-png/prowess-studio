@@ -218,8 +218,8 @@ describe("M6-WO3 gate — Studio presents, never decides (§52, §60, §65, §70
   it("WO3 builds no equipment, ability, advancement or job-class feature (§75–§80, §115)", () => {
     const all = [...UI, ...ROUTES].map((f) => strip(read(f))).join("\n");
     // Advancement, Level-up and secondary Affinities arrived with M6-WO4 (its own gate); WO3 still builds no equipment,
-    // ability records, respec or job class.
-    expect(all).not.toMatch(/inventory|addWeapon|equipItem|createSpell|createManeuver|respec|jobClass/i);
+    // ability records, respec or job class. Character Signature Spells arrived with M6-WO7 (its own gate, m6-wo7-static).
+    expect(all).not.toMatch(/inventory|addWeapon|equipItem|createManeuver|respec|jobClass/i);
     expect(ROUTES.map((f) => f.replace("apps/studio/app/api/", "")).sort()).toEqual([
       "character-creation/releases/[releaseId]/capability/route.ts",
       "characters/[characterId]/creation-context/route.ts",

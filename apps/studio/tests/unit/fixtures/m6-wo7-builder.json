@@ -1,0 +1,3412 @@
+{
+ "finalized": {
+  "character": {
+   "id": "18f899af-10e3-47c8-8073-c274a33250b7",
+   "name": "Dumper",
+   "level": 1,
+   "lockVersion": 3
+  },
+  "release": {
+   "id": "275a12b9-e205-49cc-b26b-2a5c484741e5",
+   "rulesetId": "da13f305-ad7a-4cc0-af04-f2ccb4108c6f",
+   "rulesetName": "Core Playtest",
+   "releaseNumber": 1,
+   "versionLabel": "R1",
+   "channel": "CORE_PLAYTEST"
+  },
+  "signature": {
+   "capacity": 4,
+   "used": 1
+  },
+  "spell": {
+   "id": "622587de-b3fb-4b63-8969-b5206ee3b462",
+   "abilityKind": "SPELL",
+   "status": "ACTIVE",
+   "lockVersion": 3,
+   "createdAt": "2026-11-02T04:07:22.654Z",
+   "retiredAt": null,
+   "current": {
+    "revisionId": "e8dff56e-ce2e-4626-833c-1bdf308e9702",
+    "revisionNumber": 1,
+    "createdAt": "2026-11-02T04:07:24.001Z",
+    "draft": {
+     "additionalAffinityTraits": [],
+     "affinity": null,
+     "authority": "ARCANE_AUTHORITY",
+     "castingConditions": [],
+     "concept": {
+      "description": "",
+      "name": "Ember Bolt",
+      "narrativeTags": [],
+      "notes": "",
+      "visualDescription": ""
+     },
+     "constructionOptions": {
+      "effectSlotsTradedForTraits": 0
+     },
+     "duration": {
+      "definition": {
+       "canonicalKey": "m6wo7.spell_duration_instant",
+       "definitionKind": "SPELL_DURATION",
+       "entityId": "fce68a72-5392-4dae-95ab-70600f7e2656",
+       "entityVersionId": "343e2ddd-9839-4923-817a-1f12c1f008ae",
+       "systemFamily": "SPELL"
+      },
+      "parameters": {}
+     },
+     "effectChain": null,
+     "effects": [
+      {
+       "componentKey": "effect1",
+       "definition": {
+        "canonicalKey": "m6wo7.fixture_wo10_effect_damage",
+        "definitionKind": "SPELL_EFFECT",
+        "entityId": "bb91d7a0-a901-4f20-b0a4-0025257d0a93",
+        "entityVersionId": "871a62c1-d5e9-4f7e-a28c-674def4a286d",
+        "systemFamily": "SPELL"
+       },
+       "order": 10,
+       "parameters": {
+        "dice": 1,
+        "mp": 8
+       }
+      }
+     ],
+     "schemaVersion": 1,
+     "targeting": {
+      "definition": {
+       "canonicalKey": "m6wo7.spell_targeting_single_target",
+       "definitionKind": "SPELL_TARGETING",
+       "entityId": "9ab8b0c4-59b4-4f3d-a37b-400779805daa",
+       "entityVersionId": "9dd1b32e-83da-4a95-a39c-c2862799d447",
+       "systemFamily": "SPELL"
+      },
+      "parameters": {}
+     },
+     "traits": []
+    },
+    "evaluation": {
+     "chain": {
+      "nodes": [
+       {
+        "attackType": "ABILITY_ATTACK",
+        "behavior": "SUCCESS_ONLY",
+        "behaviorSource": "RULED_DEFAULT",
+        "branch": null,
+        "branchDestination": false,
+        "definition": {
+         "canonicalKey": "m6wo7.fixture_wo10_effect_damage",
+         "definitionKind": "SPELL_EFFECT",
+         "entityId": "bb91d7a0-a901-4f20-b0a4-0025257d0a93",
+         "entityVersionId": "871a62c1-d5e9-4f7e-a28c-674def4a286d",
+         "systemFamily": "SPELL"
+        },
+        "deliveryInteraction": "NONE",
+        "effectKey": "effect1",
+        "family": "DAMAGE",
+        "formulaValues": [],
+        "order": 10,
+        "outcomes": [
+         {
+          "operations": [
+           {
+            "data": {
+             "damageTypeParameter": "damageType",
+             "diceParameter": "dice"
+            },
+            "kind": "DAMAGE"
+           }
+          ],
+          "outcomeKey": "SUCCESS"
+         },
+         {
+          "operations": [
+           {
+            "data": {},
+            "kind": "NO_EFFECT"
+           }
+          ],
+          "outcomeKey": "FAILURE"
+         }
+        ],
+        "parameters": [
+         {
+          "parameter": "dice",
+          "value": 1
+         },
+         {
+          "parameter": "damageType",
+          "value": "ARCANE"
+         },
+         {
+          "parameter": "mp",
+          "value": 8
+         }
+        ],
+        "resolution": "ATTACK_ROLL",
+        "route": "OWN",
+        "successor": null,
+        "throwFlow": null,
+        "traits": [],
+        "trigger": null
+       }
+      ],
+      "start": "effect1"
+     },
+     "components": [
+      {
+       "canonicalKey": "m6wo7.spell_targeting_single_target",
+       "definitionKind": "SPELL_TARGETING",
+       "entityId": "9ab8b0c4-59b4-4f3d-a37b-400779805daa",
+       "entityVersionId": "9dd1b32e-83da-4a95-a39c-c2862799d447",
+       "systemFamily": "SPELL"
+      },
+      {
+       "canonicalKey": "m6wo7.fixture_wo10_effect_damage",
+       "definitionKind": "SPELL_EFFECT",
+       "entityId": "bb91d7a0-a901-4f20-b0a4-0025257d0a93",
+       "entityVersionId": "871a62c1-d5e9-4f7e-a28c-674def4a286d",
+       "systemFamily": "SPELL"
+      },
+      {
+       "canonicalKey": "m6wo7.spell_duration_instant",
+       "definitionKind": "SPELL_DURATION",
+       "entityId": "fce68a72-5392-4dae-95ab-70600f7e2656",
+       "entityVersionId": "343e2ddd-9839-4923-817a-1f12c1f008ae",
+       "systemFamily": "SPELL"
+      }
+     ],
+     "construction": {
+      "access": {
+       "martialRankValue": null,
+       "minimumRank": "TRAINED",
+       "path": "ARCANE_AUTHORITY",
+       "rank": "TRAINED",
+       "rankSource": {
+        "kind": "SKILL",
+        "skillKey": "m6wo7.skill_arcana",
+        "track": "ARCANE"
+       },
+       "satisfied": true
+      },
+      "affinityAccess": [],
+      "capacity": {
+       "conditions": {
+        "capacity": 1,
+        "source": {
+         "rank": "TRAINED",
+         "track": "ARCANE"
+        }
+       },
+       "effects": {
+        "base": 1,
+        "remaining": 1
+       },
+       "trades": {
+        "exchangeAvailable": true,
+        "maximum": 0,
+        "requested": 0
+       },
+       "traits": {
+        "base": 1,
+        "effective": 1
+       }
+      },
+      "prerequisites": [
+       {
+        "componentKey": "effect1",
+        "ruleKey": "prerequisite.effect1.skill_arcana_trained",
+        "satisfied": true
+       }
+      ],
+      "signature": {
+       "availableAfter": 3,
+       "candidateUse": 1,
+       "capacity": 4,
+       "exemption": null,
+       "projected": 1,
+       "satisfied": true,
+       "slotUse": "DEFAULT",
+       "usedBefore": 0
+      },
+      "traitCapacity": {
+       "affinityAdditional": {
+        "capacity": null,
+        "conflictKey": "M5-SC-042",
+        "used": 0
+       },
+       "ordinary": {
+        "base": 1,
+        "effective": 1,
+        "used": 0
+       }
+      },
+      "usage": {
+       "conditions": 0,
+       "effects": 1,
+       "traits": 0
+      },
+      "valid": true
+     },
+     "cost": {
+      "apModifiers": [],
+      "baseAp": 2,
+      "baseMp": 11,
+      "castingConditions": {
+       "effectivePercent": 0,
+       "listedPercent": 0,
+       "maximumPercent": 30
+      },
+      "contributions": [
+       {
+        "componentKey": "targeting",
+        "contributionKey": "targeting.base",
+        "definition": {
+         "canonicalKey": "m6wo7.spell_targeting_single_target",
+         "definitionKind": "SPELL_TARGETING",
+         "entityId": "9ab8b0c4-59b4-4f3d-a37b-400779805daa",
+         "entityVersionId": "9dd1b32e-83da-4a95-a39c-c2862799d447",
+         "systemFamily": "SPELL"
+        },
+        "operation": "ADD_MP",
+        "rule": "BASE",
+        "source": "TARGETING",
+        "value": 3
+       },
+       {
+        "componentKey": "targeting",
+        "contributionKey": "targeting.range_extension",
+        "definition": {
+         "canonicalKey": "m6wo7.spell_targeting_single_target",
+         "definitionKind": "SPELL_TARGETING",
+         "entityId": "9ab8b0c4-59b4-4f3d-a37b-400779805daa",
+         "entityVersionId": "9dd1b32e-83da-4a95-a39c-c2862799d447",
+         "systemFamily": "SPELL"
+        },
+        "operation": "ADD_MP",
+        "rule": "PER_STEP",
+        "source": "TARGETING",
+        "value": 0
+       },
+       {
+        "componentKey": "effect1",
+        "contributionKey": "effect.wo10.mp",
+        "definition": {
+         "canonicalKey": "m6wo7.fixture_wo10_effect_damage",
+         "definitionKind": "SPELL_EFFECT",
+         "entityId": "bb91d7a0-a901-4f20-b0a4-0025257d0a93",
+         "entityVersionId": "871a62c1-d5e9-4f7e-a28c-674def4a286d",
+         "systemFamily": "SPELL"
+        },
+        "operation": "ADD_MP",
+        "rule": "PER_UNIT",
+        "source": "EFFECT",
+        "value": 8
+       }
+      ],
+      "finalApCost": 2,
+      "finalMpCost": 11,
+      "netPercent": 100,
+      "percentages": [
+       {
+        "applied": true,
+        "operation": "SUBTRACT",
+        "percent": 0,
+        "source": "CASTING_CONDITIONS"
+       }
+      ],
+      "pro": 4,
+      "unroundedMp": 11
+     },
+     "costUnresolved": [],
+     "effects": [
+      {
+       "componentKey": "effect1",
+       "family": "DAMAGE",
+       "parameters": [
+        {
+         "explicit": true,
+         "parameter": "dice",
+         "value": 1
+        },
+        {
+         "explicit": false,
+         "parameter": "damageType",
+         "value": "ARCANE"
+        },
+        {
+         "explicit": true,
+         "parameter": "mp",
+         "value": 8
+        }
+       ],
+       "problems": [],
+       "resolution": "ATTACK_ROLL",
+       "targetingStatus": "COMPATIBLE",
+       "valid": true
+      }
+     ],
+     "issues": [],
+     "keywords": [
+      "keyword.damage",
+      "keyword.direct_damage",
+      "keyword.instant_effect"
+     ],
+     "missing": [],
+     "runtime": {
+      "concentration": "NONE",
+      "deferred": [],
+      "manaLock": null,
+      "sustain": null
+     },
+     "state": "VALID",
+     "targeting": {
+      "compatibility": [
+       {
+        "allow": [
+         "PROJECTILE",
+         "SINGLE_TARGET",
+         "TOUCH"
+        ],
+        "componentKey": "effect1",
+        "definition": {
+         "canonicalKey": "m6wo7.fixture_wo10_effect_damage",
+         "definitionKind": "SPELL_EFFECT",
+         "entityId": "bb91d7a0-a901-4f20-b0a4-0025257d0a93",
+         "entityVersionId": "871a62c1-d5e9-4f7e-a28c-674def4a286d",
+         "systemFamily": "SPELL"
+        },
+        "modifier": null,
+        "status": "COMPATIBLE"
+       },
+       {
+        "allow": [],
+        "componentKey": "duration",
+        "definition": null,
+        "modifier": null,
+        "status": "NOT_DECLARED"
+       }
+      ],
+      "deferred": [],
+      "geometry": [],
+      "range": {
+       "baseRange": 45,
+       "model": "DEFAULT_SPELL_RANGE",
+       "ruleText": null,
+       "unit": "ft",
+       "value": 45
+      },
+      "targetCount": {
+       "count": 1,
+       "kind": "ONE",
+       "minimum": null,
+       "satisfied": true,
+       "status": "FIXED"
+      }
+     }
+    }
+   },
+   "draft": null,
+   "state": "VALID"
+  },
+  "history": [
+   {
+    "revisionId": "e8dff56e-ce2e-4626-833c-1bdf308e9702",
+    "revisionNumber": 1,
+    "createdAt": "2026-11-02T04:07:24.001Z",
+    "characterReleaseId": "275a12b9-e205-49cc-b26b-2a5c484741e5",
+    "current": true,
+    "draft": {
+     "additionalAffinityTraits": [],
+     "affinity": null,
+     "authority": "ARCANE_AUTHORITY",
+     "castingConditions": [],
+     "concept": {
+      "description": "",
+      "name": "Ember Bolt",
+      "narrativeTags": [],
+      "notes": "",
+      "visualDescription": ""
+     },
+     "constructionOptions": {
+      "effectSlotsTradedForTraits": 0
+     },
+     "duration": {
+      "definition": {
+       "canonicalKey": "m6wo7.spell_duration_instant",
+       "definitionKind": "SPELL_DURATION",
+       "entityId": "fce68a72-5392-4dae-95ab-70600f7e2656",
+       "entityVersionId": "343e2ddd-9839-4923-817a-1f12c1f008ae",
+       "systemFamily": "SPELL"
+      },
+      "parameters": {}
+     },
+     "effectChain": null,
+     "effects": [
+      {
+       "componentKey": "effect1",
+       "definition": {
+        "canonicalKey": "m6wo7.fixture_wo10_effect_damage",
+        "definitionKind": "SPELL_EFFECT",
+        "entityId": "bb91d7a0-a901-4f20-b0a4-0025257d0a93",
+        "entityVersionId": "871a62c1-d5e9-4f7e-a28c-674def4a286d",
+        "systemFamily": "SPELL"
+       },
+       "order": 10,
+       "parameters": {
+        "dice": 1,
+        "mp": 8
+       }
+      }
+     ],
+     "schemaVersion": 1,
+     "targeting": {
+      "definition": {
+       "canonicalKey": "m6wo7.spell_targeting_single_target",
+       "definitionKind": "SPELL_TARGETING",
+       "entityId": "9ab8b0c4-59b4-4f3d-a37b-400779805daa",
+       "entityVersionId": "9dd1b32e-83da-4a95-a39c-c2862799d447",
+       "systemFamily": "SPELL"
+      },
+      "parameters": {}
+     },
+     "traits": []
+    },
+    "evaluation": {
+     "chain": {
+      "nodes": [
+       {
+        "attackType": "ABILITY_ATTACK",
+        "behavior": "SUCCESS_ONLY",
+        "behaviorSource": "RULED_DEFAULT",
+        "branch": null,
+        "branchDestination": false,
+        "definition": {
+         "canonicalKey": "m6wo7.fixture_wo10_effect_damage",
+         "definitionKind": "SPELL_EFFECT",
+         "entityId": "bb91d7a0-a901-4f20-b0a4-0025257d0a93",
+         "entityVersionId": "871a62c1-d5e9-4f7e-a28c-674def4a286d",
+         "systemFamily": "SPELL"
+        },
+        "deliveryInteraction": "NONE",
+        "effectKey": "effect1",
+        "family": "DAMAGE",
+        "formulaValues": [],
+        "order": 10,
+        "outcomes": [
+         {
+          "operations": [
+           {
+            "data": {
+             "damageTypeParameter": "damageType",
+             "diceParameter": "dice"
+            },
+            "kind": "DAMAGE"
+           }
+          ],
+          "outcomeKey": "SUCCESS"
+         },
+         {
+          "operations": [
+           {
+            "data": {},
+            "kind": "NO_EFFECT"
+           }
+          ],
+          "outcomeKey": "FAILURE"
+         }
+        ],
+        "parameters": [
+         {
+          "parameter": "dice",
+          "value": 1
+         },
+         {
+          "parameter": "damageType",
+          "value": "ARCANE"
+         },
+         {
+          "parameter": "mp",
+          "value": 8
+         }
+        ],
+        "resolution": "ATTACK_ROLL",
+        "route": "OWN",
+        "successor": null,
+        "throwFlow": null,
+        "traits": [],
+        "trigger": null
+       }
+      ],
+      "start": "effect1"
+     },
+     "components": [
+      {
+       "canonicalKey": "m6wo7.spell_targeting_single_target",
+       "definitionKind": "SPELL_TARGETING",
+       "entityId": "9ab8b0c4-59b4-4f3d-a37b-400779805daa",
+       "entityVersionId": "9dd1b32e-83da-4a95-a39c-c2862799d447",
+       "systemFamily": "SPELL"
+      },
+      {
+       "canonicalKey": "m6wo7.fixture_wo10_effect_damage",
+       "definitionKind": "SPELL_EFFECT",
+       "entityId": "bb91d7a0-a901-4f20-b0a4-0025257d0a93",
+       "entityVersionId": "871a62c1-d5e9-4f7e-a28c-674def4a286d",
+       "systemFamily": "SPELL"
+      },
+      {
+       "canonicalKey": "m6wo7.spell_duration_instant",
+       "definitionKind": "SPELL_DURATION",
+       "entityId": "fce68a72-5392-4dae-95ab-70600f7e2656",
+       "entityVersionId": "343e2ddd-9839-4923-817a-1f12c1f008ae",
+       "systemFamily": "SPELL"
+      }
+     ],
+     "construction": {
+      "access": {
+       "martialRankValue": null,
+       "minimumRank": "TRAINED",
+       "path": "ARCANE_AUTHORITY",
+       "rank": "TRAINED",
+       "rankSource": {
+        "kind": "SKILL",
+        "skillKey": "m6wo7.skill_arcana",
+        "track": "ARCANE"
+       },
+       "satisfied": true
+      },
+      "affinityAccess": [],
+      "capacity": {
+       "conditions": {
+        "capacity": 1,
+        "source": {
+         "rank": "TRAINED",
+         "track": "ARCANE"
+        }
+       },
+       "effects": {
+        "base": 1,
+        "remaining": 1
+       },
+       "trades": {
+        "exchangeAvailable": true,
+        "maximum": 0,
+        "requested": 0
+       },
+       "traits": {
+        "base": 1,
+        "effective": 1
+       }
+      },
+      "prerequisites": [
+       {
+        "componentKey": "effect1",
+        "ruleKey": "prerequisite.effect1.skill_arcana_trained",
+        "satisfied": true
+       }
+      ],
+      "signature": {
+       "availableAfter": 3,
+       "candidateUse": 1,
+       "capacity": 4,
+       "exemption": null,
+       "projected": 1,
+       "satisfied": true,
+       "slotUse": "DEFAULT",
+       "usedBefore": 0
+      },
+      "traitCapacity": {
+       "affinityAdditional": {
+        "capacity": null,
+        "conflictKey": "M5-SC-042",
+        "used": 0
+       },
+       "ordinary": {
+        "base": 1,
+        "effective": 1,
+        "used": 0
+       }
+      },
+      "usage": {
+       "conditions": 0,
+       "effects": 1,
+       "traits": 0
+      },
+      "valid": true
+     },
+     "cost": {
+      "apModifiers": [],
+      "baseAp": 2,
+      "baseMp": 11,
+      "castingConditions": {
+       "effectivePercent": 0,
+       "listedPercent": 0,
+       "maximumPercent": 30
+      },
+      "contributions": [
+       {
+        "componentKey": "targeting",
+        "contributionKey": "targeting.base",
+        "definition": {
+         "canonicalKey": "m6wo7.spell_targeting_single_target",
+         "definitionKind": "SPELL_TARGETING",
+         "entityId": "9ab8b0c4-59b4-4f3d-a37b-400779805daa",
+         "entityVersionId": "9dd1b32e-83da-4a95-a39c-c2862799d447",
+         "systemFamily": "SPELL"
+        },
+        "operation": "ADD_MP",
+        "rule": "BASE",
+        "source": "TARGETING",
+        "value": 3
+       },
+       {
+        "componentKey": "targeting",
+        "contributionKey": "targeting.range_extension",
+        "definition": {
+         "canonicalKey": "m6wo7.spell_targeting_single_target",
+         "definitionKind": "SPELL_TARGETING",
+         "entityId": "9ab8b0c4-59b4-4f3d-a37b-400779805daa",
+         "entityVersionId": "9dd1b32e-83da-4a95-a39c-c2862799d447",
+         "systemFamily": "SPELL"
+        },
+        "operation": "ADD_MP",
+        "rule": "PER_STEP",
+        "source": "TARGETING",
+        "value": 0
+       },
+       {
+        "componentKey": "effect1",
+        "contributionKey": "effect.wo10.mp",
+        "definition": {
+         "canonicalKey": "m6wo7.fixture_wo10_effect_damage",
+         "definitionKind": "SPELL_EFFECT",
+         "entityId": "bb91d7a0-a901-4f20-b0a4-0025257d0a93",
+         "entityVersionId": "871a62c1-d5e9-4f7e-a28c-674def4a286d",
+         "systemFamily": "SPELL"
+        },
+        "operation": "ADD_MP",
+        "rule": "PER_UNIT",
+        "source": "EFFECT",
+        "value": 8
+       }
+      ],
+      "finalApCost": 2,
+      "finalMpCost": 11,
+      "netPercent": 100,
+      "percentages": [
+       {
+        "applied": true,
+        "operation": "SUBTRACT",
+        "percent": 0,
+        "source": "CASTING_CONDITIONS"
+       }
+      ],
+      "pro": 4,
+      "unroundedMp": 11
+     },
+     "costUnresolved": [],
+     "effects": [
+      {
+       "componentKey": "effect1",
+       "family": "DAMAGE",
+       "parameters": [
+        {
+         "explicit": true,
+         "parameter": "dice",
+         "value": 1
+        },
+        {
+         "explicit": false,
+         "parameter": "damageType",
+         "value": "ARCANE"
+        },
+        {
+         "explicit": true,
+         "parameter": "mp",
+         "value": 8
+        }
+       ],
+       "problems": [],
+       "resolution": "ATTACK_ROLL",
+       "targetingStatus": "COMPATIBLE",
+       "valid": true
+      }
+     ],
+     "issues": [],
+     "keywords": [
+      "keyword.damage",
+      "keyword.direct_damage",
+      "keyword.instant_effect"
+     ],
+     "missing": [],
+     "runtime": {
+      "concentration": "NONE",
+      "deferred": [],
+      "manaLock": null,
+      "sustain": null
+     },
+     "state": "VALID",
+     "targeting": {
+      "compatibility": [
+       {
+        "allow": [
+         "PROJECTILE",
+         "SINGLE_TARGET",
+         "TOUCH"
+        ],
+        "componentKey": "effect1",
+        "definition": {
+         "canonicalKey": "m6wo7.fixture_wo10_effect_damage",
+         "definitionKind": "SPELL_EFFECT",
+         "entityId": "bb91d7a0-a901-4f20-b0a4-0025257d0a93",
+         "entityVersionId": "871a62c1-d5e9-4f7e-a28c-674def4a286d",
+         "systemFamily": "SPELL"
+        },
+        "modifier": null,
+        "status": "COMPATIBLE"
+       },
+       {
+        "allow": [],
+        "componentKey": "duration",
+        "definition": null,
+        "modifier": null,
+        "status": "NOT_DECLARED"
+       }
+      ],
+      "deferred": [],
+      "geometry": [],
+      "range": {
+       "baseRange": 45,
+       "model": "DEFAULT_SPELL_RANGE",
+       "ruleText": null,
+       "unit": "ft",
+       "value": 45
+      },
+      "targetCount": {
+       "count": 1,
+       "kind": "ONE",
+       "minimum": null,
+       "satisfied": true,
+       "status": "FIXED"
+      }
+     }
+    }
+   }
+  ],
+  "names": {
+   "343e2ddd-9839-4923-817a-1f12c1f008ae": "Instant",
+   "871a62c1-d5e9-4f7e-a28c-674def4a286d": "Arcane Bolt",
+   "9dd1b32e-83da-4a95-a39c-c2862799d447": "Single Target",
+   "031dce17-6a2a-4bf2-84ef-919f49fd7b92": "Material",
+   "04e20d02-c542-443e-821c-c078003998eb": "Direct Healing",
+   "094ecc95-6454-4584-ac88-44f318a5b5d3": "Impair",
+   "0b91d8d9-36df-47b0-93de-038a597f67f1": "Reposition",
+   "0d901ebc-411f-40fd-875f-c3583d306fa2": "Sustained",
+   "14526375-0481-4de3-8517-1f66d698ed62": "Evocation (test)",
+   "191f87fe-b330-43a7-ae95-059fd46637c5": "Reinforce",
+   "1d18e17c-5f58-4639-a7e2-f7c6e6b3d588": "Rounds",
+   "1f153c67-026b-4099-9be7-85888b3c1a62": "Risk",
+   "1ffa184f-daab-4d0e-b65c-df50eb15f390": "Focus",
+   "20ff40d7-4862-48a3-8c02-364547f530fe": "Combat",
+   "2719a890-ef30-4fb8-b223-71283002f21c": "Anchored",
+   "277926ae-85c4-4d22-aa46-caa69bf9b3ad": "Stackable",
+   "2f01ddd4-2147-4870-97f6-cce0f113e120": "Charge",
+   "421a3492-5010-4781-9876-243d467d1e4c": "Cone",
+   "43ff5b54-e83c-4f31-b95c-992c8c9075e1": "Scene",
+   "49d2a2f7-7e9e-4420-935f-0f4fe1b601b3": "Somatic",
+   "4c82894b-5f1d-4464-a931-cb2501f9bfe3": "Affinity",
+   "55412b05-1f5b-4954-ae60-811021662b0d": "Direct Damage",
+   "58f9f04c-150c-4370-8ba1-69314e65ca59": "Summon Manifestation",
+   "59c6b69d-861e-4fa1-b7f3-098777b76fa8": "Multi Target",
+   "5d658d34-761b-470e-a2ab-54a1f50381e1": "Shared",
+   "5df6ec65-1d2c-4ffa-8e3c-39ff01b22bf8": "Cleanse",
+   "5f7d4652-52be-47ef-bdc5-baa5bee442ce": "Evocation Trained",
+   "63d60ace-bf03-47ff-a4eb-596c7a673552": "Dispel",
+   "640483a7-8b58-419b-a736-5372c1c4b3ab": "Dual",
+   "644a89ff-a76d-4fca-9fc4-1dcdd0f58b20": "Detect Mana",
+   "6474a264-ded6-414c-a281-d011937e650b": "Attack",
+   "69b7c09f-600b-45f3-b558-f2469e23e3ea": "Expert Lore",
+   "6a15c940-9622-45fd-a5ad-8cb078e63bb8": "Delayed",
+   "6d86ad07-6d27-465f-a4ed-02c225e2a5fe": "Immobile",
+   "715fdf90-9307-413a-990e-38ffdbbe6ba7": "Self",
+   "7673587f-db46-4c2f-abd3-adaa90d041b8": "Verbal",
+   "7819ae1d-c2ef-431b-8816-5efc6681257e": "Maintenance",
+   "87d2b724-3f38-45fa-94ed-08d0cbfd0830": "Touch",
+   "99217df3-89fb-4a31-94ef-0363d85cc920": "Permanent By Special Rule",
+   "9eeaf1a3-5b44-4cc4-96fc-6b37363ae0c5": "Aura",
+   "abb1eb20-d24f-487e-951f-1d08c9b7ac1b": "Mission",
+   "b61846db-d82a-4ffe-a974-cd649e4c22de": "Bind",
+   "bb01ceab-b47e-4c57-8d7c-421a948e5e6f": "Flat",
+   "be4e13f5-6257-483d-9f26-11eca9469b1a": "Widen Area",
+   "d7667f9a-6b25-4382-b184-bb067696a257": "Spell",
+   "d82fd374-8bf8-405e-b5a3-9281a5b589b4": "Zone",
+   "de3223ca-159f-462d-af30-b121bf9d697f": "Line",
+   "eb083af2-2f39-4280-a5b9-a557ed97e688": "Projectile",
+   "ef917041-bbdd-4a86-8bbb-0bb3ca97dfe5": "Radius",
+   "f519eeac-0fdb-4433-86da-b6d7c2c9902c": "Mana Lock",
+   "fbca8dd6-4f80-48de-89eb-d942cb7bdb79": "Limited Use",
+   "febdc08e-feb8-47eb-bc5d-00aad989f839": "Environmental"
+  },
+  "catalog": {
+   "affinities": [
+    {
+     "affinity": {
+      "canonicalKey": "m6wo7.affinity_evocation",
+      "definitionKind": "AFFINITY",
+      "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+      "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+      "systemFamily": "AFFINITY"
+     },
+     "rank": "NONE",
+     "rankRule": {
+      "effectCapacity": null,
+      "strengthDiscountPercent": 0,
+      "traitCapacity": null
+     },
+     "role": "PRIMARY",
+     "strengths": [
+      {
+       "matchAny": [
+        "keyword.direct_damage"
+       ],
+       "strengthKey": "DIRECT_DAMAGE"
+      },
+      {
+       "matchAny": [
+        "keyword.area_effect"
+       ],
+       "strengthKey": "AREA_EFFECT"
+      },
+      {
+       "matchAny": [
+        "keyword.sustained_output",
+        "keyword.channeled_output"
+       ],
+       "strengthKey": "SUSTAINED_OR_CHANNELED_OUTPUT"
+      }
+     ],
+     "weaknesses": [
+      {
+       "activationPenaltyPercent": 30,
+       "matchAny": [
+        "keyword.healing"
+       ],
+       "severity": "MAJOR",
+       "weaknessKey": "HEALING"
+      },
+      {
+       "activationPenaltyPercent": 20,
+       "matchAny": [
+        "keyword.buff",
+        "keyword.debuff"
+       ],
+       "severity": "MODERATE",
+       "weaknessKey": "BUFF_OR_DEBUFF"
+      },
+      {
+       "activationPenaltyPercent": 20,
+       "matchAny": [
+        "keyword.summon",
+        "keyword.construct"
+       ],
+       "severity": "MODERATE",
+       "weaknessKey": "SUMMON_OR_CONSTRUCT"
+      }
+     ]
+    }
+   ],
+   "arcana": {
+    "rankKey": "TRAINED",
+    "ranks": [
+     {
+      "conditionCapacity": 0,
+      "effectCapacity": 0,
+      "rankKey": "UNTRAINED",
+      "traitCapacity": 0
+     },
+     {
+      "conditionCapacity": 1,
+      "effectCapacity": 1,
+      "rankKey": "TRAINED",
+      "traitCapacity": 1
+     },
+     {
+      "conditionCapacity": 2,
+      "effectCapacity": 2,
+      "rankKey": "EXPERT",
+      "traitCapacity": 2
+     },
+     {
+      "conditionCapacity": 3,
+      "effectCapacity": 3,
+      "rankKey": "MASTER",
+      "traitCapacity": 3
+     }
+    ],
+    "skillKey": "m6wo7.skill_arcana"
+   },
+   "castingConditions": [
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": "EXECUTABLE",
+     "category": "VERBAL",
+     "compatibility": [],
+     "contributions": [
+      {
+       "amount": 10,
+       "amounts": null,
+       "contributionKey": "verbal.mp",
+       "currency": "MP",
+       "kind": "FIXED",
+       "modifier": "MP_PERCENT_REDUCTION",
+       "parameter": null
+      }
+     ],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": null,
+     "keywords": [],
+     "kind": "SPELL_CASTING_CONDITION",
+     "parameters": [],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_casting_condition_verbal",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "entityId": "40daeb96-fc2a-4601-b482-1d7f8f2f1c31",
+      "entityVersionId": "7673587f-db46-4c2f-abd3-adaa90d041b8",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": "EXECUTABLE",
+     "category": "SOMATIC",
+     "compatibility": [],
+     "contributions": [
+      {
+       "amount": 1,
+       "amounts": null,
+       "contributionKey": "somatic.ap",
+       "currency": "AP",
+       "kind": "FIXED",
+       "modifier": "AP_REDUCTION",
+       "parameter": null
+      }
+     ],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": null,
+     "keywords": [],
+     "kind": "SPELL_CASTING_CONDITION",
+     "parameters": [],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_casting_condition_somatic",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "entityId": "bb3917ee-3636-483d-a005-760de424ca20",
+      "entityVersionId": "49d2a2f7-7e9e-4420-935f-0f4fe1b601b3",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": "DEFERRED",
+     "category": "DELAYED",
+     "compatibility": [],
+     "contributions": [],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": null,
+     "keywords": [],
+     "kind": "SPELL_CASTING_CONDITION",
+     "parameters": [],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_casting_condition_delayed",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "entityId": "455e99d4-57be-44df-9ea1-ef17e9f16b40",
+      "entityVersionId": "6a15c940-9622-45fd-a5ad-8cb078e63bb8",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    }
+   ],
+   "durations": [
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": true,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": "EXECUTABLE",
+     "category": "INSTANT",
+     "compatibility": [],
+     "contributions": [],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": {
+      "concentration": "NONE",
+      "manaLock": false,
+      "sustain": false
+     },
+     "keywords": [],
+     "kind": "SPELL_DURATION",
+     "parameters": [],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_duration_instant",
+      "definitionKind": "SPELL_DURATION",
+      "entityId": "fce68a72-5392-4dae-95ab-70600f7e2656",
+      "entityVersionId": "343e2ddd-9839-4923-817a-1f12c1f008ae",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": "EXECUTABLE",
+     "category": "SUSTAINED",
+     "compatibility": [],
+     "contributions": [],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": {
+      "concentration": "WO13",
+      "manaLock": false,
+      "sustain": true
+     },
+     "keywords": [],
+     "kind": "SPELL_DURATION",
+     "parameters": [],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_duration_sustained",
+      "definitionKind": "SPELL_DURATION",
+      "entityId": "72a53f17-268a-466b-bf18-c294043f91d8",
+      "entityVersionId": "0d901ebc-411f-40fd-875f-c3583d306fa2",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": "EXECUTABLE",
+     "category": "MANA_LOCK",
+     "compatibility": [],
+     "contributions": [],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": {
+      "concentration": "NONE",
+      "manaLock": true,
+      "sustain": false
+     },
+     "keywords": [],
+     "kind": "SPELL_DURATION",
+     "parameters": [],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_duration_mana_lock",
+      "definitionKind": "SPELL_DURATION",
+      "entityId": "75d80673-a2fb-4cf6-957e-e8267f3cfe78",
+      "entityVersionId": "f519eeac-0fdb-4433-86da-b6d7c2c9902c",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": "DEFERRED",
+     "category": "PERMANENT_BY_SPECIAL_RULE",
+     "compatibility": [],
+     "contributions": [],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": {
+      "concentration": "NONE",
+      "manaLock": false,
+      "sustain": false
+     },
+     "keywords": [],
+     "kind": "SPELL_DURATION",
+     "parameters": [],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_duration_permanent_by_special_rule",
+      "definitionKind": "SPELL_DURATION",
+      "entityId": "bd8c789e-a8ca-4793-a716-e8035407026b",
+      "entityVersionId": "99217df3-89fb-4a31-94ef-0363d85cc920",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    }
+   ],
+   "effects": [
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [
+        "DIRECT_DAMAGE"
+       ],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": null,
+     "category": "DAMAGE",
+     "compatibility": [
+      {
+       "allow": [
+        "PROJECTILE",
+        "SINGLE_TARGET",
+        "TOUCH"
+       ],
+       "relation": "TARGETING"
+      }
+     ],
+     "contributions": [
+      {
+       "amount": 4,
+       "amounts": null,
+       "contributionKey": "effect.damage.dice",
+       "currency": "MP",
+       "kind": "PER_UNIT",
+       "modifier": null,
+       "parameter": "dice"
+      }
+     ],
+     "description": null,
+     "durationsAllowed": [
+      "INSTANT"
+     ],
+     "effectFamilies": [],
+     "eligibility": {
+      "definition": {
+       "canonicalKey": "m6wo7.spell_effect_direct_damage",
+       "definitionKind": "SPELL_EFFECT",
+       "entityId": "29c9f2c1-7855-4e41-a729-5c8ea00974b8",
+       "entityVersionId": "55412b05-1f5b-4954-ae60-811021662b0d",
+       "systemFamily": "SPELL"
+      },
+      "provenance": {
+       "manifestId": "fce65f49-599b-4e1f-85ef-9aac7fabe1c5",
+       "rulesetId": "da13f305-ad7a-4cc0-af04-f2ccb4108c6f"
+      },
+      "requirements": [
+       {
+        "actual": {
+         "owned": true,
+         "rankKey": "TRAINED"
+        },
+        "kind": "SKILL_RANK_AT_LEAST",
+        "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+        "required": {
+         "affinity": null,
+         "rankKey": "TRAINED",
+         "skillKey": "m6wo7.skill_arcana"
+        },
+        "satisfied": true,
+        "source": {
+         "canonicalKey": "m6wo7.spell_effect_direct_damage",
+         "definitionKind": "SPELL_EFFECT",
+         "entityId": "29c9f2c1-7855-4e41-a729-5c8ea00974b8",
+         "entityVersionId": "55412b05-1f5b-4954-ae60-811021662b0d",
+         "systemFamily": "SPELL"
+        }
+       }
+      ],
+      "status": "ELIGIBLE",
+      "unresolved": []
+     },
+     "futureRuntime": null,
+     "keywords": [
+      "keyword.damage",
+      "keyword.direct_damage",
+      "keyword.instant_effect"
+     ],
+     "kind": "SPELL_EFFECT",
+     "parameters": [
+      {
+       "allowed": null,
+       "default": 1,
+       "increment": 1,
+       "kind": "COUNT",
+       "maximum": {
+        "kind": "STAT",
+        "stat": "PRO",
+        "value": 4
+       },
+       "minimum": 1,
+       "parameter": "dice"
+      },
+      {
+       "allowed": [
+        "PHYSICAL",
+        "FIRE",
+        "ICE",
+        "LIGHTNING",
+        "ARCANE"
+       ],
+       "default": "ARCANE",
+       "increment": null,
+       "kind": "TOKEN",
+       "maximum": null,
+       "minimum": null,
+       "parameter": "damageType"
+      }
+     ],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_effect_direct_damage",
+      "definitionKind": "SPELL_EFFECT",
+      "entityId": "29c9f2c1-7855-4e41-a729-5c8ea00974b8",
+      "entityVersionId": "55412b05-1f5b-4954-ae60-811021662b0d",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": "DIRECT",
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [
+        "DIRECT_DAMAGE"
+       ],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": null,
+     "category": "DAMAGE",
+     "compatibility": [
+      {
+       "allow": [
+        "PROJECTILE",
+        "SINGLE_TARGET",
+        "TOUCH"
+       ],
+       "relation": "TARGETING"
+      }
+     ],
+     "contributions": [
+      {
+       "amount": 1,
+       "amounts": null,
+       "contributionKey": "effect.wo10.mp",
+       "currency": "MP",
+       "kind": "PER_UNIT",
+       "modifier": null,
+       "parameter": "mp"
+      }
+     ],
+     "description": null,
+     "durationsAllowed": [
+      "INSTANT"
+     ],
+     "effectFamilies": [],
+     "eligibility": {
+      "definition": {
+       "canonicalKey": "m6wo7.fixture_wo10_effect_damage",
+       "definitionKind": "SPELL_EFFECT",
+       "entityId": "bb91d7a0-a901-4f20-b0a4-0025257d0a93",
+       "entityVersionId": "871a62c1-d5e9-4f7e-a28c-674def4a286d",
+       "systemFamily": "SPELL"
+      },
+      "provenance": {
+       "manifestId": "fce65f49-599b-4e1f-85ef-9aac7fabe1c5",
+       "rulesetId": "da13f305-ad7a-4cc0-af04-f2ccb4108c6f"
+      },
+      "requirements": [
+       {
+        "actual": {
+         "owned": true,
+         "rankKey": "TRAINED"
+        },
+        "kind": "SKILL_RANK_AT_LEAST",
+        "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+        "required": {
+         "affinity": null,
+         "rankKey": "TRAINED",
+         "skillKey": "m6wo7.skill_arcana"
+        },
+        "satisfied": true,
+        "source": {
+         "canonicalKey": "m6wo7.fixture_wo10_effect_damage",
+         "definitionKind": "SPELL_EFFECT",
+         "entityId": "bb91d7a0-a901-4f20-b0a4-0025257d0a93",
+         "entityVersionId": "871a62c1-d5e9-4f7e-a28c-674def4a286d",
+         "systemFamily": "SPELL"
+        }
+       }
+      ],
+      "status": "ELIGIBLE",
+      "unresolved": []
+     },
+     "futureRuntime": null,
+     "keywords": [
+      "keyword.damage",
+      "keyword.direct_damage",
+      "keyword.instant_effect"
+     ],
+     "kind": "SPELL_EFFECT",
+     "parameters": [
+      {
+       "allowed": null,
+       "default": 1,
+       "increment": 1,
+       "kind": "COUNT",
+       "maximum": {
+        "kind": "STAT",
+        "stat": "PRO",
+        "value": 4
+       },
+       "minimum": 1,
+       "parameter": "dice"
+      },
+      {
+       "allowed": [
+        "PHYSICAL",
+        "FIRE",
+        "ICE",
+        "LIGHTNING",
+        "ARCANE"
+       ],
+       "default": "ARCANE",
+       "increment": null,
+       "kind": "TOKEN",
+       "maximum": null,
+       "minimum": null,
+       "parameter": "damageType"
+      },
+      {
+       "allowed": null,
+       "default": 0,
+       "increment": 1,
+       "kind": "COUNT",
+       "maximum": {
+        "kind": "FIXED",
+        "stat": null,
+        "value": 100
+       },
+       "minimum": 0,
+       "parameter": "mp"
+      }
+     ],
+     "ref": {
+      "canonicalKey": "m6wo7.fixture_wo10_effect_damage",
+      "definitionKind": "SPELL_EFFECT",
+      "entityId": "bb91d7a0-a901-4f20-b0a4-0025257d0a93",
+      "entityVersionId": "871a62c1-d5e9-4f7e-a28c-674def4a286d",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": "DIRECT",
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": [
+        "HEALING"
+       ]
+      }
+     ],
+     "availability": null,
+     "category": "HEALING",
+     "compatibility": [
+      {
+       "allow": [
+        "PROJECTILE",
+        "SINGLE_TARGET",
+        "TOUCH"
+       ],
+       "relation": "TARGETING"
+      }
+     ],
+     "contributions": [
+      {
+       "amount": 5,
+       "amounts": null,
+       "contributionKey": "effect.healing.additional",
+       "currency": "MP",
+       "kind": "PER_UNIT",
+       "modifier": null,
+       "parameter": "dice"
+      },
+      {
+       "amount": 5,
+       "amounts": null,
+       "contributionKey": "effect.healing.base",
+       "currency": "MP",
+       "kind": "FIXED",
+       "modifier": null,
+       "parameter": null
+      }
+     ],
+     "description": null,
+     "durationsAllowed": [
+      "INSTANT"
+     ],
+     "effectFamilies": [],
+     "eligibility": {
+      "definition": {
+       "canonicalKey": "m6wo7.spell_effect_direct_healing",
+       "definitionKind": "SPELL_EFFECT",
+       "entityId": "004eec84-b246-4f9d-b5fe-5952dac4153f",
+       "entityVersionId": "04e20d02-c542-443e-821c-c078003998eb",
+       "systemFamily": "SPELL"
+      },
+      "provenance": {
+       "manifestId": "fce65f49-599b-4e1f-85ef-9aac7fabe1c5",
+       "rulesetId": "da13f305-ad7a-4cc0-af04-f2ccb4108c6f"
+      },
+      "requirements": [
+       {
+        "actual": {
+         "owned": true,
+         "rankKey": "TRAINED"
+        },
+        "kind": "SKILL_RANK_AT_LEAST",
+        "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+        "required": {
+         "affinity": null,
+         "rankKey": "TRAINED",
+         "skillKey": "m6wo7.skill_arcana"
+        },
+        "satisfied": true,
+        "source": {
+         "canonicalKey": "m6wo7.spell_effect_direct_healing",
+         "definitionKind": "SPELL_EFFECT",
+         "entityId": "004eec84-b246-4f9d-b5fe-5952dac4153f",
+         "entityVersionId": "04e20d02-c542-443e-821c-c078003998eb",
+         "systemFamily": "SPELL"
+        }
+       }
+      ],
+      "status": "ELIGIBLE",
+      "unresolved": []
+     },
+     "futureRuntime": null,
+     "keywords": [
+      "keyword.healing",
+      "keyword.instant_effect",
+      "keyword.recovery"
+     ],
+     "kind": "SPELL_EFFECT",
+     "parameters": [
+      {
+       "allowed": null,
+       "default": 1,
+       "increment": 1,
+       "kind": "COUNT",
+       "maximum": {
+        "kind": "STAT",
+        "stat": "PRO",
+        "value": 4
+       },
+       "minimum": 1,
+       "parameter": "dice"
+      }
+     ],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_effect_direct_healing",
+      "definitionKind": "SPELL_EFFECT",
+      "entityId": "004eec84-b246-4f9d-b5fe-5952dac4153f",
+      "entityVersionId": "04e20d02-c542-443e-821c-c078003998eb",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": "RESTORATION",
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": null,
+     "category": "DAMAGE",
+     "compatibility": [],
+     "contributions": [],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": {
+      "definition": {
+       "canonicalKey": "m6wo7.test_m6wo4_effect_evocation_trained",
+       "definitionKind": "SPELL_EFFECT",
+       "entityId": "05875168-df68-4bbc-9503-c048ae49af63",
+       "entityVersionId": "5f7d4652-52be-47ef-bdc5-baa5bee442ce",
+       "systemFamily": "SPELL"
+      },
+      "provenance": {
+       "manifestId": "fce65f49-599b-4e1f-85ef-9aac7fabe1c5",
+       "rulesetId": "da13f305-ad7a-4cc0-af04-f2ccb4108c6f"
+      },
+      "requirements": [
+       {
+        "actual": {
+         "owned": true,
+         "rankKey": "NONE"
+        },
+        "kind": "AFFINITY_RANK_AT_LEAST",
+        "prerequisiteKey": "EVOCATION_TRAINED",
+        "required": {
+         "affinity": {
+          "canonicalKey": "m6wo7.affinity_evocation",
+          "definitionKind": "AFFINITY",
+          "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+          "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+          "systemFamily": "AFFINITY"
+         },
+         "rankKey": "TRAINED",
+         "skillKey": null
+        },
+        "satisfied": false,
+        "source": {
+         "canonicalKey": "m6wo7.test_m6wo4_effect_evocation_trained",
+         "definitionKind": "SPELL_EFFECT",
+         "entityId": "05875168-df68-4bbc-9503-c048ae49af63",
+         "entityVersionId": "5f7d4652-52be-47ef-bdc5-baa5bee442ce",
+         "systemFamily": "SPELL"
+        }
+       }
+      ],
+      "status": "INELIGIBLE",
+      "unresolved": []
+     },
+     "futureRuntime": null,
+     "keywords": [],
+     "kind": "SPELL_EFFECT",
+     "parameters": [],
+     "ref": {
+      "canonicalKey": "m6wo7.test_m6wo4_effect_evocation_trained",
+      "definitionKind": "SPELL_EFFECT",
+      "entityId": "05875168-df68-4bbc-9503-c048ae49af63",
+      "entityVersionId": "5f7d4652-52be-47ef-bdc5-baa5bee442ce",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    }
+   ],
+   "keywords": [
+    "keyword.area_effect",
+    "keyword.buff",
+    "keyword.control",
+    "keyword.damage",
+    "keyword.debuff",
+    "keyword.detection",
+    "keyword.direct_damage",
+    "keyword.healing",
+    "keyword.instant_effect",
+    "keyword.interference",
+    "keyword.knowledge",
+    "keyword.persistent_creation",
+    "keyword.recovery",
+    "keyword.reinforcement",
+    "keyword.summon",
+    "keyword.utility"
+   ],
+   "performanceCondition": {
+    "definitions": [],
+    "present": false
+   },
+   "targeting": [
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": true,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": null,
+     "category": "SINGLE_TARGET",
+     "compatibility": [],
+     "contributions": [
+      {
+       "amount": 3,
+       "amounts": null,
+       "contributionKey": "targeting.base",
+       "currency": "MP",
+       "kind": "BASE",
+       "modifier": null,
+       "parameter": null
+      },
+      {
+       "amount": 2,
+       "amounts": null,
+       "contributionKey": "targeting.range_extension",
+       "currency": "MP",
+       "kind": "PER_STEP",
+       "modifier": null,
+       "parameter": "rangeExtension"
+      }
+     ],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": null,
+     "keywords": [],
+     "kind": "SPELL_TARGETING",
+     "parameters": [
+      {
+       "allowed": null,
+       "default": 0,
+       "increment": null,
+       "kind": "STEPS",
+       "maximum": null,
+       "minimum": 0,
+       "parameter": "rangeExtension"
+      }
+     ],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_targeting_single_target",
+      "definitionKind": "SPELL_TARGETING",
+      "entityId": "9ab8b0c4-59b4-4f3d-a37b-400779805daa",
+      "entityVersionId": "9dd1b32e-83da-4a95-a39c-c2862799d447",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": null,
+     "category": "RADIUS",
+     "compatibility": [],
+     "contributions": [
+      {
+       "amount": 6,
+       "amounts": null,
+       "contributionKey": "targeting.base",
+       "currency": "MP",
+       "kind": "BASE",
+       "modifier": null,
+       "parameter": null
+      },
+      {
+       "amount": 2,
+       "amounts": null,
+       "contributionKey": "targeting.range_extension",
+       "currency": "MP",
+       "kind": "PER_STEP",
+       "modifier": null,
+       "parameter": "rangeExtension"
+      }
+     ],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": null,
+     "keywords": [],
+     "kind": "SPELL_TARGETING",
+     "parameters": [
+      {
+       "allowed": null,
+       "default": 0,
+       "increment": null,
+       "kind": "STEPS",
+       "maximum": null,
+       "minimum": 0,
+       "parameter": "rangeExtension"
+      }
+     ],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_targeting_radius",
+      "definitionKind": "SPELL_TARGETING",
+      "entityId": "75fe019e-b7e6-4162-acbb-9045c8268cde",
+      "entityVersionId": "ef917041-bbdd-4a86-8bbb-0bb3ca97dfe5",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    }
+   ],
+   "traits": [
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [
+        "AREA_EFFECT"
+       ],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": null,
+     "category": "AREA_MODIFICATION",
+     "compatibility": [],
+     "contributions": [
+      {
+       "amount": 6,
+       "amounts": null,
+       "contributionKey": "trait.widen_area.mp",
+       "currency": "MP",
+       "kind": "FIXED",
+       "modifier": null,
+       "parameter": null
+      }
+     ],
+     "description": "Increase the area of a radius-capable Targeting Type by 5 ft. M5-SC-024; Core Playtest s825.",
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": null,
+     "keywords": [
+      "keyword.area_effect"
+     ],
+     "kind": "SPELL_TRAIT",
+     "parameters": [
+      {
+       "allowed": null,
+       "default": 5,
+       "increment": 5,
+       "kind": "COUNT",
+       "maximum": {
+        "kind": "FIXED",
+        "stat": null,
+        "value": 5
+       },
+       "minimum": 5,
+       "parameter": "feet"
+      }
+     ],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_trait_widen_area",
+      "definitionKind": "SPELL_TRAIT",
+      "entityId": "0159bc5c-4b7c-48ad-83e2-23f3bee56695",
+      "entityVersionId": "be4e13f5-6257-483d-9f26-11eca9469b1a",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": "TARGETING"
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [
+        "DIRECT_DAMAGE"
+       ],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": null,
+     "category": "DAMAGE_CONVERSION",
+     "compatibility": [],
+     "contributions": [
+      {
+       "amount": 4,
+       "amounts": null,
+       "contributionKey": "trait.mp",
+       "currency": "MP",
+       "kind": "FIXED",
+       "modifier": null,
+       "parameter": null
+      }
+     ],
+     "description": "Changes only an existing Damage Effect's type; adds no damage or Condition.",
+     "durationsAllowed": [],
+     "effectFamilies": [
+      "DAMAGE"
+     ],
+     "eligibility": null,
+     "futureRuntime": null,
+     "keywords": [
+      "keyword.direct_damage"
+     ],
+     "kind": "SPELL_TRAIT",
+     "parameters": [
+      {
+       "allowed": [
+        "FIRE",
+        "ICE"
+       ],
+       "default": "FIRE",
+       "increment": null,
+       "kind": "TOKEN",
+       "maximum": null,
+       "minimum": null,
+       "parameter": "damageType"
+      }
+     ],
+     "ref": {
+      "canonicalKey": "m6wo7.fixture_trait_spell",
+      "definitionKind": "SPELL_TRAIT",
+      "entityId": "d1de9e1d-90b8-4580-89fa-d9f9c66a0252",
+      "entityVersionId": "d7667f9a-6b25-4382-b184-bb067696a257",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": "EFFECT_SPECIFIC"
+    }
+   ],
+   "vocabularies": {
+    "authorities": [
+     "ARCANE_AUTHORITY",
+     "AFFINITY_AUTHORITY"
+    ],
+    "chainBehaviors": [
+     "CONTINUE",
+     "SUCCESS_ONLY",
+     "FAILURE_ONLY",
+     "STOP",
+     "BRANCH"
+    ],
+    "chainFailurePolicies": [
+     "STOP",
+     "CONTINUE"
+    ],
+    "traitScopeTargets": {
+     "ABILITY_WIDE": null,
+     "CONDITION": "conditions",
+     "DURATION": "duration",
+     "EFFECT_SPECIFIC": "effects",
+     "RESOLUTION": "effects",
+     "TARGETING": "targeting"
+    }
+   }
+  },
+  "stats": {
+   "STR": 6,
+   "AGI": 5,
+   "CON": 4,
+   "PER": 3,
+   "RES": 3,
+   "PRO": 4
+  }
+ },
+ "empty": {
+  "character": {
+   "id": "18f899af-10e3-47c8-8073-c274a33250b7",
+   "name": "Dumper",
+   "level": 1,
+   "lockVersion": 3
+  },
+  "release": {
+   "id": "275a12b9-e205-49cc-b26b-2a5c484741e5",
+   "rulesetId": "da13f305-ad7a-4cc0-af04-f2ccb4108c6f",
+   "rulesetName": "Core Playtest",
+   "releaseNumber": 1,
+   "versionLabel": "R1",
+   "channel": "CORE_PLAYTEST"
+  },
+  "signature": {
+   "capacity": 4,
+   "used": 1
+  },
+  "spell": {
+   "id": "28c0597e-c804-4fe5-85e6-5a89bf55527e",
+   "abilityKind": "SPELL",
+   "status": "DRAFT",
+   "lockVersion": 1,
+   "createdAt": "2026-11-02T04:07:25.796Z",
+   "retiredAt": null,
+   "current": null,
+   "draft": {
+    "draft": {
+     "additionalAffinityTraits": [],
+     "affinity": null,
+     "authority": null,
+     "castingConditions": [],
+     "concept": {
+      "description": "",
+      "name": "Empty",
+      "narrativeTags": [],
+      "notes": "",
+      "visualDescription": ""
+     },
+     "constructionOptions": {
+      "effectSlotsTradedForTraits": 0
+     },
+     "duration": null,
+     "effectChain": null,
+     "effects": [],
+     "schemaVersion": 1,
+     "targeting": null,
+     "traits": []
+    },
+    "evaluation": {
+     "chain": null,
+     "components": [],
+     "construction": null,
+     "cost": null,
+     "costUnresolved": [],
+     "effects": [],
+     "issues": [
+      {
+       "code": "SIGNATURE_SPELL.INCOMPLETE",
+       "componentKey": null,
+       "message": "authority is not chosen yet",
+       "path": "authority",
+       "step": "AUTHORITY"
+      },
+      {
+       "code": "SIGNATURE_SPELL.INCOMPLETE",
+       "componentKey": null,
+       "message": "targeting is not chosen yet",
+       "path": "targeting",
+       "step": "TARGETING"
+      },
+      {
+       "code": "SIGNATURE_SPELL.INCOMPLETE",
+       "componentKey": null,
+       "message": "effects is not chosen yet",
+       "path": "effects",
+       "step": "EFFECTS"
+      },
+      {
+       "code": "SIGNATURE_SPELL.INCOMPLETE",
+       "componentKey": null,
+       "message": "duration is not chosen yet",
+       "path": "duration",
+       "step": "DURATION"
+      }
+     ],
+     "keywords": [],
+     "missing": [
+      "AUTHORITY",
+      "TARGETING",
+      "EFFECTS",
+      "DURATION"
+     ],
+     "runtime": {
+      "concentration": null,
+      "deferred": [],
+      "manaLock": null,
+      "sustain": null
+     },
+     "state": "INCOMPLETE",
+     "targeting": null
+    }
+   },
+   "state": "INCOMPLETE"
+  },
+  "history": [],
+  "names": {
+   "343e2ddd-9839-4923-817a-1f12c1f008ae": "Instant",
+   "871a62c1-d5e9-4f7e-a28c-674def4a286d": "Arcane Bolt",
+   "9dd1b32e-83da-4a95-a39c-c2862799d447": "Single Target",
+   "031dce17-6a2a-4bf2-84ef-919f49fd7b92": "Material",
+   "04e20d02-c542-443e-821c-c078003998eb": "Direct Healing",
+   "094ecc95-6454-4584-ac88-44f318a5b5d3": "Impair",
+   "0b91d8d9-36df-47b0-93de-038a597f67f1": "Reposition",
+   "0d901ebc-411f-40fd-875f-c3583d306fa2": "Sustained",
+   "14526375-0481-4de3-8517-1f66d698ed62": "Evocation (test)",
+   "191f87fe-b330-43a7-ae95-059fd46637c5": "Reinforce",
+   "1d18e17c-5f58-4639-a7e2-f7c6e6b3d588": "Rounds",
+   "1f153c67-026b-4099-9be7-85888b3c1a62": "Risk",
+   "1ffa184f-daab-4d0e-b65c-df50eb15f390": "Focus",
+   "20ff40d7-4862-48a3-8c02-364547f530fe": "Combat",
+   "2719a890-ef30-4fb8-b223-71283002f21c": "Anchored",
+   "277926ae-85c4-4d22-aa46-caa69bf9b3ad": "Stackable",
+   "2f01ddd4-2147-4870-97f6-cce0f113e120": "Charge",
+   "421a3492-5010-4781-9876-243d467d1e4c": "Cone",
+   "43ff5b54-e83c-4f31-b95c-992c8c9075e1": "Scene",
+   "49d2a2f7-7e9e-4420-935f-0f4fe1b601b3": "Somatic",
+   "4c82894b-5f1d-4464-a931-cb2501f9bfe3": "Affinity",
+   "55412b05-1f5b-4954-ae60-811021662b0d": "Direct Damage",
+   "58f9f04c-150c-4370-8ba1-69314e65ca59": "Summon Manifestation",
+   "59c6b69d-861e-4fa1-b7f3-098777b76fa8": "Multi Target",
+   "5d658d34-761b-470e-a2ab-54a1f50381e1": "Shared",
+   "5df6ec65-1d2c-4ffa-8e3c-39ff01b22bf8": "Cleanse",
+   "5f7d4652-52be-47ef-bdc5-baa5bee442ce": "Evocation Trained",
+   "63d60ace-bf03-47ff-a4eb-596c7a673552": "Dispel",
+   "640483a7-8b58-419b-a736-5372c1c4b3ab": "Dual",
+   "644a89ff-a76d-4fca-9fc4-1dcdd0f58b20": "Detect Mana",
+   "6474a264-ded6-414c-a281-d011937e650b": "Attack",
+   "69b7c09f-600b-45f3-b558-f2469e23e3ea": "Expert Lore",
+   "6a15c940-9622-45fd-a5ad-8cb078e63bb8": "Delayed",
+   "6d86ad07-6d27-465f-a4ed-02c225e2a5fe": "Immobile",
+   "715fdf90-9307-413a-990e-38ffdbbe6ba7": "Self",
+   "7673587f-db46-4c2f-abd3-adaa90d041b8": "Verbal",
+   "7819ae1d-c2ef-431b-8816-5efc6681257e": "Maintenance",
+   "87d2b724-3f38-45fa-94ed-08d0cbfd0830": "Touch",
+   "99217df3-89fb-4a31-94ef-0363d85cc920": "Permanent By Special Rule",
+   "9eeaf1a3-5b44-4cc4-96fc-6b37363ae0c5": "Aura",
+   "abb1eb20-d24f-487e-951f-1d08c9b7ac1b": "Mission",
+   "b61846db-d82a-4ffe-a974-cd649e4c22de": "Bind",
+   "bb01ceab-b47e-4c57-8d7c-421a948e5e6f": "Flat",
+   "be4e13f5-6257-483d-9f26-11eca9469b1a": "Widen Area",
+   "d7667f9a-6b25-4382-b184-bb067696a257": "Spell",
+   "d82fd374-8bf8-405e-b5a3-9281a5b589b4": "Zone",
+   "de3223ca-159f-462d-af30-b121bf9d697f": "Line",
+   "eb083af2-2f39-4280-a5b9-a557ed97e688": "Projectile",
+   "ef917041-bbdd-4a86-8bbb-0bb3ca97dfe5": "Radius",
+   "f519eeac-0fdb-4433-86da-b6d7c2c9902c": "Mana Lock",
+   "fbca8dd6-4f80-48de-89eb-d942cb7bdb79": "Limited Use",
+   "febdc08e-feb8-47eb-bc5d-00aad989f839": "Environmental"
+  },
+  "catalog": {
+   "affinities": [
+    {
+     "affinity": {
+      "canonicalKey": "m6wo7.affinity_evocation",
+      "definitionKind": "AFFINITY",
+      "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+      "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+      "systemFamily": "AFFINITY"
+     },
+     "rank": "NONE",
+     "rankRule": {
+      "effectCapacity": null,
+      "strengthDiscountPercent": 0,
+      "traitCapacity": null
+     },
+     "role": "PRIMARY",
+     "strengths": [
+      {
+       "matchAny": [
+        "keyword.direct_damage"
+       ],
+       "strengthKey": "DIRECT_DAMAGE"
+      },
+      {
+       "matchAny": [
+        "keyword.area_effect"
+       ],
+       "strengthKey": "AREA_EFFECT"
+      },
+      {
+       "matchAny": [
+        "keyword.sustained_output",
+        "keyword.channeled_output"
+       ],
+       "strengthKey": "SUSTAINED_OR_CHANNELED_OUTPUT"
+      }
+     ],
+     "weaknesses": [
+      {
+       "activationPenaltyPercent": 30,
+       "matchAny": [
+        "keyword.healing"
+       ],
+       "severity": "MAJOR",
+       "weaknessKey": "HEALING"
+      },
+      {
+       "activationPenaltyPercent": 20,
+       "matchAny": [
+        "keyword.buff",
+        "keyword.debuff"
+       ],
+       "severity": "MODERATE",
+       "weaknessKey": "BUFF_OR_DEBUFF"
+      },
+      {
+       "activationPenaltyPercent": 20,
+       "matchAny": [
+        "keyword.summon",
+        "keyword.construct"
+       ],
+       "severity": "MODERATE",
+       "weaknessKey": "SUMMON_OR_CONSTRUCT"
+      }
+     ]
+    }
+   ],
+   "arcana": {
+    "rankKey": "TRAINED",
+    "ranks": [
+     {
+      "conditionCapacity": 0,
+      "effectCapacity": 0,
+      "rankKey": "UNTRAINED",
+      "traitCapacity": 0
+     },
+     {
+      "conditionCapacity": 1,
+      "effectCapacity": 1,
+      "rankKey": "TRAINED",
+      "traitCapacity": 1
+     },
+     {
+      "conditionCapacity": 2,
+      "effectCapacity": 2,
+      "rankKey": "EXPERT",
+      "traitCapacity": 2
+     },
+     {
+      "conditionCapacity": 3,
+      "effectCapacity": 3,
+      "rankKey": "MASTER",
+      "traitCapacity": 3
+     }
+    ],
+    "skillKey": "m6wo7.skill_arcana"
+   },
+   "castingConditions": [
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": "EXECUTABLE",
+     "category": "VERBAL",
+     "compatibility": [],
+     "contributions": [
+      {
+       "amount": 10,
+       "amounts": null,
+       "contributionKey": "verbal.mp",
+       "currency": "MP",
+       "kind": "FIXED",
+       "modifier": "MP_PERCENT_REDUCTION",
+       "parameter": null
+      }
+     ],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": null,
+     "keywords": [],
+     "kind": "SPELL_CASTING_CONDITION",
+     "parameters": [],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_casting_condition_verbal",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "entityId": "40daeb96-fc2a-4601-b482-1d7f8f2f1c31",
+      "entityVersionId": "7673587f-db46-4c2f-abd3-adaa90d041b8",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": "EXECUTABLE",
+     "category": "SOMATIC",
+     "compatibility": [],
+     "contributions": [
+      {
+       "amount": 1,
+       "amounts": null,
+       "contributionKey": "somatic.ap",
+       "currency": "AP",
+       "kind": "FIXED",
+       "modifier": "AP_REDUCTION",
+       "parameter": null
+      }
+     ],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": null,
+     "keywords": [],
+     "kind": "SPELL_CASTING_CONDITION",
+     "parameters": [],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_casting_condition_somatic",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "entityId": "bb3917ee-3636-483d-a005-760de424ca20",
+      "entityVersionId": "49d2a2f7-7e9e-4420-935f-0f4fe1b601b3",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": "DEFERRED",
+     "category": "DELAYED",
+     "compatibility": [],
+     "contributions": [],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": null,
+     "keywords": [],
+     "kind": "SPELL_CASTING_CONDITION",
+     "parameters": [],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_casting_condition_delayed",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "entityId": "455e99d4-57be-44df-9ea1-ef17e9f16b40",
+      "entityVersionId": "6a15c940-9622-45fd-a5ad-8cb078e63bb8",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    }
+   ],
+   "durations": [
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": true,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": "EXECUTABLE",
+     "category": "INSTANT",
+     "compatibility": [],
+     "contributions": [],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": {
+      "concentration": "NONE",
+      "manaLock": false,
+      "sustain": false
+     },
+     "keywords": [],
+     "kind": "SPELL_DURATION",
+     "parameters": [],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_duration_instant",
+      "definitionKind": "SPELL_DURATION",
+      "entityId": "fce68a72-5392-4dae-95ab-70600f7e2656",
+      "entityVersionId": "343e2ddd-9839-4923-817a-1f12c1f008ae",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": "EXECUTABLE",
+     "category": "SUSTAINED",
+     "compatibility": [],
+     "contributions": [],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": {
+      "concentration": "WO13",
+      "manaLock": false,
+      "sustain": true
+     },
+     "keywords": [],
+     "kind": "SPELL_DURATION",
+     "parameters": [],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_duration_sustained",
+      "definitionKind": "SPELL_DURATION",
+      "entityId": "72a53f17-268a-466b-bf18-c294043f91d8",
+      "entityVersionId": "0d901ebc-411f-40fd-875f-c3583d306fa2",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": "EXECUTABLE",
+     "category": "MANA_LOCK",
+     "compatibility": [],
+     "contributions": [],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": {
+      "concentration": "NONE",
+      "manaLock": true,
+      "sustain": false
+     },
+     "keywords": [],
+     "kind": "SPELL_DURATION",
+     "parameters": [],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_duration_mana_lock",
+      "definitionKind": "SPELL_DURATION",
+      "entityId": "75d80673-a2fb-4cf6-957e-e8267f3cfe78",
+      "entityVersionId": "f519eeac-0fdb-4433-86da-b6d7c2c9902c",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": "DEFERRED",
+     "category": "PERMANENT_BY_SPECIAL_RULE",
+     "compatibility": [],
+     "contributions": [],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": {
+      "concentration": "NONE",
+      "manaLock": false,
+      "sustain": false
+     },
+     "keywords": [],
+     "kind": "SPELL_DURATION",
+     "parameters": [],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_duration_permanent_by_special_rule",
+      "definitionKind": "SPELL_DURATION",
+      "entityId": "bd8c789e-a8ca-4793-a716-e8035407026b",
+      "entityVersionId": "99217df3-89fb-4a31-94ef-0363d85cc920",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    }
+   ],
+   "effects": [
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [
+        "DIRECT_DAMAGE"
+       ],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": null,
+     "category": "DAMAGE",
+     "compatibility": [
+      {
+       "allow": [
+        "PROJECTILE",
+        "SINGLE_TARGET",
+        "TOUCH"
+       ],
+       "relation": "TARGETING"
+      }
+     ],
+     "contributions": [
+      {
+       "amount": 4,
+       "amounts": null,
+       "contributionKey": "effect.damage.dice",
+       "currency": "MP",
+       "kind": "PER_UNIT",
+       "modifier": null,
+       "parameter": "dice"
+      }
+     ],
+     "description": null,
+     "durationsAllowed": [
+      "INSTANT"
+     ],
+     "effectFamilies": [],
+     "eligibility": {
+      "definition": {
+       "canonicalKey": "m6wo7.spell_effect_direct_damage",
+       "definitionKind": "SPELL_EFFECT",
+       "entityId": "29c9f2c1-7855-4e41-a729-5c8ea00974b8",
+       "entityVersionId": "55412b05-1f5b-4954-ae60-811021662b0d",
+       "systemFamily": "SPELL"
+      },
+      "provenance": {
+       "manifestId": "fce65f49-599b-4e1f-85ef-9aac7fabe1c5",
+       "rulesetId": "da13f305-ad7a-4cc0-af04-f2ccb4108c6f"
+      },
+      "requirements": [
+       {
+        "actual": {
+         "owned": true,
+         "rankKey": "TRAINED"
+        },
+        "kind": "SKILL_RANK_AT_LEAST",
+        "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+        "required": {
+         "affinity": null,
+         "rankKey": "TRAINED",
+         "skillKey": "m6wo7.skill_arcana"
+        },
+        "satisfied": true,
+        "source": {
+         "canonicalKey": "m6wo7.spell_effect_direct_damage",
+         "definitionKind": "SPELL_EFFECT",
+         "entityId": "29c9f2c1-7855-4e41-a729-5c8ea00974b8",
+         "entityVersionId": "55412b05-1f5b-4954-ae60-811021662b0d",
+         "systemFamily": "SPELL"
+        }
+       }
+      ],
+      "status": "ELIGIBLE",
+      "unresolved": []
+     },
+     "futureRuntime": null,
+     "keywords": [
+      "keyword.damage",
+      "keyword.direct_damage",
+      "keyword.instant_effect"
+     ],
+     "kind": "SPELL_EFFECT",
+     "parameters": [
+      {
+       "allowed": null,
+       "default": 1,
+       "increment": 1,
+       "kind": "COUNT",
+       "maximum": {
+        "kind": "STAT",
+        "stat": "PRO",
+        "value": 4
+       },
+       "minimum": 1,
+       "parameter": "dice"
+      },
+      {
+       "allowed": [
+        "PHYSICAL",
+        "FIRE",
+        "ICE",
+        "LIGHTNING",
+        "ARCANE"
+       ],
+       "default": "ARCANE",
+       "increment": null,
+       "kind": "TOKEN",
+       "maximum": null,
+       "minimum": null,
+       "parameter": "damageType"
+      }
+     ],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_effect_direct_damage",
+      "definitionKind": "SPELL_EFFECT",
+      "entityId": "29c9f2c1-7855-4e41-a729-5c8ea00974b8",
+      "entityVersionId": "55412b05-1f5b-4954-ae60-811021662b0d",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": "DIRECT",
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [
+        "DIRECT_DAMAGE"
+       ],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": null,
+     "category": "DAMAGE",
+     "compatibility": [
+      {
+       "allow": [
+        "PROJECTILE",
+        "SINGLE_TARGET",
+        "TOUCH"
+       ],
+       "relation": "TARGETING"
+      }
+     ],
+     "contributions": [
+      {
+       "amount": 1,
+       "amounts": null,
+       "contributionKey": "effect.wo10.mp",
+       "currency": "MP",
+       "kind": "PER_UNIT",
+       "modifier": null,
+       "parameter": "mp"
+      }
+     ],
+     "description": null,
+     "durationsAllowed": [
+      "INSTANT"
+     ],
+     "effectFamilies": [],
+     "eligibility": {
+      "definition": {
+       "canonicalKey": "m6wo7.fixture_wo10_effect_damage",
+       "definitionKind": "SPELL_EFFECT",
+       "entityId": "bb91d7a0-a901-4f20-b0a4-0025257d0a93",
+       "entityVersionId": "871a62c1-d5e9-4f7e-a28c-674def4a286d",
+       "systemFamily": "SPELL"
+      },
+      "provenance": {
+       "manifestId": "fce65f49-599b-4e1f-85ef-9aac7fabe1c5",
+       "rulesetId": "da13f305-ad7a-4cc0-af04-f2ccb4108c6f"
+      },
+      "requirements": [
+       {
+        "actual": {
+         "owned": true,
+         "rankKey": "TRAINED"
+        },
+        "kind": "SKILL_RANK_AT_LEAST",
+        "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+        "required": {
+         "affinity": null,
+         "rankKey": "TRAINED",
+         "skillKey": "m6wo7.skill_arcana"
+        },
+        "satisfied": true,
+        "source": {
+         "canonicalKey": "m6wo7.fixture_wo10_effect_damage",
+         "definitionKind": "SPELL_EFFECT",
+         "entityId": "bb91d7a0-a901-4f20-b0a4-0025257d0a93",
+         "entityVersionId": "871a62c1-d5e9-4f7e-a28c-674def4a286d",
+         "systemFamily": "SPELL"
+        }
+       }
+      ],
+      "status": "ELIGIBLE",
+      "unresolved": []
+     },
+     "futureRuntime": null,
+     "keywords": [
+      "keyword.damage",
+      "keyword.direct_damage",
+      "keyword.instant_effect"
+     ],
+     "kind": "SPELL_EFFECT",
+     "parameters": [
+      {
+       "allowed": null,
+       "default": 1,
+       "increment": 1,
+       "kind": "COUNT",
+       "maximum": {
+        "kind": "STAT",
+        "stat": "PRO",
+        "value": 4
+       },
+       "minimum": 1,
+       "parameter": "dice"
+      },
+      {
+       "allowed": [
+        "PHYSICAL",
+        "FIRE",
+        "ICE",
+        "LIGHTNING",
+        "ARCANE"
+       ],
+       "default": "ARCANE",
+       "increment": null,
+       "kind": "TOKEN",
+       "maximum": null,
+       "minimum": null,
+       "parameter": "damageType"
+      },
+      {
+       "allowed": null,
+       "default": 0,
+       "increment": 1,
+       "kind": "COUNT",
+       "maximum": {
+        "kind": "FIXED",
+        "stat": null,
+        "value": 100
+       },
+       "minimum": 0,
+       "parameter": "mp"
+      }
+     ],
+     "ref": {
+      "canonicalKey": "m6wo7.fixture_wo10_effect_damage",
+      "definitionKind": "SPELL_EFFECT",
+      "entityId": "bb91d7a0-a901-4f20-b0a4-0025257d0a93",
+      "entityVersionId": "871a62c1-d5e9-4f7e-a28c-674def4a286d",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": "DIRECT",
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": [
+        "HEALING"
+       ]
+      }
+     ],
+     "availability": null,
+     "category": "HEALING",
+     "compatibility": [
+      {
+       "allow": [
+        "PROJECTILE",
+        "SINGLE_TARGET",
+        "TOUCH"
+       ],
+       "relation": "TARGETING"
+      }
+     ],
+     "contributions": [
+      {
+       "amount": 5,
+       "amounts": null,
+       "contributionKey": "effect.healing.additional",
+       "currency": "MP",
+       "kind": "PER_UNIT",
+       "modifier": null,
+       "parameter": "dice"
+      },
+      {
+       "amount": 5,
+       "amounts": null,
+       "contributionKey": "effect.healing.base",
+       "currency": "MP",
+       "kind": "FIXED",
+       "modifier": null,
+       "parameter": null
+      }
+     ],
+     "description": null,
+     "durationsAllowed": [
+      "INSTANT"
+     ],
+     "effectFamilies": [],
+     "eligibility": {
+      "definition": {
+       "canonicalKey": "m6wo7.spell_effect_direct_healing",
+       "definitionKind": "SPELL_EFFECT",
+       "entityId": "004eec84-b246-4f9d-b5fe-5952dac4153f",
+       "entityVersionId": "04e20d02-c542-443e-821c-c078003998eb",
+       "systemFamily": "SPELL"
+      },
+      "provenance": {
+       "manifestId": "fce65f49-599b-4e1f-85ef-9aac7fabe1c5",
+       "rulesetId": "da13f305-ad7a-4cc0-af04-f2ccb4108c6f"
+      },
+      "requirements": [
+       {
+        "actual": {
+         "owned": true,
+         "rankKey": "TRAINED"
+        },
+        "kind": "SKILL_RANK_AT_LEAST",
+        "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+        "required": {
+         "affinity": null,
+         "rankKey": "TRAINED",
+         "skillKey": "m6wo7.skill_arcana"
+        },
+        "satisfied": true,
+        "source": {
+         "canonicalKey": "m6wo7.spell_effect_direct_healing",
+         "definitionKind": "SPELL_EFFECT",
+         "entityId": "004eec84-b246-4f9d-b5fe-5952dac4153f",
+         "entityVersionId": "04e20d02-c542-443e-821c-c078003998eb",
+         "systemFamily": "SPELL"
+        }
+       }
+      ],
+      "status": "ELIGIBLE",
+      "unresolved": []
+     },
+     "futureRuntime": null,
+     "keywords": [
+      "keyword.healing",
+      "keyword.instant_effect",
+      "keyword.recovery"
+     ],
+     "kind": "SPELL_EFFECT",
+     "parameters": [
+      {
+       "allowed": null,
+       "default": 1,
+       "increment": 1,
+       "kind": "COUNT",
+       "maximum": {
+        "kind": "STAT",
+        "stat": "PRO",
+        "value": 4
+       },
+       "minimum": 1,
+       "parameter": "dice"
+      }
+     ],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_effect_direct_healing",
+      "definitionKind": "SPELL_EFFECT",
+      "entityId": "004eec84-b246-4f9d-b5fe-5952dac4153f",
+      "entityVersionId": "04e20d02-c542-443e-821c-c078003998eb",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": "RESTORATION",
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": null,
+     "category": "DAMAGE",
+     "compatibility": [],
+     "contributions": [],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": {
+      "definition": {
+       "canonicalKey": "m6wo7.test_m6wo4_effect_evocation_trained",
+       "definitionKind": "SPELL_EFFECT",
+       "entityId": "05875168-df68-4bbc-9503-c048ae49af63",
+       "entityVersionId": "5f7d4652-52be-47ef-bdc5-baa5bee442ce",
+       "systemFamily": "SPELL"
+      },
+      "provenance": {
+       "manifestId": "fce65f49-599b-4e1f-85ef-9aac7fabe1c5",
+       "rulesetId": "da13f305-ad7a-4cc0-af04-f2ccb4108c6f"
+      },
+      "requirements": [
+       {
+        "actual": {
+         "owned": true,
+         "rankKey": "NONE"
+        },
+        "kind": "AFFINITY_RANK_AT_LEAST",
+        "prerequisiteKey": "EVOCATION_TRAINED",
+        "required": {
+         "affinity": {
+          "canonicalKey": "m6wo7.affinity_evocation",
+          "definitionKind": "AFFINITY",
+          "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+          "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+          "systemFamily": "AFFINITY"
+         },
+         "rankKey": "TRAINED",
+         "skillKey": null
+        },
+        "satisfied": false,
+        "source": {
+         "canonicalKey": "m6wo7.test_m6wo4_effect_evocation_trained",
+         "definitionKind": "SPELL_EFFECT",
+         "entityId": "05875168-df68-4bbc-9503-c048ae49af63",
+         "entityVersionId": "5f7d4652-52be-47ef-bdc5-baa5bee442ce",
+         "systemFamily": "SPELL"
+        }
+       }
+      ],
+      "status": "INELIGIBLE",
+      "unresolved": []
+     },
+     "futureRuntime": null,
+     "keywords": [],
+     "kind": "SPELL_EFFECT",
+     "parameters": [],
+     "ref": {
+      "canonicalKey": "m6wo7.test_m6wo4_effect_evocation_trained",
+      "definitionKind": "SPELL_EFFECT",
+      "entityId": "05875168-df68-4bbc-9503-c048ae49af63",
+      "entityVersionId": "5f7d4652-52be-47ef-bdc5-baa5bee442ce",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    }
+   ],
+   "keywords": [
+    "keyword.area_effect",
+    "keyword.buff",
+    "keyword.control",
+    "keyword.damage",
+    "keyword.debuff",
+    "keyword.detection",
+    "keyword.direct_damage",
+    "keyword.healing",
+    "keyword.instant_effect",
+    "keyword.interference",
+    "keyword.knowledge",
+    "keyword.persistent_creation",
+    "keyword.recovery",
+    "keyword.reinforcement",
+    "keyword.summon",
+    "keyword.utility"
+   ],
+   "performanceCondition": {
+    "definitions": [],
+    "present": false
+   },
+   "targeting": [
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": true,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": null,
+     "category": "SINGLE_TARGET",
+     "compatibility": [],
+     "contributions": [
+      {
+       "amount": 3,
+       "amounts": null,
+       "contributionKey": "targeting.base",
+       "currency": "MP",
+       "kind": "BASE",
+       "modifier": null,
+       "parameter": null
+      },
+      {
+       "amount": 2,
+       "amounts": null,
+       "contributionKey": "targeting.range_extension",
+       "currency": "MP",
+       "kind": "PER_STEP",
+       "modifier": null,
+       "parameter": "rangeExtension"
+      }
+     ],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": null,
+     "keywords": [],
+     "kind": "SPELL_TARGETING",
+     "parameters": [
+      {
+       "allowed": null,
+       "default": 0,
+       "increment": null,
+       "kind": "STEPS",
+       "maximum": null,
+       "minimum": 0,
+       "parameter": "rangeExtension"
+      }
+     ],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_targeting_single_target",
+      "definitionKind": "SPELL_TARGETING",
+      "entityId": "9ab8b0c4-59b4-4f3d-a37b-400779805daa",
+      "entityVersionId": "9dd1b32e-83da-4a95-a39c-c2862799d447",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": null,
+     "category": "RADIUS",
+     "compatibility": [],
+     "contributions": [
+      {
+       "amount": 6,
+       "amounts": null,
+       "contributionKey": "targeting.base",
+       "currency": "MP",
+       "kind": "BASE",
+       "modifier": null,
+       "parameter": null
+      },
+      {
+       "amount": 2,
+       "amounts": null,
+       "contributionKey": "targeting.range_extension",
+       "currency": "MP",
+       "kind": "PER_STEP",
+       "modifier": null,
+       "parameter": "rangeExtension"
+      }
+     ],
+     "description": null,
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": null,
+     "keywords": [],
+     "kind": "SPELL_TARGETING",
+     "parameters": [
+      {
+       "allowed": null,
+       "default": 0,
+       "increment": null,
+       "kind": "STEPS",
+       "maximum": null,
+       "minimum": 0,
+       "parameter": "rangeExtension"
+      }
+     ],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_targeting_radius",
+      "definitionKind": "SPELL_TARGETING",
+      "entityId": "75fe019e-b7e6-4162-acbb-9045c8268cde",
+      "entityVersionId": "ef917041-bbdd-4a86-8bbb-0bb3ca97dfe5",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": null
+    }
+   ],
+   "traits": [
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [
+        "AREA_EFFECT"
+       ],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": null,
+     "category": "AREA_MODIFICATION",
+     "compatibility": [],
+     "contributions": [
+      {
+       "amount": 6,
+       "amounts": null,
+       "contributionKey": "trait.widen_area.mp",
+       "currency": "MP",
+       "kind": "FIXED",
+       "modifier": null,
+       "parameter": null
+      }
+     ],
+     "description": "Increase the area of a radius-capable Targeting Type by 5 ft. M5-SC-024; Core Playtest s825.",
+     "durationsAllowed": [],
+     "effectFamilies": [],
+     "eligibility": null,
+     "futureRuntime": null,
+     "keywords": [
+      "keyword.area_effect"
+     ],
+     "kind": "SPELL_TRAIT",
+     "parameters": [
+      {
+       "allowed": null,
+       "default": 5,
+       "increment": 5,
+       "kind": "COUNT",
+       "maximum": {
+        "kind": "FIXED",
+        "stat": null,
+        "value": 5
+       },
+       "minimum": 5,
+       "parameter": "feet"
+      }
+     ],
+     "ref": {
+      "canonicalKey": "m6wo7.spell_trait_widen_area",
+      "definitionKind": "SPELL_TRAIT",
+      "entityId": "0159bc5c-4b7c-48ad-83e2-23f3bee56695",
+      "entityVersionId": "be4e13f5-6257-483d-9f26-11eca9469b1a",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": "TARGETING"
+    },
+    {
+     "alignment": [
+      {
+       "affinity": {
+        "canonicalKey": "m6wo7.affinity_evocation",
+        "definitionKind": "AFFINITY",
+        "entityId": "907972a4-f3c5-4a8d-8016-9a89c6cd135a",
+        "entityVersionId": "14526375-0481-4de3-8517-1f66d698ed62",
+        "systemFamily": "AFFINITY"
+       },
+       "explicitAccess": false,
+       "strengthKeys": [
+        "DIRECT_DAMAGE"
+       ],
+       "weaknessKeys": []
+      }
+     ],
+     "availability": null,
+     "category": "DAMAGE_CONVERSION",
+     "compatibility": [],
+     "contributions": [
+      {
+       "amount": 4,
+       "amounts": null,
+       "contributionKey": "trait.mp",
+       "currency": "MP",
+       "kind": "FIXED",
+       "modifier": null,
+       "parameter": null
+      }
+     ],
+     "description": "Changes only an existing Damage Effect's type; adds no damage or Condition.",
+     "durationsAllowed": [],
+     "effectFamilies": [
+      "DAMAGE"
+     ],
+     "eligibility": null,
+     "futureRuntime": null,
+     "keywords": [
+      "keyword.direct_damage"
+     ],
+     "kind": "SPELL_TRAIT",
+     "parameters": [
+      {
+       "allowed": [
+        "FIRE",
+        "ICE"
+       ],
+       "default": "FIRE",
+       "increment": null,
+       "kind": "TOKEN",
+       "maximum": null,
+       "minimum": null,
+       "parameter": "damageType"
+      }
+     ],
+     "ref": {
+      "canonicalKey": "m6wo7.fixture_trait_spell",
+      "definitionKind": "SPELL_TRAIT",
+      "entityId": "d1de9e1d-90b8-4580-89fa-d9f9c66a0252",
+      "entityVersionId": "d7667f9a-6b25-4382-b184-bb067696a257",
+      "systemFamily": "SPELL"
+     },
+     "subcategory": null,
+     "traitScope": "EFFECT_SPECIFIC"
+    }
+   ],
+   "vocabularies": {
+    "authorities": [
+     "ARCANE_AUTHORITY",
+     "AFFINITY_AUTHORITY"
+    ],
+    "chainBehaviors": [
+     "CONTINUE",
+     "SUCCESS_ONLY",
+     "FAILURE_ONLY",
+     "STOP",
+     "BRANCH"
+    ],
+    "chainFailurePolicies": [
+     "STOP",
+     "CONTINUE"
+    ],
+    "traitScopeTargets": {
+     "ABILITY_WIDE": null,
+     "CONDITION": "conditions",
+     "DURATION": "duration",
+     "EFFECT_SPECIFIC": "effects",
+     "RESOLUTION": "effects",
+     "TARGETING": "targeting"
+    }
+   }
+  },
+  "stats": {
+   "STR": 6,
+   "AGI": 5,
+   "CON": 4,
+   "PER": 3,
+   "RES": 3,
+   "PRO": 4
+  }
+ }
+}

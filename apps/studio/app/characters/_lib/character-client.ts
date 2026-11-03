@@ -359,8 +359,24 @@ export interface CharacterSheetDto {
   /** M6-WO6: Unarmed, Main-hand and Off-hand Weapon Attacks — server previews, never rolls. */
   weaponAttacks: CharacterAttackDto[];
   dualWield: { available: boolean; reasons: string[] };
+  /** M6-WO7: the current revision of each active Signature Spell — the server's M5 evaluation, never cast. */
+  signatureSpells: SheetSignatureSpellDto[];
   advancementHistoryCount: number;
   names: Record<string, string>;
+}
+export interface SheetSignatureSpellDto {
+  id: string;
+  name: string;
+  revisionNumber: number;
+  state: "INCOMPLETE" | "INVALID" | "VALID" | "VALID_WITH_RUNTIME_DEFERRED";
+  finalApCost: number | null;
+  finalMpCost: number | null;
+  targeting: DefinitionRefDto | null;
+  range: { model: string; value: number | null; unit: string | null; ruleText: string | null } | null;
+  effectFamilies: string[];
+  keywords: string[];
+  duration: DefinitionRefDto | null;
+  deferred: Array<{ conflictKey: string; message: string }>;
 }
 export interface SheetNotesInputDto {
   companyPac: string | null;
@@ -480,3 +496,202 @@ export interface CharacterAttacksDto {
   names: Record<string, string>;
 }
 export const getAttacks = async (id: string) => (await request<CharacterAttacksDto>("GET", `/api/characters/${enc(id)}/attacks`)).data;
+
+// ---- PAS-10 M6-WO7 Signature Spell Builder ---------------------------------------------------------------------------
+// The client submits SELECTIONS and prose only (§121). Every cost, capacity, Signature availability, Sustain or runtime
+// value below is the server's M5 evaluation, displayed as given.
+
+export type SpellStateDto = "INCOMPLETE" | "INVALID" | "VALID" | "VALID_WITH_RUNTIME_DEFERRED" | "UNREADABLE";
+export type SpellStepDto = "CONCEPT" | "AUTHORITY" | "TARGETING" | "EFFECTS" | "EFFECT_CHAIN" | "TRAITS" | "DURATION" | "CASTING_CONDITIONS" | "REVIEW";
+export type SpellParametersDto = Record<string, number | string | boolean>;
+export interface SpellUseDto {
+  definition: DefinitionRefDto;
+  parameters: SpellParametersDto;
+}
+export interface SpellOrderedUseDto extends SpellUseDto {
+  componentKey: string;
+  order: number;
+}
+export interface SpellTraitUseDto extends SpellOrderedUseDto {
+  appliesTo: { scope: string; componentKey: string | null };
+}
+/** The Character-owned draft payload (schema version 1) — selections and inert prose only. */
+export interface SignatureSpellDraftDto {
+  schemaVersion: 1;
+  concept: { name: string; description: string; visualDescription: string; notes: string; narrativeTags: string[] };
+  authority: "ARCANE_AUTHORITY" | "AFFINITY_AUTHORITY" | null;
+  affinity: DefinitionRefDto | null;
+  targeting: SpellUseDto | null;
+  effects: SpellOrderedUseDto[];
+  effectChain: { failurePolicy?: string; nodes?: Array<Record<string, unknown>> } | null;
+  traits: SpellTraitUseDto[];
+  duration: SpellUseDto | null;
+  castingConditions: SpellOrderedUseDto[];
+  constructionOptions: { effectSlotsTradedForTraits: number };
+  additionalAffinityTraits: string[];
+}
+export interface SpellIssueDto {
+  code: string;
+  path: string;
+  step: SpellStepDto;
+  componentKey: string | null;
+  message: string;
+}
+export interface SpellChainNodeDto {
+  effectKey: string;
+  order: number;
+  family: string;
+  resolution: string | null;
+  behavior: string;
+  behaviorSource: string;
+  route: string;
+  successor: string | null;
+  branch: Record<string, string | null> | null;
+  branchDestination: boolean;
+  definition: DefinitionRefDto;
+  outcomes: Array<{ outcomeKey: string; operations: Array<{ kind: string }> }>;
+}
+export interface SpellEvaluationDto {
+  state: Exclude<SpellStateDto, "UNREADABLE">;
+  missing: SpellStepDto[];
+  issues: SpellIssueDto[];
+  keywords: string[];
+  components: DefinitionRefDto[];
+  construction: {
+    valid: boolean;
+    access: { path: string; rank: string | null; minimumRank: string | null; satisfied: boolean; rankSource: Record<string, unknown> | null } & Record<string, unknown>;
+    capacity: {
+      effects: { base: number | null; remaining: number | null };
+      traits: { base: number | null; effective: number | null };
+      conditions: { capacity: number | null; source: Record<string, unknown> | null };
+      trades: { exchangeAvailable: boolean; maximum: number; requested: number };
+    } & Record<string, unknown>;
+    usage: { effects: number; traits: number; conditions: number };
+    signature: { capacity: number | null; usedBefore: number; candidateUse: number; projected: number; availableAfter: number | null; slotUse: string; exemption: unknown; satisfied: boolean };
+    affinityAccess: Array<{ componentKey: string; satisfied: boolean }>;
+    prerequisites: Array<{ componentKey: string; ruleKey: string; satisfied: boolean }>;
+    traitCapacity: { ordinary: { base: number | null; effective: number | null; used: number }; affinityAdditional: { capacity: number | null; conflictKey: string | null; used: number } };
+  } | null;
+  targeting: {
+    range: { model: string; value: number | null; unit: string | null; baseRange: number | null; ruleText: string | null } | null;
+    geometry: Array<Record<string, unknown>>;
+    targetCount: { kind: string; count: number | null; minimum: number | null; status: string; satisfied: boolean } | null;
+    compatibility: Array<{ componentKey: string; status: string; allow: string[]; definition: DefinitionRefDto | null }>;
+    deferred: Array<Record<string, unknown>>;
+  } | null;
+  effects: Array<{ componentKey: string; valid: boolean; family: string; resolution: string | null; targetingStatus: string; parameters: Array<{ parameter: string; value: unknown; explicit: boolean }>; problems: string[] }>;
+  cost: {
+    contributions: Array<{ source: string; componentKey: string; contributionKey: string; operation: string; rule: string; value: number; definition: DefinitionRefDto }>;
+    baseMp: number;
+    percentages: Array<{ source: string; operation: string; percent: number; applied: boolean }>;
+    castingConditions: { listedPercent: number; effectivePercent: number; maximumPercent: number };
+    netPercent: number;
+    unroundedMp: number;
+    finalMpCost: number;
+    pro: number;
+    baseAp: number;
+    apModifiers: Array<{ source?: string; value?: number } & Record<string, unknown>>;
+    finalApCost: number;
+  } | null;
+  costUnresolved: Array<{ path: string; message: string }>;
+  chain: { start: string | null; nodes: SpellChainNodeDto[] } | null;
+  runtime: {
+    sustain: { mpPerRound: number | null; apPerRound: number; meEligible: boolean } | null;
+    manaLock: { reservedMp: null; conflictKey: string } | null;
+    concentration: string | null;
+    deferred: Array<{ conflictKey: string; message: string }>;
+  };
+}
+export interface SignatureSpellEntryDto {
+  id: string;
+  abilityKind: "SPELL";
+  status: "DRAFT" | "ACTIVE" | "RETIRED";
+  lockVersion: number;
+  createdAt: string;
+  retiredAt: string | null;
+  current: { revisionId: string; revisionNumber: number; createdAt: string; draft: SignatureSpellDraftDto | null; evaluation: SpellEvaluationDto | null } | null;
+  draft: { draft: SignatureSpellDraftDto | null; evaluation: SpellEvaluationDto | null } | null;
+  state: SpellStateDto;
+}
+export interface CharacterAbilitiesDto {
+  character: { id: string; name: string; level: number; lockVersion: number };
+  release: ReleaseSummaryDto;
+  signature: { capacity: number | null; used: number };
+  spells: SignatureSpellEntryDto[];
+  names: Record<string, string>;
+}
+export interface SpellRevisionDto {
+  revisionId: string;
+  revisionNumber: number;
+  createdAt: string;
+  characterReleaseId: string;
+  current: boolean;
+  draft: SignatureSpellDraftDto | null;
+  evaluation: SpellEvaluationDto | null;
+}
+export interface SignatureSpellDetailDto extends Omit<CharacterAbilitiesDto, "spells"> {
+  spell: SignatureSpellEntryDto;
+  history: SpellRevisionDto[];
+}
+export interface SpellParameterDto {
+  parameter: string;
+  kind: string;
+  minimum: number | null;
+  maximum: { kind: string; value: number | null; stat: string | null } | null;
+  increment: number | null;
+  default: number | string | boolean | null;
+  allowed: string[] | null;
+}
+export interface SpellComponentOptionDto {
+  ref: DefinitionRefDto;
+  kind: string;
+  category: string | null;
+  subcategory: string | null;
+  keywords: string[];
+  parameters: SpellParameterDto[];
+  contributions: Array<{ contributionKey: string; currency: string; kind: string; amount: number | null; amounts: Record<string, number> | null; parameter: string | null; modifier: string | null }>;
+  compatibility: Array<{ relation: string; allow: string[] }>;
+  availability: string | null;
+  durationsAllowed: string[];
+  traitScope: string | null;
+  effectFamilies: string[];
+  futureRuntime: { sustain: boolean; manaLock: boolean; concentration: string } | null;
+  description: string | null;
+  eligibility: { status: "ELIGIBLE" | "INELIGIBLE" | "UNRESOLVED"; requirements: Array<{ kind: string; prerequisiteKey: string; satisfied: boolean | null; required: Record<string, unknown>; actual: Record<string, unknown> | null }>; unresolved: Array<Record<string, unknown>> } | null;
+  alignment: Array<{ affinity: DefinitionRefDto; strengthKeys: string[]; weaknessKeys: string[]; explicitAccess: boolean }>;
+}
+export interface SpellCatalogDto {
+  targeting: SpellComponentOptionDto[];
+  effects: SpellComponentOptionDto[];
+  traits: SpellComponentOptionDto[];
+  durations: SpellComponentOptionDto[];
+  castingConditions: SpellComponentOptionDto[];
+  affinities: Array<{
+    affinity: DefinitionRefDto;
+    rank: string;
+    role: string;
+    strengths: Array<{ strengthKey: string; matchAny: string[] }>;
+    weaknesses: Array<{ weaknessKey: string; matchAny: string[]; severity: string | null; activationPenaltyPercent: number | null }>;
+    rankRule: { strengthDiscountPercent: number | null; effectCapacity: number | null; traitCapacity: number | null } | null;
+  }>;
+  arcana: { skillKey: string | null; rankKey: string | null; ranks: Array<{ rankKey: string; effectCapacity: number | null; traitCapacity: number | null; conditionCapacity: number | null }> };
+  keywords: string[];
+  vocabularies: { authorities: string[]; chainBehaviors: string[]; chainFailurePolicies: string[]; traitScopeTargets: Record<string, string | null> };
+  performanceCondition: { present: boolean; definitions: DefinitionRefDto[] };
+}
+export interface SignatureSpellBuilderDto extends SignatureSpellDetailDto {
+  catalog: SpellCatalogDto;
+  stats: Record<string, number>;
+}
+
+const spellPath = (id: string, spellId: string, tail = "") => `/api/characters/${enc(id)}/spells/${enc(spellId)}${tail}`;
+export const getAbilities = async (id: string) => (await request<CharacterAbilitiesDto>("GET", `/api/characters/${enc(id)}/abilities`)).data;
+export const createSpell = async (id: string, name: string) => (await request<SignatureSpellDetailDto>("POST", `/api/characters/${enc(id)}/spells`, { name })).data;
+export const getSpell = async (id: string, spellId: string) => (await request<SignatureSpellDetailDto>("GET", spellPath(id, spellId))).data;
+export const getSpellBuilder = async (id: string, spellId: string) => (await request<SignatureSpellBuilderDto>("GET", spellPath(id, spellId, "/builder"))).data;
+/** Saves the selections (or `null` to discard a rebuild); the server re-evaluates — nothing derived is ever sent. */
+export const saveSpellDraft = async (id: string, spellId: string, expectedVersion: number, draft: SignatureSpellDraftDto | null) => (await request<SignatureSpellDetailDto>("PUT", spellPath(id, spellId, "/draft"), { expectedVersion, draft })).data;
+export const validateSpell = async (id: string, spellId: string, expectedVersion: number) => (await request<{ evaluation: SpellEvaluationDto; lockVersion: number }>("POST", spellPath(id, spellId, "/validate"), { expectedVersion })).data;
+export const finalizeSpell = async (id: string, spellId: string, expectedVersion: number) => (await request<SignatureSpellDetailDto>("POST", spellPath(id, spellId, "/finalize"), { expectedVersion })).data;
+export const rebuildSpell = async (id: string, spellId: string, expectedVersion: number) => (await request<SignatureSpellDetailDto>("POST", spellPath(id, spellId, "/rebuild"), { expectedVersion })).data;
+export const retireSpell = async (id: string, spellId: string, expectedVersion: number) => (await request<SignatureSpellDetailDto>("POST", spellPath(id, spellId, "/retire"), { expectedVersion })).data;

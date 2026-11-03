@@ -1,0 +1,4304 @@
+{
+  "$comment": "PAS-10 M6-WO7 TEST content (never canon): generated from testing/signature-spell-fixtures.ts — see character-signature-spell-world.test.ts.",
+  "keywords": [
+    "keyword.aoe_scaling",
+    "keyword.area_effect",
+    "keyword.buff",
+    "keyword.channeled_output",
+    "keyword.construct",
+    "keyword.control",
+    "keyword.damage",
+    "keyword.debuff",
+    "keyword.detection",
+    "keyword.direct_damage",
+    "keyword.elemental_alteration",
+    "keyword.healing",
+    "keyword.illusion",
+    "keyword.instant_effect",
+    "keyword.interference",
+    "keyword.knowledge",
+    "keyword.mind_effect",
+    "keyword.persistent_creation",
+    "keyword.persistent_effect",
+    "keyword.predictive_effect",
+    "keyword.reactive_effect",
+    "keyword.recovery",
+    "keyword.redirection",
+    "keyword.reinforcement",
+    "keyword.resistance",
+    "keyword.summon",
+    "keyword.sustained_output",
+    "keyword.terrain_alteration",
+    "keyword.utility"
+  ],
+  "definitions": [
+    {
+      "canonicalKey": "construction.ability_rules",
+      "definitionKind": "ABILITY_CONSTRUCTION_RULE",
+      "schemaVersion": 1,
+      "payload": {
+        "activeMagicPolicy": {
+          "authority": [
+            "M5-WO13",
+            "MANA EFFICIENCY",
+            "MANA LOCK",
+            "CHANNELING SPELLS",
+            "SUSTAINED SPELLS",
+            "CONCENTRATION",
+            "M5-SC-004"
+          ],
+          "channel": {
+            "maximumSimultaneous": 1,
+            "minimumApPerRound": 1,
+            "mpPaymentConflictKey": "M5-SC-053",
+            "mpPaymentTiming": null,
+            "requiresConcentration": true
+          },
+          "concentrationSaveStat": "PRO",
+          "dismissal": {
+            "COMBAT": "NOT_DISMISSIBLE",
+            "INSTANT": "NOT_DISMISSIBLE",
+            "MANA_LOCK": "NOT_DISMISSIBLE",
+            "MISSION": "NOT_DISMISSIBLE",
+            "PERMANENT_BY_SPECIAL_RULE": "NOT_DISMISSIBLE",
+            "ROUNDS": "NOT_DISMISSIBLE",
+            "SCENE": "NOT_DISMISSIBLE",
+            "SUSTAINED": "FREE_ACTION"
+          },
+          "formulas": {
+            "concentrationDc": {
+              "expression": "8 + 2 * max(0, consumers - 1)",
+              "variables": [
+                "consumers"
+              ]
+            },
+            "concentrationSlots": {
+              "expression": "1 + floor(res / 2)",
+              "variables": [
+                "res"
+              ]
+            },
+            "sustainMp": {
+              "expression": "max(1, floor(final_mp / pro))",
+              "variables": [
+                "final_mp",
+                "pro"
+              ]
+            }
+          },
+          "manaLock": {
+            "amount": null,
+            "conflictKey": "M5-SC-052"
+          },
+          "sustainApPerRound": 1,
+          "sustainMeEligible": true
+        },
+        "conditionPolicy": {
+          "formulas": {
+            "cap": {
+              "expression": "min(listed, maximum)",
+              "variables": [
+                "listed",
+                "maximum"
+              ]
+            },
+            "excess": {
+              "expression": "listed - effective",
+              "variables": [
+                "listed",
+                "effective"
+              ]
+            },
+            "increment": {
+              "expression": "value - minimum - floor((value - minimum) / increment) * increment",
+              "variables": [
+                "value",
+                "minimum",
+                "increment"
+              ]
+            },
+            "scale": {
+              "expression": "units * rate",
+              "variables": [
+                "units",
+                "rate"
+              ]
+            },
+            "sum": {
+              "expression": "left + right",
+              "variables": [
+                "left",
+                "right"
+              ]
+            }
+          },
+          "maneuverApMaximum": 3,
+          "spellMpPercentMaximum": 30
+        },
+        "effectExecutionPolicy": {
+          "authority": [
+            "M5-SC-014",
+            "s639",
+            "s640",
+            "s642",
+            "Maneuvers §5 Save Restriction by Martial Rank"
+          ],
+          "defaultChainBehavior": "SUCCESS_ONLY",
+          "martialSaveControl": {
+            "EXPERT": "ATTACKER_REMOVES_ONE",
+            "MASTER": "ATTACKER_CHOOSES",
+            "TRAINED": "DEFENDER_CHOOSES"
+          },
+          "martialSkillKey": "skill.martial"
+        },
+        "formulas": {
+          "effectiveTraits": {
+            "expression": "base_traits + trades * trait_slots_per_exchange",
+            "minimum": null,
+            "rounding": "NONE",
+            "variables": [
+              "base_traits",
+              "trades",
+              "trait_slots_per_exchange"
+            ]
+          },
+          "maximumTrades": {
+            "expression": "floor((base_effects - minimum_effects_remaining) / effect_slots_per_exchange)",
+            "minimum": 0,
+            "rounding": "NONE",
+            "variables": [
+              "base_effects",
+              "minimum_effects_remaining",
+              "effect_slots_per_exchange"
+            ]
+          },
+          "remainingEffects": {
+            "expression": "base_effects - trades * effect_slots_per_exchange",
+            "minimum": null,
+            "rounding": "NONE",
+            "variables": [
+              "base_effects",
+              "trades",
+              "effect_slots_per_exchange"
+            ]
+          },
+          "signatureAvailable": {
+            "expression": "capacity - projected",
+            "minimum": null,
+            "rounding": "NONE",
+            "variables": [
+              "capacity",
+              "projected"
+            ]
+          },
+          "signatureProjected": {
+            "expression": "used_slots + candidate_slots",
+            "minimum": null,
+            "rounding": "NONE",
+            "variables": [
+              "used_slots",
+              "candidate_slots"
+            ]
+          }
+        },
+        "maneuver": {
+          "foundationRequired": true,
+          "martial": {
+            "minimumRank": "TRAINED",
+            "ranks": [
+              {
+                "conditionCapacity": 0,
+                "effectCapacity": 0,
+                "martialRankValue": 0,
+                "rankKey": "UNTRAINED",
+                "traitCapacity": 0
+              },
+              {
+                "conditionCapacity": 1,
+                "effectCapacity": 1,
+                "martialRankValue": 1,
+                "rankKey": "TRAINED",
+                "traitCapacity": 1
+              },
+              {
+                "conditionCapacity": 2,
+                "effectCapacity": 2,
+                "martialRankValue": 2,
+                "rankKey": "EXPERT",
+                "traitCapacity": 2
+              },
+              {
+                "conditionCapacity": 3,
+                "effectCapacity": 3,
+                "martialRankValue": 3,
+                "rankKey": "MASTER",
+                "traitCapacity": 3
+              }
+            ],
+            "skillKey": "skill.martial"
+          },
+          "minimumEffects": 1,
+          "traitExchange": null
+        },
+        "maneuverCostPolicy": {
+          "authority": [
+            "M5-SC-025",
+            "s2020",
+            "s2094",
+            "s21729",
+            "s22270"
+          ],
+          "formulas": {
+            "affinityAdjusted": {
+              "expression": "max(minimum, amount - reduction)",
+              "variables": [
+                "minimum",
+                "amount",
+                "reduction"
+              ]
+            },
+            "attackFloor": {
+              "expression": "max(minimum, attacks)",
+              "variables": [
+                "minimum",
+                "attacks"
+              ]
+            },
+            "conditionReduced": {
+              "expression": "base - reduction",
+              "variables": [
+                "base",
+                "reduction"
+              ]
+            },
+            "contribution": {
+              "expression": "max(0, units - included) * rate",
+              "variables": [
+                "units",
+                "included",
+                "rate"
+              ]
+            }
+          },
+          "inherentRestrictionKeys": [
+            "WEAPON_LOCK"
+          ],
+          "minimumAp": 1,
+          "minimumMp": 0,
+          "signatureApReduction": 1,
+          "unresolvedComponentCosts": [
+            {
+              "canonicalKey": "maneuver.effect.elemental_damage_conversion",
+              "conflictKey": "M5-SC-048"
+            }
+          ]
+        },
+        "rankLadder": "SKILL",
+        "signature": {
+          "capacityStatistic": "SIGNATURE_ABILITY_SLOTS",
+          "defaultSlotCost": 1,
+          "exemptSlotCost": 0,
+          "exemptions": []
+        },
+        "source": {
+          "conflicts": [
+            "M5-SC-011",
+            "M5-SC-015",
+            "M5-SC-017",
+            "M5-SC-021",
+            "M5-SC-022",
+            "M5-SC-025"
+          ],
+          "locators": [
+            "s121",
+            "s122",
+            "s123",
+            "s185",
+            "s190",
+            "s198",
+            "s1980",
+            "s1982",
+            "s1983",
+            "s2018",
+            "s2020",
+            "s624",
+            "s626",
+            "s627",
+            "s669",
+            "s676",
+            "s680",
+            "s681",
+            "s682",
+            "s683"
+          ]
+        },
+        "spell": {
+          "affinityAuthority": {
+            "capacitySource": "AFFINITY_RANK_RULE"
+          },
+          "arcaneAuthority": {
+            "minimumRank": "TRAINED",
+            "ranks": [
+              {
+                "effectCapacity": 0,
+                "rankKey": "UNTRAINED",
+                "traitCapacity": 0
+              },
+              {
+                "effectCapacity": 1,
+                "rankKey": "TRAINED",
+                "traitCapacity": 1
+              },
+              {
+                "effectCapacity": 2,
+                "rankKey": "EXPERT",
+                "traitCapacity": 2
+              },
+              {
+                "effectCapacity": 3,
+                "rankKey": "MASTER",
+                "traitCapacity": 3
+              }
+            ],
+            "skillKey": "skill.arcana"
+          },
+          "castingConditions": {
+            "capacitySource": "ARCANE_RANK",
+            "ranks": [
+              {
+                "capacity": 0,
+                "rankKey": "UNTRAINED"
+              },
+              {
+                "capacity": 1,
+                "rankKey": "TRAINED"
+              },
+              {
+                "capacity": 2,
+                "rankKey": "EXPERT"
+              },
+              {
+                "capacity": 3,
+                "rankKey": "MASTER"
+              }
+            ]
+          },
+          "minimumEffects": 1,
+          "traitExchange": {
+            "effectSlotsPerExchange": 1,
+            "minimumEffectsRemaining": 1,
+            "traitSlotsPerExchange": 1
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.self",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "amount": 0,
+              "kind": "BASE"
+            }
+          }
+        ],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "ONE"
+            },
+            "cover": "NOT_APPLICABLE",
+            "deliveryFamily": "SELF_DELIVERY",
+            "lineOfEffect": "NOT_REQUIRED",
+            "lineOfSight": "NOT_REQUIRED",
+            "measures": [],
+            "origin": {
+              "default": "CASTER",
+              "modes": [
+                "CASTER"
+              ]
+            },
+            "parameters": [],
+            "placement": "NONE",
+            "radiusCapable": false,
+            "range": {
+              "model": "SELF"
+            },
+            "validTargets": [
+              "SELF"
+            ]
+          }
+        },
+        "semanticShape": "SELF"
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.touch",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "amount": 1,
+              "kind": "BASE"
+            }
+          }
+        ],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "ONE"
+            },
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "deliveryFamily": "DIRECT_ATTACK_DELIVERY",
+            "lineOfEffect": "REQUIRED",
+            "lineOfSight": "NOT_REQUIRED",
+            "measures": [],
+            "origin": {
+              "default": "CASTER",
+              "modes": [
+                "CASTER"
+              ]
+            },
+            "parameters": [],
+            "placement": "CHOOSE_TARGETS",
+            "radiusCapable": false,
+            "range": {
+              "model": "TOUCH"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT"
+            ]
+          }
+        },
+        "semanticShape": "TOUCH"
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.single_target",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "amount": 3,
+              "kind": "BASE"
+            }
+          },
+          {
+            "contributionKey": "targeting.range_extension",
+            "currency": "MP",
+            "data": {
+              "amount": 2,
+              "kind": "PER_STEP",
+              "parameter": "rangeExtension",
+              "step": {
+                "size": 15,
+                "unit": "ft"
+              }
+            }
+          }
+        ],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "construction": {
+            "affinityAccess": [
+              {
+                "$ref": "affinity.evocation"
+              }
+            ],
+            "prerequisites": [],
+            "stacking": {
+              "stackable": false
+            }
+          },
+          "targeting": {
+            "cardinality": {
+              "kind": "ONE"
+            },
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "deliveryFamily": "TARGETED_DELIVERY",
+            "lineOfEffect": "REQUIRED",
+            "lineOfSight": "REQUIRED",
+            "measures": [],
+            "origin": {
+              "default": "CASTER",
+              "modes": [
+                "CASTER"
+              ]
+            },
+            "parameters": [
+              {
+                "default": 0,
+                "kind": "STEPS",
+                "minimum": 0,
+                "parameter": "rangeExtension"
+              }
+            ],
+            "placement": "CHOOSE_TARGETS",
+            "radiusCapable": false,
+            "range": {
+              "formula": {
+                "expression": "base_range + range_extension * 15",
+                "rounding": "NONE",
+                "unit": "ft",
+                "variables": [
+                  {
+                    "source": {
+                      "kind": "DERIVED",
+                      "statistic": "BASE_RANGE"
+                    },
+                    "variable": "base_range"
+                  },
+                  {
+                    "source": {
+                      "kind": "PARAMETER",
+                      "parameter": "rangeExtension"
+                    },
+                    "variable": "range_extension"
+                  }
+                ]
+              },
+              "model": "DEFAULT_SPELL_RANGE"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "POINT"
+            ]
+          }
+        },
+        "semanticShape": "SINGLE_TARGET"
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.multi_target",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.additional_target",
+            "currency": "MP",
+            "data": {
+              "amount": 3,
+              "kind": "PER_ADDITIONAL_TARGET",
+              "parameter": "targetCount"
+            }
+          },
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "amount": 5,
+              "kind": "BASE"
+            }
+          },
+          {
+            "contributionKey": "targeting.range_extension",
+            "currency": "MP",
+            "data": {
+              "amount": 2,
+              "kind": "PER_STEP",
+              "parameter": "rangeExtension",
+              "step": {
+                "size": 15,
+                "unit": "ft"
+              }
+            }
+          }
+        ],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "SELECTED",
+              "minimum": 2,
+              "parameter": "targetCount"
+            },
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "deliveryFamily": "TARGETED_DELIVERY",
+            "lineOfEffect": "REQUIRED",
+            "lineOfSight": "REQUIRED",
+            "measures": [],
+            "origin": {
+              "default": "CASTER",
+              "modes": [
+                "CASTER"
+              ]
+            },
+            "parameters": [
+              {
+                "kind": "COUNT",
+                "minimum": 2,
+                "parameter": "targetCount"
+              },
+              {
+                "default": 0,
+                "kind": "STEPS",
+                "minimum": 0,
+                "parameter": "rangeExtension"
+              }
+            ],
+            "placement": "CHOOSE_TARGETS",
+            "radiusCapable": false,
+            "range": {
+              "formula": {
+                "expression": "base_range + range_extension * 15",
+                "rounding": "NONE",
+                "unit": "ft",
+                "variables": [
+                  {
+                    "source": {
+                      "kind": "DERIVED",
+                      "statistic": "BASE_RANGE"
+                    },
+                    "variable": "base_range"
+                  },
+                  {
+                    "source": {
+                      "kind": "PARAMETER",
+                      "parameter": "rangeExtension"
+                    },
+                    "variable": "range_extension"
+                  }
+                ]
+              },
+              "model": "DEFAULT_SPELL_RANGE"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "POINT"
+            ]
+          }
+        },
+        "semanticShape": "MULTI_TARGET"
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.projectile",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "amount": 3,
+              "kind": "BASE"
+            }
+          },
+          {
+            "contributionKey": "targeting.range_extension",
+            "currency": "MP",
+            "data": {
+              "amount": 2,
+              "kind": "PER_STEP",
+              "parameter": "rangeExtension",
+              "step": {
+                "size": 15,
+                "unit": "ft"
+              }
+            }
+          }
+        ],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "delivery": {
+            "check": "RANGED_ATTACK_ROLL"
+          },
+          "targeting": {
+            "cardinality": {
+              "kind": "ONE"
+            },
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "deliveryFamily": "DIRECT_ATTACK_DELIVERY",
+            "lineOfEffect": "REQUIRED",
+            "lineOfSight": "REQUIRED",
+            "measures": [],
+            "origin": {
+              "default": "CASTER",
+              "modes": [
+                "CASTER"
+              ]
+            },
+            "parameters": [
+              {
+                "default": 0,
+                "kind": "STEPS",
+                "minimum": 0,
+                "parameter": "rangeExtension"
+              }
+            ],
+            "placement": "CHOOSE_TARGETS",
+            "radiusCapable": false,
+            "range": {
+              "formula": {
+                "expression": "base_range + range_extension * 15",
+                "rounding": "NONE",
+                "unit": "ft",
+                "variables": [
+                  {
+                    "source": {
+                      "kind": "DERIVED",
+                      "statistic": "BASE_RANGE"
+                    },
+                    "variable": "base_range"
+                  },
+                  {
+                    "source": {
+                      "kind": "PARAMETER",
+                      "parameter": "rangeExtension"
+                    },
+                    "variable": "range_extension"
+                  }
+                ]
+              },
+              "model": "DEFAULT_SPELL_RANGE"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "POINT"
+            ]
+          }
+        },
+        "semanticShape": "PROJECTILE"
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.line",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "amount": 5,
+              "kind": "BASE"
+            }
+          },
+          {
+            "contributionKey": "targeting.line_length_extension",
+            "currency": "MP",
+            "data": {
+              "amount": 3,
+              "kind": "PER_STEP",
+              "parameter": "lengthExtension",
+              "step": {
+                "size": 10,
+                "unit": "ft"
+              }
+            }
+          },
+          {
+            "contributionKey": "targeting.line_width_extension",
+            "currency": "MP",
+            "data": {
+              "amount": 4,
+              "kind": "PER_STEP",
+              "parameter": "widthExtension",
+              "step": {
+                "size": 5,
+                "unit": "ft"
+              }
+            }
+          }
+        ],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "deliveryFamily": "AREA_DELIVERY",
+            "lineOfEffect": "REQUIRED",
+            "lineOfSight": "REQUIRED",
+            "measures": [
+              {
+                "formula": {
+                  "expression": "10 * pro + length_extension * 10",
+                  "rounding": "NONE",
+                  "unit": "ft",
+                  "variables": [
+                    {
+                      "source": {
+                        "kind": "STAT",
+                        "stat": "PRO"
+                      },
+                      "variable": "pro"
+                    },
+                    {
+                      "source": {
+                        "kind": "PARAMETER",
+                        "parameter": "lengthExtension"
+                      },
+                      "variable": "length_extension"
+                    }
+                  ]
+                },
+                "measure": "LENGTH",
+                "valueStatus": "FORMULA"
+              },
+              {
+                "formula": {
+                  "expression": "5 * ceil(pro / 2) + width_extension * 5",
+                  "minimum": 5,
+                  "rounding": "NONE",
+                  "unit": "ft",
+                  "variables": [
+                    {
+                      "source": {
+                        "kind": "STAT",
+                        "stat": "PRO"
+                      },
+                      "variable": "pro"
+                    },
+                    {
+                      "source": {
+                        "kind": "PARAMETER",
+                        "parameter": "widthExtension"
+                      },
+                      "variable": "width_extension"
+                    }
+                  ]
+                },
+                "measure": "WIDTH",
+                "valueStatus": "FORMULA"
+              }
+            ],
+            "origin": {
+              "default": "CASTER",
+              "modes": [
+                "CASTER"
+              ]
+            },
+            "parameters": [
+              {
+                "default": 0,
+                "kind": "STEPS",
+                "minimum": 0,
+                "parameter": "lengthExtension"
+              },
+              {
+                "default": 0,
+                "kind": "STEPS",
+                "minimum": 0,
+                "parameter": "widthExtension"
+              }
+            ],
+            "placement": "FROM_ORIGIN",
+            "radiusCapable": false,
+            "range": {
+              "model": "SELF"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA"
+            ]
+          }
+        },
+        "semanticShape": "LINE"
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.cone",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "amount": 5,
+              "kind": "BASE"
+            }
+          },
+          {
+            "contributionKey": "targeting.cone_length_extension",
+            "currency": "MP",
+            "data": {
+              "amount": 3,
+              "kind": "PER_STEP",
+              "parameter": "lengthExtension",
+              "step": {
+                "size": 10,
+                "unit": "ft"
+              }
+            }
+          }
+        ],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "deliveryFamily": "AREA_DELIVERY",
+            "lineOfEffect": "REQUIRED",
+            "lineOfSight": "REQUIRED",
+            "measures": [
+              {
+                "formula": {
+                  "expression": "10 * pro + length_extension * 10",
+                  "rounding": "NONE",
+                  "unit": "ft",
+                  "variables": [
+                    {
+                      "source": {
+                        "kind": "STAT",
+                        "stat": "PRO"
+                      },
+                      "variable": "pro"
+                    },
+                    {
+                      "source": {
+                        "kind": "PARAMETER",
+                        "parameter": "lengthExtension"
+                      },
+                      "variable": "length_extension"
+                    }
+                  ]
+                },
+                "measure": "LENGTH",
+                "valueStatus": "FORMULA"
+              }
+            ],
+            "origin": {
+              "default": "CASTER",
+              "modes": [
+                "CASTER",
+                "POINT_IN_RANGE"
+              ]
+            },
+            "parameters": [
+              {
+                "default": 0,
+                "kind": "STEPS",
+                "minimum": 0,
+                "parameter": "lengthExtension"
+              }
+            ],
+            "placement": "FROM_ORIGIN",
+            "radiusCapable": false,
+            "range": {
+              "model": "SELF"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA"
+            ]
+          }
+        },
+        "semanticShape": "CONE"
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.radius",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "amount": 6,
+              "kind": "BASE"
+            }
+          },
+          {
+            "contributionKey": "targeting.range_extension",
+            "currency": "MP",
+            "data": {
+              "amount": 2,
+              "kind": "PER_STEP",
+              "parameter": "rangeExtension",
+              "step": {
+                "size": 15,
+                "unit": "ft"
+              }
+            }
+          }
+        ],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "deliveryFamily": "AREA_DELIVERY",
+            "lineOfEffect": "REQUIRED",
+            "lineOfSight": "REQUIRED",
+            "measures": [
+              {
+                "formula": {
+                  "expression": "5 * pro",
+                  "rounding": "NONE",
+                  "unit": "ft",
+                  "variables": [
+                    {
+                      "source": {
+                        "kind": "STAT",
+                        "stat": "PRO"
+                      },
+                      "variable": "pro"
+                    }
+                  ]
+                },
+                "measure": "RADIUS",
+                "valueStatus": "FORMULA"
+              }
+            ],
+            "origin": {
+              "default": "POINT_IN_RANGE",
+              "modes": [
+                "POINT_IN_RANGE"
+              ]
+            },
+            "parameters": [
+              {
+                "default": 0,
+                "kind": "STEPS",
+                "minimum": 0,
+                "parameter": "rangeExtension"
+              }
+            ],
+            "placement": "CHOOSE_POINT",
+            "radiusCapable": true,
+            "range": {
+              "formula": {
+                "expression": "base_range + range_extension * 15",
+                "rounding": "NONE",
+                "unit": "ft",
+                "variables": [
+                  {
+                    "source": {
+                      "kind": "DERIVED",
+                      "statistic": "BASE_RANGE"
+                    },
+                    "variable": "base_range"
+                  },
+                  {
+                    "source": {
+                      "kind": "PARAMETER",
+                      "parameter": "rangeExtension"
+                    },
+                    "variable": "range_extension"
+                  }
+                ]
+              },
+              "model": "DEFAULT_SPELL_RANGE"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA"
+            ]
+          }
+        },
+        "semanticShape": "RADIUS"
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.zone",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "amount": 8,
+              "kind": "BASE"
+            }
+          },
+          {
+            "contributionKey": "targeting.mobile_zone",
+            "currency": "MP",
+            "data": {
+              "amount": 5,
+              "kind": "PER_SELECTION",
+              "parameter": "mobile",
+              "values": [
+                true
+              ]
+            }
+          },
+          {
+            "contributionKey": "targeting.range_extension",
+            "currency": "MP",
+            "data": {
+              "amount": 2,
+              "kind": "PER_STEP",
+              "parameter": "rangeExtension",
+              "step": {
+                "size": 15,
+                "unit": "ft"
+              }
+            }
+          }
+        ],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "deliveryFamily": "AREA_DELIVERY",
+            "lineOfEffect": "REQUIRED",
+            "lineOfSight": "REQUIRED",
+            "measures": [
+              {
+                "formula": {
+                  "expression": "5 * pro",
+                  "rounding": "NONE",
+                  "unit": "ft",
+                  "variables": [
+                    {
+                      "source": {
+                        "kind": "STAT",
+                        "stat": "PRO"
+                      },
+                      "variable": "pro"
+                    }
+                  ]
+                },
+                "measure": "RADIUS",
+                "valueStatus": "FORMULA"
+              }
+            ],
+            "origin": {
+              "default": "POINT_IN_RANGE",
+              "modes": [
+                "POINT_IN_RANGE"
+              ]
+            },
+            "parameters": [
+              {
+                "default": 0,
+                "kind": "STEPS",
+                "minimum": 0,
+                "parameter": "rangeExtension"
+              },
+              {
+                "default": false,
+                "kind": "FLAG",
+                "parameter": "mobile"
+              }
+            ],
+            "placement": "CHOOSE_POINT",
+            "radiusCapable": true,
+            "range": {
+              "formula": {
+                "expression": "base_range + range_extension * 15",
+                "rounding": "NONE",
+                "unit": "ft",
+                "variables": [
+                  {
+                    "source": {
+                      "kind": "DERIVED",
+                      "statistic": "BASE_RANGE"
+                    },
+                    "variable": "base_range"
+                  },
+                  {
+                    "source": {
+                      "kind": "PARAMETER",
+                      "parameter": "rangeExtension"
+                    },
+                    "variable": "range_extension"
+                  }
+                ]
+              },
+              "model": "DEFAULT_SPELL_RANGE"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA",
+              "SPACE"
+            ]
+          }
+        },
+        "semanticShape": "ZONE"
+      }
+    },
+    {
+      "canonicalKey": "spell.targeting.aura",
+      "definitionKind": "SPELL_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "targeting.aura_source",
+            "currency": "MP",
+            "data": {
+              "amount": 4,
+              "kind": "PER_SELECTION",
+              "parameter": "sourceRef",
+              "values": [
+                "SUMMON",
+                "OBJECT",
+                "ANCHOR"
+              ]
+            }
+          },
+          {
+            "contributionKey": "targeting.base",
+            "currency": "MP",
+            "data": {
+              "amount": 6,
+              "kind": "BASE"
+            }
+          }
+        ],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "cover": "EXPOSED_TO_RESOLUTION",
+            "deliveryFamily": "EMANATION_DELIVERY",
+            "lineOfEffect": "REQUIRED",
+            "lineOfSight": "NOT_REQUIRED",
+            "measures": [
+              {
+                "formula": {
+                  "expression": "5 * pro",
+                  "rounding": "NONE",
+                  "unit": "ft",
+                  "variables": [
+                    {
+                      "source": {
+                        "kind": "STAT",
+                        "stat": "PRO"
+                      },
+                      "variable": "pro"
+                    }
+                  ]
+                },
+                "measure": "RADIUS",
+                "valueStatus": "FORMULA"
+              }
+            ],
+            "origin": {
+              "default": "SOURCE",
+              "defaultSource": "CASTER",
+              "modes": [
+                "SOURCE"
+              ],
+              "sources": [
+                "CASTER",
+                "SUMMON",
+                "OBJECT",
+                "ANCHOR"
+              ]
+            },
+            "parameters": [
+              {
+                "allowed": [
+                  "CASTER",
+                  "SUMMON",
+                  "OBJECT",
+                  "ANCHOR"
+                ],
+                "default": "CASTER",
+                "kind": "TOKEN",
+                "parameter": "sourceRef"
+              }
+            ],
+            "placement": "FOLLOWS_SOURCE",
+            "radiusCapable": true,
+            "range": {
+              "model": "SELF"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA"
+            ]
+          }
+        },
+        "semanticShape": "AURA"
+      }
+    },
+    {
+      "canonicalKey": "spell.effect.direct_damage",
+      "definitionKind": "SPELL_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "PROJECTILE",
+              "SINGLE_TARGET",
+              "TOUCH"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.damage.dice",
+            "currency": "MP",
+            "data": {
+              "amount": 4,
+              "includedUnits": 0,
+              "kind": "PER_UNIT",
+              "parameter": "dice"
+            }
+          }
+        ],
+        "effectFamily": "DAMAGE",
+        "keywords": [
+          "keyword.damage",
+          "keyword.direct_damage",
+          "keyword.instant_effect"
+        ],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "damageTypeParameter": "damageType",
+                    "diceParameter": "dice"
+                  },
+                  "kind": "DAMAGE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "ATTACK_ROLL"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+                "skillKey": "skill.arcana"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": "ABILITY_ATTACK",
+            "branch": "SPELL",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "DIRECT",
+            "formulas": [],
+            "parameters": [
+              {
+                "default": 1,
+                "increment": 1,
+                "kind": "COUNT",
+                "maximum": {
+                  "kind": "STAT",
+                  "stat": "PRO"
+                },
+                "minimum": 1,
+                "parameter": "dice"
+              },
+              {
+                "allowed": [
+                  "PHYSICAL",
+                  "FIRE",
+                  "ICE",
+                  "LIGHTNING",
+                  "ARCANE"
+                ],
+                "default": "ARCANE",
+                "kind": "TOKEN",
+                "parameter": "damageType"
+              }
+            ],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": null,
+            "targetCategories": [
+              "CREATURE",
+              "OBJECT"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.effect.direct_healing",
+      "definitionKind": "SPELL_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "PROJECTILE",
+              "SINGLE_TARGET",
+              "TOUCH"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.healing.additional",
+            "currency": "MP",
+            "data": {
+              "amount": 5,
+              "includedUnits": 1,
+              "kind": "PER_UNIT",
+              "parameter": "dice"
+            }
+          },
+          {
+            "contributionKey": "effect.healing.base",
+            "currency": "MP",
+            "data": {
+              "amount": 5,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "HEALING",
+        "keywords": [
+          "keyword.healing",
+          "keyword.instant_effect",
+          "keyword.recovery"
+        ],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "diceParameter": "dice"
+                  },
+                  "kind": "HEAL"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "AUTOMATIC"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+                "skillKey": "skill.arcana"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "SPELL",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "RESTORATION",
+            "formulas": [],
+            "parameters": [
+              {
+                "default": 1,
+                "increment": 1,
+                "kind": "COUNT",
+                "maximum": {
+                  "kind": "STAT",
+                  "stat": "PRO"
+                },
+                "minimum": 1,
+                "parameter": "dice"
+              }
+            ],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": null,
+            "targetCategories": [
+              "CREATURE"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.effect.cleanse",
+      "definitionKind": "SPELL_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "SINGLE_TARGET",
+              "TOUCH"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.cleanse.base",
+            "currency": "MP",
+            "data": {
+              "amount": 6,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "HEALING",
+        "keywords": [
+          "keyword.healing",
+          "keyword.recovery"
+        ],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "categoryParameter": "conditionCategory"
+                  },
+                  "kind": "CLEANSE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "AUTOMATIC"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "EXPERT",
+                "prerequisiteKey": "SKILL_ARCANA_EXPERT",
+                "skillKey": "skill.arcana"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "SPELL",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "CLEANSE",
+            "formulas": [],
+            "parameters": [
+              {
+                "allowed": [
+                  "POISON",
+                  "DISEASE",
+                  "PHYSICAL",
+                  "MENTAL",
+                  "ELEMENTAL",
+                  "MAGICAL"
+                ],
+                "default": "POISON",
+                "kind": "TOKEN",
+                "parameter": "conditionCategory"
+              }
+            ],
+            "resolutionPolicy": "OWN",
+            "restrictions": [
+              "REMOVES_ONLY_AUTHORED_CATEGORY"
+            ],
+            "saveProfile": null,
+            "targetCategories": [
+              "CREATURE"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.effect.reinforce",
+      "definitionKind": "SPELL_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "SELF",
+              "SINGLE_TARGET",
+              "TOUCH"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.buff.base",
+            "currency": "MP",
+            "data": {
+              "amount": 4,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "BUFF",
+        "keywords": [
+          "keyword.buff",
+          "keyword.reinforcement"
+        ],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "amountParameter": "amount",
+                    "direction": "INCREASE",
+                    "target": "ARMOR"
+                  },
+                  "kind": "MODIFY_VALUE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "AUTOMATIC"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+                "skillKey": "skill.arcana"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "SPELL",
+            "duration": {
+              "allowed": [
+                "ROUNDS",
+                "COMBAT"
+              ],
+              "default": "ROUNDS",
+              "manaLockEligible": false,
+              "sustainEligible": true
+            },
+            "effectSubfamily": "MODIFICATION",
+            "formulas": [],
+            "parameters": [
+              {
+                "default": 1,
+                "increment": 1,
+                "kind": "COUNT",
+                "maximum": {
+                  "kind": "FIXED",
+                  "value": 3
+                },
+                "minimum": 1,
+                "parameter": "amount"
+              }
+            ],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": null,
+            "targetCategories": [
+              "SELF",
+              "CREATURE"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.effect.impair",
+      "definitionKind": "SPELL_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "PROJECTILE",
+              "SINGLE_TARGET",
+              "TOUCH"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.debuff.base",
+            "currency": "MP",
+            "data": {
+              "amount": 5,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "DEBUFF",
+        "keywords": [
+          "keyword.debuff"
+        ],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "amountParameter": "amount",
+                    "direction": "DECREASE",
+                    "target": "ROLL_QUALITY"
+                  },
+                  "kind": "MODIFY_VALUE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "SAVING_THROW"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+                "skillKey": "skill.arcana"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "SPELL",
+            "duration": {
+              "allowed": [
+                "ROUNDS"
+              ],
+              "default": "ROUNDS",
+              "manaLockEligible": false,
+              "sustainEligible": true
+            },
+            "effectSubfamily": "MODIFICATION",
+            "formulas": [],
+            "parameters": [
+              {
+                "default": 1,
+                "increment": 1,
+                "kind": "COUNT",
+                "maximum": {
+                  "kind": "FIXED",
+                  "value": 3
+                },
+                "minimum": 1,
+                "parameter": "amount"
+              }
+            ],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": {
+              "selectionPolicy": "FIXED",
+              "validSaves": [
+                "RES"
+              ]
+            },
+            "targetCategories": [
+              "CREATURE"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.effect.bind",
+      "definitionKind": "SPELL_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "PROJECTILE",
+              "SINGLE_TARGET",
+              "TOUCH"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.control.base",
+            "currency": "MP",
+            "data": {
+              "amount": 5,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "CONTROL",
+        "keywords": [
+          "keyword.control"
+        ],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "control": "PUSH",
+                    "distanceParameter": "distance"
+                  },
+                  "kind": "CONTROL"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "SAVING_THROW"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+                "skillKey": "skill.arcana"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "SPELL",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "FORCED_MOVEMENT",
+            "formulas": [],
+            "parameters": [
+              {
+                "default": 5,
+                "increment": 5,
+                "kind": "COUNT",
+                "maximum": {
+                  "kind": "FIXED",
+                  "value": 50
+                },
+                "minimum": 5,
+                "parameter": "distance"
+              }
+            ],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": {
+              "selectionPolicy": "CONSTRUCTION_CHOICE",
+              "validSaves": [
+                "STR",
+                "PRO"
+              ]
+            },
+            "targetCategories": [
+              "CREATURE"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.effect.detect_mana",
+      "definitionKind": "SPELL_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "RADIUS",
+              "SELF",
+              "SINGLE_TARGET"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.utility.detect",
+            "currency": "MP",
+            "data": {
+              "amount": 2,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "UTILITY",
+        "keywords": [
+          "keyword.detection",
+          "keyword.knowledge",
+          "keyword.utility"
+        ],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "function": "DETECT_MANA"
+                  },
+                  "kind": "UTILITY"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "AUTOMATIC"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+                "skillKey": "skill.arcana"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "SPELL",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "DETECTION",
+            "formulas": [],
+            "parameters": [],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": null,
+            "targetCategories": [
+              "SELF",
+              "CREATURE",
+              "OBJECT",
+              "AREA"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.effect.reposition",
+      "definitionKind": "SPELL_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "SELF",
+              "SINGLE_TARGET",
+              "TOUCH"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.utility.movement",
+            "currency": "MP",
+            "data": {
+              "amount": 4,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "UTILITY",
+        "keywords": [
+          "keyword.utility"
+        ],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "distanceParameter": "distance",
+                    "function": "REPOSITION"
+                  },
+                  "kind": "UTILITY"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "AUTOMATIC"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+                "skillKey": "skill.arcana"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "SPELL",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "MOVEMENT",
+            "formulas": [],
+            "parameters": [
+              {
+                "default": 5,
+                "increment": 5,
+                "kind": "COUNT",
+                "maximum": {
+                  "kind": "FIXED",
+                  "value": 60
+                },
+                "minimum": 5,
+                "parameter": "distance"
+              }
+            ],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": null,
+            "targetCategories": [
+              "SELF",
+              "CREATURE"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.effect.dispel",
+      "definitionKind": "SPELL_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "PROJECTILE",
+              "SINGLE_TARGET",
+              "TOUCH"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.utility.interference",
+            "currency": "MP",
+            "data": {
+              "amount": 6,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "UTILITY",
+        "keywords": [
+          "keyword.interference",
+          "keyword.utility"
+        ],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "function": "DISPEL_ACTIVE_MAGIC"
+                  },
+                  "kind": "UTILITY"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "SAVING_THROW"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "EXPERT",
+                "prerequisiteKey": "SKILL_ARCANA_EXPERT",
+                "skillKey": "skill.arcana"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "SPELL",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "COUNTERSPELL",
+            "formulas": [],
+            "parameters": [],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": {
+              "selectionPolicy": "CONSTRUCTION_CHOICE",
+              "validSaves": [
+                "PRO",
+                "RES"
+              ]
+            },
+            "targetCategories": [
+              "CREATURE",
+              "OBJECT",
+              "SOURCE"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.effect.summon_manifestation",
+      "definitionKind": "SPELL_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "SELF",
+              "SINGLE_TARGET"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.summoning.base",
+            "currency": "MP",
+            "data": {
+              "amount": 6,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "SUMMONING",
+        "keywords": [
+          "keyword.persistent_creation",
+          "keyword.summon"
+        ],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "contract": "STRUCTURAL_ONLY"
+                  },
+                  "kind": "SUMMON"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "AUTOMATIC"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+                "skillKey": "skill.arcana"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "SPELL",
+            "duration": {
+              "allowed": [
+                "ROUNDS",
+                "COMBAT",
+                "SUSTAINED"
+              ],
+              "default": "ROUNDS",
+              "manaLockEligible": true,
+              "sustainEligible": true
+            },
+            "effectSubfamily": "MANIFESTATION",
+            "formulas": [],
+            "parameters": [],
+            "resolutionPolicy": "OWN",
+            "restrictions": [
+              "SUMMON_STAT_BLOCK_DEFERRED"
+            ],
+            "saveProfile": null,
+            "targetCategories": [
+              "SELF",
+              "POINT",
+              "SPACE"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.duration.instant",
+      "definitionKind": "SPELL_DURATION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "durationConcept": "INSTANT",
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "construction": {
+            "affinityAccess": [
+              {
+                "$ref": "affinity.evocation"
+              }
+            ],
+            "prerequisites": [],
+            "stacking": {
+              "stackable": false
+            }
+          },
+          "duration": {
+            "availability": "EXECUTABLE",
+            "branch": "SPELL",
+            "costStatus": "UNLISTED",
+            "deferralKey": null,
+            "futureRuntime": {
+              "concentration": "NONE",
+              "manaLock": false,
+              "persists": false,
+              "sustain": false
+            },
+            "requirements": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "fixture.trait.spell",
+      "definitionKind": "SPELL_TRAIT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "trait.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 4,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "keywords": [
+          "keyword.direct_damage"
+        ],
+        "parameters": {},
+        "rules": {
+          "construction": {
+            "affinityAccess": [],
+            "prerequisites": [],
+            "stacking": {
+              "stackable": false
+            }
+          },
+          "trait": {
+            "affinity": null,
+            "description": "Changes only an existing Damage Effect's type; adds no damage or Condition.",
+            "effectFamilies": [
+              "DAMAGE"
+            ],
+            "family": "SPELL",
+            "foundationCategories": [],
+            "incompatibleTraits": [],
+            "modifications": [
+              {
+                "kind": "DAMAGE_TYPE",
+                "parameter": "damageType"
+              }
+            ],
+            "name": "Reference conversion",
+            "parameters": [
+              {
+                "allowed": [
+                  "FIRE",
+                  "ICE"
+                ],
+                "default": "FIRE",
+                "kind": "TOKEN",
+                "parameter": "damageType"
+              }
+            ]
+          }
+        },
+        "scope": "EFFECT_SPECIFIC",
+        "traitFamily": "DAMAGE_CONVERSION"
+      }
+    },
+    {
+      "canonicalKey": "fixture.trait.shared",
+      "definitionKind": "SHARED_TRAIT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "trait.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 4,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "keywords": [
+          "keyword.direct_damage"
+        ],
+        "parameters": {},
+        "rules": {
+          "construction": {
+            "affinityAccess": [],
+            "prerequisites": [],
+            "stacking": {
+              "stackable": false
+            }
+          },
+          "trait": {
+            "affinity": null,
+            "description": "Changes only an existing Damage Effect's type; adds no damage or Condition.",
+            "effectFamilies": [
+              "DAMAGE"
+            ],
+            "family": "SHARED",
+            "foundationCategories": [],
+            "incompatibleTraits": [],
+            "modifications": [
+              {
+                "kind": "DAMAGE_TYPE",
+                "parameter": "damageType"
+              }
+            ],
+            "name": "Reference conversion",
+            "parameters": [
+              {
+                "allowed": [
+                  "FIRE",
+                  "ICE"
+                ],
+                "default": "FIRE",
+                "kind": "TOKEN",
+                "parameter": "damageType"
+              }
+            ]
+          }
+        },
+        "scope": "EFFECT_SPECIFIC",
+        "traitFamily": "DAMAGE_CONVERSION"
+      }
+    },
+    {
+      "canonicalKey": "fixture.trait.affinity",
+      "definitionKind": "SPELL_TRAIT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "trait.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 4,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "keywords": [
+          "keyword.direct_damage"
+        ],
+        "parameters": {},
+        "rules": {
+          "construction": {
+            "affinityAccess": [],
+            "prerequisites": [
+              {
+                "affinity": {
+                  "$ref": "affinity.evocation"
+                },
+                "kind": "AFFINITY_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "AFFINITY_TRAINED"
+              }
+            ],
+            "stacking": {
+              "stackable": false
+            }
+          },
+          "trait": {
+            "affinity": {
+              "$ref": "affinity.evocation"
+            },
+            "description": "Changes only an existing Damage Effect's type; adds no damage or Condition.",
+            "effectFamilies": [
+              "DAMAGE"
+            ],
+            "family": "SPELL",
+            "foundationCategories": [],
+            "incompatibleTraits": [],
+            "modifications": [
+              {
+                "kind": "DAMAGE_TYPE",
+                "parameter": "damageType"
+              }
+            ],
+            "name": "Reference conversion",
+            "parameters": [
+              {
+                "allowed": [
+                  "FIRE",
+                  "ICE"
+                ],
+                "default": "FIRE",
+                "kind": "TOKEN",
+                "parameter": "damageType"
+              }
+            ]
+          }
+        },
+        "scope": "EFFECT_SPECIFIC",
+        "traitFamily": "DAMAGE_CONVERSION"
+      }
+    },
+    {
+      "canonicalKey": "spell.trait.widen_area",
+      "definitionKind": "SPELL_TRAIT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "trait.widen_area.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 6,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "keywords": [
+          "keyword.area_effect"
+        ],
+        "parameters": {},
+        "rules": {
+          "construction": {
+            "affinityAccess": [],
+            "prerequisites": [],
+            "stacking": {
+              "stackable": false
+            }
+          },
+          "trait": {
+            "affinity": null,
+            "description": "Increase the area of a radius-capable Targeting Type by 5 ft. M5-SC-024; Core Playtest s825.",
+            "effectFamilies": [],
+            "family": "SPELL",
+            "foundationCategories": [],
+            "incompatibleTraits": [],
+            "modifications": [
+              {
+                "kind": "TARGETING_MEASURE",
+                "measure": "RADIUS",
+                "operation": "ADD",
+                "parameter": "feet"
+              }
+            ],
+            "name": "Widen Area",
+            "parameters": [
+              {
+                "default": 5,
+                "increment": 5,
+                "kind": "COUNT",
+                "maximum": {
+                  "kind": "FIXED",
+                  "value": 5
+                },
+                "minimum": 5,
+                "parameter": "feet"
+              }
+            ]
+          }
+        },
+        "scope": "TARGETING",
+        "traitFamily": "AREA_MODIFICATION"
+      }
+    },
+    {
+      "canonicalKey": "fixture.trait.stackable",
+      "definitionKind": "SPELL_TRAIT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "construction": {
+            "stacking": {
+              "limit": {
+                "kind": "FIXED",
+                "maximum": 3
+              },
+              "stackable": true
+            }
+          },
+          "trait": {
+            "affinity": null,
+            "description": "Test-only supported cost property; final pricing belongs to WO10.",
+            "effectFamilies": [],
+            "family": "SPELL",
+            "foundationCategories": [],
+            "incompatibleTraits": [],
+            "modifications": [
+              {
+                "currency": "MP",
+                "kind": "COST",
+                "operation": "ADD",
+                "parameter": "stacks"
+              }
+            ],
+            "name": "Reference stackable cost component",
+            "parameters": [
+              {
+                "default": 1,
+                "increment": 1,
+                "kind": "COUNT",
+                "maximum": {
+                  "kind": "FIXED",
+                  "value": 3
+                },
+                "minimum": 1,
+                "parameter": "stacks"
+              }
+            ]
+          }
+        },
+        "scope": "ABILITY_WIDE",
+        "traitFamily": "COST_CONFIGURATION"
+      }
+    },
+    {
+      "canonicalKey": "spell.duration.rounds",
+      "definitionKind": "SPELL_DURATION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "durationConcept": "ROUNDS",
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "construction": {
+            "affinityAccess": [
+              {
+                "$ref": "affinity.evocation"
+              }
+            ],
+            "prerequisites": [],
+            "stacking": {
+              "stackable": false
+            }
+          },
+          "duration": {
+            "availability": "EXECUTABLE",
+            "branch": "SPELL",
+            "costStatus": "UNLISTED",
+            "deferralKey": null,
+            "futureRuntime": {
+              "concentration": "NONE",
+              "manaLock": false,
+              "persists": true,
+              "sustain": false
+            },
+            "requirements": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.duration.combat",
+      "definitionKind": "SPELL_DURATION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "durationConcept": "COMBAT",
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "duration": {
+            "availability": "EXECUTABLE",
+            "branch": "SPELL",
+            "costStatus": "UNLISTED",
+            "deferralKey": null,
+            "futureRuntime": {
+              "concentration": "NONE",
+              "manaLock": false,
+              "persists": true,
+              "sustain": false
+            },
+            "requirements": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.duration.scene",
+      "definitionKind": "SPELL_DURATION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "durationConcept": "SCENE",
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "duration": {
+            "availability": "EXECUTABLE",
+            "branch": "SPELL",
+            "costStatus": "UNLISTED",
+            "deferralKey": null,
+            "futureRuntime": {
+              "concentration": "NONE",
+              "manaLock": false,
+              "persists": true,
+              "sustain": false
+            },
+            "requirements": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.duration.mission",
+      "definitionKind": "SPELL_DURATION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "durationConcept": "MISSION",
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "duration": {
+            "availability": "EXECUTABLE",
+            "branch": "SPELL",
+            "costStatus": "UNLISTED",
+            "deferralKey": null,
+            "futureRuntime": {
+              "concentration": "NONE",
+              "manaLock": false,
+              "persists": true,
+              "sustain": false
+            },
+            "requirements": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.duration.sustained",
+      "definitionKind": "SPELL_DURATION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "durationConcept": "SUSTAINED",
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "duration": {
+            "availability": "EXECUTABLE",
+            "branch": "SPELL",
+            "costStatus": "UNLISTED",
+            "deferralKey": null,
+            "futureRuntime": {
+              "concentration": "WO13",
+              "manaLock": false,
+              "persists": true,
+              "sustain": true
+            },
+            "requirements": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.duration.mana_lock",
+      "definitionKind": "SPELL_DURATION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "durationConcept": "MANA_LOCK",
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "duration": {
+            "availability": "EXECUTABLE",
+            "branch": "SPELL",
+            "costStatus": "UNLISTED",
+            "deferralKey": null,
+            "futureRuntime": {
+              "concentration": "NONE",
+              "manaLock": true,
+              "persists": true,
+              "sustain": false
+            },
+            "requirements": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.duration.permanent_by_special_rule",
+      "definitionKind": "SPELL_DURATION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "durationConcept": "PERMANENT_BY_SPECIAL_RULE",
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "duration": {
+            "availability": "DEFERRED",
+            "branch": "SPELL",
+            "costStatus": "UNLISTED",
+            "deferralKey": "M5-SC-045",
+            "futureRuntime": {
+              "concentration": "NONE",
+              "manaLock": false,
+              "persists": true,
+              "sustain": false
+            },
+            "requirements": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "spell.casting_condition.verbal",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "verbal.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 10,
+              "kind": "FIXED",
+              "modifier": "MP_PERCENT_REDUCTION"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "VERBAL"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "EXECUTABLE",
+            "branch": "SPELL",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": null,
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.canVocalize",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "VOCALIZATION"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "spell.casting_condition.somatic",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "somatic.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 1,
+              "kind": "FIXED",
+              "modifier": "AP_REDUCTION"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "SOMATIC"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "EXECUTABLE",
+            "branch": "SPELL",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": null,
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.canPerformSomatic",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "PHYSICAL_MOVEMENT"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "spell.casting_condition.material",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "MATERIAL"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "DEFERRED",
+            "branch": "SPELL",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": "M5-SC-044",
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.material",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "MATERIAL"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "spell.casting_condition.immobile",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "immobile.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 10,
+              "kind": "FIXED",
+              "modifier": "MP_PERCENT_REDUCTION"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "IMMOBILE"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "EXECUTABLE",
+            "branch": "SPELL",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": null,
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.immobile",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "IMMOBILE"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "spell.casting_condition.anchored",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "anchored.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 15,
+              "kind": "FIXED",
+              "modifier": "MP_PERCENT_REDUCTION"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "ANCHORED"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "EXECUTABLE",
+            "branch": "SPELL",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": null,
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.anchored",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "ANCHORED"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "spell.casting_condition.charge",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "charge.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 1,
+              "includedUnits": 0,
+              "kind": "PER_UNIT",
+              "modifier": "AP_COMMITMENT",
+              "parameter": "extraAp"
+            }
+          },
+          {
+            "contributionKey": "charge.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 10,
+              "includedUnits": 0,
+              "kind": "PER_UNIT",
+              "modifier": "MP_PERCENT_REDUCTION",
+              "parameter": "extraAp"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "CHARGE"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "EXECUTABLE",
+            "branch": "SPELL",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": null,
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [
+              {
+                "default": null,
+                "increment": 1,
+                "kind": "COUNT",
+                "maximum": null,
+                "minimum": 1,
+                "parameter": "extraAp"
+              }
+            ],
+            "runtimeRequirements": [
+              {
+                "parameters": [
+                  "extraAp"
+                ],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.canCommitExtraAp",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "EXTRA_AP_COMMITMENT"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "spell.casting_condition.limited_use",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "limited_use.mp",
+            "currency": "MP",
+            "data": {
+              "amounts": {
+                "COMBAT": 20,
+                "MISSION": 30,
+                "SCENE": 10
+              },
+              "kind": "PER_SELECTION",
+              "modifier": "MP_PERCENT_REDUCTION",
+              "parameter": "period"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "LIMITED_USE"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "EXECUTABLE",
+            "branch": "SPELL",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": null,
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [
+              {
+                "allowed": [
+                  "SCENE",
+                  "COMBAT",
+                  "MISSION"
+                ],
+                "default": null,
+                "kind": "TOKEN",
+                "parameter": "period"
+              }
+            ],
+            "runtimeRequirements": [
+              {
+                "parameters": [
+                  "period"
+                ],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.useAvailable",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "USAGE_LIMIT"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "spell.casting_condition.delayed",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "DELAYED"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "DEFERRED",
+            "branch": "SPELL",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": "M5-SC-044",
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.delayed",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "DELAYED"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "spell.casting_condition.environmental",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "ENVIRONMENTAL"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "DEFERRED",
+            "branch": "SPELL",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": "M5-SC-044",
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.environmental",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "ENVIRONMENTAL"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "spell.casting_condition.risk",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "RISK"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "DEFERRED",
+            "branch": "SPELL",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": "M5-SC-044",
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.risk",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "RISK"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "spell.casting_condition.focus",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "FOCUS"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "DEFERRED",
+            "branch": "SPELL",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": "M5-SC-044",
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.focus",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "FOCUS"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "fixture.wo9.effect.maintenance",
+      "definitionKind": "SPELL_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "SELF",
+              "SINGLE_TARGET",
+              "TOUCH"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.buff.base",
+            "currency": "MP",
+            "data": {
+              "amount": 4,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "BUFF",
+        "keywords": [
+          "keyword.buff",
+          "keyword.reinforcement"
+        ],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "amountParameter": "amount",
+                    "direction": "INCREASE",
+                    "target": "ARMOR"
+                  },
+                  "kind": "MODIFY_VALUE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "AUTOMATIC"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+                "skillKey": "skill.arcana"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "SPELL",
+            "duration": {
+              "allowed": [
+                "INSTANT",
+                "ROUNDS",
+                "COMBAT",
+                "SCENE",
+                "MISSION",
+                "SUSTAINED",
+                "MANA_LOCK"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": true,
+              "sustainEligible": true
+            },
+            "effectSubfamily": "MODIFICATION",
+            "formulas": [],
+            "parameters": [
+              {
+                "default": 1,
+                "increment": 1,
+                "kind": "COUNT",
+                "maximum": {
+                  "kind": "FIXED",
+                  "value": 3
+                },
+                "minimum": 1,
+                "parameter": "amount"
+              }
+            ],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": null,
+            "targetCategories": [
+              "SELF",
+              "CREATURE"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "fixture.wo9.condition.attack",
+      "definitionKind": "SPELL_CASTING_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "verbal.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 10,
+              "kind": "FIXED",
+              "modifier": "MP_PERCENT_REDUCTION"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "ATTACK_RESTRICTION"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.attack",
+              "kind": "NUMERIC_COMPARE",
+              "operator": ">="
+            },
+            "availability": "EXECUTABLE",
+            "branch": "SPELL",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": null,
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.canVocalize",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "VOCALIZATION"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "fixture.wo10.effect.damage",
+      "definitionKind": "SPELL_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "PROJECTILE",
+              "SINGLE_TARGET",
+              "TOUCH"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.wo10.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 1,
+              "includedUnits": 0,
+              "kind": "PER_UNIT",
+              "parameter": "mp"
+            }
+          }
+        ],
+        "effectFamily": "DAMAGE",
+        "keywords": [
+          "keyword.damage",
+          "keyword.direct_damage",
+          "keyword.instant_effect"
+        ],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "damageTypeParameter": "damageType",
+                    "diceParameter": "dice"
+                  },
+                  "kind": "DAMAGE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "ATTACK_ROLL"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+                "skillKey": "skill.arcana"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": "ABILITY_ATTACK",
+            "branch": "SPELL",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "DIRECT",
+            "formulas": [],
+            "parameters": [
+              {
+                "default": 1,
+                "increment": 1,
+                "kind": "COUNT",
+                "maximum": {
+                  "kind": "STAT",
+                  "stat": "PRO"
+                },
+                "minimum": 1,
+                "parameter": "dice"
+              },
+              {
+                "allowed": [
+                  "PHYSICAL",
+                  "FIRE",
+                  "ICE",
+                  "LIGHTNING",
+                  "ARCANE"
+                ],
+                "default": "ARCANE",
+                "kind": "TOKEN",
+                "parameter": "damageType"
+              },
+              {
+                "default": 0,
+                "increment": 1,
+                "kind": "COUNT",
+                "maximum": {
+                  "kind": "FIXED",
+                  "value": 100
+                },
+                "minimum": 0,
+                "parameter": "mp"
+              }
+            ],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": null,
+            "targetCategories": [
+              "CREATURE",
+              "OBJECT"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "fixture.wo10.effect.dual",
+      "definitionKind": "SPELL_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "PROJECTILE",
+              "SINGLE_TARGET",
+              "TOUCH"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.wo10.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 1,
+              "includedUnits": 0,
+              "kind": "PER_UNIT",
+              "parameter": "mp"
+            }
+          }
+        ],
+        "effectFamily": "DAMAGE",
+        "keywords": [
+          "keyword.buff",
+          "keyword.direct_damage"
+        ],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "damageTypeParameter": "damageType",
+                    "diceParameter": "dice"
+                  },
+                  "kind": "DAMAGE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "ATTACK_ROLL"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_ARCANA_TRAINED",
+                "skillKey": "skill.arcana"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": "ABILITY_ATTACK",
+            "branch": "SPELL",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "DIRECT",
+            "formulas": [],
+            "parameters": [
+              {
+                "default": 1,
+                "increment": 1,
+                "kind": "COUNT",
+                "maximum": {
+                  "kind": "STAT",
+                  "stat": "PRO"
+                },
+                "minimum": 1,
+                "parameter": "dice"
+              },
+              {
+                "allowed": [
+                  "PHYSICAL",
+                  "FIRE",
+                  "ICE",
+                  "LIGHTNING",
+                  "ARCANE"
+                ],
+                "default": "ARCANE",
+                "kind": "TOKEN",
+                "parameter": "damageType"
+              },
+              {
+                "default": 0,
+                "increment": 1,
+                "kind": "COUNT",
+                "maximum": {
+                  "kind": "FIXED",
+                  "value": 100
+                },
+                "minimum": 0,
+                "parameter": "mp"
+              }
+            ],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": null,
+            "targetCategories": [
+              "CREATURE",
+              "OBJECT"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "fixture.wo10.trait.flat",
+      "definitionKind": "SPELL_TRAIT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "trait.wo10.flat",
+            "currency": "MP",
+            "data": {
+              "amount": 2,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "keywords": [
+          "keyword.direct_damage"
+        ],
+        "parameters": {},
+        "rules": {
+          "construction": {
+            "affinityAccess": [],
+            "prerequisites": [],
+            "stacking": {
+              "stackable": false
+            }
+          },
+          "trait": {
+            "affinity": null,
+            "description": "Changes only an existing Damage Effect's type; adds no damage or Condition.",
+            "effectFamilies": [
+              "DAMAGE"
+            ],
+            "family": "SPELL",
+            "foundationCategories": [],
+            "incompatibleTraits": [],
+            "modifications": [
+              {
+                "kind": "DAMAGE_TYPE",
+                "parameter": "damageType"
+              }
+            ],
+            "name": "Reference flat-cost conversion Trait",
+            "parameters": [
+              {
+                "allowed": [
+                  "FIRE",
+                  "ICE"
+                ],
+                "default": "FIRE",
+                "kind": "TOKEN",
+                "parameter": "damageType"
+              }
+            ]
+          }
+        },
+        "scope": "EFFECT_SPECIFIC",
+        "traitFamily": "DAMAGE_CONVERSION"
+      }
+    }
+  ]
+}

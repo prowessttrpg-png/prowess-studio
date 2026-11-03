@@ -48,6 +48,8 @@ export function sheetFixture(over: Partial<CharacterSheetDto> = {}): CharacterSh
     equipment: { available: false, mainHand: null, offHand: null, loadoutVersion: 0, loadoutStatus: "VALID", loadoutIssues: [], armor: null, accessorySlots: null, accessories: [] },
     weaponAttacks: [],
     dualWield: { available: false, reasons: [] },
+    // M6-WO7: no finalized Signature Spell.
+    signatureSpells: [],
     advancementHistoryCount: 5,
     names: { "orcani-v": "Orcani", "evocation-v": "Evocation", "conjuration-v": "Conjuration", "arcana-v": "Arcana", "athletics-v": "Athletics", "performance-v": "Performance", "stealth-v": "Stealth" },
     ...over,
