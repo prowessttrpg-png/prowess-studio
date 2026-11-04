@@ -75,7 +75,7 @@ export function readSignatureManeuverDraft(input: unknown): ProwessOutcome<Signa
       let appliesTo: unknown;
       if (trait) { const a = readRecord(q.appliesTo, [path, i, "appliesTo"], p, E, ["scope", "componentKey"], ["scope", "componentKey"]); if (a && (typeof a.scope !== "string" || !(a.componentKey === null || isExactLabel(a.componentKey)))) p.add(E, [path, i], "explicit Trait scope and target required"); appliesTo = a; }
       return d ? [{ componentKey: q.componentKey as string, order: q.order as number, definition: d, parameters: ps, ...(trait ? { appliesTo } : {}) } as SignatureSpellOrderedUse] : [];
-    }).sort((a, b) => a.order - b.order);
+    }).sort((a, b) => a.order < b.order ? -1 : a.order > b.order ? 1 : 0);
   };
   const effects = list(r.effects, "effects"), traits = list(r.traits, "traits", true) as SignatureSpellTraitUse[], conditions = list(r.conditions, "conditions");
   const actions: ManeuverActionUse[] = [];
@@ -108,7 +108,7 @@ export function readSignatureManeuverDraft(input: unknown): ProwessOutcome<Signa
   if (actions.some(a => all.some(u => u.componentKey === `${a.componentKey}.targeting`))) p.add(E, ["actions"], "inherited Action targeting keys are reserved and cannot identify another component");
   if (new Set(all.map(x => x.componentKey)).size !== all.length || all.some(x => ["targeting", "duration", "affinity"].includes(x.componentKey))) p.add(E, [], "component keys are globally unique and preserve reserved identities");
   for (const rows of [actions, effects, traits, conditions]) if (new Set(rows.map(x => x.order)).size !== rows.length) p.add(E, [], "orders must be unambiguous within each slot");
-  return finish(p, () => deepFreeze(clonePlainData({ schemaVersion: 1, concept: c as unknown as SignatureSpellConcept, actions: actions.sort((a, b) => a.order - b.order), affinity, effects, effectAttachments, traits, duration, conditions, powerfulBlow })));
+  return finish(p, () => deepFreeze(clonePlainData({ schemaVersion: 1, concept: c as unknown as SignatureSpellConcept, actions: actions.sort((a, b) => a.order < b.order ? -1 : a.order > b.order ? 1 : 0), affinity, effects, effectAttachments, traits, duration, conditions, powerfulBlow })));
 }
 export function signatureManeuverComponentRefs(draft: SignatureManeuverDraft): readonly ProwessDefinitionRef[] {
   return [...draft.actions.flatMap(a => a.source.kind === "FOUNDATION" ? [a.source.definition] : [a.source.weapon, a.source.attack]), ...(draft.affinity ? [draft.affinity] : []), ...draft.effects.map(x => x.definition), ...draft.traits.map(x => x.definition), ...draft.conditions.map(x => x.definition), ...(draft.duration ? [draft.duration.definition] : [])];

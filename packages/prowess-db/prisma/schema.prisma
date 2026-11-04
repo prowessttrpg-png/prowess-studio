@@ -2705,9 +2705,9 @@ model CharacterSignatureManeuverRevision {
   ability            CharacterSignatureAbility         @relation("SignatureManeuverRevisions", fields: [abilityId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   revisionNumber     Int                               @map("revision_number")
   characterReleaseId String                            @map("character_release_id") @db.Uuid
-  characterRelease   RulesetRelease                    @relation(fields: [characterReleaseId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  characterRelease   RulesetRelease                    @relation(fields: [characterReleaseId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "character_signature_maneuver_revisions_character_release_id_fke")
   previousRevisionId String?                           @unique @map("previous_revision_id") @db.Uuid
-  previousRevision   CharacterSignatureManeuverRevision?  @relation("SignatureManeuverRevisionHistory", fields: [previousRevisionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  previousRevision   CharacterSignatureManeuverRevision?  @relation("SignatureManeuverRevisionHistory", fields: [previousRevisionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "character_signature_maneuver_revisions_previous_revision_id_fke")
   nextRevision       CharacterSignatureManeuverRevision?  @relation("SignatureManeuverRevisionHistory")
   payload            Json
   createdAt          DateTime                          @default(now()) @map("created_at") @db.Timestamptz(6)

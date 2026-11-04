@@ -376,13 +376,17 @@ export function compileManeuverCostCore<S>(request: Record<string, unknown>, pla
   const attackFloor = formula("attack_floor", "attackFloor", { minimum: policy.minimumAp, attacks: structure.separateAttackResolutions }, [], "maneuver-condition-attack-floor", plan.actions.map((a) => a.definition), plan.actions.map((a) => a.componentKey));
   // M6-WO8 Amendment A is opt-in through the exact Release's policy. Every constituent Foundation AP
   // contribution is bound into M4, including repeated Attacks inside a one-block Powerful Blow.
-  const actionAp = contributions.filter(c => c.source === "FOUNDATION" && c.currency === "AP");
+  const actionAp = ofCurrency(contributions.filter(c => c.source === "FOUNDATION"), "AP");
   const protectedActionAp = policy.extension ? push(
     { stepKey: key("protected_action_ap"), operation: "MODIFIER", input: { request: { targets: [{ targetKey: "maneuver.protected_action_ap", kind: "NUMERIC", value: 0 }], modifiers: actionAp.map((c, i) => modifier(`${c.componentKey}.${c.contributionKey}`, "maneuver.protected_action_ap", "ADD", "maneuver.actions", 1, i, c.definition)), facts: emptyFacts() } } as unknown as JsonObject, bindings: actionAp.map((c, i) => bind(`/request/modifiers/${i}/operand`, c.stepKey)) },
     { role: "maneuver-protected-action-ap", componentKeys: actionAp.map(c => c.componentKey), definitions: [...subjectRefs, policyRef, ...actionAp.map(c => c.definition)] },
   ) : null;
+  // Preserve the historical modifier verbatim; only the explicitly versioned policy selects the new floor.
+  const conditionFloor = policy.extension
+    ? { modifiers: [modifier("maneuver.protected_action_floor", POST_AP, "MAX", "maneuver.condition_floor", 1, 0, policyRef)] }
+    : { modifiers: [modifier("maneuver.condition_attack_floor", POST_AP, "MAX", "maneuver.condition_floor", 1, 0, policyRef)] };
   const postConditionAp = push(
-    { stepKey: key("post_condition_ap"), operation: "MODIFIER", input: { request: { targets: [{ targetKey: POST_AP, kind: "NUMERIC", value: 0 }], modifiers: [modifier(policy.extension ? "maneuver.protected_action_floor" : "maneuver.condition_attack_floor", POST_AP, "MAX", "maneuver.condition_floor", 1, 0, policyRef)], facts: emptyFacts() } } as unknown as JsonObject, bindings: [bind("/request/targets/0/value", conditionReduced), bind("/request/modifiers/0/operand", protectedActionAp ?? attackFloor, protectedActionAp ? "/data/finalTargets/0/value" : "/data/finalValue")] },
+    { stepKey: key("post_condition_ap"), operation: "MODIFIER", input: { request: { targets: [{ targetKey: POST_AP, kind: "NUMERIC", value: 0 }], ...conditionFloor, facts: emptyFacts() } } as unknown as JsonObject, bindings: [bind("/request/targets/0/value", conditionReduced), bind("/request/modifiers/0/operand", protectedActionAp ?? attackFloor, protectedActionAp ? "/data/finalTargets/0/value" : "/data/finalValue")] },
     { role: "maneuver-post-condition-ap", componentKeys: [], definitions: [...subjectRefs, policyRef] },
   );
   const finalAp = push(

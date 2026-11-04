@@ -154,6 +154,9 @@ describe("§50 public service surface", () => {
         // tables — one creation and a lockVersion compare-and-set draft save; finalize / rebuild / retire are named
         // commands. None creates or touches an Entity, EntityVersion, ChangeSet or Release.
         "createCharacterSignatureSpell", "updateCharacterSignatureSpellDraft",
+        // M6-WO8 additive Character-owned Maneuver operations use the SAME kind-checked CAS lifecycle repository.
+        // Only a DRAFT or explicitly started rebuild draft can be saved; finalized history and Canon stay immutable.
+        "createCharacterSignatureManeuver", "updateCharacterSignatureManeuverDraft",
       ].sort(),
     );
   });

@@ -634,7 +634,8 @@
       "TARGETING",
       "DURATION",
       "CONDITION",
-      "RESOLUTION"
+      "RESOLUTION",
+      "ACTION_SPECIFIC"
     ],
     "durationConcepts": [
       "INSTANT",

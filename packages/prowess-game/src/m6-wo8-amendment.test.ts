@@ -4,11 +4,32 @@ import { signatureManeuverFixture } from "./testing/signature-maneuver-fixtures.
 import { maneuverCostFixture, runManeuverCost } from "./testing/maneuver-cost-fixtures.js";
 import { evaluateManeuverCost } from "./ability/maneuver-cost.js";
 import { copy } from "./testing/duration-condition-fixtures.js";
+import { performanceConditionCandidate } from "./content-updates/m6-wo8-amendment-a.js";
+import { readConditionRules, readConditionContributions } from "./definition/duration-condition-payload.js";
+import type { AbilityConditionDefinitionPayload } from "./definition/payload.js";
+import { Problems } from "./internal/problems.js";
 
 vi.setConfig({ testTimeout: 120_000 });
 const f = signatureManeuverFixture();
 const run = (key: string, signature = false) => runManeuverCost(f.request(`fixture.wo11.maneuver.${key}`, signature));
 describe("M6-WO8 Amendment A — versioned protected Action cost", () => {
+  it("validates authored Performance benefits by exact rank identity, independent of token order", () => {
+    const payload = performanceConditionCandidate(f.ref("test.wo8.skill.performance"));
+    const raw = copy(payload.rules.condition);
+    raw.parameters[0]!.allowed = ["MASTER", "TRAINED", "EXPERT"];
+    const valid = new Problems(), rules = readConditionRules(raw, "MANEUVER", [], valid);
+    expect(rules).not.toBeNull(); expect(valid.list).toEqual([]);
+    const wrongPreparation = copy(raw);
+    wrongPreparation.performance.preparationApByRank.MASTER = 1;
+    const preparation = new Problems();
+    expect(readConditionRules(wrongPreparation, "MANEUVER", [], preparation)).toBeNull();
+    expect(preparation.count).toBeGreaterThan(0);
+    const wrongMp = copy(payload);
+    (wrongMp.costContributions[0]!.data.amounts as Record<string, number>).MASTER = 7;
+    const cost = new Problems();
+    readConditionContributions(wrongMp as unknown as AbilityConditionDefinitionPayload, rules!, [], cost);
+    expect(cost.count).toBeGreaterThan(0);
+  });
   it("preserves historical M5 costs and serialized output shapes", () => {
     const old = runManeuverCost(maneuverCostFixture().request("fixture.wo11.maneuver.multi"));
     expect(old.result.ap.finalApCost).toBe(2);

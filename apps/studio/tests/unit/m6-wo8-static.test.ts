@@ -2,6 +2,9 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { auditM5Source } from "./m5-wo1-audit-helpers";
+import { auditWo2Source } from "./m5-wo2-audit-helpers";
+import { auditWo3Source } from "./m5-wo3-audit-helpers";
 
 const ROOT = path.resolve(process.cwd(), "../..");
 const read = (f: string) => readFileSync(path.join(ROOT, f), "utf8");
@@ -19,6 +22,32 @@ const routes = [api + "/route.ts", api + "/[maneuverId]/route.ts", ...["builder"
 const UI = "apps/studio/app/characters/_components/maneuvers";
 
 describe("M6-WO8 permanent architecture and integration contracts", () => {
+  it("M6-I101 M6-I105 M6-I108: exact-reference catalog reads are allowed, kind/shape inference and hidden math remain forbidden", () => {
+    for (const f of [G + "character/signature-maneuver.ts", G + "character/signature-maneuver-catalog.ts"]) {
+      expect(auditM5Source(read(f), f, "game"), f).toEqual([]);
+      const append = (snippet: string) => auditM5Source(`${read(f)}\n${snippet}`, f, "game");
+      expect(append('export const inferred = (x: any) => x.weapon ? "MANEUVER" : "SPELL";')).toContain("kind-inference");
+      expect(append('export const inferredShape = (x: any) => x.semanticShape === "SINGLE_TARGET";')).toContain("shape-implies-mechanics");
+      expect(append("export const hiddenPrice = 4 - 2;")).toContain("hidden-math");
+    }
+    // The same data projections outside these two reviewed adapter paths still have the original WO1 findings.
+    const projection = 'const source: ManeuverActionSource = { kind: "WEAPON_ATTACK", weapon: attack.weapon };';
+    expect(auditM5Source(projection, G + "unreviewed.ts", "game")).toContain("kind-inference");
+    for (const f of ["ability/compile.ts", "character/signature-maneuver.ts", "content-updates/m6-wo8-amendment-a.ts", "definition/duration-condition-payload.ts"]) expect(auditWo2Source(read(G + f), G + f, "game"), f).toEqual([]);
+    expect(auditWo3Source(read(G + "ability/maneuver-cost.ts"), G + "ability/maneuver-cost.ts", "game")).toEqual([]);
+  });
+
+  it("M6-I111: the Prisma model maps the exact PostgreSQL-truncated FK names without rewriting the migration", () => {
+    const schema = read("packages/prowess-db/prisma/schema.prisma");
+    expect(hash("packages/prowess-db/prisma/migrations/20261104010000_m6_wo8_signature_maneuvers/migration.sql")).toBe("d5426f48e29f9378d73178cc86405a379f22b2e0439c6c5619cb592eb7ff6379");
+    for (const declared of ["character_signature_maneuver_revisions_character_release_id_fkey", "character_signature_maneuver_revisions_previous_revision_id_fkey"]) {
+      const stored = Buffer.from(declared).subarray(0, 63).toString("utf8");
+      expect(migration).toContain(`ADD CONSTRAINT "${declared}"`);
+      expect(schema).toContain(`map: "${stored}"`);
+      expect(Buffer.byteLength(stored)).toBe(63);
+    }
+  });
+
   it("M6-I099 M6-I101 M6-I102 M6-I105 M6-I115 M6-I119: exact Character choices without synthetic canon or latest lookup", () => {
     expect(adapter).toContain('kind: "CHARACTER_SIGNATURE_MANEUVER"');
     expect(adapter).toContain("subjectRefs: [], definition: subject");
@@ -76,7 +105,7 @@ describe("M6-WO8 permanent architecture and integration contracts", () => {
   it("M6-I123 M6-I124 M6-I125: versioned exact Action floor and post-floor Signature, preserving historical M5", () => {
     const cost = read(G + "ability/maneuver-cost.ts"), policy = read(G + "definition/maneuver-cost-policy.ts");
     expect(policy).toContain('"M6-WO8-A"'); expect(policy).toContain('"COMMITTED_ACTION_AP"');
-    expect(cost).toContain('const actionAp = contributions.filter(c => c.source === "FOUNDATION" && c.currency === "AP")');
+    expect(cost).toContain('const actionAp = ofCurrency(contributions.filter(c => c.source === "FOUNDATION"), "AP")');
     expect(cost).toContain('operation: "MODIFIER"'); expect(cost).toContain('"maneuver.protected_action_floor"');
     expect(cost).toContain("protectedActionAp ?? attackFloor");
     expect(cost.indexOf('key("post_condition_ap")')).toBeLessThan(cost.indexOf('key("final_ap")'));

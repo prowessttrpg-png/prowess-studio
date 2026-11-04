@@ -39,6 +39,41 @@ export function auditM5Source(source: string, file: string, layer: M5Layer): str
   const legalityFile = /construction\/composition\.ts$|bundle\/bundle\.ts$|compilation\/|definition\/envelope\.ts$/.test(file);
   const identityOnly = /definition\/envelope\.ts$/.test(file);
   const infrastructure = /\/internal\//.test(file);
+  // M6-WO8: these two adapters project exact WO6 identity and query a pinned Targeting catalog. Neither operation
+  // infers an Ability kind or a price. Recognize only those AST contexts; presence tests, shape-driven mechanics,
+  // arbitrary object copies and every other file retain the original rules (permanent WO8 mutation checks).
+  const wo8IdentityAdapter = /\/character\/signature-maneuver(?:-catalog)?\.ts$/.test(file);
+  const unwrap = (n: ts.Expression): ts.Expression => ts.isParenthesizedExpression(n) || ts.isAsExpression(n) ? unwrap(n.expression) : n;
+  const exactTargetingQuery = (node: ts.Node): boolean => {
+    if (!wo8IdentityAdapter) return false;
+    let owner: ts.Node | undefined = node;
+    while (owner && !ts.isArrowFunction(owner)) owner = owner.parent;
+    if (!owner || !ts.isArrowFunction(owner) || owner.parameters.length !== 1 || !ts.isIdentifier(owner.parameters[0]!.name)) return false;
+    const name = owner.parameters[0]!.name.text, call = owner.parent, body = owner.body;
+    if (!ts.isCallExpression(call) || call.expression.getText(ast) !== "bundle.definitions.filter" || !ts.isBinaryExpression(body) || body.operatorToken.kind !== ts.SyntaxKind.AmpersandAmpersandToken) return false;
+    const kind = body.left, shape = body.right;
+    if (!ts.isBinaryExpression(kind) || kind.operatorToken.kind !== ts.SyntaxKind.EqualsEqualsEqualsToken || kind.left.getText(ast) !== `${name}.definitionKind` || literalText(kind.right) !== "MANEUVER_TARGETING") return false;
+    if (!ts.isBinaryExpression(shape) || shape.operatorToken.kind !== ts.SyntaxKind.EqualsEqualsEqualsToken || literalText(shape.right) !== "SINGLE_TARGET" || !ts.isPropertyAccessExpression(shape.left) || shape.left.name.text !== "semanticShape") return false;
+    return unwrap(shape.left.expression).getText(ast) === `${name}.payload`;
+  };
+  const exactWeaponReference = (node: ts.PropertyAccessExpression): boolean => {
+    if (!wo8IdentityAdapter) return false;
+    const parent = node.parent;
+    if (ts.isCallExpression(parent) && parent.expression.getText(ast) === "isSameExactDefinition" && parent.arguments.includes(node)) return true;
+    if (ts.isCallExpression(parent) && parent.expression.getText(ast) === "ref" && parent.arguments[0] === node) {
+      const path = parent.arguments[1];
+      if (path && ts.isArrayLiteralExpression(path) && literalText(path.elements[path.elements.length - 1]!) === "weapon") return true;
+    }
+    if (ts.isArrayLiteralExpression(parent) && parent.elements.length === 2 && parent.elements[0] === node) {
+      const pair = parent.elements[1]!;
+      return ts.isPropertyAccessExpression(pair) && pair.name.text === "attack" && pair.expression.getText(ast) === node.expression.getText(ast);
+    }
+    if (ts.isPropertyAssignment(parent) && parent.name.getText(ast) === "weapon" && ts.isObjectLiteralExpression(parent.parent)) {
+      const declaration = parent.parent.parent;
+      return ts.isVariableDeclaration(declaration) && declaration.type?.getText(ast) === "ManeuverActionSource";
+    }
+    return false;
+  };
 
   const visit = (node: ts.Node): void => {
     // ---- imports -------------------------------------------------------------------------------------------------
@@ -77,10 +112,10 @@ export function auditM5Source(source: string, file: string, layer: M5Layer): str
     // ---- property access -------------------------------------------------------------------------------------------
     if (ts.isPropertyAccessExpression(node)) {
       const prop = node.name.text;
-      if (layer === "game" && prop === "weapon") add("kind-inference");
+      if (layer === "game" && prop === "weapon" && !exactWeaponReference(node)) add("kind-inference");
       if (layer === "game" && legalityFile && !identityOnly && prop === "contract") add("cross-branch-coercion");
       if (layer === "game" && legalityFile && prop === "semanticShape") add("cross-branch-coercion");
-      if (layer === "game" && !isContracts && prop === "semanticShape" && !legalityFile) add("shape-implies-mechanics");
+      if (layer === "game" && !isContracts && prop === "semanticShape" && !legalityFile && !exactTargetingQuery(node)) add("shape-implies-mechanics");
     }
 
     // ---- property assignments ------------------------------------------------------------------------------------
@@ -112,7 +147,7 @@ export function auditM5Source(source: string, file: string, layer: M5Layer): str
       if (op === ts.SyntaxKind.EqualsEqualsEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken || op === ts.SyntaxKind.EqualsEqualsToken) {
         for (const side of [node.left, node.right]) {
           const lit = literalText(side);
-          if (layer === "game" && lit !== null && SHAPES.has(lit)) add("shape-implies-mechanics");
+          if (layer === "game" && lit !== null && SHAPES.has(lit) && !exactTargetingQuery(node)) add("shape-implies-mechanics");
           if (layer === "game" && lit !== null && /^keyword\./.test(lit)) add("keyword-mechanics");
           if (layer === "rules" && lit !== null && PROWESS_IN_M4.test(lit)) add("prowess-logic-in-m4");
         }

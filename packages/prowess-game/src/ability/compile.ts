@@ -178,7 +178,8 @@ export function compileAuthoredAbilityCore<S>(p: Problems, r: Record<string, unk
   const compare = (key: string, value: number, operator: string, expected: number, refs: readonly ProwessDefinitionRef[], componentKeys: readonly string[]) => check(key, { kind: "NUMERIC_COMPARE", factKey: "trait.selection", operator, expected }, asJson({ ...emptyFacts(), numeric: [{ key: "trait.selection", value }] }), refs, componentKeys, T.PARAMETER);
   if (man && maneuverContext?.enforceActionBlockCapacity) {
     const rule = bundle.definitions.find(d => d.definitionKind === "ABILITY_CONSTRUCTION_RULE")!;
-    const blocks = man.actions.length - (man.powerfulBlow ? man.powerfulBlow.actionKeys.length - 1 : 0);
+    // Count structural group identities; every Powerful Blow member shares the same group object.
+    const blocks = new Set(man.actions.map(a => man.powerfulBlow?.actionKeys.includes(a.componentKey) ? man.powerfulBlow : a)).size;
     check("maneuver.action_block_capacity", { kind: "NUMERIC_COMPARE", factKey: "maneuver.action_blocks", operator: "<=", expected: construction.value.outputs.access.martialRankValue ?? 0 }, asJson({ ...emptyFacts(), numeric: [{ key: "maneuver.action_blocks", value: blocks }] }), [definitionRefOf(rule)], man.actions.map(a => a.componentKey), A.FOUNDATION);
     if (man.powerfulBlow) {
       const members = actions.filter(a => man.powerfulBlow!.actionKeys.includes(a.componentKey));

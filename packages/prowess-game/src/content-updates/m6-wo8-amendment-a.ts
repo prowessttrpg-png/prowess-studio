@@ -1,3 +1,4 @@
+import { PERFORMANCE_CONDITION_BENEFITS } from "../definition/duration-condition-payload.js";
 import type { ProwessDefinitionRef } from "../definition/envelope.js";
 
 /** Governed authoring candidate only. Not imported by runtime/catalogs and never automatically published.
@@ -9,7 +10,7 @@ export function performanceConditionCandidate(skill: ProwessDefinitionRef) {
   return {
     keywords: [], parameters: {}, compatibility: [], tradeoff: {},
     restriction: { restrictionKey: "PERFORMANCE", data: {} },
-    costContributions: [{ contributionKey: "performance.mp", currency: "MP", data: { kind: "PER_SELECTION", parameter: "performanceRank", amounts: { TRAINED: 2, EXPERT: 4, MASTER: 6 }, modifier: "MP_REDUCTION" } }],
+    costContributions: [{ contributionKey: "performance.mp", currency: "MP", data: { kind: "PER_SELECTION", parameter: "performanceRank", amounts: Object.fromEntries(PERFORMANCE_CONDITION_BENEFITS.map(row => [row.rankKey, row.mpReduction])), modifier: "MP_REDUCTION" } }],
     rules: {
       construction: { prerequisites: [{ prerequisiteKey: "PERFORMANCE_TRAINED", kind: "SKILL_RANK_AT_LEAST", skillKey: skill.canonicalKey, minimumRank: "TRAINED" }], stacking: { stackable: false } },
       condition: {
@@ -18,7 +19,7 @@ export function performanceConditionCandidate(skill: ProwessDefinitionRef) {
         applicability: { kind: "NUMERIC_COMPARE", factKey: "mechanic.present", operator: "==", expected: 1 },
         runtimeRequirements: [{ requirementKey: "PERFORMANCE_ESTABLISHED", requirement: { kind: "NUMERIC_COMPARE", factKey: "runtime.performanceEstablishedBeforeActivation", operator: "==", expected: 1 }, parameters: [], references: [skill] }],
         dependencies: [], consumesSlot: false, slotExemption: "PERFORMANCE_OBLIGATORY", choice: { kind: "ALL" }, incompatibleRestrictions: [],
-        performance: { version: "M6-WO8-A", skill, rankParameter: "performanceRank", preparationApByRank: { TRAINED: 1, EXPERT: 1, MASTER: 0 } },
+        performance: { version: "M6-WO8-A", skill, rankParameter: "performanceRank", preparationApByRank: Object.fromEntries(PERFORMANCE_CONDITION_BENEFITS.map(row => [row.rankKey, row.preparationAp])) },
       },
     },
   };
