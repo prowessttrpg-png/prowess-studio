@@ -1475,6 +1475,7 @@ model RulesetRelease {
   migrationPlansAsTarget MigrationPlan[] @relation("MigrationPlanTargetRelease")
   characters Character[] // M6-WO3 back-relation
   signatureSpellRevisions CharacterSignatureSpellRevision[] // M6-WO7 back-relation
+  signatureManeuverRevisions CharacterSignatureManeuverRevision[] // M6-WO8 back-relation
 
   publishedAt DateTime @default(now()) @map("published_at") @db.Timestamptz(6)
 
@@ -2657,6 +2658,8 @@ model CharacterSignatureAbility {
 
   currentRevisionId String?                          @unique @map("current_revision_id") @db.Uuid
   currentRevision   CharacterSignatureSpellRevision? @relation("CurrentSignatureSpellRevision", fields: [currentRevisionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  currentManeuverRevisionId String? @unique @map("current_maneuver_revision_id") @db.Uuid // M6-WO8 back-relation
+  currentManeuverRevision CharacterSignatureManeuverRevision? @relation("CurrentSignatureManeuverRevision", fields: [currentManeuverRevisionId], references: [id], onDelete: Restrict, onUpdate: Restrict) // M6-WO8 back-relation
   draftPayload      Json?                            @map("draft_payload")
 
   lockVersion Int       @default(1) @map("lock_version")
@@ -2665,6 +2668,7 @@ model CharacterSignatureAbility {
   retiredAt   DateTime? @map("retired_at") @db.Timestamptz(6)
 
   revisions CharacterSignatureSpellRevision[] @relation("SignatureSpellRevisions")
+  maneuverRevisions CharacterSignatureManeuverRevision[] @relation("SignatureManeuverRevisions") // M6-WO8 back-relation
 
   @@index([characterId], map: "character_signature_abilities_character_id_idx")
   @@map("character_signature_abilities")
@@ -2692,3 +2696,25 @@ model CharacterSignatureSpellRevision {
   @@map("character_signature_spell_revisions")
 }
 // <<< M6-WO7 Character Signature Abilities
+
+// >>> M6-WO8 Character Maneuver history
+/// M6-WO8 append-only Character Maneuver selections; distinct from historical Spell revisions.
+model CharacterSignatureManeuverRevision {
+  id                 String                            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  abilityId          String                            @map("ability_id") @db.Uuid
+  ability            CharacterSignatureAbility         @relation("SignatureManeuverRevisions", fields: [abilityId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  revisionNumber     Int                               @map("revision_number")
+  characterReleaseId String                            @map("character_release_id") @db.Uuid
+  characterRelease   RulesetRelease                    @relation(fields: [characterReleaseId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  previousRevisionId String?                           @unique @map("previous_revision_id") @db.Uuid
+  previousRevision   CharacterSignatureManeuverRevision?  @relation("SignatureManeuverRevisionHistory", fields: [previousRevisionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  nextRevision       CharacterSignatureManeuverRevision?  @relation("SignatureManeuverRevisionHistory")
+  payload            Json
+  createdAt          DateTime                          @default(now()) @map("created_at") @db.Timestamptz(6)
+  currentOf          CharacterSignatureAbility?        @relation("CurrentSignatureManeuverRevision")
+
+  @@unique([abilityId, revisionNumber], map: "character_signature_maneuver_revisions_ability_revision_key")
+  @@index([characterReleaseId], map: "character_signature_maneuver_revisions_character_release_id_idx")
+  @@map("character_signature_maneuver_revisions")
+}
+// <<< M6-WO8 Character Maneuver history

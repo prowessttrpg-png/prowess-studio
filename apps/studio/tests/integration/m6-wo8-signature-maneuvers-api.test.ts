@@ -1,0 +1,71 @@
+import { assertRunningAgainstTestDatabase, prisma } from "@prowess/db";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import * as Characters from "../../app/api/characters/route";
+import * as Creation from "../../app/api/characters/[characterId]/creation/route";
+import * as FinalizeCharacter from "../../app/api/characters/[characterId]/finalize/route";
+import * as Weapons from "../../app/api/characters/[characterId]/weapon-loadout/route";
+import * as Attacks from "../../app/api/characters/[characterId]/attacks/route";
+import * as Abilities from "../../app/api/characters/[characterId]/abilities/route";
+import * as Maneuvers from "../../app/api/characters/[characterId]/maneuvers/route";
+import * as Maneuver from "../../app/api/characters/[characterId]/maneuvers/[maneuverId]/route";
+import * as Builder from "../../app/api/characters/[characterId]/maneuvers/[maneuverId]/builder/route";
+import * as Draft from "../../app/api/characters/[characterId]/maneuvers/[maneuverId]/draft/route";
+import * as Validate from "../../app/api/characters/[characterId]/maneuvers/[maneuverId]/validate/route";
+import * as Finalize from "../../app/api/characters/[characterId]/maneuvers/[maneuverId]/finalize/route";
+import * as Rebuild from "../../app/api/characters/[characterId]/maneuvers/[maneuverId]/rebuild/route";
+import * as Retire from "../../app/api/characters/[characterId]/maneuvers/[maneuverId]/retire/route";
+import { call } from "./m2-api-harness";
+import { cleanupCharacterWorlds, seedCharacterWorld, selOf, workedChoices, type CharacterWorld } from "./fixtures/m6-wo3-character-world";
+const PREFIX = "test.m6wo8api";
+let w: CharacterWorld;
+const params = (characterId: string, maneuverId?: string): Record<string, string> => maneuverId ? { characterId, maneuverId } : { characterId };
+const ref = (key: string) => ({ ...w.pins.get(key)! });
+async function martial(name: string) {
+  const c = (await call(Characters.POST, "POST", "/api/characters", {}, { name, concept: null, rulesetReleaseId: w.release.id })).data;
+  const choices = workedChoices(w.pins), candidate = { ...choices, skills: choices.skills.map((s, i) => i === 1 ? { ...s, skill: selOf(w.pins, "skill.martial") } : i === 2 ? { ...s, skill: selOf(w.pins, "skill.arcana") } : s) };
+  const saved = (await call(Creation.PUT, "PUT", "/x", params(c.id), { expectedLockVersion: c.lockVersion, candidate })).data;
+  await call(FinalizeCharacter.POST, "POST", "/x", params(c.id), { expectedLockVersion: saved.lockVersion });
+  expect((await call(Weapons.PUT, "PUT", "/x", params(c.id), { expectedVersion: 0, mainHand: selOf(w.pins, "weapon.long_blade"), mainHandGrip: "ONE_HANDED", offHand: null })).status).toBe(200);
+  const attack = (await call(Attacks.GET, "GET", "/x", params(c.id))).data.library.mainHand.attacks[0];
+  const draft = { schemaVersion: 1, concept: { name, description: "", visualDescription: "", notes: "", narrativeTags: [] }, actions: [{ componentKey: "attack", order: 1, source: { kind: "WEAPON_ATTACK", attackKey: attack.attackKey, weapon: attack.weapon, attack: attack.attack, damageProfileKey: attack.damage[0].profileKey } }], affinity: null, effects: [{ componentKey: "effect", order: 1, definition: ref("test.wo8.effect.enhancement"), parameters: {} }], effectAttachments: [{ effectKey: "effect", actionKeys: ["attack"] }], traits: [], duration: { definition: ref("maneuver.duration.instant"), parameters: {} }, conditions: [], powerfulBlow: null };
+  return { id: c.id as string, draft };
+}
+describe("M6-WO8 Maneuver HTTP lifecycle and closed selections", () => {
+  beforeAll(async () => { assertRunningAgainstTestDatabase(process.env.DATABASE_URL ?? ""); await cleanupCharacterWorlds(PREFIX); w = await seedCharacterWorld(PREFIX, "R1", { advancement: true, weapons: true, spells: true, maneuvers: true }); }, 900_000);
+  afterAll(async () => { await cleanupCharacterWorlds(PREFIX); }, 300_000);
+  it("creates, saves, validates, finalizes, rebuilds and retires through all eight routes", async () => {
+    const c = await martial("Lifecycle"), before = [await prisma.entity.count(), await prisma.entityVersion.count(), await prisma.rulesetRelease.count()];
+    const created = await call(Maneuvers.POST, "POST", "/x", params(c.id), { name: "Strike" }); expect(created.status).toBe(201);
+    const id = created.data.maneuver.id as string;
+    expect(created.data.maneuver.state).toBe("INCOMPLETE");
+    const saved = await call(Draft.PUT, "PUT", "/x", params(c.id, id), { expectedVersion: 1, draft: c.draft }); expect(saved.status).toBe(200);
+    expect(saved.data.maneuver.draft.evaluation.cost.ap).toMatchObject({ protectedActionAp: 2, baseApCost: 3, finalApCost: 2 });
+    expect((await call(Validate.POST, "POST", "/x", params(c.id, id), { expectedVersion: saved.data.maneuver.lockVersion })).status).toBe(200);
+    const fin = await call(Finalize.POST, "POST", "/x", params(c.id, id), { expectedVersion: saved.data.maneuver.lockVersion }); expect(fin.data.maneuver.current.revisionNumber).toBe(1);
+    const rb = await call(Rebuild.POST, "POST", "/x", params(c.id, id), { expectedVersion: fin.data.maneuver.lockVersion });
+    const bad = await call(Draft.PUT, "PUT", "/x", params(c.id, id), { expectedVersion: rb.data.maneuver.lockVersion, draft: { ...c.draft, effects: [], effectAttachments: [] } });
+    expect((await call(Finalize.POST, "POST", "/x", params(c.id, id), { expectedVersion: bad.data.maneuver.lockVersion })).status).toBe(422);
+    expect((await call(Maneuver.GET, "GET", "/x", params(c.id, id))).data.maneuver.current.revisionNumber).toBe(1);
+    const fixed = await call(Draft.PUT, "PUT", "/x", params(c.id, id), { expectedVersion: bad.data.maneuver.lockVersion, draft: c.draft });
+    const second = await call(Finalize.POST, "POST", "/x", params(c.id, id), { expectedVersion: fixed.data.maneuver.lockVersion }); expect(second.data.history).toHaveLength(2);
+    const retired = await call(Retire.POST, "POST", "/x", params(c.id, id), { expectedVersion: second.data.maneuver.lockVersion }); expect(retired.data.signature.used).toBe(0);
+    expect([await prisma.entity.count(), await prisma.entityVersion.count(), await prisma.rulesetRelease.count()]).toEqual(before);
+  }, 300_000);
+  it("refuses stale versions, derived prices, fake refs, unknown fields and cross-Character ownership", async () => {
+    const c = await martial("Strict"), created = (await call(Maneuvers.POST, "POST", "/x", params(c.id), { name: "Strict" })).data, id = created.maneuver.id;
+    for (const extra of [{ finalApCost: 0 }, { signatureSlots: 0 }, { protectedActionAp: 1 }]) expect((await call(Draft.PUT, "PUT", "/x", params(c.id, id), { expectedVersion: 1, draft: c.draft, ...extra })).status).toBe(400);
+    for (const draft of [{ ...c.draft, apCost: 0 }, { ...c.draft, targeting: {} }, { ...c.draft, constructionOptions: { effectSlotsTradedForTraits: 1 } }, { ...c.draft, duration: { definition: { canonicalKey: "maneuver.duration.instant" }, parameters: {} } }]) expect((await call(Draft.PUT, "PUT", "/x", params(c.id, id), { expectedVersion: 1, draft })).status).toBe(400);
+    expect((await call(Draft.PUT, "PUT", "/x", params(c.id, id), { expectedVersion: 1, draft: c.draft })).status).toBe(200);
+    expect((await call(Validate.POST, "POST", "/x", params(c.id, id), { expectedVersion: 1 })).status).toBe(409);
+    expect((await call(Maneuver.GET, "GET", "/x", params(c.id, "bad-id"))).status).toBe(400);
+    const other = await martial("Other"); expect((await call(Maneuver.GET, "GET", "/x", params(other.id, id))).status).toBe(404);
+  }, 300_000);
+  it("returns exact pinned builder catalogs, floor provenance and one shared Abilities roster", async () => {
+    const c = await martial("Builder"), created = (await call(Maneuvers.POST, "POST", "/x", params(c.id), { name: "Builder" })).data;
+    const builder = await call(Builder.GET, "GET", "/x", params(c.id, created.maneuver.id)); expect(builder.status).toBe(200);
+    expect(builder.data.catalog.martial.maximumActionBlocks).toBe(1); expect(builder.data.catalog.performanceCondition.present).toBe(true);
+    const versions = new Set([...w.pins.values()].map(p => p.entityVersionId));
+    for (const key of ["effects", "traits", "durations", "conditions"]) for (const option of builder.data.catalog[key] as { ref: { entityVersionId: string } }[]) expect(versions.has(option.ref.entityVersionId)).toBe(true);
+    const abilities = await call(Abilities.GET, "GET", "/x", params(c.id)); expect(abilities.data.maneuvers).toHaveLength(1); expect(abilities.data.spells).toEqual([]); expect(abilities.data.signature.used).toBe(0);
+  }, 300_000);
+});

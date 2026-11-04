@@ -51,6 +51,7 @@ export async function writeWeaponLoadout(characterId: string, expected: number, 
   };
   try {
     const version = await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "characters" WHERE "id" = ${characterId}::uuid FOR UPDATE`;
       if (expected === 0) {
         await tx.characterWeaponLoadout.create({ data: { characterId, ...data } });
         return 1;

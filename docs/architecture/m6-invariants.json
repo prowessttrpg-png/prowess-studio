@@ -1233,5 +1233,335 @@
       "packages/prowess-game/src/character-signature-spell.test.ts",
       "scripts/m6-wo7-negative-controls.mjs"
     ]
+  },
+  {
+    "id": "M6-I099",
+    "title": "Character Maneuvers Remain Character-Owned",
+    "group": "Storage",
+    "meaning": "Only Character choices and append-only Maneuver revisions are stored; no canonical Definition or Release is created.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/character-signature-maneuver.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I100",
+    "title": "Spells And Maneuvers Share Signature Capacity",
+    "group": "Capacity",
+    "meaning": "Both kinds count the same active header roster against the Character profile capacity.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo8-signature-maneuvers.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I101",
+    "title": "Every Maneuver Component Is Exact And Release-Pinned",
+    "group": "Release Pin",
+    "meaning": "The saved Weapon, Attack, profile and component identities resolve only in the Character pinned Release.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/character-signature-maneuver.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I102",
+    "title": "Maneuver Evaluation Never Uses Latest Versions",
+    "group": "Release Pin",
+    "meaning": "A newer Release cannot replace a saved component or alter historical pinned prices.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo8-signature-maneuvers.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I103",
+    "title": "Martial Rank Controls Top-Level Action Blocks",
+    "group": "Construction",
+    "meaning": "The exact Martial rule provides 1/2/3 top-level Action blocks for Trained/Expert/Master; global component capacities do not multiply.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/character-signature-maneuver.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I104",
+    "title": "Powerful Blow Pays Every Constituent Once",
+    "group": "Construction",
+    "meaning": "A compatible Powerful Blow occupies one block and one resolution group while retaining the full contribution of each Attack use.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/character-signature-maneuver.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I105",
+    "title": "Weapon Actions Preserve Exact WO6 Identity",
+    "group": "Identity",
+    "meaning": "The current WO6 library and bridge provide exact Attack bindings without a fabricated Foundation envelope.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/character-signature-maneuver.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I106",
+    "title": "Every Action Owns Its Inherited Targeting",
+    "group": "Targeting",
+    "meaning": "There is no shared editable Maneuver targeting profile; each Action retains its own targeting contract.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/character-signature-maneuver.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I107",
+    "title": "Action Modifications Never Leak To Siblings",
+    "group": "Scope",
+    "meaning": "Effect and Trait targets name exact Action, targeting, Effect or resolution-group use keys.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/character-signature-maneuver.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I108",
+    "title": "M5 And M4 Own Final Maneuver Costs",
+    "group": "Purity",
+    "meaning": "The adapter calls the existing compiler and M4 pipeline; Studio never calculates a price or floor.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/character-signature-maneuver.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I109",
+    "title": "Historical M5 Goldens Stay Unchanged",
+    "group": "Compatibility",
+    "meaning": "The optional versioned extension preserves all historical serialized results and permanent characterization digests.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/character-signature-maneuver.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I110",
+    "title": "Maneuver Drafts Consume No Signature Slot",
+    "group": "Lifecycle",
+    "meaning": "Incomplete and invalid drafts stay editable while consuming no active slot.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo8-signature-maneuvers.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I111",
+    "title": "Maneuver Revisions Are Append-Only",
+    "group": "History",
+    "meaning": "PostgreSQL rejects update/delete and enforces kind, ownership and predecessor integrity.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo8-signature-maneuvers.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I112",
+    "title": "Cross-Kind Finalization Is Atomic",
+    "group": "Concurrency",
+    "meaning": "Spell and Maneuver finalization share the Character-row lock, CAS, current roster count and transaction.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo8-signature-maneuvers.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I113",
+    "title": "Invalid Maneuver Rebuilds Preserve Current Revision",
+    "group": "History",
+    "meaning": "A refused rebuild neither appends a revision nor moves the current pointer.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo8-signature-maneuvers.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I114",
+    "title": "Maneuver Retirement Releases Capacity",
+    "group": "Lifecycle",
+    "meaning": "Retirement removes active slot use and retains every historical revision.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo8-signature-maneuvers.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I115",
+    "title": "Unavailable Action Content Fails Closed",
+    "group": "Content",
+    "meaning": "Missing exact Foundations, approved policy, Performance contract or representable WO6 binding is reported without synthesis.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/character-signature-maneuver.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I116",
+    "title": "The Maneuver Builder Never Executes Combat",
+    "group": "Boundaries",
+    "meaning": "Construction never spends resources, rolls, moves battlefield actors or executes Effect outcomes.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/character-signature-maneuver.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I117",
+    "title": "Unresolved M5 Rules Remain Deferred",
+    "group": "Unresolved Rules",
+    "meaning": "Unresolved conflicts retain their keys and do not acquire guessed costs or runtime behavior.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/character-signature-maneuver.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I118",
+    "title": "WO7 Spell Lifecycle Remains Intact",
+    "group": "Compatibility",
+    "meaning": "Existing Spell data, current pointers, append-only history and lifecycle remain valid under shared storage.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo8-signature-maneuvers.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I119",
+    "title": "Derived Maneuver Mechanics Are Not Persisted",
+    "group": "Storage",
+    "meaning": "Stored JSON is strict choices and inert prose; authoritative costs and eligibility are evaluated on read.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo8-signature-maneuvers.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I120",
+    "title": "Maneuver API Inputs Are Strict And Closed",
+    "group": "API",
+    "meaning": "Unknown fields, client prices, shared targeting overrides, Spell exchanges and cross-kind components are rejected.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo8-signature-maneuvers.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I121",
+    "title": "A Maneuver Requires At Least One Effect",
+    "group": "Construction",
+    "meaning": "The global minimum is one Maneuver Effect; individual Actions may have no attached Effect.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/character-signature-maneuver.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I122",
+    "title": "Current Eligibility Never Rewrites Saved Identity",
+    "group": "Identity",
+    "meaning": "Equipment and Character access are reevaluated while exact authored Attack choices and historical revisions remain unchanged.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo8-signature-maneuvers.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I123",
+    "title": "Protected Action AP Uses Exact Committed Contributions",
+    "group": "Cost",
+    "meaning": "Version M6-WO8-A sums every Base Action AP including every Powerful Blow constituent through M4.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/m6-wo8-amendment.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I124",
+    "title": "Conditions Cannot Cross Protected Action AP",
+    "group": "Cost",
+    "meaning": "All authorized Condition AP discounts retain the 3 AP cap and protected Action floor; unused discounts grant nothing.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/m6-wo8-amendment.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I125",
+    "title": "Signature Reduction Follows The Protected Floor",
+    "group": "Cost",
+    "meaning": "Explicit Signature reduction applies after Conditions, then final AP is at least 1 and MP at least 0.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/m6-wo8-amendment.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I126",
+    "title": "Performance Uses Actual Rank Once Per Maneuver",
+    "group": "Performance",
+    "meaning": "An exact Release-pinned Performance Condition grants 2/4/6 MP reduction once from actual eligible Skill rank, never authored rank.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/m6-wo8-amendment.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I127",
+    "title": "Performance Preparation Is Separate And Slot-Exempt",
+    "group": "Performance",
+    "meaning": "Performance must precede activation, costs separate 1/1/0 preparation AP, consumes no ordinary Condition slot, and grants no automatic AP discount.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/m6-wo8-amendment.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I128",
+    "title": "New Cost Policy Never Rewrites Historical Releases",
+    "group": "Compatibility",
+    "meaning": "Only the explicit versioned extension changes the floor; no runtime fallback or canonical Release mutation is permitted.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "packages/prowess-game/src/m6-wo8-amendment.test.ts",
+      "scripts/m6-wo8-negative-controls.mjs"
+    ]
   }
 ]

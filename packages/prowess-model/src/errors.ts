@@ -833,6 +833,11 @@ export const CHARACTER_ERROR_CODES = {
   // ---- PAS-10 M6-WO6 Weapon & Attack Library ----
   /** The Weapon loadout is not legal for this Character (exact Release membership, hands, grip or requirements). */
   INVALID_LOADOUT: "CHARACTER.INVALID_LOADOUT",
+  // ---- M6-WO8 Character Maneuvers ----
+  SIGNATURE_MANEUVER_NOT_FOUND: "CHARACTER.SIGNATURE_MANEUVER_NOT_FOUND",
+  INVALID_SIGNATURE_MANEUVER: "CHARACTER.INVALID_SIGNATURE_MANEUVER",
+  SIGNATURE_MANEUVER_NOT_FINALIZABLE: "CHARACTER.SIGNATURE_MANEUVER_NOT_FINALIZABLE",
+  SIGNATURE_MANEUVER_STATE: "CHARACTER.SIGNATURE_MANEUVER_STATE",
   // ---- PAS-10 M6-WO7 Signature Spell Builder ----
   /** No Signature Spell with this id belongs to this Character. */
   SIGNATURE_SPELL_NOT_FOUND: "CHARACTER.SIGNATURE_SPELL_NOT_FOUND",

@@ -1,3 +1,4 @@
+import { projectedFoundation, type ManeuverCompilationContext } from "./maneuver-context.js";
 import type { JsonObject } from "@prowess/model";
 import { clonePlainData, isPlainObject, type PathSegment } from "../internal/plain-data.js";
 import { Problems, checkPlainData, finish, isExactCanonicalKey, isExactLabel, own, readEnum, readRecord, readSafeInteger, type ProwessOutcome } from "../internal/problems.js";
@@ -94,12 +95,13 @@ class CompositionReader {
     readonly p: Problems,
     readonly abilityKind: AbilityKind,
     readonly bundle: ProwessDefinitionBundle | null,
+    readonly context?: ManeuverCompilationContext,
   ) {}
 
   ref(value: unknown, at: readonly PathSegment[], required: ProwessDefinitionKind): ProwessDefinitionRef | null {
     const ref = readDefinitionRef(value, at, this.p, K.INVALID_REFERENCE);
     if (ref === null) return null;
-    if (ref.definitionKind !== required && !(ref.definitionKind === "SHARED_TRAIT" && (required === "SPELL_TRAIT" || required === "MANEUVER_TRAIT"))) {
+    if (!(required === "MANEUVER_FOUNDATION" && this.bundle && projectedFoundation(this.bundle, ref, this.context)) && ref.definitionKind !== required && !(ref.definitionKind === "SHARED_TRAIT" && (required === "SPELL_TRAIT" || required === "MANEUVER_TRAIT"))) {
       const other = ABILITY_KINDS.find((k) => k !== this.abilityKind);
       const crossBranch = other !== undefined && Object.values(ABILITY_SLOT_KINDS[other]).includes(ref.definitionKind as never);
       this.p.add(
@@ -172,7 +174,7 @@ const pick = <T extends object>(value: T, keys: readonly (keyof T)[]): T => Obje
  * scoped Traits. With `bundle`, every reference must also resolve EXACTLY in that bundle (and a Trait's authored scope
  * must equal its Definition's scope). It does not decide game legality — Rank, cost, range or capacity (§144).
  */
-export function validateAbilityComposition(input: unknown, options: { readonly bundle?: ProwessDefinitionBundle } = {}): ProwessOutcome<AbilityComposition> {
+export function validateAbilityComposition(input: unknown, options: { readonly bundle?: ProwessDefinitionBundle; readonly context?: ManeuverCompilationContext } = {}): ProwessOutcome<AbilityComposition> {
   const p = new Problems();
   if (!checkPlainData(input, [], p, C.NOT_PLAIN_DATA)) return finish(p, () => null as never);
   if (!isPlainObject(input)) {
@@ -186,7 +188,7 @@ export function validateAbilityComposition(input: unknown, options: { readonly b
   }
   const r = readRecord(input, [], p, K.INVALID_COMPOSITION, COMPOSITION_FIELDS, ["compositionKey", "abilityKind", "targeting", "branch"]);
   if (r === null) return finish(p, () => null as never);
-  const reader = new CompositionReader(p, abilityKind, options.bundle ?? null);
+  const reader = new CompositionReader(p, abilityKind, options.bundle ?? null, options.context);
   const slots = ABILITY_SLOT_KINDS[abilityKind];
 
   const compositionKey = own(r, "compositionKey");
@@ -243,6 +245,11 @@ export function validateAbilityComposition(input: unknown, options: { readonly b
     }
   }
 
+  if (abilityKind === "MANEUVER" && options.context) for (const key of options.context.actionKeys) {
+    reader.keys.set(key, "foundation");
+    if (reader.keys.has(`${key}.targeting`)) p.add(K.DUPLICATE_COMPONENT, ["actions", key], "inherited targeting identity collides with an authored component");
+    reader.keys.set(`${key}.targeting`, "targeting");
+  }
   // Traits last: each names the component it modifies.
   const traits = reader.ordered(own(r, "traits"), ["traits"], "traits", slots.traits, ["appliesTo"]).flatMap((t, i): TraitUse[] => {
     const at = ["traits", i, "appliesTo"];
@@ -250,8 +257,10 @@ export function validateAbilityComposition(input: unknown, options: { readonly b
     if (a === null) return [];
     const scope = readEnum(own(a, "scope"), TRAIT_SCOPES, [...at, "scope"], p, K.INVALID_TRAIT_TARGET, "trait scope");
     const target = own(a, "componentKey") ?? null;
-    const expectedSlot = TRAIT_SCOPE_TARGET_SLOTS;
+    const expectedSlot = { ...TRAIT_SCOPE_TARGET_SLOTS, ACTION_SPECIFIC: "foundation" };
     if (scope === null) return [];
+    if (scope === "ACTION_SPECIFIC" && (abilityKind !== "MANEUVER" || !options.context)) { p.add(K.INVALID_TRAIT_TARGET, at, "Action scope requires the explicit Maneuver action graph"); return []; }
+    if (options.context && abilityKind === "MANEUVER" && scope === "TARGETING" && !options.context.actionKeys.some(k => `${k}.targeting` === target)) { p.add(K.INVALID_TRAIT_TARGET, at, "a Maneuver Targeting Trait names one exact Action targeting key"); return []; }
     if (scope === "ABILITY_WIDE") {
       if (target !== null) p.add(K.INVALID_TRAIT_TARGET, [...at, "componentKey"], "an ability-wide Trait names no single component");
     } else if (typeof target !== "string" || reader.keys.get(target) !== expectedSlot[scope]) {

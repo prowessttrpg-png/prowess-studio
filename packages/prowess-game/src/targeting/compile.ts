@@ -1,3 +1,4 @@
+import { componentPayload, type ManeuverCompilationContext } from "../construction/maneuver-context.js";
 import type { JsonObject } from "@prowess/model";
 import { createRulesetContext, orchestrateRulesEvaluation, type EvaluationPlan, type EvaluationRun, type RuleProvenance } from "@prowess/rules";
 import { keywordReference, readKeywordCatalog } from "../affinity/definitions.js";
@@ -179,7 +180,7 @@ const provenanceJson = (p: RuleProvenance): JsonObject => ({ ...p }) as unknown 
 // ---- Compilation ----------------------------------------------------------------------------------------------------
 
 /** Compiles the composition's Targeting into ONE M4 EvaluationPlan. Pure and deterministic; never mutates its input. */
-export function compileAbilityTargeting(request: unknown): ProwessOutcome<ProwessTargetingCompiledPlan> {
+export function compileAbilityTargeting(request: unknown, maneuverContext?: ManeuverCompilationContext): ProwessOutcome<ProwessTargetingCompiledPlan> {
   const p = new Problems();
   if (!checkPlainData(request, [], p, C.NOT_PLAIN_DATA)) return finish(p, () => null as never);
   const r = readRecord(request, [], p, T.INVALID_TARGETING_REQUEST, REQUEST_FIELDS, REQUEST_REQUIRED);
@@ -213,7 +214,7 @@ export function compileAbilityTargeting(request: unknown): ProwessOutcome<Prowes
   const ladder = core.skillLadder.payload.ranks;
 
   // The WO1 structure check runs first: one exact Targeting slot, branch-correct kinds (CROSS_BRANCH_DEFINITION, M5-I161–I162).
-  const compositionOut = validateAbilityComposition(own(r, "composition"), { bundle });
+  const compositionOut = validateAbilityComposition(own(r, "composition"), { bundle, context: maneuverContext });
   if (!compositionOut.ok) for (const problem of compositionOut.problems) p.list.push({ ...problem, path: `/composition${problem.path}` });
   if (p.count > 0 || !compositionOut.ok) return finish(p, () => null as never);
   const composition: AbilityComposition = compositionOut.value;
@@ -414,8 +415,8 @@ export function compileAbilityTargeting(request: unknown): ProwessOutcome<Prowes
   const identity = [envelope.canonicalKey, semanticShape];
   for (const c of compositionComponents(composition)) {
     if (c.slot === "affinity" || c.slot === "targeting") continue;
-    const ce = findBundleDefinition(bundle, c.use.definition);
-    const declared = ((ce === null ? [] : ((ce.payload as { compatibility?: CompatibilityRule[] }).compatibility ?? [])) as CompatibilityRule[]).filter((x) => x.relation === "TARGETING");
+    const cp = componentPayload(bundle, c.use.definition, maneuverContext, c.use.componentKey);
+    const declared = ((cp === null ? [] : ((cp as { compatibility?: CompatibilityRule[] }).compatibility ?? [])) as CompatibilityRule[]).filter((x) => x.relation === "TARGETING");
     if (declared.length === 0) {
       undeclared.push(c.use.componentKey);
       continue;

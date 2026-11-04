@@ -95,5 +95,34 @@
       "packages/prowess-game/src/testing/m6-wo7-spell-world.json": "cef401b2d9db6e8645bc7d988efc023156c60e552b6f1d90c9d002bb4d823791",
       "packages/prowess-game/src/testing/signature-spell-fixtures.ts": "deb6d8870f5a9a3b7989cd75d27a26299336843efaf1be839ca69e4f0bedcd51"
     }
+  },
+  "M6-WO8": {
+    "changedFiles": {
+      "packages/prowess-game/src/ability/compile.ts": "253c1ce26aac6a63f4dfccd9f5b5c98089d34f7fb2455ae398a1e9f2f1de0f3c",
+      "packages/prowess-game/src/ability/duration-conditions.ts": "3e4b4ba59a917978d0d6ba498f8ed11861469ba74767e6f4af167561c0d959ae",
+      "packages/prowess-game/src/ability/maneuver-cost.ts": "a0378e927a6b6617d09189ce34542203899f20f7a9bdd2daccfad2e901e936bd",
+      "packages/prowess-game/src/character/signature-spell-catalog.ts": "7b421f5a847f508eceb58753d458303f88771f4b9cc079b57a2b938ee2f7d25e",
+      "packages/prowess-game/src/construction/composition.ts": "7d3343388d36272074dd69887d9b7776e5f3790a75daa076dc4a1c245bc5320b",
+      "packages/prowess-game/src/construction/legality.ts": "c5a97b142fa5b645bd6887e0492333b6a2916cf0dbe4da141ba729beb8db28a0",
+      "packages/prowess-game/src/definition/authored-ability-payload.ts": "be960eb0b348ad6c87dd576afe0f7e32e72f776365539ce36e5519c55e6d1491",
+      "packages/prowess-game/src/definition/duration-condition-payload.ts": "bf4942265ee901975c523f49694afa16f8a732527b496b2f1901d3994f035125",
+      "packages/prowess-game/src/definition/maneuver-cost-policy.ts": "9a67a24d7fe94ea41187d142540284af6d0e9ce5bb539657c6fb72dc5dc92e34",
+      "packages/prowess-game/src/definition/trait-payload.ts": "d7e6625353fd486d801040a1e0fae138889456314a7bf5f0a548813473bb08e8",
+      "packages/prowess-game/src/effect/compile.ts": "9333477c62efe548c9767ec2a7c031b58d7a9b410b6be59f2e6d2ff06f0d03cf",
+      "packages/prowess-game/src/index.ts": "ddcc5d44b15c5f2ee781ea6ed3816f4a33952a43a2372e172db83008ac442fa6",
+      "packages/prowess-game/src/targeting/compile.ts": "2bd7836c4fef709240146779ae50155c49809a0d398b162a71f7ad15190373a0",
+      "packages/prowess-game/src/vocabulary/construction.ts": "8e68673e63baa153a223859cd6723f66a3b35cd7c399eee8e1064ec95f32524b"
+    },
+    "addedFiles": {
+      "packages/prowess-game/src/character-signature-maneuver-world.test.ts": "578405aa04f4acf6c700a37ecec923a4f0fc40ffa2de0d9fb68085d2c0519275",
+      "packages/prowess-game/src/character-signature-maneuver.test.ts": "6b774ad767a8137a3df35283399c3909e129ee2279860da2e7430f650177abcb",
+      "packages/prowess-game/src/character/signature-maneuver-catalog.ts": "eb88b8586e07da2b33d530563517bca07c3791e4f38927994cdb617ec1ce74dd",
+      "packages/prowess-game/src/character/signature-maneuver.ts": "2c383500023d8a1277597141b6948666ff5b3193903745483e695366a29f9ba1",
+      "packages/prowess-game/src/construction/maneuver-context.ts": "38c63fd5bcc0352f8ba9167ef56268d5526f0d9def2b75b74aacec7290bff8df",
+      "packages/prowess-game/src/content-updates/m6-wo8-amendment-a.ts": "d25545eb406821d7754d89c78e5e08a3043c8cc73185b548db4d9700d5e1a399",
+      "packages/prowess-game/src/m6-wo8-amendment.test.ts": "b4fdd89e651f5649e2e76694e7f631645f47437c3ebaea82113566b1acb2505a",
+      "packages/prowess-game/src/testing/m6-wo8-maneuver-world.json": "80eb267373d7f60ef9b8e4266810aeb376e2da60a84112993a4057beec0c194a",
+      "packages/prowess-game/src/testing/signature-maneuver-fixtures.ts": "157ab38fd54d2fd202ab6171c0bf8b81697a2a716d0b52290f946d79c8b9aa62"
+    }
   }
 }

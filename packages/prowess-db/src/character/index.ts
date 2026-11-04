@@ -59,3 +59,5 @@ export {
   type SheetSignatureSpell,
   type SignatureSpellEntry,
 } from "./signature-spell-service.js";
+
+export { createCharacterSignatureManeuver, getCharacterSignatureManeuver, getSignatureManeuverBuilder, updateCharacterSignatureManeuverDraft, validateCharacterSignatureManeuver, finalizeCharacterSignatureManeuver, rebuildCharacterSignatureManeuver, retireCharacterSignatureManeuver, type SignatureManeuverDetailView, type SignatureManeuverEntry, type SignatureManeuverBuilderView } from "./signature-maneuver-service.js";

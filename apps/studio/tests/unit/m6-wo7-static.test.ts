@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { laterMigrations } from "./later-milestone-schema";
+import { expectedFrozenHash, laterMigrations } from "./later-milestone-schema";
 import { auditM5Source } from "./m5-wo1-audit-helpers";
 
 /**
@@ -48,7 +48,8 @@ const EVALUATE = fn(ADAPTER, "evaluateCharacterSignatureSpell");
 const CATALOG = strip(read(CATALOG_PATH));
 const SERVICE_PATH = "packages/prowess-db/src/character/signature-spell-service.ts";
 const REPOSITORY_PATH = "packages/prowess-db/src/character/signature-spell-repository.ts";
-const SERVICE = strip(read(SERVICE_PATH));
+// M6-WO8 extracts the unchanged exact-Release context loader for both kinds.
+const SERVICE = strip(read(SERVICE_PATH) + read("packages/prowess-db/src/character/signature-context.ts"));
 const REPOSITORY = strip(read(REPOSITORY_PATH));
 const SHEET_SERVICE = strip(read("packages/prowess-db/src/character/sheet-service.ts"));
 
@@ -80,7 +81,7 @@ describe("M6-WO7 gate — Character-owned, never canon (§6–§9, §105, M6-I07
   });
 
   it("M6-I077 the database path writes only the two Character Signature tables — never an Entity, revision, ChangeSet, Manifest or Release", () => {
-    expect([...new Set([...REPOSITORY.matchAll(/(?:prisma|tx)\.(\w+)\./g)].map((m) => m[1]))].sort()).toEqual(["characterSignatureAbility", "characterSignatureSpellRevision"]);
+    expect([...new Set([...REPOSITORY.matchAll(/(?:prisma|tx)\.(\w+)\./g)].map((m) => m[1]))].sort()).toEqual(["characterSignatureAbility", "characterSignatureManeuverRevision", "characterSignatureSpellRevision", "characterWeaponLoadout"]);
     for (const src of [SERVICE, REPOSITORY]) expect(src).not.toMatch(/\.(entity|entityVersion|changeSet|changeSetOperation|rulesetManifest|rulesetManifestEntry|rulesetRelease|ruleset)\.(create|update|upsert|delete)/);
     expect(SERVICE).not.toMatch(/prisma\.(entity|entityVersion|changeSet|rulesetRelease)\./);
   });
@@ -149,7 +150,7 @@ describe("M6-WO7 gate — M5 owns legality and cost (§4–§5, §102–§110, M
     expect(Object.keys(wo7.addedFiles).sort()).toEqual(
       ["character-signature-spell-world.test.ts", "character-signature-spell.test.ts", "character/signature-spell-catalog.ts", "character/signature-spell.ts", "m6-wo7-m5-characterization.test.ts", "testing/m6-wo7-m5-characterization.json", "testing/m6-wo7-spell-world.json", "testing/signature-spell-fixtures.ts"].map((f) => `${GAME_DIR}/${f}`),
     );
-    for (const [f, h] of [...Object.entries(wo7.changedFiles), ...Object.entries(wo7.addedFiles)]) expect(hash(readFileSync(path.join(ROOT, f))), f).toBe(h);
+    for (const [f, h] of [...Object.entries(wo7.changedFiles), ...Object.entries(wo7.addedFiles)]) expect(hash(readFileSync(path.join(ROOT, f))), f).toBe(expectedFrozenHash(f, h));
     expect(Object.keys(BASELINE.m5BaseFiles).sort()).toEqual(Object.keys(wo7.changedFiles).sort());
     for (const [f, h] of Object.entries(BASELINE.m5BaseFiles)) expect(h, f).not.toBe(wo7.changedFiles[f]);
   });
@@ -157,7 +158,9 @@ describe("M6-WO7 gate — M5 owns legality and cost (§4–§5, §102–§110, M
   it("M6-I096 the refactor is additive: each M5 public entry point delegates to its exported core unchanged", () => {
     const compile = strip(read(`${GAME_DIR}/ability/compile.ts`));
     expect(compile).toMatch(/export function compileAuthoredAbilityCore<S>\(/);
-    expect(fn(compile, "compileAbilityDefinition")).toMatch(/return compileAuthoredAbilityCore\(p, r, subjectKey as string, context\.value, bundle, catalog, \{ authored: d\.payload as unknown as AuthoredAbilityPayload, spell: d\.definitionKind === "SPELL_DEFINITION", subjectRefs: \[definitionRefOf\(d\)\], definition: definitionRefOf\(d\) \}\);/);
+    // M6-WO8 keeps canonical subjects exact; only the explicitly versioned Maneuver scope extension supplies context.
+    expect(fn(compile, "compileAbilityDefinition")).toMatch(/return compileAuthoredAbilityCore\(p, r, subjectKey as string, context\.value, bundle, catalog, \{ authored, spell: d\.definitionKind === "SPELL_DEFINITION", subjectRefs: \[definitionRefOf\(d\)\], definition: definitionRefOf\(d\) \}, scopedGraph\);/);
+    expect(compile).toContain('costPolicy?.maneuverCostPolicy?.extension?.version === "M6-WO8-A"');
     const cost = strip(read(`${GAME_DIR}/ability/spell-cost.ts`));
     expect(fn(cost, "compileSpellCost")).toMatch(/return compileSpellCostCore\(p, r, plan, pro, \{ subjectRefs: \[plan\.definition\], sourceKey: plan\.definition\.canonicalKey, sourceId: plan\.definition\.entityVersionId \}\);/);
     expect(cost).toContain('modifier("spell.minimum_ap", AP_TARGET, "MAX", "spell.ap_minimum", 2, 0, spellRef), operand: POLICY.minimumAp');
@@ -298,7 +301,9 @@ describe("M6-WO7 gate — registered schema change and migration (§116–§118,
   });
 
   it("§167 no Spell component catalog, Ability Card or Maneuver table exists", () => {
-    expect(SCHEMA).not.toMatch(/model \w*(SpellComponent|SpellTargeting|SpellEffect|SpellTrait|SpellDuration|CastingCondition|AbilityCard|Maneuver)\w* \{/);
+    // M6-WO8 adds only its registered Maneuver revision model; all other catalogs/cards remain forbidden.
+    const beforeWo8 = SCHEMA.replace(/\n\/\/ >>> M6-WO8[^\n]*\n[\s\S]*?\/\/ <<< M6-WO8[^\n]*\n/g, "");
+    expect(beforeWo8).not.toMatch(/model \w*(SpellComponent|SpellTargeting|SpellEffect|SpellTrait|SpellDuration|CastingCondition|AbilityCard|Maneuver)\w* \{/);
   });
 });
 
@@ -369,13 +374,18 @@ describe("M6-WO7 gate — API and Studio presentation (§19–§21, §82, §93�
     const panels = read("apps/studio/app/characters/_components/sheet/SheetPanels.tsx");
     expect(panels).toMatch(/<WeaponAttackRows sheet=\{sheet\} printRows=\{PRINT_ATTACK_ROWS\} \/>\n\s+<SignatureSpellRows sheet=\{sheet\} \/>\n\s+<NotesText label="Action Notes"/);
     expect(SHEET_SERVICE).toMatch(/const spells = await signatureSpellsForSheet\(c\.id\);/);
-    expect(SERVICE).toMatch(/const active = all\.filter\(\(a\) => a\.status === "ACTIVE" && a\.currentRevisionId !== null\);\n\s+if \(active\.length === 0\) return \{ spells: \[\], refs: \[\] \};/);
+    expect(SERVICE).toMatch(/const active = all\.filter\(\(a\) => a\.abilityKind === "SPELL" && a\.status === "ACTIVE" && a\.currentRevisionId !== null\);\n\s+if \(active\.length === 0\) return \{ spells: \[\], refs: \[\] \};/);
   });
 
-  it("§99 no Ability Card framework and no Maneuver Builder is introduced", () => {
+  it("§99 no Ability Card framework; Maneuver UI is limited to the exact WO8 inventory", () => {
+    const wo8 = JSON.parse(read("docs/architecture/m6-wo8-baseline.json")) as { studioFiles: string[] };
     for (const f of [...CHARACTER_UI, ...code("apps/studio/app/api/characters"), ...WO7_GAME, SERVICE_PATH]) {
-      expect(path.basename(f), f).not.toMatch(/ability-?card|maneuver-?builder/i);
-      expect(strip(read(f)), f).not.toMatch(/AbilityCard|ManeuverBuilder|createManeuver/);
+      expect(path.basename(f), f).not.toMatch(/ability-?card/i);
+      expect(strip(read(f)), f).not.toMatch(/AbilityCard/);
+      if (!wo8.studioFiles.includes(f)) {
+        expect(path.basename(f), f).not.toMatch(/maneuver-?builder/i);
+        expect(strip(read(f)), f).not.toMatch(/ManeuverBuilder|createManeuver/);
+      }
     }
   });
 
@@ -394,7 +404,7 @@ describe("M6-WO7 gate — frozen M4, invariants, documentation and CI (§161–�
 
   const inv = JSON.parse(read("docs/architecture/m6-invariants.json")) as Array<{ id: string; title: string; guards: string[] }>;
   it("M6-I077–I098 follow M6-I001–I076, are documented, and each is guarded by executing files that cite it", () => {
-    expect(inv.map((x) => x.id)).toEqual(Array.from({ length: 98 }, (_, i) => `M6-I${String(i + 1).padStart(3, "0")}`));
+    expect(inv.slice(0, 98).map((x) => x.id)).toEqual(Array.from({ length: 98 }, (_, i) => `M6-I${String(i + 1).padStart(3, "0")}`));
     const md = read("docs/architecture/m6-invariants.md");
     const titles = ["Character Signature Spells Are Character-Owned Content, Not Compendium Canon", "Every Mechanical Spell Component Is An Exact Release-Pinned Definition", "Spell Name And Description Never Create Mechanics", "Authority Is Explicit And Never Automatically Switched", "Arcane And Affinity Capacities Never Stack", "All Construction Legality Is Owned By M5", "All Spell Cost Is Owned By M5-WO10", "ME Never Changes Listed Spell Cost", "Casting Condition Reduction Uses The Permanent 30% Effective Cap", "Effect Ordering Is Authored Spell Meaning", "Effect-Slot Trait Exchange Is Explicit", "Additional Affinity Trait Capacity Remains Fail-Closed While M5-SC-042 Is Unresolved", "Draft Spells Consume No Signature Slot", "Finalized Spells Consume Exact Shared Signature Capacity", "Signature Finalization Is Atomic Against Roster Capacity", "Spell Revisions Are Append-Only Historical Records", "Invalid Rebuilds Never Replace The Current Valid Revision", "Retired Spells Release Slots Without Deleting History", "Character Spell Validation Never Uses Latest Component Revisions", "The Character Spell Adapter May Reuse But Never Redefine M5 Semantics", "Runtime-Deferred M5 Conflicts Are Surfaced, Never Guessed", "WO7 Does Not Execute Live Spell Casting"];
     expect(inv.slice(76, 98).map((x) => x.title)).toEqual(titles);

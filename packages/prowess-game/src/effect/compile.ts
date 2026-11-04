@@ -1,3 +1,4 @@
+import type { ManeuverCompilationContext } from "../construction/maneuver-context.js";
 import type { JsonObject } from "@prowess/model";
 import { createRulesetContext, orchestrateRulesEvaluation, type EvaluationPlan, type EvaluationRun, type RuleProvenance } from "@prowess/rules";
 import { keywordReference, readKeywordCatalog } from "../affinity/definitions.js";
@@ -150,7 +151,7 @@ function targetingDelivery(composition: AbilityComposition, bundle: ProwessDefin
   return { ref: composition.targeting.definition, rule: readTargetingDeliveryRule(raw, ["definitions", envelope.canonicalKey, "payload", "rules", "delivery"], p) };
 }
 
-export function compileEffectUse(request: unknown): ProwessOutcome<ProwessEffectCompiledPlan> {
+export function compileEffectUse(request: unknown, maneuverContext?: ManeuverCompilationContext): ProwessOutcome<ProwessEffectCompiledPlan> {
   const p = new Problems(); if (!checkPlainData(request, [], p, C.NOT_PLAIN_DATA)) return finish(p, () => null as never);
   const r = readRecord(request, [], p, E.INVALID_EFFECT_RULES, REQUEST_FIELDS, REQUEST_REQUIRED); if (!r) return finish(p, () => null as never);
   const contractVersion = own(r, "contractVersion"); if (typeof contractVersion !== "number" || !SUPPORTED_PROWESS_COMPILATION_CONTRACT_VERSIONS.includes(contractVersion)) p.add(X.UNSUPPORTED_CONTRACT_VERSION, ["contractVersion"], `supported Prowess compilation contract versions: ${SUPPORTED_PROWESS_COMPILATION_CONTRACT_VERSIONS.join(", ")}`);
@@ -160,7 +161,7 @@ export function compileEffectUse(request: unknown): ProwessOutcome<ProwessEffect
   else if (!isPlainObject(rawBundle)) p.add(E.INVALID_EFFECT_RULES, ["definitions"], "definitions is exact ProwessDefinitionBundle");
   else { const rebuilt = createBundleWithinCheckedRequest(own(r, "ruleset"), own(rawBundle, "definitions") ?? null, true); if (!rebuilt.ok) for (const problem of rebuilt.problems) p.list.push({ ...problem, path: `/definitions${problem.path}` }); else if (!bundleMatchesRuleset(rebuilt.value, ruleset.value)) p.add(X.BUNDLE_RULESET_MISMATCH, ["definitions"], "bundle belongs to another Ruleset"); else bundle = rebuilt.value; }
   const catalog = readKeywordCatalog(own(r, "keywords"), ["keywords"], p); if (p.count || !bundle || !catalog) return finish(p, () => null as never);
-  const compositionOut = validateAbilityComposition(own(r, "composition"), { bundle }); if (!compositionOut.ok) for (const problem of compositionOut.problems) p.list.push({ ...problem, path: `/composition${problem.path}` }); if (!compositionOut.ok || p.count) return finish(p, () => null as never);
+  const compositionOut = validateAbilityComposition(own(r, "composition"), { bundle, context: maneuverContext }); if (!compositionOut.ok) for (const problem of compositionOut.problems) p.list.push({ ...problem, path: `/composition${problem.path}` }); if (!compositionOut.ok || p.count) return finish(p, () => null as never);
   const composition = compositionOut.value; const effectUse = composition.effects.find((x) => x.componentKey === componentKey); if (!effectUse) { p.add(E.INVALID_EFFECT_RULES, ["componentKey"], "componentKey names one Effect use"); return finish(p, () => null as never); }
   const envelope = findBundleDefinition(bundle, effectUse.definition); if (!envelope || (envelope.definitionKind !== "SPELL_EFFECT" && envelope.definitionKind !== "MANEUVER_EFFECT")) { p.add(E.INVALID_EFFECT_RULES, ["componentKey"], "exact Effect Definition required"); return finish(p, () => null as never); }
   const branch = envelope.definitionKind === "SPELL_EFFECT" ? "SPELL" : "MANEUVER"; const payload = envelope.payload as unknown as EffectDefinitionPayload; const rawEffectRules = own((payload.rules ?? {}) as Record<string, unknown>, "effect");
@@ -169,7 +170,7 @@ export function compileEffectUse(request: unknown): ProwessOutcome<ProwessEffect
   if (!effectRules || !costs || p.count) return finish(p, () => null as never);
   const params = readEffectParameters(effectUse.parameters as Record<string, unknown>, effectRules, effectUse.componentKey, p); const delivery = targetingDelivery(composition, bundle, p); if (!params || !delivery || p.count) return finish(p, () => null as never);
   const constructionOptions = own(r, "constructionOptions"); const accessGrants = own(r, "accessGrants");
-  const construction = evaluateAbilityConstruction({ contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION, subjectKey: `${String(subjectKey)}.construction`, composition, definitions: bundle, ruleset: own(r, "ruleset"), character: own(r, "character"), keywords: own(r, "keywords"), signature: own(r, "signature"), ...(constructionOptions === undefined ? {} : { options: constructionOptions }), ...(accessGrants === undefined ? {} : { accessGrants }) });
+  const construction = evaluateAbilityConstruction({ contractVersion: PROWESS_COMPILATION_CONTRACT_VERSION, subjectKey: `${String(subjectKey)}.construction`, composition, definitions: bundle, ruleset: own(r, "ruleset"), character: own(r, "character"), keywords: own(r, "keywords"), signature: own(r, "signature"), ...(constructionOptions === undefined ? {} : { options: constructionOptions }), ...(accessGrants === undefined ? {} : { accessGrants }) }, maneuverContext);
   if (!construction.ok) for (const problem of construction.problems) p.list.push({ ...problem, path: `/construction${problem.path}` }); if (!construction.ok || p.count) return finish(p, () => null as never); const constructionResult = construction.value;
   const character = own(r, "character") as EffectCharacterContext; const stat = (s: ProwessStat): number | null => { const v = character.stats[s]; if (!Number.isSafeInteger(v) || (v as number) < 0) { p.add(E.INVALID_EFFECT_RULES, ["character", "stats", s], `valid ${s} required`); return null; } return v as number; };
   const fragments: CompilationFragment[] = []; const components = new Map<string, ProwessDefinitionRef[]>([[effectUse.componentKey, [effectUse.definition]]]); const emit = (f: CompilationFragment) => { fragments.push(f); return f.fragmentKey; };

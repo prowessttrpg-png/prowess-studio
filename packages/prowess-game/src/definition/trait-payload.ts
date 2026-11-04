@@ -36,6 +36,7 @@ const strings = (v: unknown, at: readonly PathSegment[], p: Problems, canonical 
 /** Additive typed rules.trait: legacy WO1 Traits remain readable but are not executable without this contract. */
 export function readTraitRules(value: unknown, family: "SPELL" | "MANEUVER" | null, scope: TraitScope, at: readonly PathSegment[], p: Problems): TraitRules | null {
   const before = p.count;
+  if (scope === "ACTION_SPECIFIC" && family !== "MANEUVER") p.add(E, at, "Action-specific Traits are Maneuver-only");
   const fields = ["family", "name", "description", "parameters", "modifications", "effectFamilies", "foundationCategories", "incompatibleTraits", "affinity"];
   const r = readRecord(value, at, p, E, fields, fields); if (!r) return null;
   const f = readEnum(own(r, "family"), TRAIT_FAMILIES, [...at, "family"], p, E, "Trait family");
