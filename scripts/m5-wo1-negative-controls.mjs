@@ -22,7 +22,8 @@ const architecture = keyedGuard("node scripts/check-architecture.mjs", () => spa
 const G = (f) => `packages/prowess-game/src/${f}`;
 const append = (snippet) => [[null, `\n${snippet}\n`]];
 const CONTRACT_IMPORT = ["import { ABILITY_KINDS, ABILITY_SLOT_KINDS,", "import { PROWESS_DEFINITION_KINDS, ABILITY_KINDS, ABILITY_SLOT_KINDS,"];
-const CONTRACT_CHECK = ['if (ref.definitionKind !== required && !(ref.definitionKind === "SHARED_TRAIT" && (required === "SPELL_TRAIT" || required === "MANEUVER_TRAIT"))) {', "if (PROWESS_DEFINITION_KINDS[ref.definitionKind].contract !== PROWESS_DEFINITION_KINDS[required].contract) {"];
+// The exact ref check includes WO8's projected Foundation exception. Mutate only branch-kind identity; keep that exception.
+const CONTRACT_CHECK = ['    if (!(required === "MANEUVER_FOUNDATION" && this.bundle && projectedFoundation(this.bundle, ref, this.context)) && ref.definitionKind !== required && !(ref.definitionKind === "SHARED_TRAIT" && (required === "SPELL_TRAIT" || required === "MANEUVER_TRAIT"))) {', '    if (!(required === "MANEUVER_FOUNDATION" && this.bundle && projectedFoundation(this.bundle, ref, this.context)) && PROWESS_DEFINITION_KINDS[ref.definitionKind].contract !== PROWESS_DEFINITION_KINDS[required].contract) {'];
 
 const controls = [
   { name: "§214 Prowess logic inside @prowess/rules", file: "packages/prowess-rules/src/orchestration/model.ts", edits: append('export const affinityBonus = (affinity: string) => (affinity === "Evocation" ? 1 : 0);'), guard: staticAudit("packages/prowess-rules/src/orchestration/model.ts") },

@@ -110,7 +110,8 @@ const controls = [
   {
     name: "§184 the exact SPELL_TARGETING Radius EntityVersion reused in a Maneuver",
     file: COMPOSITION,
-    mutate: replaceOnce('    if (ref.definitionKind !== required && !(ref.definitionKind === "SHARED_TRAIT" && (required === "SPELL_TRAIT" || required === "MANEUVER_TRAIT"))) {', '    if (ref.definitionKind !== required && !(ref.definitionKind === "SHARED_TRAIT" && (required === "SPELL_TRAIT" || required === "MANEUVER_TRAIT")) && !(ref.definitionKind === "SPELL_TARGETING" && required === "MANEUVER_TARGETING")) {'),
+    // Keep the projected Foundation and Shared Trait exceptions; inject only the forbidden Targeting substitution.
+    mutate: replaceOnce('    if (!(required === "MANEUVER_FOUNDATION" && this.bundle && projectedFoundation(this.bundle, ref, this.context)) && ref.definitionKind !== required && !(ref.definitionKind === "SHARED_TRAIT" && (required === "SPELL_TRAIT" || required === "MANEUVER_TRAIT"))) {', '    if (!(required === "MANEUVER_FOUNDATION" && this.bundle && projectedFoundation(this.bundle, ref, this.context)) && ref.definitionKind !== required && !(ref.definitionKind === "SHARED_TRAIT" && (required === "SPELL_TRAIT" || required === "MANEUVER_TRAIT")) && !(ref.definitionKind === "SPELL_TARGETING" && required === "MANEUVER_TARGETING")) {'),
     guard: golden("§147"),
   },
   {
