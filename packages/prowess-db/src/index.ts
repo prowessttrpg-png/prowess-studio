@@ -293,3 +293,5 @@ export {
   validateCharacterSignatureSpell,
 } from "./character/index.js";
 export type { CharacterAbilitiesView, SignatureSpellBuilderView, SignatureSpellDetailView, SignatureSpellEntry, SheetSignatureSpell } from "./character/index.js";
+
+export { createCharacterSignatureManeuver, getCharacterSignatureManeuver, getSignatureManeuverBuilder, updateCharacterSignatureManeuverDraft, validateCharacterSignatureManeuver, finalizeCharacterSignatureManeuver, rebuildCharacterSignatureManeuver, retireCharacterSignatureManeuver, type SignatureManeuverDetailView, type SignatureManeuverEntry, type SignatureManeuverBuilderView } from "./character/signature-maneuver-service.js";

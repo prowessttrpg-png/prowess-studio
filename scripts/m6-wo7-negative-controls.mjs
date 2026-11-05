@@ -42,11 +42,13 @@ const REVIEW = UI("_components/spells/SpellReview.tsx");
 const PICKER = UI("_components/spells/SpellComponents.tsx");
 const FORMAT = UI("_lib/spell-format.ts");
 const WO7_END = "// <<< M6-WO7 Character Signature Abilities";
+// Exact shared finalization statement. Historical Spell-only mutations leave the Maneuver branch untouched.
+const SPELL_REVISION_CREATE = '      const revision = kind === "SPELL" ? await tx.characterSignatureSpellRevision.create({ data }) : await tx.characterSignatureManeuverRevision.create({ data });';
 
 const controls = [
   // ---- Character-owned, never canon (M6-I077, M6-I078) ----
   ["1 Spell created as a Compendium Entity", SERVICE, append('export const publishSpellAsEntity = async () => (await import("../client.js")).prisma.entity.create({ data: {} as never });'), studio],
-  ["2 Character Release mutated on finalization", REPO, replace("      const revision = await tx.characterSignatureSpellRevision.create({", "      await tx.rulesetRelease.update({ where: { id: input.characterReleaseId }, data: {} });\n      const revision = await tx.characterSignatureSpellRevision.create({"), studio],
+  ["2 Character Release mutated on finalization", REPO, replace(SPELL_REVISION_CREATE, `      if (kind === "SPELL") await tx.rulesetRelease.update({ where: { id: input.characterReleaseId }, data: {} });\n${SPELL_REVISION_CREATE}`), studio],
   // ---- No latest component (M6-I095) ----
   ["3 latest Targeting revision lookup", ADAPTER, append("export const latestTargetingRevision = (versions: readonly { revisionNumber: number }[]) => versions.at(-1);"), studio],
   ["4 latest Effect revision lookup", CATALOG, append("export const newestEffectRevision = (versions: readonly { revisionNumber: number }[]) => versions.at(-1);"), studio],
@@ -99,7 +101,7 @@ const controls = [
   ["45 over-capacity accepted", ADAPTER, replace("    signature: { usedSlots: request.usedSlots,", "    signature: { usedSlots: 0,"), studio],
   ["46 concurrent finalization overfills (no Character lock)", REPO, replace('::uuid FOR UPDATE`;', "::uuid`;"), studio],
   // ---- History (M6-I092 … M6-I094) ----
-  ["47 finalized revision overwritten", REPO, replace("      const revision = await tx.characterSignatureSpellRevision.create({", "      await tx.characterSignatureSpellRevision.deleteMany({ where: { abilityId } });\n      const revision = await tx.characterSignatureSpellRevision.create({"), studio],
+  ["47 finalized revision overwritten", REPO, replace(SPELL_REVISION_CREATE, `      if (kind === "SPELL") await tx.characterSignatureSpellRevision.deleteMany({ where: { abilityId } });\n${SPELL_REVISION_CREATE}`), studio],
   ["48 invalid rebuild replaces the current revision", REPO, replace('      if (!decision.ok) throw new FinalizeAbort({ outcome: "rejected", reason: decision.reason, detail: decision.detail });', '      if (!decision.ok && usedSlots < 0) throw new FinalizeAbort({ outcome: "rejected", reason: decision.reason, detail: decision.detail });'), studio],
   ["49 retirement deletes history", REPO, replace('    return { status: "RETIRED", retiredAt: new Date(), draftPayload: Prisma.DbNull };', '    void prisma.characterSignatureSpellRevision.deleteMany({ where: { abilityId } });\n    return { status: "RETIRED", retiredAt: new Date(), draftPayload: Prisma.DbNull };'), studio],
   ["50 cached final MP persisted and trusted", SCHEMA, replace(WO7_END, '// cached cost\nmodel CharacterSignatureSpellCostCache {\n  abilityId String @id @db.Uuid\n  finalMpCost Int @map("final_mp_cost")\n}\n' + WO7_END), studio],

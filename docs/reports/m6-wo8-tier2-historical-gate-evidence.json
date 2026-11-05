@@ -1,0 +1,370 @@
+{
+  "scope": "M6-WO8 Tier 2 historical mutation-anchor repair; Phase B accepted, fresh Tier 2 CI pending",
+  "baseline": {
+    "remoteCommit": "a436c632e6c34317a1ea95d6a367f900db1f906a",
+    "equivalentLocalCommit": "8de45dda34d97d993e928af1552ceee305336fa9",
+    "sharedTree": "738b696ee1d87cc9e257fa5626ee9a83df8c5084",
+    "main": "d005fc30c8c7e175896898c1973e6d3bda144869"
+  },
+  "authoritativeCI": {
+    "run": {
+      "id": 41913388026,
+      "number": 253,
+      "url": "https://github.com/prowessttrpg-png/prowess-studio/actions/runs/41913388026",
+      "head": "a436c632e6c34317a1ea95d6a367f900db1f906a"
+    },
+    "phaseB": "accepted by user; corroborated by successful database/API, shard, unit, static, build/E2E and Tier 1 jobs",
+    "jobs": [
+      {
+        "id": 126866552901,
+        "name": "Database integration (shard 1/2)",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 126866553366,
+        "name": "Unit \u2014 model, ui, import, rules, db",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 126866553371,
+        "name": "Static \u2014 lint, architecture, typecheck, gate inventory",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 126866553379,
+        "name": "Unit \u2014 Studio UI / component / static audits",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 126866553405,
+        "name": "Database \u2014 Prisma checks, API integration, test-database guards",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 126866553510,
+        "name": "Database integration (shard 2/2)",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 126866553541,
+        "name": "Unit \u2014 @prowess/game",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 126866555009,
+        "name": "Build (production) + end-to-end (Playwright)",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 126868347029,
+        "name": "Tier 1 \u2014 fast feedback",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 126870513215,
+        "name": "Gates \u2014 M1, M4, M5-WO1\u2026WO3",
+        "conclusion": "failure",
+        "failedSteps": [
+          "M5-WO1 audit \u2014 Prowess domain & shared ability construction boundary"
+        ]
+      },
+      {
+        "id": 126870513236,
+        "name": "Gates \u2014 M5-WO12",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 126870513270,
+        "name": "Gates \u2014 M5-WO13",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 126870513282,
+        "name": "Gates \u2014 M5-WO6\u2026WO10",
+        "conclusion": "failure",
+        "failedSteps": [
+          "M5-WO6 audit \u2014 Targeting framework, geometry & branch catalogs"
+        ]
+      },
+      {
+        "id": 126870513298,
+        "name": "Gates \u2014 M5-WO11",
+        "conclusion": "success",
+        "failedSteps": []
+      },
+      {
+        "id": 126870513559,
+        "name": "Gates \u2014 M5-WO4, canon rulings, M5-WO5, M6-WO1, M6-WO2, M6-WO3, M6-WO4, M6-WO5, M6-WO6, M6-WO7",
+        "conclusion": "failure",
+        "failedSteps": [
+          "M6-WO7 \u2014 Signature Spell Builder"
+        ]
+      },
+      {
+        "id": 126886089696,
+        "name": "Tier 2 \u2014 merge readiness",
+        "conclusion": "failure",
+        "failedSteps": [
+          "Every job succeeded"
+        ]
+      }
+    ],
+    "originalFailures": [
+      {
+        "jobId": 126870513215,
+        "url": "https://github.com/prowessttrpg-png/prowess-studio/actions/runs/41913388026/job/126870513215",
+        "excerpt": [
+          "2026-11-04T21:17:21.2737582Z AssertionError [ERR_ASSERTION]: mutation anchor must occur exactly once (\u00a7220 SPELL_EFFECT accepted in a Maneuver by shared contract): if (ref.definitionKind !== required && !(ref.definitionKind === \"SHARED_TRAIT\" && (required === \"SPELL_TRAIT\" || required === \"MANEUVER_TRAIT\"))) {",
+          "2026-11-04T21:17:21.2739479Z ",
+          "2026-11-04T21:17:21.2739632Z 1 !== 2",
+          "2026-11-04T21:17:21.2739818Z ",
+          "2026-11-04T21:17:21.2740477Z     at file:///home/runner/work/prowess-studio/prowess-studio/scripts/lib/control-harness.mjs:55:16"
+        ]
+      },
+      {
+        "jobId": 126870513282,
+        "url": "https://github.com/prowessttrpg-png/prowess-studio/actions/runs/41913388026/job/126870513282",
+        "excerpt": [
+          "2026-11-04T21:17:28.3249033Z AssertionError [ERR_ASSERTION]: mutation anchor must occur exactly once:     if (ref.definitionKind !== required && !(ref.definitionKind === \"SHARED_TRAIT\" && (required === \"SPELL_TRAIT\" || required === \"MANEUVER_TRAIT\"))) {",
+          "2026-11-04T21:17:28.3249903Z ",
+          "2026-11-04T21:17:28.3250015Z 1 !== 2",
+          "2026-11-04T21:17:28.3250151Z ",
+          "2026-11-04T21:17:28.3250606Z     at file:///home/runner/work/prowess-studio/prowess-studio/scripts/m5-wo6-negative-controls.mjs:29:10"
+        ]
+      },
+      {
+        "jobId": 126870513559,
+        "url": "https://github.com/prowessttrpg-png/prowess-studio/actions/runs/41913388026/job/126870513559",
+        "excerpt": [
+          "2026-11-04T21:44:58.9736223Z AssertionError [ERR_ASSERTION]: one exact mutation anchor:       const revision = await tx.characterSignatureSpellRevision.create({",
+          "2026-11-04T21:44:58.9736907Z ",
+          "2026-11-04T21:44:58.9737031Z 1 !== 2",
+          "2026-11-04T21:44:58.9737489Z ",
+          "2026-11-04T21:44:58.9737958Z     at file:///home/runner/work/prowess-studio/prowess-studio/scripts/m6-wo7-negative-controls.mjs:21:12"
+        ]
+      }
+    ]
+  },
+  "inMemoryMutationPreflight": [
+    {
+      "script": "scripts/m5-wo1-negative-controls.mjs",
+      "count": 17,
+      "allMutationAnchorsUnique": true,
+      "mode": "in-memory only; no source files written"
+    },
+    {
+      "script": "scripts/m5-wo6-negative-controls.mjs",
+      "count": 16,
+      "allMutationAnchorsUnique": true,
+      "mode": "in-memory only; no source files written"
+    },
+    {
+      "script": "scripts/m6-wo7-negative-controls.mjs",
+      "count": 68,
+      "allMutationAnchorsUnique": true,
+      "mode": "in-memory only; no source files written"
+    }
+  ],
+  "successfulSuites": [
+    {
+      "script": "scripts/m5-wo1-negative-controls.mjs",
+      "command": "PROWESS_EXPECT_CONTROLS=17 node scripts/m5-wo1-negative-controls.mjs",
+      "requiredCount": 17,
+      "processVerification": {
+        "exitCode": 0,
+        "caught": 17,
+        "complete": true,
+        "restoration": true
+      },
+      "logSha256": "6b409ca5a31f2e296960c2ac8a55cd987b4359415b8a5c07c7d7426a8610d118",
+      "completeOutput": [
+        "Negative control caught: \u00a7214 Prowess logic inside @prowess/rules",
+        "Negative control caught: \u00a7215 @prowess/db imported into @prowess/game",
+        "Negative control caught: \u00a7216 Definition resolved through newest / latest EntityVersion",
+        "Negative control caught: \u00a7217 compiled step identity from randomUUID",
+        "Negative control caught: \u00a7218 Emission treated as canonical",
+        "Negative control caught: \u00a7219 historical source text rewritten Emission \u2192 Evocation",
+        "Negative control caught: \u00a7220 SPELL_EFFECT accepted in a Maneuver by shared contract",
+        "Negative control caught: \u00a7221 SPELL_TRAIT accepted in a Maneuver by shared contract",
+        "Negative control caught: \u00a7222 Spell / Maneuver Radius treated as one Definition",
+        "Negative control caught: \u00a7223 Radius implies a Save",
+        "Negative control caught: \u00a7224 Radius Targeting creates Damage",
+        "Negative control caught: \u00a7225 hidden Spell AP math in compilation code",
+        "Negative control caught: \u00a7226 hidden Maneuver final AP in compiler scaffolding",
+        "Negative control caught: \u00a7227 R1 Effect bundled with an unpinned R2 Trait",
+        "Negative control caught: \u00a7228 Definition resolved by display name",
+        "Negative control caught: \u00a7229 MANEUVER inferred from a weapon field",
+        "Negative control caught: \u00a7230 Target Must Be Bloodied treated as applying Bloodied",
+        "M5-WO1 guard runs: 15 baseline + 17 mutation + 0 post-restore; every file restored byte-for-byte and the working tree unchanged.",
+        "All 17 M5-WO1 negative controls caught; every mutated file restored byte-for-byte."
+      ]
+    },
+    {
+      "script": "scripts/m5-wo6-negative-controls.mjs",
+      "command": "PROWESS_EXPECT_CONTROLS=16 node scripts/m5-wo6-negative-controls.mjs",
+      "requiredCount": 16,
+      "processVerification": {
+        "suite": "m5-wo6",
+        "exitCode": 0,
+        "requiredCount": 16,
+        "caught": 16,
+        "complete": true,
+        "restoration": true
+      },
+      "logSha256": "c536ae0d59aee0ba27ae69fdde95ee089faac11820557dfdcd368fa76282fbb4",
+      "completeOutput": [
+        "Negative control caught: \u00a7174 saveStat = AGI on Spell Radius Targeting",
+        "Negative control caught: \u00a7175 Single Target emits an Attack Roll",
+        "Negative control caught: \u00a7176 Projectile canonicalized as an alias of Single Target",
+        "Negative control caught: \u00a7177 Projectile base MP = 2 from the lower-authority Chapter Book",
+        "Negative control caught: \u00a7178 a canonical Trigger-Based SPELL_TARGETING Definition",
+        "Negative control caught: \u00a7179 a canonical Glyph / Anchor SPELL_TARGETING Definition",
+        "Negative control caught: \u00a7180 the superseded '+10 ft Radius \u2192 +3 MP' expansion restored as canonical scaling",
+        "Negative control caught: \u00a7181 an uncited rounding / minimum algorithm for the base Spell Line width",
+        "Negative control caught: \u00a7182 Spell Range used as the Radius size",
+        "Negative control caught: \u00a7183 the superseded Maneuver STR-band Radius table (1\u20133 \u2192 5, 4\u20136 \u2192 10, 7+ \u2192 15)",
+        "Negative control caught: \u00a7184 the exact SPELL_TARGETING Radius EntityVersion reused in a Maneuver",
+        "Negative control caught: \u00a7185 Agility / Prowess Save Profile on MANEUVER_TARGETING Radius",
+        "Negative control caught: \u00a7186 Radius Conversion's +3 AP duplicated on MANEUVER_TARGETING Radius",
+        "Negative control caught: \u00a7187 compatibility accepted because names share a word",
+        "Negative control caught: \u00a7188 Targeting resolved through the newest EntityVersion",
+        "Negative control caught: \u00a7189 Radius computed directly in Studio UI code",
+        "M5-WO6 guard runs: 9 baseline + 16 mutation + 0 post-restore; every file restored byte-for-byte and the working tree unchanged.",
+        "All 16 M5-WO6 negative controls caught and reverted."
+      ]
+    },
+    {
+      "script": "scripts/m6-wo7-negative-controls.mjs",
+      "command": "PROWESS_EXPECT_CONTROLS=68 node scripts/m6-wo7-negative-controls.mjs",
+      "requiredCount": 68,
+      "processVerification": {
+        "suite": "m6-wo7",
+        "exitCode": 0,
+        "requiredCount": 68,
+        "caught": 68,
+        "complete": true,
+        "restoration": true
+      },
+      "logSha256": "eb5f73a36ccd3663b9883fccb15785c53f88ac31b99b5178b60c603e8b5bf54d",
+      "completeOutput": [
+        "Caught and restored: 1 Spell created as a Compendium Entity",
+        "Caught and restored: 2 Character Release mutated on finalization",
+        "Caught and restored: 3 latest Targeting revision lookup",
+        "Caught and restored: 4 latest Effect revision lookup",
+        "Caught and restored: 5 latest Trait revision lookup",
+        "Caught and restored: 6 latest Duration revision lookup",
+        "Caught and restored: 7 latest Casting Condition revision lookup",
+        "Caught and restored: 8 component found by canonical key / name",
+        "Caught and restored: 9 authority auto-selected",
+        "Caught and restored: 10 authority auto-switched",
+        "Caught and restored: 11 Arcane + Affinity access self-granted",
+        "Caught and restored: 12 Studio calculates Effect capacity",
+        "Caught and restored: 13 Studio calculates Trait capacity",
+        "Caught and restored: 14 Studio calculates MP",
+        "Caught and restored: 15 Studio calculates AP",
+        "Caught and restored: 16 Studio calculates the Affinity discount",
+        "Caught and restored: 17 Studio calculates the Weakness penalty",
+        "Caught and restored: 18 Studio calculates Sustain",
+        "Caught and restored: 19 ME reduces the listed MP",
+        "Caught and restored: 20 20 / 30 / 40 Condition cap restored",
+        "Caught and restored: 21 percentages applied sequentially",
+        "Caught and restored: 22 intermediate rounding",
+        "Caught and restored: 23 floor instead of the final rounding",
+        "Caught and restored: 24 3 AP maximum",
+        "Caught and restored: 25 automatic Trait exchange",
+        "Caught and restored: 26 zero-Effect Spell accepted",
+        "Caught and restored: 27 arbitrary mechanical Keyword accepted",
+        "Caught and restored: 28 description parsed for damage type",
+        "Caught and restored: 29 name parsed for Affinity",
+        "Caught and restored: 30 cross-Release revision evaluated against the Character's Release",
+        "Caught and restored: 31 invalid Targeting / Effect compatibility accepted",
+        "Caught and restored: 32 Effect order discarded",
+        "Caught and restored: 33 not-triggered treated as failure in the review",
+        "Caught and restored: 34 Effect Chain reimplemented in Studio",
+        "Caught and restored: 35 dynamic Metamagic introduced",
+        "Caught and restored: 36 M5-SC-042 additional Affinity Trait capacity guessed",
+        "Caught and restored: 37 M5-SC-046 unpriced target count hidden",
+        "Caught and restored: 38 M5-SC-047 Signature discount applied",
+        "Caught and restored: 39 M5-SC-049 Trait trigger semantics guessed",
+        "Caught and restored: 40 M5-SC-050 multiple Saves guessed",
+        "Caught and restored: 41 M5-SC-052 Mana Lock amount guessed",
+        "Caught and restored: 42 M5-SC-053 Channel MP timing guessed",
+        "Caught and restored: 43 Draft consumes a Signature slot",
+        "Caught and restored: 44 invalid Draft finalized",
+        "Caught and restored: 45 over-capacity accepted",
+        "Caught and restored: 46 concurrent finalization overfills (no Character lock)",
+        "Caught and restored: 47 finalized revision overwritten",
+        "Caught and restored: 48 invalid rebuild replaces the current revision",
+        "Caught and restored: 49 retirement deletes history",
+        "Caught and restored: 50 cached final MP persisted and trusted",
+        "Caught and restored: 51 synthetic canonical Spell Definition inserted into the bundle",
+        "Caught and restored: 52 adapter refactor changes an M5 golden",
+        "Caught and restored: 53 builder spends AP / MP",
+        "Caught and restored: 54 builder resolves live damage",
+        "Caught and restored: 55 builder creates Active Effect state",
+        "Caught and restored: 56 WO9 Ability Card framework introduced",
+        "Caught and restored: 57 Builder discards the player's Effect order",
+        "Caught and restored: 58 client may submit a derived cost on the draft write",
+        "Caught and restored: 59 a provisional cost shown for an invalid Spell",
+        "Caught and restored: 60 Trait exchange inferred when a Trait is added",
+        "Caught and restored: 61 Abilities tab removed from the Character",
+        "Caught and restored: 62 Signature Spells dropped from the Sheet's Actions",
+        "Caught and restored: 63 builder hard-codes a component",
+        "Caught and restored: 64 Studio imports the M5 domain package",
+        "Caught and restored: 65 append-only revision trigger weakened",
+        "Caught and restored: 66 retired Spell edited",
+        "Caught and restored: 67 stale Spell write accepted",
+        "Caught and restored: 68 finalization ignores a changed Character Release",
+        "M6-WO7 guard runs: 2 baseline + 68 mutation + 0 post-restore; every file restored byte-for-byte and the working tree unchanged.",
+        "All 68 M6-WO7 controls caught and restored."
+      ]
+    }
+  ],
+  "totalControlsCaught": 101,
+  "incompleteObservation": {
+    "suite": "M5-WO1",
+    "logSha256": "32575d739f559235798c0f2be61df478a36bf70a4c402711f10af439b133ea9d",
+    "caughtLines": 14,
+    "completionMarkerPresent": false,
+    "acceptedAsPass": false,
+    "resolution": "One instrumented invocation completed at exit 0 with all 17 catches and full restoration/completion markers; no further troubleshooting."
+  },
+  "additionalChecks": {
+    "nodeSyntaxChecks": {
+      "scripts/m5-wo1-negative-controls.mjs": "passed",
+      "scripts/m5-wo6-negative-controls.mjs": "passed",
+      "scripts/m6-wo7-negative-controls.mjs": "passed"
+    },
+    "gateInventory": {
+      "result": "Gate inventory consistent: 9 suites, 39 gates, 535 controls, 14 checks; every legacy item represented.",
+      "sha256": "7047d2a6be993a0d199c0f36505d2e00a6d9c6cbbc7bb9eb0225905165641fcc"
+    },
+    "diffCheck": "passed",
+    "unchangedSourceCommand": "git diff --exit-code -- packages apps .github scripts/lib/control-harness.mjs scripts/ci/gates.json",
+    "unchangedSourceExitCode": 0
+  },
+  "publication": {
+    "method": "Git Data exact-tree equivalent commit; non-force expected-head branch update",
+    "remoteParent": "a436c632e6c34317a1ea95d6a367f900db1f906a",
+    "branch": "m6-wo8",
+    "force": false
+  },
+  "freshCIRequest": {
+    "url": "https://github.com/prowessttrpg-png/prowess-studio/actions/workflows/ci.yml",
+    "branch": "m6-wo8",
+    "certification": false,
+    "dispatchSupported": false,
+    "workflowTriggered": false
+  }
+}

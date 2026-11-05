@@ -1,6 +1,6 @@
 import { validateRequirement, type RequirementNode } from "@prowess/rules";
 import type { JsonObject } from "@prowess/model";
-import type { PathSegment } from "../internal/plain-data.js";
+import { deepFreeze, type PathSegment } from "../internal/plain-data.js";
 import { Problems, own, readRecord, readEnum, isToken, isExactLabel } from "../internal/problems.js";
 import { readDefinitionRef, type ProwessDefinitionRef } from "./envelope.js";
 import { readEffectParameterRules, readEffectCosts, type EffectParameterRule, type EffectCostRule, type EffectRules } from "./effect-payload.js";
@@ -24,7 +24,20 @@ export interface DurationRules extends ComponentAvailability {
   readonly futureRuntime: { readonly sustain: boolean; readonly manaLock: boolean; readonly concentration: "NONE" | "WO13"; readonly "persists": boolean };
   readonly costStatus: "UNLISTED" | "AUTHORED";
 }
+/** M6-WO8-A authored benefits, not numeric representations or ordering of Skill ranks. */
+export const PERFORMANCE_CONDITION_BENEFITS = deepFreeze([
+  { rankKey: "TRAINED", mpReduction: 2, preparationAp: 1 },
+  { rankKey: "EXPERT", mpReduction: 4, preparationAp: 1 },
+  { rankKey: "MASTER", mpReduction: 6, preparationAp: 0 },
+] as const);
+export interface PerformanceConditionRule {
+  readonly version: "M6-WO8-A";
+  readonly skill: ProwessDefinitionRef;
+  readonly rankParameter: string;
+  readonly preparationApByRank: Readonly<Record<string, number>>;
+}
 export interface ConditionRules extends ComponentAvailability {
+  readonly performance?: PerformanceConditionRule;
   readonly branch: "SPELL" | "MANEUVER";
   readonly parameters: readonly EffectParameterRule[];
   readonly applicability: RequirementNode;
@@ -71,7 +84,7 @@ export function readDurationCosts(costs: readonly CostContribution[], rules: Dur
 }
 export function readConditionRules(v: unknown, branch: "SPELL" | "MANEUVER" | null, at: readonly PathSegment[], p: Problems): ConditionRules | null {
   const before = p.count, fields = ["branch", "availability", "deferralKey", "parameters", "applicability", "runtimeRequirements", "dependencies", "consumesSlot", "slotExemption", "choice", "incompatibleRestrictions"];
-  const r = readRecord(v, at, p, E, fields, fields); if (!r) return null;
+  const r = readRecord(v, at, p, E, [...fields, "performance"], fields); if (!r) return null;
   const b = readEnum(own(r, "branch"), ["SPELL", "MANEUVER"] as const, [...at, "branch"], p, E, "Condition branch"), a = availability(r, at, p);
   if (b !== branch) p.add(E, at, "Condition branch must match its permanent Definition kind");
   const parameters = readEffectParameterRules(own(r, "parameters"), [...at, "parameters"], p);
@@ -102,7 +115,16 @@ export function readConditionRules(v: unknown, branch: "SPELL" | "MANEUVER" | nu
   } else if (k !== "ALL") p.add(E, [...at, "choice"], "supported choice discriminant required");
   const ir = own(r, "incompatibleRestrictions");
   if (!Array.isArray(ir) || !ir.every(isToken) || new Set(ir).size !== ir.length) p.add(E, [...at, "incompatibleRestrictions"], "unique restriction tokens required");
-  return p.count > before || !b || !a || !applicability ? null : { branch: b, ...a, parameters, applicability, runtimeRequirements, dependencies, consumesSlot: consumesSlot as boolean, slotExemption: slotExemption as string | null, choice: selectedChoice, incompatibleRestrictions: [...ir as string[]].sort() };
+  let performance: PerformanceConditionRule | undefined;
+  if (own(r, "performance") !== undefined) {
+    const x = readRecord(own(r, "performance"), [...at, "performance"], p, E, ["version", "skill", "rankParameter", "preparationApByRank"], ["version", "skill", "rankParameter", "preparationApByRank"]);
+    const skill = x ? readDefinitionRef(x.skill, [...at, "performance", "skill"], p, E) : null;
+    const prep = x ? readRecord(x.preparationApByRank, [...at, "performance", "preparationApByRank"], p, E, ["TRAINED", "EXPERT", "MASTER"], ["TRAINED", "EXPERT", "MASTER"]) : null;
+    const rank = parameters.find(q => q.parameter === x?.rankParameter);
+    if (!x || x.version !== "M6-WO8-A" || b !== "MANEUVER" || skill?.definitionKind !== "SKILL" || consumesSlot !== false || slotExemption !== "PERFORMANCE_OBLIGATORY" || selectedChoice.kind !== "ALL" || !rank || rank.kind !== "TOKEN" || rank.default !== null || (rank.allowed.length !== PERFORMANCE_CONDITION_BENEFITS.length || PERFORMANCE_CONDITION_BENEFITS.some(row => !rank.allowed.includes(row.rankKey))) || !prep || PERFORMANCE_CONDITION_BENEFITS.some(row => prep[row.rankKey] !== row.preparationAp)) p.add(E, [...at, "performance"], "Performance requires its exact Skill, obligatory slot exemption and approved rank/preparation table");
+    else performance = { version: "M6-WO8-A", skill, rankParameter: rank.parameter, preparationApByRank: prep as Record<string, number> };
+  }
+  return p.count > before || !b || !a || !applicability ? null : { ...(performance ? { performance } : {}), branch: b, ...a, parameters, applicability, runtimeRequirements, dependencies, consumesSlot: consumesSlot as boolean, slotExemption: slotExemption as string | null, choice: selectedChoice, incompatibleRestrictions: [...ir as string[]].sort() };
 }
 /** Reuse the permanent WO7 listed-cost grammar; only the contribution's meaning and OR-selection are added. */
 export function readConditionContributions(payload: AbilityConditionDefinitionPayload, rules: ConditionRules, at: readonly PathSegment[], p: Problems): ConditionContribution[] {
@@ -126,7 +148,12 @@ export function readConditionContributions(payload: AbilityConditionDefinitionPa
     if (benefits.length !== 1) p.add(E, at, "each OR option must offer exactly one listed benefit");
     if (["AP", "MP"].includes(option) && benefits.some(x => x.cost.currency !== option)) p.add(E, at, "an AP-or-MP option must match its explicit currency");
   }
-  if (rules.branch === "MANEUVER" && rules.choice.kind === "ALL" && new Set(out.map(x => x.cost.currency)).size > 1) p.add(E, at, "alternative Maneuver AP/MP reductions require an explicit OR choice");
+  if (rules.branch === "MANEUVER" && !rules.performance && rules.choice.kind === "ALL" && new Set(out.map(x => x.cost.currency)).size > 1) p.add(E, at, "alternative Maneuver AP/MP reductions require an explicit OR choice");
   if (rules.availability === "DEFERRED" && out.length) p.add(E, at, "discretionary or conflicting benefits remain non-executable");
+  if (rules.performance) {
+    const mp = out.filter(c => c.modifier === "MP_REDUCTION");
+    const reduction = mp[0]?.cost;
+    if (payload.restriction.restrictionKey !== "PERFORMANCE" || mp.length !== 1 || reduction?.kind !== "PER_SELECTION" || reduction.parameter !== rules.performance.rankParameter || (Object.keys(reduction.amounts).length !== PERFORMANCE_CONDITION_BENEFITS.length || PERFORMANCE_CONDITION_BENEFITS.some(row => reduction.amounts[row.rankKey] !== row.mpReduction)) || out.some(c => c.modifier !== "MP_REDUCTION" && c.modifier !== "AP_REDUCTION")) p.add(E, at, "Performance applies exactly one approved MP reduction; any AP benefit needs its own explicit authored AP_REDUCTION rule");
+  }
   return out;
 }

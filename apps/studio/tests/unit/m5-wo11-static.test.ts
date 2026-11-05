@@ -145,7 +145,12 @@ describe("M5-WO11 audit — Final Maneuver Cost & Attack Floors", () => {
     expect(c).toContain("an attack-scoped Effect attaches to exactly one resolution: one Attack use or one whole Powerful Blow; it is never broadcast");
     expect(c).toContain("readFoundationProfile(payload.rules as Record<string, unknown>");
     expect(c).toContain("const attached = composition.effects.filter(e => man!.effectAttachments.find(a => a.effectKey === e.componentKey)!.actionKeys.includes(action.componentKey));");
-    expect(c).toContain("traits: composition.traits.filter(t => t.appliesTo.componentKey === null || t.appliesTo.scope === \"TARGETING\" || attached.some(e => e.componentKey === t.appliesTo.componentKey))");
+    // M6-WO8 scopes inherited Targeting/Action Traits by exact use key; the historical unscoped Targeting path
+    // remains when maneuverContext is absent. Keep the no-broadcast property instead of its obsolete inline spelling.
+    expect(c).toContain("traits: traitsForAction(action, attached)");
+    expect(c).toContain('t.appliesTo.scope === "TARGETING" && (!maneuverContext || t.appliesTo.componentKey === `${action.componentKey}.targeting`)');
+    expect(c).toContain('t.appliesTo.scope === "ACTION_SPECIFIC" && t.appliesTo.componentKey === action.componentKey');
+    expect(c).toContain("attached.some(e => e.componentKey === t.appliesTo.componentKey)");
     expect(m).toContain("const effectGroup = (effectKey: string) => { const a = authored.effectAttachments.find((x) => x.effectKey === effectKey); return a ? groupOf(a.actionKeys[0]!) : null; };");
     expect(m).toContain('grantsConditionDiscount: false, consumesConditionSlot: false, status: "REQUIREMENT_CONTRACT_ONLY"');
     expect(m).toContain("K.REDUNDANT_RESTRICTION");

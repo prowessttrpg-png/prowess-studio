@@ -1,0 +1,244 @@
+{
+  "scope": "M6-WO8 Phase B CI remediation; fresh PostgreSQL acceptance pending",
+  "originalLocalCheckpoint": "c00214cdb4068aabe6277a2e43da04f7f423c8fe",
+  "publishedBaseline": "f74f1c5ca60badce3a1de8949d00b61376996c2b",
+  "sharedBaselineTree": "55ad1b2dde98b4d5ef30f910cda9b7c166e16489",
+  "mainBaseline": "d005fc30c8c7e175896898c1973e6d3bda144869",
+  "run252": {
+    "id": 41907646580,
+    "url": "https://github.com/prowessttrpg-png/prowess-studio/actions/runs/41907646580",
+    "headSha": "f74f1c5ca60badce3a1de8949d00b61376996c2b",
+    "jobs": [
+      {
+        "id": 126846486739,
+        "name": "Database integration (shard 1/2)",
+        "conclusion": "success",
+        "url": "https://github.com/prowessttrpg-png/prowess-studio/actions/runs/41907646580/job/126846486739",
+        "originalLogSha256": "d0e57a8e4418c6c38004844281e2c901c4be63587a7650a9e8c13a4a36404b68",
+        "evidenceLines": [
+          "2026-11-04T20:37:11.1670617Z  \u2713 tests/integration/m6-wo8-signature-maneuvers.test.ts (9 tests) 90388ms",
+          "2026-11-04T20:37:28.0097832Z  \u2713 tests/integration/m6-wo8-migration-compat.test.ts (1 test) 51ms",
+          "2026-11-04T20:37:28.0130466Z  Test Files  30 passed (30)",
+          "2026-11-04T20:37:28.0131118Z       Tests  294 passed (294)"
+        ]
+      },
+      {
+        "id": 126846486867,
+        "name": "Database integration (shard 2/2)",
+        "conclusion": "failure",
+        "url": "https://github.com/prowessttrpg-png/prowess-studio/actions/runs/41907646580/job/126846486867",
+        "originalLogSha256": "1bd724f7e360feaa56688aae0072e800ed7651a08a12b5c777447c6086e1ff0f",
+        "evidenceLines": [
+          "2026-11-04T20:36:05.3363742Z  FAIL  tests/integration/entity-version-lifecycle.test.ts > EntityVersion lifecycle & mutation (prowess_studio_test only) > exposes no public operation that bypasses lifecycle rules via a generic update",
+          "2026-11-04T20:36:05.3436154Z  Test Files  1 failed | 28 passed (29)",
+          "2026-11-04T20:36:05.3437096Z       Tests  1 failed | 321 passed (322)"
+        ]
+      },
+      {
+        "id": 126846486806,
+        "name": "Database \u2014 Prisma checks, API integration, test-database guards",
+        "conclusion": "failure",
+        "url": "https://github.com/prowessttrpg-png/prowess-studio/actions/runs/41907646580/job/126846486806",
+        "originalLogSha256": "21d7acf8e680ba2014f30c91cc22fcc9a05185f32fde6e79d10f6a048a32a3dc",
+        "evidenceLines": [
+          "2026-11-04T20:33:35.3414799Z The schema at prisma/schema.prisma is valid \ud83d\ude80",
+          "2026-11-04T20:33:43.1074595Z All migrations have been successfully applied.",
+          "2026-11-04T20:33:44.8929468Z All migrations have been successfully applied.",
+          "2026-11-04T20:33:45.6237694Z   [*] Renamed the foreign key \"character_signature_maneuver_revisions_character_release_id_fke\" to \"character_signature_maneuver_revisions_character_release_i_fkey\"",
+          "2026-11-04T20:33:45.6239335Z   [*] Renamed the foreign key \"character_signature_maneuver_revisions_previous_revision_id_fke\" to \"character_signature_maneuver_revisions_previous_revision_i_fkey\""
+        ]
+      },
+      {
+        "id": 126846486814,
+        "name": "Unit \u2014 Studio UI/component/static audits",
+        "conclusion": "failure",
+        "url": "https://github.com/prowessttrpg-png/prowess-studio/actions/runs/41907646580/job/126846486814",
+        "originalLogSha256": "f376962c72b4a26bed6a8320c20070ed3e96ef20a10432569b78837465c81833",
+        "evidenceLines": [
+          "2026-11-04T20:34:37.2419208Z  FAIL  tests/unit/m2-final-static.test.ts > \u00a750 public service surface > every mutation in the public surface is an approved creation, named command, M1 assignment edit, or DRAFT-only edit",
+          "2026-11-04T20:34:37.2498319Z  FAIL  tests/unit/m5-wo1-static.test.ts > M5-WO1 audit \u2014 Prowess domain & shared ability construction boundary > packages/prowess-game/src/character/signature-maneuver-catalog.ts passes the game rules",
+          "2026-11-04T20:34:37.2566513Z  FAIL  tests/unit/m5-wo1-static.test.ts > M5-WO1 audit \u2014 Prowess domain & shared ability construction boundary > packages/prowess-game/src/character/signature-maneuver.ts passes the game rules",
+          "2026-11-04T20:34:37.2587680Z  FAIL  tests/unit/m5-wo11-static.test.ts > M5-WO11 audit \u2014 Final Maneuver Cost & Attack Floors > M5-I270\u2013I276 attack floor, Powerful Blow as one resolution, explicit Signature ordering, final 1 AP minimum, no 3 AP cap",
+          "2026-11-04T20:34:37.3264475Z  FAIL  tests/unit/m5-wo11-static.test.ts > M5-WO11 audit \u2014 Final Maneuver Cost & Attack Floors > M5-I282\u2013I293 attachment graph: exact Attacks, inherited weapon requirements, no broadcast, Powerful Blow of one Attack only",
+          "2026-11-04T20:34:37.3721569Z  FAIL  tests/unit/m5-wo2-static.test.ts > M5-WO2 audit \u2014 Core resolution, stats, dice & ranks > packages/prowess-game/src/ability/compile.ts passes the WO2 game rules (no randomness, hidden math, Stat / level / die branches, legacy values, M4 Prowess terms)",
+          "2026-11-04T20:34:37.3724177Z  FAIL  tests/unit/m5-wo2-static.test.ts > M5-WO2 audit \u2014 Core resolution, stats, dice & ranks > packages/prowess-game/src/character/signature-maneuver.ts passes the WO2 game rules (no randomness, hidden math, Stat / level / die branches, legacy values, M4 Prowess terms)",
+          "2026-11-04T20:34:37.3733542Z  FAIL  tests/unit/m5-wo2-static.test.ts > M5-WO2 audit \u2014 Core resolution, stats, dice & ranks > packages/prowess-game/src/content-updates/m6-wo8-amendment-a.ts passes the WO2 game rules (no randomness, hidden math, Stat / level / die branches, legacy values, M4 Prowess terms)",
+          "2026-11-04T20:34:37.3744327Z  FAIL  tests/unit/m5-wo2-static.test.ts > M5-WO2 audit \u2014 Core resolution, stats, dice & ranks > packages/prowess-game/src/definition/duration-condition-payload.ts passes the WO2 game rules (no randomness, hidden math, Stat / level / die branches, legacy values, M4 Prowess terms)",
+          "2026-11-04T20:34:37.3753669Z  FAIL  tests/unit/m5-wo3-static.test.ts > M5-WO3 audit \u2014 Runtime resources, action economy & movement > packages/prowess-game/src/ability/maneuver-cost.ts passes the WO3 game rules (no persistence, name switches, netting, stacking, Size speed, player ordering, randomness)",
+          "2026-11-04T20:34:37.3764542Z  FAIL  tests/unit/m5-wo8-static.test.ts > M5-WO8 audit \u2014 Traits and authored Spell/Maneuver definitions > extends permanent M5 contracts and emits permanent M4 operations",
+          "2026-11-04T20:34:37.3794735Z  FAIL  tests/unit/m6-wo5-static.test.ts > M6-WO5 gate \u2014 Studio presents, never decides (\u00a717\u2013\u00a745, \u00a777\u2013\u00a778, M6-I046 M6-I055 M6-I056) > M6-I055 Equipment & Gear and Granted Effects are explicit boundaries; Actions stay player text (M6-I049)",
+          "2026-11-04T20:34:37.3808514Z  Test Files  7 failed | 92 passed (99)",
+          "2026-11-04T20:34:37.3809302Z       Tests  12 failed | 3465 passed (3477)"
+        ]
+      },
+      {
+        "id": 126846486884,
+        "name": "Unit \u2014 model, ui, import, rules, db",
+        "conclusion": "failure",
+        "url": "https://github.com/prowessttrpg-png/prowess-studio/actions/runs/41907646580/job/126846486884",
+        "originalLogSha256": "a1ed85fbe825d1f309fc6a55b15cf3ea6cc52ea9d7840bfb86b00567eab07f1b",
+        "evidenceLines": [
+          "2026-11-04T20:34:02.9674361Z packages/prowess-db test:unit:  FAIL  tests/unit/m6-wo1-authoring-catalog.test.ts > Studio UI catalog fixture > equals the live authoring catalog",
+          "2026-11-04T20:34:02.9731600Z packages/prowess-db test:unit:  Test Files  1 failed | 18 passed (19)",
+          "2026-11-04T20:34:02.9732543Z packages/prowess-db test:unit:       Tests  1 failed | 145 passed (146)"
+        ]
+      }
+    ],
+    "preservedWO8PostgresResults": {
+      "lifecycleAndConcurrency": {
+        "passed": 9,
+        "durationMs": 90388
+      },
+      "migrationCompatibility": {
+        "passed": 1,
+        "durationMs": 51
+      }
+    },
+    "apiTests": "skipped after schema drift; not verified"
+  },
+  "focusedLocalChecks": [
+    {
+      "log": "prisma-validate.log",
+      "sha256": "1e0b52ba93e0e7163d8686d8a4ce1b5cadb568af0d0563e8c0559b8bb7e442fc",
+      "command": "pnpm run db:validate",
+      "result": "passed",
+      "summaryLines": [
+        "The schema at prisma/schema.prisma is valid \ud83d\ude80"
+      ]
+    },
+    {
+      "log": "prisma-generate.log",
+      "sha256": "5f9b5eb5ab7c999f08f266ffe422a148513752aac8993c7d43482cbfe828d9cf",
+      "command": "pnpm run db:generate",
+      "result": "passed; Prisma 7.10.0",
+      "summaryLines": [
+        "\u2714 Generated Prisma Client (7.10.0) to ./generated/prisma in 944ms"
+      ]
+    },
+    {
+      "log": "packages-build.log",
+      "sha256": "61472f0970ccbf3343d995766b8e12c02c8d81de8458f2793dbae9a42f8c4b2d",
+      "command": "pnpm --filter @prowess/db... run build",
+      "result": "passed",
+      "summaryLines": [
+        "packages/prowess-model build: Done",
+        "packages/prowess-import build: Done",
+        "packages/prowess-rules build: Done",
+        "packages/prowess-game build: Done",
+        "packages/prowess-db build: Done"
+      ]
+    },
+    {
+      "log": "static.log",
+      "sha256": "4211cc7b06bfe2941a8f42de98bceac3ff6e2184a04df39ee35cb710caf1aeb5",
+      "command": "pnpm --filter @prowess/studio exec vitest run [9 affected static suites] --maxWorkers=1 --no-file-parallelism --reporter=dot",
+      "result": "696 passed / 9 files",
+      "summaryLines": [
+        " Test Files  9 passed (9)",
+        "      Tests  696 passed (696)"
+      ]
+    },
+    {
+      "log": "domain-equivalence.log",
+      "sha256": "21a766201d07f171f7b1a2b62cd0f8514f9951cc48ccb4bfc246271b7ac74a0a",
+      "command": "pnpm --filter @prowess/game exec vitest run [7 focused suites]",
+      "result": "405 passed / 7 files",
+      "summaryLines": [
+        " Test Files  7 passed (7)",
+        "      Tests  405 passed (405)"
+      ]
+    },
+    {
+      "log": "catalog-verification.log",
+      "sha256": "7933774ac8ee3c0e5ea6b86ff11a83fbc96e238699ebd7effcd7afb111c87636",
+      "command": "pnpm --filter @prowess/db exec vitest run --config vitest.unit.config.ts tests/unit/m6-wo1-authoring-catalog.test.ts --reporter=dot",
+      "result": "50 passed; no fixture write mode",
+      "summaryLines": [
+        " Test Files  1 passed (1)",
+        "      Tests  50 passed (50)"
+      ]
+    },
+    {
+      "log": "m5-wo11-negative-controls.log",
+      "sha256": "b874453c9a9038cc465ebcbae4230bc4e1cdafc6da5e526933b049195b551c5f",
+      "command": "node scripts/m5-wo11-negative-controls.mjs",
+      "result": "26 caught / 14 green baselines; all bytes restored",
+      "summaryLines": [
+        "M5-WO11 guard runs: 14 baseline + 26 mutation + 0 post-restore; every file restored byte-for-byte and the working tree unchanged.",
+        "All 26 M5-WO11 mutation controls caught and reverted."
+      ]
+    },
+    {
+      "log": "architecture.log",
+      "sha256": "bf9463c101142969b9c450e64e24a75e24838b42f4da189076e33faf93ddcb7c",
+      "command": "pnpm run test:architecture",
+      "result": "passed",
+      "summaryLines": [
+        "Architecture check passed: 13 import-boundary rule(s) and 7 package(s) checked for circular dependencies \u2014 no violations."
+      ]
+    },
+    {
+      "log": "lint.log",
+      "sha256": "183a3e583dc74d4e79a5e27bfa742e6859cd5565af8870919b8788a03c0a142b",
+      "command": "pnpm --filter @prowess/game --filter @prowess/db --filter @prowess/studio run lint",
+      "result": "passed",
+      "summaryLines": [
+        "packages/prowess-game lint: Done",
+        "packages/prowess-db lint: Done",
+        "apps/studio lint: Done"
+      ]
+    },
+    {
+      "log": "typecheck.log",
+      "sha256": "785f964bfa656ca85ccad1cebc3a40376038ea840b2c5d7f07db078ab76be9fa",
+      "command": "pnpm --filter @prowess/game --filter @prowess/db --filter @prowess/studio run typecheck",
+      "result": "passed",
+      "summaryLines": [
+        "packages/prowess-game typecheck: Done",
+        "packages/prowess-db typecheck: Done",
+        "apps/studio typecheck: Done"
+      ]
+    },
+    {
+      "log": "amendment-final.log",
+      "sha256": "19ab98e287da7e6d2d7abba2e67be79180606995d0c0b0b1d893138d43eb58e1",
+      "command": "pnpm --filter @prowess/game exec vitest run src/m6-wo8-amendment.test.ts --reporter=dot",
+      "result": "13 passed after test-only annotation fix",
+      "summaryLines": [
+        " Test Files  1 passed (1)",
+        "      Tests  13 passed (13)"
+      ]
+    },
+    {
+      "log": "registry-final.log",
+      "sha256": "c801ef3983a5ac4aa33e2235dbcf3fa8e4ceb78983314a0e6161bcb800925202",
+      "command": "pnpm --filter @prowess/studio exec vitest run tests/unit/m6-wo8-static.test.ts tests/unit/m6-wo7-static.test.ts --reporter=dot",
+      "result": "46 passed after exact digest update",
+      "summaryLines": [
+        " Test Files  2 passed (2)",
+        "      Tests  46 passed (46)"
+      ]
+    },
+    {
+      "log": "test-lint-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "command": "pnpm --filter @prowess/game exec eslint src/m6-wo8-amendment.test.ts --max-warnings=0",
+      "result": "passed after test-only annotation fix",
+      "summaryLines": []
+    }
+  ],
+  "pendingFreshCI": [
+    "PostgreSQL 16 migrate deploy on isolated dev/test databases",
+    "Zero migration/schema drift",
+    "Updated lifecycle public export inventory in real database suite",
+    "Maneuver APIs and test-database guard checks",
+    "Reverify lifecycle, concurrency, capacity and historical Release compatibility on corrective tree"
+  ],
+  "workflowRequest": {
+    "url": "https://github.com/prowessttrpg-png/prowess-studio/actions/workflows/ci.yml",
+    "branch": "m6-wo8",
+    "certification": false,
+    "dispatchSupportedByConnectedIntegration": false,
+    "newWorkflowTriggered": false
+  }
+}

@@ -1,0 +1,3992 @@
+{
+  "$comment": "M6-WO8 TEST Release content. Generated from testing/signature-maneuver-fixtures.ts; never imported by runtime.",
+  "keywords": [
+    "keyword.aoe_scaling",
+    "keyword.area_effect",
+    "keyword.buff",
+    "keyword.channeled_output",
+    "keyword.construct",
+    "keyword.control",
+    "keyword.damage",
+    "keyword.debuff",
+    "keyword.detection",
+    "keyword.direct_damage",
+    "keyword.elemental_alteration",
+    "keyword.healing",
+    "keyword.illusion",
+    "keyword.instant_effect",
+    "keyword.interference",
+    "keyword.knowledge",
+    "keyword.mind_effect",
+    "keyword.persistent_creation",
+    "keyword.persistent_effect",
+    "keyword.predictive_effect",
+    "keyword.reactive_effect",
+    "keyword.recovery",
+    "keyword.redirection",
+    "keyword.reinforcement",
+    "keyword.resistance",
+    "keyword.summon",
+    "keyword.sustained_output",
+    "keyword.terrain_alteration",
+    "keyword.utility"
+  ],
+  "definitions": [
+    {
+      "canonicalKey": "construction.ability_rules",
+      "definitionKind": "ABILITY_CONSTRUCTION_RULE",
+      "schemaVersion": 1,
+      "payload": {
+        "activeMagicPolicy": {
+          "authority": [
+            "M5-WO13",
+            "MANA EFFICIENCY",
+            "MANA LOCK",
+            "CHANNELING SPELLS",
+            "SUSTAINED SPELLS",
+            "CONCENTRATION",
+            "M5-SC-004"
+          ],
+          "channel": {
+            "maximumSimultaneous": 1,
+            "minimumApPerRound": 1,
+            "mpPaymentConflictKey": "M5-SC-053",
+            "mpPaymentTiming": null,
+            "requiresConcentration": true
+          },
+          "concentrationSaveStat": "PRO",
+          "dismissal": {
+            "COMBAT": "NOT_DISMISSIBLE",
+            "INSTANT": "NOT_DISMISSIBLE",
+            "MANA_LOCK": "NOT_DISMISSIBLE",
+            "MISSION": "NOT_DISMISSIBLE",
+            "PERMANENT_BY_SPECIAL_RULE": "NOT_DISMISSIBLE",
+            "ROUNDS": "NOT_DISMISSIBLE",
+            "SCENE": "NOT_DISMISSIBLE",
+            "SUSTAINED": "FREE_ACTION"
+          },
+          "formulas": {
+            "concentrationDc": {
+              "expression": "8 + 2 * max(0, consumers - 1)",
+              "variables": [
+                "consumers"
+              ]
+            },
+            "concentrationSlots": {
+              "expression": "1 + floor(res / 2)",
+              "variables": [
+                "res"
+              ]
+            },
+            "sustainMp": {
+              "expression": "max(1, floor(final_mp / pro))",
+              "variables": [
+                "final_mp",
+                "pro"
+              ]
+            }
+          },
+          "manaLock": {
+            "amount": null,
+            "conflictKey": "M5-SC-052"
+          },
+          "sustainApPerRound": 1,
+          "sustainMeEligible": true
+        },
+        "conditionPolicy": {
+          "formulas": {
+            "cap": {
+              "expression": "min(listed, maximum)",
+              "variables": [
+                "listed",
+                "maximum"
+              ]
+            },
+            "excess": {
+              "expression": "listed - effective",
+              "variables": [
+                "listed",
+                "effective"
+              ]
+            },
+            "increment": {
+              "expression": "value - minimum - floor((value - minimum) / increment) * increment",
+              "variables": [
+                "value",
+                "minimum",
+                "increment"
+              ]
+            },
+            "scale": {
+              "expression": "units * rate",
+              "variables": [
+                "units",
+                "rate"
+              ]
+            },
+            "sum": {
+              "expression": "left + right",
+              "variables": [
+                "left",
+                "right"
+              ]
+            }
+          },
+          "maneuverApMaximum": 3,
+          "spellMpPercentMaximum": 30
+        },
+        "effectExecutionPolicy": {
+          "authority": [
+            "M5-SC-014",
+            "s639",
+            "s640",
+            "s642",
+            "Maneuvers §5 Save Restriction by Martial Rank"
+          ],
+          "defaultChainBehavior": "SUCCESS_ONLY",
+          "martialSaveControl": {
+            "EXPERT": "ATTACKER_REMOVES_ONE",
+            "MASTER": "ATTACKER_CHOOSES",
+            "TRAINED": "DEFENDER_CHOOSES"
+          },
+          "martialSkillKey": "skill.martial"
+        },
+        "formulas": {
+          "effectiveTraits": {
+            "expression": "base_traits + trades * trait_slots_per_exchange",
+            "minimum": null,
+            "rounding": "NONE",
+            "variables": [
+              "base_traits",
+              "trades",
+              "trait_slots_per_exchange"
+            ]
+          },
+          "maximumTrades": {
+            "expression": "floor((base_effects - minimum_effects_remaining) / effect_slots_per_exchange)",
+            "minimum": 0,
+            "rounding": "NONE",
+            "variables": [
+              "base_effects",
+              "minimum_effects_remaining",
+              "effect_slots_per_exchange"
+            ]
+          },
+          "remainingEffects": {
+            "expression": "base_effects - trades * effect_slots_per_exchange",
+            "minimum": null,
+            "rounding": "NONE",
+            "variables": [
+              "base_effects",
+              "trades",
+              "effect_slots_per_exchange"
+            ]
+          },
+          "signatureAvailable": {
+            "expression": "capacity - projected",
+            "minimum": null,
+            "rounding": "NONE",
+            "variables": [
+              "capacity",
+              "projected"
+            ]
+          },
+          "signatureProjected": {
+            "expression": "used_slots + candidate_slots",
+            "minimum": null,
+            "rounding": "NONE",
+            "variables": [
+              "used_slots",
+              "candidate_slots"
+            ]
+          }
+        },
+        "maneuver": {
+          "foundationRequired": true,
+          "martial": {
+            "minimumRank": "TRAINED",
+            "ranks": [
+              {
+                "conditionCapacity": 0,
+                "effectCapacity": 0,
+                "martialRankValue": 0,
+                "rankKey": "UNTRAINED",
+                "traitCapacity": 0
+              },
+              {
+                "conditionCapacity": 1,
+                "effectCapacity": 1,
+                "martialRankValue": 1,
+                "rankKey": "TRAINED",
+                "traitCapacity": 1
+              },
+              {
+                "conditionCapacity": 2,
+                "effectCapacity": 2,
+                "martialRankValue": 2,
+                "rankKey": "EXPERT",
+                "traitCapacity": 2
+              },
+              {
+                "conditionCapacity": 3,
+                "effectCapacity": 3,
+                "martialRankValue": 3,
+                "rankKey": "MASTER",
+                "traitCapacity": 3
+              }
+            ],
+            "skillKey": "skill.martial"
+          },
+          "minimumEffects": 1,
+          "traitExchange": null
+        },
+        "maneuverCostPolicy": {
+          "authority": [
+            "M5-SC-025",
+            "s2020",
+            "s2094",
+            "s21729",
+            "s22270"
+          ],
+          "extension": {
+            "floor": "COMMITTED_ACTION_AP",
+            "version": "M6-WO8-A"
+          },
+          "formulas": {
+            "affinityAdjusted": {
+              "expression": "max(minimum, amount - reduction)",
+              "variables": [
+                "minimum",
+                "amount",
+                "reduction"
+              ]
+            },
+            "attackFloor": {
+              "expression": "max(minimum, attacks)",
+              "variables": [
+                "minimum",
+                "attacks"
+              ]
+            },
+            "conditionReduced": {
+              "expression": "base - reduction",
+              "variables": [
+                "base",
+                "reduction"
+              ]
+            },
+            "contribution": {
+              "expression": "max(0, units - included) * rate",
+              "variables": [
+                "units",
+                "included",
+                "rate"
+              ]
+            }
+          },
+          "inherentRestrictionKeys": [
+            "WEAPON_LOCK"
+          ],
+          "minimumAp": 1,
+          "minimumMp": 0,
+          "signatureApReduction": 1,
+          "unresolvedComponentCosts": [
+            {
+              "canonicalKey": "maneuver.effect.elemental_damage_conversion",
+              "conflictKey": "M5-SC-048"
+            }
+          ]
+        },
+        "rankLadder": "SKILL",
+        "signature": {
+          "capacityStatistic": "SIGNATURE_ABILITY_SLOTS",
+          "defaultSlotCost": 1,
+          "exemptSlotCost": 0,
+          "exemptions": []
+        },
+        "source": {
+          "conflicts": [
+            "M5-SC-011",
+            "M5-SC-015",
+            "M5-SC-017",
+            "M5-SC-021",
+            "M5-SC-022",
+            "M5-SC-025"
+          ],
+          "locators": [
+            "s121",
+            "s122",
+            "s123",
+            "s185",
+            "s190",
+            "s198",
+            "s1980",
+            "s1982",
+            "s1983",
+            "s2018",
+            "s2020",
+            "s624",
+            "s626",
+            "s627",
+            "s669",
+            "s676",
+            "s680",
+            "s681",
+            "s682",
+            "s683"
+          ]
+        },
+        "spell": {
+          "affinityAuthority": {
+            "capacitySource": "AFFINITY_RANK_RULE"
+          },
+          "arcaneAuthority": {
+            "minimumRank": "TRAINED",
+            "ranks": [
+              {
+                "effectCapacity": 0,
+                "rankKey": "UNTRAINED",
+                "traitCapacity": 0
+              },
+              {
+                "effectCapacity": 1,
+                "rankKey": "TRAINED",
+                "traitCapacity": 1
+              },
+              {
+                "effectCapacity": 2,
+                "rankKey": "EXPERT",
+                "traitCapacity": 2
+              },
+              {
+                "effectCapacity": 3,
+                "rankKey": "MASTER",
+                "traitCapacity": 3
+              }
+            ],
+            "skillKey": "skill.arcana"
+          },
+          "castingConditions": {
+            "capacitySource": "ARCANE_RANK",
+            "ranks": [
+              {
+                "capacity": 0,
+                "rankKey": "UNTRAINED"
+              },
+              {
+                "capacity": 1,
+                "rankKey": "TRAINED"
+              },
+              {
+                "capacity": 2,
+                "rankKey": "EXPERT"
+              },
+              {
+                "capacity": 3,
+                "rankKey": "MASTER"
+              }
+            ]
+          },
+          "minimumEffects": 1,
+          "traitExchange": {
+            "effectSlotsPerExchange": 1,
+            "minimumEffectsRemaining": 1,
+            "traitSlotsPerExchange": 1
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "test.m6wo4.effect.martial_expert",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "effectFamily": "DAMAGE",
+        "keywords": [],
+        "outcomes": [
+          {
+            "data": {
+              "authored": true
+            },
+            "outcomeKey": "on-fail"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {
+            "authored": true
+          },
+          "mode": "SAVING_THROW"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "EXPERT",
+                "prerequisiteKey": "MARTIAL_EXPERT",
+                "skillKey": "skill.martial"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.self",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "ONE"
+            },
+            "cover": "INHERITED",
+            "deliveryFamily": "SELF_DELIVERY",
+            "lineOfEffect": "INHERITED",
+            "lineOfSight": "INHERITED",
+            "measures": [],
+            "origin": {
+              "default": "PERFORMER",
+              "modes": [
+                "PERFORMER"
+              ]
+            },
+            "parameters": [],
+            "placement": "NONE",
+            "radiusCapable": false,
+            "range": {
+              "model": "SELF"
+            },
+            "validTargets": [
+              "SELF"
+            ]
+          }
+        },
+        "semanticShape": "SELF"
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.touch",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "ONE"
+            },
+            "cover": "INHERITED",
+            "deliveryFamily": "FOUNDATION_DELIVERY",
+            "lineOfEffect": "INHERITED",
+            "lineOfSight": "INHERITED",
+            "measures": [],
+            "origin": {
+              "default": "PERFORMER",
+              "modes": [
+                "PERFORMER"
+              ]
+            },
+            "parameters": [],
+            "placement": "CHOOSE_TARGETS",
+            "radiusCapable": false,
+            "range": {
+              "model": "TOUCH"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT"
+            ]
+          }
+        },
+        "semanticShape": "TOUCH"
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.single_target",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "ONE"
+            },
+            "cover": "INHERITED",
+            "deliveryFamily": "FOUNDATION_DELIVERY",
+            "lineOfEffect": "INHERITED",
+            "lineOfSight": "INHERITED",
+            "measures": [],
+            "origin": {
+              "default": "FOUNDATION",
+              "modes": [
+                "FOUNDATION"
+              ]
+            },
+            "parameters": [],
+            "placement": "FOUNDATION",
+            "radiusCapable": false,
+            "range": {
+              "model": "FOUNDATION_RANGE"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT"
+            ]
+          }
+        },
+        "semanticShape": "SINGLE_TARGET"
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.multi_target",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "SELECTED",
+              "minimum": 2,
+              "parameter": "targetCount"
+            },
+            "cover": "INHERITED",
+            "deliveryFamily": "FOUNDATION_DELIVERY",
+            "lineOfEffect": "INHERITED",
+            "lineOfSight": "INHERITED",
+            "measures": [],
+            "origin": {
+              "default": "FOUNDATION",
+              "modes": [
+                "FOUNDATION"
+              ]
+            },
+            "parameters": [
+              {
+                "kind": "COUNT",
+                "minimum": 2,
+                "parameter": "targetCount"
+              }
+            ],
+            "placement": "CHOOSE_TARGETS",
+            "radiusCapable": false,
+            "range": {
+              "model": "FOUNDATION_RANGE"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT"
+            ]
+          }
+        },
+        "semanticShape": "MULTI_TARGET"
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.line",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "cover": "INHERITED",
+            "deliveryFamily": "AREA_DELIVERY",
+            "lineOfEffect": "INHERITED",
+            "lineOfSight": "INHERITED",
+            "measures": [
+              {
+                "measure": "LENGTH",
+                "valueStatus": "EFFECT_DEFINED"
+              },
+              {
+                "measure": "WIDTH",
+                "valueStatus": "EFFECT_DEFINED"
+              }
+            ],
+            "origin": {
+              "default": null,
+              "modes": [
+                "PERFORMER",
+                "WEAPON_TIP",
+                "PROJECTILE_PATH",
+                "EMITTED_POINT"
+              ]
+            },
+            "parameters": [
+              {
+                "allowed": [
+                  "PERFORMER",
+                  "WEAPON_TIP",
+                  "PROJECTILE_PATH",
+                  "EMITTED_POINT"
+                ],
+                "kind": "TOKEN",
+                "parameter": "originMode"
+              }
+            ],
+            "placement": "FROM_ORIGIN",
+            "radiusCapable": false,
+            "range": {
+              "model": "FOUNDATION_RANGE"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA"
+            ]
+          }
+        },
+        "semanticShape": "LINE"
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.cone",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "cover": "INHERITED",
+            "deliveryFamily": "AREA_DELIVERY",
+            "lineOfEffect": "INHERITED",
+            "lineOfSight": "INHERITED",
+            "measures": [
+              {
+                "measure": "LENGTH",
+                "valueStatus": "EFFECT_DEFINED"
+              }
+            ],
+            "origin": {
+              "default": null,
+              "modes": [
+                "PERFORMER",
+                "WEAPON_DIRECTION"
+              ]
+            },
+            "parameters": [
+              {
+                "allowed": [
+                  "PERFORMER",
+                  "WEAPON_DIRECTION"
+                ],
+                "kind": "TOKEN",
+                "parameter": "originMode"
+              }
+            ],
+            "placement": "FROM_ORIGIN",
+            "radiusCapable": false,
+            "range": {
+              "model": "FOUNDATION_RANGE"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA"
+            ]
+          }
+        },
+        "semanticShape": "CONE"
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.radius",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "cover": "INHERITED",
+            "deliveryFamily": "AREA_DELIVERY",
+            "lineOfEffect": "INHERITED",
+            "lineOfSight": "INHERITED",
+            "measures": [
+              {
+                "formula": {
+                  "expression": "rank_base * str",
+                  "rounding": "NONE",
+                  "unit": "ft",
+                  "variables": [
+                    {
+                      "source": {
+                        "kind": "SKILL_RANK_TABLE",
+                        "table": "MARTIAL_RANK_BASE"
+                      },
+                      "variable": "rank_base"
+                    },
+                    {
+                      "source": {
+                        "kind": "STAT",
+                        "stat": "STR"
+                      },
+                      "variable": "str"
+                    }
+                  ]
+                },
+                "measure": "RADIUS",
+                "valueStatus": "FORMULA"
+              }
+            ],
+            "origin": {
+              "default": null,
+              "modes": [
+                "THROWN_IMPACT",
+                "RANGED_IMPACT",
+                "PROJECTILE_IMPACT",
+                "PERFORMER"
+              ]
+            },
+            "parameters": [
+              {
+                "allowed": [
+                  "THROWN_IMPACT",
+                  "RANGED_IMPACT",
+                  "PROJECTILE_IMPACT",
+                  "PERFORMER"
+                ],
+                "kind": "TOKEN",
+                "parameter": "originMode"
+              }
+            ],
+            "placement": "CHOOSE_POINT",
+            "radiusCapable": true,
+            "range": {
+              "model": "FOUNDATION_RANGE"
+            },
+            "rankTables": [
+              {
+                "entries": [
+                  {
+                    "rankKey": "TRAINED",
+                    "value": 5
+                  },
+                  {
+                    "rankKey": "EXPERT",
+                    "value": 10
+                  },
+                  {
+                    "rankKey": "MASTER",
+                    "value": 15
+                  }
+                ],
+                "skillKey": "skill.martial",
+                "tableKey": "MARTIAL_RANK_BASE"
+              }
+            ],
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA"
+            ]
+          }
+        },
+        "semanticShape": "RADIUS"
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.chain",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "CHAIN"
+            },
+            "cover": "INHERITED",
+            "deliveryFamily": "CHAIN_DELIVERY",
+            "lineOfEffect": "INHERITED",
+            "lineOfSight": "INHERITED",
+            "measures": [],
+            "origin": {
+              "default": "FOUNDATION",
+              "modes": [
+                "FOUNDATION"
+              ]
+            },
+            "parameters": [],
+            "placement": "CHOOSE_TARGETS",
+            "radiusCapable": false,
+            "range": {
+              "model": "FOUNDATION_RANGE"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT"
+            ]
+          }
+        },
+        "semanticShape": "CHAIN"
+      }
+    },
+    {
+      "canonicalKey": "maneuver.targeting.zone",
+      "definitionKind": "MANEUVER_TARGETING",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "geometry": {},
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "targeting": {
+            "cardinality": {
+              "kind": "AREA"
+            },
+            "cover": "INHERITED",
+            "deliveryFamily": "AREA_DELIVERY",
+            "lineOfEffect": "INHERITED",
+            "lineOfSight": "INHERITED",
+            "measures": [
+              {
+                "measure": "RADIUS",
+                "valueStatus": "EFFECT_DEFINED"
+              }
+            ],
+            "origin": {
+              "default": "EFFECT_DEFINED",
+              "modes": [
+                "EFFECT_DEFINED"
+              ]
+            },
+            "parameters": [],
+            "placement": "EFFECT_DEFINED",
+            "radiusCapable": true,
+            "range": {
+              "model": "EFFECT_DEFINED"
+            },
+            "validTargets": [
+              "CREATURE",
+              "OBJECT",
+              "AREA",
+              "SPACE"
+            ]
+          }
+        },
+        "semanticShape": "ZONE"
+      }
+    },
+    {
+      "canonicalKey": "maneuver.effect.sweep_attack",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "SINGLE_TARGET"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "maneuver.effect.sweep_attack.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 1,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "TARGETING_CONVERSION",
+        "keywords": [],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "additionalTargetsByMartialRank": {
+                      "EXPERT": 2,
+                      "MASTER": 3,
+                      "TRAINED": 1
+                    },
+                    "destination": "maneuver.targeting.multi_target"
+                  },
+                  "kind": "CONVERT_TARGETING"
+                },
+                {
+                  "data": {
+                    "fraction": 1
+                  },
+                  "kind": "FOUNDATION_DAMAGE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "SAVING_THROW"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_MARTIAL_TRAINED",
+                "skillKey": "skill.martial"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "MANEUVER",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "TARGETING_CONVERSION",
+            "formulas": [],
+            "parameters": [],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": {
+              "selectionPolicy": "MARTIAL_CONTROL",
+              "validSaves": [
+                "AGI",
+                "PRO"
+              ]
+            },
+            "targetCategories": [
+              "CREATURE"
+            ],
+            "targetingConversion": {
+              "destination": {
+                "$ref": "maneuver.targeting.multi_target"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.effect.cleave",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "SINGLE_TARGET"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "maneuver.effect.cleave.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 1,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "TARGETING_CONVERSION",
+        "keywords": [],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "adjacentSecondTarget": true,
+                    "destination": "maneuver.targeting.multi_target"
+                  },
+                  "kind": "CONVERT_TARGETING"
+                },
+                {
+                  "data": {
+                    "firstTargetFraction": 1,
+                    "masterSecondTargetFraction": 1,
+                    "secondTargetFraction": 0.5
+                  },
+                  "kind": "FOUNDATION_DAMAGE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "ATTACK_ROLL"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_MARTIAL_TRAINED",
+                "skillKey": "skill.martial"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": "FOUNDATION_ATTACK",
+            "branch": "MANEUVER",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "TARGETING_CONVERSION",
+            "formulas": [],
+            "parameters": [],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": null,
+            "targetCategories": [
+              "CREATURE"
+            ],
+            "targetingConversion": {
+              "destination": {
+                "$ref": "maneuver.targeting.multi_target"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.effect.line_attack_conversion",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "SINGLE_TARGET"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "maneuver.effect.line_attack_conversion.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 2,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "TARGETING_CONVERSION",
+        "keywords": [],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "destination": "maneuver.targeting.line"
+                  },
+                  "kind": "CONVERT_TARGETING"
+                },
+                {
+                  "data": {
+                    "fraction": 1
+                  },
+                  "kind": "FOUNDATION_DAMAGE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "SAVING_THROW"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "EXPERT",
+                "prerequisiteKey": "SKILL_MARTIAL_EXPERT",
+                "skillKey": "skill.martial"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "MANEUVER",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "TARGETING_CONVERSION",
+            "formulas": [
+              {
+                "expression": "5 * str",
+                "formulaKey": "length",
+                "minimum": 5,
+                "rounding": "NONE",
+                "unit": "ft",
+                "variables": [
+                  {
+                    "source": {
+                      "kind": "STAT",
+                      "stat": "STR"
+                    },
+                    "variable": "str"
+                  }
+                ]
+              }
+            ],
+            "parameters": [],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": {
+              "selectionPolicy": "MARTIAL_CONTROL",
+              "validSaves": [
+                "AGI",
+                "PRO",
+                "PER"
+              ]
+            },
+            "targetCategories": [
+              "CREATURE"
+            ],
+            "targetingConversion": {
+              "destination": {
+                "$ref": "maneuver.targeting.line"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.effect.cone_attack_conversion",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "SINGLE_TARGET"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "maneuver.effect.cone_attack_conversion.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 2,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "TARGETING_CONVERSION",
+        "keywords": [],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "destination": "maneuver.targeting.cone"
+                  },
+                  "kind": "CONVERT_TARGETING"
+                },
+                {
+                  "data": {
+                    "fraction": 1
+                  },
+                  "kind": "FOUNDATION_DAMAGE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "SAVING_THROW"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "EXPERT",
+                "prerequisiteKey": "SKILL_MARTIAL_EXPERT",
+                "skillKey": "skill.martial"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "MANEUVER",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "TARGETING_CONVERSION",
+            "formulas": [
+              {
+                "expression": "5 * martial_rank",
+                "formulaKey": "length",
+                "minimum": 5,
+                "rounding": "NONE",
+                "unit": "ft",
+                "variables": [
+                  {
+                    "source": {
+                      "kind": "MARTIAL_RANK_VALUE"
+                    },
+                    "variable": "martial_rank"
+                  }
+                ]
+              }
+            ],
+            "parameters": [],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": {
+              "selectionPolicy": "MARTIAL_CONTROL",
+              "validSaves": [
+                "AGI",
+                "CON",
+                "STR"
+              ]
+            },
+            "targetCategories": [
+              "CREATURE"
+            ],
+            "targetingConversion": {
+              "destination": {
+                "$ref": "maneuver.targeting.cone"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.effect.radius_attack_conversion",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "SINGLE_TARGET"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "maneuver.effect.radius_attack_conversion.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 3,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "TARGETING_CONVERSION",
+        "keywords": [],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "destination": "maneuver.targeting.radius"
+                  },
+                  "kind": "CONVERT_TARGETING"
+                },
+                {
+                  "data": {
+                    "fraction": 1
+                  },
+                  "kind": "FOUNDATION_DAMAGE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "SAVING_THROW"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "EXPERT",
+                "prerequisiteKey": "SKILL_MARTIAL_EXPERT",
+                "skillKey": "skill.martial"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "MANEUVER",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "TARGETING_CONVERSION",
+            "formulas": [],
+            "parameters": [],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": {
+              "selectionPolicy": "MARTIAL_CONTROL",
+              "validSaves": [
+                "AGI",
+                "PRO"
+              ]
+            },
+            "targetCategories": [
+              "CREATURE"
+            ],
+            "targetingConversion": {
+              "destination": {
+                "$ref": "maneuver.targeting.radius"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.effect.chain_attack",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "SINGLE_TARGET"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "maneuver.effect.chain_attack.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 3,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "TARGETING_CONVERSION",
+        "keywords": [],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "additionalTargetsByMartialRank": true,
+                    "destination": "maneuver.targeting.chain"
+                  },
+                  "kind": "CONVERT_TARGETING"
+                },
+                {
+                  "data": {
+                    "eachJumpMultiplier": 0.5
+                  },
+                  "kind": "FOUNDATION_DAMAGE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "SAVING_THROW"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "MASTER",
+                "prerequisiteKey": "SKILL_MARTIAL_MASTER",
+                "skillKey": "skill.martial"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "MANEUVER",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "TARGETING_CONVERSION",
+            "formulas": [],
+            "parameters": [],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": {
+              "selectionPolicy": "MARTIAL_CONTROL",
+              "validSaves": [
+                "AGI",
+                "PRO"
+              ]
+            },
+            "targetCategories": [
+              "CREATURE"
+            ],
+            "targetingConversion": {
+              "destination": {
+                "$ref": "maneuver.targeting.chain"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.effect.zone_carve",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "SINGLE_TARGET"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "maneuver.effect.zone_carve.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 3,
+              "kind": "FIXED"
+            }
+          },
+          {
+            "contributionKey": "maneuver.effect.zone_carve.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 8,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "TARGETING_CONVERSION",
+        "keywords": [],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "destination": "maneuver.targeting.zone"
+                  },
+                  "kind": "CONVERT_TARGETING"
+                },
+                {
+                  "data": {
+                    "fraction": 0.5,
+                    "frequency": "ONCE_PER_ROUND",
+                    "zoneTrigger": "ENTER_OR_START"
+                  },
+                  "kind": "FOUNDATION_DAMAGE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "SAVING_THROW"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "MASTER",
+                "prerequisiteKey": "SKILL_MARTIAL_MASTER",
+                "skillKey": "skill.martial"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "MANEUVER",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "TARGETING_CONVERSION",
+            "formulas": [],
+            "parameters": [],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": {
+              "selectionPolicy": "MARTIAL_CONTROL",
+              "validSaves": [
+                "AGI",
+                "PRO"
+              ]
+            },
+            "targetCategories": [
+              "CREATURE"
+            ],
+            "targetingConversion": {
+              "destination": {
+                "$ref": "maneuver.targeting.zone"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.effect.elemental_damage_conversion",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "CHAIN",
+              "CONE",
+              "LINE",
+              "RADIUS",
+              "SINGLE_TARGET",
+              "TOUCH",
+              "ZONE"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "maneuver.effect.elemental_damage_conversion.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 4,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "DAMAGE",
+        "keywords": [
+          "keyword.elemental_alteration"
+        ],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "damageTypeParameter": "damageType"
+                  },
+                  "kind": "CONVERT_DAMAGE_TYPE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": null,
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_MARTIAL_TRAINED",
+                "skillKey": "skill.martial"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "MANEUVER",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "DAMAGE_CONVERSION",
+            "formulas": [],
+            "parameters": [
+              {
+                "allowed": [
+                  "FIRE",
+                  "ICE",
+                  "LIGHTNING",
+                  "WIND",
+                  "EARTH",
+                  "WATER",
+                  "LIGHT",
+                  "DARK",
+                  "METAL",
+                  "VOID",
+                  "ARCANE"
+                ],
+                "default": "ARCANE",
+                "kind": "TOKEN",
+                "parameter": "damageType"
+              }
+            ],
+            "resolutionPolicy": "INHERIT_ABILITY",
+            "restrictions": [
+              "DAMAGE_TYPE_ONLY_NO_IMPLICIT_CONDITION"
+            ],
+            "saveProfile": null,
+            "targetCategories": [
+              "CREATURE",
+              "OBJECT"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.duration.instant",
+      "definitionKind": "MANEUVER_DURATION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "durationConcept": "INSTANT",
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "duration": {
+            "availability": "EXECUTABLE",
+            "branch": "MANEUVER",
+            "costStatus": "UNLISTED",
+            "deferralKey": null,
+            "futureRuntime": {
+              "concentration": "NONE",
+              "manaLock": false,
+              "persists": false,
+              "sustain": false
+            },
+            "requirements": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "fixture.trait.maneuver",
+      "definitionKind": "MANEUVER_TRAIT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "trait.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 4,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "keywords": [
+          "keyword.direct_damage"
+        ],
+        "parameters": {},
+        "rules": {
+          "construction": {
+            "affinityAccess": [],
+            "prerequisites": [],
+            "stacking": {
+              "stackable": false
+            }
+          },
+          "trait": {
+            "affinity": null,
+            "description": "Changes only an existing Damage Effect's type; adds no damage or Condition.",
+            "effectFamilies": [
+              "DAMAGE"
+            ],
+            "family": "MANEUVER",
+            "foundationCategories": [
+              "MELEE"
+            ],
+            "incompatibleTraits": [],
+            "modifications": [
+              {
+                "kind": "DAMAGE_TYPE",
+                "parameter": "damageType"
+              }
+            ],
+            "name": "Reference conversion",
+            "parameters": [
+              {
+                "allowed": [
+                  "FIRE",
+                  "ICE"
+                ],
+                "default": "FIRE",
+                "kind": "TOKEN",
+                "parameter": "damageType"
+              }
+            ]
+          }
+        },
+        "scope": "EFFECT_SPECIFIC",
+        "traitFamily": "DAMAGE_CONVERSION"
+      }
+    },
+    {
+      "canonicalKey": "maneuver.duration.until_next_turn",
+      "definitionKind": "MANEUVER_DURATION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "durationConcept": "UNTIL_NEXT_TURN",
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "duration": {
+            "availability": "EXECUTABLE",
+            "branch": "MANEUVER",
+            "costStatus": "UNLISTED",
+            "deferralKey": null,
+            "futureRuntime": {
+              "concentration": "NONE",
+              "manaLock": false,
+              "persists": true,
+              "sustain": false
+            },
+            "requirements": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.duration.rounds",
+      "definitionKind": "MANEUVER_DURATION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "durationConcept": "ROUNDS",
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "duration": {
+            "availability": "EXECUTABLE",
+            "branch": "MANEUVER",
+            "costStatus": "UNLISTED",
+            "deferralKey": null,
+            "futureRuntime": {
+              "concentration": "NONE",
+              "manaLock": false,
+              "persists": true,
+              "sustain": false
+            },
+            "requirements": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.condition.stationary",
+      "definitionKind": "MANEUVER_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "stationary.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 1,
+              "kind": "FIXED",
+              "modifier": "AP_REDUCTION"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "STATIONARY"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "EXECUTABLE",
+            "branch": "MANEUVER",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": null,
+            "dependencies": [],
+            "incompatibleRestrictions": [
+              "MUST_MOVE_FIRST"
+            ],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.stationary",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "STATIONARY"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "maneuver.condition.must_move_first",
+      "definitionKind": "MANEUVER_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "must_move_first.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 1,
+              "kind": "FIXED",
+              "modifier": "AP_REDUCTION"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "MUST_MOVE_FIRST"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "EXECUTABLE",
+            "branch": "MANEUVER",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": null,
+            "dependencies": [],
+            "incompatibleRestrictions": [
+              "STATIONARY",
+              "CANNOT_MOVE_THIS_TURN"
+            ],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 10,
+                  "factKey": "runtime.feetMovedBefore",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "MOVE_TEN_FEET_FIRST"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "maneuver.condition.cannot_move_this_turn",
+      "definitionKind": "MANEUVER_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "CANNOT_MOVE_THIS_TURN"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "DEFERRED",
+            "branch": "MANEUVER",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": "M5-SC-043",
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.cannot_move_this_turn",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "CANNOT_MOVE_THIS_TURN"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "maneuver.condition.no_counter_action",
+      "definitionKind": "MANEUVER_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "no_counter_action.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 1,
+              "kind": "FIXED",
+              "modifier": "AP_REDUCTION",
+              "option": "AP"
+            }
+          },
+          {
+            "contributionKey": "no_counter_action.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 3,
+              "kind": "FIXED",
+              "modifier": "MP_REDUCTION",
+              "option": "MP"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "NO_COUNTER_ACTION"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "EXECUTABLE",
+            "branch": "MANEUVER",
+            "choice": {
+              "kind": "CHOOSE_ONE",
+              "parameter": "benefit"
+            },
+            "consumesSlot": true,
+            "deferralKey": null,
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [
+              {
+                "allowed": [
+                  "AP",
+                  "MP"
+                ],
+                "default": null,
+                "kind": "TOKEN",
+                "parameter": "benefit"
+              }
+            ],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.no_counter_action",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "NO_COUNTER_ACTION"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "maneuver.condition.cannot_crit",
+      "definitionKind": "MANEUVER_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "cannot_crit.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 1,
+              "kind": "FIXED",
+              "modifier": "AP_REDUCTION",
+              "option": "AP"
+            }
+          },
+          {
+            "contributionKey": "cannot_crit.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 3,
+              "kind": "FIXED",
+              "modifier": "MP_REDUCTION",
+              "option": "MP"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "CANNOT_CRIT"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "EXECUTABLE",
+            "branch": "MANEUVER",
+            "choice": {
+              "kind": "CHOOSE_ONE",
+              "parameter": "benefit"
+            },
+            "consumesSlot": true,
+            "deferralKey": null,
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [
+              {
+                "allowed": [
+                  "AP",
+                  "MP"
+                ],
+                "default": null,
+                "kind": "TOKEN",
+                "parameter": "benefit"
+              }
+            ],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.cannot_crit",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "CANNOT_CRIT"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "maneuver.condition.target_flanked",
+      "definitionKind": "MANEUVER_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "target_flanked.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 1,
+              "kind": "FIXED",
+              "modifier": "AP_REDUCTION"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "TARGET_FLANKED"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "factKey": "mechanic.targets",
+              "kind": "SET_CONTAINS",
+              "member": "CREATURE"
+            },
+            "availability": "EXECUTABLE",
+            "branch": "MANEUVER",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": null,
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.target_flanked",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "TARGET_FLANKED"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "maneuver.condition.target_unaware",
+      "definitionKind": "MANEUVER_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "target_unaware.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 2,
+              "kind": "FIXED",
+              "modifier": "AP_REDUCTION"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "TARGET_UNAWARE"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "factKey": "mechanic.targets",
+              "kind": "SET_CONTAINS",
+              "member": "CREATURE"
+            },
+            "availability": "EXECUTABLE",
+            "branch": "MANEUVER",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": null,
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.target_unaware",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "TARGET_UNAWARE"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "maneuver.condition.target_bloodied",
+      "definitionKind": "MANEUVER_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "target_bloodied.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 1,
+              "kind": "FIXED",
+              "modifier": "AP_REDUCTION"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "TARGET_BLOODIED"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "factKey": "mechanic.targets",
+              "kind": "SET_CONTAINS",
+              "member": "CREATURE"
+            },
+            "availability": "EXECUTABLE",
+            "branch": "MANEUVER",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": null,
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.target_bloodied",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "TARGET_BLOODIED"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "maneuver.condition.weapon_lock",
+      "definitionKind": "MANEUVER_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "WEAPON_LOCK"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "DEFERRED",
+            "branch": "MANEUVER",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": "M5-SC-044",
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.weapon_lock",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "WEAPON_LOCK"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "maneuver.condition.environmental_lock",
+      "definitionKind": "MANEUVER_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "ENVIRONMENTAL_LOCK"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "DEFERRED",
+            "branch": "MANEUVER",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": "M5-SC-044",
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.environmental_lock",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "ENVIRONMENTAL_LOCK"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "maneuver.condition.once_per_mission",
+      "definitionKind": "MANEUVER_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "ONCE_PER_MISSION"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "DEFERRED",
+            "branch": "MANEUVER",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": true,
+            "deferralKey": "M5-SC-044",
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [],
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.once_per_mission",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": ">="
+                },
+                "requirementKey": "ONCE_PER_MISSION"
+              }
+            ],
+            "slotExemption": null
+          },
+          "construction": {
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "fixture.wo11.action.move",
+      "definitionKind": "MANEUVER_FOUNDATION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "foundation.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 1,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "foundationKind": "ACTION",
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "action": {
+            "category": "MOVEMENT",
+            "targeting": {
+              "componentKey": "targeting",
+              "definition": {
+                "$ref": "maneuver.targeting.self"
+              },
+              "parameters": {}
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "fixture.wo11.action.block",
+      "definitionKind": "MANEUVER_FOUNDATION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "foundation.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 2,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "foundationKind": "ACTION",
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "action": {
+            "category": "DEFENSE",
+            "targeting": {
+              "componentKey": "targeting",
+              "definition": {
+                "$ref": "maneuver.targeting.self"
+              },
+              "parameters": {}
+            }
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "fixture.wo11.effect.push",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "CHAIN",
+              "CONE",
+              "LINE",
+              "RADIUS",
+              "SINGLE_TARGET",
+              "TOUCH",
+              "ZONE"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.push.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 1,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "DAMAGE",
+        "keywords": [],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "damageTypeParameter": "damageType"
+                  },
+                  "kind": "CONVERT_DAMAGE_TYPE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": null,
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_MARTIAL_TRAINED",
+                "skillKey": "skill.martial"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "MANEUVER",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "DAMAGE_CONVERSION",
+            "formulas": [],
+            "parameters": [
+              {
+                "allowed": [
+                  "FIRE",
+                  "ICE",
+                  "LIGHTNING",
+                  "WIND",
+                  "EARTH",
+                  "WATER",
+                  "LIGHT",
+                  "DARK",
+                  "METAL",
+                  "VOID",
+                  "ARCANE"
+                ],
+                "default": "ARCANE",
+                "kind": "TOKEN",
+                "parameter": "damageType"
+              }
+            ],
+            "resolutionPolicy": "INHERIT_ABILITY",
+            "restrictions": [
+              "DAMAGE_TYPE_ONLY_NO_IMPLICIT_CONDITION"
+            ],
+            "saveProfile": null,
+            "targetCategories": [
+              "CREATURE",
+              "OBJECT"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "fixture.wo11.effect.knockback",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "CHAIN",
+              "CONE",
+              "LINE",
+              "RADIUS",
+              "SINGLE_TARGET",
+              "TOUCH",
+              "ZONE"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.knockback.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 2,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "DAMAGE",
+        "keywords": [],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "damageTypeParameter": "damageType"
+                  },
+                  "kind": "CONVERT_DAMAGE_TYPE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": null,
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_MARTIAL_TRAINED",
+                "skillKey": "skill.martial"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "MANEUVER",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "DAMAGE_CONVERSION",
+            "formulas": [],
+            "parameters": [
+              {
+                "allowed": [
+                  "FIRE",
+                  "ICE",
+                  "LIGHTNING",
+                  "WIND",
+                  "EARTH",
+                  "WATER",
+                  "LIGHT",
+                  "DARK",
+                  "METAL",
+                  "VOID",
+                  "ARCANE"
+                ],
+                "default": "ARCANE",
+                "kind": "TOKEN",
+                "parameter": "damageType"
+              }
+            ],
+            "resolutionPolicy": "INHERIT_ABILITY",
+            "restrictions": [
+              "DAMAGE_TYPE_ONLY_NO_IMPLICIT_CONDITION"
+            ],
+            "saveProfile": null,
+            "targetCategories": [
+              "CREATURE",
+              "OBJECT"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "fixture.wo11.effect.armor_break",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "CHAIN",
+              "CONE",
+              "LINE",
+              "RADIUS",
+              "SINGLE_TARGET",
+              "TOUCH",
+              "ZONE"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.armor_break.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 2,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "DAMAGE",
+        "keywords": [],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "damageTypeParameter": "damageType"
+                  },
+                  "kind": "CONVERT_DAMAGE_TYPE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": null,
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_MARTIAL_TRAINED",
+                "skillKey": "skill.martial"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "MANEUVER",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "DAMAGE_CONVERSION",
+            "formulas": [],
+            "parameters": [
+              {
+                "allowed": [
+                  "FIRE",
+                  "ICE",
+                  "LIGHTNING",
+                  "WIND",
+                  "EARTH",
+                  "WATER",
+                  "LIGHT",
+                  "DARK",
+                  "METAL",
+                  "VOID",
+                  "ARCANE"
+                ],
+                "default": "ARCANE",
+                "kind": "TOKEN",
+                "parameter": "damageType"
+              }
+            ],
+            "resolutionPolicy": "INHERIT_ABILITY",
+            "restrictions": [
+              "DAMAGE_TYPE_ONLY_NO_IMPLICIT_CONDITION"
+            ],
+            "saveProfile": null,
+            "targetCategories": [
+              "CREATURE",
+              "OBJECT"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "fixture.wo11.effect.mana_wrapped",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "CHAIN",
+              "CONE",
+              "LINE",
+              "RADIUS",
+              "SINGLE_TARGET",
+              "TOUCH",
+              "ZONE"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.mana_wrapped.ap",
+            "currency": "AP",
+            "data": {
+              "amounts": {
+                "AP": 1,
+                "MP": 0
+              },
+              "kind": "PER_SELECTION",
+              "parameter": "costOption"
+            }
+          },
+          {
+            "contributionKey": "effect.mana_wrapped.mp",
+            "currency": "MP",
+            "data": {
+              "amounts": {
+                "AP": 0,
+                "MP": 4
+              },
+              "kind": "PER_SELECTION",
+              "parameter": "costOption"
+            }
+          }
+        ],
+        "effectFamily": "DAMAGE",
+        "keywords": [],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "damageTypeParameter": "damageType"
+                  },
+                  "kind": "CONVERT_DAMAGE_TYPE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": null,
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_MARTIAL_TRAINED",
+                "skillKey": "skill.martial"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "MANEUVER",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "DAMAGE_CONVERSION",
+            "formulas": [],
+            "parameters": [
+              {
+                "allowed": [
+                  "FIRE",
+                  "ICE",
+                  "LIGHTNING",
+                  "WIND",
+                  "EARTH",
+                  "WATER",
+                  "LIGHT",
+                  "DARK",
+                  "METAL",
+                  "VOID",
+                  "ARCANE"
+                ],
+                "default": "ARCANE",
+                "kind": "TOKEN",
+                "parameter": "damageType"
+              },
+              {
+                "allowed": [
+                  "AP",
+                  "MP"
+                ],
+                "default": null,
+                "kind": "TOKEN",
+                "parameter": "costOption"
+              }
+            ],
+            "resolutionPolicy": "INHERIT_ABILITY",
+            "restrictions": [
+              "DAMAGE_TYPE_ONLY_NO_IMPLICIT_CONDITION"
+            ],
+            "saveProfile": null,
+            "targetCategories": [
+              "CREATURE",
+              "OBJECT"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "fixture.wo11.effect.surge",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "CHAIN",
+              "CONE",
+              "LINE",
+              "RADIUS",
+              "SINGLE_TARGET",
+              "TOUCH",
+              "ZONE"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.surge.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 2,
+              "kind": "FIXED"
+            }
+          },
+          {
+            "contributionKey": "effect.surge.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 8,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "DAMAGE",
+        "keywords": [],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "damageTypeParameter": "damageType"
+                  },
+                  "kind": "CONVERT_DAMAGE_TYPE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": null,
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_MARTIAL_TRAINED",
+                "skillKey": "skill.martial"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "MANEUVER",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "DAMAGE_CONVERSION",
+            "formulas": [],
+            "parameters": [
+              {
+                "allowed": [
+                  "FIRE",
+                  "ICE",
+                  "LIGHTNING",
+                  "WIND",
+                  "EARTH",
+                  "WATER",
+                  "LIGHT",
+                  "DARK",
+                  "METAL",
+                  "VOID",
+                  "ARCANE"
+                ],
+                "default": "ARCANE",
+                "kind": "TOKEN",
+                "parameter": "damageType"
+              }
+            ],
+            "resolutionPolicy": "INHERIT_ABILITY",
+            "restrictions": [
+              "DAMAGE_TYPE_ONLY_NO_IMPLICIT_CONDITION"
+            ],
+            "saveProfile": null,
+            "targetCategories": [
+              "CREATURE",
+              "OBJECT"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "fixture.wo11.effect.elemental",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "CHAIN",
+              "CONE",
+              "LINE",
+              "RADIUS",
+              "SINGLE_TARGET",
+              "TOUCH",
+              "ZONE"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.elemental.mp",
+            "currency": "MP",
+            "data": {
+              "affinityReduction": {
+                "affinities": [
+                  {
+                    "$ref": "affinity.transmutation"
+                  },
+                  {
+                    "$ref": "affinity.evocation"
+                  }
+                ],
+                "byRank": {
+                  "EXPERT": 2,
+                  "MASTER": 3,
+                  "NONE": 0,
+                  "TRAINED": 1
+                },
+                "minimum": 2
+              },
+              "amount": 5,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "DAMAGE",
+        "keywords": [],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "damageTypeParameter": "damageType"
+                  },
+                  "kind": "CONVERT_DAMAGE_TYPE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": null,
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_MARTIAL_TRAINED",
+                "skillKey": "skill.martial"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "MANEUVER",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "DAMAGE_CONVERSION",
+            "formulas": [],
+            "parameters": [
+              {
+                "allowed": [
+                  "FIRE",
+                  "ICE",
+                  "LIGHTNING",
+                  "WIND",
+                  "EARTH",
+                  "WATER",
+                  "LIGHT",
+                  "DARK",
+                  "METAL",
+                  "VOID",
+                  "ARCANE"
+                ],
+                "default": "ARCANE",
+                "kind": "TOKEN",
+                "parameter": "damageType"
+              }
+            ],
+            "resolutionPolicy": "INHERIT_ABILITY",
+            "restrictions": [
+              "DAMAGE_TYPE_ONLY_NO_IMPLICIT_CONDITION"
+            ],
+            "saveProfile": null,
+            "targetCategories": [
+              "CREATURE",
+              "OBJECT"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "fixture.wo11.effect.guard",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "SELF"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "effect.guard.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 1,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "BUFF",
+        "keywords": [],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "function": "GUARD"
+                  },
+                  "kind": "UTILITY"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": {
+          "data": {},
+          "mode": "AUTOMATIC"
+        },
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_MARTIAL_TRAINED",
+                "skillKey": "skill.martial"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "MANEUVER",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": null,
+            "formulas": [],
+            "parameters": [],
+            "resolutionPolicy": "OWN",
+            "restrictions": [],
+            "saveProfile": null,
+            "targetCategories": [
+              "SELF"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "test.wo8.skill.performance",
+      "definitionKind": "SKILL",
+      "schemaVersion": 1,
+      "payload": {
+        "ladderKey": "SKILL",
+        "source": {
+          "conflicts": [],
+          "locators": [
+            "s29"
+          ]
+        }
+      }
+    },
+    {
+      "canonicalKey": "maneuver.condition.performance",
+      "definitionKind": "MANEUVER_CONDITION",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "performance.mp",
+            "currency": "MP",
+            "data": {
+              "amounts": {
+                "EXPERT": 4,
+                "MASTER": 6,
+                "TRAINED": 2
+              },
+              "kind": "PER_SELECTION",
+              "modifier": "MP_REDUCTION",
+              "parameter": "performanceRank"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "restriction": {
+          "data": {},
+          "restrictionKey": "PERFORMANCE"
+        },
+        "rules": {
+          "condition": {
+            "applicability": {
+              "expected": 1,
+              "factKey": "mechanic.present",
+              "kind": "NUMERIC_COMPARE",
+              "operator": "=="
+            },
+            "availability": "EXECUTABLE",
+            "branch": "MANEUVER",
+            "choice": {
+              "kind": "ALL"
+            },
+            "consumesSlot": false,
+            "deferralKey": null,
+            "dependencies": [],
+            "incompatibleRestrictions": [],
+            "parameters": [
+              {
+                "allowed": [
+                  "TRAINED",
+                  "EXPERT",
+                  "MASTER"
+                ],
+                "default": null,
+                "kind": "TOKEN",
+                "parameter": "performanceRank"
+              }
+            ],
+            "performance": {
+              "preparationApByRank": {
+                "EXPERT": 1,
+                "MASTER": 0,
+                "TRAINED": 1
+              },
+              "rankParameter": "performanceRank",
+              "skill": {
+                "$ref": "test.wo8.skill.performance"
+              },
+              "version": "M6-WO8-A"
+            },
+            "runtimeRequirements": [
+              {
+                "parameters": [],
+                "references": [
+                  {
+                    "$ref": "test.wo8.skill.performance"
+                  }
+                ],
+                "requirement": {
+                  "expected": 1,
+                  "factKey": "runtime.performanceEstablishedBeforeActivation",
+                  "kind": "NUMERIC_COMPARE",
+                  "operator": "=="
+                },
+                "requirementKey": "PERFORMANCE_ESTABLISHED"
+              }
+            ],
+            "slotExemption": "PERFORMANCE_OBLIGATORY"
+          },
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "PERFORMANCE_TRAINED",
+                "skillKey": "test.wo8.skill.performance"
+              }
+            ],
+            "stacking": {
+              "stackable": false
+            }
+          }
+        },
+        "tradeoff": {}
+      }
+    },
+    {
+      "canonicalKey": "test.wo8.trait.block_addition",
+      "definitionKind": "MANEUVER_TRAIT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "block_addition.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 4,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "construction": {
+            "prerequisites": [],
+            "stacking": {
+              "stackable": false
+            }
+          },
+          "trait": {
+            "affinity": null,
+            "description": "Test-only, explicitly priced Action-scoped addition",
+            "effectFamilies": [],
+            "family": "MANEUVER",
+            "foundationCategories": [
+              "DEFENSE"
+            ],
+            "incompatibleTraits": [],
+            "modifications": [
+              {
+                "currency": "AP",
+                "kind": "COST",
+                "operation": "ADD",
+                "parameter": "ap"
+              }
+            ],
+            "name": "Block addition fixture",
+            "parameters": [
+              {
+                "default": 1,
+                "increment": 1,
+                "kind": "COUNT",
+                "maximum": {
+                  "kind": "FIXED",
+                  "value": 1
+                },
+                "minimum": 1,
+                "parameter": "ap"
+              }
+            ]
+          }
+        },
+        "scope": "ACTION_SPECIFIC",
+        "traitFamily": "COST_MODIFICATION"
+      }
+    },
+    {
+      "canonicalKey": "test.wo8.effect.enhancement",
+      "definitionKind": "MANEUVER_EFFECT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [
+          {
+            "allow": [
+              "CHAIN",
+              "CONE",
+              "LINE",
+              "RADIUS",
+              "SINGLE_TARGET",
+              "TOUCH",
+              "ZONE"
+            ],
+            "relation": "TARGETING"
+          }
+        ],
+        "costContributions": [
+          {
+            "contributionKey": "enhancement.ap",
+            "currency": "AP",
+            "data": {
+              "amount": 1,
+              "kind": "FIXED"
+            }
+          },
+          {
+            "contributionKey": "enhancement.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 5,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "effectFamily": "DAMAGE",
+        "keywords": [],
+        "outcomes": [
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {
+                    "damageTypeParameter": "damageType"
+                  },
+                  "kind": "CONVERT_DAMAGE_TYPE"
+                }
+              ]
+            },
+            "outcomeKey": "SUCCESS"
+          },
+          {
+            "data": {
+              "operations": [
+                {
+                  "data": {},
+                  "kind": "NO_EFFECT"
+                }
+              ]
+            },
+            "outcomeKey": "FAILURE"
+          }
+        ],
+        "parameters": {},
+        "resolution": null,
+        "rules": {
+          "construction": {
+            "prerequisites": [
+              {
+                "kind": "SKILL_RANK_AT_LEAST",
+                "minimumRank": "TRAINED",
+                "prerequisiteKey": "SKILL_MARTIAL_TRAINED",
+                "skillKey": "skill.martial"
+              }
+            ]
+          },
+          "effect": {
+            "attackType": null,
+            "branch": "MANEUVER",
+            "duration": {
+              "allowed": [
+                "INSTANT"
+              ],
+              "default": "INSTANT",
+              "manaLockEligible": false,
+              "sustainEligible": false
+            },
+            "effectSubfamily": "DAMAGE_CONVERSION",
+            "formulas": [],
+            "parameters": [
+              {
+                "allowed": [
+                  "FIRE",
+                  "ICE",
+                  "LIGHTNING",
+                  "WIND",
+                  "EARTH",
+                  "WATER",
+                  "LIGHT",
+                  "DARK",
+                  "METAL",
+                  "VOID",
+                  "ARCANE"
+                ],
+                "default": "ARCANE",
+                "kind": "TOKEN",
+                "parameter": "damageType"
+              }
+            ],
+            "resolutionPolicy": "INHERIT_ABILITY",
+            "restrictions": [
+              "DAMAGE_TYPE_ONLY_NO_IMPLICIT_CONDITION"
+            ],
+            "saveProfile": null,
+            "targetCategories": [
+              "CREATURE",
+              "OBJECT"
+            ],
+            "targetingConversion": null
+          }
+        }
+      }
+    },
+    {
+      "canonicalKey": "test.wo8.trait.exact_range",
+      "definitionKind": "MANEUVER_TRAIT",
+      "schemaVersion": 1,
+      "payload": {
+        "compatibility": [],
+        "costContributions": [
+          {
+            "contributionKey": "exact_range.mp",
+            "currency": "MP",
+            "data": {
+              "amount": 2,
+              "kind": "FIXED"
+            }
+          }
+        ],
+        "keywords": [],
+        "parameters": {},
+        "rules": {
+          "construction": {
+            "prerequisites": [],
+            "stacking": {
+              "stackable": false
+            }
+          },
+          "trait": {
+            "affinity": null,
+            "description": "Test-only scoped range modification",
+            "effectFamilies": [],
+            "family": "MANEUVER",
+            "foundationCategories": [
+              "MELEE"
+            ],
+            "incompatibleTraits": [],
+            "modifications": [
+              {
+                "kind": "TARGETING_MEASURE",
+                "measure": "RANGE",
+                "operation": "ADD",
+                "parameter": "feet"
+              }
+            ],
+            "name": "Exact range fixture",
+            "parameters": [
+              {
+                "default": 5,
+                "increment": 5,
+                "kind": "COUNT",
+                "maximum": {
+                  "kind": "FIXED",
+                  "value": 5
+                },
+                "minimum": 5,
+                "parameter": "feet"
+              }
+            ]
+          }
+        },
+        "scope": "TARGETING",
+        "traitFamily": "TARGETING_MODIFICATION"
+      }
+    }
+  ]
+}

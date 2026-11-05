@@ -204,7 +204,7 @@ describe("M6-WO5 gate — Studio presents, never decides (§17–§45, §77–§
       expect(src, f).not.toMatch(/from "(@prowess\/(db|game|rules)|@prisma\/client)[^"]*"/);
       if (!f.endsWith("_lib/character-client.ts")) expect(strip(src), f).not.toMatch(/\bfetch\(/);
     }
-    expect(SHEET_UI.map((f) => path.basename(f)).sort()).toEqual(["CharacterSheet.tsx", "PortraitFrame.tsx", "SheetIcons.tsx", "SheetPanels.tsx", "SpellRows.tsx", "WeaponPanels.tsx", "portrait-framing.ts"]); // WeaponPanels: M6-WO6; SpellRows: M6-WO7
+    expect(SHEET_UI.map((f) => path.basename(f)).sort()).toEqual(["CharacterSheet.tsx", "ManeuverRows.tsx", "PortraitFrame.tsx", "SheetIcons.tsx", "SheetPanels.tsx", "SpellRows.tsx", "WeaponPanels.tsx", "portrait-framing.ts"]); // WeaponPanels: M6-WO6; SpellRows: M6-WO7
   });
 
   it("no mechanical arithmetic or formula text in the sheet: every number is the server's, formatted only", () => {
@@ -231,7 +231,10 @@ describe("M6-WO5 gate — Studio presents, never decides (§17–§45, §77–§
     expect(all).not.toMatch(/equipItem|addWeapon|createSpell|createManeuver|abilityCard|turnOrder|initiativeTracker/i);
     // Character Signature Spell routes arrived with M6-WO7 (registered in m6-api-routes.json; pinned by m6-wo7-static).
     const wo7Routes = (JSON.parse(read("docs/architecture/m6-api-routes.json")) as Record<string, unknown>)["M6-WO7"] as string[];
-    expect(walk("apps/studio/app/api/characters").filter((f) => /equip|inventor|abilit|spell|maneuver|encounter/i.test(f) && !wo7Routes.includes(f))).toEqual([]);
+    // M6-WO8 adds exactly the registered Maneuver API routes, pinned individually by its gate. This does not add
+    // equipment execution, encounters, Ability Cards or any new Sheet-side mechanical/presentation ownership.
+    const wo8Routes = (JSON.parse(read("docs/architecture/m6-api-routes.json")) as Record<string, unknown>)["M6-WO8"] as string[];
+    expect(walk("apps/studio/app/api/characters").filter((f) => /equip|inventor|abilit|spell|maneuver|encounter/i.test(f) && !wo7Routes.includes(f) && !wo8Routes.includes(f))).toEqual([]);
   });
 
   it("the Sheet is the default Character view; the WO4 advancement views stay one tab away", () => {

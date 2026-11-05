@@ -1,3 +1,4 @@
+import { signatureManeuverRoster, type SignatureManeuverEntry } from "./signature-maneuver-service.js";
 import { CHARACTER_ERROR_CODES } from "@prowess/model";
 import {
   buildSignatureSpellCatalog,
@@ -6,20 +7,14 @@ import {
   readSignatureSpellDraft,
   signatureSpellComponentRefs,
   summarizeSignatureSpell,
-  type CharacterMechanicalProfile,
   type CharacterSpellSubject,
-  type ProwessDefinitionBundle,
   type ProwessDefinitionRef,
   type SignatureSpellCatalog,
   type SignatureSpellDraft,
   type SignatureSpellState,
   type SignatureSpellSummary,
 } from "@prowess/game";
-import type { RulesetContext } from "@prowess/rules";
-import { prisma } from "../client.js";
 import { isUuid } from "../ruleset-release/repository.js";
-import { loadCompleted, requireProfile } from "./advancement-service.js";
-import { profileOf } from "./progression.js";
 import { fail, namesOf, releaseSummary, type CharacterReleaseSummary } from "./service.js";
 import {
   finalizeSignatureSpell,
@@ -46,40 +41,9 @@ import {
  * canon: no Entity, EntityVersion, ChangeSet or Release is created or changed (§6–§7).
  */
 
-export interface SpellContext {
-  readonly c: Awaited<ReturnType<typeof loadCompleted>>["c"];
-  readonly bundle: ProwessDefinitionBundle;
-  readonly ruleset: RulesetContext;
-  readonly profile: CharacterMechanicalProfile;
-  readonly keywords: readonly { readonly keywordId: string; readonly canonicalKey: string; readonly categoryId: string | null }[];
-}
-
-/**
- * The exact M1 Keyword references for every Keyword the Release's Definitions author (component Keywords and Affinity
- * Strength / Weakness lists). A Keyword the database does not define is simply absent: M5 then fails closed.
- */
-async function keywordCatalogFor(bundle: ProwessDefinitionBundle): Promise<SpellContext["keywords"]> {
-  const keys = new Set<string>();
-  const collect = (v: unknown): void => {
-    if (Array.isArray(v)) for (const x of v) collect(x);
-    else if (v !== null && typeof v === "object")
-      for (const [k, x] of Object.entries(v)) {
-        if ((k === "keywords" || k === "matchAny") && Array.isArray(x)) {
-          for (const y of x) if (typeof y === "string") keys.add(y);
-        } else collect(x);
-      }
-  };
-  for (const d of bundle.definitions) collect(d.payload);
-  if (keys.size === 0) return [];
-  const rows = await prisma.keywordDefinition.findMany({ where: { canonicalKey: { in: [...keys] } }, select: { id: true, canonicalKey: true, categoryId: true }, orderBy: { canonicalKey: "asc" } });
-  return rows.map((r) => ({ keywordId: r.id, canonicalKey: r.canonicalKey, categoryId: r.categoryId }));
-}
-
-export async function loadSpellContext(characterId: string): Promise<SpellContext> {
-  const { c, bundle, ruleset, progression } = await loadCompleted(characterId);
-  const profile = requireProfile(profileOf(bundle, ruleset, progression));
-  return { c, bundle, ruleset, profile, keywords: await keywordCatalogFor(bundle) };
-}
+export { loadSignatureContext as loadSpellContext } from "./signature-context.js";
+import { loadSignatureContext as loadSpellContext, type SignatureContext as SpellContext } from "./signature-context.js";
+export type { SignatureContext as SpellContext } from "./signature-context.js";
 
 const subjectOf = (ctx: SpellContext, ability: StoredSignatureAbility | null, revisionNumber: number | null): CharacterSpellSubject => ({ kind: "CHARACTER_SIGNATURE_SPELL", characterId: ctx.c.id, signatureAbilityId: ability?.id ?? null, revisionNumber });
 const activeCount = (all: readonly StoredSignatureAbility[], except: string | null) => all.filter((a) => a.status === "ACTIVE" && a.id !== except).length;
@@ -124,6 +88,7 @@ export interface CharacterAbilitiesView {
   /** Signature capacity (the M5 / WO2 statistic on the profile) and the finalized Abilities using it (§15–§18). */
   readonly signature: { readonly capacity: number | null; readonly used: number };
   readonly spells: readonly SignatureSpellEntry[];
+  readonly maneuvers: readonly SignatureManeuverEntry[];
   readonly names: Readonly<Record<string, string>>;
 }
 
@@ -134,12 +99,13 @@ async function namesFor(ctx: SpellContext, drafts: readonly (SignatureSpellDraft
 export async function getCharacterAbilities(characterId: string): Promise<CharacterAbilitiesView> {
   const ctx = await loadSpellContext(characterId);
   const all = await selectSignatureAbilities(ctx.c.id);
-  const spells = all.map((a) => entryOf(ctx, a, all));
+  const spells = all.filter(a => a.abilityKind === "SPELL").map((a) => entryOf(ctx, a, all));
   return {
     character: { id: ctx.c.id, name: ctx.c.name, level: ctx.c.level, lockVersion: ctx.c.lockVersion },
     release: await releaseSummary(ctx.c.rulesetReleaseId),
     signature: { capacity: ctx.profile.signatureCapacity, used: activeCount(all, null) },
     spells,
+    maneuvers: await signatureManeuverRoster(ctx.c.id, all),
     names: await namesFor(ctx, spells.flatMap((s) => [s.current?.draft ?? null, s.draft?.draft ?? null])),
   };
 }
@@ -166,7 +132,7 @@ export interface SheetSignatureSpell {
  */
 export async function signatureSpellsForSheet(characterId: string): Promise<{ readonly spells: readonly SheetSignatureSpell[]; readonly refs: readonly ProwessDefinitionRef[] }> {
   const all = await selectSignatureAbilities(characterId);
-  const active = all.filter((a) => a.status === "ACTIVE" && a.currentRevisionId !== null);
+  const active = all.filter((a) => a.abilityKind === "SPELL" && a.status === "ACTIVE" && a.currentRevisionId !== null);
   if (active.length === 0) return { spells: [], refs: [] };
   const ctx = await loadSpellContext(characterId);
   const spells: SheetSignatureSpell[] = [];
@@ -195,7 +161,7 @@ export async function signatureSpellsForSheet(characterId: string): Promise<{ re
   return { spells, refs };
 }
 
-export interface SignatureSpellDetailView extends Omit<CharacterAbilitiesView, "spells"> {
+export interface SignatureSpellDetailView extends Omit<CharacterAbilitiesView, "spells" | "maneuvers"> {
   readonly spell: SignatureSpellEntry;
   /** Every finalized revision, oldest first, each re-evaluated against its own pinned Release (§133). */
   readonly history: readonly { readonly revisionId: string; readonly revisionNumber: number; readonly createdAt: Date; readonly characterReleaseId: string; readonly current: boolean; readonly draft: SignatureSpellDraft | null; readonly evaluation: SignatureSpellSummary | null }[];
@@ -204,7 +170,7 @@ export interface SignatureSpellDetailView extends Omit<CharacterAbilitiesView, "
 async function requireAbility(ctx: SpellContext, spellId: string): Promise<{ ability: StoredSignatureAbility; all: StoredSignatureAbility[] }> {
   const id = spellId.trim().toLowerCase();
   const all = await selectSignatureAbilities(ctx.c.id);
-  const ability = isUuid(id) ? all.find((a) => a.id === id) : undefined;
+  const ability = isUuid(id) ? all.find((a) => a.id === id && a.abilityKind === "SPELL") : undefined;
   if (ability === undefined) throw fail(CHARACTER_ERROR_CODES.SIGNATURE_SPELL_NOT_FOUND, `No Signature Spell ${spellId} belongs to this Character`);
   return { ability, all };
 }

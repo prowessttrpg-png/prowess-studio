@@ -751,3 +751,6 @@ export {
   type SpellAuthority,
 } from "./character/signature-spell.js";
 export { SPELL_COMPONENT_KINDS, buildSignatureSpellCatalog, type AffinityAlignment as SpellComponentAffinityAlignment, type DeclaredParameter, type ListedContribution, type OwnedAffinityView, type SignatureSpellCatalog, type SpellComponentKind, type SpellComponentOption } from "./character/signature-spell-catalog.js";
+
+export { SIGNATURE_MANEUVER_STEPS, emptySignatureManeuverDraft, readSignatureManeuverDraft, signatureManeuverComponentRefs, evaluateCharacterSignatureManeuver, type SignatureManeuverDraft, type SignatureManeuverEvaluation, type CharacterManeuverSubject, type ManeuverActionSource, type ManeuverActionUse } from "./character/signature-maneuver.js";
+export { buildSignatureManeuverCatalog, type SignatureManeuverCatalog, type ManeuverActionOption, type ManeuverComponentOption } from "./character/signature-maneuver-catalog.js";

@@ -97,7 +97,10 @@ export const weaponRows = () => (JSON.parse(readFileSync(path.join(CONTENT, "wea
 const SPELL_WORLD = path.resolve(__dirname, "../../../../../packages/prowess-game/src/testing/m6-wo7-spell-world.json");
 export const spellWorld = () => JSON.parse(readFileSync(SPELL_WORLD, "utf8")) as { keywords: string[]; definitions: Array<Row & { schemaVersion: number }> };
 
-export async function seedCharacterWorld(prefix: string, label = "R1", options: { advancement?: boolean; weapons?: boolean; spells?: boolean } = {}): Promise<CharacterWorld> {
+const MANEUVER_WORLD = path.resolve(__dirname, "../../../../../packages/prowess-game/src/testing/m6-wo8-maneuver-world.json");
+export const maneuverWorld = () => JSON.parse(readFileSync(MANEUVER_WORLD, "utf8")) as ReturnType<typeof spellWorld>;
+
+export async function seedCharacterWorld(prefix: string, label = "R1", options: { advancement?: boolean; weapons?: boolean; spells?: boolean; maneuvers?: boolean } = {}): Promise<CharacterWorld> {
   const k = await kinds();
   const tag = `${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
   const pins = new Map<string, Pin>();
@@ -118,7 +121,7 @@ export async function seedCharacterWorld(prefix: string, label = "R1", options: 
     await add(ADVANCEMENT_RULE_KEY, "CHARACTER_ADVANCEMENT_RULE", 1, advancementRulePayload());
     for (const k of ["skill.arcana", "skill.martial"]) await add(k, "SKILL", 1, { ladderKey: "SKILL", source: SOURCE });
     // `spells: true` (M6-WO7) pins the CURRENT construction rule (WO9 … WO13 policies) the Spell engine reads.
-    const ruleSource = options.spells === true ? spellWorld().definitions.find((d) => d.definitionKind === "ABILITY_CONSTRUCTION_RULE")!.payload : rows("ability-construction.json")[0]!.payload;
+    const ruleSource = options.maneuvers === true ? maneuverWorld().definitions.find(d => d.definitionKind === "ABILITY_CONSTRUCTION_RULE")!.payload : options.spells === true ? spellWorld().definitions.find((d) => d.definitionKind === "ABILITY_CONSTRUCTION_RULE")!.payload : rows("ability-construction.json")[0]!.payload;
     const rule = JSON.parse(JSON.stringify(ruleSource)) as { spell: { arcaneAuthority: { skillKey: string } }; maneuver: { martial: { skillKey: string } }; effectExecutionPolicy?: { martialSkillKey: string } };
     rule.spell.arcaneAuthority.skillKey = pins.get("skill.arcana")!.canonicalKey;
     rule.maneuver.martial.skillKey = pins.get("skill.martial")!.canonicalKey;
@@ -145,6 +148,16 @@ export async function seedCharacterWorld(prefix: string, label = "R1", options: 
   // M6-WO6: the approved baseline Weapon catalog — Equipment Traits, Attacks, then Weapons (exact refs to this world's pins).
   if (options.weapons === true) {
     for (const kind of ["EQUIPMENT_TRAIT", "ATTACK", "WEAPON"]) for (const d of weaponRows().filter((x) => x.definitionKind === kind)) await add(d.canonicalKey, kind, 1, resolveContentRefs(d.payload, pins), d.displayName);
+  }
+
+  if (options.maneuvers === true) {
+    const world = maneuverWorld();
+    for (const key of world.keywords) await prisma.keywordDefinition.upsert({ where: { canonicalKey: key }, create: { canonicalKey: key, name: key.replace(/^keyword\./, "").replaceAll("_", " ") }, update: {} });
+    for (const kind of ["SKILL", "MANEUVER_TARGETING", "MANEUVER_EFFECT", "MANEUVER_TRAIT", "MANEUVER_DURATION", "MANEUVER_CONDITION", "MANEUVER_FOUNDATION"]) for (const d of world.definitions.filter(d => d.definitionKind === kind)) {
+      const skills: Record<string, string> = { "skill.arcana": pins.get("skill.arcana")!.canonicalKey, "skill.martial": pins.get("skill.martial")!.canonicalKey, ...(pins.has("test.wo8.skill.performance") ? { "test.wo8.skill.performance": pins.get("test.wo8.skill.performance")!.canonicalKey } : {}) };
+      const rekey = (v: unknown): unknown => Array.isArray(v) ? v.map(rekey) : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([key, x]) => [key, key === "skillKey" && typeof x === "string" ? skills[x] ?? x : rekey(x)])) : v;
+      await add(d.canonicalKey, d.definitionKind, d.schemaVersion, rekey(resolveContentRefs(d.payload, pins)));
+    }
   }
 
   const r = await createRuleset({ canonicalKey: `${prefix}.ruleset_${tag}`, name: `M6-WO3 API ${tag}`, channel: "CORE_PLAYTEST", versionLabel: label });
@@ -241,13 +254,20 @@ export async function cleanupCharacterWorlds(prefix: string): Promise<void> {
   // removing revisions newest first (each names its predecessor, RESTRICT).
   const abilityIds = (await prisma.characterSignatureAbility.findMany(sheetWhere)).map((a: { id: string }) => a.id);
   if (abilityIds.length > 0) {
-    await prisma.characterSignatureAbility.updateMany({ where: { id: { in: abilityIds } }, data: { currentRevisionId: null, status: "DRAFT", retiredAt: null } });
+    await prisma.characterSignatureAbility.updateMany({ where: { id: { in: abilityIds } }, data: { currentRevisionId: null, currentManeuverRevisionId: null, status: "DRAFT", retiredAt: null } });
     await prisma.$executeRawUnsafe('ALTER TABLE "character_signature_spell_revisions" DISABLE TRIGGER "character_signature_spell_revisions_append_only"');
     try {
       const revisions = await prisma.characterSignatureSpellRevision.findMany({ where: { abilityId: { in: abilityIds } }, select: { id: true }, orderBy: { revisionNumber: "desc" } });
       for (const r of revisions) await prisma.characterSignatureSpellRevision.delete({ where: { id: r.id } });
     } finally {
       await prisma.$executeRawUnsafe('ALTER TABLE "character_signature_spell_revisions" ENABLE TRIGGER "character_signature_spell_revisions_append_only"');
+    }
+    await prisma.$executeRawUnsafe('ALTER TABLE "character_signature_maneuver_revisions" DISABLE TRIGGER "character_signature_maneuver_revisions_append_only"');
+    try {
+      const revisions = await prisma.characterSignatureManeuverRevision.findMany({ where: { abilityId: { in: abilityIds } }, select: { id: true }, orderBy: { revisionNumber: "desc" } });
+      for (const r of revisions) await prisma.characterSignatureManeuverRevision.delete({ where: { id: r.id } });
+    } finally {
+      await prisma.$executeRawUnsafe('ALTER TABLE "character_signature_maneuver_revisions" ENABLE TRIGGER "character_signature_maneuver_revisions_append_only"');
     }
     await prisma.characterSignatureAbility.deleteMany({ where: { id: { in: abilityIds } } });
   }

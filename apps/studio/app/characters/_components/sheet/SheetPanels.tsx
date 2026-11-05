@@ -6,6 +6,7 @@ import type { CharacterSheetDto, PossessionDto, SheetResourceDto, SheetValueDto 
 import { RuleLink } from "../CharacterReview";
 import { WeaponAttackRows, WeaponSlots } from "./WeaponPanels";
 import { SignatureSpellRows } from "./SpellRows";
+import { SignatureManeuverRows } from "./ManeuverRows";
 import { BoltIcon, DiamondIcon, DropIcon, EffectsIcon, EquipmentFigure, GearIcon, PlusIcon, QuillIcon, RingIcon, SatchelIcon, ShieldIcon, SkillsIcon, StatsIcon, SwordsIcon, TriadIcon, WeightIcon } from "./SheetIcons";
 
 /**
@@ -329,15 +330,16 @@ export function NotesText({ label, value, mode, onChange, max, testId, empty, pr
 /** Weapon Attack rows printed on page 1 (the digital sheet lists them all); the rest of the panel stays Action Notes. */
 const PRINT_ATTACK_ROWS = 6;
 /** Printed Action Note lines: the whole panel without Weapon Attacks, a short block below them otherwise. */
-export const actionNoteLines = (sheet: CharacterSheetDto) => (sheet.weaponAttacks.length === 0 && sheet.signatureSpells.length === 0 ? 14 : 4);
+export const actionNoteLines = (sheet: CharacterSheetDto) => (sheet.weaponAttacks.length === 0 && sheet.signatureSpells.length === 0 && !sheet.signatureManeuvers?.length ? 14 : 4);
 
 export function ActionsPanel({ sheet, mode, value, onChange }: { sheet: CharacterSheetDto; mode: SheetMode; value: string; onChange: (v: string) => void }) {
   // M6-WO6: compact Weapon Attack rows sit above the Action Notes; on paper they take some of the notes' lines.
   return (
     <SheetSection id="actions" title="Actions" icon={<SwordsIcon />}>
-      <p className="sheet-muted sheet-digital-only">Weapon Attacks are previews from your exact Release (nothing is rolled or spent). Action Notes are your own reminders — they never create or change an action. Signature Spells (M6-WO7) show their current revision; Maneuvers join this area in a later update.</p>
+      <p className="sheet-muted sheet-digital-only">Weapon Attacks are previews from your exact Release (nothing is rolled or spent). Action Notes are your own reminders — they never create or change an action. Signature Spells and Maneuvers show their current active revisions.</p>
       <WeaponAttackRows sheet={sheet} printRows={PRINT_ATTACK_ROWS} />
       <SignatureSpellRows sheet={sheet} />
+      <SignatureManeuverRows sheet={sheet} />
       <NotesText label="Action Notes" value={value} mode={mode} onChange={onChange} max={sheet.notes.limits.actionNotes} testId="sheet-action-notes" empty="No action notes yet." printLines={actionNoteLines(sheet)} continuation="Action Notes continue on the supplemental page." />
     </SheetSection>
   );

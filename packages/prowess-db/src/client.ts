@@ -1,3 +1,4 @@
+import { assertRunningAgainstTestDatabase } from "./testDatabaseGuard.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client.js";
 
@@ -46,7 +47,19 @@ function createPrismaClient(): PrismaClient {
     );
   }
   const adapter = new PrismaPg({ connectionString });
-  return new PrismaClient({ adapter });
+  // M6-WO8 local verification: emulated PostgreSQL can exceed Prisma's default 2-second transaction startup.
+  // Native CI and production retain their existing defaults. An explicit override is accepted only for a guarded
+  // local *_test database, including a production-mode E2E server. It changes waiting time,
+  // never isolation, locking, queries, rules or database integrity checks.
+  const rawTimeout = process.env.PROWESS_TEST_TRANSACTION_TIMEOUT_MS;
+  let transactionOptions: { maxWait: number; timeout: number } | undefined;
+  if (rawTimeout !== undefined) {
+    assertRunningAgainstTestDatabase(connectionString);
+    const milliseconds = Number(rawTimeout);
+    if (!Number.isSafeInteger(milliseconds) || milliseconds < 1 || milliseconds > 120_000) throw new Error("PROWESS_TEST_TRANSACTION_TIMEOUT_MS must be an integer from 1 to 120000");
+    transactionOptions = { maxWait: milliseconds, timeout: milliseconds };
+  }
+  return new PrismaClient({ adapter, ...(transactionOptions ? { transactionOptions } : {}) });
 }
 
 export const prisma: PrismaClient = globalThis.__prowessPrismaClient ?? createPrismaClient();

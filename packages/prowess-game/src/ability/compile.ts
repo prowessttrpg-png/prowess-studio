@@ -1,3 +1,4 @@
+import { componentPayload, type ManeuverCompilationContext } from "../construction/maneuver-context.js";
 import { TRAIT_PARAMETER_INCREMENT_FORMULA } from "../content/core-playtest-v0.1/traits.js";
 import type { JsonObject } from "@prowess/model";
 import { createRulesetContext, orchestrateRulesEvaluation, type EvaluationPlan, type EvaluationRun, type EvaluationStep, type EvaluationBinding } from "@prowess/rules";
@@ -103,7 +104,11 @@ export function compileAbilityDefinition(request: unknown): ProwessOutcome<Prowe
   const d = ref ? findBundleDefinition(bundle, ref) : null;
   if (!d || !["SPELL_DEFINITION", "MANEUVER_DEFINITION"].includes(d.definitionKind)) { p.add(A.REFERENCE, ["definition"], "exact authored Spell or Maneuver Definition required"); return finish(p, () => null as never); }
   const catalog = readKeywordCatalog(own(r, "keywords"), ["keywords"], p); if (p.count || !catalog) return finish(p, () => null as never);
-  return compileAuthoredAbilityCore(p, r, subjectKey as string, context.value, bundle, catalog, { authored: d.payload as unknown as AuthoredAbilityPayload, spell: d.definitionKind === "SPELL_DEFINITION", subjectRefs: [definitionRefOf(d)], definition: definitionRefOf(d) });
+  const authored = d.payload as unknown as AuthoredAbilityPayload;
+  const costPolicy = bundle.definitions.find(q => q.definitionKind === "ABILITY_CONSTRUCTION_RULE")?.payload as { maneuverCostPolicy?: { extension?: { version: string } } } | undefined;
+  const man = d.definitionKind === "MANEUVER_DEFINITION" ? authored as ManeuverDefinitionPayload : null;
+  const scopedGraph = man && costPolicy?.maneuverCostPolicy?.extension?.version === "M6-WO8-A" && man.composition.traits.some(t => t.appliesTo.scope === "ACTION_SPECIFIC" || t.appliesTo.scope === "TARGETING" && t.appliesTo.componentKey !== "targeting") ? { foundations: [], actionKeys: man.actions.map(a => a.componentKey), enforceActionBlockCapacity: false } : undefined;
+  return compileAuthoredAbilityCore(p, r, subjectKey as string, context.value, bundle, catalog, { authored, spell: d.definitionKind === "SPELL_DEFINITION", subjectRefs: [definitionRefOf(d)], definition: definitionRefOf(d) }, scopedGraph);
 }
 
 /**
@@ -111,7 +116,7 @@ export function compileAbilityDefinition(request: unknown): ProwessOutcome<Prowe
  * M6-WO7 Character Signature Spell adapter. The request has been read; nothing here differs by subject except the refs
  * each entry cites. Internal (not part of the public surface).
  */
-export function compileAuthoredAbilityCore<S>(p: Problems, r: Record<string, unknown>, subjectKey: string, ruleset: unknown, bundle: ProwessDefinitionBundle, catalog: NonNullable<ReturnType<typeof readKeywordCatalog>>, source: AuthoredAbilitySource<S>): ProwessOutcome<ProwessAbilityDefinitionCompiledPlan<S>> {
+export function compileAuthoredAbilityCore<S>(p: Problems, r: Record<string, unknown>, subjectKey: string, ruleset: unknown, bundle: ProwessDefinitionBundle, catalog: NonNullable<ReturnType<typeof readKeywordCatalog>>, source: AuthoredAbilitySource<S>, maneuverContext?: ManeuverCompilationContext): ProwessOutcome<ProwessAbilityDefinitionCompiledPlan<S>> {
   const context = { value: ruleset };
   const { authored, spell, subjectRefs } = source;
   const spellData = spell ? authored as SpellDefinitionPayload : null;
@@ -121,9 +126,9 @@ export function compileAuthoredAbilityCore<S>(p: Problems, r: Record<string, unk
   const actions: { componentKey: string; definition: ProwessDefinitionRef; profile: FoundationProfile }[] = [];
   if (man) for (const action of man.actions) {
     const definition = findBundleDefinition(bundle, action.definition);
-    if (!definition || definition.definitionKind !== "MANEUVER_FOUNDATION") { p.add(A.FOUNDATION, ["actions", action.componentKey], "foundation must resolve in this exact Ruleset"); continue; }
+    if (!definition || (definition.definitionKind !== "MANEUVER_FOUNDATION" && !maneuverContext?.foundations.some(x => isSameExactDefinition(x.reference, action.definition)))) { p.add(A.FOUNDATION, ["actions", action.componentKey], "foundation must resolve in this exact Ruleset"); continue; }
     if (Object.keys(action.parameters).length) p.add(A.FOUNDATION, ["actions", action.componentKey, "parameters"], "foundation profile is inherited; no arbitrary attack override parameters");
-    const payload = definition.payload as unknown as FoundationDefinitionPayload;
+    const payload = componentPayload(bundle, action.definition, maneuverContext, action.componentKey) as FoundationDefinitionPayload;
     const profile = readFoundationProfile(payload.rules as Record<string, unknown>, ["actions", action.componentKey, "profile"], p);
     if (profile) actions.push({ componentKey: action.componentKey, definition: action.definition, profile });
   }
@@ -147,10 +152,10 @@ export function compileAuthoredAbilityCore<S>(p: Problems, r: Record<string, unk
   const firstAction = actions[0];
   const rawComposition = spellData ? spellData.composition : { ...man!.composition, targeting: firstAction!.profile.targeting, branch: { kind: "MANEUVER", foundation: { componentKey: man!.actions[0]!.componentKey, definition: man!.actions[0]!.definition, parameters: man!.actions[0]!.parameters }, martialAccess: null, resolutionProfile: null, data: {} } };
   // Ordered actions carry order; WO1's single foundation use does not.
-  const normalized = validateAbilityComposition(rawComposition, { bundle }); if (!normalized.ok) return normalized;
+  const normalized = validateAbilityComposition(rawComposition, { bundle, context: maneuverContext }); if (!normalized.ok) return normalized;
   const composition = normalized.value;
   const baseRequest = { contractVersion: 1, definitions: bundle, ruleset: context.value, character: own(r, "character"), keywords: own(r, "keywords"), signature: own(r, "signature"), ...(own(r, "accessGrants") === undefined ? {} : { accessGrants: own(r, "accessGrants") }) };
-  const construction = compileAbilityConstruction({ ...baseRequest, subjectKey: `${subjectKey}.construction`, composition, options: constructionOptions });
+  const construction = compileAbilityConstruction({ ...baseRequest, subjectKey: `${subjectKey}.construction`, composition, options: constructionOptions }, maneuverContext);
   if (!construction.ok) return construction;
   const steps: EvaluationStep[] = [], entries: ProwessSourceMapEntry[] = [];
   const append = (plan: { evaluationPlan: EvaluationPlan; sourceMap: ProwessCompilationSourceMap }) => {
@@ -158,7 +163,7 @@ export function compileAuthoredAbilityCore<S>(p: Problems, r: Record<string, unk
       if (steps.some(s => s.stepKey === step.stepKey)) { p.add(A.INVALID, [], "duplicate compiled step identity"); continue; }
       const order = steps.length; steps.push({ ...step, order });
       const entry = plan.sourceMap.entries.find(e => e.stepKey === step.stepKey)!;
-      entries.push({ ...entry, order, definitions: [...entry.definitions, ...subjectRefs] });
+      entries.push({ ...entry, order, definitions: [...entry.definitions, ...subjectRefs, ...(maneuverContext?.foundations.filter(x => entry.definitions.some(ref => isSameExactDefinition(ref, x.reference))).flatMap(x => x.provenance) ?? [])] });
     }
   };
   append(construction.value);
@@ -171,6 +176,16 @@ export function compileAuthoredAbilityCore<S>(p: Problems, r: Record<string, unk
     const stepKey = emit(key, "REQUIREMENT", { requirement, facts }, refs, componentKeys, bindings); rules.push({ ruleKey: key, stepKey, code });
   };
   const compare = (key: string, value: number, operator: string, expected: number, refs: readonly ProwessDefinitionRef[], componentKeys: readonly string[]) => check(key, { kind: "NUMERIC_COMPARE", factKey: "trait.selection", operator, expected }, asJson({ ...emptyFacts(), numeric: [{ key: "trait.selection", value }] }), refs, componentKeys, T.PARAMETER);
+  if (man && maneuverContext?.enforceActionBlockCapacity) {
+    const rule = bundle.definitions.find(d => d.definitionKind === "ABILITY_CONSTRUCTION_RULE")!;
+    // Count structural group identities; every Powerful Blow member shares the same group object.
+    const blocks = new Set(man.actions.map(a => man.powerfulBlow?.actionKeys.includes(a.componentKey) ? man.powerfulBlow : a)).size;
+    check("maneuver.action_block_capacity", { kind: "NUMERIC_COMPARE", factKey: "maneuver.action_blocks", operator: "<=", expected: construction.value.outputs.access.martialRankValue ?? 0 }, asJson({ ...emptyFacts(), numeric: [{ key: "maneuver.action_blocks", value: blocks }] }), [definitionRefOf(rule)], man.actions.map(a => a.componentKey), A.FOUNDATION);
+    if (man.powerfulBlow) {
+      const members = actions.filter(a => man.powerfulBlow!.actionKeys.includes(a.componentKey));
+      if (members.some(a => JSON.stringify(clonePlainData(a.profile)) !== JSON.stringify(clonePlainData(members[0]!.profile)))) p.add(A.FOUNDATION, ["powerfulBlow"], "Powerful Blow requires the same exact Weapon, Attack and selected damage profile");
+    }
+  }
   const traits: CompiledTrait[] = [];
   for (const trait of composition.traits) {
     const definition = findBundleDefinition(bundle, trait.definition)!;
@@ -204,7 +219,7 @@ export function compileAuthoredAbilityCore<S>(p: Problems, r: Record<string, unk
     const effect = targetEffect ? findBundleDefinition(bundle, targetEffect.definition) : null;
     if (tr.effectFamilies.length) check(`trait.${trait.componentKey}.effect`, { kind: "SET_CONTAINS", factKey: "trait.allowed", member: effect ? (effect.payload as unknown as EffectDefinitionPayload).effectFamily : "NO_EFFECT" }, asJson({ ...emptyFacts(), sets: [{ key: "trait.allowed", members: tr.effectFamilies }] }), [trait.definition, ...(targetEffect ? [targetEffect.definition] : [])], [trait.componentKey]);
     for (const incompatible of tr.incompatibleTraits) check(`trait.${trait.componentKey}.incompatible.${incompatible}`, { kind: "NONE", children: [{ kind: "SET_CONTAINS", factKey: "trait.present", member: incompatible }] }, asJson({ ...emptyFacts(), sets: [{ key: "trait.present", members: composition.traits.map(t => t.definition.canonicalKey) }] }), [trait.definition], [trait.componentKey]);
-    const related = man && targetEffect ? actions.filter(a => man.effectAttachments.find(x => x.effectKey === targetEffect.componentKey)?.actionKeys.includes(a.componentKey)) : actions;
+    const related = maneuverContext && trait.appliesTo.scope === "ACTION_SPECIFIC" ? actions.filter(a => a.componentKey === trait.appliesTo.componentKey) : maneuverContext && trait.appliesTo.scope === "TARGETING" ? actions.filter(a => `${a.componentKey}.targeting` === trait.appliesTo.componentKey) : man && targetEffect ? actions.filter(a => man.effectAttachments.find(x => x.effectKey === targetEffect.componentKey)?.actionKeys.includes(a.componentKey)) : actions;
     for (const action of related) if (tr.foundationCategories.length) check(`trait.${trait.componentKey}.foundation.${action.componentKey}`, { kind: "SET_CONTAINS", factKey: "trait.foundation", member: action.profile.category }, asJson({ ...emptyFacts(), sets: [{ key: "trait.foundation", members: tr.foundationCategories }] }), [trait.definition, action.definition], [trait.componentKey, action.componentKey]);
     if (tr.affinity) {
       const af = findBundleDefinition(bundle, tr.affinity);
@@ -219,7 +234,8 @@ export function compileAuthoredAbilityCore<S>(p: Problems, r: Record<string, unk
     for (const m of modifications) {
       if (m.modification.kind === "DAMAGE_TYPE" && (!effect || (effect.payload as unknown as EffectDefinitionPayload).effectFamily !== "DAMAGE")) p.add(T.INCOMPATIBLE, ["traits", trait.componentKey], "conversion requires an existing Damage Effect; it cannot add damage");
       if (m.modification.kind === "TARGETING_MEASURE") {
-        const t = findBundleDefinition(bundle, composition.targeting.definition)!;
+        const actionTarget = maneuverContext && trait.appliesTo.scope === "TARGETING" ? actions.find(a => `${a.componentKey}.targeting` === trait.appliesTo.componentKey)?.profile.targeting : null;
+        const t = findBundleDefinition(bundle, actionTarget?.definition ?? composition.targeting.definition)!;
         const targetRules = (t.payload.rules as JsonObject)?.targeting as JsonObject | undefined;
         if (m.modification.measure === "RADIUS" && targetRules?.radiusCapable !== true) p.add(T.INCOMPATIBLE, ["traits", trait.componentKey], "radius modification requires explicit radius-capable Targeting");
       }
@@ -232,12 +248,15 @@ export function compileAuthoredAbilityCore<S>(p: Problems, r: Record<string, unk
   if (p.count) return finish(p, () => null as never);
   const character = own(r, "character") as AbilityDefinitionRequest["character"];
   const targetingRequest = { contractVersion: 1, definitions: bundle, ruleset: context.value, character: { stats: character.stats, skillRanks: character.skillRanks }, keywords: own(r, "keywords") };
-  const targeting = compileAbilityTargeting({ ...targetingRequest, subjectKey: `${subjectKey}.targeting`, composition });
+  const traitsForAction = (action: NonNullable<typeof firstAction>, attached: typeof composition.effects) => composition.traits.filter(t => t.appliesTo.componentKey === null || (t.appliesTo.scope === "TARGETING" && (!maneuverContext || t.appliesTo.componentKey === `${action.componentKey}.targeting`)) || (t.appliesTo.scope === "ACTION_SPECIFIC" && t.appliesTo.componentKey === action.componentKey) || attached.some(e => e.componentKey === t.appliesTo.componentKey));
+  const firstAttached = man ? composition.effects.filter(e => man.effectAttachments.find(x => x.effectKey === e.componentKey)?.actionKeys.includes(firstAction!.componentKey)) : composition.effects;
+  const deliveryComposition = maneuverContext && man ? { ...composition, effects: firstAttached, traits: traitsForAction(firstAction!, firstAttached) } : composition;
+  const targeting = compileAbilityTargeting({ ...targetingRequest, subjectKey: `${subjectKey}.targeting`, composition: deliveryComposition }, maneuverContext);
   if (!targeting.ok) return targeting;
   append(targeting.value);
   const targetingChanges: { actionKey: string | null; measure: string; stepKey: string; definitions: ProwessDefinitionRef[] }[] = [];
   const modifyTargeting = (target: ProwessTargetingCompiledPlan, action: typeof firstAction | null) => {
-    const changes = traits.flatMap(t => t.modifications).filter(m => m.modification.kind === "TARGETING_MEASURE");
+    const changes = traits.filter(t => !maneuverContext || !action || t.scope.scope !== "TARGETING" || t.scope.componentKey === `${action.componentKey}.targeting`).flatMap(t => t.modifications).filter(m => m.modification.kind === "TARGETING_MEASURE");
     for (const measure of ["RADIUS", "RANGE", "LENGTH", "WIDTH"] as const) {
       const selected = changes.filter(m => m.modification.kind === "TARGETING_MEASURE" && m.modification.measure === measure);
       if (!selected.length) continue;
@@ -256,15 +275,17 @@ export function compileAuthoredAbilityCore<S>(p: Problems, r: Record<string, unk
   const effects: EffectCompilation[] = [];
   const effectGroups = spell ? [{ action: null, composition }] : actions.map(action => {
     const attached = composition.effects.filter(e => man!.effectAttachments.find(a => a.effectKey === e.componentKey)!.actionKeys.includes(action.componentKey));
-    return { action, composition: { ...composition, targeting: action.profile.targeting, effects: attached, traits: composition.traits.filter(t => t.appliesTo.componentKey === null || t.appliesTo.scope === "TARGETING" || attached.some(e => e.componentKey === t.appliesTo.componentKey)), branch: { kind: "MANEUVER" as const, foundation: { componentKey: action.componentKey, definition: action.definition, parameters: {} }, martialAccess: null, resolutionProfile: null, data: {} } } };
+    return { action, composition: { ...composition, targeting: action.profile.targeting, effects: attached, traits: traitsForAction(action, attached), branch: { kind: "MANEUVER" as const, foundation: { componentKey: action.componentKey, definition: action.definition, parameters: {} }, martialAccess: null, resolutionProfile: null, data: {} } } };
   });
+  const actionTargeting: ProwessTargetingCompiledPlan[] = [];
   for (const group of effectGroups) {
-    const groupTargeting = group.action ? compileAbilityTargeting({ ...targetingRequest, subjectKey: `${subjectKey}.targeting.${group.action.componentKey}`, composition: group.composition }) : targeting;
+    const groupTargeting = group.action ? compileAbilityTargeting({ ...targetingRequest, subjectKey: `${subjectKey}.targeting.${group.action.componentKey}`, composition: group.composition }, maneuverContext) : targeting;
     if (!groupTargeting.ok) return groupTargeting;
     if (group.action) {
+      actionTargeting.push(groupTargeting.value);
       append(groupTargeting.value); modifyTargeting(groupTargeting.value, group.action);
       // Every committed action is checked, including an action with no attached Effect.
-      const checked = compileAbilityConstruction({ ...baseRequest, subjectKey: `${subjectKey}.action.${group.action.componentKey}`, composition: { ...composition, targeting: group.composition.targeting, branch: group.composition.branch } });
+      const checked = compileAbilityConstruction({ ...baseRequest, subjectKey: `${subjectKey}.action.${group.action.componentKey}`, composition: { ...composition, targeting: group.composition.targeting, branch: group.composition.branch } }, maneuverContext);
       if (!checked.ok) return checked;
       append(checked.value); actionConstruction.push(checked.value);
     }
@@ -273,7 +294,7 @@ export function compileAuthoredAbilityCore<S>(p: Problems, r: Record<string, unk
         const payload = findBundleDefinition(bundle, effect.definition)!.payload as unknown as EffectDefinitionPayload;
         for (const c of payload.compatibility.filter(x => x.relation === "FOUNDATION")) check(`effect.${effect.componentKey}.foundation.${group.action.componentKey}`, { kind: "SET_CONTAINS", factKey: "effect.foundation", member: group.action.profile.category }, asJson({ ...emptyFacts(), sets: [{ key: "effect.foundation", members: c.allow }] }), [effect.definition, group.action.definition], [effect.componentKey, group.action.componentKey]);
       }
-      const plan = compileEffectUse({ ...baseRequest, subjectKey: `${subjectKey}.effect.${group.action?.componentKey ?? "spell"}.${effect.componentKey}`, componentKey: effect.componentKey, composition: group.composition, constructionOptions });
+      const plan = compileEffectUse({ ...baseRequest, subjectKey: `${subjectKey}.effect.${group.action?.componentKey ?? "spell"}.${effect.componentKey}`, componentKey: effect.componentKey, composition: group.composition, constructionOptions }, maneuverContext);
       if (!plan.ok) return plan;
       append(plan.value); effects.push({ actionKey: group.action?.componentKey ?? null, plan: plan.value, targeting: groupTargeting.value });
     }
@@ -285,7 +306,7 @@ export function compileAuthoredAbilityCore<S>(p: Problems, r: Record<string, unk
     if (Object.keys(params).some(k => k !== "rounds") || (concept === "ROUNDS" ? !Number.isSafeInteger(params.rounds) || (params.rounds as number) < 1 : Object.keys(params).length > 0)) p.add(A.DURATION, ["duration", "parameters"], "only ROUNDS accepts an explicit positive rounds count; maintenance is deferred");
     for (const e of effects) check(`duration.${e.actionKey ?? "spell"}.${e.plan.subject.componentKey}`, { kind: "SET_CONTAINS", factKey: "duration.allowed", member: concept }, asJson({ ...emptyFacts(), sets: [{ key: "duration.allowed", members: e.plan.outputs.duration.allowed }] }), [composition.duration!.definition, e.plan.outputs.effect.definition], [composition.duration!.componentKey, e.plan.subject.componentKey], A.DURATION);
   }
-  const durationConditions = compileDurationConditions({ bundle, composition, construction: construction.value, effects, traits, actions, targeting: targeting.value, stats: character.stats }, emit, check, p);
+  const durationConditions = compileDurationConditions({ bundle, composition, construction: construction.value, effects, traits, actions, targeting: targeting.value, stats: character.stats, skillRanks: character.skillRanks, ...(maneuverContext ? { actionTargeting } : {}) }, emit, check, p);
   if (p.count) return finish(p, () => null as never);
   const explained = [...steps];
   const explanationStepKey = emit("explanation", "EXPLANATION", { input: { explanationKey: `authored.${subjectKey}`, contributions: explained.map((s, i) => ({ contributionKey: s.stepKey, order: i, kind: s.operation === "FORMULA" ? "FORMULA" : s.operation === "KEYWORD" ? "KEYWORD" : s.operation === "MODIFIER" ? "MODIFIER" : s.operation === "EXPLANATION" ? "GENERIC" : "REQUIREMENT", response: null })) } }, [...subjectRefs], [composition.compositionKey], explained.map((s, i) => ({ target: `/input/contributions/${i}/response`, source: { kind: "STEP", stepKey: s.stepKey, pointer: "" } })));

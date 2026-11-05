@@ -19,13 +19,13 @@ type Check = (key: string, requirement: JsonObject, facts: JsonObject, refs: rea
 interface ListedValue { readonly contributionKey: string; readonly currency: "MP" | "AP"; readonly modifier: ConditionModifier | "DURATION_COST"; readonly unit: "POINTS" | "PERCENT_POINTS"; readonly selected: number | string | boolean | null; readonly listedStep: string; }
 export interface CompiledDurationConditions {
   readonly duration: { readonly definition: ProwessDefinitionRef; readonly componentKey: string; readonly mode: DurationConcept; readonly parameters: Readonly<Record<string, number | string | boolean>>; readonly requirements: RequirementNode; readonly futureRuntime: DurationRules["futureRuntime"]; readonly costStatus: DurationRules["costStatus"]; readonly listedContributions: readonly ListedValue[] };
-  readonly conditions: readonly { readonly definition: ProwessDefinitionRef; readonly componentKey: string; readonly restriction: string; readonly parameters: Readonly<Record<string, number | string | boolean>>; readonly applicability: RequirementNode; readonly runtimeRequirements: readonly (RuntimeRequirement & { readonly status: "REQUIREMENT_CONTRACT_ONLY" })[]; readonly consumesSlot: boolean; readonly slotExemption: string | null; readonly selectedCostOption: string | null; readonly listedContributions: readonly ListedValue[] }[];
+  readonly conditions: readonly { readonly definition: ProwessDefinitionRef; readonly componentKey: string; readonly restriction: string; readonly parameters: Readonly<Record<string, number | string | boolean>>; readonly applicability: RequirementNode; readonly runtimeRequirements: readonly (RuntimeRequirement & { readonly status: "REQUIREMENT_CONTRACT_ONLY" })[]; readonly consumesSlot: boolean; readonly slotExemption: string | null; readonly selectedCostOption: string | null; readonly performance?: { readonly rank: string; readonly preparationApStepKey: string; readonly establishedBeforeActivation: true }; readonly listedContributions: readonly ListedValue[] }[];
   readonly summary: { readonly usedCapacity: number; readonly maximumCapacity: number; readonly policy: ProwessDefinitionRef; readonly spellMpPercent: CapSteps; readonly "maneuverAp": CapSteps };
 }
 interface CapSteps { readonly maximum: number; readonly listedStep: string; readonly effectiveStep: string; readonly excessStep: string; }
 export interface DurationConditionResult {
   readonly duration: Omit<CompiledDurationConditions["duration"], "listedContributions"> & { readonly listedContributions: readonly ResolvedListedValue[] };
-  readonly conditions: readonly (Omit<CompiledDurationConditions["conditions"][number], "listedContributions"> & { readonly listedContributions: readonly ResolvedListedValue[] })[];
+  readonly conditions: readonly (Omit<CompiledDurationConditions["conditions"][number], "listedContributions"> & { readonly preparationAp?: number; readonly listedContributions: readonly ResolvedListedValue[] })[];
   readonly conditionSummary: { readonly usedCapacity: number; readonly maximumCapacity: number; readonly policy: ProwessDefinitionRef; readonly spellMpPercent: CapResult; readonly "maneuverAp": CapResult; readonly costStage: "LISTED_COMPONENT_CONTRIBUTIONS_ONLY" };
 }
 interface ResolvedListedValue extends Omit<ListedValue, "listedStep"> { readonly listedValue: number; }
@@ -39,6 +39,8 @@ const binding = (stepKey: string, target: string): EvaluationBinding => ({ targe
 export function compileDurationConditions(input: {
   readonly bundle: ProwessDefinitionBundle; readonly composition: AbilityComposition; readonly construction: ProwessConstructionCompiledPlan;
   readonly effects: ProwessAbilityDefinitionCompiledPlan["effects"]; readonly traits: readonly CompiledTrait[]; readonly actions: ProwessAbilityDefinitionCompiledPlan["actions"];
+  readonly actionTargeting?: readonly ProwessAbilityDefinitionCompiledPlan["targeting"][];
+  readonly skillRanks?: readonly { readonly skillKey: string; readonly rankKey: string }[];
   readonly targeting: ProwessAbilityDefinitionCompiledPlan["targeting"]; readonly stats: Readonly<Partial<Record<string, number>>>;
 }, emit: Emit, check: Check, p: Problems): CompiledDurationConditions | undefined {
   const { bundle, composition: c, effects, traits, actions, construction } = input;
@@ -62,7 +64,7 @@ export function compileDurationConditions(input: {
   for (const key of Object.keys(dp.rules)) if (!["duration", "construction"].includes(key)) p.add(E.INVALID, ["duration", "rules", key], "no runtime execution or opaque executable rules");
   if (Object.keys(dp.parameters).length) p.add(E.PARAMETER, ["duration", "parameters"], "typed Duration parameters use the declared ROUNDS contract only");
   const pref = definitionRefOf(policyDef), durRefs = [durationUse.definition, pref], allUses = [c.targeting, ...c.effects, ...c.traits, durationUse, ...c.conditions, ...actions];
-  const mechanicRefs = [...effects.map(e => e.plan.outputs.effect.definition), ...traits.map(t => t.definition), ...actions.map(a => a.definition), input.targeting.outputs.targeting.definition, durationUse.definition];
+  const mechanicRefs = [...(input.actionTargeting?.map(t => t.outputs.targeting.definition) ?? []), ...effects.map(e => e.plan.outputs.effect.definition), ...traits.map(t => t.definition), ...actions.map(a => a.definition), input.targeting.outputs.targeting.definition, durationUse.definition];
   const selectedResolutions = effects.map(e => {
     const mods = traits.filter(t => t.scope.scope === "RESOLUTION" && t.scope.componentKey === e.plan.subject.componentKey).flatMap(t => t.modifications).filter(m => m.modification.kind === "RESOLUTION");
     return mods.length ? (mods.at(-1)!.modification as { mode: string }).mode : e.plan.outputs.resolution;
@@ -73,12 +75,12 @@ export function compileDurationConditions(input: {
     { key: "mechanic.present", value: 1 },
     { key: "mechanic.attack", value: selectedResolutions.includes("ATTACK_ROLL") || effects.some(e => e.plan.outputs.deliveryCheck === "RANGED_ATTACK_ROLL") || actions.some(a => a.profile.resolution.mode === "ATTACK_ROLL") ? 1 : 0 },
     { key: "mechanic.save", value: selectedResolutions.includes("SAVING_THROW") ? 1 : 0 },
-    { key: "mechanic.area", value: input.targeting.outputs.cardinality.kind === "AREA" || conversionArea ? 1 : 0 },
+    { key: "mechanic.area", value: input.targeting.outputs.cardinality.kind === "AREA" || input.actionTargeting?.some(t => t.outputs.cardinality.kind === "AREA") || conversionArea ? 1 : 0 },
     { key: "mechanic.sustained", value: dp.durationConcept === "SUSTAINED" ? 1 : 0 },
   ];
   const sets = [
     { key: "mechanic.duration", members: [dp.durationConcept] },
-    { key: "mechanic.targets", members: input.targeting.outputs.validTargets.filter(category => actions.length > 0 || effects.some(e => e.plan.outputs.targetCategories.includes(category))) },
+    { key: "mechanic.targets", members: [...new Set((input.actionTargeting ? input.actionTargeting.flatMap(t => t.outputs.validTargets) : input.targeting.outputs.validTargets))].filter(category => actions.length > 0 || effects.some(e => e.plan.outputs.targetCategories.includes(category))) },
     { key: "mechanic.effects", members: effects.map(e => e.plan.outputs.effect.family) },
     { key: "mechanic.foundations", members: actions.map(a => a.profile.category) },
   ];
@@ -153,7 +155,19 @@ export function compileDurationConditions(input: {
       checkReferences(runtime.requirement, use.definition, runtime.references);
     }
     if (cp.restriction.restrictionKey === "MATERIAL" && !cr.runtimeRequirements.some(q => q.references.length > 0)) p.add(E.REFERENCE, [use.componentKey], "Material needs an exact authored focus/item/reagent subject, with no default benefit");
-    const selected = selectParameters(use.parameters, cr.parameters, use.componentKey, [use.definition]);
+    let performance: CompiledDurationConditions["conditions"][number]["performance"];
+    let parameters = use.parameters;
+    if (cr.performance) {
+      if (conditions.some(c => c.performance)) { p.add(E.RELEVANCE, [use.componentKey], "Performance is one obligatory requirement for the complete Maneuver and cannot be selected twice"); continue; }
+      const skill = findBundleDefinition(bundle, cr.performance.skill);
+      const costPolicy = (policyDef.payload as unknown as AbilityConstructionRulePayload).maneuverCostPolicy;
+      const rank = input.skillRanks?.find(q => q.skillKey === cr.performance!.skill.canonicalKey)?.rankKey;
+      if (!skill || !costPolicy?.extension || !rank || !Object.hasOwn(cr.performance.preparationApByRank, rank) || Object.hasOwn(parameters, cr.performance.rankParameter)) { p.add(E.REFERENCE, [use.componentKey, "performance"], "Performance needs the pinned versioned policy, exact Skill and an eligible actual Character rank; authored rank overrides are forbidden"); continue; }
+      parameters = { ...parameters, [cr.performance.rankParameter]: rank };
+      const preparationApStepKey = formula(`${use.componentKey}.performance.preparation`, "scale", { units: 1, rate: cr.performance.preparationApByRank[rank]! }, [use.definition, cr.performance.skill], [use.componentKey]);
+      performance = { rank, preparationApStepKey, establishedBeforeActivation: true };
+    }
+    const selected = selectParameters(parameters, cr.parameters, use.componentKey, [use.definition]);
     checkMechanic(`wo9.${use.componentKey}.applicability`, cr.applicability, [use.definition], [use.componentKey]);
     const intrinsic: Readonly<Record<string, string>> = { ATTACK_RESTRICTION: "mechanic.attack", ATTACK_ROLL: "mechanic.attack", "SAVE_RESTRICTION": "mechanic.save", SAVING_THROW: "mechanic.save", AREA_RESTRICTION: "mechanic.area", SUSTAIN_RESTRICTION: "mechanic.sustained" };
     const intrinsicFact = intrinsic[cp.restriction.restrictionKey];
@@ -165,7 +179,7 @@ export function compileDurationConditions(input: {
     check(`wo9.${use.componentKey}.incompatible`, compare("incompatible", "==", 0), facts("incompatible", incompatible.length), [use.definition, ...incompatible.map(x => x.definition)], [use.componentKey, ...incompatible.map(x => x.componentKey)], E.RELEVANCE);
     check(`wo9.${use.componentKey}.uniqueRestriction`, compare("instances", "<=", 1), facts("instances", c.conditions.filter(other => (findBundleDefinition(bundle, other.definition)!.payload as unknown as AbilityConditionDefinitionPayload).restriction.restrictionKey === cp.restriction.restrictionKey).length), c.conditions.map(x => x.definition), [use.componentKey], E.RELEVANCE);
     const contributions = readConditionContributions(cp, cr, [use.componentKey, "contributions"], p), option = cr.choice.kind === "CHOOSE_ONE" ? selected[cr.choice.parameter] : null;
-    conditions.push({ definition: use.definition, componentKey: use.componentKey, restriction: cp.restriction.restrictionKey, parameters: selected, applicability: cr.applicability, runtimeRequirements: cr.runtimeRequirements.map(q => ({ ...q, status: "REQUIREMENT_CONTRACT_ONLY" })), consumesSlot: cr.consumesSlot, slotExemption: cr.slotExemption, selectedCostOption: typeof option === "string" ? option : null, listedContributions: listed(use.componentKey, contributions.filter(x => x.option === null || x.option === option), selected, [use.definition]) });
+    conditions.push({ ...(performance ? { performance } : {}), definition: use.definition, componentKey: use.componentKey, restriction: cp.restriction.restrictionKey, parameters: selected, applicability: cr.applicability, runtimeRequirements: cr.runtimeRequirements.map(q => ({ ...q, status: "REQUIREMENT_CONTRACT_ONLY" })), consumesSlot: cr.consumesSlot, slotExemption: cr.slotExemption, selectedCostOption: typeof option === "string" ? option : null, listedContributions: listed(use.componentKey, contributions.filter(x => x.option === null || x.option === option), selected, [use.definition]) });
   }
   const cap = (key: string, modifier: ConditionModifier, maximum: number): CapSteps => {
     const refs = [pref, durationUse.definition, ...conditions.map(c => c.definition)], keys = [durationUse.componentKey, ...conditions.map(c => c.componentKey)], values = conditions.flatMap(row => row.listedContributions.filter(q => q.modifier === modifier && (modifier !== "AP_REDUCTION" || c.abilityKind === "MANEUVER")));
@@ -185,5 +199,5 @@ export function readDurationConditionRun(plan: CompiledDurationConditions, run: 
   const value = (key: string) => (run.steps.find(s => s.stepKey === key)!.response!.data as unknown as { finalValue: number }).finalValue;
   const listed = (rows: readonly ListedValue[]): ResolvedListedValue[] => rows.map(({ listedStep, ...row }) => ({ ...row, listedValue: value(listedStep) }));
   const cap = (q: CapSteps): CapResult => ({ maximum: q.maximum, listed: value(q.listedStep), effective: value(q.effectiveStep), excess: value(q.excessStep) });
-  return { duration: { ...plan.duration, listedContributions: listed(plan.duration.listedContributions) }, conditions: plan.conditions.map(c => ({ ...c, listedContributions: listed(c.listedContributions) })), conditionSummary: { usedCapacity: plan.summary.usedCapacity, maximumCapacity: plan.summary.maximumCapacity, policy: plan.summary.policy, spellMpPercent: cap(plan.summary.spellMpPercent), "maneuverAp": cap(plan.summary["maneuverAp"]), costStage: "LISTED_COMPONENT_CONTRIBUTIONS_ONLY" } };
+  return { duration: { ...plan.duration, listedContributions: listed(plan.duration.listedContributions) }, conditions: plan.conditions.map(c => ({ ...c, ...(c.performance ? { preparationAp: value(c.performance.preparationApStepKey) } : {}), listedContributions: listed(c.listedContributions) })), conditionSummary: { usedCapacity: plan.summary.usedCapacity, maximumCapacity: plan.summary.maximumCapacity, policy: plan.summary.policy, spellMpPercent: cap(plan.summary.spellMpPercent), "maneuverAp": cap(plan.summary["maneuverAp"]), costStage: "LISTED_COMPONENT_CONTRIBUTIONS_ONLY" } };
 }

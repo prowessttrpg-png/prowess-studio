@@ -111,7 +111,7 @@ const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
 const num = (v: unknown): number | null => (typeof v === "number" ? v : null);
 const strings = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
 
-function parametersOf(raw: unknown, stats: Readonly<Partial<Record<string, number>>>): DeclaredParameter[] {
+export function parametersOf(raw: unknown, stats: Readonly<Partial<Record<string, number>>>): DeclaredParameter[] {
   return list(raw).map((q) => {
     const max = isPlainObject(own(q, "maximum")) ? (own(q, "maximum") as Record<string, unknown>) : null;
     const stat = max ? str(own(max, "stat")) : null;
@@ -127,7 +127,7 @@ function parametersOf(raw: unknown, stats: Readonly<Partial<Record<string, numbe
     };
   });
 }
-function contributionsOf(raw: unknown): ListedContribution[] {
+export function contributionsOf(raw: unknown): ListedContribution[] {
   return list(raw).map((c) => {
     const d = isPlainObject(own(c, "data")) ? (own(c, "data") as Record<string, unknown>) : {};
     const amounts = own(d, "amounts");

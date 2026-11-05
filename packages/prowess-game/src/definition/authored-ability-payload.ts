@@ -1,7 +1,7 @@
 import type { JsonObject } from "@prowess/model";
 import { clonePlainData, deepFreeze, isPlainObject, type PathSegment } from "../internal/plain-data.js";
 import { Problems, checkPlainData, finish, isExactLabel, own, readEnum, readRecord, readSafeInteger, type ProwessOutcome } from "../internal/problems.js";
-import { readDefinitionRef } from "./envelope.js";
+import { readDefinitionRef, isSameExactDefinition } from "./envelope.js";
 import { readEffectChain } from "./effect-chain-payload.js";
 import { validateAbilityComposition, type ComponentUse, type OrderedComponentUse, type SpellComposition, type TraitUse, type ManeuverComposition } from "../construction/composition.js";
 import { TRAIT_SCOPES, type TraitScope } from "../vocabulary/construction.js";
@@ -47,7 +47,7 @@ export type WeaponDamageProfile =
 /** A non-attack Maneuver foundation (Move, Run, Sprint, Block, Guard): an exact action with its own Targeting and NO Attack
  * resolution, damage profile or weapon requirement. It contributes its authored AP and never counts as an attack. */
 export interface ActionFoundationProfile {
-  readonly category: "MOVEMENT" | "DEFENSE";
+  readonly category: "MOVEMENT" | "DEFENSE" | "INTERACTION";
   readonly targeting: ComponentUse;
   readonly range: null;
   readonly resolution: { readonly mode: "NONE" };
@@ -93,7 +93,7 @@ function optionalUse(v: unknown, at: readonly PathSegment[], p: Problems): Compo
   const u = use(v, at, p, false); if (!u) return null;
   return { componentKey: u.componentKey, definition: u.definition, parameters: u.parameters };
 }
-export function readAuthoredAbilityPayload(kind: "SPELL_DEFINITION" | "MANEUVER_DEFINITION", v: unknown, at: readonly PathSegment[], p: Problems): AuthoredAbilityPayload | null {
+export function readAuthoredAbilityPayload(kind: "SPELL_DEFINITION" | "MANEUVER_DEFINITION", v: unknown, at: readonly PathSegment[], p: Problems, boundAttackRefs: readonly import("./envelope.js").ProwessDefinitionRef[] = []): AuthoredAbilityPayload | null {
   const before = p.count;
   const fields = kind === "SPELL_DEFINITION" ? ["name", "description", "composition", "additionalAffinityTraits", "constructionOptions"] : ["name", "description", "composition", "actions", "effectAttachments", "powerfulBlow"];
   const r = readRecord(v, at, p, E, fields, fields.filter(f => f !== "constructionOptions")); if (!r) return null;
@@ -129,7 +129,7 @@ export function readAuthoredAbilityPayload(kind: "SPELL_DEFINITION" | "MANEUVER_
     conditions: ordered(own(raw, "conditions"), [...at, "composition", "conditions"], p),
   };
   const actions = ordered(own(r, "actions"), [...at, "actions"], p);
-  if (!actions.length || actions.some(x => x.definition.definitionKind !== "MANEUVER_FOUNDATION")) p.add(E, [...at, "actions"], "one or more exact Maneuver foundations required");
+  if (!actions.length || actions.some(x => x.definition.definitionKind !== "MANEUVER_FOUNDATION" && !boundAttackRefs.some(ref => isSameExactDefinition(ref, x.definition)))) p.add(E, [...at, "actions"], "one or more exact Maneuver foundations required");
   const keys = [...composition.effects, ...composition.traits, ...composition.conditions, ...actions, ...(composition.duration ? [composition.duration] : [])].map(x => x.componentKey);
   if (new Set(keys).size !== keys.length || keys.includes("targeting")) p.add(E, at, "all component keys are unique; targeting is reserved for inherited delivery");
   const effectAttachments: { effectKey: string; actionKeys: string[] }[] = []; const rawAttachments = own(r, "effectAttachments");
@@ -182,7 +182,7 @@ function readAttackFoundationProfile(v: unknown, at: readonly PathSegment[], p: 
 function readActionFoundationProfile(v: unknown, at: readonly PathSegment[], p: Problems): ActionFoundationProfile | null {
   const before = p.count, C = AUTHORED_ABILITY_ERROR_CODES.FOUNDATION;
   const r = readRecord(v, at, p, C, ["category", "targeting"], ["category", "targeting"]); if (!r) return null;
-  const category = readEnum(own(r, "category"), ["MOVEMENT", "DEFENSE"] as const, [...at, "category"], p, C, "non-attack action category");
+  const category = readEnum(own(r, "category"), ["MOVEMENT", "DEFENSE", "INTERACTION"] as const, [...at, "category"], p, C, "non-attack action category");
   const targeting = optionalUse(own(r, "targeting"), [...at, "targeting"], p);
   if (!targeting || targeting.definition.definitionKind !== "MANEUVER_TARGETING" || targeting.componentKey !== "targeting") p.add(C, at, "a non-attack action owns its exact Maneuver targeting");
   return p.count > before || !category || !targeting ? null : { category, targeting, range: null, resolution: { mode: "NONE" }, damage: null };

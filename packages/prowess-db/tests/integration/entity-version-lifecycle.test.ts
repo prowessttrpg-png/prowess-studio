@@ -524,6 +524,16 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "retireCharacterSignatureSpell",
         "updateCharacterSignatureSpellDraft",
         "validateCharacterSignatureSpell",
+        // M6-WO8 additive own-kind commands and exact-Release reads. Maneuver drafts delegate to the existing
+        // lifecycle-aware shared repository; no operation exposes generic Entity/Version or history mutation.
+        "createCharacterSignatureManeuver",
+        "finalizeCharacterSignatureManeuver",
+        "getCharacterSignatureManeuver",
+        "getSignatureManeuverBuilder",
+        "rebuildCharacterSignatureManeuver",
+        "retireCharacterSignatureManeuver",
+        "updateCharacterSignatureManeuverDraft",
+        "validateCharacterSignatureManeuver",
       ].sort(),
     );
 
@@ -541,7 +551,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     // M6-WO7: updateCharacterSignatureSpellDraft writes only
     // character_signature_abilities (compare-and-set on lockVersion;
     // proven from signature-spell-repository.ts).
-    expect(mutatorLike).toEqual(["updateAuthoredDraftDefinition", "updateCharacterPlayState", "updateCharacterPortraitFraming", "updateCharacterProfile", "updateCharacterSheetNotes", "updateCharacterSignatureSpellDraft", "updateCharacterWeaponLoadout", "updateDraftEntityVersion"]);
+    expect(mutatorLike).toEqual(["updateAuthoredDraftDefinition", "updateCharacterPlayState", "updateCharacterPortraitFraming", "updateCharacterProfile", "updateCharacterSheetNotes", "updateCharacterSignatureManeuverDraft", "updateCharacterSignatureSpellDraft", "updateCharacterWeaponLoadout", "updateDraftEntityVersion"]);
     const characterRepo = readFileSync(new URL("../../src/character/repository.ts", import.meta.url), "utf8");
     expect(characterRepo).not.toMatch(/entityVersion\.(create|update|upsert|delete)/);
     const advancementRepo = readFileSync(new URL("../../src/character/advancement-repository.ts", import.meta.url), "utf8");
@@ -552,6 +562,12 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     expect(weaponRepo).not.toMatch(/entityVersion\.(create|update|upsert|delete)/);
     const signatureSpellRepo = readFileSync(new URL("../../src/character/signature-spell-repository.ts", import.meta.url), "utf8");
     expect(signatureSpellRepo).not.toMatch(/\b(entity|entityVersion|ruleset|rulesetManifest|rulesetManifestEntry|rulesetRelease)\.(create|update|upsert|delete)/);
+    // Both kinds keep retired history immutable and require an explicit rebuild before editing ACTIVE content.
+    expect(signatureSpellRepo).toContain('if (row.status === "RETIRED") throw new Outcome');
+    expect(signatureSpellRepo).toContain('row.status === "ACTIVE" && row.draftPayload === null && draft !== null');
+    const maneuverRepo = readFileSync(new URL("../../src/character/signature-maneuver-repository.ts", import.meta.url), "utf8");
+    expect(maneuverRepo).toContain('writeSignatureSpellDraft(characterId, id, expected, draft, "MANEUVER")');
+    expect(maneuverRepo).not.toMatch(/\b(entity|entityVersion|ruleset|rulesetManifest|rulesetManifestEntry|rulesetRelease)\.(create|update|upsert|delete)/);
     expect(signatureSpellRepo).not.toMatch(/\b(INSERT\s+INTO|UPDATE|DELETE\s+FROM|TRUNCATE(?:\s+TABLE)?)\s+"?(entities|entity_versions|rulesets|ruleset_manifests|ruleset_manifest_entries|ruleset_releases)\b/i);
     const authoring = readFileSync(new URL("../../src/compendium-authoring/service.ts", import.meta.url), "utf8");
     const body = authoring.slice(authoring.indexOf("export async function updateAuthoredDraftDefinition("), authoring.indexOf("\n}\n", authoring.indexOf("export async function updateAuthoredDraftDefinition(")));

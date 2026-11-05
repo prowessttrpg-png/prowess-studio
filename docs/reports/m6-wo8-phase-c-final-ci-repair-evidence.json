@@ -1,0 +1,322 @@
+{
+  "phase": "M6-WO8 Phase C final CI repair",
+  "status": "LOCAL CORRECTIONS VERIFIED EXCEPT SIX BROWSER SCENARIOS; PUBLICATION GATE BLOCKED",
+  "verifiedBaseline": {
+    "local": "1131252260ff71c97ebd05984011268abea1b044",
+    "remote": "1a82cc1d8b1e8e85743c83969d0e311baeef532b",
+    "identicalTree": "323ca88bcb604e5c0fc7280f358c2ac6a834296f",
+    "ciRun": "https://github.com/prowessttrpg-png/prowess-studio/actions/runs/41951953206"
+  },
+  "completedChecks": [
+    {
+      "name": "focused-audits",
+      "summary": "2 previously failing WO3 audits passed; 23 nonselected tests skipped, not counted as passes",
+      "command": [
+        "corepack",
+        "pnpm",
+        "--filter",
+        "@prowess/studio",
+        "exec",
+        "vitest",
+        "run",
+        "tests/unit/m6-wo3-static.test.ts",
+        "-t",
+        "no hard-coded Race|WO3 builds no equipment",
+        "--maxWorkers=1",
+        "--no-file-parallelism",
+        "--reporter=verbose"
+      ],
+      "startedAt": "2026-11-05T02:55:51.530640+00:00",
+      "completedAt": "2026-11-05T02:56:07.031944+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-c-final-ci-repair/focused-audits.log",
+      "sha256": "48773feed39776b5b1e00ad1cda63195c964fbebb7fb8e77557eeb726f204ba6"
+    },
+    {
+      "name": "focused-regressions-verified",
+      "summary": "158 tests passed across 9 suites, none skipped",
+      "command": [
+        "corepack",
+        "pnpm",
+        "--filter",
+        "@prowess/studio",
+        "exec",
+        "vitest",
+        "run",
+        "tests/unit/m6-wo3-static.test.ts",
+        "tests/unit/m6-wo3-character-ui.test.tsx",
+        "tests/unit/m6-wo3-compendium-integration.test.tsx",
+        "tests/unit/m6-wo5-sheet-ui.test.tsx",
+        "tests/unit/m6-wo5-static.test.ts",
+        "tests/unit/m6-wo7-spell-ui.test.tsx",
+        "tests/unit/m6-wo7-static.test.ts",
+        "tests/unit/m6-wo8-maneuver-ui.test.tsx",
+        "tests/unit/m6-wo8-static.test.ts",
+        "--maxWorkers=1",
+        "--no-file-parallelism",
+        "--reporter=dot"
+      ],
+      "startedAt": "2026-11-05T02:58:23.718661+00:00",
+      "completedAt": "2026-11-05T02:58:46.386471+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-c-final-ci-repair/focused-regressions-verified.log",
+      "sha256": "1b50465a45f61b6c5aa442cab2232a32890af883f4489a2a74c29c7f9f842c98"
+    },
+    {
+      "name": "native-fixture-verified",
+      "summary": "1 native fixture contract executed and passed; 13.1 seconds; no browser fixture used",
+      "command": [
+        "corepack",
+        "pnpm",
+        "--filter",
+        "@prowess/studio",
+        "exec",
+        "playwright",
+        "test",
+        "m6-maneuver-fixture-contract.spec.ts",
+        "--workers=1",
+        "--max-failures=1",
+        "--reporter=list"
+      ],
+      "startedAt": "2026-11-05T02:56:48.989280+00:00",
+      "completedAt": "2026-11-05T02:57:05.947280+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-c-final-ci-repair/native-fixture-verified.log",
+      "sha256": "b0dad54ce40dca5cf69c257c84295f81da0a1b3e581d3440f972964f11410081"
+    },
+    {
+      "name": "focused-negative-controls",
+      "summary": "10 mutations detected; 1 green baseline; every file restored byte-for-byte; working tree unchanged",
+      "command": [
+        "node",
+        "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-c-final-ci-repair/focused-negative-controls.mjs"
+      ],
+      "startedAt": "2026-11-05T02:57:37.975772+00:00",
+      "completedAt": "2026-11-05T02:57:48.302317+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-c-final-ci-repair/focused-negative-controls.log",
+      "sha256": "983b44e466197470835418ee44b7dcebc12c1c928845822c82156bf234a7aedd"
+    },
+    {
+      "name": "studio-typecheck-verified",
+      "summary": "Studio TypeScript check passed",
+      "command": [
+        "corepack",
+        "pnpm",
+        "--filter",
+        "@prowess/studio",
+        "run",
+        "typecheck"
+      ],
+      "startedAt": "2026-11-05T02:56:48.980310+00:00",
+      "completedAt": "2026-11-05T02:56:58.987892+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-c-final-ci-repair/studio-typecheck-verified.log",
+      "sha256": "95aa3142ad2784264d14e2cf8c82b7cb75da78685e1a60279a65303a5d3dfe57"
+    },
+    {
+      "name": "studio-lint",
+      "summary": "Studio lint passed with zero warnings",
+      "command": [
+        "corepack",
+        "pnpm",
+        "--filter",
+        "@prowess/studio",
+        "run",
+        "lint"
+      ],
+      "startedAt": "2026-11-05T02:58:23.726090+00:00",
+      "completedAt": "2026-11-05T02:58:44.263676+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-c-final-ci-repair/studio-lint.log",
+      "sha256": "1287cfd3b60c80f0b11425b5ff3c2a2cabb67e2854d27699d5bd4a01e8431f0e"
+    },
+    {
+      "name": "architecture",
+      "summary": "13 import-boundary rules and 7 packages passed",
+      "command": [
+        "node",
+        "scripts/check-architecture.mjs"
+      ],
+      "startedAt": "2026-11-05T02:58:23.730103+00:00",
+      "completedAt": "2026-11-05T02:58:23.939317+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-c-final-ci-repair/architecture.log",
+      "sha256": "bcef4b1cbccf590b5b0bbf8cc9222a9d0a3eba2bcf67d6fd84c2daaf7ccfb5b0"
+    }
+  ],
+  "browserVerification": {
+    "currentTree": "NOT RUN: known local browser blocker persists; no new setup or launch attempt",
+    "expectedExecutable": "/root/.cache/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell",
+    "observedReadiness": "/root/.cache/ms-playwright absent; no chromium/chromium-browser/google-chrome/chrome executable on PATH; no PLAYWRIGHT_BROWSERS_PATH override",
+    "priorAttempts": [
+      {
+        "attempt": 1,
+        "action": "Install project-pinned Chromium Headless Shell with official Playwright installer; abort at first error to prevent automatic retries",
+        "result": "0 MiB download; End of central directory record signature not found. Either not a zip file, or file is truncated.",
+        "process": {
+          "attempt": 1,
+          "exitCode": -15,
+          "stoppedOnFirstError": true,
+          "purpose": "Install project-pinned browser using official Playwright installer; prevent automatic repeated failed downloads."
+        },
+        "logSha256": "d91f8e48f0a7989eb44edb371f217fdbdc28af68ed5005fcb57937a7e226f9ff"
+      },
+      {
+        "attempt": 2,
+        "action": "Run six browser scenarios with one worker and --max-failures=1 against the production build",
+        "result": "browserType.launch: Executable does not exist at /root/.cache/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell",
+        "process": {
+          "attempt": 2,
+          "command": [
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "m6-signature-maneuver.spec.ts",
+            "--workers=1",
+            "--max-failures=1",
+            "--reporter=json"
+          ],
+          "exitCode": 1,
+          "stopOnFirstFailure": true,
+          "stats": {
+            "startTime": "2026-11-05T00:17:09.253Z",
+            "duration": 1407.299,
+            "expected": 0,
+            "skipped": 5,
+            "unexpected": 1,
+            "flaky": 0
+          },
+          "errors": [
+            {
+              "message": "\u001b[31mTesting stopped early after 1 maximum allowed failures.\u001b[39m"
+            }
+          ]
+        },
+        "reportSha256": "351f725bf665bb05c326c3d74c6392aa82a4a914b3f9fed57975727cf8ca8361",
+        "scenarios": [
+          {
+            "scenario": "1 creates an Action-first draft, reorders exact Actions and saves authored choices",
+            "runnerStatus": "unexpected",
+            "acceptance": "BLOCKED; not verified",
+            "errors": [
+              "Error: browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell\n\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n\u2551 Looks like Playwright was just installed or updated.       \u2551\n\u2551 Please run the following command to download new browsers: \u2551\n\u2551                                                            \u2551\n\u2551     npx playwright install                                 \u2551\n\u2551                                                            \u2551\n\u2551 <3 Playwright Team                                         \u2551\n\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d"
+            ]
+          },
+          {
+            "scenario": "2 configures multiple blocks with independently scoped Effects and Traits",
+            "runnerStatus": "skipped",
+            "acceptance": "BLOCKED; not verified",
+            "errors": []
+          },
+          {
+            "scenario": "3 configures Powerful Blow with exact Attack identity and server costs",
+            "runnerStatus": "skipped",
+            "acceptance": "BLOCKED; not verified",
+            "errors": []
+          },
+          {
+            "scenario": "4 displays Performance's actual rank and separate preparation, and fails closed on missing content/untrained rank",
+            "runnerStatus": "skipped",
+            "acceptance": "BLOCKED; not verified",
+            "errors": []
+          },
+          {
+            "scenario": "5 retains local choices after HTTP 409 without overwriting the saved draft",
+            "runnerStatus": "skipped",
+            "acceptance": "BLOCKED; not verified",
+            "errors": []
+          },
+          {
+            "scenario": "6 finalizes, rebuilds, preserves current history on invalid draft, retires and presents the current sheet row",
+            "runnerStatus": "skipped",
+            "acceptance": "BLOCKED; not verified",
+            "errors": []
+          }
+        ]
+      }
+    ],
+    "priorCI255": "All six executed on previous tree: scenarios 1-5 passed; scenario 6 failed on nonexistent Sheet route. This is historical evidence, not a pass for the corrected tree.",
+    "currentScenarioOutcomes": [
+      {
+        "scenario": 1,
+        "status": "UNVERIFIED ON CORRECTED TREE"
+      },
+      {
+        "scenario": 2,
+        "status": "UNVERIFIED ON CORRECTED TREE"
+      },
+      {
+        "scenario": 3,
+        "status": "UNVERIFIED ON CORRECTED TREE"
+      },
+      {
+        "scenario": 4,
+        "status": "UNVERIFIED ON CORRECTED TREE"
+      },
+      {
+        "scenario": 5,
+        "status": "UNVERIFIED ON CORRECTED TREE"
+      },
+      {
+        "scenario": 6,
+        "status": "UNVERIFIED ON CORRECTED TREE"
+      }
+    ]
+  },
+  "nativeContract": {
+    "fullLifecycle": "Character root DTO; unregistered GET rejection; revision 1 finalization; rebuild current unchanged; invalid finalization 422; revision 2 plus immutable revision 1; active Sheet projection; shared Spell/Maneuver use 2; retirement history preserved; Sheet empty; shared use 1",
+    "substitutesForBrowserE2E": false
+  },
+  "initialAuthoringFailuresCorrected": [
+    {
+      "check": "native-fixture and first Studio typecheck",
+      "cause": "New assertion used Vitest-only toBeTypeOf in Playwright",
+      "correction": "Use typeof with Playwright toBe; native contract and typecheck completed at exit 0"
+    },
+    {
+      "check": "first focused-regressions",
+      "cause": "Old UI assertion expected title-cased hard-coded caption; exact Release fixture label is lowercase performance",
+      "correction": "Assert exact Release-provided label; separate alternate-label component test passes; all 158 tests completed at exit 0"
+    }
+  ],
+  "changedFiles": [
+    "apps/studio/app/characters/_components/maneuvers/ManeuverBuilder.tsx",
+    "apps/studio/app/characters/_components/maneuvers/ManeuverReview.tsx",
+    "apps/studio/app/characters/_lib/maneuver-types.ts",
+    "apps/studio/tests/e2e/m6-maneuver-fixture-contract.spec.ts",
+    "apps/studio/tests/e2e/m6-signature-maneuver.spec.ts",
+    "apps/studio/tests/e2e/m6-wo8-ui-api.ts",
+    "apps/studio/tests/unit/m6-wo3-static.test.ts",
+    "apps/studio/tests/unit/m6-wo8-maneuver-ui.test.tsx",
+    "docs/reports/m6-wo8-phase-c-final-ci-repair-evidence.json",
+    "docs/reports/m6-wo8-phase-c-final-ci-repair.md"
+  ],
+  "unchanged": [
+    "packages/prowess-game",
+    "packages/prowess-rules",
+    "packages/prowess-db",
+    "apps/studio/tests/unit/fixtures",
+    ".github/workflows",
+    "scripts/ci",
+    "main",
+    "canonical Release content",
+    "historical goldens",
+    "game behavior",
+    "database safety guards"
+  ],
+  "publication": {
+    "performed": false,
+    "reason": "User requires focused verification success before publication; six browser scenarios remain blocked",
+    "remoteHeadUnchanged": "1a82cc1d8b1e8e85743c83969d0e311baeef532b",
+    "workflowDispatchCapability": false,
+    "manualWorkflow": "https://github.com/prowessttrpg-png/prowess-studio/actions/workflows/ci.yml",
+    "workflowSettings": {
+      "branch": "m6-wo8",
+      "certification": false
+    },
+    "workflowTriggered": false
+  },
+  "recovery": "Local commit/tree and verified complete Git bundle are recorded in the external checkpoint manifest after committing this report.",
+  "nextStep": "Review the preserved correction; separately authorize branch publication for CI-only browser verification despite the local browser blocker, then manually dispatch one complete CI run with certification=false. Do not rerun the old commit."
+}

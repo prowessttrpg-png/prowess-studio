@@ -1,3 +1,4 @@
+import { componentPayload, type ManeuverCompilationContext } from "../construction/maneuver-context.js";
 import type { JsonObject } from "@prowess/model";
 import { createRulesetContext, orchestrateRulesEvaluation, type EvaluationPlan, type EvaluationRun, type RuleProvenance } from "@prowess/rules";
 import { AffinityEmitter } from "../affinity/compile.js";
@@ -264,7 +265,7 @@ function readCharacter(value: unknown, bundle: ProwessDefinitionBundle, index: A
 // ---- Compilation ---------------------------------------------------------------------------------------------------
 
 /** Compiles one construction-legality request into ONE M4 EvaluationPlan. Pure and deterministic; never mutates input. */
-export function compileAbilityConstruction(request: unknown): ProwessOutcome<ProwessConstructionCompiledPlan> {
+export function compileAbilityConstruction(request: unknown, maneuverContext?: ManeuverCompilationContext): ProwessOutcome<ProwessConstructionCompiledPlan> {
   const p = new Problems();
   if (!checkPlainData(request, [], p, C.NOT_PLAIN_DATA)) return finish(p, () => null as never);
   const r = readRecord(request, [], p, K.INVALID_CONSTRUCTION_REQUEST, REQUEST_FIELDS, REQUEST_REQUIRED);
@@ -304,7 +305,7 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
   const ladderRank = (rankKey: string) => ladder.find((l) => l.rankKey === rankKey) as LadderRank;
   const character = readCharacter(own(r, "character"), bundle, index, ladder, p);
 
-  const compositionOut = validateAbilityComposition(own(r, "composition"), { bundle });
+  const compositionOut = validateAbilityComposition(own(r, "composition"), { bundle, context: maneuverContext });
   if (!compositionOut.ok) for (const problem of compositionOut.problems) p.list.push({ ...problem, path: `/composition${problem.path}` });
   if (p.count > 0 || character === null || !compositionOut.ok) return finish(p, () => null as never);
   const composition: AbilityComposition = compositionOut.value;
@@ -361,8 +362,8 @@ export function compileAbilityConstruction(request: unknown): ProwessOutcome<Pro
   const componentRules = new Map<string, ComponentConstructionRules>();
   for (const c of compositionComponents(composition)) {
     if (c.slot === "affinity") continue;
-    const envelope = findBundleDefinition(bundle, c.use.definition);
-    const rules = envelope === null ? {} : ((envelope.payload as { rules?: JsonObject }).rules ?? {});
+    const payload = componentPayload(bundle, c.use.definition, maneuverContext, c.use.componentKey);
+    const rules = payload === null ? {} : ((payload as { rules?: JsonObject }).rules ?? {});
     const read = readComponentConstructionRules(rules, ["definitions", c.use.definition.canonicalKey, "payload", "rules"], p);
     if (read !== null) componentRules.set(c.use.componentKey, read);
   }
@@ -830,8 +831,8 @@ export function readAbilityConstructionRun(input: { readonly plan: ProwessConstr
  * Validates one Ability construction end to end (§91): compile with @prowess/game, evaluate with the frozen M4
  * orchestrator under the request's exact RulesetContext, read the run back. Pure; nothing is persisted (§51).
  */
-export function evaluateAbilityConstruction(request: unknown): ProwessOutcome<AbilityConstructionResult> {
-  const plan = compileAbilityConstruction(request);
+export function evaluateAbilityConstruction(request: unknown, maneuverContext?: ManeuverCompilationContext): ProwessOutcome<AbilityConstructionResult> {
+  const plan = compileAbilityConstruction(request, maneuverContext);
   if (!plan.ok) return plan as ProwessOutcome<never>;
   const response = orchestrateRulesEvaluation({ evaluationKey: `construction.${plan.value.subject.subjectKey}`, contexts: { ruleset: own(request as Record<string, unknown>, "ruleset") }, plan: plan.value.evaluationPlan });
   if (!response.success || response.data === null) {

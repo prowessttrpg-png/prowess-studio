@@ -1,3 +1,4 @@
+import { componentPayload, type ManeuverCompilationContext } from "../construction/maneuver-context.js";
 import type { JsonObject } from "@prowess/model";
 import { createRulesetContext, orchestrateRulesEvaluation, type EvaluationBinding, type EvaluationPlan, type EvaluationRun, type EvaluationStep } from "@prowess/rules";
 import { validateAffinityProfile } from "../affinity/profile.js";
@@ -95,14 +96,15 @@ export interface ManeuverStructure {
   readonly separateAttackResolutions: number;
   readonly maneuverScoped: { readonly traits: readonly string[] };
 }
-export interface ProwessManeuverCostCompiledPlan {
+export interface ProwessManeuverCostCompiledPlan<S = ProwessDefinitionRef> {
+  readonly protectedActionAp?: string;
   readonly contractVersion: 1;
   readonly subject: { readonly kind: "MANEUVER_COST"; readonly subjectKey: string };
   readonly rulesetProvenance: ProwessRulesetProvenance;
-  readonly definition: ProwessDefinitionRef;
+  readonly definition: S;
   readonly evaluationPlan: EvaluationPlan;
   readonly sourceMap: ProwessCompilationSourceMap;
-  readonly ability: ProwessAbilityDefinitionCompiledPlan;
+  readonly ability: ProwessAbilityDefinitionCompiledPlan<S>;
   readonly policy: { readonly definition: ProwessDefinitionRef; readonly signatureApReduction: number; readonly minimumAp: number; readonly minimumMp: number };
   readonly structure: ManeuverStructure;
   readonly contributions: readonly ManeuverCostContributionPlan[];
@@ -123,15 +125,18 @@ export interface ProwessManeuverCostCompiledPlan {
   };
 }
 type Resolved<T> = T & { readonly value: number };
-export interface ManeuverCostResult {
+export interface ManeuverCostResult<S = ProwessDefinitionRef> {
   readonly status: "VALID" | "INVALID";
   readonly valid: boolean;
-  readonly definition: ProwessDefinitionRef;
+  readonly definition: S;
   readonly rulesetProvenance: ProwessRulesetProvenance;
-  readonly authored: AuthoredAbilityResult;
+  readonly authored: AuthoredAbilityResult<S>;
   readonly structure: ManeuverStructure;
   readonly costOptions: readonly ManeuverCostOption[];
   readonly ap: {
+    readonly protectedActionAp?: number;
+    readonly appliedConditionFloor?: number;
+    readonly costPolicyVersion?: "M6-WO8-A";
     readonly contributions: readonly Resolved<ManeuverCostContributionPlan>[];
     /** Base AP: before Conditions, Signature and any temporary discount. Commitment-scaling consumers read THIS value. */
     readonly baseApCost: number;
@@ -174,7 +179,13 @@ export function compileManeuverCost(request: unknown): ProwessOutcome<ProwessMan
   const abilityRequest = Object.fromEntries(Object.entries(request).filter(([k]) => k !== SIGNATURE_FIELD));
   const ability = compileAbilityDefinition(abilityRequest);
   if (!ability.ok) return ability as ProwessOutcome<never>;
-  const plan = ability.value;
+  return compileManeuverCostCore(request, ability.value, [ability.value.definition]);
+}
+
+/** Internal shared cost compiler. Character subjects cite components, never a synthetic authored Definition. */
+export function compileManeuverCostCore<S>(request: Record<string, unknown>, plan: ProwessAbilityDefinitionCompiledPlan<S>, subjectRefs: readonly ProwessDefinitionRef[], maneuverContext?: ManeuverCompilationContext): ProwessOutcome<ProwessManeuverCostCompiledPlan<S>> {
+  const p = new Problems(), assigned = own(request, SIGNATURE_FIELD);
+  if (typeof assigned !== "boolean") { p.add(K.INVALID_SIGNATURE, [SIGNATURE_FIELD], "explicit Signature assignment required"); return finish(p, () => null as never); }
   if (plan.subject.abilityKind !== "MANEUVER") { p.add(K.MANEUVER_ONLY, ["definition"], "WO11 prices Maneuvers only; final Spell cost is M5-WO10"); return finish(p, () => null as never); }
   const signatureState = own(request, "signature");
   const slotUse = isPlainObject(signatureState) && isPlainObject(own(signatureState, "candidate")) ? own(own(signatureState, "candidate") as Record<string, unknown>, "slotUse") : undefined;
@@ -199,12 +210,12 @@ export function compileManeuverCost(request: unknown): ProwessOutcome<ProwessMan
     if (steps.some((s) => s.stepKey === step.stepKey)) p.add(K.DUPLICATE_CONTRIBUTION, [step.stepKey], "duplicate compiled step identity");
     const order = steps.length;
     steps.push({ ...step, order } as EvaluationStep);
-    entries.push({ ...entry, stepKey: step.stepKey, order, operation: step.operation });
+    entries.push({ ...entry, stepKey: step.stepKey, order, operation: step.operation, definitions: [...entry.definitions, ...(maneuverContext?.foundations.filter(x => entry.componentKeys.includes(x.actionKey)).flatMap(x => x.provenance) ?? [])] });
     return step.stepKey;
   };
   const key = (k: string) => `wo11.${subjectKey}.${k}`;
   const formula = (k: string, slot: keyof ManeuverCostPolicy["formulas"], variables: Record<string, number>, bindings: EvaluationBinding[], role: string, definitions: readonly ProwessDefinitionRef[], componentKeys: readonly string[]) =>
-    push({ stepKey: key(k), operation: "FORMULA", input: { program: { expression: policy.formulas[slot].expression, rounding: "NONE" }, variables } as unknown as JsonObject, bindings }, { role, componentKeys, definitions: [ref, policyRef, ...definitions] });
+    push({ stepKey: key(k), operation: "FORMULA", input: { program: { expression: policy.formulas[slot].expression, rounding: "NONE" }, variables } as unknown as JsonObject, bindings }, { role, componentKeys, definitions: [...subjectRefs, policyRef, ...definitions] });
   const modifier = (modifierKey: string, targetKey: string, operation: string, phaseKey: string, phaseOrder: number, order: number, source: ProwessDefinitionRef, operand = 0) => ({
     modifierKey, targetKey, operation, operand, phase: { phaseKey, phaseOrder }, priority: 0, order, condition: null, stacking: { policy: "STACK" },
     source: { sourceType: "prowess.maneuver_cost", sourceKey: source.canonicalKey, sourceId: source.entityVersionId }, provenance: null,
@@ -218,7 +229,7 @@ export function compileManeuverCost(request: unknown): ProwessOutcome<ProwessMan
   const pbKey = pb ? `powerful_blow.${[...pb.actionKeys].sort().join(".")}` : null;
   const groupOf = (actionKey: string) => (pb?.actionKeys.includes(actionKey) ? pbKey! : actionKey);
   const effectGroup = (effectKey: string) => { const a = authored.effectAttachments.find((x) => x.effectKey === effectKey); return a ? groupOf(a.actionKeys[0]!) : null; };
-  const groupTraits = (effects: readonly string[]) => plan.traits.filter((t) => t.scope.componentKey !== null && effects.includes(t.scope.componentKey)).map((t) => t.componentKey);
+  const groupTraits = (effects: readonly string[], actionKeys: readonly string[]) => plan.traits.filter((t) => t.scope.componentKey !== null && (effects.includes(t.scope.componentKey) || (t.scope.scope === "ACTION_SPECIFIC" ? actionKeys.includes(t.scope.componentKey) : t.scope.scope === "TARGETING" && actionKeys.some(k => `${k}.targeting` === t.scope.componentKey)))).map((t) => t.componentKey);
   const resolutionGroups: ManeuverResolutionGroup[] = [];
   for (const a of plan.actions) {
     const groupKey = groupOf(a.componentKey);
@@ -229,7 +240,7 @@ export function compileManeuverCost(request: unknown): ProwessOutcome<ProwessMan
     resolutionGroups.push({
       groupKey, kind: groupKey === pbKey ? "POWERFUL_BLOW" : attack ? "ATTACK" : "ACTION", actionKeys: members.map((x) => x.componentKey), attack: attack ? a.definition : null, repetitions: members.length,
       inheritedRequirements: attack ? [{ kind: "WEAPON", weaponKey: attack.damage.weaponKey, attack: a.definition, grantsConditionDiscount: false, consumesConditionSlot: false, status: "REQUIREMENT_CONTRACT_ONLY" }] : [],
-      effects, traits: groupTraits(effects),
+      effects, traits: groupTraits(effects, members.map(x => x.componentKey)),
     });
   }
   const attached = new Set(resolutionGroups.flatMap((g) => g.traits));
@@ -274,7 +285,7 @@ export function compileManeuverCost(request: unknown): ProwessOutcome<ProwessMan
       const n = String(contributions.length);
       const reductionStep = push(
         { stepKey: key(`affinity.${n}`), operation: "MODIFIER", input: { request: { targets: [{ targetKey: REDUCTION, kind: "NUMERIC", value: 0 }], modifiers: candidates.map((c, i) => modifier(`${componentKey}.${c.affinity.canonicalKey}`, REDUCTION, "MAX", "maneuver.effect_affinity", 1, i, c.affinity, c.reduction)), facts: emptyFacts() } } as unknown as JsonObject, bindings: [] },
-        { role: "maneuver-effect-affinity-reduction", componentKeys: [componentKey], definitions: [ref, definition, ...r.affinities] },
+        { role: "maneuver-effect-affinity-reduction", componentKeys: [componentKey], definitions: [...subjectRefs, definition, ...r.affinities] },
       );
       const adjusted = formula(`adjusted.${n}`, "affinityAdjusted", { minimum: r.minimum, amount: cost.amount, reduction: 0 }, [bind("/variables/reduction", reductionStep, "/data/finalTargets/0/value")], "maneuver-cost-contribution", [definition, ...r.affinities], [componentKey]);
       add({ ...base, rule: "FIXED_AFFINITY_ADJUSTED", selected: null }, adjusted, null, { listedAmount: cost.amount, minimum: r.minimum, reductionStepKey: reductionStep, candidates });
@@ -290,7 +301,7 @@ export function compileManeuverCost(request: unknown): ProwessOutcome<ProwessMan
   };
   // Foundations / Attack uses: every authored action use contributes its exact AP once (repeated uses stay distinct).
   for (const a of plan.actions) {
-    const costs = (findBundleDefinition(bundle, a.definition)!.payload as unknown as FoundationDefinitionPayload).costContributions;
+    const costs = (componentPayload(bundle, a.definition, maneuverContext, a.componentKey) as FoundationDefinitionPayload).costContributions;
     const conflict = unresolvedConflict(a.definition);
     if (conflict) { unresolved(["actions", a.componentKey], `the exact foundation cost is unresolved (${conflict})`); continue; }
     if (!costs.length) { unresolved(["actions", a.componentKey], "the foundation authors no AP cost; it is never priced from its name"); continue; }
@@ -353,7 +364,7 @@ export function compileManeuverCost(request: unknown): ProwessOutcome<ProwessMan
     const rows = ofCurrency(contributions, currency);
     return push(
       { stepKey: key(stepName), operation: "MODIFIER", input: { request: { targets: [{ targetKey: target, kind: "NUMERIC", value: 0 }], modifiers: rows.map((c, i) => modifier(`${c.componentKey}.${c.contributionKey}`, target, "ADD", `maneuver.${stepName}`, 1, i, c.definition)), facts: emptyFacts() } } as unknown as JsonObject, bindings: rows.map((c, i) => bind(`/request/modifiers/${String(i)}/operand`, c.stepKey)) },
-      { role, componentKeys: [...new Set(rows.map((c) => c.componentKey))], definitions: [ref, ...rows.map((c) => c.definition)] },
+      { role, componentKeys: [...new Set(rows.map((c) => c.componentKey))], definitions: [...subjectRefs, ...rows.map((c) => c.definition)] },
     );
   };
   const baseAp = sum("base_ap", BASE_AP, "AP", "maneuver-base-ap");
@@ -363,9 +374,20 @@ export function compileManeuverCost(request: unknown): ProwessOutcome<ProwessMan
   const conditionApEffective = dc?.summary.maneuverAp.effectiveStep ?? null;
   const conditionReduced = formula("condition_reduced", "conditionReduced", { base: 0, reduction: 0 }, [bind("/variables/base", baseAp, "/data/finalTargets/0/value"), ...(conditionApEffective ? [bind("/variables/reduction", conditionApEffective)] : [])], "maneuver-condition-reduced-ap", dc ? dc.conditions.map((c) => c.definition) : [], dc ? dc.conditions.map((c) => c.componentKey) : []);
   const attackFloor = formula("attack_floor", "attackFloor", { minimum: policy.minimumAp, attacks: structure.separateAttackResolutions }, [], "maneuver-condition-attack-floor", plan.actions.map((a) => a.definition), plan.actions.map((a) => a.componentKey));
+  // M6-WO8 Amendment A is opt-in through the exact Release's policy. Every constituent Foundation AP
+  // contribution is bound into M4, including repeated Attacks inside a one-block Powerful Blow.
+  const actionAp = ofCurrency(contributions.filter(c => c.source === "FOUNDATION"), "AP");
+  const protectedActionAp = policy.extension ? push(
+    { stepKey: key("protected_action_ap"), operation: "MODIFIER", input: { request: { targets: [{ targetKey: "maneuver.protected_action_ap", kind: "NUMERIC", value: 0 }], modifiers: actionAp.map((c, i) => modifier(`${c.componentKey}.${c.contributionKey}`, "maneuver.protected_action_ap", "ADD", "maneuver.actions", 1, i, c.definition)), facts: emptyFacts() } } as unknown as JsonObject, bindings: actionAp.map((c, i) => bind(`/request/modifiers/${i}/operand`, c.stepKey)) },
+    { role: "maneuver-protected-action-ap", componentKeys: actionAp.map(c => c.componentKey), definitions: [...subjectRefs, policyRef, ...actionAp.map(c => c.definition)] },
+  ) : null;
+  // Preserve the historical modifier verbatim; only the explicitly versioned policy selects the new floor.
+  const conditionFloor = policy.extension
+    ? { modifiers: [modifier("maneuver.protected_action_floor", POST_AP, "MAX", "maneuver.condition_floor", 1, 0, policyRef)] }
+    : { modifiers: [modifier("maneuver.condition_attack_floor", POST_AP, "MAX", "maneuver.condition_floor", 1, 0, policyRef)] };
   const postConditionAp = push(
-    { stepKey: key("post_condition_ap"), operation: "MODIFIER", input: { request: { targets: [{ targetKey: POST_AP, kind: "NUMERIC", value: 0 }], modifiers: [modifier("maneuver.condition_attack_floor", POST_AP, "MAX", "maneuver.condition_floor", 1, 0, policyRef)], facts: emptyFacts() } } as unknown as JsonObject, bindings: [bind("/request/targets/0/value", conditionReduced), bind("/request/modifiers/0/operand", attackFloor)] },
-    { role: "maneuver-post-condition-ap", componentKeys: [], definitions: [ref, policyRef] },
+    { stepKey: key("post_condition_ap"), operation: "MODIFIER", input: { request: { targets: [{ targetKey: POST_AP, kind: "NUMERIC", value: 0 }], ...conditionFloor, facts: emptyFacts() } } as unknown as JsonObject, bindings: [bind("/request/targets/0/value", conditionReduced), bind("/request/modifiers/0/operand", protectedActionAp ?? attackFloor, protectedActionAp ? "/data/finalTargets/0/value" : "/data/finalValue")] },
+    { role: "maneuver-post-condition-ap", componentKeys: [], definitions: [...subjectRefs, policyRef] },
   );
   const finalAp = push(
     {
@@ -376,12 +398,12 @@ export function compileManeuverCost(request: unknown): ProwessOutcome<ProwessMan
       ], facts: emptyFacts() } } as unknown as JsonObject,
       bindings: [bind("/request/targets/0/value", postConditionAp, "/data/finalTargets/0/value")],
     },
-    { role: "maneuver-final-ap", componentKeys: [], definitions: [ref, policyRef] },
+    { role: "maneuver-final-ap", componentKeys: [], definitions: [...subjectRefs, policyRef] },
   );
   // Only the explicitly SELECTED Condition MP options (WO9 already dropped the unselected AP-or-MP alternative).
   const conditionMp = push(
     { stepKey: key("condition_mp"), operation: "MODIFIER", input: { request: { targets: [{ targetKey: CONDITION_MP, kind: "NUMERIC", value: 0 }], modifiers: conditionMpReductions.map((c, i) => modifier(`${c.componentKey}.${c.contributionKey}`, CONDITION_MP, "ADD", "maneuver.condition_mp", 1, i, c.definition)), facts: emptyFacts() } } as unknown as JsonObject, bindings: conditionMpReductions.map((c, i) => bind(`/request/modifiers/${String(i)}/operand`, c.stepKey)) },
-    { role: "maneuver-condition-mp-reduction", componentKeys: conditionMpReductions.map((c) => c.componentKey), definitions: [ref, ...conditionMpReductions.map((c) => c.definition)] },
+    { role: "maneuver-condition-mp-reduction", componentKeys: conditionMpReductions.map((c) => c.componentKey), definitions: [...subjectRefs, ...conditionMpReductions.map((c) => c.definition)] },
   );
   const finalMp = push(
     {
@@ -392,17 +414,18 @@ export function compileManeuverCost(request: unknown): ProwessOutcome<ProwessMan
       ], facts: emptyFacts() } } as unknown as JsonObject,
       bindings: [bind("/request/targets/0/value", baseMp, "/data/finalTargets/0/value"), bind("/request/modifiers/0/operand", conditionMp, "/data/finalTargets/0/value")],
     },
-    { role: "maneuver-final-mp", componentKeys: conditionMpReductions.map((c) => c.componentKey), definitions: [ref, policyRef, ...conditionMpReductions.map((c) => c.definition)] },
+    { role: "maneuver-final-mp", componentKeys: conditionMpReductions.map((c) => c.componentKey), definitions: [...subjectRefs, policyRef, ...conditionMpReductions.map((c) => c.definition)] },
   );
 
   // ---- 4. Explanation of every cost step -------------------------------------------------------------------------------
   const explained = steps.slice(plan.evaluationPlan.steps.length);
   const explanation = push(
     { stepKey: key("explanation"), operation: "EXPLANATION", input: { input: { explanationKey: key("explanation"), contributions: explained.map((s, i) => ({ contributionKey: s.stepKey, order: i, kind: s.operation === "FORMULA" ? "FORMULA" : "MODIFIER", response: null })) } } as unknown as JsonObject, bindings: explained.map((s, i) => bind(`/input/contributions/${String(i)}/response`, s.stepKey, "")) },
-    { role: "maneuver-cost-explanation", componentKeys: [], definitions: [ref] },
+    { role: "maneuver-cost-explanation", componentKeys: [], definitions: [...subjectRefs] },
   );
   if (p.count > 0) return finish(p, () => null as never);
   return finish(p, () => deepFreeze(clonePlainData({
+    ...(protectedActionAp ? { protectedActionAp } : {}),
     contractVersion: 1 as const,
     subject: { kind: "MANEUVER_COST" as const, subjectKey },
     rulesetProvenance: plan.rulesetProvenance,
@@ -418,7 +441,7 @@ export function compileManeuverCost(request: unknown): ProwessOutcome<ProwessMan
 }
 
 /** Reads an M4 run of a Maneuver cost plan. Every number comes from M4; nothing here computes. */
-export function readManeuverCostRun(plan: ProwessManeuverCostCompiledPlan, run: unknown): ProwessOutcome<ManeuverCostResult> {
+export function readManeuverCostRun<S = ProwessDefinitionRef>(plan: ProwessManeuverCostCompiledPlan<S>, run: unknown): ProwessOutcome<ManeuverCostResult<S>> {
   const p = new Problems();
   if (!checkPlainData(run, [], p, K.INCOMPLETE_RUN)) return finish(p, () => null as never);
   if (!isPlainObject(run) || !Array.isArray(run.steps)) { p.add(K.INCOMPLETE_RUN, [], "exact EvaluationRun required"); return finish(p, () => null as never); }
@@ -448,6 +471,7 @@ export function readManeuverCostRun(plan: ProwessManeuverCostCompiledPlan, run: 
     structure: plan.structure,
     costOptions: plan.costOptions,
     ap: {
+      ...(plan.protectedActionAp ? { protectedActionAp: target(plan.protectedActionAp), appliedConditionFloor: target(plan.protectedActionAp), costPolicyVersion: "M6-WO8-A" as const } : {}),
       contributions: ofCurrency(resolved, "AP"),
       baseApCost: target(plan.steps.baseAp),
       conditions: { listedApReduction: cap.listed, effectiveApReduction: cap.effective, maximumApReduction: cap.maximum },
