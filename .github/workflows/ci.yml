@@ -502,7 +502,7 @@ jobs:
           PROWESS_EXPECT_CONTROLS=21 node scripts/m5-wo3-negative-controls.mjs
 
   controls-2:
-    name: Gates — M5-WO4, canon rulings, M5-WO5, M6-WO1, M6-WO2, M6-WO3, M6-WO4, M6-WO5, M6-WO6, M6-WO7
+    name: Gates — M5-WO4, canon rulings, M5-WO5, M6-WO1, M6-WO2, M6-WO3, M6-WO4, M6-WO5, M6-WO6, M6-WO7, M6-WO8
     needs: [unit-packages, unit-game, unit-studio, db-api, db-integration]
     runs-on: ubuntu-latest
     steps:
@@ -573,6 +573,11 @@ jobs:
         run: |
           node scripts/ci/verify-gate.mjs M6-WO7 packages/prowess-game/src/character-signature-spell.test.ts packages/prowess-game/src/character-signature-spell-world.test.ts packages/prowess-game/src/m6-wo7-m5-characterization.test.ts packages/prowess-db/tests/integration/m6-wo7-signature-spells.test.ts packages/prowess-db/tests/integration/m6-wo7-migration-compat.test.ts apps/studio/tests/unit/m6-wo7-static.test.ts apps/studio/tests/unit/m6-wo7-spell-ui.test.tsx apps/studio/tests/integration/m6-wo7-signature-spells-api.test.ts
           PROWESS_EXPECT_CONTROLS=68 node scripts/m6-wo7-negative-controls.mjs
+
+      - name: M6-WO8 — Signature Maneuver Builder
+        run: |
+          node scripts/ci/verify-gate.mjs M6-WO8 packages/prowess-game/src/character-signature-maneuver.test.ts packages/prowess-game/src/character-signature-maneuver-world.test.ts packages/prowess-game/src/m6-wo8-amendment.test.ts packages/prowess-game/src/m6-wo7-m5-characterization.test.ts packages/prowess-game/src/maneuver-cost-golden.test.ts packages/prowess-game/src/spell-cost-golden.test.ts packages/prowess-db/tests/unit/m6-wo8-lifecycle-contract.test.ts packages/prowess-db/tests/unit/m6-wo8-presentation.test.ts packages/prowess-db/tests/unit/m6-wo8-sheet-projection.test.ts packages/prowess-db/tests/integration/m6-wo8-signature-maneuvers.test.ts packages/prowess-db/tests/integration/m6-wo8-migration-compat.test.ts apps/studio/tests/unit/m6-wo8-static.test.ts apps/studio/tests/unit/m6-wo8-maneuver-ui.test.tsx apps/studio/tests/integration/m6-wo8-signature-maneuvers-api.test.ts
+          PROWESS_EXPECT_CONTROLS=36 node scripts/m6-wo8-negative-controls.mjs
 
   controls-3:
     name: Gates — M5-WO6…WO10

@@ -9,7 +9,7 @@ import { checkCertificationCaches, checkInventory, loadInventory, workflowJobs }
  * (scripts/ci/legacy-inventory.json): old unique assertion inventory ⊆ new consolidated inventory.
  */
 const ROOT = path.resolve(import.meta.dirname, "../../../..");
-interface Gate { id: string; controls: { script: string; count: number; kind: string } | null; tiers: number[] }
+interface Gate { id: string; name: string; job: string; tests: string[]; controls: { script: string; count: number; kind: string } | null; tiers: number[] }
 interface Inventory { gates: Gate[]; suites: Record<string, { job: string }>; checks: { id: string }[] }
 
 describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
@@ -19,7 +19,7 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
     expect(checkInventory(ROOT)).toEqual([]);
   });
 
-  it("keeps the complete negative / mutation control inventory: 535 controls across 21 scripts (M6-WO1 added 18, M6-WO2 added 18, M6-WO3 added 28, M6-WO4 added 37, M6-WO5 added 33, M6-WO6 added 53, M6-WO7 added 68)", () => {
+  it("keeps all historical 535 controls and adds WO8's 36: 571 controls across 22 scripts", () => {
     const counts = Object.fromEntries(inventory.gates.filter((g) => g.controls).map((g) => [g.controls!.script, g.controls!.count]));
     expect(counts).toEqual({
       "scripts/m4-final-negative-controls.mjs": 3,
@@ -43,7 +43,30 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
       "scripts/m6-wo5-negative-controls.mjs": 33,
       "scripts/m6-wo6-negative-controls.mjs": 53,
       "scripts/m6-wo7-negative-controls.mjs": 68,
+      "scripts/m6-wo8-negative-controls.mjs": 36,
     });
+    expect(Object.values(counts).reduce((sum, count) => sum + count, 0)).toBe(571);
+  });
+
+  it("WO8 remains a Tier 2/3 gate over every required domain, historical, database, API, UI and static suite", () => {
+    const gate = inventory.gates.find(g => g.id === "M6-WO8");
+    expect(gate).toMatchObject({ name: "M6-WO8 — Signature Maneuver Builder", job: "controls-2", tiers: [2, 3], controls: { script: "scripts/m6-wo8-negative-controls.mjs", count: 36, kind: "mutation" } });
+    expect(gate!.tests).toEqual([
+      "packages/prowess-game/src/character-signature-maneuver.test.ts",
+      "packages/prowess-game/src/character-signature-maneuver-world.test.ts",
+      "packages/prowess-game/src/m6-wo8-amendment.test.ts",
+      "packages/prowess-game/src/m6-wo7-m5-characterization.test.ts",
+      "packages/prowess-game/src/maneuver-cost-golden.test.ts",
+      "packages/prowess-game/src/spell-cost-golden.test.ts",
+      "packages/prowess-db/tests/unit/m6-wo8-lifecycle-contract.test.ts",
+      "packages/prowess-db/tests/unit/m6-wo8-presentation.test.ts",
+      "packages/prowess-db/tests/unit/m6-wo8-sheet-projection.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo8-signature-maneuvers.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo8-migration-compat.test.ts",
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "apps/studio/tests/unit/m6-wo8-maneuver-ui.test.tsx",
+      "apps/studio/tests/integration/m6-wo8-signature-maneuvers-api.test.ts",
+    ]);
   });
 
   it("every M1, M4-WO1…WO12 and M5-WO1…WO13 gate is permanent (Tier 2 and Tier 3)", () => {

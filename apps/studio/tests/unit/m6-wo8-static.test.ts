@@ -5,6 +5,8 @@ import { describe, expect, it } from "vitest";
 import { auditM5Source } from "./m5-wo1-audit-helpers";
 import { auditWo2Source } from "./m5-wo2-audit-helpers";
 import { auditWo3Source } from "./m5-wo3-audit-helpers";
+import ts from "typescript";
+import { callsNamed, descendants, exactlyOne, maneuverUiFindings, namedFunction, namedVariable, parseSource, syntaxIs, syntaxTokens } from "./m6-wo8-audit-helpers";
 
 const ROOT = path.resolve(process.cwd(), "../..");
 const read = (f: string) => readFileSync(path.join(ROOT, f), "utf8");
@@ -145,5 +147,102 @@ describe("M6-WO8 permanent architecture and integration contracts", () => {
     expect(Object.keys(registry.changedFiles).sort()).toEqual(changed.sort()); expect(Object.keys(registry.addedFiles).sort()).toEqual(added.sort());
     for (const [f, h] of Object.entries({ ...registry.changedFiles, ...registry.addedFiles })) expect(hash(f), f).toBe(h);
     expect(read(G + "m6-wo7-m5-characterization.test.ts")).toContain("M6-I096");
+  });
+});
+
+// Semantic contracts complement the engine/lifecycle tests. They parse actual source and inspect named functions,
+// call arguments and request/model fields rather than relying on line positions or whitespace-sensitive anchors.
+describe("WO8 final permanent contracts (I099–I128)", () => {
+  const source = (f: string) => parseSource(f, read(f));
+  it("D-I101 exact Release lookup and WO6 bindings cannot be replaced with names or guessed profiles", () => {
+    const f = namedFunction(source(G + "character/signature-maneuver.ts"), "evaluateCharacterSignatureManeuver");
+    expect(callsNamed(f, "findBundleDefinition").some(c => c.arguments.length === 2 && syntaxIs(c.arguments[0]!, "bundle") && syntaxIs(c.arguments[1]!, "a.source.definition"))).toBe(true);
+    for (const kind of ["weapon", "attack"]) expect(callsNamed(f, "isSameExactDefinition").some(c => syntaxIs(c.arguments[0]!, `x.${kind}`) && syntaxIs(c.arguments[1]!, `source.${kind}`))).toBe(true);
+    const binding = exactlyOne(callsNamed(f, "bindWeaponAttackToManeuver"), "WO6 binding");
+    const properties = descendants(binding.arguments[0]!, ts.isPropertyAssignment);
+    expect(properties.some(p => syntaxIs(p, "damageProfileKey: source.damageProfileKey"))).toBe(true);
+    expect(descendants(f, ts.isPropertyAssignment).some(p => syntaxIs(p, "provenance: [source.weapon, source.attack]"))).toBe(true);
+  });
+  it("D-I108 I123 I124 I125 I128 the opt-in floor and final AP bind the actual M4 stages", () => {
+    const f = namedFunction(source(G + "ability/maneuver-cost.ts"), "compileManeuverCostCore");
+    const floor = namedVariable(f, "protectedActionAp").initializer!;
+    expect(ts.isConditionalExpression(floor) && syntaxIs(floor.condition, "policy.extension")).toBe(true);
+    expect(syntaxIs(namedVariable(f, "actionAp").initializer!, 'ofCurrency(contributions.filter(c => c.source === "FOUNDATION"), "AP")')).toBe(true);
+    const final = namedVariable(f, "finalAp").initializer!;
+    expect(callsNamed(final, "bind").some(c => syntaxIs(c.arguments[1]!, "postConditionAp"))).toBe(true);
+    expect(callsNamed(final, "modifier").some(c => ts.isStringLiteral(c.arguments[0]!) && c.arguments[0].text === "maneuver.signature" && syntaxIs(c.arguments[2]!, '"SUBTRACT"'))).toBe(true);
+    const post = namedVariable(f, "postConditionAp").initializer!;
+    expect(callsNamed(post, "bind").some(c => syntaxIs(c.arguments[1]!, "protectedActionAp ?? attackFloor"))).toBe(true);
+  });
+  it("D-I126 I127 Performance uses the exact Skill, actual rank and separate preparation", () => {
+    const f = namedFunction(source(G + "ability/duration-conditions.ts"), "compileDurationConditions");
+    expect(callsNamed(f, "findBundleDefinition").some(c => syntaxIs(c.arguments[1]!, "cr.performance.skill"))).toBe(true);
+    expect(syntaxIs(namedVariable(f, "rank").initializer!, "input.skillRanks?.find(q => q.skillKey === cr.performance!.skill.canonicalKey)?.rankKey")).toBe(true);
+    expect(callsNamed(f, "Object.hasOwn").some(c => syntaxIs(c.arguments[0]!, "parameters") && syntaxIs(c.arguments[1]!, "cr.performance.rankParameter"))).toBe(true);
+    expect(descendants(f, ts.isPropertyAssignment).some(p => syntaxIs(p, "consumesSlot: cr.consumesSlot"))).toBe(true);
+    const listed = namedVariable(namedFunction(source(G + "ability/maneuver-cost.ts"), "compileManeuverCostCore"), "contributions");
+    expect(ts.isArrayLiteralExpression(listed.initializer!) && listed.initializer.elements.length === 0).toBe(true);
+  });
+  it("D-I099 I111 I119 persisted models contain only ownership, choices, versions and immutable history", () => {
+    const schema = read("packages/prowess-db/prisma/schema.prisma");
+    const expected: Record<string, string[]> = {
+      CharacterSignatureAbility: ["id", "characterId", "character", "abilityKind", "status", "currentRevisionId", "currentRevision", "currentManeuverRevisionId", "currentManeuverRevision", "draftPayload", "lockVersion", "createdAt", "updatedAt", "retiredAt", "revisions", "maneuverRevisions"],
+      CharacterSignatureManeuverRevision: ["id", "abilityId", "ability", "revisionNumber", "characterReleaseId", "characterRelease", "previousRevisionId", "previousRevision", "nextRevision", "payload", "createdAt", "currentOf"],
+    };
+    for (const [model, fields] of Object.entries(expected)) {
+      const body = new RegExp(`model\\s+${model}\\s*\\{([\\s\\S]*?)^\\}`, "m").exec(schema)?.[1];
+      expect(body, model).toBeDefined();
+      expect([...body!.matchAll(/^\s*(\w+)\s+\w/gm)].map(m => m[1]).sort(), model).toEqual([...fields].sort());
+    }
+    expect(/CREATE\s+TRIGGER\s+"character_signature_maneuver_revisions_append_only"\s+BEFORE\s+UPDATE\s+OR\s+DELETE\s+ON\s+"character_signature_maneuver_revisions"/i.test(migration)).toBe(true);
+    for (const f of [D + "signature-maneuver-service.ts", D + "signature-maneuver-repository.ts", D + "signature-spell-repository.ts"]) {
+      const calls = descendants(source(f), ts.isCallExpression).map(c => c.expression.getText());
+      expect(calls.some(c => /\.(entity|entityVersion|rulesetRelease|changeSet|rulesetManifest)\.(create|update|upsert|delete)/.test(c)), f).toBe(false);
+      expect(calls.some(c => /characterSignature(?:Maneuver|Spell)Revision\.(update|delete|upsert)/.test(c)), f).toBe(false);
+    }
+  });
+  it("D-I120 the eight APIs accept exact closed fields rather than client prices or targeting", () => {
+    for (const [index, f] of routes.entries()) {
+      const bodies = callsNamed(source(f), "readStrictBody");
+      const expected = index === 0 ? ["name"] : index === 3 ? ["expectedVersion", "draft"] : ["expectedVersion"];
+      if ([1, 2].includes(index)) { expect(bodies).toHaveLength(0); continue; }
+      const node = exactlyOne(bodies, `strict body in ${f}`).arguments[1]!;
+      expect(ts.isArrayLiteralExpression(node)).toBe(true);
+      const fields = ts.isArrayLiteralExpression(node) ? node.elements.map(e => ts.isStringLiteral(e) ? e.text : null) : [];
+      expect(fields, f).toEqual(expected);
+    }
+  });
+  it("D-I113 I115 I122 only server-valid drafts reach finalization in their own Release/loadout context", () => {
+    const root = source(D + "signature-maneuver-service.ts"), f = namedFunction(root, "finalizeCharacterSignatureManeuver");
+    const allowedStates = namedVariable(root, "valid").initializer!;
+    expect(descendants(allowedStates, ts.isStringLiteral).map(n => n.text)).toEqual(["VALID", "VALID_WITH_RUNTIME_DEFERRED"]);
+    const final = exactlyOne(callsNamed(f, "finalizeSignatureManeuver"), "finalization call");
+    const properties = descendants(final.arguments[0]!, ts.isPropertyAssignment);
+    for (const contract of ["characterLockVersion: ctx.c.lockVersion", "characterReleaseId: ctx.c.rulesetReleaseId", "weaponLoadoutVersion: ctx.loadoutVersion"]) expect(properties.some(p => syntaxIs(p, contract)), contract).toBe(true);
+    expect(descendants(f, ts.isIfStatement).some(n => syntaxIs(n.expression, "valid(result)") && descendants(n.thenStatement, ts.isPropertyAssignment).some(p => syntaxIs(p, "ok: true")))).toBe(true);
+    expect(descendants(namedFunction(root, "entryOf"), ts.isBinaryExpression).some(n => syntaxIs(n, "rev.characterReleaseId === ctx.c.rulesetReleaseId"))).toBe(true);
+    expect(descendants(namedFunction(root, "detailOf"), ts.isBinaryExpression).some(n => syntaxIs(n, "r.characterReleaseId === ctx.c.rulesetReleaseId"))).toBe(true);
+  });
+  it("D-I116 I117 no Maneuver frontend or formatter owns mechanical arithmetic or combat execution", () => {
+    const front = [...files(UI), ...files("apps/studio/app/characters/[characterId]/maneuvers"), "apps/studio/app/characters/_lib/maneuver-format.ts", "apps/studio/app/characters/_components/sheet/ManeuverRows.tsx"].filter(f => /\.tsx?$/.test(f));
+    for (const f of front) expect(maneuverUiFindings(f, read(f)), f).toEqual([]);
+    expect(maneuverUiFindings("example.tsx", "const a = value.finalApCost; const b = a; export const price = b - 1;")).toContain("client-mechanical-arithmetic");
+    expect(syntaxTokens('value /* comment */ === "ACTIVE"')).toBe(syntaxTokens("value === 'ACTIVE'"));
+  });
+  it("D-I103 I106 I121 the public construction contract is Action-first with one global Effect minimum", () => {
+    const root = source(G + "character/signature-maneuver.ts");
+    const steps = namedVariable(root, "SIGNATURE_MANEUVER_STEPS").initializer!;
+    const labels = descendants(steps, ts.isStringLiteral).map(n => n.text);
+    expect(labels).toEqual(["CONCEPT", "ACTION_SELECTION", "ACTION_SEQUENCE", "EFFECTS", "TRAITS", "DURATION", "CONDITIONS", "REVIEW", "FINALIZE"]);
+    const missing = namedVariable(namedFunction(root, "evaluateCharacterSignatureManeuver"), "missing").initializer!;
+    expect(descendants(missing, ts.isConditionalExpression).some(n => syntaxIs(n.condition, "!draft.effects.length") && syntaxIs(n.whenTrue, '["EFFECTS"]'))).toBe(true);
+    expect(descendants(root, ts.isPropertyAssignment).some(p => syntaxIs(p, "enforceActionBlockCapacity: true"))).toBe(true);
+  });
+  it("D-I099–I128 every declared invariant has existing permanent guards and a mutation inventory", () => {
+    const invariants = JSON.parse(read("docs/architecture/m6-invariants.json")) as { id: string; guards: string[] }[];
+    const expected = Array.from({ length: 30 }, (_, i) => `M6-I${String(i + 99).padStart(3, "0")}`);
+    const rows = invariants.filter(x => expected.includes(x.id));
+    expect(rows.map(x => x.id)).toEqual(expected);
+    for (const row of rows) { expect(row.guards).toContain("apps/studio/tests/unit/m6-wo8-static.test.ts"); expect(row.guards).toContain("scripts/m6-wo8-negative-controls.mjs"); for (const f of row.guards) expect(existsSync(path.join(ROOT, f)), `${row.id}: ${f}`).toBe(true); }
   });
 });

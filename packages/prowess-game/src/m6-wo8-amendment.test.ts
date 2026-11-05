@@ -51,6 +51,26 @@ describe("M6-WO8 Amendment A — versioned protected Action cost", () => {
     expect(run("support", true).result.ap.finalApCost).toBeGreaterThanOrEqual(1);
     expect(run("mp_floor").result.mp.finalMpCost).toBeGreaterThanOrEqual(0);
   });
+  it("clamps one-AP Signature activation and excess Performance MP reductions to their universal minima", () => {
+    const request = copy(f.request("fixture.wo11.maneuver.mana", true));
+    const payload = request.definitions.definitions.find(d => d.canonicalKey === "fixture.wo11.maneuver.mana")!.payload as unknown as {
+      actions: unknown[]; effectAttachments: unknown[]; composition: { conditions: unknown[]; traits: unknown[] };
+    };
+    payload.actions = [{ componentKey: "light", order: 1, definition: f.ref("fixture.wo11.attack.light"), parameters: {} }];
+    payload.effectAttachments = [{ effectKey: "effect1", actionKeys: ["light"] }];
+    payload.composition.traits = [];
+    payload.composition.conditions = [{ componentKey: "performance", order: 1, definition: f.ref("maneuver.condition.performance"), parameters: {} }];
+    request.character.skillRanks.push({ skillKey: "test.wo8.skill.performance", rankKey: "MASTER" });
+    const effect = request.definitions.definitions.find(d => d.canonicalKey === "fixture.wo11.effect.surge")!.payload as unknown as { costContributions: unknown[] };
+    effect.costContributions = [
+      { contributionKey: "effect.ap", currency: "AP", data: { kind: "FIXED", amount: 0 } },
+      { contributionKey: "effect.mp", currency: "MP", data: { kind: "FIXED", amount: 0 } },
+    ];
+    const result = runManeuverCost(request).result;
+    expect(result.valid, JSON.stringify(result.problems)).toBe(true);
+    expect(result.ap).toMatchObject({ baseApCost: 1, protectedActionAp: 1, postConditionApCost: 1, signature: { reduction: 1, applied: true }, finalApCost: 1 });
+    expect(result.mp).toMatchObject({ baseMpCost: 0, conditionMpReduction: 6, finalMpCost: 0 });
+  });
   it.each([["TRAINED", 2, 1], ["EXPERT", 4, 1], ["MASTER", 6, 0]] as const)("Performance %s is selected once, costs separate preparation, and consumes no ordinary slot", (rank, discount, preparation) => {
     const r = copy(f.request("fixture.wo11.maneuver.mana"));
     const def = r.definitions.definitions.find(d => d.canonicalKey === "fixture.wo11.maneuver.mana")!;

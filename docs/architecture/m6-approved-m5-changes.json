@@ -120,7 +120,7 @@
       "packages/prowess-game/src/character/signature-maneuver.ts": "08628663e6539262a2db996727098cef56636e95d910011fa58ead032f2f074b",
       "packages/prowess-game/src/construction/maneuver-context.ts": "38c63fd5bcc0352f8ba9167ef56268d5526f0d9def2b75b74aacec7290bff8df",
       "packages/prowess-game/src/content-updates/m6-wo8-amendment-a.ts": "6a15f16ce810f45f2ffe63db8ec4a5bbcec94e076c8aaba676448975d342c302",
-      "packages/prowess-game/src/m6-wo8-amendment.test.ts": "c204c64062dae3c4cac96e1d4d23db1750ab70865da21afdf74d6d843b07bf74",
+      "packages/prowess-game/src/m6-wo8-amendment.test.ts": "92a18fbe6f04961122bf05b91588d3339317792fa06118ea46a9c44a0b8ec9bd",
       "packages/prowess-game/src/testing/m6-wo8-maneuver-world.json": "80eb267373d7f60ef9b8e4266810aeb376e2da60a84112993a4057beec0c194a",
       "packages/prowess-game/src/testing/signature-maneuver-fixtures.ts": "157ab38fd54d2fd202ab6171c0bf8b81697a2a716d0b52290f946d79c8b9aa62"
     }

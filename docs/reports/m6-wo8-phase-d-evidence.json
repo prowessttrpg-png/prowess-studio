@@ -1,0 +1,416 @@
+{
+  "phase": "M6-WO8 Phase D",
+  "localVerification": "COMPLETE",
+  "readyForFinalCIPublication": true,
+  "finalSameCommitCI": "PENDING AUTHORIZATION AND PUBLICATION",
+  "baselineRecovery": {
+    "acceptedRemote": "611a26f59c3ed953301bc205f9d5d43da1b5b60a",
+    "acceptedTree": "fc31a5fa96c78b6e6a52b2a7bef410bee998f412",
+    "recoveredLocal": "712f9f9d6edb9e87861876ba000e2c27c4f25325",
+    "availablePriorLocal": "1131252260ff71c97ebd05984011268abea1b044",
+    "preservedPriorRef": "m6-wo8-preserved-pre-phase-d",
+    "verifiedRemoteBlobs": 10,
+    "verifiedRemoteTrees": 13,
+    "workingTreeClean": true,
+    "fullTreeEquivalent": true,
+    "remoteModified": false
+  },
+  "acceptedPhaseCBaseline": {
+    "remoteCommit": "611a26f59c3ed953301bc205f9d5d43da1b5b60a",
+    "tree": "fc31a5fa96c78b6e6a52b2a7bef410bee998f412",
+    "CI": "https://github.com/prowessttrpg-png/prowess-studio/actions/runs/41960337280",
+    "e2eExecutedAndPassed": 6,
+    "nativeFixtureContractPassed": true,
+    "playwrightPassed": 71,
+    "studioTestsPassed": 3506,
+    "jobsPassed": 16,
+    "certifiesPhaseD": false
+  },
+  "completedLocalChecks": [
+    {
+      "name": "historical-game",
+      "summary": "486 tests passed across 11 suites: current WO8 domain/amendment/world, historical Spell/Maneuver goldens, WO7 characterization/Spell builder, WO6 library/bridge and Character Sheet",
+      "command": [
+        "corepack",
+        "pnpm",
+        "--filter",
+        "@prowess/game",
+        "exec",
+        "vitest",
+        "run",
+        "src/character-signature-maneuver.test.ts",
+        "src/character-signature-maneuver-world.test.ts",
+        "src/m6-wo8-amendment.test.ts",
+        "src/maneuver-cost-golden.test.ts",
+        "src/spell-cost-golden.test.ts",
+        "src/m6-wo7-m5-characterization.test.ts",
+        "src/weapon-library.test.ts",
+        "src/weapon-bridge.test.ts",
+        "src/character-signature-spell.test.ts",
+        "src/character-signature-spell-world.test.ts",
+        "src/character-sheet.test.ts",
+        "--maxWorkers=1",
+        "--no-file-parallelism",
+        "--reporter=dot"
+      ],
+      "startedAt": "2026-11-05T05:00:59.760687+00:00",
+      "completedAt": "2026-11-05T05:03:44.603899+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-d/historical-game.log",
+      "sha256": "4e2bd2073e6f7a9356f30c1f294e9446bbaa17e653bc33507dad97c85ec5c1d6"
+    },
+    {
+      "name": "historical-studio",
+      "summary": "219 tests passed across 12 suites: WO3 creation, WO5 Sheet, WO6 weapons, WO7 spells, WO8 UI/static and gate inventory",
+      "command": [
+        "corepack",
+        "pnpm",
+        "--filter",
+        "@prowess/studio",
+        "exec",
+        "vitest",
+        "run",
+        "tests/unit/m6-wo3-static.test.ts",
+        "tests/unit/m6-wo3-character-ui.test.tsx",
+        "tests/unit/m6-wo3-compendium-integration.test.tsx",
+        "tests/unit/m6-wo5-static.test.ts",
+        "tests/unit/m6-wo5-sheet-ui.test.tsx",
+        "tests/unit/m6-wo6-static.test.ts",
+        "tests/unit/m6-wo6-weapon-ui.test.tsx",
+        "tests/unit/m6-wo7-static.test.ts",
+        "tests/unit/m6-wo7-spell-ui.test.tsx",
+        "tests/unit/m6-wo8-static.test.ts",
+        "tests/unit/m6-wo8-maneuver-ui.test.tsx",
+        "tests/unit/ci-gate-inventory.test.ts",
+        "--maxWorkers=1",
+        "--no-file-parallelism",
+        "--reporter=dot"
+      ],
+      "startedAt": "2026-11-05T05:00:59.760724+00:00",
+      "completedAt": "2026-11-05T05:01:25.026073+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-d/historical-studio.log",
+      "sha256": "157d69aacaeea14f0e31f7dc3e48d7b08fbf978e359e2da5aa4a8e52c76047c3"
+    },
+    {
+      "name": "wo8-db-unit",
+      "summary": "17 tests passed across three suites: lifecycle transaction ports, exact engine-generated presentation fixture and Sheet projection",
+      "command": [
+        "corepack",
+        "pnpm",
+        "--filter",
+        "@prowess/db",
+        "exec",
+        "vitest",
+        "run",
+        "--config",
+        "vitest.unit.config.ts",
+        "tests/unit/m6-wo8-lifecycle-contract.test.ts",
+        "tests/unit/m6-wo8-presentation.test.ts",
+        "tests/unit/m6-wo8-sheet-projection.test.ts",
+        "--maxWorkers=1",
+        "--no-file-parallelism",
+        "--reporter=dot"
+      ],
+      "startedAt": "2026-11-05T04:45:57.616416+00:00",
+      "completedAt": "2026-11-05T04:46:12.695734+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-d/wo8-db-unit.log",
+      "sha256": "9c0c5ddf0ef2d0c74910804c1447b568da31cbf8123b3350089b22cd1728ac1e"
+    },
+    {
+      "name": "lifecycle-final",
+      "summary": "14 lifecycle tests rechecked after lint-only unused-argument cleanup",
+      "command": [
+        "corepack",
+        "pnpm",
+        "--filter",
+        "@prowess/db",
+        "exec",
+        "vitest",
+        "run",
+        "--config",
+        "vitest.unit.config.ts",
+        "tests/unit/m6-wo8-lifecycle-contract.test.ts",
+        "--reporter=dot"
+      ],
+      "startedAt": "2026-11-05T05:05:57.539371+00:00",
+      "completedAt": "2026-11-05T05:05:59.751858+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-d/lifecycle-final.log",
+      "sha256": "6c1f4b930fef430550ae9b5ad1121cf9ddedb7b272550ee87883e61b107b76e2"
+    },
+    {
+      "name": "negative-controls-verified",
+      "summary": "36 controls caught; 15 green guard baselines; all source restored byte-for-byte and whole working tree unchanged",
+      "command": [
+        "node",
+        "scripts/m6-wo8-negative-controls.mjs"
+      ],
+      "startedAt": "2026-11-05T04:54:56.658495+00:00",
+      "completedAt": "2026-11-05T04:58:56.456876+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-d/negative-controls-verified.log",
+      "sha256": "e9de8737a9af0662acf11bdbaad78e95d9f3bbe933c943851ec8f3f8d707efbc"
+    },
+    {
+      "name": "harness-selftest",
+      "summary": "8 harness scenarios passed; uncaught, misattributed, red-baseline, no-op, residue and changed-inventory runs rejected",
+      "command": [
+        "node",
+        "scripts/lib/control-harness.selftest.mjs"
+      ],
+      "startedAt": "2026-11-05T05:00:59.764331+00:00",
+      "completedAt": "2026-11-05T05:01:00.804562+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-d/harness-selftest.log",
+      "sha256": "fa48fb47c73731eb65db4153497b04d5a88872f7f3e73146a91c681919dd558f"
+    },
+    {
+      "name": "gate-inventory",
+      "summary": "9 suites, 40 gates, 571 controls, 14 checks; all legacy items preserved",
+      "command": [
+        "node",
+        "scripts/ci/gate-inventory.mjs"
+      ],
+      "startedAt": "2026-11-05T05:00:59.766165+00:00",
+      "completedAt": "2026-11-05T05:00:59.856414+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-d/gate-inventory.log",
+      "sha256": "528d68f2dd60f137f1e0b48e504636fdb1dfbba291c3dcb0e64ae54e52f9f67c"
+    },
+    {
+      "name": "lint-verified",
+      "summary": "All seven workspace lint tasks passed, zero warnings",
+      "command": [
+        "corepack",
+        "pnpm",
+        "run",
+        "lint"
+      ],
+      "startedAt": "2026-11-05T05:05:57.550619+00:00",
+      "completedAt": "2026-11-05T05:06:27.923005+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-d/lint-verified.log",
+      "sha256": "25840233689311496cf7fcedc66d415fa997a06d896117e9424da99877a1f52c"
+    },
+    {
+      "name": "typecheck",
+      "summary": "All seven workspace typechecks passed",
+      "command": [
+        "corepack",
+        "pnpm",
+        "run",
+        "typecheck"
+      ],
+      "startedAt": "2026-11-05T05:03:33.170109+00:00",
+      "completedAt": "2026-11-05T05:04:01.682041+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-d/typecheck.log",
+      "sha256": "abbd1809913c7000a21799482ea50f1db4b2f1ea7cc6286de28749eaf472e3be"
+    },
+    {
+      "name": "db-typecheck-final",
+      "summary": "Database test types rechecked after lint-only cleanup",
+      "command": [
+        "corepack",
+        "pnpm",
+        "--filter",
+        "@prowess/db",
+        "run",
+        "typecheck"
+      ],
+      "startedAt": "2026-11-05T05:05:57.539785+00:00",
+      "completedAt": "2026-11-05T05:06:09.646301+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-d/db-typecheck-final.log",
+      "sha256": "19d9b7631eb233c0fb0a4befbdc864631c34452dea8a08961509df84c6e0d579"
+    },
+    {
+      "name": "architecture",
+      "summary": "13 import-boundary rules and seven package cycles passed",
+      "command": [
+        "node",
+        "scripts/check-architecture.mjs"
+      ],
+      "startedAt": "2026-11-05T05:03:33.166920+00:00",
+      "completedAt": "2026-11-05T05:03:33.300989+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-d/architecture.log",
+      "sha256": "bcef4b1cbccf590b5b0bbf8cc9222a9d0a3eba2bcf67d6fd84c2daaf7ccfb5b0"
+    },
+    {
+      "name": "prisma-validate",
+      "summary": "Prisma schema validated; no database connection or migration/drift claim",
+      "command": [
+        "corepack",
+        "pnpm",
+        "run",
+        "db:validate"
+      ],
+      "startedAt": "2026-11-05T05:03:33.172832+00:00",
+      "completedAt": "2026-11-05T05:03:35.858372+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-d/prisma-validate.log",
+      "sha256": "1e0b52ba93e0e7163d8686d8a4ce1b5cadb568af0d0563e8c0559b8bb7e442fc"
+    },
+    {
+      "name": "production-build-clean",
+      "summary": "Clean Studio production build completed at exit 0; fresh BUILD_ID",
+      "command": [
+        "env",
+        "APP_URL=http://127.0.0.1:3100",
+        "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/prowess_studio_test",
+        "LOG_LEVEL=warn",
+        "DEVELOPMENT_MODE=false",
+        "NEXT_TELEMETRY_DISABLED=1",
+        "corepack",
+        "pnpm",
+        "--filter",
+        "@prowess/studio",
+        "run",
+        "build"
+      ],
+      "startedAt": "2026-11-05T05:10:20.859658+00:00",
+      "completedAt": "2026-11-05T05:10:46.695244+00:00",
+      "exitCode": 0,
+      "log": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-d/production-build-clean.log",
+      "sha256": "aa423045fbb959cdd58e6caa7b3f529276c384c550e8149ebb449b9aed7f4bdf"
+    }
+  ],
+  "uniquePositiveTests": {
+    "tests": 722,
+    "suites": 26,
+    "includes": {
+      "game": 486,
+      "studio": 219,
+      "databaseUnit": 17
+    },
+    "repeatedChecksNotDoubleCounted": true
+  },
+  "mutations": {
+    "count": 36,
+    "greenBaselines": 15,
+    "intendedFailures": 36,
+    "byteRestorationVerified": true,
+    "workingTreeBeforeAfterIdentical": true,
+    "firstRunCoverageGap": "Control 30 initially survived because the previous minimum-AP fixture did not reach zero. A new exact one-AP Signature and excess-Performance-MP test proves both minima. The complete corrected matrix then passed."
+  },
+  "gate": {
+    "id": "M6-WO8",
+    "job": "controls-2",
+    "tiers": [
+      2,
+      3
+    ],
+    "testFiles": 14,
+    "controls": 36,
+    "combinedControls": 571,
+    "controlScripts": 22,
+    "gateCount": 40
+  },
+  "sourceIntegrity": {
+    "acceptedBaselineTree": "fc31a5fa96c78b6e6a52b2a7bef410bee998f412",
+    "baselineFiles": 1341,
+    "unchangedBaselineFiles": 1334,
+    "changedTrackedFiles": [
+      ".github/workflows/ci.yml",
+      "apps/studio/tests/unit/ci-gate-inventory.test.ts",
+      "apps/studio/tests/unit/m6-wo8-static.test.ts",
+      "docs/architecture/m6-approved-m5-changes.json",
+      "docs/architecture/m6-maneuver-builder.md",
+      "packages/prowess-game/src/m6-wo8-amendment.test.ts",
+      "scripts/ci/gates.json"
+    ],
+    "onlyGamePackageChange": "packages/prowess-game/src/m6-wo8-amendment.test.ts",
+    "protectedCategories": {
+      "acceptedRuntimeUI": {
+        "files": 295,
+        "byteIdentical": true
+      },
+      "acceptedBrowserTestsAndHarness": {
+        "files": 22,
+        "byteIdentical": true
+      },
+      "M4RulesPackage": {
+        "files": 68,
+        "byteIdentical": true
+      },
+      "gameplayImplementationAndContent": {
+        "files": 124,
+        "byteIdentical": true
+      },
+      "databaseRuntimeSchemaMigrations": {
+        "files": 161,
+        "byteIdentical": true
+      },
+      "earlierCheckpointReports": {
+        "files": 11,
+        "byteIdentical": true
+      },
+      "historicalMutationScripts": {
+        "files": 21,
+        "byteIdentical": true
+      }
+    },
+    "preexistingGateCount": 39,
+    "preexistingControls": 535,
+    "allPreexistingGateObjectsUnchanged": true,
+    "earlierReportsUnchanged": true
+  },
+  "packageBuilds": {
+    "sharedPackages": [
+      "prowess-model",
+      "prowess-ui",
+      "prowess-import",
+      "prowess-rules",
+      "prowess-game",
+      "prowess-db"
+    ],
+    "allSixCompleted": true,
+    "initialRootExit": 1,
+    "initialRootFailure": "Turbopack persisted output invalid digit found in string",
+    "oneCleanStudioRetryExit": 0,
+    "freshBuildId": true,
+    "preservedGeneratedOutput": "/workspace/scratch/fbaf3d41cc21/wo8-tools/phase-d-build-output-before-clean-retry",
+    "sourceOrConfigWorkarounds": false
+  },
+  "pendingChecks": [
+    "Fresh same-commit full consolidated Tier 2 CI including the new WO8 gate and its 36 controls",
+    "Native PostgreSQL 16 dev/test migration deployment and zero schema drift",
+    "Native database/API suites, lifecycle/concurrency/shared capacity and both integration shards",
+    "All six Maneuver Builder Playwright scenarios execute and pass on final source; native fixture contract completes",
+    "Complete permanent unit, historical-control, production build, lint, typecheck, Tier 1 and Tier 2 results from the new commit"
+  ],
+  "notAuthorized": [
+    "Publication",
+    "Pull request",
+    "Merge",
+    "main changes",
+    "Tier 3 clean certification without separate authorization",
+    "Canonical Release update",
+    "Next Work Order"
+  ],
+  "changedFiles": [
+    ".github/workflows/ci.yml",
+    "apps/studio/tests/unit/ci-gate-inventory.test.ts",
+    "apps/studio/tests/unit/m6-wo8-audit-helpers.ts",
+    "apps/studio/tests/unit/m6-wo8-static.test.ts",
+    "docs/architecture/m6-approved-m5-changes.json",
+    "docs/architecture/m6-maneuver-builder.md",
+    "docs/reports/m6-wo8-implementation-report.md",
+    "docs/reports/m6-wo8-phase-d-evidence.json",
+    "packages/prowess-db/tests/unit/m6-wo8-lifecycle-contract.test.ts",
+    "packages/prowess-game/src/m6-wo8-amendment.test.ts",
+    "scripts/ci/gates.json",
+    "scripts/m6-wo8-negative-controls.mjs"
+  ],
+  "unresolvedLocalBlockers": [],
+  "localInfrastructureAttempts": {
+    "PostgreSQLSetups": 0,
+    "ChromiumSetups": 0,
+    "buildAttempts": 2,
+    "buildCacheIssueResolvedOnOnlyRetry": true
+  },
+  "finalIdentifiers": "Final local commit/tree and complete recovery-bundle verification are recorded after commit in the external checkpoint ledger; no self-referential commit SHA is embedded here."
+}
