@@ -66,12 +66,23 @@ describe("WO8 Action-first accessible builder and server-only pricing", () => {
   it("displays exact server cost stages and structured Performance benefits, excluding preparation from listed AP", async () => {
     await open("performance"); choose("Conditions");
     expect(screen.getByText(/Actual Character rank: MASTER/)).toBeInTheDocument();
-    const table = screen.getByRole("table", { name: "Release-authored Performance benefits" });
+    const label = views.performance!.names[views.performance!.performance[0]!.definition.entityVersionId];
+    const table = screen.getByRole("table", { name: `Release-authored ${label} benefits` });
     expect(within(table).getByRole("row", { name: "Master 6 0" })).toBeInTheDocument();
     choose("Review"); const cost = views.performance!.maneuver.draft!.evaluation!.cost!;
     expect(screen.getAllByTestId("maneuver-cost")[0]).toHaveTextContent(`${cost.ap.finalApCost} AP`);
     expect(screen.getByTestId("maneuver-performance-preparation")).toHaveTextContent(/separate preparation 0 AP/);
     expect(screen.getByTestId("maneuver-cost-inspector")).toHaveTextContent(String(cost.ap.protectedActionAp));
+  });
+  it("uses the exact Release Condition label in benefits and evaluated preparation", async () => {
+    const view = clone(views.performance!);
+    view.names[view.performance[0]!.definition.entityVersionId] = "Stage discipline";
+    api.getManeuverBuilder.mockResolvedValue(view); render(<ManeuverBuilder characterId="character" maneuverId="maneuver" />);
+    await screen.findByRole("tab", { name: "Conditions" }); choose("Conditions");
+    expect(screen.getByRole("heading", { name: "Stage discipline" })).toBeInTheDocument();
+    expect(screen.getByRole("table", { name: "Release-authored Stage discipline benefits" })).toBeInTheDocument();
+    choose("Review");
+    expect(screen.getByTestId("maneuver-performance-preparation")).toHaveTextContent("Stage discipline: Master; separate preparation 0 AP");
   });
   it("blocks unsupported Release finalization and links accessible server issues to steps", async () => {
     const view = clone(views.empty!); view.catalog.limitations.push({ code: "MISSING_APPROVED_COST_POLICY", message: "Approved cost policy missing" });

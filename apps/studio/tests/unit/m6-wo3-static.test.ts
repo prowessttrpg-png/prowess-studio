@@ -216,10 +216,21 @@ describe("M6-WO3 gate — Studio presents, never decides (§52, §60, §65, §70
   });
 
   it("WO3 builds no equipment, ability, advancement or job-class feature (§75–§80, §115)", () => {
-    const all = [...UI, ...ROUTES].map((f) => strip(read(f))).join("\n");
     // Advancement, Level-up and secondary Affinities arrived with M6-WO4 (its own gate); WO3 still builds no equipment,
     // ability records, respec or job class. Character Signature Spells arrived with M6-WO7 (its own gate, m6-wo7-static).
-    expect(all).not.toMatch(/inventory|addWeapon|equipItem|createManeuver|respec|jobClass/i);
+    // WO8 authorizes exactly this creation form and its API transport, registered under its permanent gate. Only the
+    // createManeuver operation is admitted here; all other prohibitions and every other UI audit still cover both files.
+    const maneuverCreation = [
+      "apps/studio/app/characters/_components/maneuvers/NewManeuverForm.tsx",
+      "apps/studio/app/characters/_lib/character-client.ts",
+    ];
+    const wo8 = JSON.parse(read("docs/architecture/m6-wo8-baseline.json")) as { studioFiles: string[] };
+    for (const f of maneuverCreation) { expect(UI).toContain(f); expect(wo8.studioFiles).toContain(f); }
+    for (const f of [...UI, ...ROUTES]) {
+      const src = strip(read(f));
+      expect(src, f).not.toMatch(/inventory|addWeapon|equipItem|respec|jobClass/i);
+      if (!maneuverCreation.includes(f)) expect(src, f).not.toMatch(/createManeuver/i);
+    }
     expect(ROUTES.map((f) => f.replace("apps/studio/app/api/", "")).sort()).toEqual([
       "character-creation/releases/[releaseId]/capability/route.ts",
       "characters/[characterId]/creation-context/route.ts",

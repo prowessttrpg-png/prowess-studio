@@ -4,12 +4,8 @@ import "./m6-wo8-fixture-loader";
 const spellFixture = JSON.parse(readFileSync(new URL("../unit/fixtures/m6-wo7-builder.json", import.meta.url), "utf8"));
 const fixture = JSON.parse(readFileSync(new URL("../unit/fixtures/m6-wo8-builder.json", import.meta.url), "utf8"));
 import { sheetFixture } from "../unit/m6-wo5-sheet-fixture";
+import type { CharacterDto } from "../../app/characters/_lib/character-client";
 import type { ManeuverBuilderDto, ManeuverDraftDto } from "../../app/characters/_lib/maneuver-types";
-
-
-
-
-
 /** Browser transport fixture only: actual production routes/components and the actual M5/M4 evaluator.
  * Persistence responses are isolated in-memory fixtures; PostgreSQL/API integrity is the accepted Phase B gate.
  * No app imports this file; no fixture is published as a canonical Release. */
@@ -20,6 +16,19 @@ export async function maneuverUiApi(page: Page, key = "empty", existingSpell = f
   const { evaluateCharacterSignatureManeuver } = await import("../../../../packages/prowess-game/src/character/signature-maneuver");
   const views = fixture as unknown as Record<string, ManeuverBuilderDto>;
   const root = structuredClone(views[key]!);
+  const sheet = sheetFixture();
+  const character: CharacterDto = {
+    ...root.character, concept: sheet.identity.concept, status: "CORE_COMPLETE",
+    coreCreationCompletedAt: "2026-11-04T00:00:00Z", createdAt: "2026-11-04T00:00:00Z", updatedAt: "2026-11-04T00:00:00Z",
+    release: { ...sheet.release, ...root.release }, names: { ...sheet.names, ...root.names },
+    choices: { ancestry: sheet.identity.ancestry, ancestryStatChoices: [], statAllocations: {}, skills: [], primaryAffinity: sheet.identity.primaryAffinity },
+    resolution: {
+      status: "READY", issues: [], capability: { status: "READY", missing: [] },
+      resolved: { level: root.character.level, characterDie: sheet.mechanics.combat.characterDie, creationRule: null, ancestry: sheet.identity.ancestry, baseHp: null, baseMp: null, pointBudget: null, pointsSpent: 0, pointsRemaining: null, stats: [], skills: [], freeSkillCount: null, primaryAffinity: sheet.identity.primaryAffinity },
+      derivedPreview: null,
+    },
+  };
+  const characterPath = "/api/characters/character", maneuverPath = `${characterPath}/maneuvers/maneuver`;
   const f = signatureManeuverFixture(), base = martialProfile(f, "MASTER");
   let rank: string | null = "MASTER";
   const library = buildCharacterAttackLibrary({ bundle: f.bundle, characterProfile: base, loadout: { mainHand: f.sel("weapon.long_blade"), mainHandGrip: "ONE_HANDED", offHand: null } });
@@ -33,9 +42,13 @@ export async function maneuverUiApi(page: Page, key = "empty", existingSpell = f
   await page.route(url => url.pathname.startsWith("/api/characters/character"), async route => {
     const request = route.request(), path = new URL(request.url()).pathname;
     const send = (data: unknown, code = 200) => route.fulfill({ status: code, contentType: "application/json", body: JSON.stringify(code === 200 ? { data } : data) });
-    if (path.endsWith("/abilities")) return send({ character: root.character, release: root.release, signature: view().signature, names: root.names, spells: existingSpell ? [spellFixture.finalized.spell] : [], maneuvers: [view().maneuver] });
-    if (path.endsWith("/sheet")) return send(sheetFixture({ identity: { ...sheetFixture().identity, id: "character" }, names: root.names, signatureManeuvers: status === "ACTIVE" && current?.draft ? [{ id: "maneuver", name: current.draft.concept.name, revisionNumber: current.revisionNumber, state: current.evaluation?.state ?? "UNREADABLE", actions: current.draft.actions, effects: current.draft.effects.map(e => e.definition), finalApCost: current.evaluation?.cost?.ap.finalApCost ?? null, finalMpCost: current.evaluation?.cost?.mp.finalMpCost ?? null, keywords: [], warnings: current.evaluation?.runtimeDeferred ?? [] }] : [] }));
-    if (request.method() === "GET") return send(view());
+    if (request.method() === "GET") {
+      if (path === characterPath) return send(character);
+      if (path === `${characterPath}/abilities`) return send({ character: root.character, release: root.release, signature: view().signature, names: root.names, spells: existingSpell ? [spellFixture.finalized.spell] : [], maneuvers: [view().maneuver] });
+      if (path === `${characterPath}/sheet`) return send(sheetFixture({ identity: { ...sheet.identity, id: character.id, name: character.name, concept: character.concept, level: character.level }, release: character.release, names: character.names, signatureManeuvers: status === "ACTIVE" && current?.draft ? [{ id: "maneuver", name: current.draft.concept.name, revisionNumber: current.revisionNumber, state: current.evaluation?.state ?? "UNREADABLE", actions: current.draft.actions, effects: current.draft.effects.map(e => e.definition), finalApCost: current.evaluation?.cost?.ap.finalApCost ?? null, finalMpCost: current.evaluation?.cost?.mp.finalMpCost ?? null, keywords: [], warnings: current.evaluation?.runtimeDeferred ?? [] }] : [] }));
+      if (path === maneuverPath || path === `${maneuverPath}/builder`) return send(view());
+      throw new Error(`Unexpected fixture API request: GET ${path}`);
+    }
     const body = request.postDataJSON();
     if (path.endsWith("/maneuvers")) { working.concept.name = body.name; return send(view()); }
     if (conflict || body.expectedVersion !== version) return send({ code: "STALE_WRITE", message: "A different editor saved this Maneuver." }, 409);

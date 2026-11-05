@@ -35,7 +35,7 @@ export function ManeuverReview({ draft, evaluation, names, release }: { draft: M
       <tr><th scope="row">MP reduction</th><td>{c.mp.conditionMpReduction} MP</td></tr>
       <tr><th scope="row">Final listed AP / MP</th><td>{c.ap.finalApCost} AP / {c.mp.finalMpCost} MP</td></tr>
     </tbody></table> : null}
-    {evaluation?.authored?.durationConditions?.conditions.filter(q => q.performance).map(q => <p key={q.componentKey} data-testid="maneuver-performance-preparation">Performance: {formatEnumLabel(q.performance!.rank)}; separate preparation {q.preparationAp ?? "Unresolved"} AP before activation. Preparation is excluded from listed Maneuver AP. {q.consumesSlot ? "Ordinary Condition slot" : "Obligatory; no ordinary Condition slot"}.</p>)}
+    {evaluation?.authored?.durationConditions?.conditions.filter(q => q.performance).map(q => <p key={q.componentKey} data-testid="maneuver-performance-preparation">{refName(names, q.definition)}: {formatEnumLabel(q.performance!.rank)}; separate preparation {q.preparationAp ?? "Unresolved"} AP before activation. Preparation is excluded from listed Maneuver AP. {q.consumesSlot ? "Ordinary Condition slot" : "Obligatory; no ordinary Condition slot"}.</p>)}
     <details><summary>Rules Inspector: targeting, resolution, prerequisites and provenance</summary><pre className="maneuver-inspector">{JSON.stringify({ authored: evaluation?.authored, inspector: evaluation?.inspector, costs: evaluation?.cost }, null, 2)}</pre></details>
     <details><summary>Exact Release components</summary><ul>{evaluation?.components.map(r => <li key={r.entityVersionId}><Link href={entryHref(release.rulesetId, release.id, r.entityId)}>{refName(names, r)}</Link> <code>{r.entityVersionId}</code></li>)}</ul></details>
   </section>;

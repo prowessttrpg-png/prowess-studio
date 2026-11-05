@@ -29,7 +29,7 @@ export interface ManeuverEvaluationDto {
     construction: NonNullable<SpellEvaluationDto["construction"]>;
     actions: { componentKey: string; [key: string]: unknown }[];
     effects: { actionKey: string | null; result: { family: string; [key: string]: unknown } }[];
-    durationConditions?: { conditions: { componentKey: string; consumesSlot: boolean; performance?: { rank: string }; preparationAp?: number }[]; conditionSummary: { usedCapacity: number; maximumCapacity: number } };
+    durationConditions?: { conditions: { componentKey: string; definition: DefinitionRefDto; consumesSlot: boolean; performance?: { rank: string }; preparationAp?: number }[]; conditionSummary: { usedCapacity: number; maximumCapacity: number } };
     [key: string]: unknown;
   } | null;
   inspector: { sourceMap: unknown } | null;
