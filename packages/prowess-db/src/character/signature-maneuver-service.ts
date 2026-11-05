@@ -1,3 +1,4 @@
+import { performanceForDisplay, projectManeuverSheet } from "./signature-maneuver-presentation.js";
 import { CHARACTER_ERROR_CODES as E } from "@prowess/model";
 import { buildCharacterAttackLibrary, buildSignatureManeuverCatalog, emptySignatureManeuverDraft, evaluateCharacterSignatureManeuver, readSignatureManeuverDraft, signatureManeuverComponentRefs, type SignatureManeuverDraft, type SignatureManeuverEvaluation } from "@prowess/game";
 import { loadEquippedCharacter } from "./weapon-service.js";
@@ -54,8 +55,17 @@ export async function getSignatureManeuverBuilder(characterId: string, id: strin
   const ctx = await contextOf(characterId), { ability, all } = await requireAbility(ctx, id), detail = await detailOf(ctx, ability, all);
   const catalog = buildSignatureManeuverCatalog({ bundle: ctx.bundle, profile: ctx.profile, attackLibrary: ctx.attackLibrary });
   const refs = [...catalog.effects, ...catalog.traits, ...catalog.durations, ...catalog.conditions].map(x => x.ref).concat(catalog.actions.flatMap(a => a.source.kind === "FOUNDATION" ? [a.source.definition] : [a.source.weapon, a.source.attack]));
-  return { ...detail, catalog, stats: ctx.profile.constructionContext.stats, loadoutVersion: ctx.loadoutVersion, names: { ...detail.names, ...await namesOf(refs) } };
+  const performance = performanceForDisplay(ctx, catalog);
+  return { ...detail, catalog, performance, stats: ctx.profile.constructionContext.stats, loadoutVersion: ctx.loadoutVersion, names: { ...detail.names, ...await namesOf(refs) } };
 }
+
+/** Read-only sheet projection of CURRENT active revisions through the verified Phase B service. */
+export async function signatureManeuversForSheet(characterId: string) {
+  const entries = await signatureManeuverRoster(characterId, await selectSignatureAbilities(characterId));
+  return projectManeuverSheet(entries);
+}
+
+
 export type SignatureManeuverBuilderView = Awaited<ReturnType<typeof getSignatureManeuverBuilder>>;
 function bodyOf(body: unknown, fields: readonly string[]): Record<string, unknown> {
   if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).some(k => !fields.includes(k)) || fields.some(k => !Object.hasOwn(body, k))) throw fail(E.INVALID_INPUT, `The body contains exactly ${fields.join(", ")}; only authored choices and prose are accepted`);

@@ -5,6 +5,7 @@
  * Character service and the Release's own rules do.
  */
 import { fetchJsonBody, query } from "../../../src/api-client/http";
+import type { ManeuverBuilderDto, ManeuverDetailDto, ManeuverDraftDto, ManeuverEntryDto, ManeuverEvaluationDto, SheetManeuverDto } from "./maneuver-types";
 
 export class CharacterApiError extends Error {
   readonly code: string;
@@ -361,6 +362,7 @@ export interface CharacterSheetDto {
   dualWield: { available: boolean; reasons: string[] };
   /** M6-WO7: the current revision of each active Signature Spell — the server's M5 evaluation, never cast. */
   signatureSpells: SheetSignatureSpellDto[];
+  signatureManeuvers?: SheetManeuverDto[];
   advancementHistoryCount: number;
   names: Record<string, string>;
 }
@@ -618,6 +620,7 @@ export interface CharacterAbilitiesDto {
   release: ReleaseSummaryDto;
   signature: { capacity: number | null; used: number };
   spells: SignatureSpellEntryDto[];
+  maneuvers?: ManeuverEntryDto[];
   names: Record<string, string>;
 }
 export interface SpellRevisionDto {
@@ -695,3 +698,14 @@ export const validateSpell = async (id: string, spellId: string, expectedVersion
 export const finalizeSpell = async (id: string, spellId: string, expectedVersion: number) => (await request<SignatureSpellDetailDto>("POST", spellPath(id, spellId, "/finalize"), { expectedVersion })).data;
 export const rebuildSpell = async (id: string, spellId: string, expectedVersion: number) => (await request<SignatureSpellDetailDto>("POST", spellPath(id, spellId, "/rebuild"), { expectedVersion })).data;
 export const retireSpell = async (id: string, spellId: string, expectedVersion: number) => (await request<SignatureSpellDetailDto>("POST", spellPath(id, spellId, "/retire"), { expectedVersion })).data;
+
+// M6-WO8 uses the existing eight closed, versioned Maneuver endpoints.
+const maneuverPath = (id: string, maneuverId: string, suffix = "") => `/api/characters/${enc(id)}/maneuvers/${enc(maneuverId)}${suffix}`;
+export const createManeuver = async (id: string, name: string) => (await request<ManeuverDetailDto>("POST", `/api/characters/${enc(id)}/maneuvers`, { name })).data;
+export const getManeuver = async (id: string, maneuverId: string) => (await request<ManeuverDetailDto>("GET", maneuverPath(id, maneuverId))).data;
+export const getManeuverBuilder = async (id: string, maneuverId: string) => (await request<ManeuverBuilderDto>("GET", maneuverPath(id, maneuverId, "/builder"))).data;
+export const saveManeuverDraft = async (id: string, maneuverId: string, expectedVersion: number, draft: ManeuverDraftDto) => (await request<ManeuverDetailDto>("PUT", maneuverPath(id, maneuverId, "/draft"), { expectedVersion, draft })).data;
+export const validateManeuver = async (id: string, maneuverId: string, expectedVersion: number) => (await request<{ evaluation: ManeuverEvaluationDto; lockVersion: number }>("POST", maneuverPath(id, maneuverId, "/validate"), { expectedVersion })).data;
+export const finalizeManeuver = async (id: string, maneuverId: string, expectedVersion: number) => (await request<ManeuverDetailDto>("POST", maneuverPath(id, maneuverId, "/finalize"), { expectedVersion })).data;
+export const rebuildManeuver = async (id: string, maneuverId: string, expectedVersion: number) => (await request<ManeuverDetailDto>("POST", maneuverPath(id, maneuverId, "/rebuild"), { expectedVersion })).data;
+export const retireManeuver = async (id: string, maneuverId: string, expectedVersion: number) => (await request<ManeuverDetailDto>("POST", maneuverPath(id, maneuverId, "/retire"), { expectedVersion })).data;

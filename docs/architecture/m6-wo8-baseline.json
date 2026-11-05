@@ -105,6 +105,19 @@
     "apps/studio/app/api/characters/[characterId]/maneuvers/[maneuverId]/retire/route.ts",
     "apps/studio/app/api/characters/[characterId]/maneuvers/[maneuverId]/route.ts",
     "apps/studio/app/api/characters/[characterId]/maneuvers/[maneuverId]/validate/route.ts",
-    "apps/studio/app/api/characters/[characterId]/maneuvers/route.ts"
+    "apps/studio/app/api/characters/[characterId]/maneuvers/route.ts",
+    "apps/studio/app/characters/[characterId]/maneuvers/[maneuverId]/edit/page.tsx",
+    "apps/studio/app/characters/[characterId]/maneuvers/[maneuverId]/page.tsx",
+    "apps/studio/app/characters/[characterId]/maneuvers/new/page.tsx",
+    "apps/studio/app/characters/_components/maneuvers/ManeuverBuilder.tsx",
+    "apps/studio/app/characters/_components/maneuvers/ManeuverComponents.tsx",
+    "apps/studio/app/characters/_components/maneuvers/ManeuverDetail.tsx",
+    "apps/studio/app/characters/_components/maneuvers/ManeuverReview.tsx",
+    "apps/studio/app/characters/_components/maneuvers/ManeuverRoster.tsx",
+    "apps/studio/app/characters/_components/maneuvers/NewManeuverForm.tsx",
+    "apps/studio/app/characters/_components/sheet/ManeuverRows.tsx",
+    "apps/studio/app/characters/_lib/character-client.ts",
+    "apps/studio/app/characters/_lib/maneuver-format.ts",
+    "apps/studio/app/characters/_lib/maneuver-types.ts"
   ]
 }

@@ -204,7 +204,7 @@ describe("M6-WO5 gate — Studio presents, never decides (§17–§45, §77–§
       expect(src, f).not.toMatch(/from "(@prowess\/(db|game|rules)|@prisma\/client)[^"]*"/);
       if (!f.endsWith("_lib/character-client.ts")) expect(strip(src), f).not.toMatch(/\bfetch\(/);
     }
-    expect(SHEET_UI.map((f) => path.basename(f)).sort()).toEqual(["CharacterSheet.tsx", "PortraitFrame.tsx", "SheetIcons.tsx", "SheetPanels.tsx", "SpellRows.tsx", "WeaponPanels.tsx", "portrait-framing.ts"]); // WeaponPanels: M6-WO6; SpellRows: M6-WO7
+    expect(SHEET_UI.map((f) => path.basename(f)).sort()).toEqual(["CharacterSheet.tsx", "ManeuverRows.tsx", "PortraitFrame.tsx", "SheetIcons.tsx", "SheetPanels.tsx", "SpellRows.tsx", "WeaponPanels.tsx", "portrait-framing.ts"]); // WeaponPanels: M6-WO6; SpellRows: M6-WO7
   });
 
   it("no mechanical arithmetic or formula text in the sheet: every number is the server's, formatted only", () => {

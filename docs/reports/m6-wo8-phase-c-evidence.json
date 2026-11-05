@@ -1,0 +1,370 @@
+{
+  "phase": "M6-WO8 Phase C",
+  "status": "IMPLEMENTATION CHECKPOINT; E2E BLOCKED; NOT COMPLETE",
+  "baseline": {
+    "local": "9d1fde9470fa4736a9cbeeae767ead06471bc1d3",
+    "remote": "8ef311fe06e194455a65a066fdf45b0433edad17",
+    "tree": "f6e973ec4db64bb343bb9367c92defa96cfa43c2",
+    "phaseBCI": "#254 accepted by user"
+  },
+  "passingChecks": [
+    {
+      "name": "158 UI/component/static regression tests across eight suites",
+      "status": {
+        "command": [
+          "corepack",
+          "pnpm",
+          "--filter",
+          "@prowess/studio",
+          "exec",
+          "vitest",
+          "run",
+          "tests/unit/m6-wo8-maneuver-ui.test.tsx",
+          "tests/unit/m6-wo7-spell-ui.test.tsx",
+          "tests/unit/m6-wo6-weapon-ui.test.tsx",
+          "tests/unit/m6-wo5-sheet-ui.test.tsx",
+          "tests/unit/m6-wo5-static.test.ts",
+          "tests/unit/m6-wo6-static.test.ts",
+          "tests/unit/m6-wo7-static.test.ts",
+          "tests/unit/m6-wo8-static.test.ts",
+          "--maxWorkers=1",
+          "--no-file-parallelism",
+          "--reporter=dot"
+        ],
+        "exitCode": 0
+      },
+      "log": "phase-c-ui-verified.log",
+      "sha256": "9c66c8d9b5004c93710179dec743249586f6904b71129cf92e238bbccd74b05a",
+      "summary": [
+        " Test Files  8 passed (8)",
+        "      Tests  158 passed (158)"
+      ]
+    },
+    {
+      "name": "3 server presentation, closed-draft, and engine-generated fixture tests across two suites",
+      "status": {
+        "command": [
+          "corepack",
+          "pnpm",
+          "--filter",
+          "@prowess/db",
+          "exec",
+          "vitest",
+          "run",
+          "--config",
+          "vitest.unit.config.ts",
+          "tests/unit/m6-wo8-presentation.test.ts",
+          "tests/unit/m6-wo8-sheet-projection.test.ts",
+          "--reporter=dot"
+        ],
+        "exitCode": 0
+      },
+      "log": "phase-c-drafts-verified.log",
+      "sha256": "9a21df229c0b8a4d2296299682b37c01e25c75a8ec7694da9f7ad022fe4f18b3",
+      "summary": [
+        " Test Files  2 passed (2)",
+        "      Tests  3 passed (3)"
+      ]
+    },
+    {
+      "name": "Database and Studio typecheck",
+      "status": {
+        "command": [
+          "corepack",
+          "pnpm",
+          "--filter",
+          "@prowess/db",
+          "--filter",
+          "@prowess/studio",
+          "run",
+          "typecheck"
+        ],
+        "exitCode": 0
+      },
+      "log": "phase-c-types-verified.log",
+      "sha256": "f9a10a0e261b6a9f9626e02914dc8f5a70d55185063d707fc5cc749c8ead7f40",
+      "summary": [
+        "packages/prowess-db typecheck: Done",
+        "apps/studio typecheck: Done"
+      ]
+    },
+    {
+      "name": "Database and Studio lint",
+      "status": {
+        "command": [
+          "corepack",
+          "pnpm",
+          "--filter",
+          "@prowess/db",
+          "--filter",
+          "@prowess/studio",
+          "run",
+          "lint"
+        ],
+        "exitCode": 0
+      },
+      "log": "phase-c-lint-verified.log",
+      "sha256": "85142f38436a48dfcdd72b35fb5a59e3effbbd0f13b55aae648b4e474a3a9301",
+      "summary": [
+        "packages/prowess-db lint: Done",
+        "apps/studio lint: Done"
+      ]
+    },
+    {
+      "name": "Database package build",
+      "status": {
+        "command": [
+          "corepack",
+          "pnpm",
+          "--filter",
+          "@prowess/db",
+          "run",
+          "build"
+        ],
+        "exitCode": 0
+      },
+      "log": "phase-c-db-verified.log",
+      "sha256": "80ffa2c26255671061c7fe8e94ab423639e18caebda7ce70b9208bc95b81650b",
+      "summary": []
+    },
+    {
+      "name": "Production Next.js build with fresh BUILD_ID",
+      "status": {
+        "command": [
+          "corepack",
+          "pnpm",
+          "--filter",
+          "@prowess/studio",
+          "run",
+          "build"
+        ],
+        "exitCode": 0,
+        "freshBuildId": true
+      },
+      "log": "phase-c-production-verified.log",
+      "sha256": "4fcce905b3520c7dc08ad9ed72eed7b7309f86d1019652fe15530d49380f750e",
+      "summary": [
+        "\u2713 Compiled successfully in 760ms",
+        "  Generating static pages using 8 workers (0/35) ...",
+        "  Generating static pages using 8 workers (8/35) ",
+        "  Generating static pages using 8 workers (17/35) ",
+        "  Generating static pages using 8 workers (26/35) ",
+        "\u2713 Generating static pages using 8 workers (35/35) in 346ms",
+        "\u251c \u0192 /api/characters/[characterId]/maneuvers",
+        "\u251c \u0192 /api/characters/[characterId]/maneuvers/[maneuverId]",
+        "\u251c \u0192 /api/characters/[characterId]/maneuvers/[maneuverId]/builder",
+        "\u251c \u0192 /api/characters/[characterId]/maneuvers/[maneuverId]/draft",
+        "\u251c \u0192 /api/characters/[characterId]/maneuvers/[maneuverId]/finalize",
+        "\u251c \u0192 /api/characters/[characterId]/maneuvers/[maneuverId]/rebuild",
+        "\u251c \u0192 /api/characters/[characterId]/maneuvers/[maneuverId]/retire",
+        "\u251c \u0192 /api/characters/[characterId]/maneuvers/[maneuverId]/validate",
+        "\u251c \u0192 /characters/[characterId]/maneuvers/[maneuverId]",
+        "\u251c \u0192 /characters/[characterId]/maneuvers/[maneuverId]/edit",
+        "\u251c \u0192 /characters/[characterId]/maneuvers/new"
+      ]
+    },
+    {
+      "name": "Final Database and Studio typecheck",
+      "status": {
+        "command": [
+          "corepack",
+          "pnpm",
+          "--filter",
+          "@prowess/db",
+          "--filter",
+          "@prowess/studio",
+          "run",
+          "typecheck"
+        ],
+        "exitCode": 0
+      },
+      "log": "phase-c-final-typecheck.log",
+      "sha256": "f9a10a0e261b6a9f9626e02914dc8f5a70d55185063d707fc5cc749c8ead7f40",
+      "summary": [
+        "packages/prowess-db typecheck: Done",
+        "apps/studio typecheck: Done"
+      ]
+    },
+    {
+      "name": "Final Database and Studio lint",
+      "status": {
+        "command": [
+          "corepack",
+          "pnpm",
+          "--filter",
+          "@prowess/db",
+          "--filter",
+          "@prowess/studio",
+          "run",
+          "lint"
+        ],
+        "exitCode": 0
+      },
+      "log": "phase-c-final-lint.log",
+      "sha256": "85142f38436a48dfcdd72b35fb5a59e3effbbd0f13b55aae648b4e474a3a9301",
+      "summary": [
+        "packages/prowess-db lint: Done",
+        "apps/studio lint: Done"
+      ]
+    }
+  ],
+  "architecture": {
+    "result": "\n> prowess-studio@0.1.0 test:architecture /workspace/scratch/fbaf3d41cc21/prowess-studio\n> node scripts/check-architecture.mjs\n\nArchitecture check passed: 13 import-boundary rule(s) and 7 package(s) checked for circular dependencies \u2014 no violations.\n",
+    "sha256": "bf9463c101142969b9c450e64e24a75e24838b42f4da189076e33faf93ddcb7c"
+  },
+  "browserAttempts": [
+    {
+      "attempt": 1,
+      "action": "Install project-pinned Chromium Headless Shell with official Playwright installer; abort at first error to prevent automatic retries",
+      "result": "0 MiB download; End of central directory record signature not found. Either not a zip file, or file is truncated.",
+      "process": {
+        "attempt": 1,
+        "exitCode": -15,
+        "stoppedOnFirstError": true,
+        "purpose": "Install project-pinned browser using official Playwright installer; prevent automatic repeated failed downloads."
+      },
+      "logSha256": "d91f8e48f0a7989eb44edb371f217fdbdc28af68ed5005fcb57937a7e226f9ff"
+    },
+    {
+      "attempt": 2,
+      "action": "Run six browser scenarios with one worker and --max-failures=1 against the production build",
+      "result": "browserType.launch: Executable does not exist at /root/.cache/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell",
+      "process": {
+        "attempt": 2,
+        "command": [
+          "node",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "m6-signature-maneuver.spec.ts",
+          "--workers=1",
+          "--max-failures=1",
+          "--reporter=json"
+        ],
+        "exitCode": 1,
+        "stopOnFirstFailure": true,
+        "stats": {
+          "startTime": "2026-11-05T00:17:09.253Z",
+          "duration": 1407.299,
+          "expected": 0,
+          "skipped": 5,
+          "unexpected": 1,
+          "flaky": 0
+        },
+        "errors": [
+          {
+            "message": "\u001b[31mTesting stopped early after 1 maximum allowed failures.\u001b[39m"
+          }
+        ]
+      },
+      "reportSha256": "351f725bf665bb05c326c3d74c6392aa82a4a914b3f9fed57975727cf8ca8361",
+      "scenarios": [
+        {
+          "scenario": "1 creates an Action-first draft, reorders exact Actions and saves authored choices",
+          "runnerStatus": "unexpected",
+          "acceptance": "BLOCKED; not verified",
+          "errors": [
+            "Error: browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell\n\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n\u2551 Looks like Playwright was just installed or updated.       \u2551\n\u2551 Please run the following command to download new browsers: \u2551\n\u2551                                                            \u2551\n\u2551     npx playwright install                                 \u2551\n\u2551                                                            \u2551\n\u2551 <3 Playwright Team                                         \u2551\n\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d"
+          ]
+        },
+        {
+          "scenario": "2 configures multiple blocks with independently scoped Effects and Traits",
+          "runnerStatus": "skipped",
+          "acceptance": "BLOCKED; not verified",
+          "errors": []
+        },
+        {
+          "scenario": "3 configures Powerful Blow with exact Attack identity and server costs",
+          "runnerStatus": "skipped",
+          "acceptance": "BLOCKED; not verified",
+          "errors": []
+        },
+        {
+          "scenario": "4 displays Performance's actual rank and separate preparation, and fails closed on missing content/untrained rank",
+          "runnerStatus": "skipped",
+          "acceptance": "BLOCKED; not verified",
+          "errors": []
+        },
+        {
+          "scenario": "5 retains local choices after HTTP 409 without overwriting the saved draft",
+          "runnerStatus": "skipped",
+          "acceptance": "BLOCKED; not verified",
+          "errors": []
+        },
+        {
+          "scenario": "6 finalizes, rebuilds, preserves current history on invalid draft, retires and presents the current sheet row",
+          "runnerStatus": "skipped",
+          "acceptance": "BLOCKED; not verified",
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "stoppedUnderTwoAttemptProtocol": true,
+  "otherObservations": {
+    "initialProductionBuildCapture": "No completion marker or BUILD_ID; not accepted as passing. One sequential instrumented build completed at exit 0 with a fresh BUILD_ID.",
+    "fixtureContract": "Node-only fixture contract has no verified completion summary. Not counted as passing; E2E test harness still requires validation.",
+    "serverStartup": "Default Next hostname discovery hit uv_interface_addresses OS denial. Explicit loopback binding matches baseURL and allowed the worker to start. No further server workaround attempted.",
+    "fixtureReadCompatibility": "Test-only native JSON import hook is scoped to approved core fixture content. It changes no production loader or historical game source; completion of the native harness test remains unverified."
+  },
+  "unchangedBoundaries": [
+    "packages/prowess-game",
+    "packages/prowess-rules",
+    "packages/prowess-db/prisma",
+    ".github/workflows",
+    "scripts/ci",
+    "historical goldens"
+  ],
+  "changedFiles": [
+    "apps/studio/app/characters/[characterId]/maneuvers/[maneuverId]/edit/page.tsx",
+    "apps/studio/app/characters/[characterId]/maneuvers/[maneuverId]/page.tsx",
+    "apps/studio/app/characters/[characterId]/maneuvers/new/page.tsx",
+    "apps/studio/app/characters/_components/abilities/ParameterFields.tsx",
+    "apps/studio/app/characters/_components/maneuvers/ManeuverBuilder.tsx",
+    "apps/studio/app/characters/_components/maneuvers/ManeuverComponents.tsx",
+    "apps/studio/app/characters/_components/maneuvers/ManeuverDetail.tsx",
+    "apps/studio/app/characters/_components/maneuvers/ManeuverReview.tsx",
+    "apps/studio/app/characters/_components/maneuvers/ManeuverRoster.tsx",
+    "apps/studio/app/characters/_components/maneuvers/NewManeuverForm.tsx",
+    "apps/studio/app/characters/_components/maneuvers/maneuvers.css",
+    "apps/studio/app/characters/_components/sheet/ManeuverRows.tsx",
+    "apps/studio/app/characters/_components/sheet/SheetPanels.tsx",
+    "apps/studio/app/characters/_components/spells/AbilitiesPanel.tsx",
+    "apps/studio/app/characters/_components/spells/SpellComponents.tsx",
+    "apps/studio/app/characters/_lib/character-client.ts",
+    "apps/studio/app/characters/_lib/maneuver-format.ts",
+    "apps/studio/app/characters/_lib/maneuver-types.ts",
+    "apps/studio/playwright.config.ts",
+    "apps/studio/tests/e2e/m6-maneuver-fixture-contract.spec.ts",
+    "apps/studio/tests/e2e/m6-signature-maneuver.spec.ts",
+    "apps/studio/tests/e2e/m6-wo8-fixture-loader.ts",
+    "apps/studio/tests/e2e/m6-wo8-ui-api.ts",
+    "apps/studio/tests/unit/fixtures/m6-wo8-builder.json",
+    "apps/studio/tests/unit/m6-wo5-static.test.ts",
+    "apps/studio/tests/unit/m6-wo7-static.test.ts",
+    "apps/studio/tests/unit/m6-wo8-maneuver-ui.test.tsx",
+    "docs/architecture/m6-wo8-baseline.json",
+    "docs/reports/m6-wo8-phase-c-checkpoint.md",
+    "docs/reports/m6-wo8-phase-c-evidence.json",
+    "packages/prowess-db/src/character/sheet-service.ts",
+    "packages/prowess-db/src/character/signature-maneuver-presentation.ts",
+    "packages/prowess-db/src/character/signature-maneuver-service.ts",
+    "packages/prowess-db/tests/unit/m6-wo8-presentation.test.ts",
+    "packages/prowess-db/tests/unit/m6-wo8-sheet-projection.test.ts"
+  ],
+  "publication": {
+    "performed": false,
+    "remoteBranchUnchanged": "8ef311fe06e194455a65a066fdf45b0433edad17",
+    "mainUnchanged": "d005fc30c8c7e175896898c1973e6d3bda144869",
+    "prCreated": false,
+    "merged": false,
+    "phaseDStarted": false
+  },
+  "remaining": [
+    "Provision a functioning project-pinned Playwright browser in a permitted environment",
+    "Verify the native fixture harness completes successfully",
+    "Run all six browser scenarios and fix any actual failures",
+    "Run browser accessibility and visual/print checks",
+    "Reverify Phase C checks after any corrections; create verified Phase C checkpoint before review",
+    "Live PostgreSQL verification of Phase C read-only projection after separately authorized CI publication, if required"
+  ]
+}

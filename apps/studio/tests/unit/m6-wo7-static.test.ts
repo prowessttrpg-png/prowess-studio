@@ -372,7 +372,7 @@ describe("M6-WO7 gate — API and Studio presentation (§19–§21, §82, §93�
     expect(read("apps/studio/app/characters/_components/CharacterSheetSummary.tsx")).toMatch(/\{ key: "abilities", label: "Abilities" \}/);
     for (const p of PAGES) expect(existsSync(path.join(ROOT, p)), p).toBe(true);
     const panels = read("apps/studio/app/characters/_components/sheet/SheetPanels.tsx");
-    expect(panels).toMatch(/<WeaponAttackRows sheet=\{sheet\} printRows=\{PRINT_ATTACK_ROWS\} \/>\n\s+<SignatureSpellRows sheet=\{sheet\} \/>\n\s+<NotesText label="Action Notes"/);
+    expect(panels).toMatch(/<WeaponAttackRows sheet=\{sheet\} printRows=\{PRINT_ATTACK_ROWS\} \/>\n\s+<SignatureSpellRows sheet=\{sheet\} \/>\n\s+<SignatureManeuverRows sheet=\{sheet\} \/>\n\s+<NotesText label="Action Notes"/);
     expect(SHEET_SERVICE).toMatch(/const spells = await signatureSpellsForSheet\(c\.id\);/);
     expect(SERVICE).toMatch(/const active = all\.filter\(\(a\) => a\.abilityKind === "SPELL" && a\.status === "ACTIVE" && a\.currentRevisionId !== null\);\n\s+if \(active\.length === 0\) return \{ spells: \[\], refs: \[\] \};/);
   });

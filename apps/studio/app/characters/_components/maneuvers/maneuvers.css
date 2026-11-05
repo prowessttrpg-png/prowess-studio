@@ -1,0 +1,11 @@
+.maneuver-builder { max-width: 90rem; margin-inline: auto; }
+.maneuver-builder .character-tabs { display: flex; flex-wrap: wrap; gap: .35rem; margin-block: 1rem; }
+.maneuver-builder .character-tabs [aria-selected="true"] { font-weight: 700; border-bottom: .2rem solid currentColor; }
+.maneuver-builder .gov-field { display: grid; gap: .35rem; margin-block: .8rem; }
+.maneuver-builder textarea { min-height: 4rem; max-width: 100%; }
+.maneuver-builder li { margin-block: .7rem; overflow-wrap: anywhere; }
+.maneuver-builder button { margin: .2rem; }
+.maneuver-builder fieldset { margin-block: 1rem; }
+.maneuver-builder fieldset > label { display: inline-flex; gap: .4rem; margin-inline-end: .8rem; }
+.maneuver-inspector { max-height: 24rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 48rem) { .maneuver-builder table { display: block; overflow-x: auto; } }

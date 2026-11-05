@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CharacterApiError, getAbilities, type CharacterAbilitiesDto } from "../../_lib/character-client";
 import { authorityLabel, keywordLabel, refName, resolvedCost, shownOf, STATUS_LABELS } from "../../_lib/spell-format";
 import { RuntimeWarnings, SpellStateBadge } from "./SpellReview";
+import { ManeuverRoster } from "../maneuvers/ManeuverRoster";
 
 /**
  * The Character's Abilities view (PAS-10 M6-WO7 §20, §93): the Signature roster. WO7 shows Signature Spells; every value is
@@ -33,7 +34,8 @@ export function AbilitiesPanel({ characterId }: { characterId: string }) {
   const retired = data.spells.filter((s) => s.status === "RETIRED");
   return (
     <section className="gov-panel prowess-abilities" aria-labelledby="abilities-heading" data-testid="abilities-panel">
-      <h2 id="abilities-heading">Signature Spells</h2>
+      <h2 id="abilities-heading">Signature Abilities</h2>
+      <h3>Signature Spells</h3>
       <p data-testid="abilities-signature-slots">
         Signature slots used: <strong>{data.signature.used}</strong> / {data.signature.capacity ?? "—"}
         <span className="gov-muted"> — finalized Signature Abilities share this capacity; drafts use none.</span>
@@ -90,6 +92,7 @@ export function AbilitiesPanel({ characterId }: { characterId: string }) {
           </tbody>
         </table>
       )}
+      <ManeuverRoster characterId={characterId} entries={data.maneuvers ?? []} names={data.names} />
       {retired.length > 0 ? (
         <details data-testid="abilities-retired">
           <summary>Retired Spells ({retired.length})</summary>
