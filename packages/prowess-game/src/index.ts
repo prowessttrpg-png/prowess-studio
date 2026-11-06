@@ -754,3 +754,54 @@ export { SPELL_COMPONENT_KINDS, buildSignatureSpellCatalog, type AffinityAlignme
 
 export { SIGNATURE_MANEUVER_STEPS, emptySignatureManeuverDraft, readSignatureManeuverDraft, signatureManeuverComponentRefs, evaluateCharacterSignatureManeuver, type SignatureManeuverDraft, type SignatureManeuverEvaluation, type CharacterManeuverSubject, type ManeuverActionSource, type ManeuverActionUse } from "./character/signature-maneuver.js";
 export { buildSignatureManeuverCatalog, type SignatureManeuverCatalog, type ManeuverActionOption, type ManeuverComponentOption } from "./character/signature-maneuver-catalog.js";
+
+// PAS-10 M6-WO9 — Ability Card System (Phase A): the read-only Card Presentation Contract, the semantic Card Rules model,
+// the deterministic Card Rules Language and the Spell / Maneuver card projections (presentation over existing evaluations).
+export {
+  CARD_AVAILABILITY,
+  CARD_CATEGORIES,
+  CARD_CONTRACT_VERSION,
+  type CardAbilityIdentity,
+  type CardArtwork,
+  type CardAvailability,
+  type CardCategory,
+  type CardCostLine,
+  type CardCosts,
+  type CardEnvelope,
+  type CardLimitation,
+  type CardPresentation,
+  type CardProvenance,
+  type CardSnapshotIdentity,
+  type CardTargeting,
+  type CardTraitEntry,
+  type CardValue,
+  type ManeuverCard,
+  type ManeuverCardSection,
+  type MageArtCard,
+  type MageArtCardSection,
+  type SpellCard,
+  type SpellCardSection,
+} from "./card/contract.js";
+export {
+  conditionOf as cardConditionOf,
+  maneuverRulesOf,
+  spellDeliveryOf,
+  spellRulesOf,
+  type CardRulesModel,
+  type ChainStepSemantics,
+  type CheckSemantics,
+  type ConditionSemantics,
+  type GroupEffectSemantics,
+  type ManeuverGroupRules,
+  type ManeuverRulesInput,
+  type NextSemantics,
+  type OperationSemantics,
+  type OutcomeSemantics,
+  type ResolutionGroupSemantics,
+  type SpellChainRules,
+  type SpellRulesInput,
+  type TargetSelectionHook,
+  type TargetSemantics,
+} from "./card/semantics.js";
+export { renderCardRules, renderManeuverRules, renderSpellRules, unavailableInstructions, type CardInstructions, type InstructionBlock, type LanguageContext } from "./card/language.js";
+export { projectManeuverCard, projectSpellCard, type CardProjectionContext } from "./card/projection.js";

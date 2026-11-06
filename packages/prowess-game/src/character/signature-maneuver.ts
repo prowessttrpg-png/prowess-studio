@@ -5,7 +5,7 @@ import { readKeywordCatalog } from "../affinity/definitions.js";
 import { findBundleDefinition, type ProwessDefinitionBundle } from "../bundle/bundle.js";
 import { compileAuthoredAbilityCore, type AuthoredAbilityResult } from "../ability/compile.js";
 import { compileManeuverCostCore, readManeuverCostRun, type ManeuverCostResult } from "../ability/maneuver-cost.js";
-import { compileExecutionCore } from "../ability/effect-execution.js";
+import { compileExecutionCore, type ExecutionGroup } from "../ability/effect-execution.js";
 import { readAuthoredAbilityPayload, readFoundationProfile, isAttackFoundation, type ManeuverDefinitionPayload } from "../definition/authored-ability-payload.js";
 import { readDefinitionRef, isSameExactDefinition, type ProwessDefinitionRef } from "../definition/envelope.js";
 import type { FoundationDefinitionPayload } from "../definition/payload.js";
@@ -49,6 +49,8 @@ export interface SignatureManeuverEvaluation {
   readonly authored: AuthoredAbilityResult<CharacterManeuverSubject> | null;
   readonly inspector: { readonly sourceMap: ProwessCompilationSourceMap } | null;
   readonly runtimeDeferred: readonly { readonly code: string; readonly message: string }[];
+  /** PAS-10 M6-WO9 (additive): the M5-WO12 execution plan's independent resolution groups, retained for presentation (Ability Cards) — never executed here. */
+  readonly execution: { readonly groups: readonly ExecutionGroup[]; readonly targetLimit: { readonly kind: string; readonly maximum: number | null }; readonly martialRank: string | null } | null;
 }
 const E = "SIGNATURE_MANEUVER.INVALID_DRAFT";
 export function emptySignatureManeuverDraft(name: string): SignatureManeuverDraft {
@@ -116,7 +118,7 @@ export function signatureManeuverComponentRefs(draft: SignatureManeuverDraft): r
 /** The exact adapter to M5/M4. No Release Definition is created or inserted into the bundle. */
 export function evaluateCharacterSignatureManeuver(request: { readonly bundle: ProwessDefinitionBundle; readonly ruleset: unknown; readonly profile: CharacterMechanicalProfile; readonly attackLibrary: CharacterAttackLibrary; readonly keywords: unknown; readonly draft: SignatureManeuverDraft; readonly usedSlots: number; readonly subject: CharacterManeuverSubject }): SignatureManeuverEvaluation {
   const { bundle, profile, draft, subject } = request;
-  const base = { subject, rulesetProvenance: bundle.rulesetProvenance, components: signatureManeuverComponentRefs(draft), inspector: null, runtimeDeferred: [] };
+  const base = { subject, rulesetProvenance: bundle.rulesetProvenance, components: signatureManeuverComponentRefs(draft), inspector: null, runtimeDeferred: [], execution: null };
   const fail = (issues: readonly ProwessProblem[], state: SignatureSpellState = "INVALID", missing: readonly string[] = []): SignatureManeuverEvaluation => deepFreeze({ ...base, state, missing, issues, cost: null, authored: null });
   const missing = [...(!draft.actions.length ? ["ACTION_SELECTION"] : []), ...(!draft.effects.length ? ["EFFECTS"] : []), ...(!draft.duration ? ["DURATION"] : [])];
   if (missing.length) return fail(missing.map(step => ({ code: "SIGNATURE_MANEUVER.INCOMPLETE", path: step, message: `${step} is not selected` })), "INCOMPLETE", missing);
@@ -163,5 +165,5 @@ export function evaluateCharacterSignatureManeuver(request: { readonly bundle: P
   const execution = compileExecutionCore(new Problems(), r, ability.value, cost.value.authored, subject.signatureAbilityId ?? `${subject.characterId}:draft`);
   const deferred = execution.ok ? [] : execution.problems.map(q => ({ code: q.code, message: q.message }));
   if (ability.value.traits.some(t => t.scope.scope === "ACTION_SPECIFIC" && t.modifications.some(m => m.modification.kind === "TRIGGER"))) deferred.push({ code: "M5-SC-049", message: "Action-scoped Trait triggers have no authorized runtime routing; their exact selection and cost remain visible." });
-  return deepFreeze({ ...base, state: !cost.value.valid ? "INVALID" : deferred.length ? "VALID_WITH_RUNTIME_DEFERRED" : "VALID", missing: [], issues: cost.value.problems, inspector: { sourceMap: costPlan.value.sourceMap }, cost: cost.value, authored: cost.value.authored, runtimeDeferred: deferred });
+  return deepFreeze({ ...base, state: !cost.value.valid ? "INVALID" : deferred.length ? "VALID_WITH_RUNTIME_DEFERRED" : "VALID", missing: [], issues: cost.value.problems, inspector: { sourceMap: costPlan.value.sourceMap }, cost: cost.value, authored: cost.value.authored, runtimeDeferred: deferred, execution: execution.ok ? { groups: execution.value.plan.groups ?? [], targetLimit: execution.value.plan.targetLimit, martialRank: execution.value.plan.martialRank } : null });
 }

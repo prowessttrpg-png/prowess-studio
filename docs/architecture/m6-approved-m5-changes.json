@@ -124,5 +124,19 @@
       "packages/prowess-game/src/testing/m6-wo8-maneuver-world.json": "80eb267373d7f60ef9b8e4266810aeb376e2da60a84112993a4057beec0c194a",
       "packages/prowess-game/src/testing/signature-maneuver-fixtures.ts": "157ab38fd54d2fd202ab6171c0bf8b81697a2a716d0b52290f946d79c8b9aa62"
     }
+  },
+  "M6-WO9": {
+    "changedFiles": {
+      "packages/prowess-game/src/character/signature-maneuver.ts": "e4052a6d36bdeb25fb8c42ef911ca9449da28f56c77cad33bfeef6f12826cdeb",
+      "packages/prowess-game/src/index.ts": "9b105dcc4eed396b3ce48843107a59450c4547283b9136a42c07ed0b7baa232f"
+    },
+    "addedFiles": {
+      "packages/prowess-game/src/card-language.test.ts": "a723d4356e01fbb4eef0685c397582c2e15988cf87f6b60f784fb1cc4bf5a256",
+      "packages/prowess-game/src/card-projection.test.ts": "4869587c08840662b7a85e33451ab8f60b5893859561edae6e7ee0b9af0670fa",
+      "packages/prowess-game/src/card/contract.ts": "082809a6e556c1d077af72bb0217c29dfd12b77aef6ec8c409199864867d752c",
+      "packages/prowess-game/src/card/language.ts": "3c71a380c8c334fd4680a98e2821dc2da4d4cccb237e18dae82aefcaa6341af3",
+      "packages/prowess-game/src/card/projection.ts": "7c5ccc0b5e3d2e6495c2e053e035477af1476dc647bedf91a8eec2a09c32c17c",
+      "packages/prowess-game/src/card/semantics.ts": "447c201cf4b19222c3d18c156ac2f128e0b0f1cf81f744f1cbeb0e0cbbec3b7d"
+    }
   }
 }
