@@ -32,6 +32,8 @@ export const COMPONENT_COMPILERS: Readonly<Record<ProwessDefinitionKind, Compone
   SKILL_RANK: null,
   RESOURCE: null,
   ACTION: null,
+  // M6-WO9: Action Improvements are evaluated through their own entry point (character/action-improvement.ts).
+  ACTION_IMPROVEMENT: null,
   CREATURE_SIZE: null,
   TERRAIN: null,
   // M5-WO4 compiles Affinity through its own subjects (affinity/compile.ts), not as an Ability component compiler.

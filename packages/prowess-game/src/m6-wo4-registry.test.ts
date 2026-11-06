@@ -29,7 +29,7 @@ describe("M6-WO4 registry characterization", () => {
   });
 
   it("the only new kind is CHARACTER_ADVANCEMENT_RULE: CHARACTER family, no shared contract, v1", () => {
-    expect(Object.keys(current).filter((k) => !(k in baseline.kinds) && k !== "ATTACK")).toEqual(["CHARACTER_ADVANCEMENT_RULE"]);
+    expect(Object.keys(current).filter((k) => !(k in baseline.kinds) && k !== "ATTACK" && k !== "ACTION_IMPROVEMENT")).toEqual(["CHARACTER_ADVANCEMENT_RULE"]);
     expect(current.CHARACTER_ADVANCEMENT_RULE).toEqual({ family: "CHARACTER", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1] });
     expect([...ADVANCEMENT_PAYLOAD_KINDS]).toEqual(["CHARACTER_ADVANCEMENT_RULE"]);
   });

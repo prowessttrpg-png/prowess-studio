@@ -1,7 +1,13 @@
 import type { ProwessDefinitionRef } from "../definition/envelope.js";
 import type { SaveFlow } from "../ability/effect-execution.js";
 import type {
+  ActionCostSemantics,
+  AttackCheckSemantics,
+  AttackOutcomeSemantics,
+  AttackPropertySemantics,
+  AttackRules,
   CardRulesModel,
+  GeneralActionRules,
   ChainStepSemantics,
   CheckSemantics,
   ConditionSemantics,
@@ -280,8 +286,91 @@ function finish(blocks: InstructionBlock[], unresolved: readonly UnresolvedSeman
   return deepFreeze({ language: "en" as const, status: unresolved.length === 0 ? ("COMPLETE" as const) : ("PARTIAL" as const), blocks: [...blocks, ...notes], unresolved: [...unresolved] });
 }
 
+// ---- Phase B: Weapon Attacks ------------------------------------------------------------------------------------------
+
+const ATTACK_OUTCOME_WORDS: Readonly<Record<AttackOutcomeSemantics, string>> = { FULL: "full damage", HALF: "half damage", NO_DAMAGE: "no damage" };
+const PROPERTY_STATUS_WORDS: Readonly<Record<string, string>> = { EXECUTABLE: "applied", REFERENCE_ONLY: "reference only — not executed", DEFERRED: "deferred — not executed" };
+
+/** The defender's save is named explicitly; the authored outcome follows each side (decision C4). */
+export function attackCheckSentences(check: AttackCheckSemantics): string[] {
+  switch (check.kind) {
+    case "ATTACK_ROLL":
+      return [sentence("make an Attack Roll against the target"), sentence("on a hit, deal the selected damage"), sentence(`on a miss, ${ATTACK_OUTCOME_WORDS[check.onMiss]}`)];
+    case "SAVING_THROW":
+      return [
+        sentence(`the target makes a ${check.stat} Saving Throw against ${check.dc === "ATTACKER_CHARACTER_DC" ? "your Character DC" : tokenLabel(check.dc)}`),
+        sentence(`if the target's save fails, ${ATTACK_OUTCOME_WORDS[check.onDefenderSaveFails]}`),
+        sentence(`if the target's save succeeds, ${ATTACK_OUTCOME_WORDS[check.onDefenderSaveSucceeds]}`),
+      ];
+    case "UNRESOLVED":
+      return [sentence(`how this Attack resolves is not stated (${check.code}: ${check.reason}); it is shown, never resolved`)];
+  }
+}
+
+export function propertyPhrase(p: AttackPropertySemantics, ctx: LanguageContext): string {
+  return `${ctx.labelOf(p.trait)} (${PROPERTY_STATUS_WORDS[p.executionStatus] ?? tokenLabel(p.executionStatus)})${p.summary === "" ? "" : `: ${p.summary}`}`;
+}
+
+export function renderAttackRules(rules: AttackRules, ctx: LanguageContext): CardInstructions {
+  const blocks: InstructionBlock[] = [{ key: "attack.resolution", kind: "STEP", text: attackCheckSentences(rules.check).join(" "), refs: [] }];
+  const damage = rules.damage.map((d) => `${d.expression ?? "unresolved"} ${tokenLabel(d.damageType)}`);
+  if (damage.length > 0) blocks.push({ key: "attack.damage", kind: "STEP", text: sentence(damage.length === 1 ? `damage: ${damage[0]}` : `damage — choose one profile: ${listOr(damage)}`), refs: rules.damage.map((d) => d.profileKey) });
+  rules.properties.forEach((p, i) => blocks.push({ key: `attack.property.${i}`, kind: "NOTE", text: sentence(propertyPhrase(p, ctx)), refs: [p.traitKey] }));
+  return finish(blocks, rules.unresolved);
+}
+
+// ---- Phase B: General Actions -----------------------------------------------------------------------------------------
+
+export function actionCostPhrase(cost: ActionCostSemantics): string {
+  switch (cost.model) {
+    case "FIXED":
+      return `costs ${cost.amount} AP`;
+    case "MINIMUM":
+      return `costs at least ${cost.minimum} AP`;
+    case "RANGE":
+      return `costs ${cost.minimum} to ${cost.maximum} AP — you choose within that range`;
+    case "VARIABLE":
+      return `its AP cost is set by the ${tokenLabel(cost.determinedBy)} it is used for`;
+    case "NONE":
+      return "costs no AP";
+  }
+}
+
+export function renderGeneralActionRules(rules: GeneralActionRules, ctx: LanguageContext): CardInstructions {
+  const when = rules.timing === "OWN_TURN" ? "use it on your turn" : rules.timing === "OUTSIDE_OWN_TURN" ? "use it outside your turn" : `timing: ${tokenLabel(rules.timing)}`;
+  const trigger = rules.requiresTrigger ? ", only in response to its trigger" : "";
+  const others = rules.otherCosts.map((c) => `${c.amount} ${tokenLabel(c.costKey)}`);
+  const blocks: InstructionBlock[] = [
+    { key: "action.use", kind: "STEP", text: [sentence(`${when}${trigger}`), sentence(`${actionCostPhrase(rules.cost)}${others.length === 0 ? "" : `; it also spends ${listAnd(others)}`}`)].join(" "), refs: [] },
+  ];
+  if (rules.movementGrant !== null) {
+    const g = rules.movementGrant;
+    const inputs = g.inputs.filter((x) => x.current !== null).map((x) => `${tokenLabel(x.statistic ?? x.variable)} is ${x.current}${x.unit === null ? "" : ` ${x.unit}`}`);
+    blocks.push({ key: "action.movement", kind: "STEP", text: [sentence(`grants Movement by its formula (${g.expression}${g.unit === null ? "" : `, in ${g.unit}`}), worked out when the Action is taken`), inputs.length === 0 ? "" : sentence(`your ${listAnd(inputs)} now`)].filter((t) => t !== "").join(" "), refs: [] });
+  }
+  for (const imp of rules.improvements) {
+    const parts = imp.modifications
+      .filter((m) => m.support !== "UNSUPPORTED")
+      .map((m) => {
+        const cost = m.actionPointCost === null ? "" : `it costs ${m.actionPointCost} AP instead; `;
+        return m.condition === null ? `${cost}${m.rulesText}` : `when ${conditionPhrase(m.condition, new Map())}: ${cost}${m.rulesText}`;
+      });
+    blocks.push({ key: `action.improvement.${imp.improvementKey}`, kind: "NOTE", text: [sentence(`${ctx.labelOf(imp.improvement)} (${tokenLabel(imp.status)})`), ...parts.map(sentence)].join(" "), refs: [imp.improvementKey] });
+  }
+  return finish(blocks, rules.unresolved);
+}
+
 export function renderCardRules(rules: CardRulesModel, ctx: LanguageContext): CardInstructions {
-  return rules.kind === "SPELL_CHAIN" ? renderSpellRules(rules, ctx) : renderManeuverRules(rules, ctx);
+  switch (rules.kind) {
+    case "SPELL_CHAIN":
+      return renderSpellRules(rules, ctx);
+    case "MANEUVER_GROUPS":
+      return renderManeuverRules(rules, ctx);
+    case "WEAPON_ATTACK":
+      return renderAttackRules(rules, ctx);
+    case "GENERAL_ACTION":
+      return renderGeneralActionRules(rules, ctx);
+  }
 }
 
 /** Instructions when no rules model exists (an invalid / incomplete Ability or an undelivered domain). */

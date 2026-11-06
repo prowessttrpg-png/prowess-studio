@@ -143,10 +143,123 @@ export interface MageArtCardSection {
   readonly domain: CardValue<never>;
 }
 
+
+// ---- Phase B: Weapons, Attacks and General Actions ----------------------------------------------------------------------
+
+/** Where a Weapon is held for this Character's CURRENT loadout (M6-WO6): Unarmed is intrinsic, never equipped. */
+export interface CardEquippedState {
+  readonly hand: "UNARMED" | "MAIN_HAND" | "OFF_HAND";
+  readonly grip: string;
+  readonly occupies: readonly string[];
+}
+/** One Weapon / Move property use, with its exact execution status (EXECUTABLE / REFERENCE_ONLY / DEFERRED). */
+export interface CardPropertyEntry {
+  readonly trait: ProwessDefinitionRef;
+  readonly traitKey: string;
+  readonly executionStatus: string;
+  readonly parameters: Readonly<Record<string, number>>;
+  readonly summary: string;
+}
+/** A structured requirement exactly as the WO6 evaluation checked it (M4-evaluated; null = unresolved). */
+export interface CardRequirementEntry {
+  readonly requirementKey: string;
+  readonly kind: string;
+  readonly required: string;
+  readonly actual: string;
+  readonly satisfied: boolean | null;
+  readonly source: ProwessDefinitionRef;
+}
+export interface WeaponCardSection {
+  readonly kind: "WEAPON";
+  readonly weapon: ProwessDefinitionRef;
+  readonly equipped: CardEquippedState;
+  /** Authored identity values of the exact Weapon revision (never inferred): null where canon authors none. */
+  readonly profileKind: string;
+  readonly equipmentRole: string;
+  readonly category: string | null;
+  readonly handedness: string | null;
+  readonly scalingModel: string;
+  readonly power: CardValue<number>;
+  readonly martialRankKey: string | null;
+  readonly exampleForms: readonly string[];
+  readonly properties: readonly CardPropertyEntry[];
+  readonly equippedModifiers: readonly { readonly modifierKey: string; readonly target: string; readonly value: number }[];
+  readonly grantedFeatures: readonly { readonly featureKey: string; readonly executionStatus: string; readonly summary: string }[];
+  readonly requirements: readonly CardRequirementEntry[];
+  /** The Weapon's Moves as exact ATTACK references, with the card key of each Attack card. */
+  readonly moveset: readonly { readonly attack: ProwessDefinitionRef; readonly cardKey: string }[];
+}
+export interface AttackCardSection {
+  readonly kind: "ATTACK";
+  /** Exact Weapon Attack identity: the Weapon EntityVersion + the Attack EntityVersion (M6-WO6 §14). */
+  readonly weapon: ProwessDefinitionRef;
+  readonly attack: ProwessDefinitionRef;
+  readonly attackKey: string;
+  readonly equipped: CardEquippedState;
+  readonly moveKey: string;
+  readonly weaponFamilyKey: string;
+  readonly accuracyModifier: number;
+  /** The WO6 damage previews verbatim — one per authored profile, each with its evaluated scaling steps. */
+  readonly damage: readonly {
+    readonly profileKey: string;
+    readonly damageType: string;
+    readonly status: string;
+    readonly reason: string | null;
+    readonly scaling: string;
+    readonly base: string;
+    readonly final: string | null;
+    readonly steps: readonly { readonly step: string; readonly detail: string; readonly source: ProwessDefinitionRef | null }[];
+  }[];
+  readonly range: { readonly mode: string; readonly reachFeet: number | null; readonly rangeFeet: number | null; readonly lengthFeet: number | null; readonly area: { readonly shape: string; readonly radiusFeet: number } | null; readonly basis: { readonly stat: string; readonly statScore: number; readonly feetPerPoint: number } | null };
+  readonly resolution: Readonly<Record<string, unknown>>;
+  readonly properties: { readonly weapon: readonly CardPropertyEntry[]; readonly move: readonly CardPropertyEntry[] };
+  /** Property uses WO6 does not execute (REFERENCE_ONLY / DEFERRED), as WO6 names them. */
+  readonly notExecuted: readonly string[];
+  readonly requirements: readonly CardRequirementEntry[];
+  readonly eligibility: "ELIGIBLE" | "INELIGIBLE" | "UNRESOLVED";
+  /** The Release identity the WO6 evaluation reported for this Attack. */
+  readonly equipmentProvenance: { readonly rulesetId: string; readonly manifestId: string; readonly releaseId: string | null };
+}
+/** The Character-facing state of one Action Improvement (Phase B ACTION_IMPROVEMENT contract). */
+export interface CardImprovementEntry {
+  readonly improvement: ProwessDefinitionRef;
+  readonly improvementKey: string;
+  readonly status: "ACTIVE" | "CONDITIONAL" | "FUTURE" | "UNAVAILABLE" | "UNRESOLVED";
+  readonly eligibility: string;
+  readonly applicability: string;
+  readonly rulesText: string;
+  readonly prerequisites: readonly { readonly prerequisiteKey: string; readonly kind: string; readonly satisfied: boolean | null; readonly progression: string; readonly reason: string | null }[];
+  readonly modifications: readonly { readonly modificationKey: string; readonly kind: string; readonly support: string; readonly conditional: boolean; readonly reason: string | null }[];
+  readonly reasons: readonly CardLimitation[];
+}
+export interface GeneralActionCardSection {
+  readonly kind: "GENERAL_ACTION";
+  readonly action: ProwessDefinitionRef;
+  readonly actionKey: string;
+  readonly timing: string;
+  readonly requiresTrigger: boolean;
+  /** ACTION Definitions author no Character prerequisites: every Character may take them (no rule is invented). */
+  readonly eligibility: { readonly status: "NO_REQUIREMENTS" };
+  readonly otherCosts: readonly { readonly costKey: string; readonly policy: string; readonly amount: number }[];
+  /** The movement the Action grants: evaluated by the runtime when taken (DEFERRED here), with its inputs' current values. */
+  readonly movementGrant: {
+    readonly expression: string;
+    readonly unit: string | null;
+    readonly inputs: readonly { readonly variable: string; readonly statistic: string | null; readonly current: CardValue<number> }[];
+    readonly value: CardValue<number>;
+  } | null;
+  readonly costOverridableByExplicitRule: boolean;
+  readonly source: { readonly locators: readonly string[]; readonly conflicts: readonly string[] };
+  readonly improvements: readonly CardImprovementEntry[];
+}
+
 export type SpellCard = CardEnvelope<"SIGNATURE_SPELL", SpellCardSection>;
 export type ManeuverCard = CardEnvelope<"SIGNATURE_MANEUVER", ManeuverCardSection>;
 export type MageArtCard = CardEnvelope<"MAGE_ART", MageArtCardSection>;
-export type CardPresentation = SpellCard | ManeuverCard | MageArtCard;
+export type WeaponCard = CardEnvelope<"WEAPON", WeaponCardSection>;
+export type AttackCard = CardEnvelope<"ATTACK", AttackCardSection>;
+export type GeneralActionCard = CardEnvelope<"GENERAL_ACTION", GeneralActionCardSection>;
+export type CardPresentation = SpellCard | ManeuverCard | MageArtCard | WeaponCard | AttackCard | GeneralActionCard;
 
 export const available = <T>(value: T): CardValue<T> => ({ status: "AVAILABLE", value });
 export const unavailable = <T>(code: string, reason: string): CardValue<T> => ({ status: "UNAVAILABLE", code, reason });

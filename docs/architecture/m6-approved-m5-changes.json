@@ -127,16 +127,31 @@
   },
   "M6-WO9": {
     "changedFiles": {
+      "packages/prowess-game/src/character/eligibility.ts": "323d18e3df21eef9d2414e96bd4897c5fb7cf757232210b08c0d3c027c5c1800",
       "packages/prowess-game/src/character/signature-maneuver.ts": "e4052a6d36bdeb25fb8c42ef911ca9449da28f56c77cad33bfeef6f12826cdeb",
-      "packages/prowess-game/src/index.ts": "9b105dcc4eed396b3ce48843107a59450c4547283b9136a42c07ed0b7baa232f"
+      "packages/prowess-game/src/compilation/compile.ts": "96cc7ae6172b1b59135ff61aed55a76b038f7df5dcb2ef925742955a0f0f862b",
+      "packages/prowess-game/src/definition/payload.ts": "a96d55f62b71eda66ee42f74d62677102c45cc930c8ccf506e5a91f6e8013899",
+      "packages/prowess-game/src/index.ts": "072f1dd30f31b8f635b1a8d5f897bd90e1185d2b809fcd9f46d4c53f63428e0e",
+      "packages/prowess-game/src/m6-wo3-registry.test.ts": "b0d6f6b18cc266f5a82baabb98060fe92e718e2f1b7add888d554290fae964ca",
+      "packages/prowess-game/src/m6-wo4-registry.test.ts": "6ae7d12e3f2af6e20a6dc843e14a4ca33544e61008e60a832861d30af722fa99",
+      "packages/prowess-game/src/m6-wo6-registry.test.ts": "f5bffb451fcbc07754dff1463e5c0acff87cd797e1b43dc86d2ea25ccba0e8df",
+      "packages/prowess-game/src/vocabulary/families.ts": "034a90dfde783f7753ebda7c080d1653a633afab9d251b1e919596264c1673ea"
     },
     "addedFiles": {
       "packages/prowess-game/src/card-language.test.ts": "a723d4356e01fbb4eef0685c397582c2e15988cf87f6b60f784fb1cc4bf5a256",
+      "packages/prowess-game/src/card-phase-b.test.ts": "ac2fcff0cbd9a885ef1b680edcf6b59419e1fb5225083d99e26d0044a2120f93",
       "packages/prowess-game/src/card-projection.test.ts": "4869587c08840662b7a85e33451ab8f60b5893859561edae6e7ee0b9af0670fa",
-      "packages/prowess-game/src/card/contract.ts": "082809a6e556c1d077af72bb0217c29dfd12b77aef6ec8c409199864867d752c",
-      "packages/prowess-game/src/card/language.ts": "3c71a380c8c334fd4680a98e2821dc2da4d4cccb237e18dae82aefcaa6341af3",
+      "packages/prowess-game/src/card/action.ts": "86a5b2b9ef549a24b8fd808c3ffc53a34f9a7c765bc7f6de775cee76d47106b5",
+      "packages/prowess-game/src/card/contract.ts": "6cdca5d335df550302b5a960ee449e1a57e07bfeae80309f2847c7a04c9f9d71",
+      "packages/prowess-game/src/card/equipment.ts": "1580964f451210c5c566653f4c9b411966d2a8d9b01971f9c21df3ca1160016e",
+      "packages/prowess-game/src/card/language.ts": "df62db31e4a7998d2409cb8bfcf6b235710bf1e6b9e055841bed248d5e7c7ef3",
+      "packages/prowess-game/src/card/mage-art.ts": "2b3cae69dc706ae1984c836877f8733a517418300c7f5d79f914a1d77744e5ff",
       "packages/prowess-game/src/card/projection.ts": "7c5ccc0b5e3d2e6495c2e053e035477af1476dc647bedf91a8eec2a09c32c17c",
-      "packages/prowess-game/src/card/semantics.ts": "447c201cf4b19222c3d18c156ac2f128e0b0f1cf81f744f1cbeb0e0cbbec3b7d"
+      "packages/prowess-game/src/card/semantics.ts": "ec0ec616bb75e46420d0eb7872e80f56571eb95b1ab99e42b13b4ab3045ab727",
+      "packages/prowess-game/src/character/action-improvement.ts": "6c252cc4054fb5da8d0f39509324345beb16432cb7fcd81229be72a69b7dc63e",
+      "packages/prowess-game/src/definition/action-improvement-payload.ts": "f2f94add731d9b2338ce8608cd145abd532187d824f2a030df01a459e68bf6b4",
+      "packages/prowess-game/src/m6-wo9-registry.test.ts": "207054df420cdd064bcccc185d05c6da27988853e7598aeea304010d6775f4be",
+      "packages/prowess-game/src/testing/m6-wo9-registry-baseline.json": "b6d0342a2a534057b033de5611c03ab750a35735f30fc4696c453ca575e9bd73"
     }
   }
 }

@@ -805,3 +805,55 @@ export {
 } from "./card/semantics.js";
 export { renderCardRules, renderManeuverRules, renderSpellRules, unavailableInstructions, type CardInstructions, type InstructionBlock, type LanguageContext } from "./card/language.js";
 export { projectManeuverCard, projectSpellCard, type CardProjectionContext } from "./card/projection.js";
+
+// PAS-10 M6-WO9 — Ability Card System (Phase B): Weapon / Attack / General Action / Mage Art (unavailable) cards, the
+// Action Directory and the additive ACTION_IMPROVEMENT contract (decision C1) with its eligibility / progression states.
+export {
+  type AttackCard,
+  type AttackCardSection,
+  type CardEquippedState,
+  type CardImprovementEntry,
+  type CardPropertyEntry,
+  type CardRequirementEntry,
+  type GeneralActionCard,
+  type GeneralActionCardSection,
+  type WeaponCard,
+  type WeaponCardSection,
+} from "./card/contract.js";
+export {
+  type ActionCostSemantics,
+  type ActionImprovementSemantics,
+  type AttackCheckSemantics,
+  type AttackOutcomeSemantics,
+  type AttackPropertySemantics,
+  type AttackRules,
+  type GeneralActionRules,
+} from "./card/semantics.js";
+export { actionCostPhrase, attackCheckSentences, renderAttackRules, renderGeneralActionRules } from "./card/language.js";
+export { attackCardKey, attackRulesOf, projectAttackCard, projectEquipmentCards, projectWeaponCard, weaponCardKey, type CharacterCardContext } from "./card/equipment.js";
+export { buildActionDirectory, generalActionCardKey, projectGeneralActionCard, type ActionDirectory } from "./card/action.js";
+export { MAGE_ART_UNAVAILABLE_CODE, mageArtDomainOf, projectMageArtCard } from "./card/mage-art.js";
+export {
+  ACTION_IMPROVEMENT_MODIFICATION_KINDS,
+  ACTION_IMPROVEMENT_PAYLOAD_KINDS,
+  ACTION_IMPROVEMENT_PREREQUISITE_KINDS,
+  type ActionImprovementModification,
+  type ActionImprovementModificationKind,
+  type ActionImprovementPayload,
+  type ActionImprovementPrerequisite,
+  type ActionImprovementPrerequisiteKind,
+} from "./definition/action-improvement-payload.js";
+export {
+  ACTION_IMPROVEMENT_REASON_CODES,
+  ACTION_PROGRESSION_STATUSES,
+  actionImprovementsFor,
+  evaluateActionImprovement,
+  type ActionImprovementEvaluation,
+  type ActionImprovementModificationResult,
+  type ActionImprovementPrerequisiteResult,
+  type ActionProgressionStatus,
+  type ModificationSupport,
+  type ParentActionState,
+  type PrerequisiteProgression,
+} from "./character/action-improvement.js";
+export { evaluateRankPrerequisites } from "./character/eligibility.js";

@@ -37,7 +37,8 @@ describe("M6-WO6 registry characterization (§6–§7)", () => {
   });
 
   it("the only new kind is ATTACK: EQUIPMENT family, no shared contract, GENERIC_RULE storage, v1", () => {
-    expect(Object.keys(current).filter((k) => !(k in baseline.kinds))).toEqual(["ATTACK"]);
+    // Kinds added by LATER Work Orders are characterized by their own registry tests (M6-WO9: m6-wo9-registry.test.ts).
+    expect(Object.keys(current).filter((k) => !(k in baseline.kinds) && k !== "ACTION_IMPROVEMENT")).toEqual(["ATTACK"]);
     expect(current.ATTACK).toEqual({ family: "EQUIPMENT", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1] });
     expect(Object.keys(baseline.kinds).filter((k) => !(k in current))).toEqual([]);
     expect([...EQUIPMENT_PAYLOAD_KINDS]).toEqual(["WEAPON", "ATTACK", "EQUIPMENT_TRAIT"]);

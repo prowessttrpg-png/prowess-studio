@@ -41,7 +41,7 @@ describe("M6-WO3 registry characterization (§10, §84)", () => {
 
   it("the only new kind is CHARACTER_CREATION_RULE: CHARACTER family, no shared contract, v1", () => {
     // Kinds added by LATER Work Orders are characterized by their own registry tests (M6-WO4: m6-wo4-registry.test.ts).
-    const later = ["CHARACTER_ADVANCEMENT_RULE", "ATTACK"];
+    const later = ["CHARACTER_ADVANCEMENT_RULE", "ATTACK", "ACTION_IMPROVEMENT"];
     const added = Object.keys(current).filter((k) => !(k in baseline.kinds) && !later.includes(k));
     expect(added).toEqual(["CHARACTER_CREATION_RULE"]);
     expect(current.CHARACTER_CREATION_RULE).toEqual({ family: "CHARACTER", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1] });

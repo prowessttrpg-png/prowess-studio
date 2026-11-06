@@ -4,7 +4,7 @@ import { ownedAffinity } from "../affinity/profile.js";
 import type { ProwessDefinitionBundle } from "../bundle/bundle.js";
 import { componentContractOf } from "../construction/contracts.js";
 import { indexCoreDefinitions } from "../core/definitions.js";
-import { readComponentConstructionRules, type AbilityConstructionRulePayload } from "../definition/ability-construction-payload.js";
+import { readComponentConstructionRules, type AbilityConstructionRulePayload, type ConstructionPrerequisite } from "../definition/ability-construction-payload.js";
 import { definitionRefOf, type ProwessDefinitionEnvelope, type ProwessDefinitionRef } from "../definition/envelope.js";
 import { Problems } from "../internal/problems.js";
 import { deepFreeze } from "../internal/plain-data.js";
@@ -91,6 +91,52 @@ function skillRank(ctx: Ctx, skillKey: string): { rankKey: string; order: number
   return row === undefined ? null : { rankKey: row.rankKey, order: row.order, owned: owned !== undefined };
 }
 
+/**
+ * Evaluates SKILL_RANK_AT_LEAST / AFFINITY_RANK_AT_LEAST prerequisites through the M4 RANK_AT_LEAST / ENTITY_OWNED
+ * Requirements (the one implementation: component eligibility and M6-WO9 Action Improvements both call it). Results
+ * and unresolved reasons are appended in authored order. Requires a readable Skill ladder and Affinity index.
+ */
+function rankPrerequisites(ctx: Ctx, prerequisites: readonly ConstructionPrerequisite[], ref: ProwessDefinitionRef, requirements: RequirementResult[], unresolved: string[]): void {
+  if (ctx.ladder === null || !ctx.affinity.ok) return;
+  const index = ctx.affinity.value;
+  for (const q of prerequisites) {
+    if (q.kind === "SKILL_RANK_AT_LEAST") {
+      const required = ctx.ladder.find((l) => l.rankKey === q.minimumRank);
+      const actual = skillRank(ctx, q.skillKey);
+      const satisfied = required === undefined || actual === null ? null : rankAtLeast(skillFactKey(q.skillKey), actual, required);
+      if (required === undefined) unresolved.push(`${q.prerequisiteKey}: ${q.minimumRank} is not a rank of the Skill rank ladder`);
+      requirements.push({ prerequisiteKey: q.prerequisiteKey, kind: q.kind, required: { skillKey: q.skillKey, affinity: null, rankKey: q.minimumRank }, actual: { rankKey: actual?.rankKey ?? "", owned: actual?.owned ?? false }, satisfied, source: ref });
+    } else {
+      // The EXACT Affinity the Definition names — never another Affinity with overlapping Keywords (§105–§106).
+      const entry = findAffinityEntry(index, q.affinity);
+      const owned = ownedAffinity(ctx.profile.affinityProfile, q.affinity);
+      let satisfied: boolean | null = null;
+      if (entry === null) unresolved.push(`${q.prerequisiteKey}: ${q.affinity.canonicalKey} is not an executable Affinity pinned by this Release`);
+      else {
+        const required = rankEntry(index, q.minimumRank);
+        const children: JsonObject[] = [{ kind: "ENTITY_OWNED", entityId: entry.ref.entityId, provenance: null }];
+        if (owned !== null) children.push({ kind: "RANK_AT_LEAST", factKey: affinityFactKey(entry.ref), requiredRankKey: required.rank, requiredOrder: required.order, provenance: null });
+        satisfied = requirementMet({ kind: "ALL", children, provenance: null }, { ownedEntityIds: ctx.profile.affinityProfile.affinities.map((a) => a.affinity.entityId), ranks: owned === null ? [] : [{ key: affinityFactKey(entry.ref), rankKey: owned.rank, order: rankEntry(index, owned.rank).order }] });
+      }
+      requirements.push({ prerequisiteKey: q.prerequisiteKey, kind: q.kind, required: { skillKey: null, affinity: q.affinity, rankKey: q.minimumRank }, actual: { rankKey: owned?.rank ?? UNOWNED, owned: owned !== null }, satisfied, source: ref });
+    }
+  }
+}
+
+/**
+ * PAS-10 M6-WO9: the same rank-prerequisite evaluation for a Definition that is not an Ability component (an
+ * ACTION_IMPROVEMENT). Fails closed (UNRESOLVED reasons) when the Release's Skill ladder or Affinity rules are unreadable.
+ */
+export function evaluateRankPrerequisites(request: { readonly bundle: ProwessDefinitionBundle; readonly profile: CharacterMechanicalProfile; readonly prerequisites: readonly ConstructionPrerequisite[]; readonly source: ProwessDefinitionRef }): { readonly requirements: readonly RequirementResult[]; readonly unresolved: readonly string[] } {
+  const ctx = contextOf(request.bundle, request.profile);
+  const requirements: RequirementResult[] = [];
+  const unresolved: string[] = [];
+  if (request.prerequisites.length > 0 && ctx.ladder === null) unresolved.push("the Release's Skill rank ladder could not be read");
+  if (request.prerequisites.length > 0 && !ctx.affinity.ok) unresolved.push("the Release's Affinity rules could not be read");
+  rankPrerequisites(ctx, request.prerequisites, request.source, requirements, unresolved);
+  return deepFreeze({ requirements, unresolved });
+}
+
 function evaluate(ctx: Ctx, envelope: ProwessDefinitionEnvelope): ComponentEligibility {
   const ref = definitionRefOf(envelope);
   const provenance = { rulesetId: ctx.bundle.rulesetProvenance.rulesetId, manifestId: ctx.bundle.rulesetProvenance.manifestId };
@@ -103,31 +149,7 @@ function evaluate(ctx: Ctx, envelope: ProwessDefinitionEnvelope): ComponentEligi
   if (read === null) unresolved.push(...p.list.map((x) => x.message));
   if (ctx.ladder === null) unresolved.push("the Release's Skill rank ladder could not be read");
   if (!ctx.affinity.ok) unresolved.push("the Release's Affinity rules could not be read");
-  if (read !== null && ctx.ladder !== null && ctx.affinity.ok) {
-    const index = ctx.affinity.value;
-    for (const q of read.prerequisites) {
-      if (q.kind === "SKILL_RANK_AT_LEAST") {
-        const required = ctx.ladder.find((l) => l.rankKey === q.minimumRank);
-        const actual = skillRank(ctx, q.skillKey);
-        const satisfied = required === undefined || actual === null ? null : rankAtLeast(skillFactKey(q.skillKey), actual, required);
-        if (required === undefined) unresolved.push(`${q.prerequisiteKey}: ${q.minimumRank} is not a rank of the Skill rank ladder`);
-        requirements.push({ prerequisiteKey: q.prerequisiteKey, kind: q.kind, required: { skillKey: q.skillKey, affinity: null, rankKey: q.minimumRank }, actual: { rankKey: actual?.rankKey ?? "", owned: actual?.owned ?? false }, satisfied, source: ref });
-      } else {
-        // The EXACT Affinity the Definition names — never another Affinity with overlapping Keywords (§105–§106).
-        const entry = findAffinityEntry(index, q.affinity);
-        const owned = ownedAffinity(ctx.profile.affinityProfile, q.affinity);
-        let satisfied: boolean | null = null;
-        if (entry === null) unresolved.push(`${q.prerequisiteKey}: ${q.affinity.canonicalKey} is not an executable Affinity pinned by this Release`);
-        else {
-          const required = rankEntry(index, q.minimumRank);
-          const children: JsonObject[] = [{ kind: "ENTITY_OWNED", entityId: entry.ref.entityId, provenance: null }];
-          if (owned !== null) children.push({ kind: "RANK_AT_LEAST", factKey: affinityFactKey(entry.ref), requiredRankKey: required.rank, requiredOrder: required.order, provenance: null });
-          satisfied = requirementMet({ kind: "ALL", children, provenance: null }, { ownedEntityIds: ctx.profile.affinityProfile.affinities.map((a) => a.affinity.entityId), ranks: owned === null ? [] : [{ key: affinityFactKey(entry.ref), rankKey: owned.rank, order: rankEntry(index, owned.rank).order }] });
-        }
-        requirements.push({ prerequisiteKey: q.prerequisiteKey, kind: q.kind, required: { skillKey: null, affinity: q.affinity, rankKey: q.minimumRank }, actual: { rankKey: owned?.rank ?? UNOWNED, owned: owned !== null }, satisfied, source: ref });
-      }
-    }
-  }
+  if (read !== null && ctx.ladder !== null && ctx.affinity.ok) rankPrerequisites(ctx, read.prerequisites, ref, requirements, unresolved);
   const status: EligibilityStatus = unresolved.length > 0 || requirements.some((r) => r.satisfied === null) ? "UNRESOLVED" : requirements.every((r) => r.satisfied === true) ? "ELIGIBLE" : "INELIGIBLE";
   return deepFreeze({ definition: ref, status, requirements, unresolved, provenance });
 }

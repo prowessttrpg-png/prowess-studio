@@ -121,7 +121,69 @@ export interface ManeuverGroupRules {
   readonly groups: readonly ResolutionGroupSemantics[];
   readonly unresolved: readonly UnresolvedSemantics[];
 }
-export type CardRulesModel = SpellChainRules | ManeuverGroupRules;
+
+// ---- Phase B: Weapon Attacks and General Actions ------------------------------------------------------------------------
+
+/** A Weapon Attack's authored outcome token (M6-WO6 DAMAGE_OUTCOMES), restated — never recomputed. */
+export type AttackOutcomeSemantics = "FULL" | "HALF" | "NO_DAMAGE";
+/**
+ * How one Weapon Attack resolves, as its ATTACK Definition authors it (M6-WO6). The Saving Throw outcomes are keyed by the
+ * DEFENDER's save (decision C4): `onDefenderSaveFails` is the authored `onFailure`, `onDefenderSaveSucceeds` `onSuccess`.
+ */
+export type AttackCheckSemantics =
+  | { readonly kind: "ATTACK_ROLL"; readonly onMiss: AttackOutcomeSemantics }
+  | { readonly kind: "SAVING_THROW"; readonly stat: string; readonly dc: string; readonly onDefenderSaveFails: AttackOutcomeSemantics; readonly onDefenderSaveSucceeds: AttackOutcomeSemantics }
+  | { readonly kind: "UNRESOLVED"; readonly code: string; readonly reason: string };
+export interface AttackPropertySemantics {
+  readonly trait: ProwessDefinitionRef;
+  readonly traitKey: string;
+  /** EXECUTABLE (applied by the WO6 evaluation) / REFERENCE_ONLY / DEFERRED (shown, never executed). */
+  readonly executionStatus: string;
+  readonly summary: string;
+}
+export interface AttackRules {
+  readonly kind: "WEAPON_ATTACK";
+  readonly check: AttackCheckSemantics;
+  /** The evaluated damage previews (profile key → final dice), one selectable profile each; never auto-selected. */
+  readonly damage: readonly { readonly profileKey: string; readonly damageType: string; readonly expression: string | null; readonly status: string }[];
+  readonly properties: readonly AttackPropertySemantics[];
+  readonly unresolved: readonly UnresolvedSemantics[];
+}
+
+/** An ACTION's AP cost model, restated from its Definition. */
+export type ActionCostSemantics =
+  | { readonly model: "FIXED"; readonly amount: number }
+  | { readonly model: "RANGE"; readonly minimum: number; readonly maximum: number }
+  | { readonly model: "MINIMUM"; readonly minimum: number }
+  | { readonly model: "VARIABLE"; readonly determinedBy: string }
+  | { readonly model: "NONE" };
+export interface ActionImprovementSemantics {
+  readonly improvement: ProwessDefinitionRef;
+  readonly improvementKey: string;
+  readonly status: string;
+  readonly modifications: readonly {
+    readonly modificationKey: string;
+    readonly kind: string;
+    readonly support: string;
+    readonly condition: ConditionSemantics | null;
+    readonly rulesText: string;
+    readonly actionPointCost: number | null;
+  }[];
+}
+export interface GeneralActionRules {
+  readonly kind: "GENERAL_ACTION";
+  readonly timing: string;
+  readonly requiresTrigger: boolean;
+  readonly cost: ActionCostSemantics;
+  readonly otherCosts: readonly { readonly costKey: string; readonly amount: number }[];
+  /** The authored movement grant (evaluated by the runtime when the Action is taken), with its inputs' current values. */
+  readonly movementGrant: { readonly expression: string; readonly unit: string | null; readonly inputs: readonly { readonly variable: string; readonly statistic: string | null; readonly current: number | null; readonly unit: string | null }[] } | null;
+  /** Improvements that apply now (ACTIVE) or at use under an authored condition (CONDITIONAL). */
+  readonly improvements: readonly ActionImprovementSemantics[];
+  readonly unresolved: readonly UnresolvedSemantics[];
+}
+
+export type CardRulesModel = SpellChainRules | ManeuverGroupRules | AttackRules | GeneralActionRules;
 
 /** "1", "2", … for an ordered list — positions are labels (no arithmetic over mechanics). */
 function positionsOf<T>(list: readonly T[]): readonly string[] {
