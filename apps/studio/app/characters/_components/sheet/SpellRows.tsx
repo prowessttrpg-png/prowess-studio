@@ -37,6 +37,12 @@ export function SignatureSpellRows({ sheet }: { sheet: CharacterSheetDto }) {
               <th scope="row">
                 {mode === "digital" ? <a href={`/characters/${id}/spells/${encodeURIComponent(s.id)}`}>{s.name}</a> : s.name}
                 {s.deferred.length > 0 ? <span className="sheet-muted" data-testid="sheet-spell-deferred"> (runtime deferred: {s.deferred.map((d) => d.conflictKey).join(", ")})</span> : null}
+                {mode === "digital" ? (
+                  <>
+                    {" "}
+                    · <a href={`/characters/${id}/cards?ability=${encodeURIComponent(s.id)}`} data-testid="sheet-spell-card">Card</a>
+                  </>
+                ) : null}
               </th>
               <td data-testid="sheet-spell-cost">{s.finalApCost !== null && s.finalMpCost !== null ? `${s.finalApCost} AP · ${s.finalMpCost} MP` : "Cost unresolved"}</td>
               <td data-testid="sheet-spell-targeting">

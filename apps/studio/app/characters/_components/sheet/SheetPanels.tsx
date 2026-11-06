@@ -337,6 +337,22 @@ export function ActionsPanel({ sheet, mode, value, onChange }: { sheet: Characte
   return (
     <SheetSection id="actions" title="Actions" icon={<SwordsIcon />}>
       <p className="sheet-muted sheet-digital-only">Weapon Attacks are previews from your exact Release (nothing is rolled or spent). Action Notes are your own reminders — they never create or change an action. Signature Spells and Maneuvers show their current active revisions.</p>
+      {mode === "digital" ? (
+        <p className="sheet-muted sheet-digital-only" data-testid="sheet-card-links">
+          Cards:{" "}
+          <a href={`/characters/${encodeURIComponent(sheet.identity.id)}/cards`} data-testid="sheet-cards-link">
+            Card Library
+          </a>{" "}
+          ·{" "}
+          <a href={`/characters/${encodeURIComponent(sheet.identity.id)}/cards?category=GENERAL_ACTION`} data-testid="sheet-general-actions-link">
+            General Action cards
+          </a>{" "}
+          ·{" "}
+          <a href={`/characters/${encodeURIComponent(sheet.identity.id)}/actions`} data-testid="sheet-action-directory-link">
+            Action Directory
+          </a>
+        </p>
+      ) : null}
       <WeaponAttackRows sheet={sheet} printRows={PRINT_ATTACK_ROWS} />
       <SignatureSpellRows sheet={sheet} />
       <SignatureManeuverRows sheet={sheet} />

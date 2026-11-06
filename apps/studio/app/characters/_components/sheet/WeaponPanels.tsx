@@ -184,13 +184,22 @@ export function WeaponSlots({ sheet, onLoadoutSaved }: { sheet: CharacterSheetDt
   );
 }
 
-function AttackRow({ sheet, a }: { sheet: CharacterSheetDto; a: CharacterAttackDto }) {
+function AttackRow({ sheet, a, mode }: { sheet: CharacterSheetDto; a: CharacterAttackDto; mode: string }) {
   const acc = accuracyText(a);
   return (
     <tr data-testid="sheet-attack-row" data-move={a.moveKey} data-hand={a.hand}>
       <th scope="row">
         <span className="sheet-attack__move">{sheet.names[a.attack.entityVersionId] ?? formatEnumLabel(a.moveKey)}</span>
         {a.hand !== "UNARMED" ? null : <span className="sheet-muted"> (Unarmed)</span>}
+        {mode === "digital" ? (
+          <>
+            {" "}
+            ·{" "}
+            <a href={`/characters/${encodeURIComponent(sheet.identity.id)}/cards?attack=${encodeURIComponent(a.attackKey)}&hand=${encodeURIComponent(a.hand)}`} data-testid="sheet-attack-card">
+              Card
+            </a>
+          </>
+        ) : null}
       </th>
       <td data-testid="sheet-attack-ap">
         {a.apCost}
@@ -235,7 +244,7 @@ export function WeaponAttackRows({ sheet, printRows }: { sheet: CharacterSheetDt
             </thead>
             <tbody>
               {group.map((a) => (
-                <AttackRow key={a.attackKey} sheet={sheet} a={a} />
+                <AttackRow key={a.attackKey} sheet={sheet} a={a} mode={mode} />
               ))}
             </tbody>
           </table>
