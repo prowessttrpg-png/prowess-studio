@@ -25,7 +25,7 @@ export type PlayAvailability = (typeof PLAY_AVAILABILITY)[number];
 export const PLAY_TIMING_EVENTS = deepFreeze(["BEGIN_COMBAT", "START_ROUND", "START_TURN", "END_TURN", "END_ROUND", "END_COMBAT"] as const);
 export type PlayTimingEvent = (typeof PLAY_TIMING_EVENTS)[number];
 
-export const PLAY_OPERATION_KINDS = deepFreeze(["TIMING", "GENERAL_ACTION", "MOVE", "WEAPON_ATTACK", "SPELL", "MANEUVER", "ACTIVE_MAGIC", "MANUAL_ADJUSTMENT", "NOTE", "RECONCILE"] as const);
+export const PLAY_OPERATION_KINDS = deepFreeze(["TIMING", "GENERAL_ACTION", "MOVEMENT", "WEAPON_ATTACK", "SPELL", "MANEUVER", "ACTIVE_MAGIC", "MANUAL_ADJUSTMENT", "NOTE", "RECONCILE"] as const);
 export type PlayOperationKind = (typeof PLAY_OPERATION_KINDS)[number];
 
 /** Active Magic lifecycle events a player may submit directly; ACTIVATE / ROUND_END / BOUNDARY / TIMING ride on casting and timing. */
@@ -130,7 +130,7 @@ export interface PlayTargetInput {
 export type PlayOperation =
   | { readonly kind: "TIMING"; readonly event: PlayTimingEvent; readonly surprised?: boolean }
   | { readonly kind: "GENERAL_ACTION"; readonly actionKey: string; readonly chosenCost?: number; readonly trigger?: { readonly triggerKey: string; readonly description: string } }
-  | { readonly kind: "MOVE"; readonly segments: readonly { readonly distance: number; readonly terrainKey: string }[] }
+  | { readonly kind: "MOVEMENT"; readonly segments: readonly { readonly distance: number; readonly terrainKey: string }[] }
   | { readonly kind: "WEAPON_ATTACK"; readonly attackKey: string; readonly hand: string; readonly damageProfileKey: string; readonly roll?: PlayRollInput; readonly targetDodge?: number }
   | { readonly kind: "SPELL"; readonly abilityId: string; readonly revisionNumber: number; readonly targets: readonly PlayTargetInput[]; readonly inputs: readonly PlayResolutionInput[] }
   | { readonly kind: "MANEUVER"; readonly abilityId: string; readonly revisionNumber: number; readonly targets: readonly PlayTargetInput[]; readonly groupTargets: readonly { readonly groupKey: string; readonly targetKeys: readonly string[] }[]; readonly inputs: readonly PlayResolutionInput[] }

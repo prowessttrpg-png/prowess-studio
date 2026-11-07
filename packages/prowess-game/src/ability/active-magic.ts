@@ -11,8 +11,10 @@ import { buildRuntimeContexts, compileRuntime } from "../runtime/compile.js";
 import type { ProwessRuntimeResources } from "../runtime/resources.js";
 import { readRuntimeRun } from "../runtime/results.js";
 import { RUNTIME_RESOURCE_KEYS, type RuntimeResourceKey } from "../vocabulary/runtime.js";
-import { executeAbilityResolution, type AbilityExecutionResult } from "./effect-execution.js";
-import { evaluateSpellCost, type SpellCostResult } from "./spell-cost.js";
+import { executeAbilityResolution } from "./effect-execution.js";
+import type { AbilityExecutionResult } from "./effect-execution.js";
+import { evaluateSpellCost } from "./spell-cost.js";
+import type { SpellCostResult } from "./spell-cost.js";
 
 /**
  * M5-WO13 — ACTIVE MAGIC RUNTIME: Sustain, Mana Lock, Concentration, Channeling and the Active Effect lifecycle.

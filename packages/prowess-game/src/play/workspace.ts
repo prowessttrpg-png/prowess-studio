@@ -5,7 +5,7 @@ import { clonePlainData, deepFreeze } from "../internal/plain-data.js";
 import { indexRuntimeDefinitions } from "../runtime/definitions.js";
 import { characterSpellAdapter, evaluateManeuverSource, evaluateSpellSource, signatureSourceKey } from "./abilities.js";
 import { PLAY_CONTRACT_VERSION, PLAY_REASON_CODES as R, type PlayAvailability, type PlayReason, type PlayRuntimeState } from "./contract.js";
-import { attackResolutionSupport, attacksOf, evaluatePlayOperation, initialPlayRuntime, legalTimingEvents, pendingDecisionOf, previewCosts, runtimeResourcesOf, SPELL_CASTING_ME_ELIGIBLE, type PlayContext, type PlayStored } from "./operations.js";
+import { attackCosts, attackResolutionSupport, attacksOf, evaluatePlayOperation, initialPlayRuntime, legalTimingEvents, pendingDecisionOf, previewCosts, RUNTIME_HELD_RESOURCES, runtimeResourcesOf, SPELL_CASTING_ME_ELIGIBLE, type PlayContext, type PlayStored } from "./operations.js";
 
 /**
  * PAS-10 M6-WO10 — the Play Workspace READ model. Every value is copied from an existing authority: the sheet mechanics
@@ -48,7 +48,7 @@ export function buildPlayWorkspace(ctx: PlayContext, stored: PlayStored) {
       minimum: d?.payload.minimum ?? null,
       maximum: sheet?.maximum ?? null,
       reservedCapacity: r.reservedCapacity,
-      stored: r.resourceKey === "MOVEMENT_ALLOWANCE" ? stored.runtime !== null : stored.sheetResources?.some((x) => x.resourceKey === r.resourceKey) === true,
+      stored: RUNTIME_HELD_RESOURCES[r.resourceKey] !== undefined ? stored.runtime !== null : stored.sheetResources?.some((x) => x.resourceKey === r.resourceKey) === true,
       refresh: d?.payload.refresh.map((x) => ({ timing: x.timing, target: x.target })) ?? [],
       expiry: d?.payload.expiry.map((x) => ({ timing: x.timing, preservable: x.preservableByExplicitRule })) ?? [],
       runtimeOnly: sheet === null,
@@ -82,7 +82,7 @@ export function buildPlayWorkspace(ctx: PlayContext, stored: PlayStored) {
       timing: a.timing,
       requiresTrigger: a.requiresTrigger,
       costModel: d === undefined ? null : clonePlainData(d.payload.actionPointCost),
-      apCost: clonePlainData(card.costs.ap),
+      ap: clonePlainData(card.costs.ap),
       otherCosts: a.otherCosts,
       grantsMovement: a.movementGrant !== null,
       availability: verdict.status === "PENDING_INPUT" && verdict.reasons.some((r) => r.code === R.TRIGGER_REQUIRED) ? ("PENDING_INPUT" as PlayAvailability) : availabilityOf(verdict.status, verdict.reasons),
@@ -92,20 +92,21 @@ export function buildPlayWorkspace(ctx: PlayContext, stored: PlayStored) {
 
   // ---- Weapon Attacks (M6-WO6, the sheet's library) ----
   const attacks = attacksOf(ctx.attackLibrary).map((at) => {
+    const { weapon: weaponRef, attack: attackRef } = at;
+    const costs = attackCosts(at);
     const support = attackResolutionSupport(at);
-    const preview = support.supported && at.eligibility === "ELIGIBLE" ? previewCosts(ctx, stored, { ap: { kind: "SPEND", amount: at.apCost, sourceKey: at.attack.canonicalKey }, mp: at.mpCost > 0 ? { amount: at.mpCost, meEligible: false, sourceKey: at.attack.canonicalKey } : null }, "play.preview.attack") : null;
+    const preview = support.supported && at.eligibility === "ELIGIBLE" ? previewCosts(ctx, stored, costs, "play.preview.attack") : null;
     const timingReason = window !== "OWN_TURN" ? [{ code: R.WRONG_TIMING_WINDOW, message: "Attacks are made on the Character's own turn" }] : [];
     const availability: PlayAvailability = !support.supported ? "REFERENCE_ONLY" : at.eligibility !== "ELIGIBLE" ? "UNAVAILABLE" : timingReason.length ? "UNAVAILABLE" : preview?.canPay ? "AVAILABLE" : "INSUFFICIENT_RESOURCES";
     return {
-      cardKey: attackCardKey(at.hand, at.weapon, at.attack),
+      cardKey: attackCardKey(at.hand, weaponRef, attackRef),
       attackKey: at.attackKey,
       hand: at.hand,
-      weapon: at.weapon,
-      attack: at.attack,
-      name: `${name(at.weapon)} — ${name(at.attack)}`,
+      weapon: weaponRef,
+      attack: attackRef,
+      name: `${name(weaponRef)} — ${name(attackRef)}`,
       grip: at.grip,
-      apCost: at.apCost,
-      mpCost: at.mpCost,
+      costs: { ap: costs.ap.kind === "SPEND" ? costs.ap.amount : null, mp: costs.mp?.amount ?? 0 },
       damage: at.damage.map((x) => ({ profileKey: x.profileKey, damageType: x.damageType, status: x.status, final: x.final, reason: x.reason })),
       range: at.range,
       resolution: at.resolution,
@@ -152,7 +153,7 @@ export function buildPlayWorkspace(ctx: PlayContext, stored: PlayStored) {
         targetLimit: e?.compiled?.plan.targetLimit ?? null,
         delivery: e?.compiled?.plan.delivery ?? null,
         chain: e?.compiled?.plan.chain === null || e?.compiled == null ? null : { start: e.compiled.plan.chain.start, nodes: e.compiled.plan.chain.nodes.map((n) => ({ effectKey: n.effectKey, definition: n.definition, family: n.family, resolution: n.resolution, behavior: n.behavior, route: n.route })) },
-        duration: duration === null ? null : { definition: duration.definition, mode: duration.mode, persists: duration.futureRuntime.persists, sustain: duration.futureRuntime.sustain, manaLock: duration.futureRuntime.manaLock, concentration: duration.futureRuntime.concentration },
+        duration: duration === null ? null : { definition: duration.definition, mode: duration.mode, becomesActiveMagic: duration.futureRuntime.persists, sustain: duration.futureRuntime.sustain, manaLock: duration.futureRuntime.manaLock, concentration: duration.futureRuntime.concentration },
         runtime: ev?.runtime ?? null,
         availability,
         reasons,
@@ -211,7 +212,7 @@ export function buildPlayWorkspace(ctx: PlayContext, stored: PlayStored) {
         range: ctx.mechanics.combat.range,
       },
       runtime,
-      persisted: stored.runtime !== null,
+      recorded: stored.runtime !== null,
       reconciliation: { required: reconciliation.length > 0, reasons: reconciliation },
       timing: { legal: sameIdentity ? legalTimingEvents(runtime) : [], window },
       resources: resourceRows,

@@ -54,7 +54,7 @@ ALTER TABLE "character_play_events" ADD CONSTRAINT "character_play_events_sequen
 ALTER TABLE "character_play_events" ADD CONSTRAINT "character_play_events_versions_check" CHECK ("runtime_version" >= 1 AND "play_state_version" >= 0);
 ALTER TABLE "character_play_events" ADD CONSTRAINT "character_play_events_record_check" CHECK (jsonb_typeof("record") = 'object');
 ALTER TABLE "character_play_events" ADD CONSTRAINT "character_play_events_classification_check" CHECK ("classification" IN ('RULES_EXECUTED', 'MANUAL_ADJUSTMENT', 'REFERENCE_ONLY', 'NOTE'));
-ALTER TABLE "character_play_events" ADD CONSTRAINT "character_play_events_operation_kind_check" CHECK ("operation_kind" IN ('TIMING', 'GENERAL_ACTION', 'MOVE', 'WEAPON_ATTACK', 'SPELL', 'MANEUVER', 'ACTIVE_MAGIC', 'MANUAL_ADJUSTMENT', 'NOTE', 'RECONCILE'));
+ALTER TABLE "character_play_events" ADD CONSTRAINT "character_play_events_operation_kind_check" CHECK ("operation_kind" IN ('TIMING', 'GENERAL_ACTION', 'MOVEMENT', 'WEAPON_ATTACK', 'SPELL', 'MANEUVER', 'ACTIVE_MAGIC', 'MANUAL_ADJUSTMENT', 'NOTE', 'RECONCILE'));
 ALTER TABLE "character_play_events" ADD CONSTRAINT "character_play_events_request_hash_check" CHECK ("request_hash" ~ '^[0-9a-f]{64}$');
 ALTER TABLE "character_play_events" ADD CONSTRAINT "character_play_events_summary_check" CHECK (char_length("summary") BETWEEN 1 AND 2000);
 

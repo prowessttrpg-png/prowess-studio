@@ -8,7 +8,7 @@ import type { PlayActionDto, PlayAttackDto, PlayEventDto, PlayManeuverDto, PlayO
 import { releaseLabel } from "../CharacterReview";
 import { CardViewer, type ViewMode } from "../cards/CardViewer";
 import { ActiveMagicPanel, ActivityLog, PlayHeader, ResourceDashboard, TimingBar } from "./PlayPanels";
-import { ResolutionPanel, type Selection } from "./ResolutionPanel";
+import { ActionDetailPanel, type Selection } from "./ActionDetailPanel";
 import "../cards/cards.css";
 import "./play.css";
 
@@ -214,11 +214,11 @@ export function PlayWorkspace({ characterId }: { characterId: string }) {
               {tab === "attacks" ? <AttackList attacks={w.attacks} onSelect={(a) => select({ kind: "WEAPON_ATTACK", attack: a })} onCard={openCard} selected={selection} /> : null}
               {tab === "spells" ? <AbilityList kind="SPELL" items={w.spells} onSelect={(s) => select({ kind: "SPELL", spell: s as PlaySpellDto })} onCard={openCard} selected={selection} /> : null}
               {tab === "maneuvers" ? <AbilityList kind="MANEUVER" items={w.maneuvers} onSelect={(m) => select({ kind: "MANEUVER", maneuver: m as PlayManeuverDto })} onCard={openCard} selected={selection} /> : null}
-              {tab === "movement" ? <MovementTab view={view} onSelect={() => select({ kind: "MOVE" })} /> : null}
+              {tab === "movement" ? <MovementTab view={view} onSelect={() => select({ kind: "MOVEMENT" })} /> : null}
               {tab === "magic" ? <ActiveMagicPanel workspace={w} submitter={submitter} onCard={openCard} /> : null}
             </div>
           </section>
-          {selection !== null ? <ResolutionPanel key={JSON.stringify(selection).slice(0, 200)} view={view} selection={selection} submitter={submitter} result={result} onCard={openCard} /> : result !== null ? <ResultOnly result={result} /> : null}
+          {selection !== null ? <ActionDetailPanel key={JSON.stringify(selection).slice(0, 200)} view={view} selection={selection} submitter={submitter} result={result} onCard={openCard} /> : result !== null ? <ResultOnly result={result} /> : null}
         </div>
         <aside className="play-layout__side">
           <ActivityLog characterId={view.character.id} events={view.recentEvents as PlayEventDto[]} submitter={submitter} />
@@ -263,7 +263,7 @@ function Reasons({ reasons }: { reasons: readonly { code: string; message: strin
   );
 }
 
-const apText = (a: PlayActionDto) => (a.apCost.status === "AVAILABLE" ? `${String(a.apCost.value)} AP` : (a.apCost.reason ?? "AP set when used"));
+const apText = (a: PlayActionDto) => (a.ap.status === "AVAILABLE" ? `${String(a.ap.value)} AP` : (a.ap.reason ?? "AP set when used"));
 
 function ActionList({ actions, onSelect, onCard, selected }: { actions: readonly PlayActionDto[]; onSelect: (a: PlayActionDto) => void; onCard: (k: string) => void; selected: Selection | null }) {
   if (actions.length === 0) return <p className="fcard-empty">This Release defines no Actions in this category.</p>;
@@ -299,7 +299,7 @@ function AttackList({ attacks, onSelect, onCard, selected }: { attacks: readonly
           <button type="button" className="play-row__main" aria-pressed={selected?.kind === "WEAPON_ATTACK" && selected.attack.attackKey === a.attackKey && selected.attack.hand === a.hand} onClick={() => onSelect(a)} data-testid="play-attack-open">
             <span className="play-row__name">{a.name}</span>
             <span className="play-row__meta">
-              {a.hand.replace(/_/g, " ").toLowerCase()} · {a.grip.replace(/_/g, " ").toLowerCase()} · {String(a.apCost)} AP{a.mpCost ? ` · ${String(a.mpCost)} MP` : ""}
+              {a.hand.replace(/_/g, " ").toLowerCase()} · {a.grip.replace(/_/g, " ").toLowerCase()} · {String(a.costs.ap ?? "—")} AP{a.costs.mp ? ` · ${String(a.costs.mp)} MP` : ""}
             </span>
           </button>
           <Badge value={a.availability} />

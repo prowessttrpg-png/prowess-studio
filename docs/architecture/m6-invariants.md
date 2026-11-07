@@ -915,3 +915,137 @@ Required by the permanent M6-WO2 gate (`apps/studio/tests/unit/m6-wo2-static.tes
 - **Group:** Compatibility
 - **Meaning:** Card links on the Sheet are digital-only additions at the end of existing rows; the Sheet's layout, rows and Letter print are unchanged; historical M5 / M6 contracts, costs and gates are preserved.
 - **Guards:** `apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx`, `apps/studio/tests/e2e/m6-cards.spec.ts`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+## M6-WO10 — Character Play Workspace (M6-I151 – M6-I172)
+
+### M6-I151 — Single Resource Authority
+
+- **Group:** Authority
+- **Meaning:** Current HP, MP, ME, AP and Counter Actions live only in the Character Sheet play state and change only through its compare-and-set (writePlayStateWithin inside the Play commit); the Play runtime holds only local timing, the runtime-only Movement Allowance, reserved MP capacity and the M5-WO13 Active Magic state. No maximum, formula, progression or Ability definition is stored.
+- **Guards:** `packages/prowess-game/src/play-workspace.test.ts`, `packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-play-ui.test.tsx`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I152 — Exact Character, Release And Revision Provenance
+
+- **Group:** Identity
+- **Meaning:** The runtime row, every ledger event and every Active Effect are pinned to the exact Character, Release, Ruleset provenance and Ability revision; another Release, a stale revision or an advancement while Active Magic is held yields RECONCILIATION_REQUIRED or REVISION_CHANGED — never a silent reinterpretation; database triggers keep a runtime's Character / Release and an event's Release fixed.
+- **Guards:** `packages/prowess-game/src/play-workspace.test.ts`, `packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I153 — Server-Owned Evaluation And A Closed Operation Contract
+
+- **Group:** Authority
+- **Meaning:** The client submits only operation kind, choices, targets, raw die faces and GM-provided target facts; costs, maximums, legality, payments, totals, successes and outcomes are never accepted from it. readPlayOperation and the strict routes refuse unknown fields.
+- **Guards:** `packages/prowess-game/src/play-workspace.test.ts`, `apps/studio/tests/integration/m6-wo10-play-api.test.ts`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I154 — Preview Never Writes; Commit Recomputes
+
+- **Group:** Protocol
+- **Meaning:** A preview evaluates on the server and writes nothing; a commit re-reads the stored state, checks the expected versions and re-evaluates server-side — a preview never authorizes a payment.
+- **Guards:** `packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts`, `apps/studio/tests/integration/m6-wo10-play-api.test.ts`, `apps/studio/tests/unit/m6-wo10-play-ui.test.tsx`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I155 — Atomic Commit
+
+- **Group:** Persistence
+- **Meaning:** One database transaction compare-and-sets the sheet play state (or proves it unchanged), compare-and-sets the runtime row and appends exactly one ledger event; any failing step rolls the whole commit back.
+- **Guards:** `packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I156 — Idempotent Commits
+
+- **Group:** Persistence
+- **Meaning:** An idempotency key returns the original committed event without applying costs again; reusing a key for a different operation is refused; the unique (character, key) index settles concurrent duplicates.
+- **Guards:** `packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts`, `apps/studio/tests/integration/m6-wo10-play-api.test.ts`, `apps/studio/tests/unit/m6-wo10-play-ui.test.tsx`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I157 — Optimistic Concurrency
+
+- **Group:** Persistence
+- **Meaning:** Commits carry the expected runtime and play-state versions; a stale version (including a Character Sheet edit in between) fails safely and two simultaneous submissions never spend the same AP or MP twice.
+- **Guards:** `packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts`, `apps/studio/tests/integration/m6-wo10-play-api.test.ts`, `apps/studio/tests/unit/m6-wo10-play-ui.test.tsx`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I158 — No Payment From Incomplete Or Unsupported Resolution
+
+- **Group:** Resolution
+- **Meaning:** A Spell or Maneuver pays only after M5-WO12 resolution is COMPLETE; pending inputs, runtime-deferred Abilities (e.g. Mana Lock M5-SC-052) and refused resolutions commit nothing.
+- **Guards:** `packages/prowess-game/src/play-workspace.test.ts`, `packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-play-ui.test.tsx`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I159 — No Double Charging
+
+- **Group:** Payment
+- **Meaning:** A Weapon Attack pays its own authored AP / MP (never a same-named generic Action); a Spell's AP is paid once through the Release's Spell-determined Action and its MP once through WO3 MAGICAL_PAYMENT; activation adds no second payment.
+- **Guards:** `packages/prowess-game/src/play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I160 — Exact Timing Transitions
+
+- **Group:** Timing
+- **Meaning:** Refresh and expiry run only on explicit timing events through WO3 RESOURCE_TIMING over the authored RESOURCE rules; AP capacity is Release-derived; duplicate or out-of-sequence events are refused; nothing refreshes, advances or resolves on read or reload.
+- **Guards:** `packages/prowess-game/src/play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-play-ui.test.tsx`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I161 — Action Cost-Model Integrity
+
+- **Group:** Payment
+- **Meaning:** FIXED costs come from the ACTION Definition, replaced only by one ACTIVE, APPLIED, unconditional M6-WO9 improvement override; RANGE / MINIMUM need an explicit choice validated by WO3; VARIABLE costs are never priced as zero; payment is confirmed before any follow-on.
+- **Guards:** `packages/prowess-game/src/play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I162 — Movement Allowance Integrity
+
+- **Group:** Movement
+- **Meaning:** Allowance is granted only by ACTION_FOLLOW_ON from a PAID receipt, spent per segment through WO3 MOVEMENT with each terrain's authored M4 cost, refused whole when insufficient and expired at END_OF_TURN; no map, path or position is computed.
+- **Guards:** `packages/prowess-game/src/play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-play-ui.test.tsx`, `apps/studio/tests/e2e/m6-play.spec.ts`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I163 — Counter Action Legality
+
+- **Group:** Timing
+- **Meaning:** A Counter reaction is taken outside the Character's own turn with an explicit player-declared trigger, pays its Counter Action cost (no AP) and is unavailable under first-round Surprise; an available Counter Action never proves the reaction legal.
+- **Guards:** `packages/prowess-game/src/play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I164 — Roll And Saving Throw Semantics
+
+- **Group:** Resolution
+- **Meaning:** Rolls are raw faces bound by the server to the exact request; the attacker is the Character's own CharacterCore and die; a defender is GM-described and labelled; the DC defaults to the Character's derived DC; a successful Save is the Effect's FAILURE; no success claim is accepted.
+- **Guards:** `packages/prowess-game/src/play-workspace.test.ts`, `packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-play-ui.test.tsx`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I165 — Spell And Maneuver Execution Separation
+
+- **Group:** Resolution
+- **Meaning:** Spells execute their M5-WO12 Effect Chain and Maneuvers their independent resolution groups; Performance preparation and other separately priced prerequisites are never folded into a Maneuver's cost; only Spell casting MP is ME-eligible (M5-SC-004).
+- **Guards:** `packages/prowess-game/src/play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I166 — Active Magic Lifecycle Authority
+
+- **Group:** Active Magic
+- **Meaning:** Every Active Magic change is an M5-WO13 transition (activation through the additive Character Signature Spell adapter); Sustain, Concentration, duration, dismissal and channeling follow its pinned policy; Mana Lock amounts and Channel MP timing stay unresolved and fail closed; ended Effects keep their provenance.
+- **Guards:** `packages/prowess-game/src/play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-play-ui.test.tsx`, `apps/studio/tests/e2e/m6-play.spec.ts`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I167 — No Unauthorized Target-State Application
+
+- **Group:** Resolution
+- **Meaning:** Resolved outcomes and authorized damage profiles are recorded as NOT APPLIED; no target HP, Armor, Resistance, Status Condition, position or ammunition is changed.
+- **Guards:** `packages/prowess-game/src/play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-play-ui.test.tsx`, `apps/studio/tests/e2e/m6-play.spec.ts`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I168 — Manual Adjustment Distinction
+
+- **Group:** Adjudication
+- **Meaning:** A manual adjustment is validated against the sheet bounds and recorded as MANUAL_ADJUSTMENT with before / after and reason; notes are NOTE; neither is ever presented as a rules-engine result.
+- **Guards:** `packages/prowess-game/src/play-workspace.test.ts`, `packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-play-ui.test.tsx`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I169 — Immutable Event History
+
+- **Group:** History
+- **Meaning:** The ledger is append-only (a trigger refuses UPDATE / DELETE), ordered by a per-Character sequence and stores each outcome as committed — never recalculated against a later revision; corrections are new events.
+- **Guards:** `packages/prowess-game/src/play-workspace.test.ts`, `packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I170 — Character Sheet And Card Compatibility
+
+- **Group:** Compatibility
+- **Meaning:** The Character Sheet remains a valid resource editor (its edits are detected as stale); WO9 cards open read-only in the workspace; the sheet's rows, print and card system are unchanged apart from a digital-only Play link.
+- **Guards:** `packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-play-ui.test.tsx`, `apps/studio/tests/e2e/m6-play.spec.ts`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I171 — Additive M5 Adapter Characterization
+
+- **Group:** Compatibility
+- **Meaning:** The approved additive changes (executeCompiledResolution, the evaluator capture hooks and transitionActiveMagicWith) leave canonical M5-WO12 / WO13 outputs byte-identical and refuse Character identities without the adapter.
+- **Guards:** `packages/prowess-game/src/play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`
+
+### M6-I172 — Studio Holds No Mechanics
+
+- **Group:** Presentation
+- **Meaning:** Studio Play components import no domain package, never compute with mechanical values, and only display server results; the optional digital roller generates raw faces by unbiased CSPRNG rejection sampling.
+- **Guards:** `apps/studio/tests/unit/m6-wo10-play-ui.test.tsx`, `apps/studio/tests/unit/m6-wo10-static.test.ts`, `scripts/m6-wo10-negative-controls.mjs`

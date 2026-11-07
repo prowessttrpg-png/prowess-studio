@@ -72,7 +72,7 @@ export interface PlayActionDto extends Entry {
   readonly timing: string;
   readonly requiresTrigger: boolean;
   readonly costModel: { readonly model: string; readonly amount?: number; readonly minimum?: number; readonly maximum?: number; readonly determinedBy?: string } | null;
-  readonly apCost: { readonly status: string; readonly value?: number; readonly reason?: string };
+  readonly ap: { readonly status: string; readonly value?: number; readonly reason?: string };
   readonly otherCosts: readonly { readonly costKey: string; readonly policy: string; readonly amount: number }[];
   readonly grantsMovement: boolean;
 }
@@ -82,8 +82,8 @@ export interface PlayAttackDto extends Entry {
   readonly weapon: DefinitionRefDto;
   readonly attack: DefinitionRefDto;
   readonly grip: string;
-  readonly apCost: number;
-  readonly mpCost: number;
+  /** The Attack's own authored AP / MP (null AP: not a fixed spend). */
+  readonly costs: { readonly ap: number | null; readonly mp: number };
   readonly damage: readonly { readonly profileKey: string; readonly damageType: string; readonly status: string; readonly final: { readonly expression?: string } | null; readonly reason: string | null }[];
   readonly range: { readonly mode: string; readonly reachFeet: number | null; readonly rangeFeet: number | null };
   readonly resolution: { readonly mode: string; readonly onMiss?: string; readonly reason?: string };
@@ -100,7 +100,7 @@ export interface PlaySpellDto extends Entry {
   readonly keywords: readonly string[];
   readonly targetLimit: { readonly kind: string; readonly maximum: number | null } | null;
   readonly chain: { readonly start: string | null; readonly nodes: readonly { readonly effectKey: string; readonly definition: DefinitionRefDto; readonly family: string; readonly resolution: string; readonly behavior: string; readonly route: string }[] } | null;
-  readonly duration: { readonly mode: string; readonly persists: boolean; readonly sustain: boolean; readonly manaLock: boolean; readonly concentration: string } | null;
+  readonly duration: { readonly mode: string; readonly becomesActiveMagic: boolean; readonly sustain: boolean; readonly manaLock: boolean; readonly concentration: string } | null;
 }
 export interface PlayManeuverDto extends Entry {
   readonly abilityId: string;
@@ -117,7 +117,7 @@ export interface PlayWorkspaceDto {
   readonly character: { readonly id: string; readonly name: string; readonly level: number; readonly releaseId: string };
   readonly header: { readonly characterDie: { readonly dieKey: string; readonly faces: number }; readonly characterDc: SheetValueDto; readonly accuracy: SheetValueDto; readonly dodge: SheetValueDto; readonly armor: SheetValueDto; readonly initiative: SheetValueDto; readonly movement: SheetValueDto; readonly range: SheetValueDto };
   readonly runtime: PlayRuntimeDto;
-  readonly persisted: boolean;
+  readonly recorded: boolean;
   readonly reconciliation: { readonly required: boolean; readonly reasons: readonly PlayReasonDto[] };
   readonly timing: { readonly legal: readonly PlayTimingEventDto[]; readonly window: "OWN_TURN" | "OUTSIDE_OWN_TURN" };
   readonly resources: readonly PlayResourceDto[];
@@ -161,6 +161,8 @@ export interface PlayPendingDto {
   readonly by?: "ATTACKER" | "DEFENDER";
   readonly options?: readonly string[] | null;
   readonly defaultDifficultyClass?: number | null;
+  /** SAVING_THROW: the defender Stats to enter (the Release's Stat vocabulary). */
+  readonly defenderStats?: readonly string[] | null;
   readonly characterDie?: string | null;
   readonly model?: string;
   readonly minimum?: number;

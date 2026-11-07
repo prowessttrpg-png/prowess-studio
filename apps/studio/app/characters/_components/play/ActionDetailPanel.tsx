@@ -16,7 +16,7 @@ export type Selection =
   | { readonly kind: "WEAPON_ATTACK"; readonly attack: PlayAttackDto }
   | { readonly kind: "SPELL"; readonly spell: PlaySpellDto }
   | { readonly kind: "MANEUVER"; readonly maneuver: PlayManeuverDto }
-  | { readonly kind: "MOVE" };
+  | { readonly kind: "MOVEMENT" };
 
 export interface RollDraft {
   readonly mode: "NORMAL" | "ADVANTAGE" | "DISADVANTAGE";
@@ -66,7 +66,8 @@ export function RollInput({ roll, onChange, faces, dieKey, testid }: { roll: Rol
   );
 }
 
-const STATS = ["STR", "AGI", "CON", "PER", "RES", "PRO"] as const;
+/** The defender Stats a Saving Throw request needs — named by the server (the Release vocabulary), never by Studio. */
+const statsOf = (q: PlayPendingDto): readonly string[] => q.defenderStats ?? [];
 interface Answer {
   roll: RollDraft;
   targetDodge: string;
@@ -75,7 +76,7 @@ interface Answer {
   difficultyClass: string;
   stat: string;
 }
-const emptyAnswer = (): Answer => ({ roll: emptyRoll(), targetDodge: "", defenderLevel: "", defenderStats: Object.fromEntries(STATS.map((s) => [s, ""])), difficultyClass: "", stat: "" });
+const emptyAnswer = (): Answer => ({ roll: emptyRoll(), targetDodge: "", defenderLevel: "", defenderStats: {}, difficultyClass: "", stat: "" });
 const num = (s: string) => (/^\d{1,4}$/.test(s) ? Number(s) : null);
 
 function answerOf(q: PlayPendingDto, a: Answer): Record<string, unknown> | null {
@@ -85,8 +86,9 @@ function answerOf(q: PlayPendingDto, a: Answer): Record<string, unknown> | null 
   }
   if (q.kind === "SAVING_THROW") {
     const roll = rollOperand(a.roll), level = num(a.defenderLevel);
-    const stats = Object.fromEntries(STATS.map((s) => [s, num(a.defenderStats[s] ?? "")]));
-    if (roll === null || level === null || STATS.some((s) => stats[s] === null)) return null;
+    const keys = statsOf(q);
+    const stats = Object.fromEntries(keys.map((s) => [s, num(a.defenderStats[s] ?? "")]));
+    if (roll === null || level === null || keys.length === 0 || keys.some((s) => stats[s] === null)) return null;
     const dc = a.difficultyClass.trim() === "" ? null : num(a.difficultyClass);
     return { requestKey: q.requestKey, kind: "SAVING_THROW", roll, defender: { level, stats }, ...(dc === null ? {} : { difficultyClass: dc }) };
   }
@@ -117,10 +119,10 @@ function PendingInput({ q, answer, onChange, die }: { q: PlayPendingDto; answer:
             <span>Defender Level</span>
             <input inputMode="numeric" value={answer.defenderLevel} onChange={(e) => onChange({ ...answer, defenderLevel: e.target.value })} data-testid={`${id}-level`} />
           </label>
-          {STATS.map((s) => (
+          {statsOf(q).map((s) => (
             <label key={s} className="gov-field play-stat">
               <span>{s}</span>
-              <input inputMode="numeric" value={answer.defenderStats[s]} onChange={(e) => onChange({ ...answer, defenderStats: { ...answer.defenderStats, [s]: e.target.value } })} data-testid={`${id}-stat-${s}`} />
+              <input inputMode="numeric" value={answer.defenderStats[s] ?? ""} onChange={(e) => onChange({ ...answer, defenderStats: { ...answer.defenderStats, [s]: e.target.value } })} data-testid={`${id}-stat-${s}`} />
             </label>
           ))}
           <label className="gov-field">
@@ -147,7 +149,7 @@ function PendingInput({ q, answer, onChange, die }: { q: PlayPendingDto; answer:
   );
 }
 
-export function ResolutionPanel({ view, selection, submitter, result, onCard }: { view: PlayViewDto; selection: Selection; submitter: Submitter; result: { outcome: PlayOutcomeDto; committed: boolean; replayed: boolean } | null; onCard: (key: string) => void }) {
+export function ActionDetailPanel({ view, selection, submitter, result, onCard }: { view: PlayViewDto; selection: Selection; submitter: Submitter; result: { outcome: PlayOutcomeDto; committed: boolean; replayed: boolean } | null; onCard: (key: string) => void }) {
   const w = view.workspace;
   const die = w.header.characterDie;
   const [chosenCost, setChosenCost] = useState("");
@@ -187,8 +189,8 @@ export function ResolutionPanel({ view, selection, submitter, result, onCard }: 
           groupTargets: selection.maneuver.groups.map((g) => ({ groupKey: g.groupKey, targetKeys: groupTargets[g.groupKey] ?? targets.slice(0, 1) })),
           inputs: [...prior.filter((p) => !inputs.some((i) => i.requestKey === p.requestKey)), ...inputs],
         };
-      case "MOVE":
-        return segments.every((s) => num(s.distance) !== null) ? { kind: "MOVE", segments: segments.map((s) => ({ distance: Number(s.distance), terrainKey: s.terrainKey })) } : null;
+      case "MOVEMENT":
+        return segments.every((s) => num(s.distance) !== null) ? { kind: "MOVEMENT", segments: segments.map((s) => ({ distance: Number(s.distance), terrainKey: s.terrainKey })) } : null;
     }
   };
   const op = operation();
@@ -216,7 +218,7 @@ export function ResolutionPanel({ view, selection, submitter, result, onCard }: 
             </div>
             <div>
               <dt>AP</dt>
-              <dd>{selection.action.apCost.status === "AVAILABLE" ? String(selection.action.apCost.value) : selection.action.apCost.reason}</dd>
+              <dd>{selection.action.ap.status === "AVAILABLE" ? String(selection.action.ap.value) : selection.action.ap.reason}</dd>
             </div>
             {selection.action.otherCosts.map((c) => (
               <div key={c.costKey}>
@@ -264,7 +266,7 @@ export function ResolutionPanel({ view, selection, submitter, result, onCard }: 
             <div>
               <dt>Cost (the Attack&apos;s own)</dt>
               <dd>
-                {String(selection.attack.apCost)} AP{selection.attack.mpCost ? ` · ${String(selection.attack.mpCost)} MP` : ""}
+                {String(selection.attack.costs.ap ?? "—")} AP{selection.attack.costs.mp ? ` · ${String(selection.attack.costs.mp)} MP` : ""}
               </dd>
             </div>
             <div>
@@ -357,7 +359,7 @@ export function ResolutionPanel({ view, selection, submitter, result, onCard }: 
         </div>
       ) : null}
 
-      {selection.kind === "MOVE" ? (
+      {selection.kind === "MOVEMENT" ? (
         <div>
           {segments.map((s, i) => (
             <fieldset key={i} className="play-roll" data-testid="play-segment">
@@ -429,7 +431,7 @@ function AbilityFacts({ selection, names }: { selection: Extract<Selection, { ki
           </div>
           <div>
             <dt>Duration</dt>
-            <dd>{selection.spell.duration === null ? "—" : `${selection.spell.duration.mode.replace(/_/g, " ").toLowerCase()}${selection.spell.duration.persists ? " · becomes Active Magic" : ""}${selection.spell.duration.sustain ? " · Sustain" : ""}${selection.spell.duration.concentration === "WO13" ? " · Concentration" : ""}`}</dd>
+            <dd>{selection.spell.duration === null ? "—" : `${selection.spell.duration.mode.replace(/_/g, " ").toLowerCase()}${selection.spell.duration.becomesActiveMagic ? " · becomes Active Magic" : ""}${selection.spell.duration.sustain ? " · Sustain" : ""}${selection.spell.duration.concentration === "WO13" ? " · Concentration" : ""}`}</dd>
           </div>
           <div>
             <dt>Targets</dt>

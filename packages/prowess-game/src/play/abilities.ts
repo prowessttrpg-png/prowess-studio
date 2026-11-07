@@ -11,6 +11,7 @@ import type { CharacterAttackLibrary } from "../equipment/library.js";
 import { clonePlainData, deepFreeze, isPlainObject } from "../internal/plain-data.js";
 import { finish, own, Problems, type ProwessOutcome } from "../internal/problems.js";
 import type { PlayResolutionInput, PlayTargetInput } from "./contract.js";
+import { PROWESS_STATS } from "../vocabulary/core.js";
 
 /**
  * PAS-10 M6-WO10 — Character Signature Ability execution adapters. A Character's Spell / Maneuver is executed from ITS
@@ -50,7 +51,16 @@ export interface PlayAbilityContext {
   readonly characterDie: { readonly dieKey: string; readonly faces: number };
   /** The Character's derived Character DC (default Difficulty Class of Saves against its Abilities), when defined. */
   readonly characterDc: number | null;
+  /**
+   * The request-scoped evaluation cache (createPlayEvaluationCache). One context = one cache: a context derived with
+   * different inputs must be given its own cache. Never module state.
+   */
+  readonly evaluations: PlayEvaluationCache;
 }
+
+/** Opaque request-scoped cache of Signature Ability evaluations, keyed by the exact source object. */
+export type PlayEvaluationCache = Map<unknown, unknown>;
+export const createPlayEvaluationCache = (): PlayEvaluationCache => new Map<unknown, unknown>();
 
 /** A stable WO3 source label for a Character Signature Ability revision (never a canonical Definition key). */
 export const signatureSourceKey = (kind: "spell" | "maneuver", abilityId: string, revisionNumber: number) => `character.signature_${kind}.${abilityId.replace(/-/g, "_").toLowerCase()}.r${String(revisionNumber)}`;
@@ -67,8 +77,21 @@ export interface EvaluatedManeuver {
   readonly compiled: Compiled<CharacterManeuverSubject> | null;
 }
 
+/**
+ * One evaluation per (context, source) — the context and its sources are immutable for the life of one request, so a cast
+ * (cost, resolution, activation) and the workspace read reuse the SAME evaluation instead of re-running it.
+ */
+function once<T>(ctx: PlayAbilityContext, key: unknown, run: () => T): T {
+  const m = ctx.evaluations;
+  if (!m.has(key)) m.set(key, run());
+  return m.get(key) as T;
+}
+
 /** The M6-WO7 evaluation of the exact revision + the compiled WO12 plan it produced (null when not executable). */
 export function evaluateSpellSource(ctx: PlayAbilityContext, source: PlayAbilitySource<SignatureSpellDraft>): EvaluatedSpell | null {
+  return once(ctx, source, () => evaluateSpellOnce(ctx, source));
+}
+function evaluateSpellOnce(ctx: PlayAbilityContext, source: PlayAbilitySource<SignatureSpellDraft>): EvaluatedSpell | null {
   if (source.draft === null || source.revisionNumber === null) return null;
   let compiled: Compiled<CharacterSpellSubject> | null = null;
   const evaluation = evaluateCharacterSignatureSpell(
@@ -82,6 +105,9 @@ export function evaluateSpellSource(ctx: PlayAbilityContext, source: PlayAbility
 
 /** The M6-WO8 evaluation of the exact revision (equipped profile and Attack Library) + its compiled WO12 plan. */
 export function evaluateManeuverSource(ctx: PlayAbilityContext, source: PlayAbilitySource<SignatureManeuverDraft>): EvaluatedManeuver | null {
+  return once(ctx, source, () => evaluateManeuverOnce(ctx, source));
+}
+function evaluateManeuverOnce(ctx: PlayAbilityContext, source: PlayAbilitySource<SignatureManeuverDraft>): EvaluatedManeuver | null {
   if (source.draft === null || source.revisionNumber === null) return null;
   let compiled: Compiled<CharacterManeuverSubject> | null = null;
   const evaluation = evaluateCharacterSignatureManeuver(
@@ -144,7 +170,7 @@ export function executeCompiled<S>(compiled: Compiled<S>, targets: readonly Play
 
 /** Presentation of a pending request: who answers it, with the Character's DC offered as the default for a Save. */
 export function describePending(ctx: PlayAbilityContext, request: ExecutionInputRequest) {
-  return deepFreeze({ ...clonePlainData(request), defaultDifficultyClass: request.kind === "SAVING_THROW" ? ctx.characterDc : null, characterDie: request.by === "ATTACKER" ? ctx.characterDie.dieKey : null });
+  return deepFreeze({ ...clonePlainData(request), defaultDifficultyClass: request.kind === "SAVING_THROW" ? ctx.characterDc : null, defenderStats: request.kind === "SAVING_THROW" ? [...PROWESS_STATS] : null, characterDie: request.by === "ATTACKER" ? ctx.characterDie.dieKey : null });
 }
 
 const isAbilityRef = (value: unknown): value is { readonly abilityId: string; readonly revisionNumber: number } => isPlainObject(value) && typeof own(value, "abilityId") === "string" && typeof own(value, "revisionNumber") === "number";

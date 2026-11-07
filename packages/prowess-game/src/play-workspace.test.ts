@@ -49,7 +49,7 @@ describe("M6-WO10 A — runtime, timing and the action economy", () => {
     // Current = the sheet's derived maximum when never saved (as on the Character Sheet); no maximum is stored.
     for (const r of view.resources.filter((x) => !x.runtimeOnly)) expect(r.current, r.resourceKey).toBe(w.context.mechanics.resources.find((m) => m.resourceKey === r.resourceKey)!.maximum);
     expect(Object.keys(view.runtime).sort()).toEqual(["activeMagic", "advancementCount", "characterId", "combat", "contractVersion", "movement", "movementAllowance", "releaseId", "reservedMp", "rulesetProvenance"]);
-    expect(view.persisted).toBe(false);
+    expect(view.recorded).toBe(false);
   });
 
   it("M6-I160 AP capacity is the Release-derived BASE_AP_CAPACITY (never a hard-coded three)", T, () => {
@@ -113,7 +113,7 @@ describe("M6-WO10 A — runtime, timing and the action economy", () => {
 
   it("M6-I162 split movement and terrain are charged by WO3 / M4; over-spending is refused whole", T, () => {
     const w = playWorld();
-    const r = run(w.context, [...INTO_TURN, { kind: "GENERAL_ACTION", actionKey: "MOVE" }, { kind: "MOVE", segments: [{ distance: 10, terrainKey: "NORMAL" }] }, { kind: "MOVE", segments: [{ distance: 5, terrainKey: "DIFFICULT" }] }, { kind: "MOVE", segments: [{ distance: 5, terrainKey: "NORMAL" }, { distance: 10, terrainKey: "NORMAL" }] }]);
+    const r = run(w.context, [...INTO_TURN, { kind: "GENERAL_ACTION", actionKey: "MOVE" }, { kind: "MOVEMENT", segments: [{ distance: 10, terrainKey: "NORMAL" }] }, { kind: "MOVEMENT", segments: [{ distance: 5, terrainKey: "DIFFICULT" }] }, { kind: "MOVEMENT", segments: [{ distance: 5, terrainKey: "NORMAL" }, { distance: 10, terrainKey: "NORMAL" }] }]);
     expect(r.outcomes.slice(4).map((o) => o.status)).toEqual(["COMMITTABLE", "COMMITTABLE", "REFUSED"]);
     expect(current(r.stored, "MOVEMENT_ALLOWANCE")).toBe(10);
     expect(r.stored.runtime!.movement).toEqual({ grants: [30], segments: [{ distance: 10, terrainKey: "NORMAL", allowanceCost: 10 }, { distance: 5, terrainKey: "DIFFICULT", allowanceCost: 10 }] });

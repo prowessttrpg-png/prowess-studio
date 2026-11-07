@@ -5,6 +5,7 @@ import {
   buildCharacterSheetMechanics,
   buildPlayWorkspace,
   characterCoreOf,
+  createPlayEvaluationCache,
   evaluatePlayOperation,
   readPlayOperation,
   readPlayRuntimeState,
@@ -142,6 +143,7 @@ async function load(characterId: string): Promise<Loaded> {
     characterDc: mechanics.combat.characterDc.value,
     mechanics,
     names,
+    evaluations: createPlayEvaluationCache(),
   };
   return {
     ctx,
@@ -152,11 +154,16 @@ async function load(characterId: string): Promise<Loaded> {
   };
 }
 
+/** The workspace view over an already loaded context (its Ability evaluations are reused, never recomputed). */
+async function viewOf(l: Loaded, stored: PlayStored, versions: PlayVersions): Promise<CharacterPlayWorkspaceView> {
+  const recent = await selectPlayEvents(l.ctx.characterId, { before: null, limit: 25 });
+  return { character: l.character, release: await releaseSummary(l.releaseId), versions, workspace: buildPlayWorkspace(l.ctx, stored), recentEvents: recent.map(eventView) };
+}
+
 /** The Play Workspace (§4) in ONE read. Read-only: it never creates, refreshes, advances or resolves anything. */
 export async function getCharacterPlayWorkspace(characterId: string): Promise<CharacterPlayWorkspaceView> {
   const l = await load(characterId);
-  const recent = await selectPlayEvents(l.ctx.characterId, { before: null, limit: 25 });
-  return { character: l.character, release: await releaseSummary(l.releaseId), versions: l.versions, workspace: buildPlayWorkspace(l.ctx, l.stored), recentEvents: recent.map(eventView) };
+  return viewOf(l, l.stored, l.versions);
 }
 
 const version = (value: unknown, field: string): number => {
@@ -219,7 +226,7 @@ export async function commitCharacterPlayOperation(characterId: string, input: {
   const l = await load(characterId);
   staleIf(l, expected);
   const outcome = evaluatePlayOperation(l.ctx, l.stored, operation);
-  if (outcome.status !== "COMMITTABLE" || outcome.runtimeAfter === null || outcome.resourcesAfter === null) return { committed: false, replayed: false, outcome, event: null, workspace: await getCharacterPlayWorkspace(characterId) };
+  if (outcome.status !== "COMMITTABLE" || outcome.runtimeAfter === null || outcome.resourcesAfter === null) return { committed: false, replayed: false, outcome, event: null, workspace: await viewOf(l, l.stored, l.versions) };
 
   // Sheet values change only through the one compare-and-set, and only when the operation changed one.
   const sheetKeys = new Set(l.ctx.mechanics.resources.filter((r) => r.maximum !== null).map((r) => r.resourceKey));
@@ -238,7 +245,10 @@ export async function commitCharacterPlayOperation(characterId: string, input: {
   });
   if (result.outcome === "duplicate") return replay();
   if (result.outcome === "stale") throw fail(CHARACTER_ERROR_CODES.STALE_WRITE, `This Character's ${result.which === "PLAY_STATE" ? "resources" : "play state"} changed while the operation was evaluated; nothing was applied. Reload and evaluate again.`);
-  return { committed: true, replayed: false, outcome, event: eventView(result.event), workspace: await getCharacterPlayWorkspace(characterId) };
+  // The committed state, presented from the SAME loaded context (exactly what was just written; nothing re-derived).
+  const sheetAfter = changed.length === 0 ? l.stored.sheetResources : outcome.resourcesAfter.filter((r) => sheetKeys.has(r.resourceKey)).map((r) => ({ resourceKey: r.resourceKey, current: r.current }));
+  const committed = { sheetResources: sheetAfter, runtime: outcome.runtimeAfter };
+  return { committed: true, replayed: false, outcome, event: eventView(result.event), workspace: await viewOf(l, committed, { runtimeVersion: result.runtimeVersion, playStateVersion: result.playStateVersion }) };
 }
 
 /** The Character's committed gameplay history, newest first (read-only). */

@@ -7,8 +7,10 @@ import { buildCoreResolutionContexts, compileCoreResolution } from "../core/comp
 import type { CharacterAttack, CharacterAttackLibrary } from "../equipment/library.js";
 import { clonePlainData, deepFreeze, isPlainObject } from "../internal/plain-data.js";
 import type { ProwessProblem } from "../internal/problems.js";
+import { nextRoundOrdinal } from "../internal/round.js";
 import { indexRuntimeDefinitions, type RuntimeDefinitionIndex } from "../runtime/definitions.js";
 import type { ProwessRuntimeResources } from "../runtime/resources.js";
+import { PROWESS_STATS } from "../vocabulary/core.js";
 import { RUNTIME_RESOURCE_KEYS, TERRAIN_KINDS, type CombatTimingEvent, type RuntimeResourceKey } from "../vocabulary/runtime.js";
 import { buildResolutionInputs, characterSpellAdapter, describePending, evaluateManeuverSource, evaluateSpellSource, executeCompiled, signatureSourceKey, spellIdentityOf, type PlayAbilityContext } from "./abilities.js";
 import {
@@ -73,14 +75,23 @@ export function initialPlayRuntime(ctx: PlayContext): PlayRuntimeState {
 }
 
 /** The runtime Resources the engine sees: the sheet's current values (or derived maximum) + the runtime-only trackers. */
+/**
+ * The Resources whose current value the play runtime itself holds (no Character Sheet row: turn-scoped, never a sheet
+ * pool). A storage location only — every amount, refresh and expiry still comes from the Resource Definition.
+ */
+export const RUNTIME_HELD_RESOURCES: Readonly<Partial<Record<RuntimeResourceKey, (runtime: PlayRuntimeState) => number>>> = Object.freeze({
+  MOVEMENT_ALLOWANCE: (runtime: PlayRuntimeState) => runtime.movementAllowance,
+});
+
 export function runtimeResourcesOf(ctx: PlayContext, stored: PlayStored, runtime: PlayRuntimeState, index: RuntimeDefinitionIndex): ProwessRuntimeResources {
   const resources = RUNTIME_RESOURCE_KEYS.flatMap((key): ProwessRuntimeResources["resources"][number][] => {
     const definition = index.resources[key];
     if (definition === undefined) return [];
-    if (key === "MOVEMENT_ALLOWANCE") return [{ resourceKey: key, current: runtime.movementAllowance, reservedCapacity: 0 }];
+    const held = RUNTIME_HELD_RESOURCES[key];
+    if (held !== undefined) return [{ resourceKey: key, current: held(runtime), reservedCapacity: 0 }];
     const sheet = ctx.mechanics.resources.find((r) => r.resourceKey === key);
-    const saved = stored.sheetResources?.find((r) => r.resourceKey === key);
-    const current = saved?.current ?? sheet?.maximum ?? null;
+    const onSheet = stored.sheetResources?.find((r) => r.resourceKey === key);
+    const current = onSheet?.current ?? sheet?.maximum ?? null;
     if (current === null) return [];
     return [{ resourceKey: key, current, reservedCapacity: definition.payload.supportsReservation ? runtime.reservedMp : 0 }];
   });
@@ -130,7 +141,7 @@ function readTargets(v: unknown): PlayTargetInput[] | null {
   return out;
 }
 
-const STATS = ["STR", "AGI", "CON", "PER", "RES", "PRO"] as const;
+const STATS = PROWESS_STATS;
 function readInputs(v: unknown): PlayResolutionInput[] | null {
   if (!Array.isArray(v) || v.length > SHEET_LIMITS.inputs) return null;
   const out: PlayResolutionInput[] = [];
@@ -171,8 +182,8 @@ export function readPlayOperation(value: unknown): Read<PlayOperation> {
       if (value.trigger !== undefined && (!closed(value.trigger, ["triggerKey", "description"], ["triggerKey", "description"]) || !label(value.trigger.triggerKey) || !text(value.trigger.description, 300))) return bad("trigger is { triggerKey, description } as the player declares it");
       return { ok: true, value: clonePlainData(value) as unknown as PlayOperation };
     }
-    case "MOVE": {
-      if (!closed(value, ["kind", "segments"], ["kind", "segments"]) || !Array.isArray(value.segments) || value.segments.length < 1 || value.segments.length > SHEET_LIMITS.segments) return bad("MOVE needs 1–20 ordered segments");
+    case "MOVEMENT": {
+      if (!closed(value, ["kind", "segments"], ["kind", "segments"]) || !Array.isArray(value.segments) || value.segments.length < 1 || value.segments.length > SHEET_LIMITS.segments) return bad("MOVEMENT needs 1–20 ordered segments");
       for (const s of value.segments) if (!closed(s, ["distance", "terrainKey"], ["distance", "terrainKey"]) || !int(s.distance, 1, 10_000) || !(TERRAIN_KINDS as readonly unknown[]).includes(s.terrainKey)) return bad(`each segment is { distance (feet ≥ 1), terrainKey ∈ ${TERRAIN_KINDS.join(", ")} }`);
       return { ok: true, value: clonePlainData(value) as unknown as PlayOperation };
     }
@@ -231,7 +242,7 @@ interface Draft {
 }
 
 const refuse = (code: string, message: string, extra: Partial<Draft> = {}): Draft => ({ status: "REFUSED", classification: null, summary: message, reasons: [{ code, message }], resourcesAfter: null, runtimeAfter: null, source: null, trace: {}, pending: [], inputs: {}, ...extra });
-const commit = (classification: PlayClassification, summary: string, resources: ProwessRuntimeResources, runtime: PlayRuntimeState, extra: Partial<Draft> = {}): Draft => ({ status: "COMMITTABLE", classification, summary, reasons: [], resourcesAfter: resources, runtimeAfter: withResources(runtime, resources), source: null, trace: {}, pending: [], inputs: {}, ...extra });
+const accept = (classification: PlayClassification, summary: string, resources: ProwessRuntimeResources, runtime: PlayRuntimeState, extra: Partial<Draft> = {}): Draft => ({ status: "COMMITTABLE", classification, summary, reasons: [], resourcesAfter: resources, runtimeAfter: withResources(runtime, resources), source: null, trace: {}, pending: [], inputs: {}, ...extra });
 
 /** Evaluates ONE operation against the stored state. Pure and deterministic; never writes. */
 export function evaluatePlayOperation(ctx: PlayContext, stored: PlayStored, operation: unknown): PlayOperationOutcome {
@@ -277,7 +288,7 @@ export function evaluatePlayOperation(ctx: PlayContext, stored: PlayStored, oper
         return timing(ctx, engine, index.value, runtime0, resources0, op);
       case "GENERAL_ACTION":
         return generalAction(ctx, engine, index.value, runtime0, resources0, op);
-      case "MOVE":
+      case "MOVEMENT":
         return move(engine, runtime0, resources0, op);
       case "WEAPON_ATTACK":
         return weaponAttack(ctx, engine, runtime0, resources0, op);
@@ -290,9 +301,9 @@ export function evaluatePlayOperation(ctx: PlayContext, stored: PlayStored, oper
       case "MANUAL_ADJUSTMENT":
         return manual(ctx, index.value, runtime0, resources0, op);
       case "NOTE":
-        return commit("NOTE", op.category === "GM_ADJUDICATION" ? "GM-assisted adjudication note recorded (not an engine result)" : "Note recorded", resources0, runtime0, { inputs: { text: op.text, category: op.category, ...(op.subject === undefined ? {} : { subject: op.subject }), source: "PLAYER_GM_PROVIDED" } });
+        return accept("NOTE", op.category === "GM_ADJUDICATION" ? "GM-assisted adjudication note recorded (not an engine result)" : "Note recorded", resources0, runtime0, { inputs: { text: op.text, category: op.category, ...(op.subject === undefined ? {} : { subject: op.subject }), source: "PLAYER_GM_PROVIDED" } });
       case "RECONCILE":
-        return advanced ? commit("RULES_EXECUTED", "Advancement acknowledged; held Active Magic keeps its pinned activation values", resources0, runtime0, { trace: { advancementCount: { before: runtime0.advancementCount, after: ctx.advancementCount } } }) : refuse(R.NOTHING_TO_RECONCILE, "the play state already matches the Character");
+        return advanced ? accept("RULES_EXECUTED", "Advancement acknowledged; held Active Magic keeps its pinned activation values", resources0, runtime0, { trace: { advancementCount: { before: runtime0.advancementCount, after: ctx.advancementCount } } }) : refuse(R.NOTHING_TO_RECONCILE, "the play state already matches the Character");
     }
   })();
   return finishDraft(op, draft);
@@ -368,15 +379,15 @@ function timing(ctx: PlayContext, engine: PlayEngineContext, index: RuntimeDefin
   switch (op.event) {
     case "BEGIN_COMBAT":
       next = { ...runtime, combat: { active: true, round: null, surprised: op.surprised === true, phase: "AWAITING_ROUND", turn: "NOT_TAKEN" } };
-      return commit("RULES_EXECUTED", `Combat begun${op.surprised === true ? " (surprised — GM determination)" : ""}`, res, next, { inputs: { surprised: { value: op.surprised === true, source: "PLAYER_GM_PROVIDED" } } });
+      return accept("RULES_EXECUTED", `Combat begun${op.surprised === true ? " (surprised — GM determination)" : ""}`, res, next, { inputs: { surprised: { value: op.surprised === true, source: "PLAYER_GM_PROVIDED" } } });
     case "START_ROUND": {
-      const round = c.round === null ? 1 : c.round + 1; // the local round counter (sequence bookkeeping, not a game value)
+      const round = nextRoundOrdinal(c.round);
       const out = timed("START_OF_ROUND", round);
       if (!out.ok) return refuse(R.ENGINE_REFUSED, "the Start of Round refresh could not be evaluated", { reasons: reasons(out.problems, R.ENGINE_REFUSED) });
       next = { ...next, combat: { ...c, round, phase: "ROUND", turn: "NOT_TAKEN" } };
       const problems = tick({ kind: "TIMING", timing: "ON_ROUND_START" });
       if (problems !== null) return refuse(R.ENGINE_REFUSED, "Active Magic could not process the round start", { reasons: reasons(problems, R.ENGINE_REFUSED) });
-      return commit("RULES_EXECUTED", `Round ${String(round)} started`, res, next, { trace });
+      return accept("RULES_EXECUTED", `Round ${String(round)} started`, res, next, { trace });
     }
     case "START_TURN": {
       const out = timed("START_OF_TURN", c.round);
@@ -384,7 +395,7 @@ function timing(ctx: PlayContext, engine: PlayEngineContext, index: RuntimeDefin
       next = { ...next, combat: { ...c, turn: "ACTIVE" }, movement: { grants: [], segments: [] } };
       const problems = tick({ kind: "TIMING", timing: "START_OF_CASTER_TURN" });
       if (problems !== null) return refuse(R.ENGINE_REFUSED, "Active Magic could not process the turn start", { reasons: reasons(problems, R.ENGINE_REFUSED) });
-      return commit("RULES_EXECUTED", "Turn started", res, next, { trace });
+      return accept("RULES_EXECUTED", "Turn started", res, next, { trace });
     }
     case "END_TURN": {
       const problems = tick({ kind: "TIMING", timing: "END_OF_CASTER_TURN" });
@@ -392,7 +403,7 @@ function timing(ctx: PlayContext, engine: PlayEngineContext, index: RuntimeDefin
       const out = timed("END_OF_TURN", c.round);
       if (!out.ok) return refuse(R.ENGINE_REFUSED, "the End of Turn expiry could not be evaluated", { reasons: reasons(out.problems, R.ENGINE_REFUSED) });
       next = { ...next, combat: { ...c, turn: "ENDED" } };
-      return commit("RULES_EXECUTED", "Turn ended", res, next, { trace });
+      return accept("RULES_EXECUTED", "Turn ended", res, next, { trace });
     }
     case "END_ROUND": {
       const out = timed("END_OF_ROUND", c.round);
@@ -400,13 +411,13 @@ function timing(ctx: PlayContext, engine: PlayEngineContext, index: RuntimeDefin
       const problems = tick({ kind: "ROUND_END" });
       if (problems !== null) return refuse(R.ENGINE_REFUSED, "Active Magic could not process the round end", { reasons: reasons(problems, R.ENGINE_REFUSED) });
       next = { ...next, combat: { ...c, phase: "AWAITING_ROUND", turn: "NOT_TAKEN" } };
-      return commit("RULES_EXECUTED", `Round ${String(c.round)} ended`, res, next, { trace });
+      return accept("RULES_EXECUTED", `Round ${String(c.round)} ended`, res, next, { trace });
     }
     case "END_COMBAT": {
       const problems = tick({ kind: "BOUNDARY", boundary: "COMBAT_END" });
       if (problems !== null) return refuse(R.ENGINE_REFUSED, "Active Magic could not process the combat boundary", { reasons: reasons(problems, R.ENGINE_REFUSED) });
       next = { ...next, combat: { active: false, round: null, surprised: false, phase: "OUT_OF_COMBAT", turn: "NOT_TAKEN" } };
-      return commit("RULES_EXECUTED", "Combat ended (only Combat-duration Effects end at this boundary)", res, next, { trace });
+      return accept("RULES_EXECUTED", "Combat ended (only Combat-duration Effects end at this boundary)", res, next, { trace });
     }
   }
 }
@@ -473,17 +484,17 @@ function generalAction(ctx: PlayContext, engine: PlayEngineContext, index: Runti
     next = follow.run.reading.movementGrant === null ? runtime : { ...runtime, movement: { grants: [...runtime.movement.grants, follow.run.reading.movementGrant], segments: runtime.movement.segments } };
     summary = `${summary}; Movement Allowance granted ${String(follow.run.reading.movementGrant)}`;
   }
-  return commit("RULES_EXECUTED", summary, after, next, { source, trace, inputs: { ...(op.chosenCost === undefined ? {} : { chosenCost: op.chosenCost }), ...(op.trigger === undefined ? {} : { trigger: { ...op.trigger, source: "PLAYER_DECLARED" } }) } });
+  return accept("RULES_EXECUTED", summary, after, next, { source, trace, inputs: { ...(op.chosenCost === undefined ? {} : { chosenCost: op.chosenCost }), ...(op.trigger === undefined ? {} : { trigger: { ...op.trigger, source: "PLAYER_DECLARED" } }) } });
 }
 
-function move(engine: PlayEngineContext, runtime: PlayRuntimeState, resources: ProwessRuntimeResources, op: Extract<PlayOperation, { kind: "MOVE" }>): Draft {
+function move(engine: PlayEngineContext, runtime: PlayRuntimeState, resources: ProwessRuntimeResources, op: Extract<PlayOperation, { kind: "MOVEMENT" }>): Draft {
   if (windowOf(runtime) !== "OWN_TURN") return refuse(R.WRONG_TIMING_WINDOW, "movement is spent during the Character's own turn");
   const out = runPlan(engine, { kind: "MOVEMENT", subjectKey: "play.movement", segments: op.segments }, resources);
   if (!out.ok) return refuse(R.ENGINE_REFUSED, "the movement could not be evaluated", { reasons: reasons(out.problems, R.ENGINE_REFUSED) });
   const segments = op.segments.map((s, i) => ({ ...s, allowanceCost: out.run.reading.movementCosts[i] ?? null, applied: out.run.reading.transitions[i]?.applied ?? false }));
   if (out.run.reading.transitions.some((t) => !t.applied)) return refuse(R.INSUFFICIENT_RESOURCES, "the remaining Movement Allowance does not cover these segments; nothing was spent", { trace: { segments } });
   const recorded = op.segments.map((s, i) => ({ distance: s.distance, terrainKey: s.terrainKey, allowanceCost: out.run.reading.movementCosts[i] as number }));
-  return commit("RULES_EXECUTED", `Moved ${op.segments.map((s) => `${String(s.distance)} ft (${s.terrainKey.toLowerCase()})`).join(", ")}`, out.run.reading.resources, { ...runtime, movement: { grants: runtime.movement.grants, segments: [...runtime.movement.segments, ...recorded] } }, { trace: { segments, evaluation: out.run.evaluation } });
+  return accept("RULES_EXECUTED", `Moved ${op.segments.map((s) => `${String(s.distance)} ft (${s.terrainKey.toLowerCase()})`).join(", ")}`, out.run.reading.resources, { ...runtime, movement: { grants: runtime.movement.grants, segments: [...runtime.movement.segments, ...recorded] } }, { trace: { segments, evaluation: out.run.evaluation } });
 }
 
 // ---- payments shared by Attacks, Spells and Maneuvers ----------------------------------------------------------------
@@ -523,6 +534,14 @@ function payCosts(engine: PlayEngineContext, resources: ProwessRuntimeResources,
 }
 
 /** A payment-only preview (availability in the Action Workspace); never a resolution. */
+/** An Attack's OWN authored AP / MP (M6-WO6 listing) as the payment request — MP is never ME-eligible for an Attack. */
+const listedAttackCost = (a: CharacterAttack, key: "apCost" | "mpCost"): number => a[key];
+export function attackCosts(a: CharacterAttack): Parameters<typeof payCosts>[2] {
+  const ap = listedAttackCost(a, "apCost");
+  const mp = listedAttackCost(a, "mpCost");
+  return { ap: { kind: "SPEND", amount: ap, sourceKey: a.attack.canonicalKey }, mp: mp > 0 ? { amount: mp, meEligible: false, sourceKey: a.attack.canonicalKey } : null };
+}
+
 export function previewCosts(ctx: PlayContext, stored: PlayStored, costs: Parameters<typeof payCosts>[2], subjectKey: string): { readonly canPay: boolean; readonly reasons: readonly PlayReason[] } {
   const index = indexRuntimeDefinitions(ctx.bundle);
   if (!index.ok) return { canPay: false, reasons: reasons(index.problems, R.ENGINE_REFUSED) };
@@ -549,7 +568,8 @@ export function attackResolutionSupport(attack: CharacterAttack): { readonly sup
 function weaponAttack(ctx: PlayContext, engine: PlayEngineContext, runtime: PlayRuntimeState, resources: ProwessRuntimeResources, op: Extract<PlayOperation, { kind: "WEAPON_ATTACK" }>): Draft {
   const attack = attacksOf(ctx.attackLibrary).find((a) => a.attackKey === op.attackKey && a.hand === op.hand);
   if (attack === undefined) return refuse(R.UNKNOWN_ACTION, "this exact Attack is not in the Character's current loadout");
-  const source = { kind: "WEAPON_ATTACK", attackKey: attack.attackKey, hand: attack.hand, weapon: attack.weapon, attack: attack.attack, grip: attack.grip };
+  const { weapon: weaponRef, attack: attackRef } = attack;
+  const source = { kind: "WEAPON_ATTACK", attackKey: attack.attackKey, hand: attack.hand, weapon: weaponRef, attack: attackRef, grip: attack.grip };
   if (attack.eligibility !== "ELIGIBLE") return refuse(R.ABILITY_NOT_EXECUTABLE, `this Attack is ${attack.eligibility.toLowerCase()} for the Character (requirements)`, { source });
   const profile = attack.damage.find((d) => d.profileKey === op.damageProfileKey);
   if (profile === undefined) return refuse(R.INVALID_OPERATION, "choose one of the Attack's authored damage profiles (never auto-selected)", { source });
@@ -560,7 +580,7 @@ function weaponAttack(ctx: PlayContext, engine: PlayEngineContext, runtime: Play
     return { ...refuse(R.PENDING_INPUT, "enter the Attack Roll and the target's Dodge (GM-provided)", { source }), status: "PENDING_INPUT", pending: [{ kind: "ATTACK_ROLL", by: "ATTACKER", characterDie: ctx.characterDie.dieKey, needs: ["roll", "targetDodge"] }] };
   }
   // The Attack's own authored AP / MP — never a same-named generic Action, never charged twice (§9).
-  const paid = payCosts(engine, resources, { ap: { kind: "SPEND", amount: attack.apCost, sourceKey: attack.attack.canonicalKey }, mp: attack.mpCost > 0 ? { amount: attack.mpCost, meEligible: false, sourceKey: attack.attack.canonicalKey } : null }, "play.attack");
+  const paid = payCosts(engine, resources, attackCosts(attack), "play.attack");
   if (!paid.ok) return { ...paid.draft, source };
   const subject = { kind: "CORE_RESOLUTION", subjectKey: "play.attack.roll", procedure: "ATTACK_ROLL", mode: op.roll.mode };
   const compiled = compileCoreResolution({ contractVersion: 1, subject, definitions: ctx.bundle, ruleset: ctx.ruleset, character: ctx.casterCore });
@@ -579,7 +599,7 @@ function weaponAttack(ctx: PlayContext, engine: PlayEngineContext, runtime: Play
   if (typeof hit !== "boolean") return refuse(R.ENGINE_REFUSED, "the WO2 Attack Roll did not resolve", { source });
   const result = { hit, natural: value(o.natural), total: value(o.total), criticalHit: value(o.criticalHit), targetDodge: { value: op.targetDodge, source: "PLAYER_GM_PROVIDED" } };
   const outcome = hit ? { kind: "DAMAGE_PROFILE", applied: false, profile: clonePlainData(profile), note: "a hit authorises this damage profile; roll and apply it with the GM — target HP, Armor and Resistance are not changed here" } : { kind: "ON_MISS", applied: false, onMiss: attack.resolution.mode === "ATTACK_ROLL" ? attack.resolution.onMiss : null };
-  return commit("RULES_EXECUTED", `${ctx.names[attack.attack.entityVersionId] ?? attack.attack.canonicalKey}: ${hit ? "hit" : "miss"} (total ${String(result.total)} vs Dodge ${String(op.targetDodge)})`, paid.paid.resources, runtime, {
+  return accept("RULES_EXECUTED", `${ctx.names[attack.attack.entityVersionId] ?? attack.attack.canonicalKey}: ${hit ? "hit" : "miss"} (total ${String(result.total)} vs Dodge ${String(op.targetDodge)})`, paid.paid.resources, runtime, {
     source,
     trace: { payments: paid.paid.trace, resolution: { ...result, evaluation: { plan: compiled.value.evaluationPlan, contexts: { actor: contexts.value.actor, runtime: contexts.value.runtime } } }, outcome, notExecuted: attack.notExecuted },
     inputs: { roll: { ...op.roll, die: ctx.characterDie.dieKey }, targetDodge: { value: op.targetDodge, source: "PLAYER_GM_PROVIDED" }, damageProfileKey: op.damageProfileKey },
@@ -655,7 +675,7 @@ function spell(ctx: PlayContext, engine: PlayEngineContext, index: RuntimeDefini
     next = { ...runtime, activeMagic: activation.transition.state };
   } else trace.activeMagic = { status: "NO_ACTIVE_EFFECT", noActiveEffectReason: "INSTANT" };
   const resolved = executed.value.outcomes.length;
-  return commit("RULES_EXECUTED", `${found.source.name} cast: ${String(costs.finalApCost)} AP, ${String(costs.finalMpCost)} MP; ${String(resolved)} outcome(s) resolved (not applied)`, after, next, { source, trace, inputs: { targets: op.targets, inputs: built.value.recorded } });
+  return accept("RULES_EXECUTED", `${found.source.name} cast: ${String(costs.finalApCost)} AP, ${String(costs.finalMpCost)} MP; ${String(resolved)} outcome(s) resolved (not applied)`, after, next, { source, trace, inputs: { targets: op.targets, inputs: built.value.recorded } });
 }
 
 function maneuver(ctx: PlayContext, engine: PlayEngineContext, runtime: PlayRuntimeState, resources: ProwessRuntimeResources, op: Extract<PlayOperation, { kind: "MANEUVER" }>): Draft {
@@ -684,7 +704,7 @@ function maneuver(ctx: PlayContext, engine: PlayEngineContext, runtime: PlayRunt
   }
   const paid = payCosts(engine, resources, { ap: { kind: "SPEND", amount: costs.finalApCost, sourceKey: label }, mp: costs.finalMpCost > 0 ? { amount: costs.finalMpCost, meEligible: false, sourceKey: label } : null }, "play.maneuver");
   if (!paid.ok) return { ...paid.draft, source, trace: { ...paid.draft.trace, costs } };
-  return commit("RULES_EXECUTED", `${found.name} used: ${String(costs.finalApCost)} AP${costs.finalMpCost > 0 ? `, ${String(costs.finalMpCost)} MP` : ""}; ${String(executed.value.outcomes.length)} outcome(s) resolved (not applied)`, paid.paid.resources, runtime, { source, trace: { costs, separatelyPriced: separate, payments: paid.paid.trace, resolution: abilityOutcome(executed.value) }, inputs: { targets: op.targets, groupTargets: op.groupTargets, inputs: built.value.recorded } });
+  return accept("RULES_EXECUTED", `${found.name} used: ${String(costs.finalApCost)} AP${costs.finalMpCost > 0 ? `, ${String(costs.finalMpCost)} MP` : ""}; ${String(executed.value.outcomes.length)} outcome(s) resolved (not applied)`, paid.paid.resources, runtime, { source, trace: { costs, separatelyPriced: separate, payments: paid.paid.trace, resolution: abilityOutcome(executed.value) }, inputs: { targets: op.targets, groupTargets: op.groupTargets, inputs: built.value.recorded } });
 }
 
 // ---- Active Magic (§13) --------------------------------------------------------------------------------------------------
@@ -736,7 +756,7 @@ function activeMagic(ctx: PlayContext, runtime: PlayRuntimeState, resources: Pro
   const pending = t.pending === null ? [] : [{ ...clonePlainData(t.pending), concentrationDc: t.concentration.test?.dc ?? null }];
   const trace = { status: t.status, lifecycle: t.lifecycle, resourceChanges: t.resourceChanges, concentration: t.concentration, ticks: t.ticks, channelResult: t.channelResult, inspector: t.inspector, formulaEvaluations: t.formulaEvaluations, runtimeEvaluations: t.runtimeEvaluations };
   const channelNote = t.channelResult?.status === "COMPLETE" ? "; the Channel is complete — its MP payment timing is unresolved (M5-SC-053), so resolve the Spell with the GM" : "";
-  return commit("RULES_EXECUTED", `${op.event.replace(/_/g, " ").toLowerCase()}: ${t.status.replace(/_/g, " ").toLowerCase()}${channelNote}`, t.resources, { ...runtime, activeMagic: t.state }, { trace, pending, inputs, source: { kind: "ACTIVE_MAGIC", magicEvent: op.event, ...(op.activeEffectKey === undefined ? {} : { activeEffectKey: op.activeEffectKey }) } });
+  return accept("RULES_EXECUTED", `${op.event.replace(/_/g, " ").toLowerCase()}: ${t.status.replace(/_/g, " ").toLowerCase()}${channelNote}`, t.resources, { ...runtime, activeMagic: t.state }, { trace, pending, inputs, source: { kind: "ACTIVE_MAGIC", magicEvent: op.event, ...(op.activeEffectKey === undefined ? {} : { activeEffectKey: op.activeEffectKey }) } });
 }
 
 // ---- Manual adjustment (§14) --------------------------------------------------------------------------------------------
@@ -746,14 +766,14 @@ function manual(ctx: PlayContext, index: RuntimeDefinitionIndex, runtime: PlayRu
   const before = currentOf(resources, key);
   if (before === null) return refuse(R.MANUAL_INVALID, `${op.resourceKey} is not a Resource of this Character's Release`);
   if (before.current === op.after) return refuse(R.MANUAL_INVALID, "the value is unchanged");
-  if (key === "MOVEMENT_ALLOWANCE") {
-    if (op.after < index.resources.MOVEMENT_ALLOWANCE.payload.minimum) return refuse(R.MANUAL_INVALID, "below the Resource's minimum");
+  if (RUNTIME_HELD_RESOURCES[key] !== undefined) {
+    if (op.after < index.resources[key].payload.minimum) return refuse(R.MANUAL_INVALID, "below the Resource's minimum");
   } else {
     const issues = validateSheetPlayState({ resources: ctx.mechanics.resources, values: { [op.resourceKey]: op.after } });
     if (issues.length > 0) return refuse(R.MANUAL_INVALID, issues.map((i) => i.message).join("; "));
   }
   const after: ProwessRuntimeResources = { resources: resources.resources.map((x) => (x.resourceKey === key ? { ...x, current: op.after } : x)) };
-  return commit("MANUAL_ADJUSTMENT", `Manual adjustment: ${op.resourceKey} ${String(before.current)} → ${String(op.after)} (player / GM entered — not calculated by the rules engine)`, after, runtime, { source: { kind: "MANUAL_ADJUSTMENT", resource: index.resources[key].ref }, inputs: { resourceKey: op.resourceKey, before: before.current, after: op.after, reason: op.reason ?? null, source: "PLAYER_GM_PROVIDED" } });
+  return accept("MANUAL_ADJUSTMENT", `Manual adjustment: ${op.resourceKey} ${String(before.current)} → ${String(op.after)} (player / GM entered — not calculated by the rules engine)`, after, runtime, { source: { kind: "MANUAL_ADJUSTMENT", resource: index.resources[key].ref }, inputs: { resourceKey: op.resourceKey, before: before.current, after: op.after, reason: op.reason ?? null, source: "PLAYER_GM_PROVIDED" } });
 }
 
 /** Reads a stored Active Magic state's held decision (for the workspace view). */

@@ -53,7 +53,7 @@ describe("M6-WO10 Character Play Workspace persistence", () => {
     const before = await counts();
     const view = await getCharacterPlayWorkspace(c.id);
     expect(view.versions).toEqual({ runtimeVersion: 0, playStateVersion: 0 });
-    expect(view.workspace.persisted).toBe(false);
+    expect(view.workspace.recorded).toBe(false);
     expect(view.workspace.runtime.releaseId).toBe(world.release.id);
     const p = await previewCharacterPlayOperation(c.id, { operation: { kind: "TIMING", event: "BEGIN_COMBAT" }, expectedRuntimeVersion: 0, expectedPlayStateVersion: 0 });
     expect(p.outcome.status).toBe("COMMITTABLE");

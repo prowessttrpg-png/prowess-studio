@@ -880,7 +880,7 @@ export {
   type PlayRuntimeState,
 } from "./play/contract.js";
 export { characterCoreOf } from "./play/engine.js";
-export { signatureSourceKey, type PlayAbilitySource } from "./play/abilities.js";
+export { createPlayEvaluationCache, signatureSourceKey, type PlayAbilitySource, type PlayEvaluationCache } from "./play/abilities.js";
 export { evaluatePlayOperation, initialPlayRuntime, legalTimingEvents, readPlayOperation, SPELL_CASTING_ME_ELIGIBLE, type PlayContext, type PlayStored } from "./play/operations.js";
 export { readPlayRuntimeState } from "./play/state.js";
 export { buildPlayWorkspace, type PlayWorkspaceView } from "./play/workspace.js";

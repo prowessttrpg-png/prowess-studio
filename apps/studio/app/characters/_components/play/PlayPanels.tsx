@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { PlayEventDto, PlayTimingEventDto, PlayViewDto, PlayWorkspaceDto, SheetValueDto } from "../../_lib/play-types";
 import { CLASSIFICATION_LABELS, playLinks, Reasons, type Submitter } from "./PlayWorkspace";
-import { RollInput, emptyRoll, rollOperand, type RollDraft } from "./ResolutionPanel";
+import { RollInput, emptyRoll, rollOperand, type RollDraft } from "./ActionDetailPanel";
 
 /**
  * Play Workspace panels (PAS-10 M6-WO10): the Character header, timing controls, resource dashboard (with the labelled

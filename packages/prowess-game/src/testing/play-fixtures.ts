@@ -4,7 +4,7 @@ import { emptySignatureManeuverDraft, type SignatureManeuverDraft } from "../cha
 import { emptySignatureSpellDraft, readSignatureSpellDraft, type SignatureSpellDraft } from "../character/signature-spell.js";
 import type { ManeuverDefinitionPayload } from "../definition/authored-ability-payload.js";
 import { buildCharacterAttackLibrary } from "../equipment/library.js";
-import type { PlayAbilitySource } from "../play/abilities.js";
+import { createPlayEvaluationCache, type PlayAbilitySource } from "../play/abilities.js";
 import { characterCoreOf } from "../play/engine.js";
 import { evaluatePlayOperation, type PlayContext, type PlayStored } from "../play/operations.js";
 import type { PlayOperationOutcome } from "../play/contract.js";
@@ -127,9 +127,10 @@ export function playWorld(): PlayWorld {
     characterDc: mechanics.combat.characterDc.value,
     mechanics,
     names: Object.fromEntries(f.bundle.definitions.map((d) => [d.entityVersionId, label(d.canonicalKey)])),
+    evaluations: createPlayEvaluationCache(),
   });
   const base = context(history.length);
-  const withSpells: PlayWorld["withSpells"] = (extra) => ({ ...base, spells: [...base.spells, ...extra.map((x) => source(x.abilityId, x.name, customSpell(x.name, x.effects, x.duration, x.chain ?? null)))] });
+  const withSpells: PlayWorld["withSpells"] = (extra) => ({ ...base, evaluations: createPlayEvaluationCache(), spells: [...base.spells, ...extra.map((x) => source(x.abilityId, x.name, customSpell(x.name, x.effects, x.duration, x.chain ?? null)))] });
   cached = { f, profile, context: base, withAdvancement: context, withSpells };
   return cached;
 }
@@ -163,6 +164,7 @@ export function improvementWorld(): PlayContext {
     bundle: wf.bundle, ruleset: wf.ruleset, profile, equippedProfile: profile, maneuverAttackLibrary: library, attackLibrary: library, keywords: [], spells: [], maneuvers: [],
     casterCore: characterCoreOf(profile), characterDie: profile.characterDie, characterDc: mechanics.combat.characterDc.value, mechanics,
     names: Object.fromEntries(wf.bundle.definitions.map((d) => [d.entityVersionId, label(d.canonicalKey)])),
+    evaluations: createPlayEvaluationCache(),
   };
   return improvementCached;
 }

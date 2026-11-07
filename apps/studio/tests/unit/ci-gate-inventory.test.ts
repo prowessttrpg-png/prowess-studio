@@ -19,7 +19,7 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
     expect(checkInventory(ROOT)).toEqual([]);
   });
 
-  it("keeps all historical 571 controls (535 + WO8's 36) and adds WO9's 46: 617 controls across 23 scripts", () => {
+  it("keeps all historical 617 controls (571 + WO9's 46) and adds WO10's 52: 669 controls across 24 scripts", () => {
     const counts = Object.fromEntries(inventory.gates.filter((g) => g.controls).map((g) => [g.controls!.script, g.controls!.count]));
     expect(counts).toEqual({
       "scripts/m4-final-negative-controls.mjs": 3,
@@ -45,9 +45,10 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
       "scripts/m6-wo7-negative-controls.mjs": 68,
       "scripts/m6-wo8-negative-controls.mjs": 36,
       "scripts/m6-wo9-negative-controls.mjs": 46,
+      "scripts/m6-wo10-negative-controls.mjs": 52,
     });
-    expect(Object.values(counts).reduce((sum, count) => sum + count, 0)).toBe(617);
-    expect(inventory.gates.length).toBe(41);
+    expect(Object.values(counts).reduce((sum, count) => sum + count, 0)).toBe(669);
+    expect(inventory.gates.length).toBe(42);
   });
 
   it("WO8 remains a Tier 2/3 gate over every required domain, historical, database, API, UI and static suite", () => {
@@ -92,6 +93,28 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
     expect(config).toContain('testDir: "./tests/e2e"');
     expect(existsSync(path.join(ROOT, "apps/studio/tests/e2e/m6-cards.spec.ts"))).toBe(true);
     expect(readFileSync(path.join(ROOT, ".github/workflows/ci.yml"), "utf8")).toContain("run: pnpm run test:e2e");
+  });
+
+  it("WO10 is a Tier 2/3 gate over its domain, M5 adapter characterization, cost, database, API, UI and static suites", () => {
+    const gate = inventory.gates.find((g) => g.id === "M6-WO10");
+    expect(gate).toMatchObject({ name: "M6-WO10 — Character Play Workspace", job: "controls-2", tiers: [2, 3], controls: { script: "scripts/m6-wo10-negative-controls.mjs", count: 52, kind: "mutation" } });
+    expect(gate!.tests).toEqual([
+      "packages/prowess-game/src/play-workspace.test.ts",
+      "packages/prowess-game/src/active-magic-golden.test.ts",
+      "packages/prowess-game/src/active-magic-contracts.test.ts",
+      "packages/prowess-game/src/effect-execution-golden.test.ts",
+      "packages/prowess-game/src/effect-execution-contracts.test.ts",
+      "packages/prowess-game/src/character-signature-spell.test.ts",
+      "packages/prowess-game/src/character-signature-maneuver.test.ts",
+      "packages/prowess-game/src/spell-cost-golden.test.ts",
+      "packages/prowess-game/src/maneuver-cost-golden.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts",
+      "apps/studio/tests/unit/m6-wo10-static.test.ts",
+      "apps/studio/tests/unit/m6-wo10-play-ui.test.tsx",
+      "apps/studio/tests/integration/m6-wo10-play-api.test.ts",
+    ]);
+    // The WO10 browser flows run in the existing Playwright job (testDir tests/e2e; `pnpm run test:e2e`).
+    expect(existsSync(path.join(ROOT, "apps/studio/tests/e2e/m6-play.spec.ts"))).toBe(true);
   });
 
   it("every M1, M4-WO1…WO12 and M5-WO1…WO13 gate is permanent (Tier 2 and Tier 3)", () => {
