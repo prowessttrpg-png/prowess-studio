@@ -534,6 +534,10 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "retireCharacterSignatureManeuver",
         "updateCharacterSignatureManeuverDraft",
         "validateCharacterSignatureManeuver",
+        // M6-WO9 Character Ability Card System: two read-only, exact-Release Character reads (Card Library and Action
+        // Directory). No write of any kind; no Entity/Version, history or Canon mutation.
+        "getCharacterActionDirectory",
+        "getCharacterCardLibrary",
       ].sort(),
     );
 

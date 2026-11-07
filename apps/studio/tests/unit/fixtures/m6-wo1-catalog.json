@@ -29,6 +29,20 @@
       "authorable": true
     },
     {
+      "definitionKind": "ACTION_IMPROVEMENT",
+      "systemFamily": "ACTION_ECONOMY",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
       "definitionKind": "AFFINITY",
       "systemFamily": "AFFINITY",
       "branch": null,
