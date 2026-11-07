@@ -128,6 +128,8 @@ describe("M6-WO10 A — runtime, timing and the action economy", () => {
     expect(r.outcomes[3]!.resourcesAfter!.find((x) => x.resourceKey === "AP")!.current).toBe(5);
     expect(r.outcomes[3]!.resourcesAfter!.find((x) => x.resourceKey === "COUNTER_ACTION")!.current).toBe(0);
     expect(r.outcomes[3]!.inputs.trigger).toMatchObject({ source: "PLAYER_DECLARED" });
+    // On the Character's own turn the reaction is refused for its timing window — not merely for an empty pool.
+    expect(r.outcomes[5]!.reasons[0]!.code).toBe("PLAY.WRONG_TIMING_WINDOW");
     const s = run(w.context, [{ kind: "TIMING", event: "BEGIN_COMBAT", surprised: true }, { kind: "TIMING", event: "START_ROUND" }, react]);
     expect(s.outcomes[2]!.reasons[0]!.code).toBe("PLAY.USAGE_UNAVAILABLE");
   });
