@@ -5,7 +5,7 @@ import { readKeywordCatalog } from "../affinity/definitions.js";
 import { findBundleDefinition, type ProwessDefinitionBundle } from "../bundle/bundle.js";
 import { compileAuthoredAbilityCore, type AuthoredAbilityResult } from "../ability/compile.js";
 import { compileManeuverCostCore, readManeuverCostRun, type ManeuverCostResult } from "../ability/maneuver-cost.js";
-import { compileExecutionCore, type ExecutionGroup } from "../ability/effect-execution.js";
+import { compileExecutionCore, type Compiled, type ExecutionGroup } from "../ability/effect-execution.js";
 import { readAuthoredAbilityPayload, readFoundationProfile, isAttackFoundation, type ManeuverDefinitionPayload } from "../definition/authored-ability-payload.js";
 import { readDefinitionRef, isSameExactDefinition, type ProwessDefinitionRef } from "../definition/envelope.js";
 import type { FoundationDefinitionPayload } from "../definition/payload.js";
@@ -116,7 +116,7 @@ export function signatureManeuverComponentRefs(draft: SignatureManeuverDraft): r
   return [...draft.actions.flatMap(a => a.source.kind === "FOUNDATION" ? [a.source.definition] : [a.source.weapon, a.source.attack]), ...(draft.affinity ? [draft.affinity] : []), ...draft.effects.map(x => x.definition), ...draft.traits.map(x => x.definition), ...draft.conditions.map(x => x.definition), ...(draft.duration ? [draft.duration.definition] : [])];
 }
 /** The exact adapter to M5/M4. No Release Definition is created or inserted into the bundle. */
-export function evaluateCharacterSignatureManeuver(request: { readonly bundle: ProwessDefinitionBundle; readonly ruleset: unknown; readonly profile: CharacterMechanicalProfile; readonly attackLibrary: CharacterAttackLibrary; readonly keywords: unknown; readonly draft: SignatureManeuverDraft; readonly usedSlots: number; readonly subject: CharacterManeuverSubject }): SignatureManeuverEvaluation {
+export function evaluateCharacterSignatureManeuver(request: { readonly bundle: ProwessDefinitionBundle; readonly ruleset: unknown; readonly profile: CharacterMechanicalProfile; readonly attackLibrary: CharacterAttackLibrary; readonly keywords: unknown; readonly draft: SignatureManeuverDraft; readonly usedSlots: number; readonly subject: CharacterManeuverSubject }, capture?: (plan: Compiled<CharacterManeuverSubject>) => void): SignatureManeuverEvaluation {
   const { bundle, profile, draft, subject } = request;
   const base = { subject, rulesetProvenance: bundle.rulesetProvenance, components: signatureManeuverComponentRefs(draft), inspector: null, runtimeDeferred: [], execution: null };
   const fail = (issues: readonly ProwessProblem[], state: SignatureSpellState = "INVALID", missing: readonly string[] = []): SignatureManeuverEvaluation => deepFreeze({ ...base, state, missing, issues, cost: null, authored: null });
@@ -164,6 +164,8 @@ export function evaluateCharacterSignatureManeuver(request: { readonly bundle: P
   if (!cost?.ok) return fail(cost && !cost.ok ? cost.problems : [{ code: "SIGNATURE_MANEUVER.EVALUATION", path: "review", message: "M4 could not complete the exact Maneuver plan" }]);
   const execution = compileExecutionCore(new Problems(), r, ability.value, cost.value.authored, subject.signatureAbilityId ?? `${subject.characterId}:draft`);
   const deferred = execution.ok ? [] : execution.problems.map(q => ({ code: q.code, message: q.message }));
+  // PAS-10 M6-WO10 (additive): the Play Workspace receives the SAME compiled plan to execute; evaluation is unchanged.
+  if (execution.ok && capture !== undefined && cost.value.valid) capture(execution.value);
   if (ability.value.traits.some(t => t.scope.scope === "ACTION_SPECIFIC" && t.modifications.some(m => m.modification.kind === "TRIGGER"))) deferred.push({ code: "M5-SC-049", message: "Action-scoped Trait triggers have no authorized runtime routing; their exact selection and cost remain visible." });
   return deepFreeze({ ...base, state: !cost.value.valid ? "INVALID" : deferred.length ? "VALID_WITH_RUNTIME_DEFERRED" : "VALID", missing: [], issues: cost.value.problems, inspector: { sourceMap: costPlan.value.sourceMap }, cost: cost.value, authored: cost.value.authored, runtimeDeferred: deferred, execution: execution.ok ? { groups: execution.value.plan.groups ?? [], targetLimit: execution.value.plan.targetLimit, martialRank: execution.value.plan.martialRank } : null });
 }

@@ -1476,6 +1476,8 @@ model RulesetRelease {
   characters Character[] // M6-WO3 back-relation
   signatureSpellRevisions CharacterSignatureSpellRevision[] // M6-WO7 back-relation
   signatureManeuverRevisions CharacterSignatureManeuverRevision[] // M6-WO8 back-relation
+  playRuntimes CharacterPlayRuntime[] // M6-WO10 back-relation
+  playEvents CharacterPlayEvent[] // M6-WO10 back-relation
 
   publishedAt DateTime @default(now()) @map("published_at") @db.Timestamptz(6)
 
@@ -2412,6 +2414,7 @@ model Character {
   portrait             CharacterPortrait? // M6-WO5 back-relation
   weaponLoadout        CharacterWeaponLoadout? // M6-WO6 back-relation
   signatureAbilities   CharacterSignatureAbility[] // M6-WO7 back-relation
+  playRuntime          CharacterPlayRuntime? // M6-WO10 back-relation
 
   @@index([rulesetReleaseId], map: "characters_ruleset_release_id_idx")
   @@index([ancestryEntityVersionId], map: "characters_ancestry_entity_version_id_idx")
@@ -2718,3 +2721,57 @@ model CharacterSignatureManeuverRevision {
   @@map("character_signature_maneuver_revisions")
 }
 // <<< M6-WO8 Character Maneuver history
+
+// >>> M6-WO10 Character Play Workspace (PAS-10 M6-WO10) — registered in docs/architecture/m6-schema-changes.json
+/// The Play Workspace runtime of ONE Character: local combat timing, the runtime-only Movement Allowance and reserved MP
+/// capacity, and the exact M5-WO13 Active Magic state (`state`, the closed @prowess/game PlayRuntimeState). Current HP /
+/// MP / ME / AP / Counter Actions are NOT here — they stay in character_resource_states (one resource authority). Pinned to
+/// the Release it was created under; never stores a maximum, formula, progression or Ability definition.
+model CharacterPlayRuntime {
+  characterId String    @id @map("character_id") @db.Uuid
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  rulesetReleaseId String         @map("ruleset_release_id") @db.Uuid
+  rulesetRelease   RulesetRelease @relation(fields: [rulesetReleaseId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  state Json
+
+  lockVersion Int      @default(1) @map("lock_version")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  events CharacterPlayEvent[]
+
+  @@index([rulesetReleaseId], map: "character_play_runtimes_ruleset_release_id_idx")
+  @@map("character_play_runtimes")
+}
+
+/// One COMMITTED gameplay operation (append-only; a database trigger refuses UPDATE / DELETE). `record` keeps the exact
+/// engine outcome (operation, reasons, resources before / after, source identity, trace, labelled inputs) as committed —
+/// it is never recalculated against a later revision. `idempotencyKey` makes a retried submission return this event.
+model CharacterPlayEvent {
+  id          String               @id @default(uuid()) @db.Uuid
+  characterId String               @map("character_id") @db.Uuid
+  runtime     CharacterPlayRuntime @relation(fields: [characterId], references: [characterId], onDelete: Restrict, onUpdate: Restrict)
+
+  rulesetReleaseId String         @map("ruleset_release_id") @db.Uuid
+  rulesetRelease   RulesetRelease @relation(fields: [rulesetReleaseId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  sequence         Int
+  idempotencyKey   String @map("idempotency_key") @db.Uuid
+  requestHash      String @map("request_hash")
+  operationKind    String @map("operation_kind")
+  classification   String
+  summary          String
+  runtimeVersion   Int    @map("runtime_version")
+  playStateVersion Int    @map("play_state_version")
+  record           Json
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([characterId, sequence], map: "character_play_events_character_sequence_key")
+  @@unique([characterId, idempotencyKey], map: "character_play_events_character_idempotency_key")
+  @@index([rulesetReleaseId], map: "character_play_events_ruleset_release_id_idx")
+  @@map("character_play_events")
+}
+// <<< M6-WO10 Character Play Workspace

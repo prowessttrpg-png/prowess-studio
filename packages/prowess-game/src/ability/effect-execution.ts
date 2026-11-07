@@ -189,7 +189,7 @@ const EXECUTION_FIELD = "execution";
 const json = (v: unknown) => v as JsonObject;
 const resolutionOf = (mode: string | null): ExecutionResolution | null => (mode === "ATTACK_ROLL" || mode === "SAVING_THROW" || mode === "AUTOMATIC" ? mode : null);
 
-interface Compiled<S = ProwessDefinitionRef> { readonly plan: ProwessAbilityExecutionPlan<S>; readonly bundle: ProwessDefinitionBundle; readonly ruleset: unknown; readonly authored: AuthoredAbilityResult<S> }
+export interface Compiled<S = ProwessDefinitionRef> { readonly plan: ProwessAbilityExecutionPlan<S>; readonly bundle: ProwessDefinitionBundle; readonly ruleset: unknown; readonly authored: AuthoredAbilityResult<S> }
 
 /** Stage A: the exact authored Ability → its execution plan. Pure; never mutates its input. */
 export function compileAbilityExecution(request: unknown): ProwessOutcome<ProwessAbilityExecutionPlan> {
@@ -361,7 +361,17 @@ const INPUT_FIELDS: Readonly<Record<ExecutionInputKind, readonly string[]>> = {
 export function executeAbilityResolution(request: unknown): ProwessOutcome<AbilityExecutionResult> {
   const compiled = compileInternal(request);
   if (!compiled.ok) return compiled as ProwessOutcome<never>;
-  const { plan, bundle, ruleset } = compiled.value;
+  return executeCompiledResolution(compiled.value, request);
+}
+
+/**
+ * Stage B over an already compiled execution plan — shared by the canonical path above and the PAS-10 M6-WO10 Character
+ * Signature Ability adapter (approved additive change: the plan comes from `compileExecutionCore` over the Character's
+ * exact evaluated revision; the execution semantics are byte-for-byte the canonical ones). `request` supplies only the
+ * `execution` field. Internal (not part of the public surface).
+ */
+export function executeCompiledResolution<S>(compiledPlan: Compiled<S>, request: unknown): ProwessOutcome<AbilityExecutionResult> {
+  const { plan, bundle, ruleset } = compiledPlan as unknown as Compiled;
   const p = new Problems();
   const ex = readRecord(own(request as Record<string, unknown>, EXECUTION_FIELD), [EXECUTION_FIELD], p, K.INVALID_REQUEST, ["targets", "groupTargets", "inputs"], ["targets", "inputs"]);
   if (!ex) return finish(p, () => null as never);

@@ -11,8 +11,8 @@ import { buildRuntimeContexts, compileRuntime } from "../runtime/compile.js";
 import type { ProwessRuntimeResources } from "../runtime/resources.js";
 import { readRuntimeRun } from "../runtime/results.js";
 import { RUNTIME_RESOURCE_KEYS, type RuntimeResourceKey } from "../vocabulary/runtime.js";
-import { executeAbilityResolution } from "./effect-execution.js";
-import { evaluateSpellCost } from "./spell-cost.js";
+import { executeAbilityResolution, type AbilityExecutionResult } from "./effect-execution.js";
+import { evaluateSpellCost, type SpellCostResult } from "./spell-cost.js";
 
 /**
  * M5-WO13 — ACTIVE MAGIC RUNTIME: Sustain, Mana Lock, Concentration, Channeling and the Active Effect lifecycle.
@@ -59,12 +59,40 @@ export const ACTIVE_EFFECT_TICK_TIMINGS = deepFreeze(["START_OF_TARGET_TURN", "E
 export const ACTIVE_MAGIC_EVENT_KINDS = deepFreeze(["ACTIVATE", "MAINTENANCE", "ROUND_END", "BOUNDARY", "DISMISS", "EXTERNAL_END", "CONCENTRATION_TEST", "CHANNEL_START", "CHANNEL_INVEST", "CHANNEL_STOP", "TIMING"] as const);
 export type ActiveMagicEventKind = (typeof ACTIVE_MAGIC_EVENT_KINDS)[number];
 
+/**
+ * PAS-10 M6-WO10 (approved additive adapter): the exact identity of a CHARACTER-OWNED Signature Spell revision. Such a
+ * Spell is not a Definition of the Release bundle, so it is never looked up there; it is validated by the adapter that
+ * owns it (the Character Play Workspace), which re-evaluates the exact revision through WO10 / WO12 itself. `canonicalKey`
+ * is only a stable source label for WO3 subjects (never a canonical Definition key).
+ */
+export interface CharacterSpellIdentity {
+  readonly kind: "CHARACTER_SIGNATURE_SPELL";
+  readonly characterId: string;
+  readonly signatureAbilityId: string;
+  readonly revisionNumber: number;
+  readonly canonicalKey: string;
+}
+export type ActiveAbilityIdentity = ProwessDefinitionRef | CharacterSpellIdentity;
+/**
+ * PAS-10 M6-WO10: resolves the ability of an ACTIVATE / CHANNEL_START event that is not a canonical authored request (a
+ * Character Signature Spell reference), through the SAME WO10 cost and WO12 resolution authorities; validates held
+ * identities of that kind. Absent (null) → the canonical behaviour, unchanged.
+ */
+export interface ActiveMagicAbilityAdapter {
+  readonly handles: (ability: Record<string, unknown>) => boolean;
+  readonly cost: (ability: Record<string, unknown>) => ProwessOutcome<SpellCostResult<CharacterSpellIdentity>>;
+  readonly execute: (ability: Record<string, unknown>) => ProwessOutcome<AbilityExecutionResult>;
+  readonly owns: (identity: unknown, casterKey: string) => CharacterSpellIdentity | null;
+}
+const isCharacterSpellIdentity = (value: unknown): value is CharacterSpellIdentity => isPlainObject(value) && own(value, "kind") === "CHARACTER_SIGNATURE_SPELL";
+const sameAbility = (a: ActiveAbilityIdentity, b: ActiveAbilityIdentity) => (isCharacterSpellIdentity(a) || isCharacterSpellIdentity(b) ? canonicalJsonOf(a) === canonicalJsonOf(b) : isSameExactDefinition(a, b));
+
 export interface ActiveEffectOutcomeBinding { readonly targetKey: string; readonly effectKey: string; readonly outcomeKey: string; readonly definition: ProwessDefinitionRef }
 export interface FormulaEvaluation { readonly stepKey: string; readonly role: string; readonly plan: EvaluationPlan; readonly value: number }
 export interface ActiveEffectState {
   readonly activeEffectKey: string;
   readonly casterKey: string;
-  readonly ability: ProwessDefinitionRef;
+  readonly ability: ActiveAbilityIdentity;
   readonly policy: ProwessDefinitionRef;
   readonly rulesetProvenance: ProwessRulesetProvenance;
   readonly executionKey: string;
@@ -84,7 +112,7 @@ export interface ActiveEffectState {
 export interface ChannelState {
   readonly channelKey: string;
   readonly casterKey: string;
-  readonly spell: ProwessDefinitionRef;
+  readonly spell: ActiveAbilityIdentity;
   readonly policy: ProwessDefinitionRef;
   readonly rulesetProvenance: ProwessRulesetProvenance;
   readonly requiredAp: number;
@@ -138,7 +166,7 @@ export interface ActiveMagicTransition {
   readonly pending: { readonly kind: "MAINTENANCE_SELECTION" | "CONCENTRATION_SAVE"; readonly options: readonly string[]; readonly requestKey: string } | null;
   readonly concentration: { readonly capacity: number; readonly used: number; readonly test: ConcentrationTestTrace | null };
   readonly ticks: readonly { readonly activeEffectKey: string; readonly timing: string; readonly targetKey: string; readonly effectKey: string; readonly kind: "ACTIVE_EFFECT_TICK_DUE" }[];
-  readonly channelResult: { readonly channelKey: string; readonly spell: ProwessDefinitionRef; readonly status: "COMPLETE" | "FAILED" | "ABANDONED"; readonly requiredAp: number; readonly investedAp: number; readonly readyToResolve: boolean; readonly mpPayment: { readonly status: "UNRESOLVED"; readonly conflictKey: string } } | null;
+  readonly channelResult: { readonly channelKey: string; readonly spell: ActiveAbilityIdentity; readonly status: "COMPLETE" | "FAILED" | "ABANDONED"; readonly requiredAp: number; readonly investedAp: number; readonly readyToResolve: boolean; readonly mpPayment: { readonly status: "UNRESOLVED"; readonly conflictKey: string } } | null;
   readonly noActiveEffectReason: "INSTANT" | "NOTHING_PERSISTS" | null;
   readonly formulaEvaluations: readonly FormulaEvaluation[];
   readonly runtimeEvaluations: readonly RuntimeEvaluation[];
@@ -149,7 +177,7 @@ export interface ActiveMagicInspector {
   readonly mp: { readonly reserved: number; readonly availableMaximum: number | null; readonly current: number | null };
   readonly effects: readonly {
     readonly activeEffectKey: string;
-    readonly sourceSpell: ProwessDefinitionRef;
+    readonly sourceSpell: ActiveAbilityIdentity;
     readonly ruleset: ProwessRulesetProvenance;
     readonly duration: { readonly concept: string; readonly remainingRounds: number | null };
     readonly sustain: { readonly mpCost: number; readonly apCost: number; readonly paymentSource: { readonly ap: number; readonly me: number; readonly mp: number } | null } | null;
@@ -157,7 +185,7 @@ export interface ActiveMagicInspector {
     readonly manaLock: { readonly reservedMp: number } | null;
     readonly lifecycle: { readonly status: string; readonly endReason: string | null };
   }[];
-  readonly channel: { readonly spell: ProwessDefinitionRef; readonly requiredAp: number; readonly investedAp: number; readonly remainingAp: number; readonly concentrationSlot: boolean; readonly status: string } | null;
+  readonly channel: { readonly spell: ActiveAbilityIdentity; readonly requiredAp: number; readonly investedAp: number; readonly remainingAp: number; readonly concentrationSlot: boolean; readonly status: string } | null;
 }
 
 const REQUEST_FIELDS = ["contractVersion", "definitions", "ruleset", "caster", "casterKey", "resources", "state", "event"];
@@ -195,7 +223,7 @@ function policyOf(bundle: ProwessDefinitionBundle, p: Problems): { ref: ProwessD
 const inBundle = (bundle: ProwessDefinitionBundle, ref: ProwessDefinitionRef) => bundle.definitions.find((d) => isSameExactDefinition(definitionRefOf(d), ref)) ?? null;
 
 /** Validates a caller-held Active Magic state against the exact Ruleset: identity, pinning and internal consistency. */
-function readState(value: unknown, bundle: ProwessDefinitionBundle, policyRef: ProwessDefinitionRef, policy: ActiveMagicPolicy, casterKey: string, p: Problems): ActiveMagicState | null {
+function readState(value: unknown, bundle: ProwessDefinitionBundle, policyRef: ProwessDefinitionRef, policy: ActiveMagicPolicy, casterKey: string, p: Problems, adapter: ActiveMagicAbilityAdapter | null = null): ActiveMagicState | null {
   const before = p.count, E = K.INVALID_STATE;
   if (value === null) return { contractVersion: 1, casterKey, rulesetProvenance: bundle.rulesetProvenance, effects: [], channel: null };
   const r = readRecord(value, ["state"], p, E, ["contractVersion", "casterKey", "rulesetProvenance", "effects", "channel"], ["contractVersion", "casterKey", "rulesetProvenance", "effects", "channel"]); if (!r) return null;
@@ -205,19 +233,22 @@ function readState(value: unknown, bundle: ProwessDefinitionBundle, policyRef: P
   const effects: ActiveEffectState[] = [], seen = new Set<string>();
   const raw = own(r, "effects");
   if (!Array.isArray(raw)) p.add(E, ["state", "effects"], "effects is an array");
-  else raw.forEach((x, i) => { const e = readEffect(x, ["state", "effects", i], bundle, policyRef, policy, casterKey, p); if (e) { if (seen.has(e.activeEffectKey)) p.add(E, ["state", "effects", i, "activeEffectKey"], "Active Effect identities are unique"); seen.add(e.activeEffectKey); effects.push(e); } });
+  else raw.forEach((x, i) => { const e = readEffect(x, ["state", "effects", i], bundle, policyRef, policy, casterKey, p, adapter); if (e) { if (seen.has(e.activeEffectKey)) p.add(E, ["state", "effects", i, "activeEffectKey"], "Active Effect identities are unique"); seen.add(e.activeEffectKey); effects.push(e); } });
   const ch = own(r, "channel");
-  const channel = ch === null ? null : readChannel(ch, bundle, policyRef, casterKey, p);
+  const channel = ch === null ? null : readChannel(ch, bundle, policyRef, casterKey, p, adapter);
   return p.count > before ? null : { contractVersion: 1, casterKey, rulesetProvenance: bundle.rulesetProvenance, effects, channel };
 }
 
-function readEffect(value: unknown, at: readonly (string | number)[], bundle: ProwessDefinitionBundle, policyRef: ProwessDefinitionRef, policy: ActiveMagicPolicy, casterKey: string, p: Problems): ActiveEffectState | null {
+function readEffect(value: unknown, at: readonly (string | number)[], bundle: ProwessDefinitionBundle, policyRef: ProwessDefinitionRef, policy: ActiveMagicPolicy, casterKey: string, p: Problems, adapter: ActiveMagicAbilityAdapter | null = null): ActiveEffectState | null {
   const before = p.count, E = K.INVALID_STATE;
   const fields = ["activeEffectKey", "casterKey", "ability", "policy", "rulesetProvenance", "executionKey", "outcomes", "duration", "sustain", "concentration", "manaLock", "ticks", "activation", "status", "endReason", "endedBy", "sourceMap"];
   const r = readRecord(value, at, p, E, fields, fields); if (!r) return null;
   if (!isExactLabel(own(r, "activeEffectKey"))) p.add(E, [...at, "activeEffectKey"], "exact Active Effect identity");
   if (own(r, "casterKey") !== casterKey) p.add(E, [...at, "casterKey"], "an Active Effect belongs to exactly its caster");
-  const ability = readDefinitionRef(own(r, "ability"), [...at, "ability"], p, E), pol = readDefinitionRef(own(r, "policy"), [...at, "policy"], p, E);
+  // PAS-10 M6-WO10: a Character Signature Spell identity is validated by its adapter, never looked up in the bundle.
+  const owned = isCharacterSpellIdentity(own(r, "ability")) ? (adapter?.owns(own(r, "ability"), casterKey) ?? null) : null;
+  if (isCharacterSpellIdentity(own(r, "ability")) && owned === null) p.add(K.INVALID_STATE, [...at, "ability"], "a Character Signature Spell identity is accepted only through its owning Character adapter");
+  const ability = isCharacterSpellIdentity(own(r, "ability")) ? null : readDefinitionRef(own(r, "ability"), [...at, "ability"], p, E), pol = readDefinitionRef(own(r, "policy"), [...at, "policy"], p, E);
   if (ability && !inBundle(bundle, ability)) p.add(K.CROSS_RULESET, [...at, "ability"], "the Active Effect's exact Ability version is not in this Ruleset");
   if (pol && !isSameExactDefinition(pol, policyRef)) p.add(K.CROSS_RULESET, [...at, "policy"], "the Active Effect is pinned to another active-magic policy version");
   if (canonicalJsonOf(own(r, "rulesetProvenance")) !== canonicalJsonOf(bundle.rulesetProvenance)) p.add(K.CROSS_RULESET, [...at, "rulesetProvenance"], "an Active Effect never changes Ruleset");
@@ -269,13 +300,15 @@ function readEffect(value: unknown, at: readonly (string | number)[], bundle: Pr
   return clonePlainData(r) as unknown as ActiveEffectState;
 }
 
-function readChannel(value: unknown, bundle: ProwessDefinitionBundle, policyRef: ProwessDefinitionRef, casterKey: string, p: Problems): ChannelState | null {
+function readChannel(value: unknown, bundle: ProwessDefinitionBundle, policyRef: ProwessDefinitionRef, casterKey: string, p: Problems, adapter: ActiveMagicAbilityAdapter | null = null): ChannelState | null {
   const before = p.count, E = K.INVALID_STATE, at = ["state", "channel"];
   const fields = ["channelKey", "casterKey", "spell", "policy", "rulesetProvenance", "requiredAp", "investedAp", "investedThisRound", "concentration", "mpPayment", "status"];
   const r = readRecord(value, at, p, E, fields, fields); if (!r) return null;
   if (!isExactLabel(own(r, "channelKey"))) p.add(E, [...at, "channelKey"], "exact Channel identity");
   if (own(r, "casterKey") !== casterKey) p.add(E, [...at, "casterKey"], "a Channel belongs to exactly its caster");
-  const spell = readDefinitionRef(own(r, "spell"), [...at, "spell"], p, E), pol = readDefinitionRef(own(r, "policy"), [...at, "policy"], p, E);
+  const ownedSpell = isCharacterSpellIdentity(own(r, "spell")) ? (adapter?.owns(own(r, "spell"), casterKey) ?? null) : null;
+  if (isCharacterSpellIdentity(own(r, "spell")) && ownedSpell === null) p.add(E, [...at, "spell"], "a Character Signature Spell identity is accepted only through its owning Character adapter");
+  const spell = isCharacterSpellIdentity(own(r, "spell")) ? null : readDefinitionRef(own(r, "spell"), [...at, "spell"], p, E), pol = readDefinitionRef(own(r, "policy"), [...at, "policy"], p, E);
   if (spell && !inBundle(bundle, spell)) p.add(K.CROSS_RULESET, [...at, "spell"], "the Channeled Spell's exact version is not in this Ruleset");
   if (pol && !isSameExactDefinition(pol, policyRef)) p.add(K.CROSS_RULESET, [...at, "policy"], "the Channel is pinned to another policy version");
   if (canonicalJsonOf(own(r, "rulesetProvenance")) !== canonicalJsonOf(bundle.rulesetProvenance)) p.add(K.CROSS_RULESET, [...at, "rulesetProvenance"], "a Channel never changes Ruleset");
@@ -289,6 +322,14 @@ function readChannel(value: unknown, bundle: ProwessDefinitionBundle, policyRef:
 
 /** Pure transition of the caster's active magic by ONE lifecycle event. */
 export function transitionActiveMagic(request: unknown): ProwessOutcome<ActiveMagicTransition> {
+  return transitionActiveMagicWith(request, null);
+}
+
+/**
+ * The same transition with a PAS-10 M6-WO10 ability adapter (Character Signature Spells). With `adapter` null this is
+ * exactly `transitionActiveMagic`. Internal (not part of the public surface).
+ */
+export function transitionActiveMagicWith(request: unknown, adapter: ActiveMagicAbilityAdapter | null): ProwessOutcome<ActiveMagicTransition> {
   const p = new Problems();
   if (!checkPlainData(request, [], p, K.INVALID_REQUEST)) return finish(p, () => null as never);
   const r = readRecord(request, [], p, K.INVALID_REQUEST, REQUEST_FIELDS, REQUEST_FIELDS); if (!r) return finish(p, () => null as never);
@@ -307,7 +348,7 @@ export function transitionActiveMagic(request: unknown): ProwessOutcome<ActiveMa
   const casterStats = isPlainObject(caster) && isPlainObject(own(caster, "stats")) ? (own(caster, "stats") as Record<string, unknown>) : null;
   const contexts0 = buildRuntimeContexts({ definitions: bundle, character: caster, resources: own(r, "resources") });
   if (!contexts0.ok) { for (const q of contexts0.problems) p.add(K.INVALID_REQUEST, ["resources", q.path], q.message); return finish(p, () => null as never); }
-  const state0 = readState(own(r, "state"), bundle, pol.ref, policy, casterKey as string, p); if (!state0) return finish(p, () => null as never);
+  const state0 = readState(own(r, "state"), bundle, pol.ref, policy, casterKey as string, p, adapter); if (!state0) return finish(p, () => null as never);
   const ev = own(r, "event");
   const kind = isPlainObject(ev) ? readEnum(own(ev, "kind"), ACTIVE_MAGIC_EVENT_KINDS, ["event", "kind"], p, K.INVALID_EVENT, "lifecycle event") : null;
   if (!isPlainObject(ev) || !kind) { if (!isPlainObject(ev)) p.add(K.INVALID_EVENT, ["event"], "one structured lifecycle event"); return finish(p, () => null as never); }
@@ -423,7 +464,8 @@ export function transitionActiveMagic(request: unknown): ProwessOutcome<ActiveMa
   /** WO10's authoritative cost for an exact Spell (never recalculated here). */
   const spellCost = (ability: Record<string, unknown>, at: string) => {
     const costRequest = Object.fromEntries(Object.entries(ability).filter(([k]) => k !== "execution"));
-    const cost = evaluateSpellCost(costRequest);
+    const viaAdapter = adapter !== null && adapter.handles(ability);
+    const cost = viaAdapter ? (adapter.cost(ability) as unknown as ReturnType<typeof evaluateSpellCost>) : evaluateSpellCost(costRequest);
     if (!cost.ok) {
       if (cost.problems.some((q) => q.code === "PROWESS_SPELL_COST.SPELL_ONLY")) p.add(K.SPELL_ONLY, ["event", at], "WO13 governs active magic: Spells only");
       else for (const q of cost.problems) p.add(K.INVALID_ABILITY, ["event", at, q.path], `${q.code}: ${q.message}`);
@@ -445,10 +487,10 @@ export function transitionActiveMagic(request: unknown): ProwessOutcome<ActiveMa
       if (!dur) { p.add(K.INVALID_ABILITY, ["event", "ability"], "the Spell's exact WO9 Duration is required"); break; }
       if (dur.mode === "INSTANT" || !dur.futureRuntime.persists) { status = "NO_ACTIVE_EFFECT"; noActiveEffectReason = "INSTANT"; break; }
       if (dur.mode === "PERMANENT_BY_SPECIAL_RULE") { p.add(K.UNRESOLVED_RUNTIME_RULE, ["event", "ability"], "Permanent needs an exact special rule (M5-SC-045)"); break; }
-      const ex = executeAbilityResolution(ability);
+      const ex = adapter !== null && adapter.handles(ability) ? adapter.execute(ability) : executeAbilityResolution(ability);
       if (!ex.ok) { for (const q of ex.problems) p.add(K.INVALID_ABILITY, ["event", "ability", q.path], `${q.code}: ${q.message}`); break; }
       if (ex.value.status !== "COMPLETE") { p.add(K.INVALID_INPUT, ["event", "ability", "execution"], "activation consumes a COMPLETE WO12 resolution; supply its runtime inputs first"); break; }
-      if (!isSameExactDefinition(ex.value.definition, cost.definition)) { p.add(K.INVALID_ABILITY, ["event", "ability"], "WO10 and WO12 must describe the same exact Spell"); break; }
+      if (!sameAbility(ex.value.definition, cost.definition)) { p.add(K.INVALID_ABILITY, ["event", "ability"], "WO10 and WO12 must describe the same exact Spell"); break; }
       // Only emitted outcomes with authored operations other than NO_EFFECT persist; a Duration Keyword alone never does.
       const outcomes = ex.value.outcomes.filter((o) => o.operations.some((op) => op.kind !== "NO_EFFECT"));
       if (!outcomes.length) { status = "NO_ACTIVE_EFFECT"; noActiveEffectReason = "NOTHING_PERSISTS"; break; }
