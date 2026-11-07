@@ -781,3 +781,137 @@ Required by the permanent M6-WO2 gate (`apps/studio/tests/unit/m6-wo2-static.tes
 - **Group:** Compatibility
 - **Meaning:** Only the explicit versioned extension changes the floor; no runtime fallback or canonical Release mutation is permitted.
 - **Guards:** `apps/studio/tests/unit/m6-wo8-static.test.ts`, `packages/prowess-game/src/m6-wo8-amendment.test.ts`, `scripts/m6-wo8-negative-controls.mjs`
+
+## M6-WO9 — Character Ability Card System (M6-I129 – M6-I150)
+
+### M6-I129 — Card Presentation Contract Is Versioned And Source-Backed
+
+- **Group:** Contract
+- **Meaning:** Every card is a contract-v1 envelope with a discriminated category section, projected from an existing evaluation (M5 compilers evaluated by M4, the WO6 Attack Library, ACTION Definitions); a card is never a canonical Definition and is never persisted.
+- **Guards:** `packages/prowess-game/src/card-projection.test.ts`, `packages/prowess-game/src/card-phase-b.test.ts`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I130 — Exact Card Identity And Provenance
+
+- **Group:** Identity
+- **Meaning:** Card keys are exact identities (Ability id + revision, Weapon and Attack EntityVersions + hand, ACTION EntityVersion), never names; provenance carries the Character, its pinned Release, the Ability revision role, every cited Definition and the evaluating authority; the print snapshot repeats them.
+- **Guards:** `packages/prowess-game/src/card-projection.test.ts`, `packages/prowess-game/src/card-phase-b.test.ts`, `packages/prowess-db/tests/integration/m6-wo9-card-library.test.ts`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I131 — Cards Hold No Mechanical Authority
+
+- **Group:** Authority
+- **Meaning:** Game card modules pass the M5-WO1 / WO3 audits (no arithmetic, no Math, no hidden cost identifiers, no persistence) and import no database; the server card service only orchestrates existing authorities; Studio card UI imports no domain package and performs no arithmetic on card values.
+- **Guards:** `apps/studio/tests/unit/m6-wo9-static.test.ts`, `apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I132 — Generated Rules Language Is Deterministic And Model-Derived
+
+- **Group:** Language
+- **Meaning:** Instructions are rendered only from the typed semantic model by fixed templates; equal inputs give equal instructions; the UI and print show the server's text verbatim and never rewrite it.
+- **Guards:** `packages/prowess-game/src/card-language.test.ts`, `apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I133 — Saving Throw Outcomes Are Keyed To The Defender
+
+- **Group:** Language
+- **Meaning:** A Saving Throw Effect succeeds when the defender's save fails and fails when it succeeds; Weapon Attack saves name the target's save and keep the exact authored outcome on each side (decision C4).
+- **Guards:** `packages/prowess-game/src/card-language.test.ts`, `packages/prowess-game/src/card-phase-b.test.ts`, `apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I134 — All Five Effect Chain Behaviors Match The Executor
+
+- **Group:** Language
+- **Meaning:** STOP, SUCCESS_ONLY, FAILURE_ONLY, CONTINUE and BRANCH transitions in the semantic model predict exactly the M5-WO12 executor's path for every check outcome.
+- **Guards:** `packages/prowess-game/src/card-language.test.ts`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I135 — Per-Target Delivery And Conditional Paths Are Explicit
+
+- **Group:** Language
+- **Meaning:** Each target resolves its own chain; a delivery miss leaves other Effects NOT_DELIVERED (not failed); an untriggered Effect is NOT_TRIGGERED (not failed) and the chain moves on as authored.
+- **Guards:** `packages/prowess-game/src/card-language.test.ts`, `apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I136 — Maneuver Groups Resolve Independently
+
+- **Group:** Maneuver
+- **Meaning:** Maneuver cards present one block per M5-WO12 resolution group with its own resolution and target limit; Spell Effect Chain semantics are never applied to Maneuver Actions; an invalid Maneuver shows no groups.
+- **Guards:** `packages/prowess-game/src/card-projection.test.ts`, `packages/prowess-game/src/card-language.test.ts`, `apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I137 — Powerful Blow Keeps Its Constituents
+
+- **Group:** Maneuver
+- **Meaning:** A Powerful Blow is one resolution group naming each constituent Attack in authored order.
+- **Guards:** `packages/prowess-game/src/card-projection.test.ts`, `packages/prowess-game/src/card-language.test.ts`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I138 — Card Costs Are Exactly The Evaluated Costs
+
+- **Group:** Cost
+- **Meaning:** AP / MP are AVAILABLE only from a usable evaluation and equal the evaluation's own values and breakdown; anything else is a typed UNAVAILABLE or DEFERRED value with the server's reason — never zero, never guessed.
+- **Guards:** `packages/prowess-game/src/card-projection.test.ts`, `packages/prowess-game/src/card-phase-b.test.ts`, `apps/studio/tests/integration/m6-wo9-cards-api.test.ts`, `apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I139 — Weapon And Attack Cards Keep Loadout And Damage-Profile Identity
+
+- **Group:** Equipment
+- **Meaning:** Weapon and Attack cards come only from the Character's current loadout through the WO6 Attack Library; Weapon and Attack references, hand, grip, every damage profile and its evaluated steps, properties by execution status and requirements are copied exactly.
+- **Guards:** `packages/prowess-game/src/card-phase-b.test.ts`, `packages/prowess-db/tests/integration/m6-wo9-card-library.test.ts`, `apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I140 — ACTION_IMPROVEMENT Is An Additive Exact-Parent Contract
+
+- **Group:** Action
+- **Meaning:** ACTION_IMPROVEMENT is a separate v1 kind (ACTION_ECONOMY, GENERIC_RULE) naming exactly one parent ACTION EntityVersion; every earlier kind and every ACTION Definition is unchanged; an improvement against another revision or an unpinned parent is UNRESOLVED.
+- **Guards:** `packages/prowess-game/src/m6-wo9-registry.test.ts`, `packages/prowess-game/src/card-phase-b.test.ts`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I141 — Improvement Prerequisites Are Independently M4-Evaluated
+
+- **Group:** Action
+- **Meaning:** Each prerequisite is evaluated on its own through an M4 Requirement (Level / Stat by NUMERIC_COMPARE, Skill / Affinity ranks by the one M6-WO4 rank evaluation); General Actions author no prerequisites and none are invented.
+- **Guards:** `packages/prowess-game/src/card-phase-b.test.ts`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I142 — Progression States Require Authoritative Evidence
+
+- **Group:** Action
+- **Meaning:** FUTURE requires every unmet prerequisite to be reachable by authoritative evidence (today: a Level within the Release's range); UNAVAILABLE requires authoritative impossibility (Level above range, Stat above its maximum); any other unmet prerequisite is UNRESOLVED.
+- **Guards:** `packages/prowess-game/src/card-phase-b.test.ts`, `apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I143 — Unsupported Improvement Operations Are Never Applied
+
+- **Group:** Action
+- **Meaning:** Only an explicit FIXED cost on a parent whose own contract allows an explicit-rule override is APPLIED, and only when ACTIVE and unconditional; additional use cases are presented, never executed; other operations are UNSUPPORTED and never change a value.
+- **Guards:** `packages/prowess-game/src/card-phase-b.test.ts`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I144 — Mage Art Is A Clear Unavailable Domain
+
+- **Group:** Domain
+- **Meaning:** MAGE_ART stays reserved; the Mage Art domain is UNAVAILABLE with its reason, no card, cost, evaluation, activation or progression is fabricated.
+- **Guards:** `packages/prowess-game/src/card-phase-b.test.ts`, `apps/studio/tests/integration/m6-wo9-cards-api.test.ts`, `apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I145 — Current, Draft, Retired And Historical Cards Stay Distinct
+
+- **Group:** History
+- **Meaning:** Only ACTIVE current revisions and held equipment are presented as usable; drafts, retired Abilities and history are labelled not usable; a revision pinned to another Release is never re-evaluated; links resolve by exact key with no fallback.
+- **Guards:** `packages/prowess-db/tests/integration/m6-wo9-card-library.test.ts`, `apps/studio/tests/integration/m6-wo9-cards-api.test.ts`, `apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I146 — Card APIs Are Strict, Character-Scoped And Read-Only
+
+- **Group:** API
+- **Meaning:** The two GET routes read only the requested Character for its pinned Release, refuse malformed ids, unknown Characters and any query value, and never write.
+- **Guards:** `apps/studio/tests/integration/m6-wo9-cards-api.test.ts`, `packages/prowess-db/tests/integration/m6-wo9-card-library.test.ts`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I147 — Viewer Modes Keep The Exact Card And Are Accessible
+
+- **Group:** Studio
+- **Meaning:** Five viewer modes render one contract; a mode change never changes the card or revision; flipping is a keyboard-operable toggle; motion respects reduced-motion; statuses are text.
+- **Guards:** `apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx`, `apps/studio/tests/e2e/m6-cards.spec.ts`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I148 — Action Directory And Progression Drawer Present Server Authority Only
+
+- **Group:** Studio
+- **Meaning:** The directory lists exactly the Release's ACTIONs and the drawer groups improvements Active, Conditional, Future, then Unavailable / Unresolved as served; the drawer traps and restores focus; nothing is evaluated in React.
+- **Guards:** `apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx`, `apps/studio/tests/e2e/m6-cards.spec.ts`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I149 — Printed Cards Are Complete, Paginated And Snapshot-Identified
+
+- **Group:** Print
+- **Meaning:** Print uses the viewer's blocks on 4 x 6 in pages with numbered continuations and duplex pairs, never clips or hides content, keeps type at least 8 pt, prints no controls, and carries the card key, revision, contract version and Release on every page.
+- **Guards:** `apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx`, `apps/studio/tests/e2e/m6-cards.spec.ts`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`
+
+### M6-I150 — Character Sheet And Historical Compatibility
+
+- **Group:** Compatibility
+- **Meaning:** Card links on the Sheet are digital-only additions at the end of existing rows; the Sheet's layout, rows and Letter print are unchanged; historical M5 / M6 contracts, costs and gates are preserved.
+- **Guards:** `apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx`, `apps/studio/tests/e2e/m6-cards.spec.ts`, `apps/studio/tests/unit/m6-wo9-static.test.ts`, `scripts/m6-wo9-negative-controls.mjs`

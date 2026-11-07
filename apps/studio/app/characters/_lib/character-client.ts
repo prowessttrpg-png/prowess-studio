@@ -5,6 +5,7 @@
  * Character service and the Release's own rules do.
  */
 import { fetchJsonBody, query } from "../../../src/api-client/http";
+import type { ActionDirectoryViewDto, CardLibraryDto } from "./card-types";
 import type { ManeuverBuilderDto, ManeuverDetailDto, ManeuverDraftDto, ManeuverEntryDto, ManeuverEvaluationDto, SheetManeuverDto } from "./maneuver-types";
 
 export class CharacterApiError extends Error {
@@ -709,3 +710,7 @@ export const validateManeuver = async (id: string, maneuverId: string, expectedV
 export const finalizeManeuver = async (id: string, maneuverId: string, expectedVersion: number) => (await request<ManeuverDetailDto>("POST", maneuverPath(id, maneuverId, "/finalize"), { expectedVersion })).data;
 export const rebuildManeuver = async (id: string, maneuverId: string, expectedVersion: number) => (await request<ManeuverDetailDto>("POST", maneuverPath(id, maneuverId, "/rebuild"), { expectedVersion })).data;
 export const retireManeuver = async (id: string, maneuverId: string, expectedVersion: number) => (await request<ManeuverDetailDto>("POST", maneuverPath(id, maneuverId, "/retire"), { expectedVersion })).data;
+
+// --- M6-WO9: Card Library and Action Directory (read-only) ------------------------------------------------------------
+export const getCardLibrary = async (id: string) => (await request<CardLibraryDto>("GET", `/api/characters/${enc(id)}/cards`)).data;
+export const getActionDirectory = async (id: string) => (await request<ActionDirectoryViewDto>("GET", `/api/characters/${enc(id)}/actions`)).data;

@@ -19,7 +19,7 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
     expect(checkInventory(ROOT)).toEqual([]);
   });
 
-  it("keeps all historical 535 controls and adds WO8's 36: 571 controls across 22 scripts", () => {
+  it("keeps all historical 571 controls (535 + WO8's 36) and adds WO9's 46: 617 controls across 23 scripts", () => {
     const counts = Object.fromEntries(inventory.gates.filter((g) => g.controls).map((g) => [g.controls!.script, g.controls!.count]));
     expect(counts).toEqual({
       "scripts/m4-final-negative-controls.mjs": 3,
@@ -44,8 +44,10 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
       "scripts/m6-wo6-negative-controls.mjs": 53,
       "scripts/m6-wo7-negative-controls.mjs": 68,
       "scripts/m6-wo8-negative-controls.mjs": 36,
+      "scripts/m6-wo9-negative-controls.mjs": 46,
     });
-    expect(Object.values(counts).reduce((sum, count) => sum + count, 0)).toBe(571);
+    expect(Object.values(counts).reduce((sum, count) => sum + count, 0)).toBe(617);
+    expect(inventory.gates.length).toBe(41);
   });
 
   it("WO8 remains a Tier 2/3 gate over every required domain, historical, database, API, UI and static suite", () => {
@@ -67,6 +69,29 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
       "apps/studio/tests/unit/m6-wo8-maneuver-ui.test.tsx",
       "apps/studio/tests/integration/m6-wo8-signature-maneuvers-api.test.ts",
     ]);
+  });
+
+  it("WO9 is a Tier 2/3 gate over its domain, historical cost, database, API, UI and static suites", () => {
+    const gate = inventory.gates.find((g) => g.id === "M6-WO9");
+    expect(gate).toMatchObject({ name: "M6-WO9 — Character Ability Card System", job: "controls-2", tiers: [2, 3], controls: { script: "scripts/m6-wo9-negative-controls.mjs", count: 46, kind: "mutation" } });
+    expect(gate!.tests).toEqual([
+      "packages/prowess-game/src/card-language.test.ts",
+      "packages/prowess-game/src/card-projection.test.ts",
+      "packages/prowess-game/src/card-phase-b.test.ts",
+      "packages/prowess-game/src/m6-wo9-registry.test.ts",
+      "packages/prowess-game/src/m6-wo6-registry.test.ts",
+      "packages/prowess-game/src/maneuver-cost-golden.test.ts",
+      "packages/prowess-game/src/spell-cost-golden.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo9-card-library.test.ts",
+      "apps/studio/tests/unit/m6-wo9-static.test.ts",
+      "apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx",
+      "apps/studio/tests/integration/m6-wo9-cards-api.test.ts",
+    ]);
+    // The WO9 browser and print suite runs in the existing Playwright job (testDir tests/e2e; `pnpm run test:e2e`).
+    const config = readFileSync(path.join(ROOT, "apps/studio/playwright.config.ts"), "utf8");
+    expect(config).toContain('testDir: "./tests/e2e"');
+    expect(existsSync(path.join(ROOT, "apps/studio/tests/e2e/m6-cards.spec.ts"))).toBe(true);
+    expect(readFileSync(path.join(ROOT, ".github/workflows/ci.yml"), "utf8")).toContain("run: pnpm run test:e2e");
   });
 
   it("every M1, M4-WO1…WO12 and M5-WO1…WO13 gate is permanent (Tier 2 and Tier 3)", () => {

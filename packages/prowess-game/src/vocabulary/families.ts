@@ -100,6 +100,12 @@ const DEFINITION_KIND_TABLE = {
   ACTION: active("ACTION_ECONOMY"),
   /** A creature Size's tactical identity: occupied space only — its movement adjustment is pending canon (M5-SC-033). */
   CREATURE_SIZE: active("CHARACTER"),
+  /**
+   * PAS-10 M6-WO9 (approved decision C1): an improvement to ONE exact existing ACTION — its own versioned identity, exact
+   * parent ACTION reference, structured prerequisites and modifications (definition/action-improvement-payload.ts).
+   * Additive: ACTION and its payload contract are unchanged.
+   */
+  ACTION_IMPROVEMENT: active("ACTION_ECONOMY"),
   /** A terrain kind's Movement-allowance cost (Difficult Terrain, s439). Hazard effects are later Effect / Condition work. */
   TERRAIN: active("ACTION_ECONOMY"),
 

@@ -60,6 +60,7 @@
           "components": [],
           "inspector": null,
           "runtimeDeferred": [],
+          "execution": null,
           "state": "INCOMPLETE",
           "missing": [
             "ACTION_SELECTION",
@@ -6089,6 +6090,82 @@
             }
           },
           "runtimeDeferred": [],
+          "execution": {
+            "groups": [
+              {
+                "actionKeys": [
+                  "attack1"
+                ],
+                "attack": {
+                  "canonicalKey": "attack.long_blade.slash",
+                  "definitionKind": "ATTACK",
+                  "entityId": "00000000-0000-4000-8000-000000008249",
+                  "entityVersionId": "00000000-0000-4000-8000-000000008549",
+                  "systemFamily": "EQUIPMENT"
+                },
+                "effects": [
+                  {
+                    "attackType": null,
+                    "definition": {
+                      "canonicalKey": "fixture.wo11.effect.push",
+                      "definitionKind": "MANEUVER_EFFECT",
+                      "entityId": "00000000-0000-4000-8000-000000091007",
+                      "entityVersionId": "00000000-0000-4000-8000-000000093007",
+                      "systemFamily": "MANEUVER"
+                    },
+                    "deliveryInteraction": "NONE",
+                    "effectKey": "effect1",
+                    "family": "DAMAGE",
+                    "formulaValues": [],
+                    "order": 10,
+                    "outcomes": [
+                      {
+                        "operations": [
+                          {
+                            "data": {
+                              "damageTypeParameter": "damageType"
+                            },
+                            "kind": "CONVERT_DAMAGE_TYPE"
+                          }
+                        ],
+                        "outcomeKey": "SUCCESS"
+                      },
+                      {
+                        "operations": [
+                          {
+                            "data": {},
+                            "kind": "NO_EFFECT"
+                          }
+                        ],
+                        "outcomeKey": "FAILURE"
+                      }
+                    ],
+                    "parameters": [
+                      {
+                        "parameter": "damageType",
+                        "value": "ARCANE"
+                      }
+                    ],
+                    "resolution": "ATTACK_ROLL",
+                    "route": "GROUP",
+                    "throwFlow": null,
+                    "traits": []
+                  }
+                ],
+                "groupKey": "attack1",
+                "kind": "ATTACK",
+                "resolution": {
+                  "mode": "ATTACK_ROLL"
+                },
+                "targetLimit": 1
+              }
+            ],
+            "targetLimit": {
+              "kind": "ONE",
+              "maximum": 1
+            },
+            "martialRank": "MASTER"
+          },
           "state": "VALID",
           "missing": [],
           "issues": [],
@@ -15208,6 +15285,101 @@
             }
           },
           "runtimeDeferred": [],
+          "execution": {
+            "groups": [
+              {
+                "actionKeys": [
+                  "attack1"
+                ],
+                "attack": {
+                  "canonicalKey": "attack.long_blade.slash",
+                  "definitionKind": "ATTACK",
+                  "entityId": "00000000-0000-4000-8000-000000008249",
+                  "entityVersionId": "00000000-0000-4000-8000-000000008549",
+                  "systemFamily": "EQUIPMENT"
+                },
+                "effects": [
+                  {
+                    "attackType": null,
+                    "definition": {
+                      "canonicalKey": "fixture.wo11.effect.push",
+                      "definitionKind": "MANEUVER_EFFECT",
+                      "entityId": "00000000-0000-4000-8000-000000091007",
+                      "entityVersionId": "00000000-0000-4000-8000-000000093007",
+                      "systemFamily": "MANEUVER"
+                    },
+                    "deliveryInteraction": "NONE",
+                    "effectKey": "effect1",
+                    "family": "DAMAGE",
+                    "formulaValues": [],
+                    "order": 10,
+                    "outcomes": [
+                      {
+                        "operations": [
+                          {
+                            "data": {
+                              "damageTypeParameter": "damageType"
+                            },
+                            "kind": "CONVERT_DAMAGE_TYPE"
+                          }
+                        ],
+                        "outcomeKey": "SUCCESS"
+                      },
+                      {
+                        "operations": [
+                          {
+                            "data": {},
+                            "kind": "NO_EFFECT"
+                          }
+                        ],
+                        "outcomeKey": "FAILURE"
+                      }
+                    ],
+                    "parameters": [
+                      {
+                        "parameter": "damageType",
+                        "value": "ARCANE"
+                      }
+                    ],
+                    "resolution": "ATTACK_ROLL",
+                    "route": "GROUP",
+                    "throwFlow": null,
+                    "traits": []
+                  }
+                ],
+                "groupKey": "attack1",
+                "kind": "ATTACK",
+                "resolution": {
+                  "mode": "ATTACK_ROLL"
+                },
+                "targetLimit": 1
+              },
+              {
+                "actionKeys": [
+                  "attack2"
+                ],
+                "attack": {
+                  "canonicalKey": "attack.long_blade.slash",
+                  "definitionKind": "ATTACK",
+                  "entityId": "00000000-0000-4000-8000-000000008249",
+                  "entityVersionId": "00000000-0000-4000-8000-000000008549",
+                  "systemFamily": "EQUIPMENT"
+                },
+                "effects": [],
+                "groupKey": "attack2",
+                "kind": "ATTACK",
+                "resolution": {
+                  "mode": "ATTACK_ROLL"
+                },
+                "targetLimit": 1
+              }
+            ],
+            "targetLimit": {
+              "kind": "ONE",
+              "maximum": 1
+            },
+            "martialRank": "MASTER"
+          },
           "state": "VALID",
           "missing": [],
           "issues": [],
@@ -24717,6 +24889,83 @@
             }
           },
           "runtimeDeferred": [],
+          "execution": {
+            "groups": [
+              {
+                "actionKeys": [
+                  "attack1",
+                  "attack2"
+                ],
+                "attack": {
+                  "canonicalKey": "attack.long_blade.slash",
+                  "definitionKind": "ATTACK",
+                  "entityId": "00000000-0000-4000-8000-000000008249",
+                  "entityVersionId": "00000000-0000-4000-8000-000000008549",
+                  "systemFamily": "EQUIPMENT"
+                },
+                "effects": [
+                  {
+                    "attackType": null,
+                    "definition": {
+                      "canonicalKey": "fixture.wo11.effect.knockback",
+                      "definitionKind": "MANEUVER_EFFECT",
+                      "entityId": "00000000-0000-4000-8000-000000091008",
+                      "entityVersionId": "00000000-0000-4000-8000-000000093008",
+                      "systemFamily": "MANEUVER"
+                    },
+                    "deliveryInteraction": "NONE",
+                    "effectKey": "effect1",
+                    "family": "DAMAGE",
+                    "formulaValues": [],
+                    "order": 10,
+                    "outcomes": [
+                      {
+                        "operations": [
+                          {
+                            "data": {
+                              "damageTypeParameter": "damageType"
+                            },
+                            "kind": "CONVERT_DAMAGE_TYPE"
+                          }
+                        ],
+                        "outcomeKey": "SUCCESS"
+                      },
+                      {
+                        "operations": [
+                          {
+                            "data": {},
+                            "kind": "NO_EFFECT"
+                          }
+                        ],
+                        "outcomeKey": "FAILURE"
+                      }
+                    ],
+                    "parameters": [
+                      {
+                        "parameter": "damageType",
+                        "value": "ARCANE"
+                      }
+                    ],
+                    "resolution": "ATTACK_ROLL",
+                    "route": "GROUP",
+                    "throwFlow": null,
+                    "traits": []
+                  }
+                ],
+                "groupKey": "powerful_blow.attack1.attack2",
+                "kind": "POWERFUL_BLOW",
+                "resolution": {
+                  "mode": "ATTACK_ROLL"
+                },
+                "targetLimit": 1
+              }
+            ],
+            "targetLimit": {
+              "kind": "ONE",
+              "maximum": 1
+            },
+            "martialRank": "MASTER"
+          },
           "state": "VALID",
           "missing": [],
           "issues": [],
@@ -34226,6 +34475,108 @@
             }
           },
           "runtimeDeferred": [],
+          "execution": {
+            "groups": [
+              {
+                "actionKeys": [
+                  "move"
+                ],
+                "attack": null,
+                "effects": [],
+                "groupKey": "move",
+                "kind": "ACTION",
+                "resolution": {
+                  "mode": "NONE"
+                },
+                "targetLimit": 1
+              },
+              {
+                "actionKeys": [
+                  "attack"
+                ],
+                "attack": {
+                  "canonicalKey": "attack.long_blade.slash",
+                  "definitionKind": "ATTACK",
+                  "entityId": "00000000-0000-4000-8000-000000008249",
+                  "entityVersionId": "00000000-0000-4000-8000-000000008549",
+                  "systemFamily": "EQUIPMENT"
+                },
+                "effects": [
+                  {
+                    "attackType": null,
+                    "definition": {
+                      "canonicalKey": "test.wo8.effect.enhancement",
+                      "definitionKind": "MANEUVER_EFFECT",
+                      "entityId": "00000000-0000-4000-8000-000000160007",
+                      "entityVersionId": "00000000-0000-4000-8000-000000160008",
+                      "systemFamily": "MANEUVER"
+                    },
+                    "deliveryInteraction": "NONE",
+                    "effectKey": "effect",
+                    "family": "DAMAGE",
+                    "formulaValues": [],
+                    "order": 1,
+                    "outcomes": [
+                      {
+                        "operations": [
+                          {
+                            "data": {
+                              "damageTypeParameter": "damageType"
+                            },
+                            "kind": "CONVERT_DAMAGE_TYPE"
+                          }
+                        ],
+                        "outcomeKey": "SUCCESS"
+                      },
+                      {
+                        "operations": [
+                          {
+                            "data": {},
+                            "kind": "NO_EFFECT"
+                          }
+                        ],
+                        "outcomeKey": "FAILURE"
+                      }
+                    ],
+                    "parameters": [
+                      {
+                        "parameter": "damageType",
+                        "value": "ARCANE"
+                      }
+                    ],
+                    "resolution": "ATTACK_ROLL",
+                    "route": "GROUP",
+                    "throwFlow": null,
+                    "traits": []
+                  }
+                ],
+                "groupKey": "attack",
+                "kind": "ATTACK",
+                "resolution": {
+                  "mode": "ATTACK_ROLL"
+                },
+                "targetLimit": 1
+              },
+              {
+                "actionKeys": [
+                  "block"
+                ],
+                "attack": null,
+                "effects": [],
+                "groupKey": "block",
+                "kind": "ACTION",
+                "resolution": {
+                  "mode": "NONE"
+                },
+                "targetLimit": 1
+              }
+            ],
+            "targetLimit": {
+              "kind": "ONE",
+              "maximum": 1
+            },
+            "martialRank": "MASTER"
+          },
           "state": "VALID",
           "missing": [],
           "issues": [],
@@ -42284,6 +42635,82 @@
             }
           },
           "runtimeDeferred": [],
+          "execution": {
+            "groups": [
+              {
+                "actionKeys": [
+                  "attack1"
+                ],
+                "attack": {
+                  "canonicalKey": "attack.long_blade.slash",
+                  "definitionKind": "ATTACK",
+                  "entityId": "00000000-0000-4000-8000-000000008249",
+                  "entityVersionId": "00000000-0000-4000-8000-000000008549",
+                  "systemFamily": "EQUIPMENT"
+                },
+                "effects": [
+                  {
+                    "attackType": null,
+                    "definition": {
+                      "canonicalKey": "fixture.wo11.effect.push",
+                      "definitionKind": "MANEUVER_EFFECT",
+                      "entityId": "00000000-0000-4000-8000-000000091007",
+                      "entityVersionId": "00000000-0000-4000-8000-000000093007",
+                      "systemFamily": "MANEUVER"
+                    },
+                    "deliveryInteraction": "NONE",
+                    "effectKey": "effect1",
+                    "family": "DAMAGE",
+                    "formulaValues": [],
+                    "order": 10,
+                    "outcomes": [
+                      {
+                        "operations": [
+                          {
+                            "data": {
+                              "damageTypeParameter": "damageType"
+                            },
+                            "kind": "CONVERT_DAMAGE_TYPE"
+                          }
+                        ],
+                        "outcomeKey": "SUCCESS"
+                      },
+                      {
+                        "operations": [
+                          {
+                            "data": {},
+                            "kind": "NO_EFFECT"
+                          }
+                        ],
+                        "outcomeKey": "FAILURE"
+                      }
+                    ],
+                    "parameters": [
+                      {
+                        "parameter": "damageType",
+                        "value": "ARCANE"
+                      }
+                    ],
+                    "resolution": "ATTACK_ROLL",
+                    "route": "GROUP",
+                    "throwFlow": null,
+                    "traits": []
+                  }
+                ],
+                "groupKey": "attack1",
+                "kind": "ATTACK",
+                "resolution": {
+                  "mode": "ATTACK_ROLL"
+                },
+                "targetLimit": 1
+              }
+            ],
+            "targetLimit": {
+              "kind": "ONE",
+              "maximum": 1
+            },
+            "martialRank": "MASTER"
+          },
           "state": "VALID",
           "missing": [],
           "issues": [],

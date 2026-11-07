@@ -7,6 +7,7 @@ import { auditWo2Source } from "./m5-wo2-audit-helpers";
 import { auditWo3Source } from "./m5-wo3-audit-helpers";
 import ts from "typescript";
 import { callsNamed, descendants, exactlyOne, maneuverUiFindings, namedFunction, namedVariable, parseSource, syntaxIs, syntaxTokens } from "./m6-wo8-audit-helpers";
+import { expectedFrozenHash } from "./later-milestone-schema";
 
 const ROOT = path.resolve(process.cwd(), "../..");
 const read = (f: string) => readFileSync(path.join(ROOT, f), "utf8");
@@ -145,7 +146,8 @@ describe("M6-WO8 permanent architecture and integration contracts", () => {
     const changed = ["ability/compile.ts", "ability/duration-conditions.ts", "ability/maneuver-cost.ts", "character/signature-spell-catalog.ts", "construction/composition.ts", "construction/legality.ts", "definition/authored-ability-payload.ts", "definition/duration-condition-payload.ts", "definition/maneuver-cost-policy.ts", "definition/trait-payload.ts", "effect/compile.ts", "index.ts", "targeting/compile.ts", "vocabulary/construction.ts"].map(f => G + f);
     const added = ["character-signature-maneuver-world.test.ts", "character-signature-maneuver.test.ts", "character/signature-maneuver-catalog.ts", "character/signature-maneuver.ts", "construction/maneuver-context.ts", "content-updates/m6-wo8-amendment-a.ts", "m6-wo8-amendment.test.ts", "testing/m6-wo8-maneuver-world.json", "testing/signature-maneuver-fixtures.ts"].map(f => G + f);
     expect(Object.keys(registry.changedFiles).sort()).toEqual(changed.sort()); expect(Object.keys(registry.addedFiles).sort()).toEqual(added.sort());
-    for (const [f, h] of Object.entries({ ...registry.changedFiles, ...registry.addedFiles })) expect(hash(f), f).toBe(h);
+    // A later registered approved change (docs/architecture/m6-approved-m5-changes.json) supersedes a WO8 hash (since PAS-10 M6-WO9).
+    for (const [f, h] of Object.entries({ ...registry.changedFiles, ...registry.addedFiles })) expect(hash(f), f).toBe(expectedFrozenHash(f, h as string));
     expect(read(G + "m6-wo7-m5-characterization.test.ts")).toContain("M6-I096");
   });
 });

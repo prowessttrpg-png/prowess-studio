@@ -1,0 +1,221 @@
+/* PAS-10 M6-WO9 Phase C — Prowess Field Manual cards.
+   Visual system shared with the Character Sheet (M6-WO5): parchment surfaces, navy structural headers and frames, gold
+   trim and restrained category accents. Decoration and layout only — every label and value is live HTML from the
+   server's Card Presentation Contract; no rule or number lives here. */
+
+.fcard-scope,
+.fcard-drawer,
+.fprint-root {
+  --fc-paper: #f1e5c8;
+  --fc-paper-deep: #e6d5ae;
+  --fc-ink: #2a241b;
+  --fc-ink-soft: #5a4e3c;
+  --fc-navy: #1d2a3d;
+  --fc-navy-deep: #141e2c;
+  --fc-gold: #b48a3c;
+  --fc-gold-soft: #d6b46a;
+  --fc-rule: #9c8a68;
+  --fc-red: #a3272b;
+  --fc-accent: var(--fc-gold);
+  --fc-serif: "Palatino Linotype", "Book Antiqua", Palatino, "URW Palladio L", Georgia, serif;
+  color: var(--fc-ink);
+  font-family: var(--fc-serif);
+}
+.fcard--signature_spell { --fc-accent: #4b5f8f; }
+.fcard--signature_maneuver { --fc-accent: #8a4b2f; }
+.fcard--weapon,
+.fcard--attack { --fc-accent: #5d6b3a; }
+.fcard--general_action { --fc-accent: #6b5a2e; }
+.fcard--mage_art { --fc-accent: #6a4a7a; }
+
+.fcard-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.fcard-muted { color: var(--fc-ink-soft); font-size: 0.9em; }
+.fcard-empty { color: var(--fc-ink-soft); font-style: italic; margin: 0.2rem 0; }
+.fcard-mono { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 0.78em; overflow-wrap: anywhere; }
+.fcard-tag { display: inline-block; border: 1px solid var(--fc-rule); border-radius: 2px; padding: 0 0.3em; font-size: 0.78em; letter-spacing: 0.02em; background: rgba(255, 250, 235, 0.6); }
+.fcard-scope :focus-visible,
+.fcard-drawer :focus-visible { outline: 2px solid var(--fc-navy); outline-offset: 2px; }
+
+/* ---- the card ---------------------------------------------------------------------------------------------------- */
+.fcard {
+  position: relative;
+  max-width: 34rem;
+  min-width: 0;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(255, 250, 235, 0.55), transparent 55%),
+    linear-gradient(var(--fc-paper), var(--fc-paper-deep));
+  border: 2px solid var(--fc-navy);
+  outline: 1px solid var(--fc-gold);
+  outline-offset: -6px;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(30, 20, 5, 0.25);
+  padding: 0.9rem 1rem 1rem;
+  overflow-wrap: anywhere;
+}
+.fcard-header { border-bottom: 2px solid var(--fc-accent); margin-bottom: 0.5rem; padding-bottom: 0.35rem; }
+.fcard-header__type { margin: 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fc-ink-soft); }
+.fcard-header__name { margin: 0.1rem 0 0.25rem; font-size: 1.35rem; line-height: 1.15; color: var(--fc-navy-deep); }
+.fcard-badge { display: inline-block; margin: 0; font-size: 0.78rem; background: var(--fc-navy); color: var(--fc-gold-soft); border-radius: 2px; padding: 0.05rem 0.45rem; }
+
+.fcard-art { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; margin: 0.4rem 0; color: var(--fc-accent); border: 1px solid var(--fc-gold); background: repeating-linear-gradient(135deg, rgba(180, 138, 60, 0.08) 0 8px, transparent 8px 16px), rgba(255, 250, 235, 0.5); }
+.fcard-art--large { aspect-ratio: 3 / 2; }
+.fcard-art--small { height: 3.2rem; flex-direction: row; }
+.fcard-art__glyph { width: 3rem; height: 3rem; }
+.fcard-art--small .fcard-art__glyph { width: 1.8rem; height: 1.8rem; }
+.fcard-art__caption { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fc-ink-soft); }
+
+.fcard-costs { display: flex; gap: 0.5rem; margin: 0.4rem 0; }
+.fcard-costs > div { display: flex; align-items: baseline; gap: 0.3rem; background: var(--fc-navy); color: var(--fc-gold-soft); border-radius: 3px; padding: 0.15rem 0.6rem; }
+.fcard-costs dt { font-size: 0.72rem; letter-spacing: 0.08em; }
+.fcard-costs dd { margin: 0; font-size: 1.25rem; font-weight: 700; color: #fff8e8; }
+.fcard--tactical .fcard-costs dd { font-size: 1.5rem; }
+
+.fcard-facts,
+.fcard-kv { display: grid; grid-template-columns: minmax(6rem, auto) minmax(0, 1fr); gap: 0.1rem 0.6rem; margin: 0.3rem 0; font-size: 0.92em; }
+.fcard-facts > div,
+.fcard-kv > div { display: contents; }
+.fcard-facts dt,
+.fcard-kv dt { font-weight: 700; color: var(--fc-navy); }
+.fcard-facts dd,
+.fcard-kv dd { margin: 0; min-width: 0; }
+
+.fcard-section { margin: 0.45rem 0 0; }
+.fcard-section__title,
+.fcard-disclosure > summary { margin: 0 0 0.2rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fc-navy); border-bottom: 1px solid var(--fc-rule); }
+.fcard-disclosure > summary { cursor: pointer; list-style-position: inside; }
+.fcard-summary { margin: 0.2rem 0; font-weight: 600; }
+.fcard-instructions { margin: 0.2rem 0; padding-left: 1.3rem; }
+.fcard-instructions__block { margin: 0.15rem 0; line-height: 1.35; }
+.fcard-instructions__block--group,
+.fcard-instructions__block--delivery { font-weight: 600; }
+.fcard-instructions__block--unresolved { font-style: italic; color: var(--fc-red); }
+.fcard-list { margin: 0.15rem 0; padding-left: 1.2rem; }
+.fcard-list li { margin: 0.1rem 0; }
+.fcard-steps { margin: 0.1rem 0 0.2rem; padding-left: 1.1rem; font-size: 0.88em; color: var(--fc-ink-soft); }
+.fcard-table { border-collapse: collapse; width: 100%; font-size: 0.88em; }
+.fcard-table th,
+.fcard-table td { border-bottom: 1px solid rgba(156, 138, 104, 0.5); padding: 0.1rem 0.3rem; text-align: left; }
+.fcard-improvement { border-left: 3px solid var(--fc-accent); padding: 0.1rem 0.5rem; margin: 0.3rem 0; }
+.fcard-improvement p,
+.fcard-improvement h4,
+.fcard-improvement h5 { margin: 0.15rem 0; }
+.fcard-improvement[data-status="ACTIVE"] { border-left-style: solid; }
+.fcard-improvement[data-status="CONDITIONAL"] { border-left-style: dashed; }
+.fcard-improvement[data-status="FUTURE"],
+.fcard-improvement[data-status="UNAVAILABLE"],
+.fcard-improvement[data-status="UNRESOLVED"] { border-left-style: dotted; }
+
+/* ---- library, viewer, directory ----------------------------------------------------------------------------------- */
+.fcard-toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.fcard-filters { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; margin: 0.5rem 0; }
+.fcard-library__layout { display: grid; grid-template-columns: minmax(14rem, 20rem) minmax(0, 1fr); gap: 1rem; align-items: start; }
+@media (max-width: 760px) { .fcard-library__layout { grid-template-columns: minmax(0, 1fr); } }
+.fcard-library__list ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; max-height: 75vh; overflow-y: auto; }
+.fcard-entry__button { width: 100%; text-align: left; font: inherit; background: #fbf4e2; border: 1px solid var(--fc-gold); border-radius: 3px; padding: 0.35rem 0.55rem; cursor: pointer; display: flex; flex-direction: column; gap: 0.1rem; color: var(--fc-ink); }
+.fcard-entry__button[aria-current="true"] { background: var(--fc-navy); color: var(--fc-gold-soft); }
+.fcard-entry__name { font-weight: 700; overflow-wrap: anywhere; }
+.fcard-entry__meta { font-size: 0.8rem; }
+.fcard-state { font-weight: 600; }
+.fcard-modes { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.4rem 0 0.6rem; }
+
+.fcard-combined { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1rem; }
+.fcard-flip__face { animation: fcard-flip 0.32s ease-out; }
+@keyframes fcard-flip { from { transform: perspective(900px) rotateY(80deg); opacity: 0.3; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .fcard-flip__face { animation: none; } }
+.fcard-flip__button { margin-bottom: 0.5rem; }
+.fcard-revisions ul { padding-left: 1.1rem; }
+.fcard-unavailable { border: 1px dashed var(--fc-rule); padding: 0.75rem 1rem; background: rgba(255, 250, 235, 0.6); }
+.fcard-print-preview { overflow-x: auto; }
+
+/* ---- progression drawer: right side drawer on desktop, bottom sheet on narrow screens ------------------------------ */
+.fcard-drawer { position: fixed; inset: 0; z-index: 60; }
+.fcard-drawer__backdrop { position: absolute; inset: 0; background: rgba(20, 30, 44, 0.45); }
+.fcard-drawer__panel { position: absolute; top: 0; right: 0; bottom: 0; width: min(30rem, 100%); overflow-y: auto; background: linear-gradient(var(--fc-paper), var(--fc-paper-deep)); border-left: 3px solid var(--fc-navy); padding: 1rem 1.1rem; box-shadow: -4px 0 16px rgba(20, 15, 5, 0.3); animation: fcard-drawer-in 0.2s ease-out; }
+.fcard-drawer__header { display: flex; justify-content: space-between; align-items: start; gap: 0.5rem; }
+.fcard-drawer__header h2 { margin: 0; font-size: 1.15rem; color: var(--fc-navy-deep); }
+.fcard-drawer__group h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fc-navy); border-bottom: 1px solid var(--fc-rule); }
+@keyframes fcard-drawer-in { from { transform: translateX(30%); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (max-width: 640px) {
+  .fcard-drawer__panel { top: auto; left: 0; width: 100%; max-height: 85vh; border-left: 0; border-top: 3px solid var(--fc-navy); border-radius: 8px 8px 0 0; animation-name: fcard-sheet-in; }
+}
+@keyframes fcard-sheet-in { from { transform: translateY(30%); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .fcard-drawer__panel { animation: none; } }
+
+/* ---- printable card pages: provisional 4 × 6 in (decision C5); same size on screen so measurement matches print ---- */
+@page fcard-4x6 { size: 4in 6in; margin: 0; }
+@page fcard-combined { size: 11in 8.5in; margin: 0; }
+.fprint-bar { font-size: 0.9rem; margin: 0 0 0.75rem; }
+.fprint-card { display: flex; flex-wrap: wrap; gap: 0.25in; margin-bottom: 0.25in; }
+.fprint-page {
+  page: fcard-4x6;
+  box-sizing: border-box;
+  width: 4in;
+  height: 6in;
+  display: flex;
+  flex-direction: column;
+  padding: 0.16in 0.18in 0.12in;
+  font-size: 8.5pt;
+  line-height: 1.25;
+  background: linear-gradient(var(--fc-paper), var(--fc-paper-deep));
+  border: 0.03in solid var(--fc-navy);
+  outline: 0.01in solid var(--fc-gold);
+  outline-offset: -0.07in;
+  color: var(--fc-ink);
+  font-family: var(--fc-serif);
+  overflow-wrap: anywhere;
+}
+.fprint-page--tall { height: auto; min-height: 6in; }
+.fprint-page__head { display: flex; flex-direction: column; border-bottom: 0.02in solid var(--fc-accent); padding-bottom: 0.03in; margin-bottom: 0.05in; }
+.fprint-page__type { font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fc-ink-soft); }
+.fprint-page__name { font-size: 11pt; font-weight: 700; color: var(--fc-navy-deep); line-height: 1.1; }
+.fprint-page__body { flex: 1 1 auto; min-height: 0; }
+.fprint-page__foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.02in 0.1in; border-top: 0.01in solid var(--fc-rule); padding-top: 0.03in; font-size: 6pt; color: var(--fc-ink-soft); }
+.fprint-page .fcard-section { margin-top: 0.05in; }
+.fprint-page .fcard-section__title { font-size: 6.8pt; }
+.fprint-page .fcard-art--small { height: 0.42in; margin: 0.03in 0; }
+.fprint-page .fcard-costs { margin: 0.03in 0; }
+.fprint-page .fcard-costs dd { font-size: 11pt; }
+.fprint-page .fcard-facts,
+.fprint-page .fcard-kv { grid-template-columns: minmax(0.9in, auto) minmax(0, 1fr); }
+.fprint-front-head { display: grid; grid-template-columns: 1.1in minmax(0, 1fr); gap: 0.08in; align-items: center; }
+.fprint-measure { position: absolute; left: -100in; top: 0; visibility: hidden; }
+/* Each block is its own formatting context (no margin collapsing), measured inside a real card page of auto height. */
+.fprint-block { display: flow-root; }
+.fprint-measure__page { height: auto; }
+.fprint-sheet--combined { page: fcard-combined; box-sizing: border-box; width: 11in; height: 8.5in; display: flex; gap: 0.5in; align-items: center; justify-content: center; }
+.fprint-root--combined .fprint-card { display: block; }
+/* In the combined layout the card panels sit on the Letter sheet's page (a nested named page would force a break). */
+.fprint-sheet--combined .fprint-page { page: fcard-combined; }
+
+/* The whole document prints on the card page type, so no default-size page precedes the first card. */
+body:has(.fprint-root--card) { page: fcard-4x6; }
+body:has(.fprint-root--combined) { page: fcard-combined; }
+@media print {
+  body:has(.fprint-root) .prowess-topbar,
+  body:has(.fprint-root) .prowess-shell__nav,
+  body:has(.fprint-root) .prowess-shell__inspector,
+  .fprint-bar { display: none !important; }
+  body:has(.fprint-root) .prowess-shell__body { display: block !important; }
+  body:has(.fprint-root) .prowess-shell__workspace { padding: 0 !important; margin: 0 !important; }
+  .fprint-root * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .fprint-card { display: block; margin: 0; }
+  .fprint-page { break-after: page; page-break-after: always; break-inside: avoid; }
+  .fprint-page--tall { break-inside: auto; }
+  .fprint-sheet--combined { break-after: page; page-break-after: always; }
+  .fprint-sheet--combined .fprint-page { break-after: auto; page-break-after: auto; }
+  .fcard-print-preview .fprint-page { break-after: auto; }
+}
+@media print {
+  .fprint-root .fprint-card:last-child > .fprint-page:last-child,
+  .fprint-root .fprint-card:last-child > .fprint-sheet:last-child { break-after: auto; page-break-after: auto; }
+}
+
+/* Controls (the Character Sheet's button language, scoped to cards so the page needs no sheet stylesheet). */
+.fcard-button { font: inherit; font-size: 0.85rem; color: var(--fc-navy); background: #fbf4e2; border: 1px solid var(--fc-gold); border-radius: 3px; padding: 0.3rem 0.7rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem; }
+.fcard-button:hover { background: #fff8e8; }
+.fcard-button[aria-pressed="true"] { background: var(--fc-navy); color: var(--fc-gold-soft); }
+.fcard-button:disabled { opacity: 0.55; cursor: default; }
+.fcard-link { font: inherit; color: var(--fc-navy); background: none; border: none; text-decoration: underline; cursor: pointer; padding: 0; text-align: left; }
+.fcard-link:disabled { color: var(--fc-ink-soft); text-decoration: none; cursor: default; }
+.fcard-entry__button[aria-current="true"] .fcard-tag { color: inherit; background: transparent; border-color: var(--fc-gold-soft); }
+.fcard-revisions ul { list-style: disc; }

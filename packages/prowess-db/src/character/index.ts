@@ -61,3 +61,5 @@ export {
 } from "./signature-spell-service.js";
 
 export { createCharacterSignatureManeuver, getCharacterSignatureManeuver, getSignatureManeuverBuilder, updateCharacterSignatureManeuverDraft, validateCharacterSignatureManeuver, finalizeCharacterSignatureManeuver, rebuildCharacterSignatureManeuver, retireCharacterSignatureManeuver, type SignatureManeuverDetailView, type SignatureManeuverEntry, type SignatureManeuverBuilderView } from "./signature-maneuver-service.js";
+// PAS-10 M6-WO9 — Ability Card System (Phase B): read-only Character Card Library and Action Directory services.
+export { getCharacterActionDirectory, getCharacterCardLibrary, type AbilityCardEntry, type CardSlot, type CharacterActionDirectoryView, type CharacterCardLibraryView } from "./card-service.js";

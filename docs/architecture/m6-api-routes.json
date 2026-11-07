@@ -72,5 +72,9 @@
     "apps/studio/app/api/characters/[characterId]/maneuvers/[maneuverId]/finalize/route.ts",
     "apps/studio/app/api/characters/[characterId]/maneuvers/[maneuverId]/rebuild/route.ts",
     "apps/studio/app/api/characters/[characterId]/maneuvers/[maneuverId]/retire/route.ts"
+  ],
+  "M6-WO9": [
+    "apps/studio/app/api/characters/[characterId]/actions/route.ts",
+    "apps/studio/app/api/characters/[characterId]/cards/route.ts"
   ]
 }
