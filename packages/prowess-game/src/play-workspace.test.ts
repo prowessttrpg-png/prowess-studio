@@ -152,7 +152,8 @@ describe("M6-WO10 B — Attack, Spell and Maneuver resolution", () => {
     expect(hit.trace.outcome).toMatchObject({ kind: "DAMAGE_PROFILE", applied: false });
     expect(miss.trace.resolution).toMatchObject({ hit: false });
     expect(current(r.stored, "AP")).toBe(5 - attack.apCost - attack.apCost);
-    expect(JSON.stringify(hit.trace.payments)).toContain(attack.attack.canonicalKey);
+    expect(hit.source).toMatchObject({ kind: "WEAPON_ATTACK", attack: attack.attack });
+    expect((hit.trace.payments as { kind: string }[]).map((x) => x.kind)).toEqual(["AP_SPEND"]);
     expect(JSON.stringify(hit.trace.payments)).not.toMatch(/LIGHT_ATTACK|BALANCED_ATTACK|HEAVY_ATTACK/);
     expect(hit.inputs.targetDodge).toEqual({ value: 5, source: "PLAYER_GM_PROVIDED" });
   });
@@ -182,8 +183,8 @@ describe("M6-WO10 B — Attack, Spell and Maneuver resolution", () => {
     const pending = run(ctx, [...INTO_TURN, cast]).outcomes[3]!;
     expect(pending.pending[0]).toMatchObject({ kind: "SAVING_THROW", by: "DEFENDER", defaultDifficultyClass: ctx.characterDc });
     const requestKey = pending.pending[0]!.requestKey as string;
-    const defender = { level: 1, stats: { STR: 3, AGI: 3, CON: 3, PER: 3, RES: 3, PRO: 3 } };
-    const saved = run(ctx, [...INTO_TURN, { ...cast, inputs: [{ requestKey, kind: "SAVING_THROW", roll: roll(4), defender }] }]).outcomes[3]!;
+    const defender = { level: 5, stats: { STR: 6, AGI: 6, CON: 6, PER: 6, RES: 6, PRO: 6 } };
+    const saved = run(ctx, [...INTO_TURN, { ...cast, inputs: [{ requestKey, kind: "SAVING_THROW", roll: roll(8), defender }] }]).outcomes[3]!;
     const failed = run(ctx, [...INTO_TURN, { ...cast, inputs: [{ requestKey, kind: "SAVING_THROW", roll: roll(1), defender }] }]).outcomes[3]!;
     const result = (o: typeof saved) => (o.trace.resolution as { outcomes: { result: string }[] }).outcomes[0]!.result;
     expect([saved.status, failed.status]).toEqual(["COMMITTABLE", "COMMITTABLE"]);
@@ -198,7 +199,7 @@ describe("M6-WO10 B — Attack, Spell and Maneuver resolution", () => {
     const pending = run(w.context, [...INTO_TURN, use]).outcomes[3]!;
     expect(pending.status).toBe("PENDING_INPUT");
     expect(pending.pending.map((q) => q.scope)).toEqual(["group.attack1", "group.attack2"]);
-    const inputs = pending.pending.map((q, i) => ({ requestKey: q.requestKey, kind: "ATTACK_ROLL", roll: roll(i === 0 ? 8 : 1), targetDodge: 6 }));
+    const inputs = pending.pending.map((q, i) => ({ requestKey: q.requestKey, kind: "ATTACK_ROLL", roll: roll(i === 0 ? 8 : 1), targetDodge: i === 0 ? 6 : 30 }));
     const r = run(w.context, [...INTO_TURN, { ...use, inputs }]);
     const o = r.outcomes[3]!;
     expect(o.status).toBe("COMMITTABLE");

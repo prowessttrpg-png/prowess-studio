@@ -728,7 +728,10 @@ function activeMagic(ctx: PlayContext, runtime: PlayRuntimeState, resources: Pro
   }
   const out = magic(ctx, runtime, resources, event);
   const pendingNow = runtime.activeMagic?.effects.some((x) => x.status === "PENDING_MAINTENANCE" || x.status === "PENDING_CONCENTRATION") === true || runtime.activeMagic?.channel?.status === "PENDING_CONCENTRATION";
-  if (!out.ok) return { ...refuse(pendingNow ? R.PENDING_DECISION : R.ENGINE_REFUSED, "M5-WO13 refused this lifecycle event; nothing changed", { reasons: reasons(out.problems, R.ENGINE_REFUSED) }), inputs };
+  if (!out.ok) {
+    const code = pendingNow ? R.PENDING_DECISION : R.ENGINE_REFUSED;
+    return { ...refuse(code, pendingNow ? "a held Active Magic decision must be resolved first; nothing changed" : "M5-WO13 refused this lifecycle event; nothing changed", { reasons: [{ code, message: pendingNow ? "resolve the pending Active Magic decision first" : "M5-WO13 refused this lifecycle event" }, ...reasons(out.problems, code)] }), inputs };
+  }
   const t = out.transition;
   const pending = t.pending === null ? [] : [{ ...clonePlainData(t.pending), concentrationDc: t.concentration.test?.dc ?? null }];
   const trace = { status: t.status, lifecycle: t.lifecycle, resourceChanges: t.resourceChanges, concentration: t.concentration, ticks: t.ticks, channelResult: t.channelResult, inspector: t.inspector, formulaEvaluations: t.formulaEvaluations, runtimeEvaluations: t.runtimeEvaluations };

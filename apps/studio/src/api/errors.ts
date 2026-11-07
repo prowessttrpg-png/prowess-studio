@@ -486,6 +486,11 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [CHARACTER_ERROR_CODES.SIGNATURE_SPELL_NOT_FINALIZABLE]: 422,
   [CHARACTER_ERROR_CODES.SIGNATURE_CAPACITY_EXCEEDED]: 409,
   [CHARACTER_ERROR_CODES.SIGNATURE_SPELL_STATE]: 409,
+  // Character Play Workspace (M6-WO10): a malformed operation is invalid input; a reused idempotency key with another
+  // operation and an unreadable stored state conflict with current state. Stale versions use STALE_WRITE (409).
+  [CHARACTER_ERROR_CODES.INVALID_PLAY_OPERATION]: 400,
+  [CHARACTER_ERROR_CODES.PLAY_IDEMPOTENCY_CONFLICT]: 409,
+  [CHARACTER_ERROR_CODES.PLAY_STATE_UNREADABLE]: 409,
 } satisfies Record<KnownDomainErrorCode, number>;
 
 /**

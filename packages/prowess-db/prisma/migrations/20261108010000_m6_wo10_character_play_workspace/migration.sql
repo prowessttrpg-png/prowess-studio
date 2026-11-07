@@ -47,11 +47,11 @@ ALTER TABLE "character_play_events" ADD CONSTRAINT "character_play_events_charac
 
 ALTER TABLE "character_play_events" ADD CONSTRAINT "character_play_events_ruleset_release_id_fkey" FOREIGN KEY ("ruleset_release_id") REFERENCES "ruleset_releases"("id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
--- Bounds: versions and sequences count from 1; the closed vocabularies; JSON objects only; bounded text.
+-- Bounds: runtime versions and sequences count from 1 (play_state_version 0 = the sheet was never saved); the closed vocabularies; JSON objects only; bounded text.
 ALTER TABLE "character_play_runtimes" ADD CONSTRAINT "character_play_runtimes_lock_version_check" CHECK ("lock_version" >= 1);
 ALTER TABLE "character_play_runtimes" ADD CONSTRAINT "character_play_runtimes_state_check" CHECK (jsonb_typeof("state") = 'object');
 ALTER TABLE "character_play_events" ADD CONSTRAINT "character_play_events_sequence_check" CHECK ("sequence" >= 1);
-ALTER TABLE "character_play_events" ADD CONSTRAINT "character_play_events_versions_check" CHECK ("runtime_version" >= 1 AND "play_state_version" >= 1);
+ALTER TABLE "character_play_events" ADD CONSTRAINT "character_play_events_versions_check" CHECK ("runtime_version" >= 1 AND "play_state_version" >= 0);
 ALTER TABLE "character_play_events" ADD CONSTRAINT "character_play_events_record_check" CHECK (jsonb_typeof("record") = 'object');
 ALTER TABLE "character_play_events" ADD CONSTRAINT "character_play_events_classification_check" CHECK ("classification" IN ('RULES_EXECUTED', 'MANUAL_ADJUSTMENT', 'REFERENCE_ONLY', 'NOTE'));
 ALTER TABLE "character_play_events" ADD CONSTRAINT "character_play_events_operation_kind_check" CHECK ("operation_kind" IN ('TIMING', 'GENERAL_ACTION', 'MOVE', 'WEAPON_ATTACK', 'SPELL', 'MANEUVER', 'ACTIVE_MAGIC', 'MANUAL_ADJUSTMENT', 'NOTE', 'RECONCILE'));
