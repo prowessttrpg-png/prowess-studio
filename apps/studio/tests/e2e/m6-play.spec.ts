@@ -52,7 +52,7 @@ async function timing(page: Page, event: string) {
 }
 
 test.describe("M6-WO10 Character Play Workspace in a real browser", () => {
-  test("a full turn: timing, an Action, movement, a Spell with a raw roll, Active Magic, end of turn and reload", async ({ page }) => {
+  test("a full turn: timing, an Action, movement, a Spell with a raw roll, end of turn and reload", async ({ page }) => {
     const { server, id } = await serve(page);
     // 1–2. Open the completed Character's Play Workspace.
     await page.goto(`/characters/${id}/play`);
@@ -93,16 +93,6 @@ test.describe("M6-WO10 Character Play Workspace in a real browser", () => {
     await page.getByTestId("play-commit").click();
     await expect(page.getByTestId("play-result")).toHaveAttribute("data-committed", "true");
     await expect(page.getByTestId("play-result-outcomes")).toContainText("not applied");
-    // 10. Active Magic: a Sustained Spell activates once and can be dismissed by its pinned rule.
-    await page.getByTestId("play-tab-spells").click();
-    await page.getByTestId("play-spell").filter({ hasText: "Steady Ward" }).getByTestId("play-ability-open").click();
-    await page.getByTestId("play-commit").click();
-    await expect(page.getByTestId("play-result")).toHaveAttribute("data-committed", "true");
-    await page.getByTestId("play-tab-magic").click();
-    await expect(page.getByTestId("play-effect")).toHaveAttribute("data-status", "ACTIVE");
-    await expect(page.getByTestId("play-concentration")).toContainText("1 /");
-    await page.getByTestId("play-effect-dismiss").click();
-    await expect(page.getByTestId("play-effect")).toHaveAttribute("data-status", "ENDED");
     // 11. End of turn: unused AP and Movement Allowance expire by the authored timing.
     await timing(page, "END_TURN");
     await expect(resource(page, "AP")).toHaveText(`0 / ${apMax}`);
@@ -114,6 +104,23 @@ test.describe("M6-WO10 Character Play Workspace in a real browser", () => {
     await expect(resource(page, "AP")).toHaveText(`0 / ${apMax}`);
     await expect(page.getByTestId("play-event")).toHaveCount(events);
     await expect(page.getByTestId("play-log")).toContainText("Ember Bolt cast");
+  });
+
+  test("10. Active Magic: a Sustained Spell activates once, holds Concentration and is dismissed by its pinned rule", async ({ page }) => {
+    // A fresh Character (full mana): the Ember Bolt cast of the full-turn flow leaves too little MP for a second Spell,
+    // which the engine correctly refuses ("insufficient mana … nothing was paid").
+    const { id } = await serve(page);
+    await page.goto(`/characters/${id}/play`);
+    for (const e of ["BEGIN_COMBAT", "START_ROUND", "START_TURN"]) await timing(page, e);
+    await page.getByTestId("play-tab-spells").click();
+    await page.getByTestId("play-spell").filter({ hasText: "Steady Ward" }).getByTestId("play-ability-open").click();
+    await page.getByTestId("play-commit").click();
+    await expect(page.getByTestId("play-result")).toHaveAttribute("data-committed", "true");
+    await page.getByTestId("play-tab-magic").click();
+    await expect(page.getByTestId("play-effect")).toHaveAttribute("data-status", "ACTIVE");
+    await expect(page.getByTestId("play-concentration")).toContainText("1 /");
+    await page.getByTestId("play-effect-dismiss").click();
+    await expect(page.getByTestId("play-effect")).toHaveAttribute("data-status", "ENDED");
   });
 
   test("a stale submission after a Character Sheet edit applies nothing; Weapon Attack hits show damage NOT applied", async ({ page }) => {

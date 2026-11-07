@@ -538,6 +538,13 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         // Directory). No write of any kind; no Entity/Version, history or Canon mutation.
         "getCharacterActionDirectory",
         "getCharacterCardLibrary",
+        // M6-WO10 Character Play Workspace: the workspace read, a no-write preview, the event history read and the ONE
+        // play commit (sheet play state + play runtime + one append-only ledger event, in one transaction). Character
+        // play state only — no Entity/Version, history, Release or Canon mutation (pinned by m6-wo10-static).
+        "commitCharacterPlayOperation",
+        "getCharacterPlayWorkspace",
+        "listCharacterPlayEvents",
+        "previewCharacterPlayOperation",
       ].sort(),
     );
 

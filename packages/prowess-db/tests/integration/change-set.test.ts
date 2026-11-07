@@ -575,7 +575,11 @@ describe("ChangeSet (prowess_studio_test only)", () => {
       const forbidden = /^(apply|execute|publish|commit|update|edit|delete|remove|add|set|transition|approve|reject|supersede|submit)\w*(changeset|operation)/i;
       const control = ["applyChangeSet", "executeChangeSet", "updateChangeSet", "deleteChangeSet", "addChangeSetOperation", "approveChangeSet", "setChangeSetStatus"];
       expect(control.filter((n) => forbidden.test(n))).toEqual(control);
-      expect(names.filter((n) => forbidden.test(n) && !review.includes(n))).toEqual([]);
+      // M6-WO10's commitCharacterPlayOperation commits a Character PLAY operation (sheet play state, play runtime and one
+      // append-only ledger event) — not a ChangeSet operation; it is pinned by apps/studio/tests/unit/m6-wo10-static.test.ts.
+      const play = ["commitCharacterPlayOperation"];
+      expect(names.filter((n) => forbidden.test(n) && !review.includes(n) && !play.includes(n))).toEqual([]);
+      expect(names.filter((n) => /changeset/i.test(n) && play.includes(n))).toEqual([]);
       expect(names.filter((n) => /^(apply|execute|set)\w*changeset/i.test(n))).toEqual([]); // still no apply/execute/generic setter
     });
   });
