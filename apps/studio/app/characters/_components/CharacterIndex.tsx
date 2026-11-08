@@ -146,7 +146,7 @@ export function CharacterIndex() {
               <tbody>
                 {shown.items.map((c) => (
                   <tr key={c.id} data-testid="character-row" data-character-id={c.id}>
-                    <th scope="row">
+                    <th scope="row" id={`library-row-${c.id}`}>
                       <Link href={`/characters/${encodeURIComponent(c.id)}`}>{c.name}</Link>
                       <br />
                       <small className="gov-muted" title={`Character id ${c.id}`} data-testid="library-character-id">
@@ -161,7 +161,7 @@ export function CharacterIndex() {
                     </td>
                     <td>
                       {libraryActions(c).map((a) => (
-                        <Link key={a.testid} className="gov-link-button library-action" href={a.href} data-testid={a.testid} aria-label={`${a.label}: ${c.name} (${c.id.slice(0, 8)})`}>
+                        <Link key={a.testid} className="gov-link-button library-action" href={a.href} data-testid={a.testid} aria-describedby={`library-row-${c.id}`}>
                           {a.label}
                         </Link>
                       ))}

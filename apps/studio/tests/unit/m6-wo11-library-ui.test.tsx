@@ -100,7 +100,12 @@ describe("M6-WO11 Character Library", () => {
     expect(within(rows[0]!).queryByTestId("library-resume-play")).toBeNull();
     expect(within(rows[1]!).getByTestId("library-open-sheet").getAttribute("href")).toBe("/characters/bbbbbbbb-2222-4222-8222-222222222222");
     expect(within(rows[1]!).getByTestId("library-resume-play").getAttribute("href")).toBe("/characters/bbbbbbbb-2222-4222-8222-222222222222/play");
-    expect(within(rows[1]!).getByTestId("library-resume-play").getAttribute("aria-label")).toBe("Resume play: Twin (bbbbbbbb)");
+    // The action's accessible name is the action; its description is the row's Character (name and short id). The name
+    // link stays the ONLY link whose name is the Character's name (existing tests select it by name).
+    const play = within(rows[1]!).getByTestId("library-resume-play");
+    expect(play.getAttribute("aria-label")).toBeNull();
+    expect(document.getElementById(play.getAttribute("aria-describedby")!)!.textContent).toBe("Twinid bbbbbbbb");
+    expect(within(rows[1]!).getAllByRole("link", { name: /Twin/ })).toHaveLength(1);
     expect(screen.getByRole("columnheader", { name: /Record updated/ })).toBeTruthy();
     expect(libraryActions({ id: "x/y", status: "DRAFT" })[0]!.href).toBe("/characters/x%2Fy/create");
   });
