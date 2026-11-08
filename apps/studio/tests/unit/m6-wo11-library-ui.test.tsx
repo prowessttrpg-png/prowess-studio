@@ -226,8 +226,13 @@ describe("M6-WO11 creation save and resume", () => {
     const pending = deferred<CharacterDto>();
     client.saveProfile.mockReturnValue(pending.promise);
     fireEvent.change(screen.getByLabelText("Name"), { target: { value: "First" } });
-    fireEvent.click(screen.getByTestId("wizard-save"));
-    fireEvent.click(screen.getByTestId("wizard-save"));
+    // Two clicks inside ONE React batch: the button is not yet re-rendered as disabled, so only the in-flight guard
+    // stands between them and a second submission.
+    const button = screen.getByTestId("wizard-save");
+    act(() => {
+      button.click();
+      button.click();
+    });
     expect(screen.getByTestId("wizard-save-state").textContent).toBe("Saving — the server has not confirmed yet.");
     expect(screen.queryByText("Saved.")).toBeNull();
     fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Second" } });
