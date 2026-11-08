@@ -79,6 +79,7 @@ The timestamp is `characters.updated_at`. It changes only on a Character-record 
 - **Row content.**
   - The name links to `/characters/[id]` (the WO3 link).
   - A visible short id tells same-named Characters apart; the full id is in its title.
+  - Each action is named by what it does and described by its row header (`aria-describedby`: name + short id), so the name link stays the only link named after the Character.
   - Actions come from the persisted status: a Draft offers **Continue creation** → `/characters/[id]/create`; a completed Character offers **Open sheet** → `/characters/[id]` and **Resume play** → `/characters/[id]/play`.
 - **Layout.** The table scrolls inside its own container at narrow widths. Every control is a native, labelled control.
 
