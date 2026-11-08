@@ -2099,5 +2099,91 @@
       "apps/studio/tests/unit/m6-wo10-static.test.ts",
       "scripts/m6-wo10-negative-controls.mjs"
     ]
+  },
+  {
+    "id": "M6-I173",
+    "title": "Library Query Integrity",
+    "group": "Library",
+    "meaning": "The Character Library filters (case-insensitive literal name search, DRAFT / CORE_COMPLETE status) are ONE predicate applied to the whole collection before pagination, shared by the count and the rows; the order is the record's last update (desc) then id (asc); unknown, repeated or invalid query parameters are refused; without filters the request and response are exactly the WO3 contract.",
+    "guards": [
+      "packages/prowess-db/tests/integration/m6-wo11-library.test.ts",
+      "apps/studio/tests/integration/m6-wo11-library-api.test.ts",
+      "apps/studio/tests/unit/m6-wo11-library-ui.test.tsx",
+      "apps/studio/tests/unit/m6-wo11-static.test.ts",
+      "scripts/m6-wo11-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I174",
+    "title": "Opening Is A Read",
+    "group": "Load",
+    "meaning": "Listing, opening a Character, its Sheet, abilities, Cards and Play Workspace write nothing: no row, event, version or timestamp changes, so opening never reorders the Library; a Character that never entered play opens with the WO10 empty state.",
+    "guards": [
+      "packages/prowess-db/tests/integration/m6-wo11-library.test.ts",
+      "apps/studio/tests/integration/m6-wo11-library-api.test.ts",
+      "apps/studio/tests/e2e/m6-library.spec.ts",
+      "apps/studio/tests/unit/m6-wo11-static.test.ts",
+      "scripts/m6-wo11-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I175",
+    "title": "Save Means Server-Acknowledged",
+    "group": "Save",
+    "meaning": "A creation save is reported only for what the server acknowledged: each acknowledged write is adopted with its new version, a failed second write keeps the first and retries only the outstanding part, an unknown outcome is reconciled by reading the Character instead of repeating the write, a stale version is surfaced with an explicit reload, edits made while saving stay unsaved, one save runs at a time, and leaving with unsaved edits asks first; a reopened Draft continues where its saved progress needs.",
+    "guards": [
+      "packages/prowess-db/tests/integration/m6-wo11-library.test.ts",
+      "apps/studio/tests/integration/m6-wo11-library-api.test.ts",
+      "apps/studio/tests/unit/m6-wo11-library-ui.test.tsx",
+      "apps/studio/tests/e2e/m6-library.spec.ts",
+      "apps/studio/tests/unit/m6-wo11-static.test.ts",
+      "scripts/m6-wo11-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I176",
+    "title": "Play Resumes Exactly",
+    "group": "Load",
+    "meaning": "Reopening the Play Workspace returns the persisted runtime, sheet resources, movement, held magic and event history unchanged on every open; a play commit whose response was lost is retried with the same idempotency key and body and yields exactly one payment and one event.",
+    "guards": [
+      "packages/prowess-db/tests/integration/m6-wo11-library.test.ts",
+      "apps/studio/tests/e2e/m6-library.spec.ts",
+      "apps/studio/tests/unit/m6-wo11-static.test.ts",
+      "scripts/m6-wo11-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I177",
+    "title": "Pinned Release And Honest References On Load",
+    "group": "Load",
+    "meaning": "A saved Character keeps resolving its own pinned Release after newer Releases appear; an unknown id is the existing NOT_FOUND and an unreadable stored reference is reported with its existing error \u2014 a read never repairs, repins or rewrites stored state.",
+    "guards": [
+      "packages/prowess-db/tests/integration/m6-wo11-library.test.ts",
+      "apps/studio/tests/unit/m6-wo11-static.test.ts",
+      "scripts/m6-wo11-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I178",
+    "title": "Latest Response Owns The Screen",
+    "group": "Presentation",
+    "meaning": "Only the newest Library request may update the list (an older, slower response is discarded), and a late response for one Character never updates another Character's view or form (keyed remounts plus an id guard in the creation wizard).",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo11-library-ui.test.tsx",
+      "apps/studio/tests/unit/m6-wo11-static.test.ts",
+      "scripts/m6-wo11-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "M6-I179",
+    "title": "Library Destinations From Persisted State",
+    "group": "Presentation",
+    "meaning": "Library actions come only from the persisted status and id \u2014 a Draft offers Continue creation, a completed Character Open sheet and Resume play \u2014 same-named Characters are told apart by a visible id, and the existing Sheet, Cards, print and Play deep links keep working.",
+    "guards": [
+      "apps/studio/tests/unit/m6-wo11-library-ui.test.tsx",
+      "apps/studio/tests/e2e/m6-library.spec.ts",
+      "apps/studio/tests/unit/m6-wo11-static.test.ts",
+      "scripts/m6-wo11-negative-controls.mjs"
+    ]
   }
 ]

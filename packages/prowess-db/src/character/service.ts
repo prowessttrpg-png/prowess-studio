@@ -26,6 +26,7 @@ import {
   replaceCreationInputs,
   selectCharacter,
   selectCharacterPage,
+  type CharacterListFilter,
   selectVersionDisplay,
   updateProfile,
   type CharacterWithChildren,
@@ -228,8 +229,33 @@ export async function createCharacter(input: { readonly name: unknown; readonly 
   return getCharacter(row.id);
 }
 
-export async function listCharacters(query: { readonly page: number; readonly pageSize: number }): Promise<{ items: CharacterListItem[]; total: number; page: number; pageSize: number }> {
-  const [total, rows] = await Promise.all([countCharacters(), selectCharacterPage((query.page - 1) * query.pageSize, query.pageSize)]);
+/** M6-WO11 Library search limits: the search is literal name text, at most the name length. */
+export const CHARACTER_LIST_STATUSES = ["ALL", "DRAFT", "CORE_COMPLETE"] as const;
+export type CharacterListStatus = (typeof CHARACTER_LIST_STATUSES)[number];
+export const MAX_CHARACTER_SEARCH_LENGTH = MAX_NAME_LENGTH;
+
+/**
+ * Normalizes the Library query: `search` is trimmed (an empty / whitespace-only search is no filter) and otherwise kept
+ * as literal text — punctuation and inner spaces included; `status` is one of ALL / DRAFT / CORE_COMPLETE (default ALL).
+ */
+export function readCharacterListFilter(input: { readonly search?: unknown; readonly status?: unknown }): CharacterListFilter {
+  const raw = input.search ?? null;
+  if (raw !== null && typeof raw !== "string") throw fail(CHARACTER_ERROR_CODES.INVALID_INPUT, "search is text");
+  const search = raw === null || raw.trim() === "" ? null : raw.trim();
+  if (search !== null && search.length > MAX_CHARACTER_SEARCH_LENGTH) throw fail(CHARACTER_ERROR_CODES.INVALID_INPUT, `search is at most ${MAX_CHARACTER_SEARCH_LENGTH} characters`);
+  const status = input.status ?? "ALL";
+  if (typeof status !== "string" || !(CHARACTER_LIST_STATUSES as readonly string[]).includes(status)) throw fail(CHARACTER_ERROR_CODES.INVALID_INPUT, `status is one of ${CHARACTER_LIST_STATUSES.join(", ")}`);
+  return { search, status: status as CharacterListStatus };
+}
+
+/**
+ * The Character Library page (M6-WO3 index, extended by M6-WO11): summary rows only — never a sheet, ability or play
+ * evaluation. Count and rows share ONE filter predicate; the order is the record's last update (desc), then id (asc).
+ * Read-only. Without `search` / `status` the result is exactly the WO3 contract.
+ */
+export async function listCharacters(query: { readonly page: number; readonly pageSize: number; readonly search?: unknown; readonly status?: unknown }): Promise<{ items: CharacterListItem[]; total: number; page: number; pageSize: number }> {
+  const filter = readCharacterListFilter(query);
+  const [total, rows] = await Promise.all([countCharacters(filter), selectCharacterPage((query.page - 1) * query.pageSize, query.pageSize, filter)]);
   return {
     items: rows.map((r) => ({
       id: r.id,

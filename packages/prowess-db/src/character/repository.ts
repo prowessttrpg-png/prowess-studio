@@ -45,13 +45,36 @@ export async function selectCharacter(id: string): Promise<CharacterWithChildren
   return prisma.character.findUnique({ where: { id }, include: CHARACTER_CHILDREN });
 }
 
-export async function countCharacters(): Promise<number> {
-  return prisma.character.count();
+/**
+ * PAS-10 M6-WO11 — the Character Library filter. ONE predicate is used by both the count and the page, so totals and rows
+ * always describe the same set, and filtering happens on the whole collection BEFORE skip / take. `search` is matched
+ * case-insensitively as literal text (Prisma escapes LIKE wildcards); `status` reads the persisted completion timestamp.
+ */
+export interface CharacterListFilter {
+  readonly search: string | null;
+  readonly status: "ALL" | "DRAFT" | "CORE_COMPLETE";
+}
+export const ALL_CHARACTERS: CharacterListFilter = Object.freeze({ search: null, status: "ALL" });
+/**
+ * Prisma's `contains` becomes ILIKE '%…%' WITHOUT escaping LIKE metacharacters, so `%` / `_` typed by a player would act
+ * as wildcards. Escape them (and the escape character itself) with PostgreSQL's default LIKE escape, backslash.
+ */
+export const literalLikeText = (text: string) => text.replace(/[\\%_]/g, (c) => `\\${c}`);
+export function characterListWhere(filter: CharacterListFilter) {
+  return {
+    ...(filter.search === null ? {} : { name: { contains: literalLikeText(filter.search), mode: "insensitive" as const } }),
+    ...(filter.status === "DRAFT" ? { coreCreationCompletedAt: null } : filter.status === "CORE_COMPLETE" ? { coreCreationCompletedAt: { not: null } } : {}),
+  };
+}
+
+export async function countCharacters(filter: CharacterListFilter = ALL_CHARACTERS): Promise<number> {
+  return prisma.character.count({ where: characterListWhere(filter) });
 }
 
 /** A page of Characters, most recently updated first (then id), with the exact Release identity for the index. */
-export async function selectCharacterPage(skip: number, take: number) {
+export async function selectCharacterPage(skip: number, take: number, filter: CharacterListFilter = ALL_CHARACTERS) {
   return prisma.character.findMany({
+    where: characterListWhere(filter),
     orderBy: [{ updatedAt: "desc" }, { id: "asc" }],
     skip,
     take,

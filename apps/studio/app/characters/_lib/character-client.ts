@@ -148,9 +148,22 @@ export interface CapabilityDto {
 
 // --- calls ----------------------------------------------------------------------------------------------------------
 
-export async function listCharacters(page = 1, pageSize = 50) {
-  const r = await request<CharacterListItemDto[]>("GET", `/api/characters${query({ page, pageSize })}`);
-  return { items: r.data, total: r.pagination?.total ?? r.data.length };
+/** M6-WO11 Library filter: `q` is literal name text (case-insensitive); status ALL is the same as no filter. */
+export type CharacterLibraryStatus = "ALL" | "DRAFT" | "CORE_COMPLETE";
+export interface CharacterLibraryFilter {
+  q?: string;
+  status?: CharacterLibraryStatus;
+}
+/**
+ * One Library page. Called without a filter it sends exactly the WO3 request (`page`, `pageSize` only). An empty /
+ * whitespace-only `q` and status ALL are omitted, so they never change the request.
+ */
+export async function listCharacters(page = 1, pageSize = 50, filter: CharacterLibraryFilter = {}) {
+  const q = filter.q?.trim() ? filter.q.trim() : undefined;
+  const status = filter.status === undefined || filter.status === "ALL" ? undefined : filter.status;
+  const r = await request<CharacterListItemDto[]>("GET", `/api/characters${query({ page, pageSize, q, status })}`);
+  const total = r.pagination?.total ?? r.data.length;
+  return { items: r.data, total, page: r.pagination?.page ?? page, pageSize: r.pagination?.pageSize ?? pageSize, totalPages: r.pagination?.totalPages ?? 1 };
 }
 export const createCharacter = async (body: { name: string; concept: string | null; rulesetReleaseId: string }) => (await request<CharacterDto>("POST", "/api/characters", body)).data;
 export const getCharacter = async (id: string) => (await request<CharacterDto>("GET", `/api/characters/${enc(id)}`)).data;

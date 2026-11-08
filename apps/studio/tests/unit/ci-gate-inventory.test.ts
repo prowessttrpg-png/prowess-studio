@@ -19,7 +19,7 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
     expect(checkInventory(ROOT)).toEqual([]);
   });
 
-  it("keeps all historical 617 controls (571 + WO9's 46) and adds WO10's 52: 669 controls across 24 scripts", () => {
+  it("keeps all historical 669 controls (617 + WO10's 52) and adds WO11's 25: 694 controls across 25 scripts", () => {
     const counts = Object.fromEntries(inventory.gates.filter((g) => g.controls).map((g) => [g.controls!.script, g.controls!.count]));
     expect(counts).toEqual({
       "scripts/m4-final-negative-controls.mjs": 3,
@@ -46,9 +46,10 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
       "scripts/m6-wo8-negative-controls.mjs": 36,
       "scripts/m6-wo9-negative-controls.mjs": 46,
       "scripts/m6-wo10-negative-controls.mjs": 52,
+      "scripts/m6-wo11-negative-controls.mjs": 25,
     });
-    expect(Object.values(counts).reduce((sum, count) => sum + count, 0)).toBe(669);
-    expect(inventory.gates.length).toBe(42);
+    expect(Object.values(counts).reduce((sum, count) => sum + count, 0)).toBe(694);
+    expect(inventory.gates.length).toBe(43);
   });
 
   it("WO8 remains a Tier 2/3 gate over every required domain, historical, database, API, UI and static suite", () => {
@@ -115,6 +116,21 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
     ]);
     // The WO10 browser flows run in the existing Playwright job (testDir tests/e2e; `pnpm run test:e2e`).
     expect(existsSync(path.join(ROOT, "apps/studio/tests/e2e/m6-play.spec.ts"))).toBe(true);
+  });
+
+  it("WO11 is a Tier 2/3 gate over its database, API, Library / creation UI, historical WO3 and static suites", () => {
+    const gate = inventory.gates.find((g) => g.id === "M6-WO11");
+    expect(gate).toMatchObject({ name: "M6-WO11 — Character Library / Save / Load", job: "controls-2", tiers: [2, 3], controls: { script: "scripts/m6-wo11-negative-controls.mjs", count: 25, kind: "mutation" } });
+    expect(gate!.tests).toEqual([
+      "packages/prowess-db/tests/integration/m6-wo11-library.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo3-character.test.ts",
+      "apps/studio/tests/unit/m6-wo11-static.test.ts",
+      "apps/studio/tests/unit/m6-wo11-library-ui.test.tsx",
+      "apps/studio/tests/unit/m6-wo3-character-ui.test.tsx",
+      "apps/studio/tests/integration/m6-wo11-library-api.test.ts",
+    ]);
+    // The WO11 fresh-session browser journeys run in the existing Playwright job (testDir tests/e2e; `pnpm run test:e2e`).
+    expect(existsSync(path.join(ROOT, "apps/studio/tests/e2e/m6-library.spec.ts"))).toBe(true);
   });
 
   it("every M1, M4-WO1…WO12 and M5-WO1…WO13 gate is permanent (Tier 2 and Tier 3)", () => {

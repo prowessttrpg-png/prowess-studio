@@ -19,6 +19,7 @@ import {
   type ResolutionDto,
   type SelectionDto,
 } from "../_lib/character-client";
+import { CREATION_STEPS, continuationStep, isUnknownOutcome, sameChoices, sameProfile } from "../_lib/creation-save";
 import { CharacterReview, RuleLink, releaseLabel } from "./CharacterReview";
 
 /**
@@ -27,8 +28,15 @@ import { CharacterReview, RuleLink, releaseLabel } from "./CharacterReview";
  * shown (baseline, Ancestry modifiers, finals, points remaining, derived statistics) is the server's resolution of the
  * current choices — the wizard re-checks on every change and never calculates rules itself. Saving is explicit
  * (Save & Continue, optimistic lockVersion); completion is explicit and server-validated.
+ *
+ * M6-WO11 save / resume: a reopened Draft continues at the step its SAVED progress needs (`continuationStep`); each
+ * acknowledged write (profile, then creation choices) is adopted at once with its new version, so a failure of the
+ * second leaves the first saved and only the rest outstanding (retry sends only what is still unsaved); edits made
+ * while a save is in flight stay unsaved; an unknown outcome is reconciled by reading the Character, never by
+ * repeating the write; a stale version is surfaced with an explicit reload; a late response for another Character is
+ * ignored; leaving with unsaved edits asks first.
  */
-const STEPS = ["Concept", "Race / Ancestry", "Stats", "Skills", "Primary Affinity", "Review"] as const;
+const STEPS = CREATION_STEPS;
 const CHECK_DEBOUNCE_MS = 250;
 
 interface StatGrant {
@@ -69,21 +77,65 @@ export function CharacterWizard({ characterId }: { characterId: string }) {
   const [message, setMessage] = useState<{ kind: "ok" | "error" | "stale"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  // M6-WO11: the Character this wizard currently shows — a late response for any other id is ignored.
+  const shownId = useRef(characterId);
+  const saving = useRef(false);
+  const [savingNow, setSavingNow] = useState(false);
+  const candidateRef = useRef<CandidateDto | null>(null);
+  const profileRef = useRef(profile);
+  useEffect(() => {
+    candidateRef.current = candidate;
+    profileRef.current = profile;
+  }, [candidate, profile]);
 
   const load = useCallback(async () => {
+    const forId = characterId;
+    shownId.current = forId;
     setLoadError(null);
     try {
-      const [c, ctx] = await Promise.all([getCharacter(characterId), getCreationContext(characterId)]);
+      const [c, ctx] = await Promise.all([getCharacter(forId), getCreationContext(forId)]);
+      if (shownId.current !== forId) return;
       setCharacter(c);
       setContext(ctx);
       setCandidate(candidateFrom(c.choices));
       setProfile({ name: c.name, concept: c.concept ?? "" });
       setCheck(c.resolution);
       setDirty(false);
+      setMessage(null);
+      setStep(continuationStep(candidateFrom(c.choices), c.resolution));
     } catch (e) {
+      if (shownId.current !== forId) return;
       setLoadError(e instanceof CharacterApiError ? `${e.message} (${e.code})` : "Could not load this Character.");
     }
   }, [characterId]);
+  useEffect(() => {
+    // A different Character: never show the previous one's form while the new one loads.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset on id change
+    setCharacter((c) => (c !== null && c.id !== characterId ? null : c));
+  }, [characterId]);
+  const unsaved = character !== null && character.status !== "CORE_COMPLETE" && (dirty || !sameProfile(character, profile));
+  // Leaving with unsaved edits (a reload, closing the tab or an in-app link) asks first.
+  useEffect(() => {
+    if (!unsaved) return;
+    const beforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as Element | null)?.closest?.("a[href]");
+      if (!(a instanceof HTMLAnchorElement) || a.target === "_blank" || e.defaultPrevented) return;
+      if (!window.confirm("This Character has unsaved changes. Leave without saving them?")) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    window.addEventListener("beforeunload", beforeUnload);
+    document.addEventListener("click", onClick, true);
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnload);
+      document.removeEventListener("click", onClick, true);
+    };
+  }, [unsaved]);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount
     void load();
@@ -158,21 +210,62 @@ export function CharacterWizard({ characterId }: { characterId: string }) {
   };
 
   const saveAndContinue = async () => {
+    if (saving.current) return; // one save at a time — a double click never submits twice
+    saving.current = true;
+    setSavingNow(true);
     setBusy(true);
     setMessage(null);
+    const forId = character.id;
+    const sentProfile = profile;
+    const sentCandidate = candidate;
+    const profileChanged = !sameProfile(character, sentProfile);
+    const choicesChanged = dirty;
+    let current = character;
+    let profileSaved = false;
+    // Adopt one acknowledged write: its new version is used by any further write; later edits stay unsaved.
+    const adopt = (c: CharacterDto, parts: { profile: boolean; choices: boolean }) => {
+      if (shownId.current !== forId) return;
+      current = c;
+      setCharacter(c);
+      setCheck(c.resolution);
+      if (parts.profile) setProfile((p) => (p === sentProfile ? { name: c.name, concept: c.concept ?? "" } : p));
+      if (parts.choices) {
+        setCandidate((x) => (x === sentCandidate ? candidateFrom(c.choices) : x));
+        setDirty(candidateRef.current !== sentCandidate);
+      }
+    };
     try {
-      let current = character;
-      if (profile.name !== current.name || (profile.concept || null) !== current.concept) current = await saveProfile(current.id, current.lockVersion, profile.name, profile.concept.trim() === "" ? null : profile.concept);
-      if (dirty) current = await saveCreation(current.id, current.lockVersion, candidate);
-      setCharacter(current);
-      setCheck(current.resolution);
-      setCandidate(candidateFrom(current.choices));
-      setDirty(false);
-      setMessage({ kind: "ok", text: "Saved." });
-      setStep((s) => Math.min(s + 1, STEPS.length - 1));
+      if (profileChanged) {
+        adopt(await saveProfile(current.id, current.lockVersion, sentProfile.name, sentProfile.concept.trim() === "" ? null : sentProfile.concept), { profile: true, choices: false });
+        profileSaved = true;
+      }
+      if (choicesChanged) adopt(await saveCreation(current.id, current.lockVersion, sentCandidate), { profile: false, choices: true });
+      if (shownId.current !== forId) return;
+      const later = candidateRef.current !== sentCandidate || profileRef.current !== sentProfile;
+      setMessage({ kind: "ok", text: later ? "Saved what was submitted. Changes made while saving are not saved yet." : "Saved." });
+      if (!later) setStep((s) => Math.min(s + 1, STEPS.length - 1));
     } catch (e) {
-      handleError(e);
+      if (shownId.current !== forId) return;
+      if (isUnknownOutcome(e)) {
+        // The server may or may not have applied the write: read the authoritative Character and compare.
+        try {
+          const now = await getCharacter(forId);
+          if (shownId.current !== forId) return;
+          const profileLanded = !profileChanged || sameProfile(now, sentProfile);
+          const choicesLanded = !choicesChanged || sameChoices(candidateFrom(now.choices), sentCandidate);
+          adopt(now, { profile: profileLanded, choices: choicesLanded });
+          if (profileLanded && choicesLanded) setMessage({ kind: "ok", text: "The connection was interrupted, but the server confirms these changes were saved." });
+          else setMessage({ kind: "error", text: `The connection was interrupted. The server holds ${profileLanded ? "your profile" : "the previous profile"} and ${choicesLanded ? "your creation choices" : "the previous creation choices"}; the rest is still unsaved here — Save & Continue again to retry it.` });
+        } catch {
+          setMessage({ kind: "error", text: "The connection was interrupted and the saved state could not be confirmed. Your edits are kept here; reload the Character to see what was saved before saving again." });
+        }
+      } else if (profileSaved && choicesChanged) {
+        const reason = e instanceof CharacterApiError ? `${e.message} (${e.code})` : "the request failed";
+        setMessage({ kind: e instanceof CharacterApiError && e.code === "CHARACTER.STALE_WRITE" ? "stale" : "error", text: `The profile was saved, but the creation choices were not: ${reason}. Your choices are kept here; Save & Continue retries only the choices.` });
+      } else handleError(e);
     } finally {
+      saving.current = false;
+      setSavingNow(false);
       setBusy(false);
     }
   };
@@ -492,9 +585,10 @@ export function CharacterWizard({ characterId }: { characterId: string }) {
           {message.kind === "stale" ? (
             <>
               {" "}
-              <button type="button" className="gov-link-button" onClick={() => void load()}>
+              <button type="button" className="gov-link-button" onClick={() => void load()} data-testid="wizard-reload">
                 Reload the Character
-              </button>
+              </button>{" "}
+              <span className="gov-muted">(shows what is saved; unsaved edits here are discarded)</span>
             </>
           ) : null}
         </p>
@@ -503,8 +597,8 @@ export function CharacterWizard({ characterId }: { characterId: string }) {
         <button type="button" className="gov-button" disabled={step === 0 || busy} onClick={() => setStep(step - 1)}>
           Back
         </button>
-        <button type="button" className="gov-button gov-button--primary" disabled={busy} onClick={() => void saveAndContinue()}>
-          Save &amp; Continue
+        <button type="button" className="gov-button gov-button--primary" disabled={busy} aria-busy={busy} onClick={() => void saveAndContinue()} data-testid="wizard-save">
+          {savingNow ? "Saving…" : "Save & Continue"}
         </button>
         <button type="button" className="gov-button" disabled={busy} onClick={() => void runCheck()}>
           Check Character
@@ -512,6 +606,9 @@ export function CharacterWizard({ characterId }: { characterId: string }) {
         <button type="button" className="gov-button gov-button--consequential" disabled={busy || !canComplete} onClick={() => void complete()}>
           Complete Core Creation
         </button>
+      </p>
+      <p className="gov-muted" role="status" data-testid="wizard-save-state">
+        {savingNow ? "Saving — the server has not confirmed yet." : unsaved ? "Unsaved changes." : "All changes saved."}
       </p>
       {!canComplete ? <p className="gov-muted">Complete Core Creation becomes available once the saved Character passes every creation rule (save your changes, then Check Character).</p> : null}
     </div>
