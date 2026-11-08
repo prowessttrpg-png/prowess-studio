@@ -33,7 +33,7 @@ const withLoose = (from, to) => chain(replace("\n  // ---- Ancestry ---", `\n${L
 
 const controls = [
   // 1 · M6-I021: the Character stores a Ruleset id instead of the exact Release.
-  ["Character stores a Ruleset id instead of the Release id", SCHEMA, replace('  rulesetReleaseId String         @map("ruleset_release_id") @db.Uuid', '  rulesetId        String         @map("ruleset_id") @db.Uuid\n  rulesetReleaseId String         @map("ruleset_release_id") @db.Uuid'), studio],
+  ["Character stores a Ruleset id instead of the Release id", SCHEMA, replace('  concept String?\n\n  rulesetReleaseId String         @map("ruleset_release_id") @db.Uuid', '  concept String?\n\n  rulesetId        String         @map("ruleset_id") @db.Uuid\n  rulesetReleaseId String         @map("ruleset_release_id") @db.Uuid'), studio],
   // 2 · M6-I021 / M6-I030: a reload resolves the Ruleset's latest Release.
   ["latest Release used when a Character is reloaded", SERVICE, replace("  const { bundle, ruleset } = await releaseRules(c.rulesetReleaseId);\n  return validateCharacterCreation(", "  const { bundle, ruleset } = await releaseRules((await selectLatestRelease(c)).id);\n  return validateCharacterCreation("), studio],
   // 3 · M6-I022: an Ancestry revision from another Release is accepted.

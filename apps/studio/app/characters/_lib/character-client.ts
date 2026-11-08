@@ -6,6 +6,7 @@
  */
 import { fetchJsonBody, query } from "../../../src/api-client/http";
 import type { ActionDirectoryViewDto, CardLibraryDto } from "./card-types";
+import type { PlayCommitDto, PlayEventDto, PlayPreviewDto, PlayViewDto } from "./play-types";
 import type { ManeuverBuilderDto, ManeuverDetailDto, ManeuverDraftDto, ManeuverEntryDto, ManeuverEvaluationDto, SheetManeuverDto } from "./maneuver-types";
 
 export class CharacterApiError extends Error {
@@ -714,3 +715,12 @@ export const retireManeuver = async (id: string, maneuverId: string, expectedVer
 // --- M6-WO9: Card Library and Action Directory (read-only) ------------------------------------------------------------
 export const getCardLibrary = async (id: string) => (await request<CardLibraryDto>("GET", `/api/characters/${enc(id)}/cards`)).data;
 export const getActionDirectory = async (id: string) => (await request<ActionDirectoryViewDto>("GET", `/api/characters/${enc(id)}/actions`)).data;
+
+// --- M6-WO10: Character Play Workspace -----------------------------------------------------------------------------------
+// The client sends an operation (choices, targets, raw rolls), the versions it evaluated and an idempotency key; the
+// server evaluates and commits. Nothing is priced, compared or resolved here.
+const playPath = (id: string, suffix = "") => `/api/characters/${enc(id)}/play${suffix}`;
+export const getPlayWorkspace = async (id: string) => (await request<PlayViewDto>("GET", playPath(id))).data;
+export const previewPlayOperation = async (id: string, operation: unknown, expectedRuntimeVersion: number, expectedPlayStateVersion: number) => (await request<PlayPreviewDto>("POST", playPath(id, "/preview"), { operation, expectedRuntimeVersion, expectedPlayStateVersion })).data;
+export const commitPlayOperation = async (id: string, operation: unknown, idempotencyKey: string, expectedRuntimeVersion: number, expectedPlayStateVersion: number) => (await request<PlayCommitDto>("POST", playPath(id, "/operations"), { operation, idempotencyKey, expectedRuntimeVersion, expectedPlayStateVersion })).data;
+export const listPlayEvents = async (id: string, before: number | null, limit = 50) => (await request<{ events: PlayEventDto[] }>("GET", playPath(id, `/events?limit=${String(limit)}${before === null ? "" : `&before=${String(before)}`}`))).data;

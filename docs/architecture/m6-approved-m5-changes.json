@@ -1,5 +1,5 @@
 {
-  "$comment": "Exact M5 (@prowess/game) file changes approved by later M6 Work Orders. Earlier frozen gates accept ONLY these exact hashes for these exact paths, and ONLY these exact added files; any other edit, addition or removal still fails them. Each Work Order's own gate pins its entry and characterizes the change (M6-WO3 \u00a710, \u00a784: ANCESTRY v1, SKILL v1, CHARACTER_CREATION_RULE v1; no M5 mechanical result changes).",
+  "$comment": "Exact M5 (@prowess/game) file changes approved by later M6 Work Orders. Earlier frozen gates accept ONLY these exact hashes for these exact paths, and ONLY these exact added files; any other edit, addition or removal still fails them. Each Work Order's own gate pins its entry and characterizes the change (M6-WO3 §10, §84: ANCESTRY v1, SKILL v1, CHARACTER_CREATION_RULE v1; no M5 mechanical result changes).",
   "M6-WO3": {
     "changedFiles": {
       "packages/prowess-game/src/compilation/compile.ts": "788d5268cdb9add7735d033ac1d7fa428d113097a6d6e8bd08ae38f243838b36",
@@ -152,6 +152,26 @@
       "packages/prowess-game/src/definition/action-improvement-payload.ts": "f2f94add731d9b2338ce8608cd145abd532187d824f2a030df01a459e68bf6b4",
       "packages/prowess-game/src/m6-wo9-registry.test.ts": "207054df420cdd064bcccc185d05c6da27988853e7598aeea304010d6775f4be",
       "packages/prowess-game/src/testing/m6-wo9-registry-baseline.json": "b6d0342a2a534057b033de5611c03ab750a35735f30fc4696c453ca575e9bd73"
+    }
+  },
+  "M6-WO10": {
+    "changedFiles": {
+      "packages/prowess-game/src/ability/active-magic.ts": "9fe94900afc9eeec25afeb06ff4b5ca0659d0d01186f9fcba7571312da05bebf",
+      "packages/prowess-game/src/ability/effect-execution.ts": "e484a7d12930e2a142a951bf8c0e802548c871ec698ce89320d99fedb0a526b0",
+      "packages/prowess-game/src/character/signature-maneuver.ts": "b9c30d981923d2532c958513fbc66841bffcb80c2fca7917a6252608c1e99c29",
+      "packages/prowess-game/src/character/signature-spell.ts": "7ad772321055582f34c06623a475c7bb1d6be3d8a159e8eb0a193d6195a15bd7",
+      "packages/prowess-game/src/index.ts": "b77e76a3618c2922d6b546f637c6c0320c3cbf0003aca97748e017cbd0b0eaae"
+    },
+    "addedFiles": {
+      "packages/prowess-game/src/internal/round.ts": "f614508f3ed2bbcd1c4fd41f48192cdb516bfd641910109fe1b0d700fa90b121",
+      "packages/prowess-game/src/play-workspace.test.ts": "6d4426bbb61fcd9ac5a44ad7f61fb1cc67ace89f102c72b936ff892bda87cd27",
+      "packages/prowess-game/src/play/abilities.ts": "cb40110f845548ddbef392346ffebeb892e72f8e1070fefb9a51a2229f1320b0",
+      "packages/prowess-game/src/play/contract.ts": "b36a1e286414aa334aaf11e6e0ab4013d16f74fdab00a0f452d39df19aba851e",
+      "packages/prowess-game/src/play/engine.ts": "2f6fb6ef8843dd89bcef08c4248c5605f440d503f0ec24c15cee1099d249c4b6",
+      "packages/prowess-game/src/play/operations.ts": "5c19669e5ed386e01e81eafa72c3ed95640ca4e8bd584e1267cc510714165485",
+      "packages/prowess-game/src/play/state.ts": "4271a93146bdb9c527361ea5a8d48923cd11b600a5da014d19c591201b7a2f8b",
+      "packages/prowess-game/src/play/workspace.ts": "66c4dea4802eacb39572931a0781d1067c5c20d2752a2d6cc355cd2222c8b00d",
+      "packages/prowess-game/src/testing/play-fixtures.ts": "a4308f6e3878e8285eec5ee69aa67d9a7307b8d6453e9975edcec1f5512706ae"
     }
   }
 }

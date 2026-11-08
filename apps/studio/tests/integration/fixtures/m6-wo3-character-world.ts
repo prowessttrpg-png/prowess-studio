@@ -241,6 +241,14 @@ export async function cleanupCharacterWorlds(prefix: string): Promise<void> {
   } finally {
     for (const t of advancementGuards) await prisma.$executeRawUnsafe(`ALTER TABLE "${t}" ENABLE TRIGGER "${t}_guard"`);
   }
+  // M6-WO10: the append-only play ledger (guard trigger disabled for the deletion only), then the play runtime.
+  await prisma.$executeRawUnsafe('ALTER TABLE "character_play_events" DISABLE TRIGGER "character_play_events_append_only"');
+  try {
+    await prisma.characterPlayEvent.deleteMany({ where: { characterId: { in: characterIds } } });
+  } finally {
+    await prisma.$executeRawUnsafe('ALTER TABLE "character_play_events" ENABLE TRIGGER "character_play_events_append_only"');
+  }
+  await prisma.characterPlayRuntime.deleteMany({ where: { characterId: { in: characterIds } } });
   // M6-WO5: sheet state (play state, notes, portrait) references the Character (RESTRICT).
   const sheetWhere = { where: { characterId: { in: characterIds } } };
   await prisma.characterResourceState.deleteMany(sheetWhere);

@@ -4,7 +4,7 @@ import { readKeywordCatalog } from "../affinity/definitions.js";
 import { findBundleDefinition, type ProwessDefinitionBundle, type ProwessRulesetProvenance } from "../bundle/bundle.js";
 import { compileAuthoredAbilityCore, readAbilityDefinitionRun, type AuthoredAbilityResult } from "../ability/compile.js";
 import { compileSpellCostCore, readSpellCostRun, type SpellCostResult } from "../ability/spell-cost.js";
-import { compileExecutionCore, type ProwessAbilityExecutionPlan } from "../ability/effect-execution.js";
+import { compileExecutionCore, type Compiled, type ProwessAbilityExecutionPlan } from "../ability/effect-execution.js";
 import { readAuthoredAbilityPayload, type SpellDefinitionPayload } from "../definition/authored-ability-payload.js";
 import { readDefinitionRef, type ProwessDefinitionRef } from "../definition/envelope.js";
 import { clonePlainData, deepFreeze, isPlainObject, type PathSegment } from "../internal/plain-data.js";
@@ -332,7 +332,7 @@ export function evaluateCharacterSignatureSpell(request: {
   readonly draft: SignatureSpellDraft;
   readonly usedSlots: number;
   readonly subject: CharacterSpellSubject;
-}): SignatureSpellEvaluation {
+}, capture?: (plan: Compiled<CharacterSpellSubject>) => void): SignatureSpellEvaluation {
   const { bundle, draft, profile, subject } = request;
   const componentKeys = [...draft.effects, ...draft.traits, ...draft.castingConditions].map((u) => u.componentKey);
   const keywords = [...new Set(signatureSpellComponentRefs(draft).flatMap((ref) => {
@@ -406,6 +406,8 @@ export function evaluateCharacterSignatureSpell(request: {
     const execution = compileExecutionCore(p3, r, ability.value, authored, sourceId);
     if (execution.ok) chain = execution.value.plan.chain;
     else for (const q of execution.problems) deferred.push({ conflictKey: CONFLICT.exec(q.message)?.[0] ?? q.code, message: q.message });
+    // PAS-10 M6-WO10 (additive): the Play Workspace receives the SAME compiled plan to execute; evaluation is unchanged.
+    if (execution.ok && capture !== undefined) capture(execution.value);
   }
   const rule = bundle.definitions.find((d) => d.definitionKind === "ABILITY_CONSTRUCTION_RULE");
   const policy = rule ? (dig(rule.payload, ["activeMagicPolicy"]) as ActiveMagicPolicyView | undefined) : undefined;

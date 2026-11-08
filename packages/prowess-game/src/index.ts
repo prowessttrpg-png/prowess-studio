@@ -857,3 +857,30 @@ export {
   type PrerequisiteProgression,
 } from "./character/action-improvement.js";
 export { evaluateRankPrerequisites } from "./character/eligibility.js";
+
+// ---- PAS-10 M6-WO10 Character Play Workspace (orchestration over the existing M5 / M6 authorities) ----
+export {
+  PLAY_ACTIVE_MAGIC_EVENTS,
+  PLAY_AVAILABILITY,
+  PLAY_CLASSIFICATIONS,
+  PLAY_CONTRACT_VERSION,
+  PLAY_NOTE_CATEGORIES,
+  PLAY_OPERATION_KINDS,
+  PLAY_OPERATION_STATUSES,
+  PLAY_REASON_CODES,
+  PLAY_ROLL_SOURCES,
+  PLAY_TIMING_EVENTS,
+  type PlayAvailability,
+  type PlayClassification,
+  type PlayOperation,
+  type PlayOperationOutcome,
+  type PlayOperationStatus,
+  type PlayReason,
+  type PlayResourceSnapshot,
+  type PlayRuntimeState,
+} from "./play/contract.js";
+export { characterCoreOf } from "./play/engine.js";
+export { createPlayEvaluationCache, signatureSourceKey, type PlayAbilitySource, type PlayEvaluationCache } from "./play/abilities.js";
+export { evaluatePlayOperation, initialPlayRuntime, legalTimingEvents, readPlayOperation, SPELL_CASTING_ME_ELIGIBLE, type PlayContext, type PlayStored } from "./play/operations.js";
+export { readPlayRuntimeState } from "./play/state.js";
+export { buildPlayWorkspace, type PlayWorkspaceView } from "./play/workspace.js";

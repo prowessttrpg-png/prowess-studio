@@ -1143,6 +1143,39 @@
         2,
         3
       ]
+    },
+    {
+      "id": "M6-WO10",
+      "name": "M6-WO10 — Character Play Workspace",
+      "job": "controls-2",
+      "kind": "static",
+      "tests": [
+        "packages/prowess-game/src/play-workspace.test.ts",
+        "packages/prowess-game/src/active-magic-golden.test.ts",
+        "packages/prowess-game/src/active-magic-contracts.test.ts",
+        "packages/prowess-game/src/effect-execution-golden.test.ts",
+        "packages/prowess-game/src/effect-execution-contracts.test.ts",
+        "packages/prowess-game/src/character-signature-spell.test.ts",
+        "packages/prowess-game/src/character-signature-maneuver.test.ts",
+        "packages/prowess-game/src/spell-cost-golden.test.ts",
+        "packages/prowess-game/src/maneuver-cost-golden.test.ts",
+        "packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts",
+        "apps/studio/tests/unit/m6-wo10-static.test.ts",
+        "apps/studio/tests/unit/m6-wo10-play-ui.test.tsx",
+        "apps/studio/tests/integration/m6-wo10-play-api.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m6-wo10-negative-controls.mjs",
+        "count": 52,
+        "kind": "mutation"
+      },
+      "smoke": [],
+      "previous": [],
+      "tiers": [
+        2,
+        3
+      ]
     }
   ],
   "checks": [

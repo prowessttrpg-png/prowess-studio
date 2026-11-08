@@ -307,7 +307,10 @@ describe("M6-WO9 permanent card system contracts", () => {
     const expected = Array.from({ length: 22 }, (_, i) => `M6-I${String(i + 129).padStart(3, "0")}`);
     const rows = invariants.filter((x) => expected.includes(x.id));
     expect(rows.map((x) => x.id)).toEqual(expected);
-    expect(invariants.map((x) => x.id)).toEqual(Array.from({ length: 150 }, (_, i) => `M6-I${String(i + 1).padStart(3, "0")}`));
+    // The register stays one contiguous, duplicate-free M6-I sequence; WO9 closed it at I150 and later Work Orders only
+    // append after it (M6-WO10 appends I151+ under its own gate).
+    expect(invariants.length).toBeGreaterThanOrEqual(150);
+    expect(invariants.map((x) => x.id)).toEqual(Array.from({ length: invariants.length }, (_, i) => `M6-I${String(i + 1).padStart(3, "0")}`));
     const md = read("docs/architecture/m6-invariants.md");
     for (const row of rows) {
       expect(row.guards).toContain("apps/studio/tests/unit/m6-wo9-static.test.ts");

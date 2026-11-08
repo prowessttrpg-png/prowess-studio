@@ -350,6 +350,10 @@ export function ActionsPanel({ sheet, mode, value, onChange }: { sheet: Characte
           ·{" "}
           <a href={`/characters/${encodeURIComponent(sheet.identity.id)}/actions`} data-testid="sheet-action-directory-link">
             Action Directory
+          </a>{" "}
+          ·{" "}
+          <a href={`/characters/${encodeURIComponent(sheet.identity.id)}/play`} data-testid="sheet-play-link">
+            Play Workspace
           </a>
         </p>
       ) : null}

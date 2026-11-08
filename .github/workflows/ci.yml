@@ -502,7 +502,7 @@ jobs:
           PROWESS_EXPECT_CONTROLS=21 node scripts/m5-wo3-negative-controls.mjs
 
   controls-2:
-    name: Gates — M5-WO4, canon rulings, M5-WO5, M6-WO1, M6-WO2, M6-WO3, M6-WO4, M6-WO5, M6-WO6, M6-WO7, M6-WO8, M6-WO9
+    name: Gates — M5-WO4, canon rulings, M5-WO5, M6-WO1, M6-WO2, M6-WO3, M6-WO4, M6-WO5, M6-WO6, M6-WO7, M6-WO8, M6-WO9, M6-WO10
     needs: [unit-packages, unit-game, unit-studio, db-api, db-integration]
     runs-on: ubuntu-latest
     steps:
@@ -583,6 +583,11 @@ jobs:
         run: |
           node scripts/ci/verify-gate.mjs M6-WO9 packages/prowess-game/src/card-language.test.ts packages/prowess-game/src/card-projection.test.ts packages/prowess-game/src/card-phase-b.test.ts packages/prowess-game/src/m6-wo9-registry.test.ts packages/prowess-game/src/m6-wo6-registry.test.ts packages/prowess-game/src/maneuver-cost-golden.test.ts packages/prowess-game/src/spell-cost-golden.test.ts packages/prowess-db/tests/integration/m6-wo9-card-library.test.ts apps/studio/tests/unit/m6-wo9-static.test.ts apps/studio/tests/unit/m6-wo9-cards-ui.test.tsx apps/studio/tests/integration/m6-wo9-cards-api.test.ts
           PROWESS_EXPECT_CONTROLS=46 node scripts/m6-wo9-negative-controls.mjs
+
+      - name: M6-WO10 — Character Play Workspace
+        run: |
+          node scripts/ci/verify-gate.mjs M6-WO10 packages/prowess-game/src/play-workspace.test.ts packages/prowess-game/src/active-magic-golden.test.ts packages/prowess-game/src/active-magic-contracts.test.ts packages/prowess-game/src/effect-execution-golden.test.ts packages/prowess-game/src/effect-execution-contracts.test.ts packages/prowess-game/src/character-signature-spell.test.ts packages/prowess-game/src/character-signature-maneuver.test.ts packages/prowess-game/src/spell-cost-golden.test.ts packages/prowess-game/src/maneuver-cost-golden.test.ts packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts apps/studio/tests/unit/m6-wo10-static.test.ts apps/studio/tests/unit/m6-wo10-play-ui.test.tsx apps/studio/tests/integration/m6-wo10-play-api.test.ts
+          PROWESS_EXPECT_CONTROLS=52 node scripts/m6-wo10-negative-controls.mjs
 
   controls-3:
     name: Gates — M5-WO6…WO10

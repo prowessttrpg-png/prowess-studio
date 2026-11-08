@@ -849,6 +849,13 @@ export const CHARACTER_ERROR_CODES = {
   SIGNATURE_CAPACITY_EXCEEDED: "CHARACTER.SIGNATURE_CAPACITY_EXCEEDED",
   /** The requested lifecycle step does not apply to the Signature Spell's current state (e.g. editing a retired Spell). */
   SIGNATURE_SPELL_STATE: "CHARACTER.SIGNATURE_SPELL_STATE",
+  // ---- PAS-10 M6-WO10 Character Play Workspace ----
+  /** The play operation is malformed (closed contract: choices, targets and raw rolls only — never derived mechanics). */
+  INVALID_PLAY_OPERATION: "CHARACTER.INVALID_PLAY_OPERATION",
+  /** The idempotency key was already used for a DIFFERENT play operation; nothing was applied. */
+  PLAY_IDEMPOTENCY_CONFLICT: "CHARACTER.PLAY_IDEMPOTENCY_CONFLICT",
+  /** The stored play state cannot be read against the WO10 contract; nothing is reinterpreted or deleted. */
+  PLAY_STATE_UNREADABLE: "CHARACTER.PLAY_STATE_UNREADABLE",
 } as const;
 
 export type CharacterErrorCode = (typeof CHARACTER_ERROR_CODES)[keyof typeof CHARACTER_ERROR_CODES];

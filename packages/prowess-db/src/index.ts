@@ -298,3 +298,6 @@ export { createCharacterSignatureManeuver, getCharacterSignatureManeuver, getSig
 // PAS-10 M6-WO9 — Ability Card System (Phase B): read-only Character Card Library and Action Directory (no routes yet).
 export { getCharacterActionDirectory, getCharacterCardLibrary } from "./character/index.js";
 export type { AbilityCardEntry, CardSlot, CharacterActionDirectoryView, CharacterCardLibraryView } from "./character/index.js";
+// PAS-10 M6-WO10 Character Play Workspace.
+export { commitCharacterPlayOperation, getCharacterPlayWorkspace, listCharacterPlayEvents, previewCharacterPlayOperation } from "./character/index.js";
+export type { CharacterPlayWorkspaceView, PlayCommitResult, PlayEventView, PlayVersions } from "./character/index.js";

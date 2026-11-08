@@ -67,10 +67,13 @@ async function atomically(read: () => Promise<number>, write: (tx: Tx) => Promis
 /**
  * Writes current resource values. `initial` (only used when the row is created) fills every sheet resource the
  * request does not name, so a created play state is complete; afterwards only the named resources change.
+ *
+ * PAS-10 M6-WO10: `within` runs the SAME compare-and-set inside a caller's transaction (the Play Workspace commits
+ * resources, its runtime and its ledger event atomically). There is one implementation of this write — no second path.
  */
-export async function writePlayState(characterId: string, expected: number, values: ReadonlyArray<{ readonly resourceKey: string; readonly current: number }>, initial: ReadonlyArray<{ readonly resourceKey: string; readonly current: number }>): Promise<SheetWriteOutcome> {
+export async function writePlayState(characterId: string, expected: number, values: ReadonlyArray<{ readonly resourceKey: string; readonly current: number }>, initial: ReadonlyArray<{ readonly resourceKey: string; readonly current: number }>, within?: Tx): Promise<SheetWriteOutcome> {
   const read = async () => (await prisma.characterPlayState.findUnique({ where: { characterId }, select: { lockVersion: true } }))?.lockVersion ?? 0;
-  return atomically(read, async (tx) => {
+  const write = async (tx: Tx) => {
     if (expected === 0) {
       const named = new Set(values.map((v) => v.resourceKey));
       await tx.characterPlayState.create({ data: { characterId } });
@@ -82,8 +85,28 @@ export async function writePlayState(characterId: string, expected: number, valu
     if (claimed.count !== 1) throw new Stale((await tx.characterPlayState.findUnique({ where: { characterId }, select: { lockVersion: true } }))?.lockVersion ?? 0);
     for (const v of values) await tx.characterResourceState.upsert({ where: { characterId_resourceKey: { characterId, resourceKey: v.resourceKey } }, create: { characterId, resourceKey: v.resourceKey, current: v.current }, update: { current: v.current } });
     return next;
-  });
+  };
+  if (within === undefined) return atomically(read, write);
+  try {
+    return { outcome: "ok", version: await write(within) };
+  } catch (e) {
+    if (e instanceof Stale) return { outcome: "stale", current: e.current };
+    throw e; // a lost create race (unique violation) aborts the caller's transaction, which reports it as stale
+  }
 }
+
+/** M6-WO10: `writePlayState` inside a caller's transaction. The new version, or null when `expected` is stale. */
+export async function writePlayStateWithin(tx: Tx, characterId: string, expected: number, values: ReadonlyArray<{ readonly resourceKey: string; readonly current: number }>, initial: ReadonlyArray<{ readonly resourceKey: string; readonly current: number }>): Promise<number | null> {
+  const out = await writePlayState(characterId, expected, values, initial, tx);
+  return out.outcome === "ok" ? out.version : null;
+}
+
+/** The sheet play-state version inside a caller's transaction (0 = never saved). */
+export async function playStateVersionWithin(tx: Tx, characterId: string): Promise<number> {
+  return (await tx.characterPlayState.findUnique({ where: { characterId }, select: { lockVersion: true } }))?.lockVersion ?? 0;
+}
+
+export type SheetTx = Tx;
 
 export interface SheetNotesInput {
   readonly companyPac: string | null;
