@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { prisma } from "../../src/index";
 import { cleanupCharacterWorlds, seedCharacterRelease, type CharacterReleaseWorld } from "./m6-wo3-character-release";
 
@@ -11,7 +12,7 @@ import { cleanupCharacterWorlds, seedCharacterRelease, type CharacterReleaseWorl
  * Character, its loadout, both Signature Abilities and every play event.
  *
  * Repeatable and run-scoped: `prepare(runId)` first removes any world of the same run, `cleanup(runId)` removes exactly
- * that run, and `cleanup()` removes every WO12 run. Both use the shared fixture teardown, which lifts the append-only
+ * that run. A missing run id is refused. Both use the shared fixture teardown, which lifts the append-only
  * guards only for the rows it deletes.
  */
 export const PLAYTEST_PREFIX = "test.m6wo12";
@@ -32,7 +33,7 @@ export interface PlaytestWorld {
 
 export const runPrefix = (runId: string) => `${PLAYTEST_PREFIX}.${runId}`;
 export function assertRunId(runId: string): string {
-  if (!/^[a-z0-9]{3,24}$/.test(runId)) throw new Error(`A run id is 3–24 lowercase letters or digits (got "${runId}").`);
+  if (typeof runId !== "string" || !/^[a-z0-9]{3,24}$/.test(runId)) throw new Error(`A run id is 3–24 lowercase letters or digits (got "${runId}").`);
   return runId;
 }
 export const newRunId = () => `r${Date.now().toString(36)}`;
@@ -66,9 +67,9 @@ export async function preparePlaytestRelease(runId: string = newRunId()): Promis
   return { summary, world: w };
 }
 
-/** Removes one run (`runId`) or every WO12 run. Returns the Ruleset count that was present. */
-export async function cleanupPlaytestWorlds(runId?: string): Promise<number> {
-  const prefix = runId === undefined ? `${PLAYTEST_PREFIX}.` : `${runPrefix(assertRunId(runId))}.`;
+/** Removes exactly the specified run. Returns the Ruleset count that was present. */
+export async function cleanupPlaytestWorlds(runId: string): Promise<number> {
+  const prefix = `${runPrefix(assertRunId(runId))}.`;
   const n = await prisma.ruleset.count({ where: { canonicalKey: { startsWith: prefix } } });
   await cleanupCharacterWorlds(prefix);
   return n;
@@ -89,4 +90,39 @@ export async function playtestStatus(): Promise<Array<{ runId: string; ruleset: 
     });
   }
   return out;
+}
+
+/** A byte-level fingerprint of every row a read-only step could touch: the Character's rows and the Ruleset's governance rows. */
+export async function fingerprint(characterId: string | null, rulesetId: string): Promise<string> {
+  const p = prisma;
+  const c = characterId === null ? null : { where: { characterId } };
+  // Row order is irrelevant to the fingerprint (some tables have composite keys): each row set is serialised and sorted.
+  const set = async (q: Promise<unknown[]>) => (await q).map((x) => JSON.stringify(x, (_k, v: unknown) => (typeof v === "bigint" ? v.toString() : v))).sort();
+  const rows = {
+    ruleset: await p.ruleset.findUnique({ where: { id: rulesetId } }),
+    releases: await p.rulesetRelease.findMany({ where: { rulesetId }, orderBy: { id: "asc" } }),
+    manifests: await set(p.rulesetManifest.findMany({ where: { rulesetId } })),
+    pins: await set(p.rulesetManifestEntry.findMany({ where: { manifest: { rulesetId } } })),
+    changeSets: await p.changeSet.findMany({ where: { rulesetId }, orderBy: { id: "asc" } }),
+    versions: await set(p.entityVersion.findMany({ where: { manifestEntries: { some: { manifest: { rulesetId } } } } })),
+    ...(c === null
+      ? {}
+      : {
+          character: await p.character.findUnique({ where: { id: characterId! } }),
+          skills: await set(p.characterSkillRank.findMany(c)),
+          stats: await set(p.characterStatAllocation.findMany(c)),
+          advancements: await set(p.characterAdvancement.findMany(c)),
+          resources: await set(p.characterResourceState.findMany(c)),
+          playState: await p.characterPlayState.findUnique({ where: { characterId: characterId! } }),
+          runtime: await p.characterPlayRuntime.findUnique({ where: { characterId: characterId! } }),
+          events: await p.characterPlayEvent.findMany({ where: { characterId: characterId! }, orderBy: { sequence: "asc" } }),
+          loadout: await p.characterWeaponLoadout.findUnique({ where: { characterId: characterId! } }),
+          notes: await p.characterSheetNotes.findUnique({ where: { characterId: characterId! } }),
+          abilities: await set(p.characterSignatureAbility.findMany(c)),
+          spellRevisions: await set(p.characterSignatureSpellRevision.findMany({ where: { ability: { characterId: characterId! } } })),
+          maneuverRevisions: await set(p.characterSignatureManeuverRevision.findMany({ where: { ability: { characterId: characterId! } } })),
+        }),
+  };
+  // One digest per table keeps a failed Playwright comparison attributable.
+  return Object.entries(rows).map(([table, data]) => table + ": " + createHash("sha256").update(JSON.stringify(data, (_k, v: unknown) => typeof v === "bigint" ? v.toString() : v)).digest("hex")).join("\n");
 }

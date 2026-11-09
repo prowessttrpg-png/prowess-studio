@@ -37,7 +37,7 @@ You need the repository, Node 22, pnpm and a local PostgreSQL (user `postgres`, 
 
    Open `http://127.0.0.1:3000`.
 
-To start over at any time: `pnpm playtest:wo12 prepare <the same run id>` (it removes that run first). To remove everything afterwards: `pnpm playtest:wo12 cleanup`.
+To start over at any time: `pnpm playtest:wo12 prepare <the same run id>` (it removes that run first). To remove your run afterwards: `pnpm playtest:wo12 cleanup <your run id>`. A missing run id is refused.
 
 ## 1. Designer: revise one rule (Compendium Admin)
 
@@ -111,6 +111,26 @@ Nothing on these pages should change anything.
 3. **Attacks** → *Slash* → **Inspect damage**: the Weapon revision, "Power Multiplier STR 6 ÷ Power 6 → ×2", **2d8**.
 4. Open the Spell → **Inspect cost**: the Effect line links to *Release 2*'s entry; Final MP **3**.
 
+5. Open **Rules Inspector** at `/developer/rules` in a second tab. Choose **Release**, select this run’s Ruleset and its exact **Release 2**. The Character Sheet shows maximum ME 4 and MP 7, and the finalized Spell costs 3 MP. For this build, inspect the predicted payment starting with both pools full.
+6. Open **Import plan JSON**, paste the plan below, choose **Use plan JSON**, then **Run Evaluation**. Select **ward · RESOURCE_PAYMENT_APPLY** in the timeline. In **Overview**, write down the remaining ME and MP (1 and 7). Under **Provenance**, confirm the Release ID matches the Character. This evaluation previews the payment without creating a play event.
+
+```json
+{
+  "steps": [{
+    "stepKey": "ward", "order": 1, "operation": "RESOURCE_PAYMENT_APPLY",
+    "input": {
+      "snapshot": {"resources": [
+        {"resourceKey": "ME", "kind": "POOL", "minimum": 0, "current": 4, "maximum": 4, "reservedCapacity": 0},
+        {"resourceKey": "MP", "kind": "POOL", "minimum": 0, "current": 7, "maximum": 7, "reservedCapacity": 0}
+      ]},
+      "payment": {"costKey": "MP", "listedAmount": 3, "sources": [
+        {"resourceKey": "ME", "order": 1}, {"resourceKey": "MP", "order": 2}
+      ]}
+    }
+  }]
+}
+```
+
 ## 8. Play a short combat (Play Workspace)
 
 Your Character Die is a **d4**: type a physical die face from 1 to 4.
@@ -121,7 +141,7 @@ Your Character Die is a **d4**: type a physical die face from 1 to 4.
 4. **Movement** → **Spend movement…** → 5 ft, normal → **Commit**.
 5. **Weapon Attacks** → *Long Blade — Slash* → die face **3**, target Dodge **3** → **Commit**. Expect *hit*, and **Damage authorised: 2d8 slashing — NOT APPLIED**. AP 1 / 4.
 6. **End my turn** → **End round** → **Start round** → **Start my turn** (AP back to 4).
-7. **Spells** → *Steady Ward* → **Commit**. ME pays 3 (ME 4 → 1). **Active Magic** shows the ward **active**, sustained.
+7. **Spells** → *Steady Ward* → **Commit**. Check the committed Spell entry in the Activity Log and compare the resource balances to your Rules Inspector result: ME 1, MP 7. **Active Magic** shows the ward **active**, sustained.
 
 **Pause in the middle of the turn.** Close the tab. Open Studio again → **Characters** → **Resume play**. Write down AP, MP, ME, the Activity Log and Active Magic. Close and resume **again**: everything must be identical, and nothing new appears in the log.
 

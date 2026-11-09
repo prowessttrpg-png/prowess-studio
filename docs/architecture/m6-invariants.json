@@ -2190,7 +2190,7 @@
     "id": "M6-I180",
     "title": "Repeatable Run-Scoped Playtest Preparation",
     "group": "Governance",
-    "meaning": "The WO12 preparation command refuses any database that is not a local *_test database or not fully migrated, removes its own run before seeding, seeds only the isolated Release 1 background (no Character, ChangeSet, Release 2, ability or play event) under test-only `test.m6wo12.<run>.*` keys, and cleans up exactly the requested run (or every WO12 run).",
+    "meaning": "The WO12 preparation command refuses any database that is not a local *_test database or not fully migrated, removes its own run before seeding, seeds only the isolated Release 1 background (no Character, ChangeSet, Release 2, ability or play event) under test-only `test.m6wo12.<run>.*` keys, and cleans up exactly the requested run; a missing run id is refused.",
     "guards": [
       "packages/prowess-db/tests/integration/m6-wo12-vertical-slice.test.ts",
       "apps/studio/tests/unit/m6-wo12-static.test.ts",

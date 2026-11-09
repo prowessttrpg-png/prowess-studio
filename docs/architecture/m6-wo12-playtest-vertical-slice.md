@@ -33,7 +33,7 @@ WO1–WO11 each proved one capability. WO12 proves they connect: one designer ch
 | V06 | Abilities → New Signature Spell → Arcane Authority, Self, the revised Effect, Sustained → Finalize | 3 MP (R2's price), Active Revision 1; every component link is R2's revision |
 | V07 | New Signature Maneuver → Add the Long Blade Slash Action → Effect → Duration → Finalize | the real builder and backend; 2 AP / 5 MP; Revision 1 on R2 |
 | V08 | Sheet, Card Library, Card print | no write request; fingerprint unchanged |
-| V09 | Attacks → Inspect damage on Slash; Spell → Inspect cost | the Weapon revision, the server's damage steps and expression; the Effect link is R2's entry at revision 2; no write; fingerprint unchanged |
+| V09 | Attacks → Inspect damage on Slash; Spell → Inspect cost; Rules Inspector → exact R2 → evaluate the ward payment | the Weapon revision, the server's damage steps and expression; the Effect link is R2's entry at revision 2; Inspector ME/MP balances match the subsequent committed Spell event; no write; fingerprint unchanged |
 | V10 | Play: Begin combat → Start round → Start turn → Move (preview, then commit) → 5 ft movement → the Slash Attack (raw d4 face 3, GM Dodge 3) → End turn / round → Start round / turn → cast the Spell | preview spends nothing and advances no version; AP / MP / ME per operation; the authorised damage is the inspected expression and NOT APPLIED; the ward is ACTIVE Active Magic; event ids recorded |
 | V11 | Close mid-turn with the ward held; open the Library twice in fresh sessions → Resume play | identical versions, resources, events and Active Magic both times; no write; fingerprint unchanged |
 | V12 | Continue: the Maneuver (its Attack Roll asked for, then answered with a raw face) → end turn / round → next turn → Pay Sustain upkeep → Dismiss → end turn / round / combat | nothing paid while input is missing; maintenance and dismissal recorded; the UI history equals the ledger (sequences 1…N, every event on R2, final runtime version = last event's) |
@@ -71,12 +71,12 @@ No schema change, migration, route or `@prowess/db` export was added; no `@prowe
 ```
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/prowess_studio_playtest_test pnpm playtest:wo12 prepare [runId]
 DATABASE_URL=… pnpm playtest:wo12 status
-DATABASE_URL=… pnpm playtest:wo12 cleanup [runId]
+DATABASE_URL=… pnpm playtest:wo12 cleanup <runId>
 ```
 
 - Refuses any database that is not a local `*_test` database (the shared guard) and any database whose migrations are not all applied.
 - `prepare` removes the same run first (repeatable), seeds about 400 test-only Definitions and publishes Release 1, and writes `.playtest/m6-wo12-<run>.json` (git-ignored). It creates no Character, ChangeSet, Release 2, ability or play event — those are the tester's.
-- `cleanup` removes one run, or every WO12 run, with the shared fixture teardown (which lifts the append-only guards only for the rows it deletes).
+- `cleanup <runId>` removes that run only with the shared fixture teardown (which lifts the append-only guards only for the rows it deletes).
 - The journey uses the same function (`preparePlaytestWorld`), so the human and the automated path start from identical worlds.
 
 ## 6. CI wiring

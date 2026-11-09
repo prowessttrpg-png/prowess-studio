@@ -88,7 +88,8 @@ describe("M6-WO12 permanent playtest vertical-slice contracts", () => {
     expect(prepare.indexOf("await cleanupCharacterWorlds(`${prefix}.`);")).toBeLessThan(prepare.indexOf("await seedCharacterRelease("));
     expect(prepare).not.toMatch(/createCharacter|createChangeSet|publishRulesetRelease|publishNextRelease|SignatureSpell|SignatureManeuver|commitCharacterPlay/);
     const cleanup = namedFunction(fx, "cleanupPlaytestWorlds").getText();
-    expect(cleanup).toContain("const prefix = runId === undefined ? `${PLAYTEST_PREFIX}.` : `${runPrefix(assertRunId(runId))}.`;");
+    expect(cleanup).toContain("const prefix = `${runPrefix(assertRunId(runId))}.`;");
+    expect(cli.indexOf('if (command === "cleanup" && (!arg || process.argv.length !== 4)) usage(2);')).toBeGreaterThanOrEqual(0);
     expect(read(PREP_FIXTURE)).toContain('export const PLAYTEST_PREFIX = "test.m6wo12";');
   });
 

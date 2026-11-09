@@ -24,7 +24,7 @@ import { assertRunningAgainstTestDatabase } from "../../src/testDatabaseGuard";
 import { getTestDatabaseUrl } from "./env";
 import { publishNextRelease, refOf, type CharacterReleaseWorld, type Pin } from "../fixtures/m6-wo3-character-release";
 import { martialCharacter, spellDraft } from "../fixtures/m6-wo8-maneuvers";
-import { cleanupPlaytestWorlds, playtestStatus, preparePlaytestRelease, REVISED_CONTENT_KEY, runPrefix } from "../fixtures/m6-wo12-playtest";
+import { cleanupPlaytestWorlds, fingerprint, playtestStatus, preparePlaytestRelease, REVISED_CONTENT_KEY, runPrefix } from "../fixtures/m6-wo12-playtest";
 
 /**
  * PAS-10 M6-WO12 — the playtest vertical slice at the service level over real PostgreSQL (the browser journey proves the
@@ -90,6 +90,25 @@ describe("M6-WO12 playtest vertical slice — service level", () => {
     expect(again.summary.revised.entityId).toBe(world.pins.get(REVISED_CONTENT_KEY)!.entityId);
     await expect(preparePlaytestRelease("Not A Run")).rejects.toThrow(/run id/);
     await expect(cleanupPlaytestWorlds("x")).rejects.toThrow(/run id/);
+  }, TIMEOUT);
+
+  it("M6-I180 an unrelated run cannot invalidate read evidence or delete another run's Character or history", async () => {
+    const otherRun = RUN + "b";
+    const { character } = await martialCharacter(world, "Surviving Character");
+    expect((await commit(character.id, { kind: "NOTE", category: "GENERAL", text: "Surviving event" })).committed).toBe(true);
+    const before = await fingerprint(character.id, world.rulesetId);
+    const globalCount = await prisma.entityVersion.count();
+    try {
+      await preparePlaytestRelease(otherRun);
+      expect(await prisma.entityVersion.count()).toBeGreaterThan(globalCount);
+      expect(await fingerprint(character.id, world.rulesetId)).toBe(before);
+      await expect(cleanupPlaytestWorlds("")).rejects.toThrow(/run id/);
+    } finally {
+      await cleanupPlaytestWorlds(otherRun);
+    }
+    expect(await fingerprint(character.id, world.rulesetId)).toBe(before);
+    expect((await commit(character.id, { kind: "NOTE", category: "GENERAL", text: "New protected event" })).committed).toBe(true);
+    expect(await fingerprint(character.id, world.rulesetId)).not.toBe(before);
   }, TIMEOUT);
 
   it("M6-I181 an IN_REVIEW revision cannot be published; the reviewer's lifecycle approval makes the same ChangeSet publishable", async () => {

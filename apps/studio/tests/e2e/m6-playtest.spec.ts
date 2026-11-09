@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { execSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -34,7 +33,8 @@ interface World {
 }
 interface Prep {
   preparePlaytestWorld(runId: string): Promise<World>;
-  cleanupPlaytestWorlds(runId?: string): Promise<number>;
+  fingerprint(characterId: string | null, rulesetId: string): Promise<string>;
+  cleanupPlaytestWorlds(runId: string): Promise<number>;
 }
 type Row = { readonly id: string; readonly title: string; readonly status: "passed"; readonly evidence: Record<string, unknown> };
 const runtimeImport = (specifier: string): Promise<unknown> => import(specifier);
@@ -58,6 +58,7 @@ export const WO12_STEPS = [
 
 let db: Db;
 let prep: Prep;
+let fingerprint: Prep["fingerprint"];
 const evidence: Array<{ run: number; world: string; rows: Row[]; seconds: number }> = [];
 const prepared: string[] = [];
 
@@ -67,6 +68,7 @@ test.beforeAll(async () => {
   db = await import("@prowess/db");
   db.assertRunningAgainstTestDatabase(process.env.DATABASE_URL as string);
   prep = (await runtimeImport("../../../../packages/prowess-db/tests/fixtures/m6-wo12-playtest")) as Prep;
+  fingerprint = prep.fingerprint;
 });
 test.afterAll(async () => {
   test.setTimeout(300_000);
@@ -89,38 +91,6 @@ function writeEvidence() {
   writeFileSync(file, `${JSON.stringify({ gate: "M6-WO12", spec: "tests/e2e/m6-playtest.spec.ts", sha: commitSha(), steps: WO12_STEPS.map(([id, title]) => ({ id, title })), runs: evidence, writtenAt: new Date().toISOString() }, null, 2)}\n`);
 }
 
-/** A byte-level fingerprint of every row a read-only step could touch: the Character's rows and the Ruleset's governance rows. */
-async function fingerprint(characterId: string | null, rulesetId: string): Promise<string> {
-  const p = db.prisma;
-  const c = characterId === null ? null : { where: { characterId } };
-  // Row order is irrelevant to the fingerprint (some tables have composite keys): each row set is serialised and sorted.
-  const set = async (q: Promise<unknown[]>) => (await q).map((x) => JSON.stringify(x, (_k, v: unknown) => (typeof v === "bigint" ? v.toString() : v))).sort();
-  const rows = {
-    ruleset: await p.ruleset.findUnique({ where: { id: rulesetId } }),
-    releases: await p.rulesetRelease.findMany({ where: { rulesetId }, orderBy: { id: "asc" } }),
-    manifests: await p.rulesetManifest.count({ where: { rulesetId } }),
-    changeSets: await p.changeSet.findMany({ where: { rulesetId }, orderBy: { id: "asc" } }),
-    versions: await p.entityVersion.count(),
-    ...(c === null
-      ? {}
-      : {
-          character: await p.character.findUnique({ where: { id: characterId! } }),
-          skills: await set(p.characterSkillRank.findMany(c)),
-          stats: await set(p.characterStatAllocation.findMany(c)),
-          advancements: await set(p.characterAdvancement.findMany(c)),
-          resources: await set(p.characterResourceState.findMany(c)),
-          playState: await p.characterPlayState.findUnique({ where: { characterId: characterId! } }),
-          runtime: await p.characterPlayRuntime.findUnique({ where: { characterId: characterId! } }),
-          events: await p.characterPlayEvent.findMany({ where: { characterId: characterId! }, orderBy: { sequence: "asc" } }),
-          loadout: await p.characterWeaponLoadout.findUnique({ where: { characterId: characterId! } }),
-          notes: await p.characterSheetNotes.findUnique({ where: { characterId: characterId! } }),
-          abilities: await set(p.characterSignatureAbility.findMany(c)),
-          spellRevisions: await set(p.characterSignatureSpellRevision.findMany({ where: { ability: { characterId: characterId! } } })),
-          maneuverRevisions: await set(p.characterSignatureManeuverRevision.findMany({ where: { ability: { characterId: characterId! } } })),
-        }),
-  };
-  return createHash("sha256").update(JSON.stringify(rows, (_k, v: unknown) => (typeof v === "bigint" ? v.toString() : v))).digest("hex");
-}
 /** Records every non-GET request a page sends (read-only steps must send none). */
 function writesOf(page: Page): string[] {
   const writes: string[] = [];
@@ -412,6 +382,7 @@ async function journey(browser: Browser, run: number): Promise<{ world: World; r
   // ---- V07 — the Maneuver builder on the real backend, linked to the exact equipped Attack. ----
   let maneuverId = "";
   let attackExpression = "";
+  let inspectedPayment: { ME: number; MP: number };
   {
     await p2.goto(`/characters/${characterId}/maneuvers/new`);
     await p2.getByLabel("Maneuver name").fill(maneuverName);
@@ -462,6 +433,9 @@ async function journey(browser: Browser, run: number): Promise<{ world: World; r
     const before = await fingerprint(characterId, w.rulesetId);
     const writes = writesOf(p2);
     await p2.goto(`/characters/${characterId}`);
+    // The test build starts at full capacity. Take the actual sheet capacities into the Lab.
+    const capacity = async (key: string) => Number((await p2.getByTestId(`sheet-resource-max-${key}`).innerText()).replace("/", "").trim());
+    const mana = { ME: await capacity("ME"), MP: await capacity("MP") };
     await p2.getByRole("tab", { name: "Attacks" }).click();
     // The Slash Attack's damage inspector: the exact Weapon / Attack revisions this Release pins and the server's steps.
     const slashRow = p2.getByTestId("character-view-attacks").locator("tr").filter({ hasText: "Slash" }).first();
@@ -482,9 +456,41 @@ async function journey(browser: Browser, run: number): Promise<{ world: World; r
     const effectLink = costRows.getByTestId("spell-component-link").filter({ hasText: revisedName });
     await expect(effectLink).toHaveAttribute("data-version", revisionId);
     await expect(effectLink).toHaveAttribute("href", `/compendium/rulesets/${w.rulesetId}/releases/${release2Id}/entities/${w.revised.entityId}`);
+    const listedMp = Number.parseInt(await p2.getByTestId("spell-final-mp").first().innerText(), 10);
+    expect(listedMp).toBe(3);
+    // In a separate tab, run the same ME-first payment on the pinned Release.
+    const lab = await p2.context().newPage();
+    await lab.goto("/developer/rules");
+    await lab.getByRole("button", { name: "Release", exact: true }).click();
+    const rulesets = lab.getByLabel("Ruleset", { exact: true });
+    await expect.poll(() => rulesets.locator("option").count()).toBeGreaterThan(1);
+    while (await rulesets.locator(`option[value="${w.rulesetId}"]`).count() === 0) {
+      const count = await rulesets.locator("option").count();
+      await lab.getByRole("button", { name: "Load more Rulesets" }).click();
+      await expect.poll(() => rulesets.locator("option").count()).toBeGreaterThan(count);
+    }
+    await rulesets.selectOption(w.rulesetId);
+    await lab.getByLabel("Exact Release", { exact: true }).selectOption(release2Id);
+    const plan = { steps: [{ stepKey: "ward", order: 1, operation: "RESOURCE_PAYMENT_APPLY", input: {
+      snapshot: { resources: Object.entries(mana).map(([resourceKey, maximum]) => ({
+        resourceKey, kind: "POOL", minimum: 0, maximum, current: maximum, reservedCapacity: 0,
+      })) },
+      payment: { costKey: "MP", listedAmount: listedMp, sources: [{ resourceKey: "ME", order: 1 }, { resourceKey: "MP", order: 2 }] },
+    } }] };
+    await lab.getByText("Import plan JSON", { exact: true }).click();
+    await lab.getByLabel("Plan JSON", { exact: true }).fill(JSON.stringify(plan));
+    await lab.getByRole("button", { name: "Use plan JSON" }).click();
+    await lab.getByRole("button", { name: "Run Evaluation" }).click();
+    await lab.getByRole("list", { name: "Executed step timeline" }).getByRole("button", { name: /ward · RESOURCE_PAYMENT_APPLY/ }).click();
+    const result = lab.getByTestId("resulting-resources");
+    const remaining = async (key: string) => Number(await result.getByRole("row").filter({ has: lab.getByRole("cell", { name: key, exact: true }) }).getByRole("cell").last().innerText());
+    inspectedPayment = { ME: await remaining("ME"), MP: await remaining("MP") };
+    await lab.getByRole("tab", { name: "PROVENANCE", exact: true }).click();
+    await expect(lab.getByRole("region", { name: "Selected step inspector" })).toContainText(release2Id);
+    await lab.close();
     expect(writes).toEqual([]);
     expect(await fingerprint(characterId, w.rulesetId)).toBe(before);
-    pass("V09", { attackInspector: { weaponVersion: w.longBladeVersionId, steps, power, expression: attackExpression }, spellCost: { effectVersion: revisionId, release: release2Id, finalMp: 3 }, writes: 0, fingerprintUnchanged: before });
+    pass("V09", { rulesInspector: { release2Id, mana, listedMp, remaining: inspectedPayment }, attackInspector: { weaponVersion: w.longBladeVersionId, steps, power, expression: attackExpression }, spellCost: { effectVersion: revisionId, release: release2Id, finalMp: 3 }, writes: 0, fingerprintUnchanged: before });
   }
   await s2.close();
 
@@ -549,6 +555,14 @@ async function journey(browser: Browser, run: number): Promise<{ world: World; r
     await play.getByTestId("play-tab-magic").click();
     await expect(play.getByTestId("play-effect")).toHaveAttribute("data-status", "ACTIVE");
     const events = await ledger(characterId);
+    const castEvent = await db.prisma.characterPlayEvent.findUniqueOrThrow({ where: { id: events.at(-1)!.id } });
+    expect(castEvent.operationKind).toBe("SPELL");
+    expect(castEvent.rulesetReleaseId).toBe(release2Id);
+    const castRecord = castEvent.record as unknown as { resourcesAfter: { resourceKey: string; current: number }[] };
+    for (const key of ["ME", "MP"] as const) {
+      expect(castRecord.resourcesAfter.find(r => r.resourceKey === key)?.current).toBe(inspectedPayment[key]);
+    }
+    v10.inspectorPaymentMatch = { eventId: castEvent.id, ...inspectedPayment };
     v10.mp0 = mp0;
     v10.apMax = apMax;
     v10.eventIds = events.map((e) => e.id);

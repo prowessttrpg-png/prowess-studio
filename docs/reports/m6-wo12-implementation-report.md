@@ -6,6 +6,12 @@ Result label: **playtest verified on an isolated Release.**
 
 Architecture: `docs/architecture/m6-wo12-playtest-vertical-slice.md`. Tester walkthrough: `docs/playtest/m6-wo12-tester-walkthrough.md`. Invariants: M6-I180 – M6-I189.
 
+### Run 268 repair on PR #74
+
+The results below describe the original local checkpoint. PR CI on that checkpoint found a V08 fingerprint mismatch after Sheet / Cards / print, with zero browser writes. Its aggregate hash could not identify the changed row retrospectively. The old witness included a global EntityVersion count. The revised integration test demonstrates the interference with two real fixture worlds: preparing the second world changes that count while the first world's protected rows remain identical. The new witness hashes each table separately and includes the exact Manifest pins and Version rows for the selected Ruleset. A committed event in the protected Character must still change the witness.
+
+The walkthrough now exercises the actual Rules Inspector on R2 and compares its ME-first ward-payment result with the persisted Spell event. Cleanup requires a valid run ID; the isolation test checks the surviving world's Character, Release and ledger. The multi-screen WO8 Maneuver, WO11 draft/resume and baseline WO7 simple Spell journeys have individual 120-second budgets following 30-second deadlines in run 268. Locator assertions, retries, both required complete WO12 runs and the same-commit evidence verifier are retained. Use the final delivery note and the corrected SHA's CI for verification results.
+
 ## 1. Baseline
 
 | Item | Value |

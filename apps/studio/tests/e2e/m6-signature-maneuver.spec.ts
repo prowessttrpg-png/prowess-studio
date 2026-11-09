@@ -44,6 +44,7 @@ test.describe("WO8 real-browser UI with approved isolated Release/API fixtures",
     await builderStep(page, "Finalize"); await expect(page.getByRole("button", { name: "Finalize Maneuver", exact: true })).toBeDisabled();
   });
   test("6 finalizes, rebuilds, preserves current history on invalid draft, retires and presents the current sheet row", async ({ page }) => {
+    test.setTimeout(120_000); // Multi-screen browser journey, including navigation and recalculation.
     const api = await maneuverUiApi(page, "basic", true); await page.goto(builderUrl); await builderStep(page, "Finalize");
     await page.getByRole("button", { name: "Finalize Maneuver", exact: true }).click(); await expect(page.getByTestId("maneuver-detail")).toBeVisible();
     await expect(page.getByTestId("maneuver-history-revision")).toContainText("Revision 1 (current)");

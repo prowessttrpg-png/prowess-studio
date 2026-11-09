@@ -3,7 +3,7 @@
  *
  *   DATABASE_URL=postgresql://postgres:postgres@localhost:5432/prowess_studio_playtest_test pnpm playtest:wo12 prepare [runId]
  *   DATABASE_URL=… pnpm playtest:wo12 status
- *   DATABASE_URL=… pnpm playtest:wo12 cleanup [runId]      (no runId: every WO12 run)
+ *   DATABASE_URL=… pnpm playtest:wo12 cleanup <runId>
  *
  * Refuses any database that is not a local `*_test` database (the shared test-database guard) and any database whose
  * migrations are not fully applied. `prepare` writes `.playtest/m6-wo12-<runId>.json` (git-ignored) and prints what the
@@ -18,10 +18,11 @@ const [command = "help", arg] = process.argv.slice(2);
 const url = process.env.DATABASE_URL;
 
 function usage(code: number): never {
-  console.log("Usage: DATABASE_URL=<local *_test database> pnpm playtest:wo12 prepare [runId] | status | cleanup [runId]");
+  console.log("Usage: DATABASE_URL=<local *_test database> pnpm playtest:wo12 prepare [runId] | status | cleanup <runId>");
   process.exit(code);
 }
 if (!["prepare", "status", "cleanup"].includes(command)) usage(command === "help" ? 0 : 2);
+if (command === "cleanup" && (!arg || process.argv.length !== 4)) usage(2);
 if (url === undefined || url === "") {
   console.error("DATABASE_URL is required and must name a disposable local *_test database (for example prowess_studio_playtest_test).");
   process.exit(2);
@@ -59,9 +60,9 @@ try {
     const rows = await fx.playtestStatus();
     if (rows.length === 0) console.log("No WO12 playtest runs in this database.");
     for (const r of rows) console.log(`${r.runId}\t${r.ruleset}\treleases=${r.releases}\tcharacters=${r.characters}\tchangeSets=${r.changeSets}`);
-  } else {
+  } else if (arg !== undefined) {
     const n = await fx.cleanupPlaytestWorlds(arg);
-    console.log(`Removed ${n} WO12 playtest Ruleset(s)${arg ? ` for run ${arg}` : ""} and everything built on them.`);
+    console.log(`Removed ${n} WO12 playtest Ruleset(s) for run ${arg} and everything built on them.`);
   }
 } finally {
   await db.prisma.$disconnect();

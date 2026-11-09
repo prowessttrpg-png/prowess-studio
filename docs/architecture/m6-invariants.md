@@ -1099,7 +1099,7 @@ Required by the permanent M6-WO2 gate (`apps/studio/tests/unit/m6-wo2-static.tes
 ### M6-I180 — Repeatable Run-Scoped Playtest Preparation
 
 - **Group:** Governance
-- **Meaning:** The WO12 preparation command refuses any database that is not a local *_test database or not fully migrated, removes its own run before seeding, seeds only the isolated Release 1 background (no Character, ChangeSet, Release 2, ability or play event) under test-only `test.m6wo12.<run>.*` keys, and cleans up exactly the requested run (or every WO12 run).
+- **Meaning:** The WO12 preparation command refuses any database that is not a local *_test database or not fully migrated, removes its own run before seeding, seeds only the isolated Release 1 background (no Character, ChangeSet, Release 2, ability or play event) under test-only `test.m6wo12.<run>.*` keys, and cleans up exactly the requested run; a missing run id is refused.
 - **Guards:** `packages/prowess-db/tests/integration/m6-wo12-vertical-slice.test.ts`, `apps/studio/tests/unit/m6-wo12-static.test.ts`, `scripts/m6-wo12-negative-controls.mjs`
 
 ### M6-I181 — Reviewer Approval Of The Proposed Revision
