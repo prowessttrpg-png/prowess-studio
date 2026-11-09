@@ -5,7 +5,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: "list",
+  // M6-WO12: the JSON report is the authoritative record scripts/ci/verify-browser-evidence.mjs checks in the e2e job.
+  reporter: [["list"], ["json", { outputFile: "playwright-report/results.json" }]],
   use: {
     baseURL: "http://127.0.0.1:3100",
     trace: "on-first-retry",

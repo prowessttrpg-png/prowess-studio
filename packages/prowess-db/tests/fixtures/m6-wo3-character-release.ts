@@ -74,7 +74,7 @@ export interface CharacterReleaseWorld {
 }
 
 /** Seeds and publishes Release 1. Every stored canonical key is `${prefix}.<content key>_<tag>`. */
-export async function seedCharacterRelease(prefix: string, label = "R1", options: { characterContent?: boolean; advancement?: boolean; weapons?: boolean; spells?: boolean; maneuvers?: boolean } = {}): Promise<CharacterReleaseWorld> {
+export async function seedCharacterRelease(prefix: string, label = "R1", options: { characterContent?: boolean; advancement?: boolean; weapons?: boolean; spells?: boolean; maneuvers?: boolean; rulesetName?: string } = {}): Promise<CharacterReleaseWorld> {
   let progress = 0;
   const tag = `${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
   const key = (k: string) => `${prefix}.${k.replace(/\./g, "_")}_${tag}`;
@@ -149,7 +149,7 @@ export async function seedCharacterRelease(prefix: string, label = "R1", options
     }
   }
 
-  const r = await createRuleset({ canonicalKey: key("ruleset"), name: `M6-WO3 Characters ${tag}`, channel: "CORE_PLAYTEST", versionLabel: label });
+  const r = await createRuleset({ canonicalKey: key("ruleset"), name: options.rulesetName ?? `M6-WO3 Characters ${tag}`, channel: "CORE_PLAYTEST", versionLabel: label });
   await submitRulesetForReview(r.id);
   await approveRuleset(r.id);
   const policy = await createCanonPolicy(r.id, { name: `P ${tag}`, authorities: [] });

@@ -502,7 +502,7 @@ jobs:
           PROWESS_EXPECT_CONTROLS=21 node scripts/m5-wo3-negative-controls.mjs
 
   controls-2:
-    name: Gates — M5-WO4, canon rulings, M5-WO5, M6-WO1, M6-WO2, M6-WO3, M6-WO4, M6-WO5, M6-WO6, M6-WO7, M6-WO8, M6-WO9, M6-WO10, M6-WO11
+    name: Gates — M5-WO4, canon rulings, M5-WO5, M6-WO1, M6-WO2, M6-WO3, M6-WO4, M6-WO5, M6-WO6, M6-WO7, M6-WO8, M6-WO9, M6-WO10, M6-WO11, M6-WO12
     needs: [unit-packages, unit-game, unit-studio, db-api, db-integration]
     runs-on: ubuntu-latest
     steps:
@@ -593,6 +593,10 @@ jobs:
         run: |
           node scripts/ci/verify-gate.mjs M6-WO11 packages/prowess-db/tests/integration/m6-wo11-library.test.ts packages/prowess-db/tests/integration/m6-wo3-character.test.ts apps/studio/tests/unit/m6-wo11-static.test.ts apps/studio/tests/unit/m6-wo11-library-ui.test.tsx apps/studio/tests/unit/m6-wo3-character-ui.test.tsx apps/studio/tests/integration/m6-wo11-library-api.test.ts
           PROWESS_EXPECT_CONTROLS=25 node scripts/m6-wo11-negative-controls.mjs
+      - name: M6-WO12 — First Complete Vertical Slice
+        run: |
+          node scripts/ci/verify-gate.mjs M6-WO12 packages/prowess-db/tests/integration/m6-wo12-vertical-slice.test.ts packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts apps/studio/tests/unit/m6-wo12-static.test.ts apps/studio/tests/unit/m6-wo12-review-ui.test.tsx apps/studio/tests/unit/m6-wo12-browser-evidence.test.ts apps/studio/tests/unit/m2-ui-static.test.ts
+          PROWESS_EXPECT_CONTROLS=25 node scripts/m6-wo12-negative-controls.mjs
 
   controls-3:
     name: Gates — M5-WO6…WO10
@@ -859,6 +863,11 @@ jobs:
         env:
           PROWESS_E2E_PREBUILT: "1"
         run: pnpm run test:e2e
+      # M6-WO12: absent, skipped, failing or wrong-commit browser evidence of the journey fails this job (and so Tier 2). It reads
+      # the Playwright JSON report and the journey's V01–V12 evidence of the run above; nothing is built or run again.
+      - name: M6-WO12 browser evidence (vertical slice journey)
+        if: ${{ !cancelled() }}
+        run: node scripts/ci/verify-browser-evidence.mjs M6-WO12
 
   # ---- Tier summaries ---------------------------------------------------------------------------------------------------
   tier-1:

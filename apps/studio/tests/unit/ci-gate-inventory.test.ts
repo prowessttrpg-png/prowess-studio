@@ -19,7 +19,7 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
     expect(checkInventory(ROOT)).toEqual([]);
   });
 
-  it("keeps all historical 669 controls (617 + WO10's 52) and adds WO11's 25: 694 controls across 25 scripts", () => {
+  it("keeps all historical 694 controls (669 + WO11's 25) and adds WO12's 25: 719 controls across 26 scripts", () => {
     const counts = Object.fromEntries(inventory.gates.filter((g) => g.controls).map((g) => [g.controls!.script, g.controls!.count]));
     expect(counts).toEqual({
       "scripts/m4-final-negative-controls.mjs": 3,
@@ -47,9 +47,10 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
       "scripts/m6-wo9-negative-controls.mjs": 46,
       "scripts/m6-wo10-negative-controls.mjs": 52,
       "scripts/m6-wo11-negative-controls.mjs": 25,
+      "scripts/m6-wo12-negative-controls.mjs": 25,
     });
-    expect(Object.values(counts).reduce((sum, count) => sum + count, 0)).toBe(694);
-    expect(inventory.gates.length).toBe(43);
+    expect(Object.values(counts).reduce((sum, count) => sum + count, 0)).toBe(719);
+    expect(inventory.gates.length).toBe(44);
   });
 
   it("WO8 remains a Tier 2/3 gate over every required domain, historical, database, API, UI and static suite", () => {
@@ -176,5 +177,18 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
     expect(readFileSync(path.join(ROOT, ".github/workflows/ci.yml"), "utf8")).not.toContain("test-fixtures");
     // The architecture rules still FORBID importing it from @prowess/rules and @prowess/game (defence if re-added).
     expect(readFileSync(path.join(ROOT, "scripts/check-architecture.mjs"), "utf8")).not.toContain('"packages/prowess-test-fixtures"');
+  });
+  it("WO12 is a Tier 2/3 gate over its DB, play, static, review UI, browser-evidence and M2 audit suites; its browser evidence is a check of the e2e job", () => {
+    const gate = inventory.gates.find((g) => g.id === "M6-WO12");
+    expect(gate).toMatchObject({ name: "M6-WO12 — First Complete Vertical Slice", job: "controls-2", tiers: [2, 3], controls: { script: "scripts/m6-wo12-negative-controls.mjs", count: 25, kind: "mutation" } });
+    expect(gate!.tests).toEqual([
+      "packages/prowess-db/tests/integration/m6-wo12-vertical-slice.test.ts",
+      "packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts",
+      "apps/studio/tests/unit/m6-wo12-static.test.ts",
+      "apps/studio/tests/unit/m6-wo12-review-ui.test.tsx",
+      "apps/studio/tests/unit/m6-wo12-browser-evidence.test.ts",
+      "apps/studio/tests/unit/m2-ui-static.test.ts",
+    ]);
+    expect(inventory.checks).toContainEqual(expect.objectContaining({ id: "M6-WO12-BROWSER-EVIDENCE", job: "e2e" }));
   });
 });

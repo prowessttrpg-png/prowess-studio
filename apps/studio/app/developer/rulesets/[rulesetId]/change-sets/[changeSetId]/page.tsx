@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { approveChangeSet, getChangeSet, getImpact, rejectChangeSet, submitChangeSetForReview } from "../../../../../../src/api-client";
 import { EntityLabel, VersionLabel } from "../../../_components/pickers";
+import { RevisionReview } from "../../../_components/revision-review";
 import { ConfirmButton, ErrorPanel, IdLine, ImmutableNote, Resource, StatusBadge, useResource } from "../../../_components/primitives";
 import { SectionCrumbs, sectionHref, useWorkspace } from "../../../_components/workspace";
 import { changeSetCommands, formatDate, groupImpactItems, OPERATION_HELP } from "../../../_lib/presentation";
@@ -49,6 +50,7 @@ export default function ChangeSetDetailPage() {
                   {o.targetEntityId ? <p>Entity: <EntityLabel id={o.targetEntityId} /></p> : null}
                   {o.fromEntityVersionId ? <p>From: <VersionLabel id={o.fromEntityVersionId} /></p> : null}
                   {o.toEntityVersionId ? <p>To: <VersionLabel id={o.toEntityVersionId} /></p> : null}
+                  {o.toEntityVersionId && c.status !== "REJECTED" ? <RevisionReview versionId={o.toEntityVersionId} /> : null}
                   {o.targetManifestId ? <p>Analyzed Manifest: <Link href={sectionHref(ruleset.id, "manifests", o.targetManifestId)}>{o.targetManifestId.slice(0, 8)}</Link></p> : null}
                   {o.description ? <p className="gov-muted">{o.description}</p> : null}
                 </li>
