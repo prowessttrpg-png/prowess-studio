@@ -14,6 +14,8 @@ The walkthrough now exercises the actual Rules Inspector on R2 and compares its 
 
 Run 269 passed 91 browser tests. The remaining primary journey stopped in V09: the payment plan sent uppercase sheet display keys to the M4 resource engine, which returned INVALID. The spec waited for a balance row that could never appear; the second serial journey was skipped. The follow-up uses the runtime context keys `resource.me` and `resource.mp` in both the walkthrough and the Inspector journey, checks the child result for SUCCESS before reading the balances, and bounds waits on the Inspector tab. The ledger comparison still uses the Character resource keys ME and MP.
 
+Run 270 verified both full WO12 journeys and all five failure scenarios. In the surrounding two-worker browser suite, the production API logged Prisma P2028 transaction-start failures, requests reset, and three historical tests failed. CI now runs the shared-database browser specs one worker at a time. All tests, assertions, genuine cross-tab interactions, retries, and the evidence verifier are retained.
+
 ## 1. Baseline
 
 | Item | Value |

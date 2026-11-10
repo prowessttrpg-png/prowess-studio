@@ -3,6 +3,10 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
+  // CI runs every spec against one production server and one PostgreSQL database.
+  // WO12's full-world setup/teardown contended with other specs (P2028 in run 270).
+  // Overlapping requests within the concurrency and two-tab tests still run normally.
+  workers: process.env.CI ? 1 : undefined,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   // M6-WO12: the JSON report is the authoritative record scripts/ci/verify-browser-evidence.mjs checks in the e2e job.
