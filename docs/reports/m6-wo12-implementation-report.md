@@ -12,6 +12,8 @@ The results below describe the original local checkpoint. PR CI on that checkpoi
 
 The walkthrough now exercises the actual Rules Inspector on R2 and compares its ME-first ward-payment result with the persisted Spell event. Cleanup requires a valid run ID; the isolation test checks the surviving world's Character, Release and ledger. The multi-screen WO8 Maneuver, WO11 draft/resume and baseline WO7 simple Spell journeys have individual 120-second budgets following 30-second deadlines in run 268. Locator assertions, retries, both required complete WO12 runs and the same-commit evidence verifier are retained. Use the final delivery note and the corrected SHA's CI for verification results.
 
+Run 269 passed 91 browser tests. The remaining primary journey stopped in V09: the payment plan sent uppercase sheet display keys to the M4 resource engine, which returned INVALID. The spec waited for a balance row that could never appear; the second serial journey was skipped. The follow-up uses the runtime context keys `resource.me` and `resource.mp` in both the walkthrough and the Inspector journey, checks the child result for SUCCESS before reading the balances, and bounds waits on the Inspector tab. The ledger comparison still uses the Character resource keys ME and MP.
+
 ## 1. Baseline
 
 | Item | Value |

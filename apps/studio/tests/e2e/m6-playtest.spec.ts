@@ -435,7 +435,7 @@ async function journey(browser: Browser, run: number): Promise<{ world: World; r
     await p2.goto(`/characters/${characterId}`);
     // The test build starts at full capacity. Take the actual sheet capacities into the Lab.
     const capacity = async (key: string) => Number((await p2.getByTestId(`sheet-resource-max-${key}`).innerText()).replace("/", "").trim());
-    const mana = { ME: await capacity("ME"), MP: await capacity("MP") };
+    const mana = { "resource.me": await capacity("ME"), "resource.mp": await capacity("MP") };
     await p2.getByRole("tab", { name: "Attacks" }).click();
     // The Slash Attack's damage inspector: the exact Weapon / Attack revisions this Release pins and the server's steps.
     const slashRow = p2.getByTestId("character-view-attacks").locator("tr").filter({ hasText: "Slash" }).first();
@@ -460,6 +460,7 @@ async function journey(browser: Browser, run: number): Promise<{ world: World; r
     expect(listedMp).toBe(3);
     // In a separate tab, run the same ME-first payment on the pinned Release.
     const lab = await p2.context().newPage();
+    lab.setDefaultTimeout(30_000);
     await lab.goto("/developer/rules");
     await lab.getByRole("button", { name: "Release", exact: true }).click();
     const rulesets = lab.getByLabel("Ruleset", { exact: true });
@@ -475,16 +476,17 @@ async function journey(browser: Browser, run: number): Promise<{ world: World; r
       snapshot: { resources: Object.entries(mana).map(([resourceKey, maximum]) => ({
         resourceKey, kind: "POOL", minimum: 0, maximum, current: maximum, reservedCapacity: 0,
       })) },
-      payment: { costKey: "MP", listedAmount: listedMp, sources: [{ resourceKey: "ME", order: 1 }, { resourceKey: "MP", order: 2 }] },
+      payment: { costKey: "MP", listedAmount: listedMp, sources: [{ resourceKey: "resource.me", order: 1 }, { resourceKey: "resource.mp", order: 2 }] },
     } }] };
     await lab.getByText("Import plan JSON", { exact: true }).click();
     await lab.getByLabel("Plan JSON", { exact: true }).fill(JSON.stringify(plan));
     await lab.getByRole("button", { name: "Use plan JSON" }).click();
     await lab.getByRole("button", { name: "Run Evaluation" }).click();
     await lab.getByRole("list", { name: "Executed step timeline" }).getByRole("button", { name: /ward · RESOURCE_PAYMENT_APPLY/ }).click();
+    await expect(lab.getByTestId("overview-ward")).toContainText("Child status: SUCCESS");
     const result = lab.getByTestId("resulting-resources");
     const remaining = async (key: string) => Number(await result.getByRole("row").filter({ has: lab.getByRole("cell", { name: key, exact: true }) }).getByRole("cell").last().innerText());
-    inspectedPayment = { ME: await remaining("ME"), MP: await remaining("MP") };
+    inspectedPayment = { ME: await remaining("resource.me"), MP: await remaining("resource.mp") };
     await lab.getByRole("tab", { name: "PROVENANCE", exact: true }).click();
     await expect(lab.getByRole("region", { name: "Selected step inspector" })).toContainText(release2Id);
     await lab.close();

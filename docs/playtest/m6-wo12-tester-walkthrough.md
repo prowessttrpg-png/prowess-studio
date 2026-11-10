@@ -120,11 +120,11 @@ Nothing on these pages should change anything.
     "stepKey": "ward", "order": 1, "operation": "RESOURCE_PAYMENT_APPLY",
     "input": {
       "snapshot": {"resources": [
-        {"resourceKey": "ME", "kind": "POOL", "minimum": 0, "current": 4, "maximum": 4, "reservedCapacity": 0},
-        {"resourceKey": "MP", "kind": "POOL", "minimum": 0, "current": 7, "maximum": 7, "reservedCapacity": 0}
+        {"resourceKey": "resource.me", "kind": "POOL", "minimum": 0, "current": 4, "maximum": 4, "reservedCapacity": 0},
+        {"resourceKey": "resource.mp", "kind": "POOL", "minimum": 0, "current": 7, "maximum": 7, "reservedCapacity": 0}
       ]},
       "payment": {"costKey": "MP", "listedAmount": 3, "sources": [
-        {"resourceKey": "ME", "order": 1}, {"resourceKey": "MP", "order": 2}
+        {"resourceKey": "resource.me", "order": 1}, {"resourceKey": "resource.mp", "order": 2}
       ]}
     }
   }]
