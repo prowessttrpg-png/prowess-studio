@@ -1093,3 +1093,65 @@ Required by the permanent M6-WO2 gate (`apps/studio/tests/unit/m6-wo2-static.tes
 - **Group:** Presentation
 - **Meaning:** Library actions come only from the persisted status and id — a Draft offers Continue creation, a completed Character Open sheet and Resume play — same-named Characters are told apart by a visible id, and the existing Sheet, Cards, print and Play deep links keep working.
 - **Guards:** `apps/studio/tests/unit/m6-wo11-library-ui.test.tsx`, `apps/studio/tests/e2e/m6-library.spec.ts`, `apps/studio/tests/unit/m6-wo11-static.test.ts`, `scripts/m6-wo11-negative-controls.mjs`
+
+## M6-WO12 — First Complete Playtest Vertical Slice (M6-I180 – M6-I189)
+
+### M6-I180 — Repeatable Run-Scoped Playtest Preparation
+
+- **Group:** Governance
+- **Meaning:** The WO12 preparation command refuses any database that is not a local *_test database or not fully migrated, removes its own run before seeding, seeds only the isolated Release 1 background (no Character, ChangeSet, Release 2, ability or play event) under test-only `test.m6wo12.<run>.*` keys, and cleans up exactly the requested run; a missing run id is refused.
+- **Guards:** `packages/prowess-db/tests/integration/m6-wo12-vertical-slice.test.ts`, `apps/studio/tests/unit/m6-wo12-static.test.ts`, `scripts/m6-wo12-negative-controls.mjs`
+
+### M6-I181 — Reviewer Approval Of The Proposed Revision
+
+- **Group:** Governance
+- **Meaning:** A Canon Manager reviewer can approve the exact revision a ChangeSet proposes only while it is IN_REVIEW, through the existing M1 lifecycle endpoint (status APPROVED), after an explicit confirmation; approval publishes nothing, the audited M2 governance command list is unchanged, and a ChangeSet pinning a DRAFT / IN_REVIEW revision still cannot be published.
+- **Guards:** `apps/studio/tests/unit/m6-wo12-review-ui.test.tsx`, `packages/prowess-db/tests/integration/m6-wo12-vertical-slice.test.ts`, `apps/studio/tests/unit/m2-ui-static.test.ts`, `apps/studio/tests/e2e/m6-playtest.spec.ts`, `apps/studio/tests/unit/m6-wo12-static.test.ts`, `scripts/m6-wo12-negative-controls.mjs`
+
+### M6-I182 — The Pinned Release Throughout The Slice
+
+- **Group:** Domain
+- **Meaning:** A Character's creation, advancement, Signature Abilities, Sheet and play are evaluated against its own pinned Release; a newer Release never switches its rules, its Spell price or the Release recorded on its play events, and creation never preselects the latest Release.
+- **Guards:** `packages/prowess-db/tests/integration/m6-wo12-vertical-slice.test.ts`, `apps/studio/tests/e2e/m6-playtest.spec.ts`, `apps/studio/tests/e2e/m6-playtest-failures.spec.ts`, `apps/studio/tests/unit/m6-wo12-static.test.ts`, `scripts/m6-wo12-negative-controls.mjs`
+
+### M6-I183 — Exact Ability Revision At Play
+
+- **Group:** Domain
+- **Meaning:** Play casts or uses only the Signature Ability revision the request names and only when that revision is pinned to the Character's Release; a substituted revision number, a draft or retired ability, or another Release's revision is refused in words with nothing written.
+- **Guards:** `packages/prowess-db/tests/integration/m6-wo12-vertical-slice.test.ts`, `apps/studio/tests/e2e/m6-playtest-failures.spec.ts`, `apps/studio/tests/unit/m6-wo12-static.test.ts`, `scripts/m6-wo12-negative-controls.mjs`
+
+### M6-I184 — An Unknown Outcome Is Retried Without A Second Charge
+
+- **Group:** Persistence
+- **Meaning:** When a play commit's acknowledgement is lost (no response, an unreadable one or a server error) the browser keeps the request key, tells the player the retry is safe, and the retry replays the original event; the server checks the key before it loads or charges anything.
+- **Guards:** `packages/prowess-db/tests/integration/m6-wo12-vertical-slice.test.ts`, `apps/studio/tests/e2e/m6-playtest-failures.spec.ts`, `packages/prowess-db/tests/integration/m6-wo10-play-workspace.test.ts`, `apps/studio/tests/unit/m6-wo12-static.test.ts`, `scripts/m6-wo12-negative-controls.mjs`
+
+### M6-I185 — Resume Is A Read
+
+- **Group:** Persistence
+- **Meaning:** Resuming a Character mid-turn — Library, Sheet, Abilities, Spell detail, Cards, print and the Play Workspace, opened twice in fresh sessions — returns identical state and writes nothing (byte-level fingerprints unchanged).
+- **Guards:** `packages/prowess-db/tests/integration/m6-wo12-vertical-slice.test.ts`, `apps/studio/tests/e2e/m6-playtest.spec.ts`, `apps/studio/tests/unit/m6-wo12-static.test.ts`, `scripts/m6-wo12-negative-controls.mjs`
+
+### M6-I186 — A Genuine Primary Journey
+
+- **Group:** Verification
+- **Meaning:** The WO12 journey is one named serial Playwright spec through the real UI, production build and PostgreSQL: the only preparation is the WO12 command's function; the designer revision, review, ChangeSet, Release, Character, loadout, both abilities (built in the real builders) and every play operation are clicks; it uses no route fulfilment, fake server, direct Character write, pre-finalized build or substituted result; it runs twice in separately prepared worlds and records a V01–V12 evidence table with fingerprints around every read-only step.
+- **Guards:** `apps/studio/tests/e2e/m6-playtest.spec.ts`, `apps/studio/tests/unit/m6-wo12-static.test.ts`, `scripts/m6-wo12-negative-controls.mjs`
+
+### M6-I187 — Browser Evidence Gates Tier 2
+
+- **Group:** Verification
+- **Meaning:** The e2e job verifies, after Playwright and on its one production build, that both WO12 specs ran and passed (none missing, skipped, failing or flaky) and that the journey evidence names this exact commit with two complete runs in two worlds; any gap fails the job and so Tier 2.
+- **Guards:** `apps/studio/tests/unit/m6-wo12-browser-evidence.test.ts`, `apps/studio/tests/unit/m6-wo12-static.test.ts`, `scripts/m6-wo12-negative-controls.mjs`
+
+### M6-I188 — Separate, Human-Readable Failure Cases
+
+- **Group:** Verification
+- **Meaning:** The slice's failure cases — a newer Release, draft / invalid / retired abilities, an invalid or missing roll, insufficient resources, wrong timing, a lost commit response and two tabs / same-name Characters — run in their own spec; each refusal explains itself in words and writes nothing, and the only intercepted response reaches the real server first.
+- **Guards:** `apps/studio/tests/e2e/m6-playtest-failures.spec.ts`, `apps/studio/tests/unit/m6-wo12-static.test.ts`
+
+### M6-I189 — Governed-Content Boundary
+
+- **Group:** Governance
+- **Meaning:** The slice is "playtest verified on an isolated Release": its content is test-only and isolated, no canonical Release or shared game content changes, and the missing governed content is listed rather than filled with fixtures, invented prices or relaxed eligibility.
+- **Guards:** `apps/studio/tests/unit/m6-wo12-static.test.ts`, `docs/architecture/m6-wo12-playtest-vertical-slice.md`

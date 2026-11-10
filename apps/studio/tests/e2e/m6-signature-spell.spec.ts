@@ -77,6 +77,7 @@ async function newSpell(page: Page, characterId: string, name: string) {
 }
 
 test("§156 a simple Arcane Spell is built step by step, finalized, and appears in Abilities and the Sheet's Actions", async ({ page, request }) => {
+  test.setTimeout(120_000); // Multi-screen browser journey, including navigation and recalculation.
   test.setTimeout(240_000);
   const c = await completedCharacter(request, world, `Caster ${world.tag}`);
   await newSpell(page, c.id, "Ember Bolt");

@@ -122,6 +122,7 @@ test("L02 same-named Characters are told apart in the Library and each opens its
 });
 
 test("L03 a partial Draft saved in one session resumes in a new session, completes through the existing flow, and its Library actions change", async ({ browser }) => {
+  test.setTimeout(120_000); // Multi-screen browser journey, including navigation and recalculation.
   const name = `${TAG} Resumed`;
   let id = "";
   {
@@ -202,6 +203,7 @@ test("L04 a configured Character reopens from the Library with its loadout, exac
 });
 
 test("L05 Resume play twice in fresh sessions: identical spent resources, movement, history and versions; nothing is written", async ({ browser }) => {
+  test.setTimeout(120_000); // Multi-screen browser journey, including navigation and recalculation.
   const witness = async () => JSON.stringify({ runtime: await db.prisma.characterPlayRuntime.findUnique({ where: { characterId: ids.configured } }), events: await db.prisma.characterPlayEvent.findMany({ where: { characterId: ids.configured }, orderBy: { sequence: "asc" } }), resources: await db.prisma.characterResourceState.findMany({ where: { characterId: ids.configured }, orderBy: { resourceKey: "asc" } }), play: await db.prisma.characterPlayState.findUnique({ where: { characterId: ids.configured } }), character: await db.prisma.character.findUnique({ where: { id: ids.configured } }) });
   const before = await witness();
   const seen: string[] = [];

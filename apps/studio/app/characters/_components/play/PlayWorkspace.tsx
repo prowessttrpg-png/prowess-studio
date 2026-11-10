@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent }
 import type { CardLibraryDto } from "../../_lib/card-types";
 import { findEntry, libraryEntries, revisionsOf } from "../../_lib/card-format";
 import { CharacterApiError, commitPlayOperation, getCardLibrary, getPlayWorkspace, previewPlayOperation } from "../../_lib/character-client";
+import { isUnknownOutcome } from "../../_lib/creation-save";
 import type { PlayActionDto, PlayAttackDto, PlayEventDto, PlayManeuverDto, PlayOutcomeDto, PlaySpellDto, PlayViewDto } from "../../_lib/play-types";
 import { releaseLabel } from "../CharacterReview";
 import { CardViewer, type ViewMode } from "../cards/CardViewer";
@@ -93,7 +94,9 @@ export function PlayWorkspace({ characterId }: { characterId: string }) {
         setNotice("This Character's play state changed elsewhere (another tab or the Character Sheet). Nothing was applied; the latest state is loaded — review and submit again.");
         pendingKey.current = null;
         await load();
-      } else if (e instanceof CharacterApiError) setNotice(`${e.message} (${e.code})`);
+      } else if (e instanceof CharacterApiError && !isUnknownOutcome(e)) setNotice(`${e.message} (${e.code})`);
+      // M6-WO12: an unknown outcome (no response, an unreadable one or a server error) keeps the request key, so the
+      // retry replays the original event if the first submission did land — say so instead of "could not reach".
       else setNotice("The request did not complete (network). Nothing is shown as spent; submit again to retry safely with the same request key.");
     },
     [load],

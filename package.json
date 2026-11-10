@@ -30,7 +30,8 @@
     "preimport:source": "pnpm --filter @prowess/model --filter @prowess/import --filter @prowess/db run build",
     "import:source": "node --import ./scripts/dev/register-extensionless.mjs packages/prowess-db/scripts/import-source.mjs",
     "preimport:verify-real-source": "pnpm --filter @prowess/model --filter @prowess/import --filter @prowess/db run build",
-    "import:verify-real-source": "node --import ./scripts/dev/register-extensionless.mjs packages/prowess-db/scripts/verify-real-source.mjs"
+    "import:verify-real-source": "node --import ./scripts/dev/register-extensionless.mjs packages/prowess-db/scripts/verify-real-source.mjs",
+    "playtest:wo12": "node --experimental-transform-types --no-warnings --import ./scripts/playtest/register.mjs scripts/playtest/wo12-world.ts"
   },
   "devDependencies": {
     "typescript": "5.9.3",
