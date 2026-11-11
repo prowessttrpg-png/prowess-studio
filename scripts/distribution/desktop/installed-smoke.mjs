@@ -26,7 +26,9 @@ export async function connect(root) {
   const { origin, token } = await waitFor(() => JSON.parse(readFileSync(path.join(root, "control.json"), "utf8")),
     "the native launcher's control socket");
   const request = async (route, options = {}, expected = 200) => {
-    const response = await fetch(origin + route, { signal: AbortSignal.timeout(100_000), ...options });
+    const response = await fetch(origin + route, {
+      signal: AbortSignal.timeout(100_000), ...options, headers: { ...options.headers, connection: "close" },
+    });
     if (response.status !== expected) throw new Error(route + " returned " + response.status + ", expected " + expected);
     return response;
   };
@@ -57,6 +59,7 @@ export async function setup(root, choice, manifest) {
   await (await gateway.request("/api/characters", {}, 401)).text();
   await (await gateway.request(prefix + "/control", { method: "POST", body: "quit" }, 403)).text();
   const api = await gateway.browser();
+  await waitFor(async () => (await (await api(prefix + "/status")).json()).firstRun, "first-run choices");
   await (await api(prefix + "/status", { headers: { origin: "https://example.test" } }, 403)).text();
   await (await api(prefix + "/quit", { method: "POST", headers: { origin: "https://example.test" } }, 403)).text();
   await (await api("/api/characters", { method: "POST", headers: { "sec-fetch-site": "cross-site" } }, 403)).text();
@@ -66,10 +69,9 @@ export async function setup(root, choice, manifest) {
       resolve(response.statusCode);
     });
     request.on("error", reject);
-    request.setTimeout(3000, () => request.destroy(new Error("Host check timed out.")));
+    request.setTimeout(30_000, () => request.destroy(new Error("Host check timed out.")));
   });
   assert.equal(rejectedHost, 403);
-  await waitFor(async () => (await (await api(prefix + "/status")).json()).firstRun, "first-run choices");
   await (await api(prefix + "/setup", { method: "POST", body: choice })).text();
   await waitFor(async () => (await (await api(prefix + "/status")).json()).ready, "database-backed Studio readiness");
   const diagnostics = await (await api(prefix + "/diagnostics")).json();

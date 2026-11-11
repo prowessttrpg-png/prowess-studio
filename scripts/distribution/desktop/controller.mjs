@@ -143,7 +143,7 @@ async function recoveryBackup(state, purpose) {
 }
 
 async function activate(database, choice) {
-  storage.checkSchema(database);
+  await storage.checkSchema(database);
   const port = await launchStudio(database);
   storage.persist({ active: database, setup: choice, ...installedSpec() });
   gateway.setBackend(port);
@@ -159,7 +159,7 @@ async function restoreWorkspace(request) {
   try {
     await recoveryBackup(previous, "before-restore");
     const database = await storage.newDatabase();
-    storage.prisma(database, "migrate", "deploy");
+    await storage.prisma(database, "migrate", "deploy");
     await storage.withClient(database, (client) => loadBackup(client, entries, manifest.desktopTables));
     await activate(database, setup ?? "empty");
     gateway.invalidateSessions();
@@ -182,7 +182,7 @@ async function chooseWorkspace(choice) {
     const { entries, setup } = inspectBackup(readFileSync(demoFile), installedSpec());
     if (setup !== "demo") throw new Error("The installed demo does not declare its sample-rules provenance.");
     database = await storage.newDatabase();
-    storage.prisma(database, "migrate", "deploy");
+    await storage.prisma(database, "migrate", "deploy");
     await storage.withClient(database, (client) => loadBackup(client, entries, manifest.desktopTables));
   }
   await activate(database, choice);
@@ -192,8 +192,8 @@ async function chooseWorkspace(choice) {
 async function prepareWorkspace() {
   const previous = storage.state;
   if (!previous.appVersion) {
-    storage.prisma(previous.active, "migrate", "deploy");
-    storage.checkSchema(previous.active);
+    await storage.prisma(previous.active, "migrate", "deploy");
+    await storage.checkSchema(previous.active);
     storage.persist(installedSpec());
   } else {
     const order = compareVersions(manifest.appVersion, previous.appVersion);
@@ -208,10 +208,10 @@ async function prepareWorkspace() {
       const backup = await recoveryBackup(previous, "before-upgrade");
       const staged = await storage.newDatabase(previous.active);
       atomicJSON(journalPath, { previous: previous.active, staged, from: previous.appVersion, to: manifest.appVersion, backup });
-      storage.prisma(staged, "migrate", "deploy");
+      await storage.prisma(staged, "migrate", "deploy");
       if (previous.setup) await activate(staged, previous.setup);
       else {
-        storage.checkSchema(staged);
+        await storage.checkSchema(staged);
         storage.persist({ ...installedSpec(), active: staged });
       }
       try { rmSync(journalPath, { force: true }); }
@@ -220,7 +220,7 @@ async function prepareWorkspace() {
     }
   }
   if (storage.state.setup) {
-    storage.checkSchema(storage.state.active);
+    await storage.checkSchema(storage.state.active);
     gateway.setBackend(await launchStudio(storage.state.active));
     setStatus("Studio is ready.", true);
   }
@@ -235,7 +235,7 @@ async function quit() {
       await stopStudio();
       await gateway.close();
     }
-    storage?.stop();
+    await storage?.stop();
   } finally {
     rmSync(controlPath, { force: true });
     input.close();

@@ -38,8 +38,8 @@ try {
     log: path.join(temporary, "build-demo.log") });
   await storage.start();
   const database = "prowess_desktop_demo_test";
-  storage.prisma(database, "migrate", "deploy");
-  storage.checkSchema(database);
+  await storage.prisma(database, "migrate", "deploy");
+  await storage.checkSchema(database);
   const runId = "demo" + randomBytes(6).toString("hex");
   execFileSync(path.join(copy, manifest.node), ["--experimental-transform-types", "--no-warnings",
     "--import", "./scripts/playtest/register.mjs", "./scripts/playtest/wo12-world.ts", "prepare", runId], {
@@ -72,6 +72,6 @@ try {
   console.error("Demo preparation logs: " + path.join(temporary, "build-demo.log"));
   throw error;
 } finally {
-  storage?.stop();
+  await storage?.stop();
 }
 if (process.platform !== "win32") rmSync(temporary, { recursive: true, force: true });

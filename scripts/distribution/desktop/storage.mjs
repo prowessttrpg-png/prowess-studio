@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, rmSync, symlinkSync, writeFileSync, fsyncSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -10,6 +10,22 @@ const username = "prowess_local";
 const defaultDatabase = "prowess_workspace";
 export const secret = () => randomBytes(32).toString("hex");
 const readJSON = (file) => JSON.parse(readFileSync(file, "utf8"));
+
+async function runLogged(executable, args, { cwd, env, timeout, log }) {
+  const descriptor = openSync(log, "a");
+  try {
+    const child = spawn(executable, args, {
+      cwd, env, windowsHide: true, signal: AbortSignal.timeout(timeout), stdio: ["ignore", descriptor, descriptor],
+    });
+    return await new Promise((resolve, reject) => {
+      child.once("error", reject);
+      child.once("exit", (code) => {
+        if (code === null) reject(new Error("An owned process was interrupted."));
+        else resolve(code);
+      });
+    });
+  } finally { closeSync(descriptor); }
+}
 
 export function atomicJSON(file, value) {
   const temporary = file + "." + randomUUID() + ".tmp";
@@ -85,19 +101,18 @@ export class Storage {
     this.state = next;
   }
 
-  command(name, args, { timeout = 60_000, acceptMissing = false } = {}) {
+  async command(name, args, { timeout = 60_000, acceptMissing = false } = {}) {
     const suffix = process.platform === "win32" ? ".exe" : "";
-    const descriptor = openSync(this.log, "a");
     try {
-      execFileSync(path.join(this.bin, name + suffix), args, {
-        cwd: this.accessRoot, env: this.environment, windowsHide: true, timeout,
-        stdio: ["ignore", descriptor, descriptor],
+      const status = await runLogged(path.join(this.bin, name + suffix), args, {
+        cwd: this.accessRoot, env: this.environment, timeout, log: this.log,
       });
+      if (acceptMissing && status === 3) return false;
+      if (status !== 0) throw new Error("Exit status " + status);
       return true;
-    } catch (error) {
-      if (acceptMissing && error.status === 3) return false;
+    } catch {
       throw new Error("PostgreSQL " + name + " failed. Check the workspace recovery instructions.");
-    } finally { closeSync(descriptor); }
+    }
   }
 
   url(database) {
@@ -123,16 +138,16 @@ export class Storage {
       const passwordFile = path.join(this.accessRoot, "initdb-" + randomUUID());
       writeFileSync(passwordFile, this.state.password + "\n", { flag: "wx", mode: 0o600 });
       try {
-        this.command("initdb", ["-D", this.cluster, "-U", username, "--pwfile=" + passwordFile,
+        await this.command("initdb", ["-D", this.cluster, "-U", username, "--pwfile=" + passwordFile,
           "--auth=scram-sha-256", "--locale=C", "--encoding=UTF8"]);
       } finally { rmSync(passwordFile, { force: true }); }
     }
-    if (this.command("pg_ctl", ["-D", this.cluster, "status"], { acceptMissing: true })) {
+    if (await this.command("pg_ctl", ["-D", this.cluster, "status"], { acceptMissing: true })) {
       throw new Error("PostgreSQL reports an existing process for this workspace. Close the owned installation before recovery.");
     }
 
     this.port = await freePort();
-    this.command("pg_ctl", ["-D", this.cluster, "-l", this.postgresLog, "-w", "-t", "30", "-o",
+    await this.command("pg_ctl", ["-D", this.cluster, "-l", this.postgresLog, "-w", "-t", "30", "-o",
       "-h 127.0.0.1 -p " + this.port + " -c unix_socket_directories=", "start"]);
     this.running = true;
     await this.withClient("postgres", async (client) => {
@@ -160,25 +175,23 @@ export class Storage {
     return name;
   }
 
-  prisma(database, ...args) {
-    const descriptor = openSync(this.log, "a");
+  async prisma(database, ...args) {
     try {
-      execFileSync(path.join(this.stage, this.manifest.node), [path.join(this.stage, this.manifest.prisma), ...args], {
-        cwd: path.join(this.stage, this.manifest.database), windowsHide: true, timeout: 120_000,
+      const status = await runLogged(path.join(this.stage, this.manifest.node), [path.join(this.stage, this.manifest.prisma), ...args], {
+        cwd: path.join(this.stage, this.manifest.database), timeout: 120_000, log: this.log,
         env: {
           ...this.environment, DATABASE_URL: this.url(database),
           PRISMA_SCHEMA_ENGINE_BINARY: path.join(this.stage, this.manifest.schemaEngine),
           PRISMA_HIDE_UPDATE_MESSAGE: "1", CHECKPOINT_DISABLE: "1",
         },
-        stdio: ["ignore", descriptor, descriptor],
       });
+      if (status !== 0) throw new Error("Exit status " + status);
     } catch { throw new Error("The workspace schema check failed. The launcher has kept the existing workspace for recovery."); }
-    finally { closeSync(descriptor); }
   }
 
-  checkSchema(database) {
-    this.prisma(database, "migrate", "status");
-    this.prisma(database, "migrate", "diff", "--from-config-datasource", "--to-schema", "prisma/schema.prisma", "--exit-code");
+  async checkSchema(database) {
+    await this.prisma(database, "migrate", "status");
+    await this.prisma(database, "migrate", "diff", "--from-config-datasource", "--to-schema", "prisma/schema.prisma", "--exit-code");
   }
 
   async checkHistory(database, expected) {
@@ -191,10 +204,10 @@ export class Storage {
     }
   }
 
-  stop() {
+  async stop() {
     if (!this.running) return;
-    if (this.command("pg_ctl", ["-D", this.cluster, "status"], { acceptMissing: true })) {
-      this.command("pg_ctl", ["-D", this.cluster, "-w", "-t", "30", "-m", "fast", "stop"]);
+    if (await this.command("pg_ctl", ["-D", this.cluster, "status"], { acceptMissing: true })) {
+      await this.command("pg_ctl", ["-D", this.cluster, "-w", "-t", "30", "-m", "fast", "stop"]);
     }
     this.running = false;
   }
