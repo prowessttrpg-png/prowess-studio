@@ -8,25 +8,23 @@ import { createServer } from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import { prototypePackageSha256, verifyPrototypeBuild } from "./prototype-build-identity.mjs";
 import { materializeLinks, relativeInside } from "./prototype-links.mjs";
+import { inspectWindowsProofEnvironment } from "./windows-proof-environment.mjs";
 
 assert.equal(process.platform, "win32", "Run this check on Windows 11 x64.");
 assert.equal(process.arch, "x64");
-assert.ok(Number(os.release().split(".").at(-1)) >= 22000, "Windows 11 or newer is required.");
 const [packagePath, ...extra] = process.argv.slice(2);
 assert.ok(packagePath && extra.length === 0, "Supply the staged prototype directory.");
 const root = realpathSync(packagePath);
 assert.ok(root.includes(" ") && /[^\x00-\x7f]/.test(root), "Exercise a package path with spaces and non-ASCII characters.");
 const readJson = (file) => JSON.parse(readFileSync(file, "utf8"));
-const staged = readJson(path.join(root, "prototype.json"));
-assert.ok(staged.clean && staged.postgres && staged.crt && staged.platform === "win32", "Use a clean-source Windows stage.");
-assert.equal(process.version, staged.nodeVersion);
-materializeLinks(root, readJson(path.join(root, "links.json")));
-
+const manifest = readFileSync(path.join(root, "prototype.json"));
+const staged = JSON.parse(manifest.toString("utf8"));
+assert.ok(staged.build?.version === 1 && staged.postgres && staged.crt && staged.build.platform === "win32",
+  "Use a recorded clean-source Windows stage.");
+assert.equal(process.version, staged.build.nodeVersion);
 const repository = path.resolve(import.meta.dirname, "../..");
-assert.equal(execFileSync("git", ["rev-parse", "HEAD"], { cwd: repository, encoding: "utf8" }).trim(), staged.commit);
-assert.equal(execFileSync("git", ["rev-parse", "HEAD^{tree}"], { cwd: repository, encoding: "utf8" }).trim(), staged.tree);
-assert.equal(execFileSync("git", ["status", "--porcelain"], { cwd: repository, encoding: "utf8" }).trim(), "");
 const stageFile = (name) => {
   assert.ok(!path.isAbsolute(name));
   const file = realpathSync(path.resolve(root, name));
@@ -52,6 +50,10 @@ const systemEnvironment = {
   TEMP: os.tmpdir(),
   TMP: os.tmpdir(),
 };
+const windows = inspectWindowsProofEnvironment(systemRoot, systemEnvironment);
+assert.deepEqual(staged.build, verifyPrototypeBuild(repository), "Stage the recorded build from this checkout.");
+assert.equal(prototypePackageSha256(root), staged.packageSha256, "The staged package differs from its manifest. Stage a fresh package.");
+materializeLinks(root, readJson(path.join(root, "links.json")));
 const profile = mkdtempSync(path.join(os.tmpdir(), "Prowess essai é "));
 const cluster = path.join(profile, "cluster");
 const password = randomBytes(32).toString("hex");
@@ -215,14 +217,27 @@ try {
   migrate("migrate", "status");
   const resumed = await withStudio("restart", (base) => api(base, "/api/characters/" + character.id, 200));
   assert.deepEqual(resumed, character);
-  assert.equal(await fingerprint(character.id), before);
+  const after = await fingerprint(character.id);
+  assert.equal(after, before);
 
   stopStorage();
   const evidence = {
-    commit: staged.commit, tree: staged.tree, os: os.version(), build: os.release(), arch: os.arch(),
-    node: staged.nodeVersion, postgresVersion, crt: staged.crt.version, migrations: migrations.length, schemaDrift: "none",
-    fixture: world.prefix, character: character.id, release: world.release1.id, fingerprint: before,
-    result: "Packaged Character draft persisted across Studio and PostgreSQL restart",
+    windows,
+    build: staged.build,
+    package: {
+      sha256: staged.packageSha256,
+      manifestSha256: createHash("sha256").update(manifest).digest("hex"),
+      appVersion: staged.appVersion, nextVersion: staged.nextVersion, prismaVersion: staged.prismaVersion,
+      nodeSha256: staged.nodeSha256, postgresVersion, crtVersion: staged.crt.version,
+    },
+    checks: {
+      postgresStartup: "passed", productionStudioStartup: "passed",
+      migrationDeployment: "passed", migrations: migrations.length, schemaDrift: "none",
+      characterCreation: "passed", restartPersistence: "passed",
+    },
+    fixture: world.prefix, character: character.id, release: resumed.release.id,
+    fingerprintBeforeRestart: before, fingerprintAfterRestart: after,
+    result: "passed",
     elapsedSeconds: Math.round((Date.now() - startedAt) / 1000),
   };
   writeFileSync(path.join(profile, "evidence.json"), JSON.stringify(evidence, null, 2) + "\n", { flag: "wx" });

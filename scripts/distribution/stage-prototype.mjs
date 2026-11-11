@@ -1,17 +1,18 @@
 // Build-side staging for the DIST-WO1 feasibility test.
+import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { copyFileSync, cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
+import { assertPrototypeToolchain, prototypePackageSha256, verifyPrototypeBuild } from "./prototype-build-identity.mjs";
 import { relativeInside } from "./prototype-links.mjs";
 
-const repository = path.resolve(import.meta.dirname, "../..");
+const repository = realpathSync(path.resolve(import.meta.dirname, "../.."));
 const studio = path.join(repository, "apps/studio");
 const database = path.join(repository, "packages/prowess-db");
 const standalone = path.join(studio, ".next/standalone");
 const windows = process.platform === "win32";
-const nodeVersion = "v22.23.4";
 const windowsPostgres = {
   package: "@embedded-postgres/windows-x64",
   version: "16.14.0-beta.17",
@@ -23,22 +24,14 @@ const [output, postgresArchive, crtDirectory, ...extra] = process.argv.slice(2);
 if (!output || extra.length || Boolean(postgresArchive) !== windows || Boolean(crtDirectory) !== windows) {
   throw new Error("Usage: node scripts/distribution/stage-prototype.mjs <new-output-directory> [Windows-PostgreSQL-archive x64-CRT-directory]");
 }
-if (process.version !== nodeVersion || process.arch !== "x64" || (!windows && process.platform !== "linux")) {
-  throw new Error("Build this prototype using Node " + nodeVersion + " on Windows or Linux x64.");
-}
+assertPrototypeToolchain();
 const resolvedOutput = path.resolve(output);
 const stage = path.join(realpathSync(path.dirname(resolvedOutput)), path.basename(resolvedOutput));
 const stageRelative = path.relative(repository, stage);
 if (!stageRelative || (!path.isAbsolute(stageRelative) && stageRelative.split(path.sep)[0] !== "..")) {
   throw new Error("Stage the prototype outside the source checkout.");
 }
-const readGit = (...args) => execFileSync("git", args, { cwd: repository, encoding: "utf8" }).trim();
-const commit = readGit("rev-parse", "HEAD");
-const tree = readGit("rev-parse", "HEAD^{tree}");
-const clean = readGit("status", "--porcelain") === "";
-if (!existsSync(path.join(standalone, "apps/studio/server.js"))) {
-  throw new Error("Run the production build with PROWESS_STANDALONE_BUILD=true first.");
-}
+const build = verifyPrototypeBuild(repository);
 if (windows && createHash("sha512").update(readFileSync(postgresArchive)).digest("base64") !== windowsPostgres.sha512) {
   throw new Error("The Windows PostgreSQL archive differs from the pinned archive.");
 }
@@ -149,8 +142,17 @@ if (windows) {
   crt = { version: crtInput.version, source: "Visual Studio MSVC x64 Microsoft.VC143.CRT redistributable", files: crtInput.files };
 }
 
+const linkEntries = [...links.entries()];
+for (const [name, target] of linkEntries) {
+  if (!existsSync(path.join(stage, target))) throw new Error("The traced package is missing the target of " + name);
+}
+writeFileSync(path.join(stage, "links.json"), JSON.stringify(linkEntries, null, 2) + "\n");
+copyFileSync(path.join(import.meta.dirname, "prototype-links.mjs"), path.join(stage, "prototype-links.mjs"));
+assert.deepEqual(verifyPrototypeBuild(repository), build, "The recorded production build changed during staging.");
+
 const metadata = {
-  commit, tree, clean, platform: process.platform, architecture: process.arch, nodeVersion,
+  build,
+  packageSha256: prototypePackageSha256(stage),
   node, postgres, crt,
   nodeSha256: createHash("sha256").update(readFileSync(path.join(stage, node))).digest("hex"),
   appVersion: requireStudio("./package.json").version,
@@ -163,11 +165,5 @@ const metadata = {
   migrations: readdirSync(path.join(stagedDatabase, "prisma/migrations"), { withFileTypes: true })
     .filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort(),
 };
-const linkEntries = [...links.entries()];
-for (const [name, target] of linkEntries) {
-  if (!existsSync(path.join(stage, target))) throw new Error("The traced package is missing the target of " + name);
-}
 writeFileSync(path.join(stage, "prototype.json"), JSON.stringify(metadata, null, 2) + "\n");
-writeFileSync(path.join(stage, "links.json"), JSON.stringify(linkEntries, null, 2) + "\n");
-copyFileSync(path.join(import.meta.dirname, "prototype-links.mjs"), path.join(stage, "prototype-links.mjs"));
 console.log("Staged prototype at " + stage);
