@@ -9,6 +9,7 @@ import os from "node:os";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { prototypePackageSha256, verifyPrototypeBuild } from "./prototype-build-identity.mjs";
+import { runWithLog } from "./prototype-command-log.mjs";
 import { materializeLinks, relativeInside } from "./prototype-links.mjs";
 import { inspectWindowsProofEnvironment } from "./windows-proof-environment.mjs";
 import { createPostgresAccessPaths } from "./windows-postgres-paths.mjs";
@@ -148,7 +149,10 @@ async function withStudio(pass, verify) {
 let storageMayBeRunning = false;
 function startStorage() {
   storageMayBeRunning = true;
-  run(postgres("pg_ctl"), ["-D", cluster, "-l", path.join(storage.profile, "postgres.log"), "-w", "-t", "30", "start"]);
+  // The postmaster can inherit pg_ctl's handles and keep a captured pipe open.
+  runWithLog(postgres("pg_ctl"), ["-D", cluster, "-l", path.join(storage.profile, "postgres.log"), "-w", "-t", "30", "start"], {
+    cwd: storage.profile, env: systemEnvironment, timeout: 60_000, logFile: path.join(profile, "pg-ctl-start.log"),
+  });
 }
 
 function stopStorage() {

@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { prototypePackageSha256, readCleanSource, recordPrototypeBuild, verifyPrototypeBuild } from "./prototype-build-identity.mjs";
+import { runWithLog } from "./prototype-command-log.mjs";
 import { requireOrdinaryWindowsAccount } from "./windows-proof-environment.mjs";
 import { createPostgresAccessPaths } from "./windows-postgres-paths.mjs";
 
@@ -149,4 +150,31 @@ test("PostgreSQL can address the accented package and profile through ASCII path
   assert.equal(readFileSync(path.join(access.bin, "..", "share", "postgres.bki"), "utf8"), "staged catalog");
   writeFileSync(path.join(access.profile, "postgres.log"), "test log");
   assert.equal(readFileSync(path.join(profile, "postgres.log"), "utf8"), "test log");
+});
+
+test("the startup command returns while its server still owns the output handles", (t) => {
+  const cwd = disposableDirectory(t);
+  const logFile = path.join(cwd, "startup.log");
+  const launcher = `
+    const { spawn } = require('node:child_process');
+    const server = spawn(process.execPath, ['-e', 'setTimeout(() => {}, 10000)'], {
+      stdio: 'inherit', windowsHide: true,
+    });
+    console.log(server.pid);
+    console.error('startup complete');
+    server.unref();
+  `;
+  try {
+    runWithLog(process.execPath, ["-e", launcher], { cwd, env: process.env, timeout: 3000, logFile });
+    assert.match(readFileSync(logFile, "utf8"), /^\d+\r?\nstartup complete\r?\n$/);
+  } finally {
+    const pid = Number.parseInt(readFileSync(logFile, "utf8"), 10);
+    if (Number.isInteger(pid) && pid > 0) {
+      try {
+        process.kill(pid);
+      } catch (error) {
+        if (error.code !== "ESRCH") throw error;
+      }
+    }
+  }
 });

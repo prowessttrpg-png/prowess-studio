@@ -14,6 +14,8 @@ The Windows probe uses the existing WO12 preparation command from the build chec
 
 The Windows build and stage at `bb4bf93` passed, then `initdb` failed when Windows encoded the accented path as `0xe9` during UTF-8 bootstrap. The revised probe creates two ASCII-named directory junctions under its ASCII temporary parent. They point to the packaged PostgreSQL runtime and the accented disposable profile. PostgreSQL opens the same staged binaries, data, and logs through those paths. Studio and Prisma still launch from the original package path with spaces and an accented character. The probe checks that PostgreSQL reports UTF-8 and that its data directory resolves to the owned cluster. The evidence records the physical and PostgreSQL paths. Unicode parent directories for the junctions remain outside this prototype check.
 
+At `4063122`, PostgreSQL initialized and reached loopback readiness on Windows 11 build 26200. The probe timed out waiting for `pg_ctl start` with captured pipes, then shut down the owned database. The startup command now sends both output streams to `pg-ctl-start.log`. The server still writes to `postgres.log`, and the probe retains both the bounded `pg_ctl` readiness check and its own query of the owned database.
+
 ## Prototype toolchain
 
 | Input | Pin and origin |
