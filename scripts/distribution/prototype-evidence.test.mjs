@@ -6,6 +6,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { prototypePackageSha256, readCleanSource, recordPrototypeBuild, verifyPrototypeBuild } from "./prototype-build-identity.mjs";
 import { requireOrdinaryWindowsAccount } from "./windows-proof-environment.mjs";
+import { createPostgresAccessPaths } from "./windows-postgres-paths.mjs";
 
 function disposableDirectory(t) {
   const directory = mkdtempSync(path.join(os.tmpdir(), "prowess-proof-test-"));
@@ -127,4 +128,25 @@ test("the Windows guard refuses a different process, Windows Server and x64 emul
   assert.throws(() => requireOrdinaryWindowsAccount({ ...standardToken, productType: 3 }, 123), /native x64 Windows 11 workstation/);
   assert.throws(() => requireOrdinaryWindowsAccount({ ...standardToken, nativeMachine: 0xaa64, processMachine: 0x8664 }, 123),
     /native x64 Windows 11 workstation/);
+});
+
+test("PostgreSQL can address the accented package and profile through ASCII paths", (t) => {
+  const temp = disposableDirectory(t);
+  const runtime = path.join(temp, "Prowess prototype é", "runtime", "postgres", "native");
+  const bin = path.join(runtime, "bin");
+  const share = path.join(runtime, "share");
+  const profile = path.join(temp, "Prowess essai é");
+  mkdirSync(bin, { recursive: true });
+  mkdirSync(share);
+  mkdirSync(profile);
+  writeFileSync(path.join(bin, "initdb.exe"), "staged binary");
+  writeFileSync(path.join(share, "postgres.bki"), "staged catalog");
+
+  const access = createPostgresAccessPaths(temp, bin, profile);
+  assert.match(access.bin, /^[\x20-\x7e]+$/);
+  assert.match(access.profile, /^[\x20-\x7e]+$/);
+  assert.equal(readFileSync(path.join(access.bin, "initdb.exe"), "utf8"), "staged binary");
+  assert.equal(readFileSync(path.join(access.bin, "..", "share", "postgres.bki"), "utf8"), "staged catalog");
+  writeFileSync(path.join(access.profile, "postgres.log"), "test log");
+  assert.equal(readFileSync(path.join(profile, "postgres.log"), "utf8"), "test log");
 });

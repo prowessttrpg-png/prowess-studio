@@ -12,6 +12,8 @@ The build command creates a new detached worktree of the clean source commit, in
 
 The Windows probe uses the existing WO12 preparation command from the build checkout to create a Release in a newly created local test database. It starts only the packaged binaries in child processes with a system-only PATH and explicit loopback configuration. It checks the PostgreSQL version and cluster path, deploys and verifies the shipped migrations, creates a Character draft through Studio's real API, and compares the API response and the exact database row hash across a restart of both processes. The stage contains the production app and migration tooling. Fixture code stays in the build checkout.
 
+The Windows build and stage at `bb4bf93` passed, then `initdb` failed when Windows encoded the accented path as `0xe9` during UTF-8 bootstrap. The revised probe creates two ASCII-named directory junctions under its ASCII temporary parent. They point to the packaged PostgreSQL runtime and the accented disposable profile. PostgreSQL opens the same staged binaries, data, and logs through those paths. Studio and Prisma still launch from the original package path with spaces and an accented character. The probe checks that PostgreSQL reports UTF-8 and that its data directory resolves to the owned cluster. The evidence records the physical and PostgreSQL paths. Unicode parent directories for the junctions remain outside this prototype check.
+
 ## Prototype toolchain
 
 | Input | Pin and origin |

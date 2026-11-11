@@ -11,6 +11,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { prototypePackageSha256, verifyPrototypeBuild } from "./prototype-build-identity.mjs";
 import { materializeLinks, relativeInside } from "./prototype-links.mjs";
 import { inspectWindowsProofEnvironment } from "./windows-proof-environment.mjs";
+import { createPostgresAccessPaths } from "./windows-postgres-paths.mjs";
 
 assert.equal(process.platform, "win32", "Run this check on Windows 11 x64.");
 assert.equal(process.arch, "x64");
@@ -34,7 +35,6 @@ const stageFile = (name) => {
 const node = stageFile(staged.node);
 assert.equal(realpathSync(process.execPath), node, "Start the harness with the packaged Node executable.");
 assert.equal(createHash("sha256").update(readFileSync(node)).digest("hex"), staged.nodeSha256);
-const postgres = (name) => stageFile(path.join(staged.postgres.bin, name + ".exe"));
 for (const file of staged.crt.files) {
   for (const directory of [path.dirname(staged.node), staged.postgres.bin, path.dirname(staged.schemaEngine)]) {
     assert.equal(createHash("sha256").update(readFileSync(stageFile(path.join(directory, file.name)))).digest("hex"), file.sha256);
@@ -55,14 +55,16 @@ assert.deepEqual(staged.build, verifyPrototypeBuild(repository), "Stage the reco
 assert.equal(prototypePackageSha256(root), staged.packageSha256, "The staged package differs from its manifest. Stage a fresh package.");
 materializeLinks(root, readJson(path.join(root, "links.json")));
 const profile = mkdtempSync(path.join(os.tmpdir(), "Prowess essai é "));
-const cluster = path.join(profile, "cluster");
+const storage = createPostgresAccessPaths(os.tmpdir(), stageFile(staged.postgres.bin), profile);
+const postgres = (name) => path.join(storage.bin, name + ".exe");
+const cluster = path.join(storage.profile, "cluster");
 const password = randomBytes(32).toString("hex");
-const passwordFile = path.join(profile, "initdb-password");
+const passwordFile = path.join(storage.profile, "initdb-password");
 const databaseName = "prowess_dist_prototype_test";
 const user = "dist_prototype";
 const startedAt = Date.now();
 
-function run(executable, args, env = systemEnvironment, cwd = profile, timeout = 60_000) {
+function run(executable, args, env = systemEnvironment, cwd = storage.profile, timeout = 60_000) {
   return execFileSync(executable, args, { env, cwd, timeout, encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
 }
 
@@ -146,7 +148,7 @@ async function withStudio(pass, verify) {
 let storageMayBeRunning = false;
 function startStorage() {
   storageMayBeRunning = true;
-  run(postgres("pg_ctl"), ["-D", cluster, "-l", path.join(profile, "postgres.log"), "-w", "-t", "30", "start"]);
+  run(postgres("pg_ctl"), ["-D", cluster, "-l", path.join(storage.profile, "postgres.log"), "-w", "-t", "30", "start"]);
 }
 
 function stopStorage() {
@@ -160,8 +162,11 @@ function stopStorage() {
 }
 
 async function verifyOwnedStorage() {
-  const [observed] = await query("postgres", "SELECT current_setting('data_directory') AS path, current_setting('server_version_num')::int AS version");
-  assert.equal(realpathSync(observed.path), realpathSync(cluster));
+  const [observed] = await query("postgres", "SELECT current_setting('data_directory') AS path, " +
+    "current_setting('server_version_num')::int AS version, current_setting('server_encoding') AS encoding");
+  assert.match(observed.path, /^[\x20-\x7e]+$/);
+  assert.equal(realpathSync(observed.path), realpathSync(path.join(profile, "cluster")));
+  assert.equal(observed.encoding, "UTF8");
   assert.equal(observed.version, 160014);
   return observed.version;
 }
@@ -230,6 +235,7 @@ try {
       appVersion: staged.appVersion, nextVersion: staged.nextVersion, prismaVersion: staged.prismaVersion,
       nodeSha256: staged.nodeSha256, postgresVersion, crtVersion: staged.crt.version,
     },
+    paths: { package: root, profile, postgresBin: storage.bin, postgresDataDirectory: cluster },
     checks: {
       postgresStartup: "passed", productionStudioStartup: "passed",
       migrationDeployment: "passed", migrations: migrations.length, schemaDrift: "none",
