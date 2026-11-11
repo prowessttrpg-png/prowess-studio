@@ -19,8 +19,9 @@ The Windows probe uses the existing WO12 preparation command from the build chec
 | Linux Node tar.xz SHA-256 | 1805bcd35e6815559bd2eb97db438d3fdb0eb3a5e6a977b7c1badca76337e9ce |
 | Package manager and dependencies | pnpm 9.15.9 with the repository lockfile |
 | Windows PostgreSQL prototype | PostgreSQL 16.14 from @embedded-postgres/windows-x64 16.14.0-beta.17. The staging script verifies the exact npm archive SHA-512 and retains its license and notices. |
+| Windows Visual C++ runtime | Versioned x64 Microsoft.VC143.CRT files from the build toolchain's redistributable directory. The staged manifest records the exact version and each DLL's SHA-256. |
 
-The PostgreSQL package pin is for the feasibility probe. Final distribution requires a reviewed runtime with the complete backup/restore toolset and redistribution notices.
+The PostgreSQL archive imports MSVCP140.dll and VCRUNTIME140.dll. Supply the eligible x64 CRT DLLs from the build toolchain's versioned Visual Studio redist directory. Verify their Microsoft signatures on the build machine. Staging places the DLLs next to the packaged executables for app-local loading. The PostgreSQL package pin is for the feasibility probe. Final distribution requires a reviewed runtime with the complete backup/restore toolset and redistribution notices.
 
 ## Run the Windows proof
 
@@ -41,7 +42,8 @@ Use the following in PowerShell from the repository root. The build uses a loopb
     npm pack --pack-destination "$env:TEMP" '@embedded-postgres/windows-x64@16.14.0-beta.17'
     $archive = Join-Path $env:TEMP 'embedded-postgres-windows-x64-16.14.0-beta.17.tgz'
     $stage = Join-Path $env:TEMP ('Prowess prototype é ' + [guid]::NewGuid())
-    node scripts/distribution/stage-prototype.mjs $stage $archive
+    $crt = '<versioned Visual Studio redist path>\x64\Microsoft.VC143.CRT'
+    node scripts/distribution/stage-prototype.mjs $stage $archive $crt
     & (Join-Path $stage 'runtime\node.exe') scripts/distribution/verify-windows-prototype.mjs $stage
 
 Check every command's exit code before proceeding. The final command writes evidence.json only after it verifies the installed runtime, Prisma deployment/status/zero drift, exact Release identity, Character draft, and post-restart fingerprint. It retains the isolated test directory and logs for review. Retain the stage and its source metadata with that evidence. The app and PostgreSQL are started from the staged files. Test-content preparation and the independent database fingerprint use the build checkout.
@@ -52,4 +54,4 @@ The Linux build and stage can exercise package assembly, local link resolution, 
 
 After the feasibility proof, complete the compiled launcher, installer, data protection and recovery work, then execute W01–W14 against the installed artifact. The final gate and Windows Tier 2 job belong to that verified implementation. The M6-WO12 test-only Release and its guards continue to govern the proof fixture.
 
-[Baseline CI #272](https://github.com/prowessttrpg-png/prowess-studio/actions/runs/42742543959) · [Next.js standalone output](https://nextjs.org/docs/app/api-reference/config/next-config-js/output) · [Prisma migrate deploy](https://www.prisma.io/docs/orm/v7/reference/prisma-cli-reference#migrate-deploy) · [Node distribution](https://nodejs.org/dist/v22.23.4/SHASUMS256.txt) · [PostgreSQL binary package source](https://github.com/leinelissen/embedded-postgres)
+[Baseline CI #272](https://github.com/prowessttrpg-png/prowess-studio/actions/runs/42742543959) · [Next.js standalone output](https://nextjs.org/docs/app/api-reference/config/next-config-js/output) · [Prisma migrate deploy](https://www.prisma.io/docs/orm/v7/reference/prisma-cli-reference#migrate-deploy) · [Node distribution](https://nodejs.org/dist/v22.23.4/SHASUMS256.txt) · [PostgreSQL binary package source](https://github.com/leinelissen/embedded-postgres) · [Microsoft app-local CRT deployment](https://learn.microsoft.com/en-us/cpp/windows/deployment-in-visual-cpp)

@@ -19,7 +19,7 @@ const root = realpathSync(packagePath);
 assert.ok(root.includes(" ") && /[^\x00-\x7f]/.test(root), "Exercise a package path with spaces and non-ASCII characters.");
 const readJson = (file) => JSON.parse(readFileSync(file, "utf8"));
 const staged = readJson(path.join(root, "prototype.json"));
-assert.ok(staged.clean && staged.postgres && staged.platform === "win32", "Use a clean-source Windows stage.");
+assert.ok(staged.clean && staged.postgres && staged.crt && staged.platform === "win32", "Use a clean-source Windows stage.");
 assert.equal(process.version, staged.nodeVersion);
 materializeLinks(root, readJson(path.join(root, "links.json")));
 
@@ -37,6 +37,11 @@ const node = stageFile(staged.node);
 assert.equal(realpathSync(process.execPath), node, "Start the harness with the packaged Node executable.");
 assert.equal(createHash("sha256").update(readFileSync(node)).digest("hex"), staged.nodeSha256);
 const postgres = (name) => stageFile(path.join(staged.postgres.bin, name + ".exe"));
+for (const file of staged.crt.files) {
+  for (const directory of [path.dirname(staged.node), staged.postgres.bin, path.dirname(staged.schemaEngine)]) {
+    assert.equal(createHash("sha256").update(readFileSync(stageFile(path.join(directory, file.name)))).digest("hex"), file.sha256);
+  }
+}
 const database = stageFile(staged.database);
 const systemRoot = process.env.SystemRoot;
 assert.ok(systemRoot && path.isAbsolute(systemRoot));
@@ -215,7 +220,7 @@ try {
   stopStorage();
   const evidence = {
     commit: staged.commit, tree: staged.tree, os: os.version(), build: os.release(), arch: os.arch(),
-    node: staged.nodeVersion, postgresVersion, migrations: migrations.length, schemaDrift: "none",
+    node: staged.nodeVersion, postgresVersion, crt: staged.crt.version, migrations: migrations.length, schemaDrift: "none",
     fixture: world.prefix, character: character.id, release: world.release1.id, fingerprint: before,
     result: "Packaged Character draft persisted across Studio and PostgreSQL restart",
     elapsedSeconds: Math.round((Date.now() - startedAt) / 1000),

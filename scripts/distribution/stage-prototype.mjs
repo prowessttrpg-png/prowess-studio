@@ -19,9 +19,9 @@ const windowsPostgres = {
   sha512: "Wn4nuAT1H7SIJuLWPs+C1aSdZKpbTloCr0Xaozdfg956lUVvv3iHv6K8Lsc+xmtt1qQpTno3PJLqAgzJ/lg60Q==",
 };
 
-const [output, postgresArchive, ...extra] = process.argv.slice(2);
-if (!output || extra.length || Boolean(postgresArchive) !== windows) {
-  throw new Error("Usage: node scripts/distribution/stage-prototype.mjs <new-output-directory> [Windows-PostgreSQL-archive]");
+const [output, postgresArchive, crtDirectory, ...extra] = process.argv.slice(2);
+if (!output || extra.length || Boolean(postgresArchive) !== windows || Boolean(crtDirectory) !== windows) {
+  throw new Error("Usage: node scripts/distribution/stage-prototype.mjs <new-output-directory> [Windows-PostgreSQL-archive x64-CRT-directory]");
 }
 if (process.version !== nodeVersion || process.arch !== "x64" || (!windows && process.platform !== "linux")) {
   throw new Error("Build this prototype using Node " + nodeVersion + " on Windows or Linux x64.");
@@ -43,6 +43,31 @@ if (windows && createHash("sha512").update(readFileSync(postgresArchive)).digest
   throw new Error("The Windows PostgreSQL archive differs from the pinned archive.");
 }
 
+function readWindowsCrt(input) {
+  const directory = realpathSync(input);
+  const architecture = path.dirname(directory);
+  const version = path.basename(path.dirname(architecture));
+  if (path.basename(directory) !== "Microsoft.VC143.CRT" || path.basename(architecture) !== "x64" || !/^14\.\d+\.\d+$/.test(version)) {
+    throw new Error("Supply the versioned Visual Studio redistributable directory MSVC/<version>/x64/Microsoft.VC143.CRT.");
+  }
+  const files = readdirSync(directory, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".dll"))
+    .map((entry) => {
+      const bytes = readFileSync(path.join(directory, entry.name));
+      const pe = bytes.length >= 64 && bytes.readUInt16LE(0) === 0x5a4d ? bytes.readUInt32LE(60) : -1;
+      if (pe < 0 || pe + 6 > bytes.length || bytes.readUInt32LE(pe) !== 0x4550 || bytes.readUInt16LE(pe + 4) !== 0x8664) {
+        throw new Error("Expected an x64 redistributable DLL: " + entry.name);
+      }
+      return { name: entry.name, sha256: createHash("sha256").update(bytes).digest("hex") };
+    });
+  const names = new Set(files.map((file) => file.name.toLowerCase()));
+  for (const dll of ["msvcp140.dll", "vcruntime140.dll"]) {
+    if (!names.has(dll)) throw new Error("The redistributable directory is missing " + dll);
+  }
+  return { directory, version, files };
+}
+
+const crtInput = windows ? readWindowsCrt(crtDirectory) : null;
 const links = new Map();
 function copyEntry(source, destination) {
   if (/^\.env(?:\.|$)/i.test(path.basename(source))) return;
@@ -105,6 +130,7 @@ copyFileSync(path.join(nodeRoot, "LICENSE"), path.join(stage, "runtime", "Node-L
 cpSync(path.join(repository, "pnpm-lock.yaml"), path.join(stage, "pnpm-lock.yaml"));
 
 let postgres = null;
+let crt = null;
 if (windows) {
   const postgresDirectory = path.join(stage, "runtime/postgres");
   mkdirSync(postgresDirectory);
@@ -114,11 +140,18 @@ if (windows) {
     if (!existsSync(path.join(binaryDirectory, exe))) throw new Error("The PostgreSQL archive is missing " + exe);
   }
   postgres = { ...windowsPostgres, bin: relativeInside(stage, binaryDirectory) };
+  const destinations = [path.join(stage, "runtime"), binaryDirectory, path.join(app, relativeInside(repository, engineDirectory))];
+  for (const destination of destinations) {
+    for (const file of crtInput.files) {
+      copyFileSync(path.join(crtInput.directory, file.name), path.join(destination, file.name));
+    }
+  }
+  crt = { version: crtInput.version, source: "Visual Studio MSVC x64 Microsoft.VC143.CRT redistributable", files: crtInput.files };
 }
 
 const metadata = {
   commit, tree, clean, platform: process.platform, architecture: process.arch, nodeVersion,
-  node, postgres,
+  node, postgres, crt,
   nodeSha256: createHash("sha256").update(readFileSync(path.join(stage, node))).digest("hex"),
   appVersion: requireStudio("./package.json").version,
   nextVersion: requireStudio("next/package.json").version,
