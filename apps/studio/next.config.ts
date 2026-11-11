@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 import { EnvironmentConfigError, validateEnv } from "./src/config";
 
 // Fail fast, with a readable multi-line error, before Next.js does anything
@@ -20,6 +21,10 @@ try {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  ...(process.env.PROWESS_STANDALONE_BUILD === "true" && {
+    output: "standalone",
+    outputFileTracingRoot: path.resolve(__dirname, "../.."),
+  }),
   // @prowess/model and @prowess/ui are workspace TypeScript packages
   // published as plain source-adjacent builds; transpile them through
   // Next's own pipeline rather than requiring each package to pre-build
