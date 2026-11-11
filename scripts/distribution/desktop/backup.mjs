@@ -9,6 +9,19 @@ function sameList(a, b) {
   return Array.isArray(a) && a.length === b.length && a.every((item, index) => item === b[index]);
 }
 
+export function compareVersions(a, b) {
+  const parse = (value) => {
+    if (typeof value !== "string" || !/^\d{1,6}\.\d{1,6}\.\d{1,6}$/.test(value)) {
+      throw new Error("The application version is unsupported.");
+    }
+    return value.split(".").map(Number);
+  };
+  const left = parse(a);
+  const right = parse(b);
+  for (let i = 0; i < 3; i += 1) if (left[i] !== right[i]) return left[i] - right[i];
+  return 0;
+}
+
 async function transaction(client, start, operation) {
   await client.query(start);
   try {
@@ -53,7 +66,7 @@ export async function makeBackup(client, { appVersion, migrations, tables, setup
   return bytes;
 }
 
-export function inspectBackup(bytes, { migrations, tables }) {
+export function inspectBackup(bytes, { appVersion, migrations, tables }) {
   if (bytes.length === 0 || bytes.length > backupLimit) throw new Error("The workspace backup size is invalid.");
   const envelope = JSON.parse(bytes.toString("utf8"));
   if (envelope?.format !== format || typeof envelope.payload !== "string" || digest(envelope.payload) !== envelope.sha256) {
@@ -61,7 +74,7 @@ export function inspectBackup(bytes, { migrations, tables }) {
   }
   const payload = JSON.parse(envelope.payload);
   if (payload?.postgresMajor !== 16 || ![null, "empty", "demo"].includes(payload.setup) ||
-      !sameList(payload.migrations, migrations) || !Array.isArray(payload.tables) ||
+      compareVersions(payload.appVersion, appVersion) > 0 || !sameList(payload.migrations, migrations) || !Array.isArray(payload.tables) ||
       !sameList(payload.tables.map((entry) => entry?.table), tables)) {
     throw new Error("The workspace backup requires a compatible application and PostgreSQL schema.");
   }

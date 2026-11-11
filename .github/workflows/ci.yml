@@ -87,6 +87,10 @@ jobs:
         run: node scripts/ci/gate-inventory.mjs
       - name: Control harness self-test — uncaught, misattributed and unrestored controls fail
         run: node scripts/lib/control-harness.selftest.mjs
+      - name: DIST-WO1 desktop boundary and mutation controls
+        run: |
+          node --test scripts/distribution/prototype-evidence.test.mjs scripts/distribution/desktop/desktop-boundary.test.mjs
+          PROWESS_EXPECT_CONTROLS=6 node scripts/distribution/desktop/negative-controls.mjs
 
   unit-packages:
     name: Unit — model, ui, import, rules, db
@@ -869,6 +873,55 @@ jobs:
         if: ${{ !cancelled() }}
         run: node scripts/ci/verify-browser-evidence.mjs M6-WO12
 
+  # ---- Windows distribution --------------------------------------------------------------------------------------------
+  windows-package:
+    name: DIST-WO1 — build Windows x64 installer
+    runs-on: windows-2025
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up pinned NSIS
+        shell: pwsh
+        run: choco install nsis.install --version=3.12.0 --yes --no-progress
+      - name: Build the installer from the exact source commit
+        shell: pwsh
+        run: >-
+          ./scripts/distribution/build-windows-installer.ps1
+          -OutputDirectory "$env:RUNNER_TEMP\prowess-installer"
+          -MakeNsis "${env:ProgramFiles(x86)}\NSIS\makensis.exe"
+      - name: Upload installer and dependency identity
+        uses: actions/upload-artifact@v4
+        with:
+          name: prowess-windows-x64-${{ github.sha }}
+          path: ${{ runner.temp }}/prowess-installer
+          if-no-files-found: error
+
+  windows-installed:
+    name: DIST-WO1 — verify installed Windows artifact
+    needs: windows-package
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - name: Download exact installer without a source checkout
+        uses: actions/download-artifact@v4
+        with:
+          name: prowess-windows-x64-${{ github.sha }}
+          path: ${{ runner.temp }}/prowess-installer
+      - name: Run installed artifact smoke checks
+        shell: pwsh
+        run: |
+          $artifact = Join-Path $env:RUNNER_TEMP 'prowess-installer'
+          & (Join-Path $artifact 'verify-windows-installer.ps1') -ArtifactDirectory $artifact `
+            -EvidenceDirectory (Join-Path $env:RUNNER_TEMP 'prowess-installed-evidence') -ExpectedCommit $env:GITHUB_SHA -BuildRunner
+      - name: Upload installed artifact evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: prowess-windows-evidence-${{ github.sha }}
+          path: ${{ runner.temp }}/prowess-installed-evidence
+          if-no-files-found: error
+
   # ---- Tier summaries ---------------------------------------------------------------------------------------------------
   tier-1:
     name: Tier 1 — fast feedback
@@ -889,7 +942,7 @@ jobs:
   tier-2:
     name: ${{ github.event_name == 'workflow_dispatch' && inputs.certification && 'Tier 3 — clean certification' || 'Tier 2 — merge readiness' }}
     if: always()
-    needs: [static, unit-packages, unit-game, unit-studio, db-api, db-integration, controls-1, controls-2, controls-3, controls-4, controls-5, controls-6, e2e]
+    needs: [static, unit-packages, unit-game, unit-studio, db-api, db-integration, controls-1, controls-2, controls-3, controls-4, controls-5, controls-6, e2e, windows-package, windows-installed]
     runs-on: ubuntu-latest
     steps:
       # The summary script lives in the repository: a summary job checks out just scripts/ci (no install, no build).

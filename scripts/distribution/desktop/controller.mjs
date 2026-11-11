@@ -6,7 +6,7 @@ import { createInterface } from "node:readline";
 import { setTimeout as delay } from "node:timers/promises";
 import { createDesktopGateway, readBody } from "./gateway.mjs";
 import { atomicJSON, freePort, secret, Storage } from "./storage.mjs";
-import { backupLimit, inspectBackup, loadBackup, makeBackup } from "./backup.mjs";
+import { backupLimit, compareVersions, inspectBackup, loadBackup, makeBackup } from "./backup.mjs";
 import { materializeLinks } from "../prototype-links.mjs";
 
 const [packageDirectory, dataDirectory, postgresAccess] = process.argv.slice(2);
@@ -55,18 +55,8 @@ function status() {
 function setStatus(next, running = false) {
   message = next;
   ready = running;
-  atomicJSON(statusPath, status());
-}
-
-function versionCompare(a, b) {
-  const parse = (value) => {
-    if (!/^\d+\.\d+\.\d+$/.test(value)) throw new Error("The application version is unsupported.");
-    return value.split(".").map(Number);
-  };
-  const left = parse(a);
-  const right = parse(b);
-  for (let i = 0; i < 3; i += 1) if (left[i] !== right[i]) return left[i] - right[i];
-  return 0;
+  try { atomicJSON(statusPath, status()); }
+  catch { console.error("The launcher could not write its status file. Check available space and directory permissions."); }
 }
 
 function exclusive(action) {
@@ -79,12 +69,13 @@ function exclusive(action) {
 async function stopStudio() {
   await gateway.drain();
   if (!studio) return;
-  studio.child.kill();
-  await studio.done;
+  const stopping = studio;
   studio = undefined;
+  stopping.child.kill();
+  await stopping.done;
 }
 
-async function launchStudio(database, choice) {
+async function launchStudio(database) {
   const node = path.join(stage, manifest.node);
   const server = path.join(stage, manifest.server);
   const port = await freePort();
@@ -96,7 +87,6 @@ async function launchStudio(database, choice) {
       env: { ...system, NODE_ENV: "production", DATABASE_URL: storage.url(database), APP_URL: gateway.origin,
         PORT: String(port), HOSTNAME: "127.0.0.1", LOG_LEVEL: "warn", DEVELOPMENT_MODE: "false",
         NEXT_TELEMETRY_DISABLED: "1", PROWESS_DESKTOP_MODE: "true", PROWESS_DESKTOP_BACKEND_TOKEN: backendToken,
-        PROWESS_DESKTOP_SAMPLE_RULES: choice === "demo" ? "true" : "false",
       },
     });
   } finally { closeSync(descriptor); }
@@ -105,6 +95,12 @@ async function launchStudio(database, choice) {
     child.once("error", resolve);
   }) };
   studio = current;
+  void current.done.then(() => {
+    if (studio === current && ready && !closing) {
+      gateway.setBackend(undefined);
+      setStatus("Studio stopped unexpectedly. Quit and reopen it to recover the workspace.");
+    }
+  });
   const origin = "http://127.0.0.1:" + port;
   const headers = { "x-prowess-desktop-backend": backendToken };
   const until = Date.now() + 30_000;
@@ -148,7 +144,7 @@ async function recoveryBackup(state, purpose) {
 
 async function activate(database, choice) {
   storage.checkSchema(database);
-  const port = await launchStudio(database, choice);
+  const port = await launchStudio(database);
   storage.persist({ active: database, setup: choice, ...installedSpec() });
   gateway.setBackend(port);
   setStatus("Studio is ready.", true);
@@ -170,7 +166,7 @@ async function restoreWorkspace(request) {
     return "Workspace restored. Open Studio again from its shortcut.";
   } catch (error) {
     await stopStudio();
-    gateway.setBackend(await launchStudio(storage.state.active, storage.state.setup));
+    gateway.setBackend(await launchStudio(storage.state.active));
     setStatus("Studio is ready. The restore did not complete.", true);
     throw error;
   }
@@ -200,7 +196,7 @@ async function prepareWorkspace() {
     storage.checkSchema(previous.active);
     storage.persist(installedSpec());
   } else {
-    const order = versionCompare(manifest.appVersion, previous.appVersion);
+    const order = compareVersions(manifest.appVersion, previous.appVersion);
     if (order < 0) throw new Error("This workspace requires a newer Prowess Studio version.");
     const prefix = previous.migrations.every((migration, index) => migration === manifest.migrations[index]);
     if (!prefix || order === 0 && previous.migrations.length !== manifest.migrations.length) {
@@ -208,6 +204,7 @@ async function prepareWorkspace() {
     }
     if (order > 0) {
       setStatus("Backing up and upgrading the local workspace.");
+      await storage.checkHistory(previous.active, previous.migrations);
       const backup = await recoveryBackup(previous, "before-upgrade");
       const staged = await storage.newDatabase(previous.active);
       atomicJSON(journalPath, { previous: previous.active, staged, from: previous.appVersion, to: manifest.appVersion, backup });
@@ -217,13 +214,14 @@ async function prepareWorkspace() {
         storage.checkSchema(staged);
         storage.persist({ ...installedSpec(), active: staged });
       }
-      rmSync(journalPath, { force: true });
+      try { rmSync(journalPath, { force: true }); }
+      catch { console.error("The upgrade completed but its recovery record could not be removed."); }
       return;
     }
   }
   if (storage.state.setup) {
     storage.checkSchema(storage.state.active);
-    gateway.setBackend(await launchStudio(storage.state.active, storage.state.setup));
+    gateway.setBackend(await launchStudio(storage.state.active));
     setStatus("Studio is ready.", true);
   }
 }
@@ -283,3 +281,17 @@ operation = (async () => {
   finally { working = false; }
 })();
 await operation;
+let checkingStorage = false;
+const healthCheck = setInterval(async () => {
+  if (!ready || working || closing || checkingStorage) return;
+  const active = storage.state.active;
+  checkingStorage = true;
+  try { await storage.withClient(active, (client) => client.query("SELECT 1")); }
+  catch {
+    if (ready && !working && !closing && storage.state.active === active) {
+      gateway.setBackend(undefined);
+      setStatus("The local database stopped responding. Quit and reopen Studio to recover the workspace.");
+    }
+  } finally { checkingStorage = false; }
+}, 5000);
+healthCheck.unref();

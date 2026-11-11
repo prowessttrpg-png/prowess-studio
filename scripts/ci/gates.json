@@ -1320,6 +1320,24 @@
       "job": "e2e",
       "kind": "e2e",
       "command": "node scripts/ci/verify-browser-evidence.mjs M6-WO12"
+    },
+    {
+      "id": "DIST-WO1-DESKTOP-BOUNDARY",
+      "job": "static",
+      "kind": "smoke",
+      "command": "PROWESS_EXPECT_CONTROLS=6 node scripts/distribution/desktop/negative-controls.mjs"
+    },
+    {
+      "id": "DIST-WO1-WINDOWS-PACKAGE",
+      "job": "windows-package",
+      "kind": "build",
+      "command": "./scripts/distribution/build-windows-installer.ps1"
+    },
+    {
+      "id": "DIST-WO1-INSTALLED-ARTIFACT",
+      "job": "windows-installed",
+      "kind": "e2e",
+      "command": "-ExpectedCommit $env:GITHUB_SHA -BuildRunner"
     }
   ],
   "retired": [

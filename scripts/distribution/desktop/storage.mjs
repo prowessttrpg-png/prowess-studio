@@ -181,9 +181,21 @@ export class Storage {
     this.prisma(database, "migrate", "diff", "--from-config-datasource", "--to-schema", "prisma/schema.prisma", "--exit-code");
   }
 
+  async checkHistory(database, expected) {
+    const rows = await this.withClient(database, async (client) => (await client.query(`
+      SELECT migration_name, finished_at IS NOT NULL AS applied FROM public._prisma_migrations
+      WHERE rolled_back_at IS NULL ORDER BY migration_name
+    `)).rows);
+    if (rows.length !== expected.length || rows.some((row, index) => !row.applied || row.migration_name !== expected[index])) {
+      throw new Error("The existing workspace migration history does not match the last installed version.");
+    }
+  }
+
   stop() {
     if (!this.running) return;
-    this.command("pg_ctl", ["-D", this.cluster, "-w", "-t", "30", "-m", "fast", "stop"]);
+    if (this.command("pg_ctl", ["-D", this.cluster, "status"], { acceptMissing: true })) {
+      this.command("pg_ctl", ["-D", this.cluster, "-w", "-t", "30", "-m", "fast", "stop"]);
+    }
     this.running = false;
   }
 }

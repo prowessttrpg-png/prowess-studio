@@ -1,6 +1,7 @@
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
+if (-not ('ProwessProofHost' -as [type])) {
 Add-Type -TypeDefinition @'
 using System;
 using System.ComponentModel;
@@ -78,6 +79,7 @@ public static class ProwessProofHost
     }
 }
 '@
+}
 
 $hostOS = Get-CimInstance -ClassName Win32_OperatingSystem -Property Caption, Version, BuildNumber, ProductType
 $details = [ProwessProofHost]::Read($targetProcessId)

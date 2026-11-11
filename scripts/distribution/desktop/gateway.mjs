@@ -6,7 +6,7 @@ const prefix = "/__prowess_desktop";
 const authCookie = "prowess_desktop";
 const tokenPattern = /^[a-f0-9]{64}$/;
 const hopHeaders = new Set(["connection", "keep-alive", "proxy-authenticate", "proxy-authorization", "te",
-  "trailer", "transfer-encoding", "upgrade", "x-prowess-desktop-backend", "x-prowess-control"]);
+  "trailer", "transfer-encoding", "upgrade", "authorization", "x-prowess-desktop-backend", "x-prowess-control"]);
 const token = () => randomBytes(32).toString("hex");
 
 function matches(actual, expected) {
@@ -90,8 +90,8 @@ setInterval(refresh, 1000);
 const dashboard = '<h1>Prowess Studio</h1><p id="status" role="status">Connecting…</p>' +
   '<p><a href="/">Open Studio</a> · <a href="' + prefix + '/backup">Back up local workspace</a> · ' +
   '<a href="' + prefix + '/diagnostics">Download diagnostics</a></p>' +
-  '<p><button data-setup="empty">Start with an empty workspace</button>' +
-  '<button data-setup="demo">Demo — sample rules</button></p>' +
+  '<p><button data-setup="empty" hidden>Start with an empty workspace</button>' +
+  '<button data-setup="demo" hidden>Demo — sample rules</button></p>' +
   '<p><label for="backup-file">Workspace backup</label> <input id="backup-file" type="file" accept=".prowess-backup">' +
   '<button id="restore" data-ready disabled>Restore local workspace</button></p>' +
   '<button id="quit">Quit Studio</button><p id="message" role="status"></p>';
@@ -111,7 +111,7 @@ export async function createDesktopGateway({ controlToken, backendToken, status,
   const sessions = new Set();
   const launches = new Map();
   let backend;
-  const active = new Set();
+  const active = new Map();
   let origin;
   const server = http.createServer((request, response) => {
     handle(request, response).catch(() => {
@@ -219,8 +219,9 @@ export async function createDesktopGateway({ controlToken, backendToken, status,
     headers["x-forwarded-port"] = String(port);
     headers["x-forwarded-proto"] = "http";
     headers["x-prowess-desktop-backend"] = backendToken;
+    let upstream;
     const forwarding = new Promise((resolve) => {
-      const upstream = http.request({
+      upstream = http.request({
         hostname: "127.0.0.1", port: target, method: request.method, path: url.pathname + url.search, headers,
       }, (incoming) => {
         const responseHeaders = Object.fromEntries(Object.entries(incoming.headers).filter(([name]) => !hopHeaders.has(name)));
@@ -237,7 +238,7 @@ export async function createDesktopGateway({ controlToken, backendToken, status,
       response.on("close", () => upstream.destroy());
       request.pipe(upstream);
     });
-    active.add(forwarding);
+    active.set(forwarding, upstream);
     try { await forwarding; } finally { active.delete(forwarding); }
   }
 
@@ -245,9 +246,18 @@ export async function createDesktopGateway({ controlToken, backendToken, status,
     origin, issueLaunch,
     setBackend: (value) => { backend = value; },
     invalidateSessions: () => { sessions.clear(); launches.clear(); },
-    async drain() { backend = undefined; await Promise.all(active); },
+    async drain() {
+      backend = undefined;
+      const timeout = setTimeout(() => {
+        for (const upstream of active.values()) upstream.destroy(new Error("Studio is closing."));
+      }, 10_000);
+      try { await Promise.all(active.keys()); }
+      finally { clearTimeout(timeout); }
+    },
     async close() {
-      await new Promise((resolve) => server.close(resolve));
+      const timeout = setTimeout(() => server.closeAllConnections(), 3000);
+      try { await new Promise((resolve) => server.close(resolve)); }
+      finally { clearTimeout(timeout); }
     },
   };
 }

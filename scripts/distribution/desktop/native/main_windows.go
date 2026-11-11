@@ -432,6 +432,23 @@ func run() error {
 }
 
 func main() {
+	if len(os.Args) > 1 && (os.Args[1] == "--extract" || os.Args[1] == "--remove-payloads") {
+		self, err := os.Executable()
+		if err == nil {
+			directory := filepath.Dir(self)
+			if os.Args[1] == "--extract" && len(os.Args) == 3 && strings.HasSuffix(directory, ".pending") {
+				err = extractPayload(directory, os.Args[2])
+			} else if os.Args[1] == "--remove-payloads" && len(os.Args) == 2 && filepath.Base(filepath.Dir(directory)) == "versions" {
+				err = removePayloads(filepath.Dir(directory))
+			} else {
+				err = errors.New("invalid installer command")
+			}
+		}
+		if err != nil {
+			os.Exit(1)
+		}
+		return
+	}
 	if err := run(); err != nil {
 		fail(fmt.Sprintf("Prowess Studio could not finish this operation.\n\n%s", err))
 		os.Exit(1)
