@@ -182,6 +182,16 @@ async function fingerprint(id) {
 }
 
 try {
+  console.log("Rendering a PNG with the packaged Windows sharp runtime.");
+  run(node, ["--input-type=module", "--eval", `
+    import assert from "node:assert/strict";
+    import { createRequire } from "node:module";
+    const entry = process.argv[1];
+    const sharp = createRequire(entry)(entry);
+    const png = await sharp({ create: { width: 1, height: 1, channels: 3, background: "red" } }).png().toBuffer();
+    assert.equal(png.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+  `, stageFile(staged.sharp)]);
+
   console.log("Validating the packaged Prisma CLI and schema.");
   migrate("validate");
 
@@ -243,7 +253,7 @@ try {
     },
     paths: { package: root, profile, postgresBin: storage.bin, postgresDataDirectory: cluster },
     checks: {
-      postgresStartup: "passed", productionStudioStartup: "passed",
+      sharpNative: "passed", postgresStartup: "passed", productionStudioStartup: "passed",
       migrationDeployment: "passed", migrations: migrations.length, schemaDrift: "none",
       characterCreation: "passed", restartPersistence: "passed",
     },

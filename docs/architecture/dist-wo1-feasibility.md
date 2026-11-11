@@ -18,6 +18,8 @@ At `4063122`, PostgreSQL initialized and reached loopback readiness on Windows 1
 
 At `244e380`, PostgreSQL startup and the ownership query passed on Windows. Prisma then failed to load the `@prisma/studio-core/data/bff` export during schema validation. The migration stage now copies complete installed package directories and their package-local links. The Windows probe validates the staged CLI and schema before initializing PostgreSQL.
 
+At `ebf55ad`, Windows applied and checked all 29 migrations with zero schema drift and created the test Release. Studio could load the sharp JavaScript entry point but its Windows add-on failed with `ERR_DLOPEN_FAILED`. The add-on's import table names `libvips-42.dll` and `libvips-cpp-8.18.6.dll`. Staging now copies the full frozen `@img/sharp-win32-x64` package and checks both libraries are present. The probe renders a PNG with the packaged Node and sharp before starting PostgreSQL.
+
 ## Prototype toolchain
 
 | Input | Pin and origin |

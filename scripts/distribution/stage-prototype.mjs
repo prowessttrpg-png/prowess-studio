@@ -87,6 +87,7 @@ function copyEntry(source, destination, payload = "app") {
 
 const requireStudio = createRequire(path.join(studio, "package.json"));
 const requireDb = createRequire(path.join(database, "package.json"));
+const sharpEntry = requireDb.resolve("sharp");
 const prismaPackage = requireDb.resolve("prisma/package.json");
 const requirePrisma = createRequire(prismaPackage);
 const prismaCli = path.join(path.dirname(prismaPackage), "build/index.js");
@@ -107,6 +108,18 @@ const stagedDatabase = path.join(migration, relativeInside(repository, database)
 copyEntry(standalone, app);
 copyEntry(path.join(studio, ".next/static"), path.join(stagedStudio, ".next/static"));
 if (existsSync(path.join(studio, "public"))) copyEntry(path.join(studio, "public"), path.join(stagedStudio, "public"));
+const stagedSharp = path.join(app, relativeInside(repository, sharpEntry));
+assert.ok(existsSync(stagedSharp), "The standalone Studio build is missing sharp.");
+if (windows) {
+  // The .node add-on imports libvips DLLs through the Windows loader.
+  const requireSharp = createRequire(sharpEntry);
+  const nativePackage = path.dirname(requireSharp.resolve("@img/sharp-win32-x64/package"));
+  const { vips } = JSON.parse(readFileSync(path.join(nativePackage, "versions.json"), "utf8"));
+  for (const library of ["libvips-42.dll", "libvips-cpp-" + vips + ".dll"]) {
+    assert.ok(existsSync(path.join(nativePackage, "lib", library)), "The installed Windows sharp package is missing " + library);
+  }
+  copyEntry(nativePackage, path.join(app, relativeInside(repository, nativePackage)));
+}
 for (const entry of migrationEntries) {
   copyEntry(entry, path.join(migration, relativeInside(repository, entry)), "migration");
 }
@@ -154,6 +167,7 @@ const metadata = {
   appVersion: requireStudio("./package.json").version,
   nextVersion: requireStudio("next/package.json").version,
   prismaVersion: requirePrisma("./package.json").version,
+  sharp: relativeInside(stage, stagedSharp),
   server: relativeInside(stage, path.join(stagedStudio, "server.js")),
   database: relativeInside(stage, stagedDatabase),
   prisma: path.join("migration", relativeInside(repository, prismaCli)),
