@@ -182,6 +182,9 @@ async function fingerprint(id) {
 }
 
 try {
+  console.log("Validating the packaged Prisma CLI and schema.");
+  migrate("validate");
+
   console.log("Initializing the disposable PostgreSQL cluster.");
   assert.match(run(postgres("postgres"), ["--version"]), /\b16\.14\b/);
   writeFileSync(passwordFile, password + "\n", { flag: "wx", mode: 0o600 });
@@ -195,7 +198,6 @@ try {
   const postgresVersion = await verifyOwnedStorage();
 
   console.log("Deploying and checking the shipped Prisma migrations.");
-  migrate("validate");
   migrate("migrate", "deploy");
   migrate("migrate", "status");
   migrate("migrate", "diff", "--from-config-datasource", "--to-schema", "prisma/schema.prisma", "--exit-code");

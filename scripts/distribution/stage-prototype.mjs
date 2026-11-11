@@ -7,6 +7,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { assertPrototypeToolchain, prototypePackageSha256, verifyPrototypeBuild } from "./prototype-build-identity.mjs";
 import { relativeInside } from "./prototype-links.mjs";
+import { collectNodePackages } from "./prototype-node-packages.mjs";
 
 const repository = realpathSync(path.resolve(import.meta.dirname, "../.."));
 const studio = path.join(repository, "apps/studio");
@@ -62,7 +63,7 @@ function readWindowsCrt(input) {
 
 const crtInput = windows ? readWindowsCrt(crtDirectory) : null;
 const links = new Map();
-function copyEntry(source, destination) {
+function copyEntry(source, destination, payload = "app") {
   if (/^\.env(?:\.|$)/i.test(path.basename(source))) return;
   const stat = lstatSync(source);
   if (stat.isSymbolicLink()) {
@@ -72,10 +73,10 @@ function copyEntry(source, destination) {
       ? inStandalone
       : relativeInside(repository, target);
     mkdirSync(path.dirname(destination), { recursive: true });
-    links.set(relativeInside(stage, destination), path.join("app", relativeTarget));
+    links.set(relativeInside(stage, destination), path.join(payload, relativeTarget));
   } else if (stat.isDirectory()) {
     mkdirSync(destination, { recursive: true });
-    for (const name of readdirSync(source)) copyEntry(path.join(source, name), path.join(destination, name));
+    for (const name of readdirSync(source)) copyEntry(path.join(source, name), path.join(destination, name), payload);
   } else if (stat.isFile()) {
     mkdirSync(path.dirname(destination), { recursive: true });
     copyFileSync(source, destination);
@@ -95,25 +96,20 @@ if (schemaEngines.length !== 1 || schemaEngines[0].endsWith(".exe") !== windows)
   throw new Error("Expected exactly one schema engine for the build platform.");
 }
 const schemaEngine = path.join(engineDirectory, schemaEngines[0]);
-const { nodeFileTrace } = requireStudio("next/dist/compiled/@vercel/nft");
-const trace = await nodeFileTrace([
-  prismaCli,
-  path.join(database, "prisma.config.ts"),
-  path.join(database, "node_modules/prisma/config.js"),
-], { base: repository, processCwd: database });
-trace.fileList.add(relativeInside(repository, schemaEngine));
+const migrationEntries = collectNodePackages(repository, database, "prisma");
+for (const file of ["package.json", "prisma.config.ts", "prisma"]) migrationEntries.add(path.join(database, file));
 
 mkdirSync(stage);
 const app = path.join(stage, "app");
+const migration = path.join(stage, "migration");
 const stagedStudio = path.join(app, "apps/studio");
-const stagedDatabase = path.join(app, "packages/prowess-db");
+const stagedDatabase = path.join(migration, relativeInside(repository, database));
 copyEntry(standalone, app);
 copyEntry(path.join(studio, ".next/static"), path.join(stagedStudio, ".next/static"));
 if (existsSync(path.join(studio, "public"))) copyEntry(path.join(studio, "public"), path.join(stagedStudio, "public"));
-for (const file of trace.fileList) {
-  copyEntry(path.join(repository, file), path.join(app, file));
+for (const entry of migrationEntries) {
+  copyEntry(entry, path.join(migration, relativeInside(repository, entry)), "migration");
 }
-copyEntry(path.join(database, "prisma"), path.join(stagedDatabase, "prisma"));
 
 const node = path.join("runtime", windows ? "node.exe" : "node");
 mkdirSync(path.join(stage, "runtime"));
@@ -133,7 +129,7 @@ if (windows) {
     if (!existsSync(path.join(binaryDirectory, exe))) throw new Error("The PostgreSQL archive is missing " + exe);
   }
   postgres = { ...windowsPostgres, bin: relativeInside(stage, binaryDirectory) };
-  const destinations = [path.join(stage, "runtime"), binaryDirectory, path.join(app, relativeInside(repository, engineDirectory))];
+  const destinations = [path.join(stage, "runtime"), binaryDirectory, path.join(migration, relativeInside(repository, engineDirectory))];
   for (const destination of destinations) {
     for (const file of crtInput.files) {
       copyFileSync(path.join(crtInput.directory, file.name), path.join(destination, file.name));
@@ -144,7 +140,7 @@ if (windows) {
 
 const linkEntries = [...links.entries()];
 for (const [name, target] of linkEntries) {
-  if (!existsSync(path.join(stage, target))) throw new Error("The traced package is missing the target of " + name);
+  if (!existsSync(path.join(stage, target))) throw new Error("The package is missing the target of " + name);
 }
 writeFileSync(path.join(stage, "links.json"), JSON.stringify(linkEntries, null, 2) + "\n");
 copyFileSync(path.join(import.meta.dirname, "prototype-links.mjs"), path.join(stage, "prototype-links.mjs"));
@@ -160,8 +156,8 @@ const metadata = {
   prismaVersion: requirePrisma("./package.json").version,
   server: relativeInside(stage, path.join(stagedStudio, "server.js")),
   database: relativeInside(stage, stagedDatabase),
-  prisma: path.join("app", relativeInside(repository, prismaCli)),
-  schemaEngine: path.join("app", relativeInside(repository, schemaEngine)),
+  prisma: path.join("migration", relativeInside(repository, prismaCli)),
+  schemaEngine: path.join("migration", relativeInside(repository, schemaEngine)),
   migrations: readdirSync(path.join(stagedDatabase, "prisma/migrations"), { withFileTypes: true })
     .filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort(),
 };

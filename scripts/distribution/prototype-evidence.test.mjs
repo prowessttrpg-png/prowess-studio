@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { prototypePackageSha256, readCleanSource, recordPrototypeBuild, verifyPrototypeBuild } from "./prototype-build-identity.mjs";
 import { runWithLog } from "./prototype-command-log.mjs";
+import { collectNodePackages } from "./prototype-node-packages.mjs";
 import { requireOrdinaryWindowsAccount } from "./windows-proof-environment.mjs";
 import { createPostgresAccessPaths } from "./windows-postgres-paths.mjs";
 
@@ -177,4 +178,30 @@ test("the startup command returns while its server still owns the output handles
       }
     }
   }
+});
+
+test("the migration package collects scoped subpath exports and their pnpm junctions", (t) => {
+  const repository = disposableDirectory(t);
+  const importer = path.join(repository, "packages", "database");
+  const store = path.join(repository, "node_modules", ".pnpm");
+  const cli = path.join(store, "prisma@7.10.0", "node_modules", "prisma");
+  const core = path.join(store, "@prisma+studio-core@0.33.0", "node_modules", "@prisma", "studio-core");
+  const cliLink = path.join(importer, "node_modules", "prisma");
+  const coreLink = path.join(path.dirname(cli), "@prisma", "studio-core");
+  for (const directory of [path.dirname(cliLink), cli, path.dirname(coreLink), core]) {
+    mkdirSync(directory, { recursive: true });
+  }
+  writeFileSync(path.join(cli, "package.json"), JSON.stringify({
+    name: "prisma", dependencies: { "@prisma/studio-core": "0.33.0" }, optionalDependencies: { "absent-optional": "1" },
+  }));
+  writeFileSync(path.join(core, "package.json"), JSON.stringify({
+    name: "@prisma/studio-core", exports: { "./data/bff": "./bff.cjs" },
+  }));
+  writeFileSync(path.join(core, "bff.cjs"), "module.exports = {}\n");
+  symlinkSync(cli, cliLink, "junction");
+  symlinkSync(core, coreLink, "junction");
+
+  assert.deepEqual(collectNodePackages(repository, importer, "prisma"), new Set([cliLink, cli, coreLink, core]));
+  rmSync(coreLink);
+  assert.throws(() => collectNodePackages(repository, importer, "prisma"), /Missing required installed package @prisma\/studio-core/);
 });
