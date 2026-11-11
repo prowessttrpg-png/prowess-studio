@@ -88,6 +88,7 @@ function copyEntry(source, destination, payload = "app") {
 const requireStudio = createRequire(path.join(studio, "package.json"));
 const requireDb = createRequire(path.join(database, "package.json"));
 const sharpEntry = requireDb.resolve("sharp");
+const desktopClient = requireDb.resolve("pg");
 const prismaPackage = requireDb.resolve("prisma/package.json");
 const requirePrisma = createRequire(prismaPackage);
 const prismaCli = path.join(path.dirname(prismaPackage), "build/index.js");
@@ -98,6 +99,7 @@ if (schemaEngines.length !== 1 || schemaEngines[0].endsWith(".exe") !== windows)
 }
 const schemaEngine = path.join(engineDirectory, schemaEngines[0]);
 const migrationEntries = collectNodePackages(repository, database, "prisma");
+for (const entry of collectNodePackages(repository, database, "pg")) migrationEntries.add(entry);
 for (const file of ["package.json", "prisma.config.ts", "prisma"]) migrationEntries.add(path.join(database, file));
 
 mkdirSync(stage);
@@ -157,7 +159,20 @@ for (const [name, target] of linkEntries) {
 }
 writeFileSync(path.join(stage, "links.json"), JSON.stringify(linkEntries, null, 2) + "\n");
 copyFileSync(path.join(import.meta.dirname, "prototype-links.mjs"), path.join(stage, "prototype-links.mjs"));
+mkdirSync(path.join(stage, "desktop"));
+for (const name of ["controller.mjs", "storage.mjs", "gateway.mjs", "backup.mjs"]) {
+  copyFileSync(path.join(import.meta.dirname, "desktop", name), path.join(stage, "desktop", name));
+}
 assert.deepEqual(verifyPrototypeBuild(repository), build, "The recorded production build changed during staging.");
+
+const migrationDirectory = path.join(stagedDatabase, "prisma/migrations");
+const migrations = readdirSync(migrationDirectory, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
+const desktopTables = new Set();
+for (const migrationName of migrations) {
+  const sql = readFileSync(path.join(migrationDirectory, migrationName, "migration.sql"), "utf8");
+  for (const [, table] of sql.matchAll(/^CREATE TABLE "([a-z0-9_]+)"/gm)) desktopTables.add(table);
+}
 
 const metadata = {
   build,
@@ -172,8 +187,9 @@ const metadata = {
   database: relativeInside(stage, stagedDatabase),
   prisma: path.join("migration", relativeInside(repository, prismaCli)),
   schemaEngine: path.join("migration", relativeInside(repository, schemaEngine)),
-  migrations: readdirSync(path.join(stagedDatabase, "prisma/migrations"), { withFileTypes: true })
-    .filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort(),
+  desktopClient: path.join("migration", relativeInside(repository, desktopClient)),
+  desktopTables: [...desktopTables].sort(),
+  migrations,
 };
 writeFileSync(path.join(stage, "prototype.json"), JSON.stringify(metadata, null, 2) + "\n");
 console.log("Staged prototype at " + stage);

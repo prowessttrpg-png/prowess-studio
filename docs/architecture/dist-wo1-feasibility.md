@@ -1,6 +1,14 @@
 # DIST-WO1 packaged-runtime feasibility checkpoint
 
-Windows verification is pending. The work order's early proof requires a Windows 11 x64 run under an ordinary user account. Use the prototype on a disposable test machine. The player installer and launcher, local session boundary, first-run choices, whole-workspace backup and restore, application updates, and Windows CI acceptance are subsequent work.
+The early Windows feasibility proof passed on Windows 11 Home x64 build 26200 under a standard user. The packaged runtime rendered a PNG, initialized PostgreSQL 16.14, applied all 29 migrations with zero drift, and created and recovered the same Character and Release across a PostgreSQL and Studio restart. The Character row SHA-256 matched before and after the restart. The installed-artifact acceptance matrix is a separate stage of DIST-WO1.
+
+| Verified run | Value |
+| --- | --- |
+| Source commit | `30db02767dc1039c1deaef58b740cfcbdfaa41b9` |
+| Source tree | `b6a0e455e18f0175450a0183c1b17305126428e3` |
+| Package SHA-256 | `9fe8f32bb1d6df78a88d69bc5079f8cccbaa71b30ee41a5e91d8d3fffe439d22` |
+| Evidence archive SHA-256 | `d8d946d7c3924fccd689dc82d9d56d41885c8075ad7c8da5d25edb7033730cf6` |
+| Runtime proof | 17 seconds |
 
 ## Baseline and packaging choice
 
