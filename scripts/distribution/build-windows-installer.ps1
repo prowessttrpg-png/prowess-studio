@@ -133,8 +133,21 @@ try {
     $env:GOTOOLCHAIN = $beforeToolchain
     $env:CGO_ENABLED = $beforeCgo
     if ($finished) {
-        git -C $source worktree remove --force $build | Out-Host
-        Remove-Item -LiteralPath $work -Recurse -Force
+        try {
+            # The worktree and payload can contain dependency paths longer than MAX_PATH.
+            $removeBuildTrees = @'
+const { rmSync } = require('node:fs');
+const { toNamespacedPath } = require('node:path');
+for (const directory of process.argv.slice(1)) {
+    rmSync(toNamespacedPath(directory), { recursive: true, force: true, maxRetries: 3 });
+}
+'@
+            Invoke-BuildCommand $node @('-e', $removeBuildTrees, $build, $stage)
+            Invoke-BuildCommand 'git' @('-C', $source, 'worktree', 'remove', '--force', $build)
+            Remove-Item -LiteralPath $work -Recurse -Force
+        } catch {
+            Write-Warning "The installer was built. Temporary files may remain under $work. $($_.Exception.Message)"
+        }
     } else {
         Write-Host "Build files for diagnosis: $work"
     }
