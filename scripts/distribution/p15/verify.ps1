@@ -23,9 +23,12 @@ if ((Test-Path -LiteralPath $install) -or (Test-Path -LiteralPath $data)) {
     throw 'The verifier requires a fresh per-user Studio installation and workspace.'
 }
 $os = Get-CimInstance Win32_OperatingSystem
-$machineGuid = Get-ItemPropertyValue -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Cryptography' -Name 'MachineGuid'
-$machineHash = [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($machineGuid))).ToLowerInvariant()
-$hostIdentity = @{ caption = $os.Caption; build = $os.BuildNumber; architecture = $env:PROCESSOR_ARCHITECTURE; sha256 = $machineHash }
+$vmUuid = [Guid](Get-CimInstance Win32_ComputerSystemProduct).UUID
+if ($vmUuid -eq [Guid]::Empty -or $vmUuid -eq [Guid]'ffffffff-ffff-ffff-ffff-ffffffffffff') {
+    throw 'The runner did not expose a usable SMBIOS machine UUID.'
+}
+$machineHash = [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($vmUuid.ToString()))).ToLowerInvariant()
+$hostIdentity = @{ caption = $os.Caption; build = $os.BuildNumber; architecture = $env:PROCESSOR_ARCHITECTURE; sha256 = $machineHash; identifier = 'SMBIOS UUID' }
 if ($hostIdentity.architecture -cne 'AMD64') { throw 'Use native x64 Windows.' }
 if (-not (Test-Path -LiteralPath $Evidence)) { New-Item -ItemType Directory -Path $Evidence | Out-Null }
 $package = Join-Path $install ('versions\' + $identity.packageId)
