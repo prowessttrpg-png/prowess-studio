@@ -36,13 +36,17 @@ The uploaded `Prowess-Installed-Evidence-20261111-142749.zip` contains the passi
 
 The smoke passed per-user installation and shortcut registration, demo first run, local HTTP isolation, Character creation with the expected Release, exact row comparison after backup and restore, refusal of a truncated backup and a stale browser session, and equality of the Character response after a full launcher restart. A separate user screenshot shows the installed Studio dashboard open in Edge on loopback. The uploaded archive contains verifier reports. The installer executable and the backup row are outside that archive, so the verifier's recorded checksum and fingerprint checks provide those results.
 
+### Interactive Windows playtest
+
+The tester confirmed completion of the full interactive walkthrough on the installed Windows build. They previously confirmed that a saved Character was still editable after relaunch and that the Play Workspace opened. The completed walkthrough covers the demo rule revision through Release 2, Character creation and loadout, ability building, combat, and mid-turn resume. This is tester-reported evidence. The walkthrough's optional negative cases and a Windows reboot have no separate result recorded.
+
 ## Acceptance matrix
 
 | ID | Evidence and next verification |
 | --- | --- |
-| W01 | Per-user installation, desktop shortcut registration, and launcher start passed on a clean Windows 11 standard account. The user screenshot shows the dashboard on loopback. Direct shortcut activation remains to be confirmed. |
-| W02 | Windows installed smoke passed demo first run. Both choices passed the local packaged runtime smoke. Windows interactive first-run choices and the full demo journey remain pending. |
-| W03 | Windows installed smoke created a draft Character on the expected Release and recovered the exact Character response after restart. UI finalization, loadout, Spell, Maneuver, mid-turn effect, and reboot remain pending. |
+| W01 | Per-user installation, desktop shortcut registration, and launcher start passed on a clean Windows 11 standard account. In the instructed relaunch check the tester returned to the dashboard and could still edit their Character. |
+| W02 | Windows installed smoke passed demo first run, and the tester completed the demo journey on Windows. Both choices passed the local packaged runtime smoke. The interactive Windows empty-workspace choice remains pending. |
+| W03 | Windows installed smoke created a draft Character on the expected Release and recovered the exact Character response after restart. The tester completed the UI walkthrough covering finalization, loadout, Spell, Maneuver, and mid-turn resume. Windows reboot and an independent mid-turn database fingerprint remain pending. |
 | W04 | Per-user lifecycle lock and authenticated duplicate invocation implemented. Pending real double-shortcut and two-tab Windows test. |
 | W05 | Ephemeral loopback ports, exact storage owner checks and bounded startup. Pending occupied-port and unrelated-process Windows test. |
 | W06 | Owned process job, bounded close and interruption detection implemented. Pending Windows crash and interrupted initialization tests. |
