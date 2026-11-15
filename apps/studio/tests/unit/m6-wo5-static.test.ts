@@ -70,7 +70,7 @@ describe("M6-WO5 gate — registered schema change and migration (§102–§103,
 
   it("removing exactly the marked WO5 additions restores the M6-WO4 schema; the WO3 / WO4 migrations are untouched", () => {
     expect(BASELINE.baseCommit).toBe("d13efd8767a7a1dbef3debb53d879b23f7218446");
-    const registered = Object.keys(JSON.parse(read("docs/architecture/m6-schema-changes.json")) as Record<string, unknown>).filter((k) => /^M\d+-WO\d+$/.test(k));
+    const registered = Object.keys(JSON.parse(read("docs/architecture/m6-schema-changes.json")) as Record<string, unknown>).filter((k) => /^(?:M\d+-WO\d+|DIST-WO2)$/.test(k));
     let without = SCHEMA;
     for (const wo of registered.slice(registered.indexOf("M6-WO5"))) {
       const w = wo.replace(/-/g, "\\-");
@@ -91,7 +91,10 @@ describe("M6-WO5 gate — registered schema change and migration (§102–§103,
   });
 
   it("M6-I051 image bytes live ONLY in character_portrait_images — never on the Character or portrait metadata row", () => {
-    expect([...SCHEMA.matchAll(/^\s+(\w+)\s+Bytes\b/gm)].map((m) => m[1])).toEqual(["bytes"]);
+    // DIST-WO2 adds its own content-addressed offline media. Character images still have one dedicated store.
+    const byteOwners = [...SCHEMA.matchAll(/^model (\w+) \{([\s\S]*?)^\}/gm)]
+      .flatMap((match) => [...match[2]!.matchAll(/^\s+(\w+)\s+Bytes\b/gm)].map((field) => `${match[1]}.${field[1]}`));
+    expect(byteOwners).toEqual(["CharacterPortraitImage.bytes", "ContentPackAsset.bytes"]);
     expect(model("CharacterPortraitImage")).toMatch(/bytes Bytes/);
     expect(model("CharacterPortrait")).not.toMatch(/Bytes|bytes/);
     expect(MIGRATION).toMatch(/"mime_type" IN \('image\/png', 'image\/jpeg', 'image\/webp'\)/);

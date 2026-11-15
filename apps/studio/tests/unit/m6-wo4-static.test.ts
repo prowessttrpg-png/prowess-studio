@@ -72,7 +72,7 @@ describe("M6-WO4 gate — registered schema change and migration (§43–§48, �
   it("M6-I034 removing exactly the marked WO4 additions restores the M6-WO3 schema; the WO3 migration is untouched", () => {
     expect(BASELINE.baseCommit).toBe("77f9430f68caf60babfb0c54496090d5ace11f86");
     // M6-WO4 and every LATER registered Work Order (exactly their marked lines / blocks) are removed; WO3 stays.
-    const registered = Object.keys(JSON.parse(read("docs/architecture/m6-schema-changes.json")) as Record<string, unknown>).filter((k) => /^M\d+-WO\d+$/.test(k));
+    const registered = Object.keys(JSON.parse(read("docs/architecture/m6-schema-changes.json")) as Record<string, unknown>).filter((k) => /^(?:M\d+-WO\d+|DIST-WO2)$/.test(k));
     const wo4AndLater = registered.slice(registered.indexOf("M6-WO4"));
     expect(wo4AndLater[0]).toBe("M6-WO4");
     let withoutWo4 = SCHEMA;

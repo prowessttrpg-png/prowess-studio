@@ -28,7 +28,8 @@
     "@prowess/model": "workspace:*",
     "@prowess/rules": "workspace:*",
     "pg": "8.23.0",
-    "sharp": "0.35.4"
+    "sharp": "0.35.4",
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "prisma": "7.10.0",

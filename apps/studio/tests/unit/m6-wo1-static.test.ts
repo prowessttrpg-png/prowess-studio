@@ -125,7 +125,11 @@ describe("M6-WO1 gate — one Definition catalog, no duplicated M5 validation, n
   it("the M5 package's approved public-surface addition is exported and used only through @prowess/db", () => {
     expect(read("packages/prowess-game/src/index.ts")).toMatch(/validateStoredProwessDefinition,/);
     const users = [...code("packages/prowess-db/src"), ...code("apps/studio/app"), ...code("apps/studio/src")].filter((f) => /validateStoredProwessDefinition/.test(strip(read(f))));
-    expect(users.sort()).toEqual(["packages/prowess-db/src/compendium-authoring/service.ts", "packages/prowess-db/src/compendium-authoring/validation.ts"]);
+    expect(users.sort()).toEqual([
+      "packages/prowess-db/src/compendium-authoring/service.ts",
+      "packages/prowess-db/src/compendium-authoring/validation.ts",
+      "packages/prowess-db/src/content-pack/graph.ts", // DIST-WO2 validates the actual Definitions in portable revisions.
+    ]);
   });
 });
 

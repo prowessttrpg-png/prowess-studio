@@ -1,11 +1,10 @@
-// Maintainer-only demo assembly. Runtime installs the resulting data backup.
+// Maintainer-only demo assembly. Runtime installs the exported sample content pack.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { createHash, randomBytes } from "node:crypto";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { randomBytes } from "node:crypto";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { inspectBackup, makeBackup } from "./desktop/backup.mjs";
 import { Storage } from "./desktop/storage.mjs";
 import { materializeLinks } from "./prototype-links.mjs";
 import { prototypePackageSha256, verifyPrototypeBuild } from "./prototype-build-identity.mjs";
@@ -47,27 +46,25 @@ try {
     windowsHide: true, timeout: 300_000, stdio: "inherit",
   });
   const fixture = JSON.parse(readFileSync(path.join(repository, ".playtest", "m6-wo12-" + runId + ".json"), "utf8"));
-  const spec = { appVersion: manifest.appVersion, migrations: manifest.migrations, tables: manifest.desktopTables, setup: "demo" };
-  const backup = await storage.withClient(database, async (client) => {
+  await storage.withClient(database, async (client) => {
     const renamed = await client.query("UPDATE public.rulesets SET name = $1 WHERE id = $2", ["Demo — sample rules", fixture.rulesetId]);
     assert.equal(renamed.rowCount, 1);
-    return makeBackup(client, spec);
   });
-  const demo = inspectBackup(backup, spec);
-  assert.ok(demo.entries.filter((entry) => entry.table.startsWith("character")).every((entry) => entry.rows.length === 0),
-    "The demo may only include rule and source data.");
-  const file = path.join(stage, "desktop", "Demo.prowess-backup");
-  assert.ok(!existsSync(file));
-  writeFileSync(file, backup, { flag: "wx" });
+  const file = path.join(stage, "desktop", "Demo.prowesspack");
+  const output = execFileSync(path.join(copy, manifest.node), ["--experimental-transform-types", "--no-warnings",
+    "--import", "./scripts/playtest/register.mjs", "./scripts/playtest/export-demo-pack.ts", fixture.release1.id, fixture.rulesetId, file], {
+    cwd: repository, env: { ...environment, NODE_ENV: "test", DATABASE_URL: storage.url(database) },
+    windowsHide: true, timeout: 300_000, encoding: "utf8",
+  });
+  const demo = JSON.parse(output.trim());
+  assert.equal(demo.releaseId, fixture.release1.id);
   manifest.demo = {
     provenance: "M6-WO12 isolated test Release, demo sample rules",
-    ruleset: fixture.rulesetId,
-    release: fixture.release1.id,
-    sha256: createHash("sha256").update(backup).digest("hex"),
+    ruleset: fixture.rulesetId, release: demo.releaseId, sha256: demo.archiveSha256, contentDigest: demo.contentDigest,
   };
   manifest.packageSha256 = prototypePackageSha256(stage);
   writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
-  console.log("Prepared the sample-rules backup and updated the package identity.");
+  console.log("Prepared the sample rules content pack and updated the package identity.");
 } catch (error) {
   console.error("Demo preparation logs: " + path.join(temporary, "build-demo.log"));
   throw error;

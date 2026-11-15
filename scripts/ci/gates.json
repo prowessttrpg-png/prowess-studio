@@ -1228,6 +1228,27 @@
         2,
         3
       ]
+    },
+    {
+      "id": "DIST-WO2",
+      "name": "DIST-WO2 audit gate — content pack integrity and authority",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/dist-wo2-static.test.ts",
+        "packages/prowess-db/tests/unit/content-pack-manifest.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/dist-wo2-negative-controls.mjs",
+        "count": 4
+      },
+      "smoke": [],
+      "previous": [],
+      "tiers": [
+        2,
+        3
+      ]
     }
   ],
   "checks": [
@@ -1338,6 +1359,18 @@
       "job": "windows-installed",
       "kind": "e2e",
       "command": "-ExpectedCommit $env:GITHUB_SHA -BuildRunner"
+    },
+    {
+      "id": "DIST-WO2-TRANSFER",
+      "name": "DIST-WO2 — independent PostgreSQL content pack transfer",
+      "job": "db-api",
+      "command": "node scripts/distribution/verify-dist-wo2-transfer.mjs"
+    },
+    {
+      "id": "DIST-WO2-BROWSER",
+      "name": "DIST-WO2 — production browser content pack transfer",
+      "job": "e2e",
+      "command": "node scripts/distribution/verify-dist-wo2-transfer.mjs --browser"
     }
   ],
   "retired": [

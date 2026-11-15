@@ -83,6 +83,7 @@ export function inspectBackup(bytes, { appVersion, migrations, tables }) {
 
 export async function loadBackup(client, entries, tables) {
   await transaction(client, "BEGIN", async () => {
+    await client.query("SET LOCAL prowess.content_pack_transfer = 'on'");
     const layout = await columns(client, tables);
     const constraints = (await client.query(`
       SELECT rel.relname AS table_name, c.conname AS name, c.condeferrable AS deferrable, c.condeferred AS deferred

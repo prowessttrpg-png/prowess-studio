@@ -312,6 +312,18 @@ jobs:
       # Workspace packages are built before anything resolves their compiled declarations.
       - name: Build workspace packages
         run: pnpm --filter "@prowess/model" --filter "@prowess/ui" --filter "@prowess/import" --filter "@prowess/rules" --filter "@prowess/game" --filter "@prowess/db" run build
+      - name: DIST-WO2 — independent PostgreSQL content pack transfer
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+          PROWESS_DIST_WO2_EVIDENCE_DIR: ${{ runner.temp }}/dist-wo2-service
+        run: node scripts/distribution/verify-dist-wo2-transfer.mjs
+      - name: Upload DIST-WO2 service evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-wo2-service-evidence
+          path: ${{ runner.temp }}/dist-wo2-service/transfer-evidence.json
+          if-no-files-found: error
+          retention-days: 7
       # M1-WO8: API route-handler tests, calling each Next.js route handler directly against prowess_studio_test.
       - name: API integration tests (apps/studio)
         env:
@@ -454,6 +466,10 @@ jobs:
           pattern: reports-*
           path: /tmp/prowess-reports
           merge-multiple: true
+      - name: DIST-WO2 audit gate — content pack integrity and authority
+        run: |
+          node scripts/ci/verify-gate.mjs DIST-WO2 apps/studio/tests/unit/dist-wo2-static.test.ts packages/prowess-db/tests/unit/content-pack-manifest.test.ts
+          PROWESS_EXPECT_CONTROLS=4 node scripts/dist-wo2-negative-controls.mjs
       - name: M1 audit gate — static invariants (no current-version state, enum parity, errors, migrations, layering)
         run: node scripts/ci/verify-gate.mjs M1-STATIC apps/studio/tests/unit/m1-audit-static.test.ts
       - name: M1 audit gate — database-level suite
@@ -861,6 +877,18 @@ jobs:
       # the build breaks, and the exact artifact Playwright serves below.
       - name: Build (production)
         run: pnpm build
+      - name: DIST-WO2 — production browser content pack transfer
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+          PROWESS_DIST_WO2_EVIDENCE_DIR: ${{ runner.temp }}/dist-wo2-browser
+        run: node scripts/distribution/verify-dist-wo2-transfer.mjs --browser
+      - name: Upload DIST-WO2 browser evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-wo2-browser-evidence
+          path: ${{ runner.temp }}/dist-wo2-browser/transfer-evidence.json
+          if-no-files-found: error
+          retention-days: 7
       # PROWESS_E2E_PREBUILT=1: Playwright's webServer serves the build above (`next start`) instead of building the
       # same commit a second time; it refuses to start without that build's BUILD_ID.
       - name: End-to-end tests (Playwright)

@@ -301,3 +301,10 @@ export type { AbilityCardEntry, CardSlot, CharacterActionDirectoryView, Characte
 // PAS-10 M6-WO10 Character Play Workspace.
 export { commitCharacterPlayOperation, getCharacterPlayWorkspace, listCharacterPlayEvents, previewCharacterPlayOperation } from "./character/index.js";
 export type { CharacterPlayWorkspaceView, PlayCommitResult, PlayEventView, PlayVersions } from "./character/index.js";
+
+export {
+  ContentPackInstallConflict, exportContentPack, installContentPack, listInstalledContentPacks, previewContentPack,
+  type ContentPackExportOptions, type ContentPackPreview,
+} from "./content-pack/service.js";
+export { MAX_CONTENT_PACK_BYTES, readContentPack } from "./content-pack/archive.js";
+export { ContentPackManifestError } from "./content-pack/manifest.js";
