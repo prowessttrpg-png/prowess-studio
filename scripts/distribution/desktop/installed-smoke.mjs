@@ -6,6 +6,7 @@ import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 
 const prefix = "/__prowess_desktop";
+const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
 export function workspace(root) {
   return JSON.parse(readFileSync(path.join(root, "workspace.json"), "utf8"));
@@ -86,7 +87,7 @@ export async function setup(root, choice, manifest) {
   return { gateway, api, startupMilliseconds: Math.round(performance.now() - start) };
 }
 
-export async function exercise(root, manifest) {
+export async function exercise(root, manifest, packFile) {
   const { gateway, api, startupMilliseconds } = await setup(root, "demo", manifest);
   const name = "DIST-WO1 Windows sample é";
   const creation = await api("/api/characters", {
@@ -116,8 +117,19 @@ export async function exercise(root, manifest) {
   const after = JSON.parse(JSON.parse(await (await reopened(prefix + "/backup")).text()).payload);
   const restored = after.tables.find((entry) => entry.table === "characters").rows;
   assert.equal(restored.find((entry) => JSON.parse(entry).id === character.id), row);
+  let pack;
+  if (packFile) {
+    const response = await reopened(`/api/ruleset-releases/${manifest.demo.release}/content-pack`);
+    assert.match(response.headers.get("content-disposition"), /\.prowesspack"$/);
+    const bytes = Buffer.from(await response.arrayBuffer());
+    writeFileSync(packFile, bytes, { flag: "wx" });
+    const release = after.tables.find((entry) => entry.table === "ruleset_releases").rows
+      .map(JSON.parse).find((entry) => entry.id === manifest.demo.release);
+    pack = { archiveSha256: sha256(bytes), bytes: bytes.length, releaseId: release.id,
+      manifestId: release.manifest_id, manifestHash: release.manifest_hash };
+  }
   await (await gateway.control("quit")).text();
-  return { startupMilliseconds, fingerprint, character, route };
+  return { startupMilliseconds, fingerprint, character, route, pack };
 }
 
 export async function verifyRestart(root, initial) {
@@ -128,15 +140,89 @@ export async function verifyRestart(root, initial) {
   await (await gateway.control("quit")).text();
 }
 
+const backup = async (api) => Buffer.from(await (await api(prefix + "/backup")).arrayBuffer());
+
+function backedUpTables(bytes) {
+  const envelope = JSON.parse(bytes.toString("utf8"));
+  assert.equal(sha256(envelope.payload), envelope.sha256);
+  const { tables } = JSON.parse(envelope.payload);
+  return Object.fromEntries(tables.map(({ table, rows }) => [table, rows.sort()]));
+}
+
+const installedState = async (api) => backedUpTables(await backup(api));
+
+async function installedTransfer(root, manifest, packFile, source) {
+  const bytes = readFileSync(packFile);
+  assert.equal(sha256(bytes), source.archiveSha256);
+  const { gateway, api, startupMilliseconds } = await setup(root, "empty", manifest);
+  const baseline = await installedState(api);
+  assert.deepEqual(baseline.ruleset_releases, []);
+  assert.deepEqual(baseline.content_pack_receipts, []);
+  const preview = (body, status = 200) => api("/api/content-packs/preview", { method: "POST", body }, status);
+  const invalid = Buffer.from(bytes);
+  invalid[invalid.length - 1] ^= 1;
+  assert.match((await (await preview(invalid, 422)).json()).error, /Payload bytes/);
+  const plan = await (await preview(bytes)).json();
+  assert.equal(plan.state, "Ready");
+  assert.equal(plan.trust, "Unverified source");
+  assert.equal(plan.manifest.release.releaseId, source.releaseId);
+  assert.equal(plan.manifest.release.manifestId, source.manifestId);
+  assert.equal(plan.manifest.release.manifestHash, source.manifestHash);
+  assert.deepEqual(await installedState(api), baseline);
+  const install = async () => (await (await api("/api/content-packs/install", {
+    method: "POST", body: bytes, headers: { "x-prowess-pack-preview": plan.previewFingerprint },
+  })).json()).state;
+  assert.equal(await install(), "Installed");
+  const after = await installedState(api);
+  assert.equal(after.content_pack_receipts.length, 1);
+  assert.equal(await install(), "Already installed");
+  assert.deepEqual(await installedState(api), after);
+  const character = (await (await api("/api/characters", {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ name: "DIST-WO2 receiving Character", rulesetReleaseId: source.releaseId }),
+  }, 201)).json()).data;
+  assert.equal(character.release.id, source.releaseId);
+  const route = `/api/characters/${character.id}`;
+  const bytesToRestore = await backup(api);
+  const saved = backedUpTables(bytesToRestore);
+  const first = workspace(root).active;
+  const restore = (body) => api(prefix + "/restore", { method: "POST", body });
+  assert.match(await (await restore(bytes)).text(), /^Restore failed/);
+  assert.equal(workspace(root).active, first);
+  assert.match(await (await restore(bytesToRestore)).text(), /^Workspace restored/);
+  assert.notEqual(workspace(root).active, first);
+  await (await api(route, {}, 401)).text();
+  const restored = await gateway.browser();
+  assert.deepEqual(await installedState(restored), saved);
+  await (await gateway.control("quit")).text();
+  return { startupMilliseconds, route, character, pack: { ...source, contentDigest: plan.manifest.contentDigest },
+    previewUnchanged: true, invalidPackRejected: true, replay: "Already installed", fingerprint: sha256(JSON.stringify(saved)) };
+}
+
+async function restartTransferredWorkspace(root, initial) {
+  const gateway = await connect(root);
+  const api = await gateway.browser();
+  await waitFor(async () => (await (await api(prefix + "/status")).json()).ready, "installed transfer restart");
+  assert.deepEqual((await (await api(initial.route)).json()).data, initial.character);
+  assert.equal(sha256(JSON.stringify(await installedState(api))), initial.fingerprint);
+  await (await gateway.control("quit")).text();
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.meta.filename)) {
-  const [phase, root, manifestPath, report] = process.argv.slice(2);
+  const [phase, root, manifestPath, report, packFile, sourceReport] = process.argv.slice(2);
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
   if (phase === "initial") {
-    const result = await exercise(root, manifest);
+    const result = await exercise(root, manifest, packFile);
     writeFileSync(report, JSON.stringify(result, null, 2) + "\n", { flag: "wx" });
   } else if (phase === "restart") {
     await verifyRestart(root, JSON.parse(readFileSync(report, "utf8")));
+  } else if (phase === "transfer") {
+    const { pack } = JSON.parse(readFileSync(sourceReport, "utf8"));
+    const result = await installedTransfer(root, manifest, packFile, pack);
+    writeFileSync(report, JSON.stringify(result, null, 2) + "\n", { flag: "wx" });
+  } else if (phase === "transfer-restart") {
+    await restartTransferredWorkspace(root, JSON.parse(readFileSync(report, "utf8")));
   } else {
-    throw new Error("Use initial or restart for the installed smoke.");
+    throw new Error("Use initial, restart, transfer or transfer-restart for the installed smoke.");
   }
 }

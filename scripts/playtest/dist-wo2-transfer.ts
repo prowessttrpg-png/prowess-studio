@@ -10,16 +10,31 @@ import {
   readContentPack, submitAuthoredRevisionForReview, submitChangeSetForReview, transitionEntityVersionStatus,
   updateAuthoredDraftDefinition, updateCharacterSignatureManeuverDraft, updateCharacterSignatureSpellDraft,
 } from "../../packages/prowess-db/src/index";
+import { sha256, writeContentPack } from "../../packages/prowess-db/src/content-pack/archive";
+import type { ContentPackRecordKind } from "../../packages/prowess-db/src/content-pack/manifest";
 import { refOf, type CharacterReleaseWorld, type Pin } from "../../packages/prowess-db/tests/fixtures/m6-wo3-character-release";
 import { maneuverDraft, martialCharacter, spellDraft } from "../../packages/prowess-db/tests/fixtures/m6-wo8-maneuvers";
 import { fingerprint, preparePlaytestRelease, REVISED_CONTENT_KEY, runPrefix } from "../../packages/prowess-db/tests/fixtures/m6-wo12-playtest";
 import { TEST_ANCESTRY_KEY } from "../../packages/prowess-game/src/testing/character-fixtures";
+import { canonicalJson } from "../../packages/prowess-import/src/index";
 
 const [role, runId, directory] = process.argv.slice(2);
 assert(role && runId && directory, "Usage: dist-wo2-transfer.ts source|receiver|clean-receiver <run-id> <pack-directory>");
 assertRunningAgainstTestDatabase(process.env.DATABASE_URL!);
 const pack = (release: 1 | 2) => path.join(directory, `R${release}.prowesspack`);
 const prefix = runPrefix(runId);
+
+function alteredRecords(bytes: Buffer, kind: ContentPackRecordKind, update: (rows: Record<string, unknown>[]) => void) {
+  const { manifest: { contentDigest: _digest, ...manifest }, files } = readContentPack(bytes);
+  const member = manifest.files.find((file) => file.type === "records" && file.kind === kind);
+  assert(member?.type === "records");
+  const rows = JSON.parse(Buffer.from(files.get(member.path)!).toString("utf8")) as Record<string, unknown>[];
+  update(rows);
+  const payload = Buffer.from(canonicalJson(rows));
+  files.set(member.path, payload);
+  Object.assign(member, { byteSize: payload.byteLength, recordCount: rows.length, sha256: sha256(payload) });
+  return writeContentPack(manifest, files);
+}
 
 async function source() {
   assert.equal(await prisma.rulesetRelease.count(), 0, "Use a fresh disposable source database");
@@ -178,6 +193,20 @@ async function receiver() {
     where: { id: world1.pins.get(REVISED_CONTENT_KEY)!.entityVersionId }, data: { rulesText: "This edit must be refused" },
   }), /Imported content is read-only/);
 
+  const r2Bytes = await readFile(pack(2));
+  const originalVersion = world1.pins.get(REVISED_CONTENT_KEY)!.entityVersionId;
+  const divergent = alteredRecords(r2Bytes, "entity-versions", (rows) => {
+    const entry = rows.find(({ id }) => id === originalVersion);
+    assert(entry, "R2 must carry the exact ancestor of the changed Ward");
+    entry.rulesText = "Alternate payload under the original Ward version identity";
+  });
+  const collision = await previewContentPack(divergent);
+  assert.equal(collision.state, "Conflict");
+  await assert.rejects(installContentPack(divergent, collision.previewFingerprint), /Conflicting entity-versions identity/);
+  assert.equal(await prisma.contentPackReceipt.count(), 1);
+  assert.equal(await characterState(old.character.id, r1.rulesetId), before);
+  console.log(JSON.stringify({ stage: "installed-identity-conflict", releaseId: r1.id, originalVersion, unchanged: true }));
+
   const r2 = await install(2);
   assert.equal(await characterState(old.character.id, r1.rulesetId), before);
   assert.equal((await getCharacterSignatureSpell(old.character.id, old.spellId)).spell.current?.evaluation?.cost?.finalMpCost, 4);
@@ -205,9 +234,28 @@ async function resume() {
 
 async function proveRollbackAndConflicts() {
   const bytes = await readFile(pack(2));
-  const { files } = readContentPack(bytes);
+  const { files, manifest } = readContentPack(bytes);
   const entities = JSON.parse(Buffer.from(files.get("records/entities.json")!).toString("utf8")) as Array<{ canonicalKey: string; entityType: "GENERIC_RULE" }>;
   const preview = await previewContentPack(bytes);
+  const missingRevision = alteredRecords(bytes, "entity-versions", (rows) => { rows.shift(); });
+  await assert.rejects(previewContentPack(missingRevision), /Missing or incompatible dependency: entity-versions/);
+  const wrongPolicyOwner = alteredRecords(bytes, "canon-policies", (rows) => {
+    const policy = rows.find(({ id }) => id === manifest.release.canonPolicyId);
+    assert(policy);
+    policy.rulesetId = randomUUID();
+  });
+  await assert.rejects(previewContentPack(wrongPolicyOwner), /Missing or incompatible dependency/);
+  const { contentDigest: _digest, ...withMedia } = manifest;
+  const activeContent = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
+  const mediaSha = sha256(activeContent);
+  const mediaPath = `assets/${mediaSha}.png`;
+  withMedia.files.unshift({ type: "asset", mediaType: "image/png", path: mediaPath, byteSize: activeContent.length, sha256: mediaSha });
+  files.set(mediaPath, activeContent);
+  const disguised = writeContentPack(withMedia, files);
+  await assert.rejects(previewContentPack(disguised), /Offline asset has an invalid image/);
+  await assert.rejects(installContentPack(disguised, preview.previewFingerprint), /Offline asset has an invalid image/);
+  assert.equal(await prisma.contentPackAsset.count(), 0);
+  assert.equal(await prisma.contentPackReceipt.count(), 0);
   const clash = await prisma.entity.create({ data: { canonicalKey: entities[0]!.canonicalKey, entityType: "GENERIC_RULE" } });
   assert.equal((await previewContentPack(bytes)).state, "Conflict");
   await assert.rejects(installContentPack(bytes, preview.previewFingerprint), /Conflicting entities identity/);
@@ -226,7 +274,8 @@ async function proveRollbackAndConflicts() {
     await prisma.$executeRaw`DROP TRIGGER dist_wo2_test_fail_receipt ON content_pack_receipts`;
     await prisma.$executeRaw`DROP FUNCTION dist_wo2_test_fail_receipt()`;
   }
-  console.log(JSON.stringify({ stage: "rejection", collision: true, lateFailureRolledBack: true }));
+  console.log(JSON.stringify({ stage: "rejection", collision: true, lateFailureRolledBack: true,
+    missingRevisionRejected: true, foreignPolicyRejected: true, disguisedActiveMediaRejected: true }));
 }
 
 try {
