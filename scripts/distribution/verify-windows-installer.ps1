@@ -3,6 +3,7 @@ param(
     [Parameter(Mandatory)] [string] $ArtifactDirectory,
     [Parameter(Mandatory)] [string] $EvidenceDirectory,
     [string] $ExpectedCommit,
+    [string] $UpgradeFromArtifact,
     [switch] $BuildRunner
 )
 
@@ -68,6 +69,19 @@ try {
     foreach ($command in @('node.exe', 'git.exe', 'pnpm.cmd', 'postgres.exe')) {
         if (Get-Command $command -ErrorAction SilentlyContinue) { throw "$command is visible to the test through PATH." }
     }
+    if ($UpgradeFromArtifact) {
+        $previous = (Get-Item -LiteralPath $UpgradeFromArtifact).FullName
+        $previousEvidence = Join-Path $evidence 'dist-wo1-before-upgrade'
+        $previousCommit = '332639f8b0842aa13b02af27d31d0807908cb924'
+        & (Join-Path $previous 'verify-windows-installer.ps1') -ArtifactDirectory $previous `
+            -EvidenceDirectory $previousEvidence -ExpectedCommit $previousCommit -BuildRunner:$BuildRunner
+        $previousResult = Get-Content -LiteralPath (Join-Path $previousEvidence 'installed-evidence.json') -Raw | ConvertFrom-Json
+        if ($previousResult.result -ne 'passed' -or $previousResult.source.commit -cne $previousCommit) {
+            throw 'The verified DIST-WO1 installer did not produce a usable demo workspace.'
+        }
+        $status.upgradedFrom = $previousResult.source
+        $status.previousInstallerSha256 = $previousResult.installerSha256
+    }
     $clock = [Diagnostics.Stopwatch]::StartNew()
     $setup = Start-Process -FilePath $installer -ArgumentList '/S' -WorkingDirectory $artifact -Wait -PassThru
     $status.installMilliseconds = [int]$clock.ElapsedMilliseconds
@@ -83,6 +97,16 @@ try {
     $status.tests += 'per-user installation and shortcut'
     Push-Location $artifact
     try {
+        if ($UpgradeFromArtifact) {
+            $launch = Start-Process -FilePath $launcher -WorkingDirectory $package -PassThru
+            $priorWorkspace = Join-Path $previousEvidence 'workspace-smoke.json'
+            & $node $script upgrade $data $installedManifest $priorWorkspace
+            if ($LASTEXITCODE -ne 0) { throw 'The DIST-WO1 workspace did not survive the DIST-WO2 upgrade.' }
+            if (-not $launch.WaitForExit(35000) -or $launch.ExitCode -ne 0) { throw 'The upgraded launcher did not exit cleanly.' }
+            $status.tests += 'DIST-WO1 app upgrade preserves the demo Release and Character'
+            $upgradedData = Join-Path $local ('Prowess Studio Upgrade ' + [guid]::NewGuid().ToString('N'))
+            Move-Item -LiteralPath $data -Destination $upgradedData
+        }
         $launch = Start-Process -FilePath $launcher -WorkingDirectory $package -PassThru
         $targetProcessId = $launch.Id
         $status.launcher = & $hostProbe | ConvertFrom-Json

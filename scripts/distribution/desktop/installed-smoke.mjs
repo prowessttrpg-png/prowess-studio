@@ -208,6 +208,22 @@ async function restartTransferredWorkspace(root, initial) {
   await (await gateway.control("quit")).text();
 }
 
+async function verifyUpgrade(root, manifest, previous) {
+  const gateway = await connect(root);
+  const api = await gateway.browser();
+  await waitFor(async () => (await (await api(prefix + "/status")).json()).ready, "DIST-WO1 workspace upgrade");
+  assert.equal(workspace(root).appVersion, manifest.appVersion);
+  assert.deepEqual(workspace(root).migrations, manifest.migrations);
+  assert.equal(workspace(root).setup, "demo");
+  assert.deepEqual((await (await api(previous.route)).json()).data, previous.character);
+  const catalog = await installedState(api);
+  const oldCharacter = catalog.characters.find((row) => JSON.parse(row).id === previous.character.id);
+  assert.ok(oldCharacter, "The prior Character is present in the upgraded database");
+  assert.equal(sha256(oldCharacter), previous.fingerprint);
+  assert.deepEqual(catalog.content_pack_receipts, []);
+  await (await gateway.control("quit")).text();
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.meta.filename)) {
   const [phase, root, manifestPath, report, packFile, sourceReport] = process.argv.slice(2);
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
@@ -222,7 +238,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.met
     writeFileSync(report, JSON.stringify(result, null, 2) + "\n", { flag: "wx" });
   } else if (phase === "transfer-restart") {
     await restartTransferredWorkspace(root, JSON.parse(readFileSync(report, "utf8")));
+  } else if (phase === "upgrade") {
+    await verifyUpgrade(root, manifest, JSON.parse(readFileSync(report, "utf8")));
   } else {
-    throw new Error("Use initial, restart, transfer or transfer-restart for the installed smoke.");
+    throw new Error("Use initial, restart, transfer, transfer-restart or upgrade for the installed smoke.");
   }
 }

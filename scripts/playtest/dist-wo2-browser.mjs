@@ -66,6 +66,7 @@ async function launch(database, desktop = true) {
 
 async function open(browser, workspace) {
   const context = await browser.newContext({ baseURL: workspace.gateway.origin, acceptDownloads: true });
+  context.setDefaultTimeout(30_000);
   const page = await context.newPage();
   await page.goto(workspace.gateway.issueLaunch());
   await page.waitForURL(workspace.gateway.origin + "/", { timeout: 30_000 });
@@ -260,6 +261,7 @@ export async function runPackBrowserProof({ source, receiver }, releases, direct
     const packs = [], characters = [], states = [];
     for (const [index, release] of releases.entries()) {
       packs.push(await transfer(s.page, r.page, release, directory, index));
+      console.log(`Browser installed Release ${release.releaseNumber} and verified replay.`);
       const id = await createCharacter(r.page, release);
       const price = index === 0 ? 4 : 3;
       const spell = await buildWard(r.page, id, release, price);
@@ -276,6 +278,7 @@ export async function runPackBrowserProof({ source, receiver }, releases, direct
       characters.push({ ...entry, spellRevisionId: spellRevision.revisionId, maneuverRevisionId: maneuverRevision.revisionId,
         eventIds: state[1].recentEvents.map((event) => event.id) });
       states.push(state);
+      console.log(`Browser Character on Release ${release.releaseNumber} cast its Ward for ${paidMana} MP.`);
     }
     assert.deepEqual(await snapshot(r.page, characters[0]), states[0]);
     for (let restart = 0; restart < 2; restart += 1) {
@@ -289,6 +292,7 @@ export async function runPackBrowserProof({ source, receiver }, releases, direct
         await wait(r.page.getByTestId("play-effect")).toHaveAttribute("data-status", "ACTIVE");
         assert.deepEqual(await snapshot(r.page, saved), states[index]);
       }
+      console.log(`Browser restart ${restart + 1} preserved both Characters.`);
     }
     await r.close();
     await s.close();

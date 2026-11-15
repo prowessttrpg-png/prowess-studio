@@ -11,6 +11,7 @@ import {
   updateAuthoredDraftDefinition, updateCharacterSignatureManeuverDraft, updateCharacterSignatureSpellDraft,
 } from "../../packages/prowess-db/src/index";
 import { sha256, writeContentPack } from "../../packages/prowess-db/src/content-pack/archive";
+import { releaseHeader } from "../../packages/prowess-db/src/content-pack/graph";
 import type { ContentPackRecordKind } from "../../packages/prowess-db/src/content-pack/manifest";
 import { refOf, type CharacterReleaseWorld, type Pin } from "../../packages/prowess-db/tests/fixtures/m6-wo3-character-release";
 import { maneuverDraft, martialCharacter, spellDraft } from "../../packages/prowess-db/tests/fixtures/m6-wo8-maneuvers";
@@ -33,6 +34,7 @@ function alteredRecords(bytes: Buffer, kind: ContentPackRecordKind, update: (row
   const payload = Buffer.from(canonicalJson(rows));
   files.set(member.path, payload);
   Object.assign(member, { byteSize: payload.byteLength, recordCount: rows.length, sha256: sha256(payload) });
+  if (kind === "releases") manifest.release = releaseHeader(rows[0]!);
   return writeContentPack(manifest, files);
 }
 
@@ -203,9 +205,27 @@ async function receiver() {
   const collision = await previewContentPack(divergent);
   assert.equal(collision.state, "Conflict");
   await assert.rejects(installContentPack(divergent, collision.previewFingerprint), /Conflicting entity-versions identity/);
+  const reusedRevision = alteredRecords(r2Bytes, "entity-versions", (rows) => {
+    const prior = rows.find(({ id }) => id === originalVersion);
+    const revised = rows.find(({ parentVersionId }) => parentVersionId === originalVersion);
+    assert(prior && revised);
+    revised.revisionNumber = prior.revisionNumber;
+  });
+  await assert.rejects(previewContentPack(reusedRevision), /Duplicate identity in entity-versions/);
+  for (const fields of [{ releaseNumber: r1.releaseNumber }, { versionLabel: r1.versionLabel }]) {
+    const duplicateRelease = alteredRecords(r2Bytes, "releases", ([row]) => { Object.assign(row!, fields); });
+    const duplicate = await previewContentPack(duplicateRelease);
+    assert.equal(duplicate.state, "Conflict");
+    await assert.rejects(installContentPack(duplicateRelease, duplicate.previewFingerprint), /Conflicting releases identity/);
+  }
+  const divergentSource = alteredRecords(r2Bytes, "source-documents", ([row]) => { row!.title = "Different source lineage"; });
+  const sourceConflict = await previewContentPack(divergentSource);
+  assert.equal(sourceConflict.state, "Conflict");
+  await assert.rejects(installContentPack(divergentSource, sourceConflict.previewFingerprint), /Conflicting source-documents identity/);
   assert.equal(await prisma.contentPackReceipt.count(), 1);
   assert.equal(await characterState(old.character.id, r1.rulesetId), before);
-  console.log(JSON.stringify({ stage: "installed-identity-conflict", releaseId: r1.id, originalVersion, unchanged: true }));
+  console.log(JSON.stringify({ stage: "installed-identity-conflict", releaseId: r1.id, originalVersion, unchanged: true,
+    reusedRevisionRejected: true, conflictingReleaseNumberAndLabelRejected: true, divergentSourceRejected: true }));
 
   const r2 = await install(2);
   assert.equal(await characterState(old.character.id, r1.rulesetId), before);
@@ -237,6 +257,9 @@ async function proveRollbackAndConflicts() {
   const { files, manifest } = readContentPack(bytes);
   const entities = JSON.parse(Buffer.from(files.get("records/entities.json")!).toString("utf8")) as Array<{ canonicalKey: string; entityType: "GENERIC_RULE" }>;
   const preview = await previewContentPack(bytes);
+  const { contentDigest: _claimDigest, ...officialClaim } = manifest;
+  officialClaim.provenance = { ...manifest.provenance, category: "official" };
+  assert.equal((await previewContentPack(writeContentPack(officialClaim, files))).trust, "Unverified source");
   const missingRevision = alteredRecords(bytes, "entity-versions", (rows) => { rows.shift(); });
   await assert.rejects(previewContentPack(missingRevision), /Missing or incompatible dependency: entity-versions/);
   const wrongPolicyOwner = alteredRecords(bytes, "canon-policies", (rows) => {
@@ -275,7 +298,7 @@ async function proveRollbackAndConflicts() {
     await prisma.$executeRaw`DROP FUNCTION dist_wo2_test_fail_receipt()`;
   }
   console.log(JSON.stringify({ stage: "rejection", collision: true, lateFailureRolledBack: true,
-    missingRevisionRejected: true, foreignPolicyRejected: true, disguisedActiveMediaRejected: true }));
+    missingRevisionRejected: true, foreignPolicyRejected: true, disguisedActiveMediaRejected: true, officialClaimUnverified: true }));
 }
 
 try {

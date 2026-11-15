@@ -929,19 +929,36 @@ jobs:
     name: DIST-WO1 — verify installed Windows artifact
     needs: windows-package
     runs-on: windows-2025
-    timeout-minutes: 20
+    timeout-minutes: 30
+    permissions:
+      actions: read
+      contents: read
     steps:
       - name: Download exact installer without a source checkout
         uses: actions/download-artifact@v4
         with:
           name: prowess-windows-x64-${{ github.sha }}
           path: ${{ runner.temp }}/prowess-installer
+      # The DIST-WO2 review also exercises an in-place upgrade from the verified DIST-WO1 installer.
+      # Later branches run the installed smoke without relying on this finite-retention baseline artifact.
+      - name: Download verified DIST-WO1 installer for upgrade proof
+        if: github.head_ref == 'dist-wo2-content-packs'
+        uses: actions/download-artifact@v4
+        with:
+          name: prowess-windows-x64-332639f8b0842aa13b02af27d31d0807908cb924
+          path: ${{ runner.temp }}/prowess-previous-installer
+          run-id: 43675523242
+          github-token: ${{ github.token }}
       - name: Run installed artifact smoke checks
         shell: pwsh
         run: |
           $artifact = Join-Path $env:RUNNER_TEMP 'prowess-installer'
+          $upgrade = @{}
+          if ($env:GITHUB_HEAD_REF -eq 'dist-wo2-content-packs') {
+            $upgrade.UpgradeFromArtifact = Join-Path $env:RUNNER_TEMP 'prowess-previous-installer'
+          }
           & (Join-Path $artifact 'verify-windows-installer.ps1') -ArtifactDirectory $artifact `
-            -EvidenceDirectory (Join-Path $env:RUNNER_TEMP 'prowess-installed-evidence') -ExpectedCommit $env:GITHUB_SHA -BuildRunner
+            -EvidenceDirectory (Join-Path $env:RUNNER_TEMP 'prowess-installed-evidence') -ExpectedCommit $env:GITHUB_SHA -BuildRunner @upgrade
       - name: Upload installed artifact evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
