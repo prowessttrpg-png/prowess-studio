@@ -10,6 +10,14 @@
     ".": {
       "types": "./dist/src/index.d.ts",
       "default": "./dist/src/index.js"
+    },
+    "./content-pack-errors": {
+      "types": "./dist/src/prisma-errors.d.ts",
+      "default": "./dist/src/prisma-errors.js"
+    },
+    "./content-packs": {
+      "types": "./dist/src/content-pack/index.d.ts",
+      "default": "./dist/src/content-pack/index.js"
     }
   },
   "scripts": {

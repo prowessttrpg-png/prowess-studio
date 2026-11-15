@@ -1,5 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
-import { ContentPackInstallConflict, ContentPackManifestError, MAX_CONTENT_PACK_BYTES } from "@prowess/db";
+import { ContentPackInstallConflict, ContentPackManifestError, MAX_CONTENT_PACK_BYTES } from "@prowess/db/content-packs";
 import { toErrorResponse } from "./index";
 
 export function desktopContentPacksEnabled(request: Request): boolean {

@@ -1,5 +1,6 @@
 import { writeFile } from "node:fs/promises";
-import { assertRunningAgainstTestDatabase, exportContentPack, prisma, readContentPack } from "../../packages/prowess-db/src/index";
+import { assertRunningAgainstTestDatabase, prisma } from "../../packages/prowess-db/src/index";
+import { exportContentPack, readContentPack } from "../../packages/prowess-db/src/content-pack/index";
 
 const [releaseId, producerId, output] = process.argv.slice(2);
 if (!releaseId || !producerId || !output) throw new Error("Supply the exact sample Release, producer ID, and destination.");

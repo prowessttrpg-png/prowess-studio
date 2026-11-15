@@ -66,7 +66,7 @@ try {
   if (production) {
     const { runPackBrowserProof, runPackHttpProof } = await import("../playtest/dist-wo2-browser.mjs");
     const releases = records.filter((row) => row.stage === "export").map((row) => ({
-      ...row.release, wardVersionId: row.wardVersionId,
+      ...row.release, wardVersionId: row.wardVersionId, wardEntityId: row.wardEntityId,
     }));
     assert.equal(releases.length, 2);
     const verify = browser ? runPackBrowserProof : runPackHttpProof;
@@ -78,7 +78,7 @@ try {
   const tree = execFileSync("git", ["rev-parse", "HEAD^{tree}"], { cwd: root, encoding: "utf8" }).trim();
   const dirty = execFileSync("git", ["status", "--porcelain"], { cwd: root, encoding: "utf8" }).trim().length !== 0;
   if (process.env.GITHUB_SHA) assert.equal(commit, process.env.GITHUB_SHA, "Wrong source commit for transfer proof");
-  if (browser) assert(records.some((row) => row.stage === "browser" && row.restarts === 2 &&
+  if (browser) assert(records.some((row) => row.stage === "browser" && row.restarts === 2 && row.importedAuthoringRefused === true &&
     row.characters.map((character) => character.paidMana).join(",") === "4,3"), "Missing browser transfer and play proof");
   else if (http) assert(records.some((row) => row.stage === "production-http" && row.unchangedAfterRestart), "Missing HTTP transfer proof");
   else {

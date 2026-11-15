@@ -36,8 +36,17 @@ interface PrismaLikeError {
   message?: unknown;
   meta?: {
     target?: unknown;
-    driverAdapterError?: { cause?: { constraint?: { index?: unknown } } };
+    driverAdapterError?: { cause?: { constraint?: { index?: unknown }; originalCode?: unknown; originalMessage?: unknown } };
   };
+}
+
+/** Identify a refusal from the content pack ownership trigger without leaking database diagnostics. */
+export function isContentPackOwnershipViolation(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  const { code, meta } = error as PrismaLikeError;
+  const cause = meta?.driverAdapterError?.cause;
+  return code === "P2039" && cause?.originalCode === "23514" && typeof cause.originalMessage === "string" &&
+    /^Imported content(?: lineage)? is read-only \([a-z-]+\)$/.test(cause.originalMessage);
 }
 
 export function isUniqueViolation(error: unknown, matcher: UniqueConstraintMatcher): boolean {

@@ -1,4 +1,5 @@
-import { exportContentPack, getRuleset, getRulesetRelease } from "@prowess/db";
+import { getRuleset, getRulesetRelease } from "@prowess/db";
+import { exportContentPack } from "@prowess/db/content-packs";
 import { contentPackError, contentPacksUnavailable, desktopContentPacksEnabled } from "../../../../../src/api/content-packs";
 import { parseUuidParam } from "../../../../../src/api/index";
 

@@ -235,6 +235,27 @@ const snapshot = (page, { id, spell, maneuver }) => Promise.all([
   characterData(page, id, `/spells/${spell}`), characterData(page, id, `/maneuvers/${maneuver}`),
 ]);
 
+async function checkImportedOwnership(page, release) {
+  await page.goto(`/compendium/admin/entities/${release.wardEntityId}`);
+  const editRoute = `/api/compendium-authoring/entities/${release.wardEntityId}/revisions`;
+  const editResponse = page.waitForResponse((response) =>
+    new URL(response.url()).pathname === editRoute && response.request().method() === "POST");
+  await page.getByRole("button", { name: /Create New Revision from Revision/ }).click();
+  const edit = await editResponse;
+  assert.equal(edit.status(), 409);
+  await wait(page.getByRole("alert").filter({ hasText: "Imported content and its revisions are read-only." })).toBeVisible();
+  const origin = new URL(page.url()).origin;
+  const publish = await page.request.post(`/api/rulesets/${release.rulesetId}/releases`, {
+    headers: { origin }, data: { baseManifestId: release.manifestId, canonPolicyId: release.canonPolicyId, versionLabel: "Attempted imported revision" },
+  });
+  assert.equal(publish.status(), 409);
+  assert.equal((await publish.json()).code, "CONTENT_PACK.READ_ONLY");
+  const local = await page.request.post("/api/entities", {
+    headers: { origin }, data: { entityType: "GENERIC_RULE", canonicalKey: "test.distwo2.local_authoring" },
+  });
+  assert.equal(local.status(), 201);
+}
+
 /** Independent workspaces, using the real production server and the same authenticated gateway as the launcher. */
 export async function runPackBrowserProof({ source, receiver }, releases, directory) {
   const browser = await chromium.launch({
@@ -262,6 +283,7 @@ export async function runPackBrowserProof({ source, receiver }, releases, direct
     for (const [index, release] of releases.entries()) {
       packs.push(await transfer(s.page, r.page, release, directory, index));
       console.log(`Browser installed Release ${release.releaseNumber} and verified replay.`);
+      if (index === 0) await checkImportedOwnership(r.page, release);
       const id = await createCharacter(r.page, release);
       const price = index === 0 ? 4 : 3;
       const spell = await buildWard(r.page, id, release, price);
@@ -296,7 +318,8 @@ export async function runPackBrowserProof({ source, receiver }, releases, direct
     }
     await r.close();
     await s.close();
-    return { stage: "browser", journey: "DIST-WO2 file-only transfer, play, and safe Release update", packs, characters, restarts: 2, unchangedAfterRestart: true };
+    return { stage: "browser", journey: "DIST-WO2 file-only transfer, play, and safe Release update", packs, characters,
+      importedAuthoringRefused: true, restarts: 2, unchangedAfterRestart: true };
   } finally {
     await browser.close();
     await Promise.all([sourceServer?.close(), receiverServer?.close()]);

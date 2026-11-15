@@ -1,4 +1,4 @@
-import { listInstalledContentPacks } from "@prowess/db";
+import { listInstalledContentPacks } from "@prowess/db/content-packs";
 import { contentPackError, contentPacksUnavailable, desktopContentPacksEnabled } from "../../../src/api/content-packs";
 
 export async function GET(request: Request): Promise<Response> {

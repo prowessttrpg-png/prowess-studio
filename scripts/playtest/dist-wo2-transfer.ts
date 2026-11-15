@@ -4,12 +4,13 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
   approveChangeSet, assertRunningAgainstTestDatabase, commitCharacterPlayOperation, createAuthoredRevision,
-  createCharacterSignatureManeuver, createCharacterSignatureSpell, exportContentPack, finalizeCharacterSignatureManeuver,
-  finalizeCharacterSignatureSpell, getCharacterPlayWorkspace, getCharacterSignatureSpell, getRulesetRelease, installContentPack,
-  materializeProwessDefinitionsFromRelease, previewContentPack, prisma, proposeDefinitionChangeSet, publishRulesetRelease,
-  readContentPack, submitAuthoredRevisionForReview, submitChangeSetForReview, transitionEntityVersionStatus,
+  createCharacterSignatureManeuver, createCharacterSignatureSpell, finalizeCharacterSignatureManeuver,
+  finalizeCharacterSignatureSpell, getCharacterPlayWorkspace, getCharacterSignatureSpell, getRulesetRelease,
+  materializeProwessDefinitionsFromRelease, prisma, proposeDefinitionChangeSet, publishRulesetRelease,
+  submitAuthoredRevisionForReview, submitChangeSetForReview, transitionEntityVersionStatus,
   updateAuthoredDraftDefinition, updateCharacterSignatureManeuverDraft, updateCharacterSignatureSpellDraft,
 } from "../../packages/prowess-db/src/index";
+import { exportContentPack, installContentPack, previewContentPack, readContentPack } from "../../packages/prowess-db/src/content-pack/index";
 import { sha256, writeContentPack } from "../../packages/prowess-db/src/content-pack/archive";
 import { releaseHeader } from "../../packages/prowess-db/src/content-pack/graph";
 import type { ContentPackRecordKind } from "../../packages/prowess-db/src/content-pack/manifest";
@@ -43,6 +44,7 @@ async function source() {
   const { world } = await preparePlaytestRelease(runId!);
   await mkdir(directory!, { recursive: true });
   const producerId = randomUUID();
+  const base = world.pins.get(REVISED_CONTENT_KEY)!;
   const exportPack = async (id: string, number: 1 | 2, wardVersionId: string) => {
     const before = await fingerprint(null, world.rulesetId);
     const options = { producerId, label: `Distribution proof R${number}`, provenance: { claimedCreator: "Prowess playtest", category: "sample" as const } };
@@ -54,10 +56,9 @@ async function source() {
     const { manifest, archiveSha256 } = readContentPack(bytes);
     console.log(JSON.stringify({
       stage: "export", number, bytes: bytes.length, archiveSha256, contentDigest: manifest.contentDigest,
-      release: manifest.release, wardVersionId,
+      release: manifest.release, wardVersionId, wardEntityId: base.entityId,
     }));
   };
-  const base = world.pins.get(REVISED_CONTENT_KEY)!;
   const privateSource = await prisma.sourceDocument.create({ data: {
     title: "Playtest source", sourceType: "DOCUMENT", fileReference: "DIST-WO2 PRIVATE DRAFT MARKER",
     notes: "DIST-WO2 PRIVATE DRAFT MARKER",

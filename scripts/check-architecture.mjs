@@ -199,8 +199,7 @@ const RULES = [
   {
     // Stricter than the general "apps/studio (app/)" rule above: API route
     // handlers are the final HTTP boundary (PAS-10 M1-WO8 §33) and must
-    // use ONLY @prowess/db's public service surface (the bare "@prowess/db"
-    // import) — never Prisma directly, and never a deep/internal
+    // use ONLY @prowess/db's public service surface — never Prisma directly, and never a deep/internal
     // @prowess/db import (e.g. reaching past its index.ts into
     // "@prowess/db/src/entity/repository.js" or its generated Prisma
     // output) that would bypass the validation/error-mapping its services
@@ -209,6 +208,7 @@ const RULES = [
     srcDir: path.join(ROOT, "apps/studio/app/api"),
     forbidden: ["@prisma/client", "@prisma/adapter-pg", "prisma"],
     forbiddenDeepImportPackages: ["@prowess/db"],
+    publicServiceSubpaths: ["@prowess/db/content-packs"],
     forbiddenSubstrings: ["generated/prisma"],
     reason: "route handlers must use only @prowess/db's public service surface — no direct Prisma, no deep/internal @prowess/db import",
   },
@@ -256,6 +256,7 @@ for (const rule of RULES) {
       const violatesBasic = isForbidden(specifier, rule.forbidden ?? []);
       const violatesDeepImport =
         rule.forbiddenDeepImportPackages !== undefined &&
+        !rule.publicServiceSubpaths?.includes(specifier) &&
         isForbiddenDeepImport(specifier, rule.forbiddenDeepImportPackages);
       const violatesSubstring =
         rule.forbiddenSubstrings !== undefined &&
