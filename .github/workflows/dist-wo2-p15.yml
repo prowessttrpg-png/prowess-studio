@@ -1,0 +1,56 @@
+name: DIST-WO2 P15 Windows backup restore
+on:
+  push:
+    branches: [dist-wo2-p15-proof]
+permissions:
+  actions: read
+  contents: read
+env:
+  CI_INSTALLER: prowess-windows-x64-775efb5ab630e45080a82b39be15adc854e81497
+jobs:
+  source:
+    name: Windows A — install, play and back up
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CI_INSTALLER }}
+          run-id: 43767082829
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/installer
+      - name: Save a live mid-turn Character through the installed app
+        shell: pwsh
+        run: ./scripts/distribution/p15/verify.ps1 -Mode source -Artifact "$env:RUNNER_TEMP/installer" -Evidence "$env:RUNNER_TEMP/p15-source"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p15-source-backup-and-baseline
+          path: ${{ runner.temp }}/p15-source
+          if-no-files-found: error
+  receiver:
+    name: Windows B — fresh install, restore, restart and continue
+    needs: source
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CI_INSTALLER }}
+          run-id: 43767082829
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/installer
+      - uses: actions/download-artifact@v4
+        with:
+          name: p15-source-backup-and-baseline
+          path: ${{ runner.temp }}/input
+      - name: Compare restore, restart and continued play through the installed app
+        shell: pwsh
+        run: ./scripts/distribution/p15/verify.ps1 -Mode receiver -Artifact "$env:RUNNER_TEMP/installer" -InputDirectory "$env:RUNNER_TEMP/input" -Evidence "$env:RUNNER_TEMP/p15-receiver"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p15-receiver-comparison
+          path: ${{ runner.temp }}/p15-receiver
+          if-no-files-found: warn
