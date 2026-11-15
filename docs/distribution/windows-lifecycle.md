@@ -7,7 +7,7 @@ This run upgrades the verified 0.1.0 installer to an internal 0.1.1 candidate an
 1. On **ProwessProof**, open the Character you used for the walkthrough on **Release 2 — R2**.
 2. On the **Character Sheet**, upload a sample PNG or JPEG using **Upload portrait image**. Use an image you are comfortable putting in a test backup.
 3. If the encounter ended, choose **Resume play → Begin combat → Start round → Start my turn**, then cast **Steady Ward** again. Leave the turn open with the ward **active**. If you need mana to cast again, use **Resources → Manual adjustment (player / GM)** to restore enough mana for the test. Leave exactly one sample Character mid-turn.
-4. In the Prowess launcher window, open **Manage Workspace → Back up local workspace**. Save or copy the backup to `C:\Users\Public\Documents\Prowess-Lifecycle-Playtest.prowess-backup`. The backup is used locally by the verifier.
+4. In the Prowess launcher window, open **Manage Workspace → Back up local workspace**. Save or copy the backup to **Public Documents** (`$env:PUBLIC\Documents` in PowerShell) with the name `Prowess-Lifecycle-Playtest.prowess-backup`. The backup is used locally by the verifier.
 
 ## Build and transfer 0.1.1
 
@@ -23,7 +23,7 @@ $build = Join-Path $PWD 'scripts\distribution\build-windows-installer.ps1'
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File $build -OutputDirectory $candidate -MakeNsis $nsis
 ```
 
-If your NSIS compiler is in a different folder, use its full path for `$nsis`. The candidate folder should contain `ProwessStudio-0.1.1-…-Windows-x64.exe`, `installer-build.json`, `prototype.json`, and the verification scripts. Copy the original 0.1.0 artifact folder to Public Documents too. The previous verification used `C:\Users\Public\Documents\Prowess-Installer-20261111-141213`.
+If your NSIS compiler is in a different folder, use its full path for `$nsis`. The candidate folder should contain `ProwessStudio-0.1.1-…-Windows-x64.exe`, `installer-build.json`, `prototype.json`, and the verification scripts. Copy the original 0.1.0 artifact folder to Public Documents too. The previous verification used the `Prowess-Installer-20261111-141213` folder in Public Documents.
 
 ## Run in a clean Windows standard account
 
