@@ -108,7 +108,9 @@ try {
     )
     Copy-Item -LiteralPath $manifestFile -Destination $output
     Copy-Item -LiteralPath (Join-Path $distribution 'verify-windows-installer.ps1') -Destination $output
+    Copy-Item -LiteralPath (Join-Path $distribution 'verify-windows-lifecycle.ps1') -Destination $output
     Copy-Item -LiteralPath (Join-Path $distribution 'desktop\installed-smoke.mjs') -Destination $output
+    Copy-Item -LiteralPath (Join-Path $distribution 'desktop\installed-lifecycle.mjs') -Destination $output
     Copy-Item -LiteralPath (Join-Path $distribution 'windows-proof-environment.ps1') -Destination $output
     $buildIdentity = [ordered]@{
         format = 1

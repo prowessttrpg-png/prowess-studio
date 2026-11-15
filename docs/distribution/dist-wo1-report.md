@@ -40,6 +40,10 @@ The smoke passed per-user installation and shortcut registration, demo first run
 
 The tester confirmed completion of the full interactive walkthrough on the installed Windows build. They previously confirmed that a saved Character was still editable after relaunch and that the Play Workspace opened. The completed walkthrough covers the demo rule revision through Release 2, Character creation and loadout, ability building, combat, and mid-turn resume. This is tester-reported evidence. The walkthrough's optional negative cases and a Windows reboot have no separate result recorded.
 
+### Windows lifecycle verification prepared
+
+The [lifecycle guide](windows-lifecycle.md) uses the verified 0.1.0 installer, a new internal 0.1.1 candidate, and a copy of the completed tester's demo workspace. It checks an empty first run, a second launcher invocation, conflicts on the default ports, launcher crash, cross-installation restore, backup refusals, upgrade failure and recovery, downgrade, uninstall/reinstall, and reboot. It compares the original backup with independent PostgreSQL reads and checks the Character and Play Workspace API responses across the transitions. The lifecycle run requires a real Windows standard account and its results are pending.
+
 ## Acceptance matrix
 
 | ID | Evidence and next verification |
