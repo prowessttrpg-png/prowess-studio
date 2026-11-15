@@ -53,92 +53,14 @@ async function commit(api, route, operation) {
   return result;
 }
 
-function component(options, key) {
-  const matches = options.filter(({ ref }) => ref.canonicalKey === key ||
-    ref.canonicalKey.includes("." + key.replaceAll(".", "_") + "_"));
-  assert.equal(matches.length, 1, key + " requires one exact Release pin.");
-  return matches[0].ref;
-}
-
-async function stageCharacter(api) {
-  const created = await send(api, "/api/characters", "POST", {
-    name: "P15 Mid-Turn Character", rulesetReleaseId: manifest.demo.release,
-  }, 201);
-  const route = "/api/characters/" + created.id;
-  const options = await get(api, route + "/creation-context");
-  const pick = (ref) => {
-    const { entityId, entityVersionId } = ref;
-    return { entityId, entityVersionId };
-  };
-  const candidate = {
-    ancestry: pick(options.ancestries.find((a) => a.displayName === "Orcani (test)").ref),
-    ancestryStatChoices: [{ grantKey: "orcani_versatility", stat: "AGI" }, { grantKey: "orcani_versatility", stat: "PRO" }],
-    statAllocations: { STR: 3, AGI: 3, CON: 3, PER: 2, RES: 2, PRO: 2 },
-    skills: [
-      { skill: pick(options.skills.find((s) => s.displayName === "Athletics (test)").ref), sourceKind: "ANCESTRY", sourceGrantKey: "orcani_upbringing" },
-      { skill: pick(component(options.skills, "skill.martial")), sourceKind: "FREE", sourceGrantKey: null },
-      { skill: pick(component(options.skills, "skill.arcana")), sourceKind: "FREE", sourceGrantKey: null },
-    ],
-    primaryAffinity: pick(options.affinities.find((a) => a.displayName === "Evocation (test)").ref),
-  };
-  const saved = await send(api, route + "/creation", "PUT", { expectedLockVersion: created.lockVersion, candidate });
-  await send(api, route + "/finalize", "POST", { expectedLockVersion: saved.lockVersion });
-  console.log("Core Character creation completed.");
-  const { spell } = await send(api, route + "/spells", "POST", { name: "P15 Steady Ward" }, 201);
-  const spellRoute = route + "/spells/" + spell.id;
-  const { catalog } = await get(api, spellRoute + "/builder");
-  const draft = {
-    ...spell.draft.draft,
-    authority: "ARCANE_AUTHORITY",
-    targeting: { definition: component(catalog.targeting, "spell.targeting.self"), parameters: {} },
-    effects: [{ componentKey: "effect1", order: 1, definition: component(catalog.effects, "fixture.wo9.effect.maintenance"), parameters: { amount: 1 } }],
-    duration: { definition: component(catalog.durations, "spell.duration.sustained"), parameters: {} },
-  };
-  const working = await send(api, spellRoute + "/draft", "PUT", { expectedVersion: spell.lockVersion, draft });
-  assert.equal(working.spell.draft.evaluation.cost.finalMpCost, 4);
-  const finalized = await send(api, spellRoute + "/finalize", "POST", { expectedVersion: working.spell.lockVersion });
-  const { revisionId, revisionNumber } = finalized.spell.current;
-  assert.equal(revisionNumber, 1);
-  for (const event of ["BEGIN_COMBAT", "START_ROUND", "START_TURN"]) {
-    await commit(api, route, { kind: "TIMING", event });
-  }
-  const preCast = await capture(api, route);
-  await commit(api, route, { kind: "SPELL", abilityId: spell.id, revisionNumber, targets: [{ targetKey: "self" }], inputs: [] });
-  const midTurn = await capture(api, route);
-  assert.equal(midTurn.release.id, manifest.demo.release);
-  assert.equal(midTurn.release.releaseNumber, 1);
-  assert.equal(midTurn.runtime.combat.turn, "ACTIVE");
-  assert.equal(midTurn.runtime.combat.round, 1);
-  assert.equal(mana(preCast) - mana(midTurn), 4);
-  assert.equal(midTurn.events.length, 4);
-  assert.ok(midTurn.events.every((event) => event.rulesetReleaseId === midTurn.release.id));
-  const active = midTurn.activeMagic.state.effects.filter((effect) => effect.status === "ACTIVE");
-  assert.equal(active.length, 1);
-  assert.ok(active[0].sustain);
-  assert.equal(active[0].ability.signatureAbilityId, spell.id);
-  assert.equal(active[0].ability.revisionNumber, revisionNumber);
-  return { route, midTurn, manaBeforeCast: mana(preCast), ward: { id: spell.id, revisionId, revisionNumber, paidMp: 4 } };
-}
-
-if (phase === "source") {
-  const { gateway, api } = await setup(root, "demo", manifest);
-  const fixture = await stageCharacter(api);
-  const bytes = await backup(api);
-  const id = fixture.midTurn.character.id;
-  const sourceFingerprint = fingerprint(backupContents(bytes).tables, id);
-  for (const table of ["character_play_runtimes", "character_play_events", "character_resource_states", "character_signature_spell_revisions"]) {
-    const actualTable = sourceFingerprint.rows[table];
-    assert.ok(actualTable, "Backup is missing Character records for " + table);
-  }
-  assert.deepEqual(await capture(api, fixture.route), fixture.midTurn, "Backup changed the live source Character.");
-  write("source.json", { ...proof, ...fixture, workspace: safeWorkspace(), backupSha256: sha256(bytes), fingerprint: sourceFingerprint });
-  writeFileSync(path.join(evidence, "p15.prowess-backup"), bytes);
-  console.log("Source backed up the active R1 turn with its 4 MP sustained Ward and four committed events.");
-  await (await gateway.control("quit")).text();
-} else if (phase === "restore") {
+if (phase === "restore") {
   const source = read(path.join(input, "source.json"));
   assert.notEqual(proof.host.sha256, source.host.sha256, "The restore must run on a different Windows installation.");
-  assert.equal(proof.installerSha256, source.installerSha256);
+  assert.equal(source.ciRunId, 43767082829);
+  assert.equal(source.ciArtifactId, 14183350774);
+  assert.equal(source.installerSha256, "d48f37648263c269ad2ce94a0b3e4334eb109b5e3e72254e796bc477c4a939c3");
+  assert.equal(proof.ciRunId, 43777171367);
+  assert.notEqual(proof.installerSha256, source.installerSha256);
   const bytes = readFileSync(path.join(input, "p15.prowess-backup"));
   assert.equal(sha256(bytes), source.backupSha256);
   const { gateway, api } = await setup(root, "empty", manifest);
@@ -189,5 +111,5 @@ if (phase === "source") {
   console.log("After native restart, the same turn continued. Move spent 1 AP, granted movement, kept the Ward active and appended one event.");
   await (await gateway.control("quit")).text();
 } else {
-  throw new Error("Expected phase source, restore, or restart.");
+  throw new Error("Expected phase restore or restart.");
 }

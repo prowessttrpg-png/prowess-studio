@@ -1,20 +1,19 @@
 param(
-    [Parameter(Mandatory)][ValidateSet('source', 'receiver')][string]$Mode,
     [Parameter(Mandatory)][string]$Artifact,
     [Parameter(Mandatory)][string]$Evidence,
-    [string]$InputDirectory = '-'
+    [Parameter(Mandatory)][string]$InputDirectory,
+    [Parameter(Mandatory)][long]$InstallerArtifactId
 )
 $ErrorActionPreference = 'Stop'
 $identity = Get-Content -LiteralPath (Join-Path $Artifact 'installer-build.json') -Raw | ConvertFrom-Json
 $manifest = Get-Content -LiteralPath (Join-Path $Artifact 'prototype.json') -Raw | ConvertFrom-Json
 $installer = Join-Path $Artifact $identity.installer
-$expectedHash = 'd48f37648263c269ad2ce94a0b3e4334eb109b5e3e72254e796bc477c4a939c3'
 $installerHash = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
-if ($installerHash -cne $expectedHash -or $installerHash -cne $identity.installerSha256 -or
-    (Get-Item -LiteralPath $installer).Length -ne 105030393 -or
-    $identity.source.commit -cne '775efb5ab630e45080a82b39be15adc854e81497' -or
-    $identity.source.tree -cne 'f11c4506aad2cf568faf77b221dd157eb7cb9307') {
-    throw 'CI #279 installer identity mismatch.'
+if ($installerHash -cne $identity.installerSha256 -or
+    (Get-Item -LiteralPath $installer).Length -ne $identity.installerBytes -or
+    $identity.source.commit -cne '71b6bbf4d2a5fc01de2536d26b570c9d84f50bb1' -or
+    $identity.source.tree -cne '91bbd6d5dc822ce812cfbb19f2c408627c9f4493') {
+    throw 'CI #280 installer identity mismatch.'
 }
 $local = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)
 $install = Join-Path $local 'Prowess Studio'
@@ -45,18 +44,17 @@ try {
         @{ path = $node; sha256 = $manifest.nodeSha256 }
     )) {
         if ((Get-FileHash -LiteralPath $file.path -Algorithm SHA256).Hash.ToLowerInvariant() -cne $file.sha256) {
-            throw "Installed file hash differs from the CI #279 manifest for $($file.path)."
+            throw "Installed file hash differs from the CI #280 manifest for $($file.path)."
         }
     }
-    Write-Host "Verified CI #279 installer $installerHash and installed payload on $($os.Caption)."
-    $phases = if ($Mode -eq 'source') { @('source') } else { @('restore', 'restart') }
-    foreach ($phase in $phases) {
+    Write-Host "Verified CI #280 installer $installerHash and installed payload on $($os.Caption)."
+    foreach ($phase in @('restore', 'restart')) {
         $launch = Start-Process -FilePath $launcher -WorkingDirectory $package -PassThru
         try {
             $runDocument = Join-Path $env:RUNNER_TEMP "p15-$phase-run.json"
             @{
-                ciRunId = 43767082829
-                ciArtifactId = 14183350774
+                ciRunId = 43777171367
+                ciArtifactId = $InstallerArtifactId
                 installerSha256 = $installerHash
                 installerBytes = $identity.installerBytes
                 source = $identity.source
