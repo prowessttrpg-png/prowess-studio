@@ -228,6 +228,16 @@ describe("toErrorResponse", () => {
     });
   });
 
+  it("returns a safe 409 for the imported content ownership trigger", async () => {
+    const response = toErrorResponse({ code: "P2039", meta: { driverAdapterError: { cause: {
+      originalCode: "23514", originalMessage: "Imported content lineage is read-only (entity-versions)",
+    } } } });
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      code: "CONTENT_PACK.READ_ONLY", message: "Imported content and its revisions are read-only.", field: null, details: null,
+    });
+  });
+
   it("translates an unknown (non-DomainError, non-ApiError) error into a generic opaque 500", async () => {
     const response = toErrorResponse(new Error("some raw internal failure with a stack trace"));
     expect(response.status).toBe(500);

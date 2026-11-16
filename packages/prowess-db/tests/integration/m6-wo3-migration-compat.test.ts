@@ -70,7 +70,7 @@ describe("M6-WO3 §113 — upgrading an M6-WO2 database adds only Character stru
   it("the registered M6-WO3 migration is the last migration and its SQL only creates Character objects", () => {
     expect(WO3).toEqual(["20261029010000_m6_wo3_character_foundation"]);
     // Later registered Work Orders' migrations (M6-WO4+) follow it; each has its own compatibility test.
-    const later = Object.entries(REGISTRY).filter(([k]) => /^M\d+-WO\d+$/.test(k) && k !== "M6-WO3").flatMap(([, v]) => (v as { migrations: string[] }).migrations);
+    const later = Object.entries(REGISTRY).filter(([k]) => /^(?:M\d+-WO\d+|DIST-WO2)$/.test(k) && k !== "M6-WO3").flatMap(([, v]) => (v as { migrations: string[] }).migrations);
     expect(ALL.slice(ALL.indexOf(WO3[0] as string) + 1)).toEqual(later);
     const text = sql(WO3[0] as string).replace(/--.*$/gm, "");
     expect(text).not.toMatch(/\bDROP\s+(TABLE|COLUMN|TYPE|INDEX|CONSTRAINT)\b/i);

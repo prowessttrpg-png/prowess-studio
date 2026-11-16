@@ -10,6 +10,14 @@
     ".": {
       "types": "./dist/src/index.d.ts",
       "default": "./dist/src/index.js"
+    },
+    "./content-pack-errors": {
+      "types": "./dist/src/prisma-errors.d.ts",
+      "default": "./dist/src/prisma-errors.js"
+    },
+    "./content-packs": {
+      "types": "./dist/src/content-pack/index.d.ts",
+      "default": "./dist/src/content-pack/index.js"
     }
   },
   "scripts": {
@@ -28,7 +36,8 @@
     "@prowess/model": "workspace:*",
     "@prowess/rules": "workspace:*",
     "pg": "8.23.0",
-    "sharp": "0.35.4"
+    "sharp": "0.35.4",
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "prisma": "7.10.0",

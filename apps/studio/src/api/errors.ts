@@ -1,3 +1,4 @@
+import { isContentPackOwnershipViolation } from "@prowess/db/content-pack-errors";
 import {
   DomainError,
   ENTITY_ALIAS_ERROR_CODES,
@@ -522,7 +523,8 @@ function internalErrorResponse(): NextResponse {
 
 /**
  * The one place every route's catch block sends its caught error — never
- * duplicated per route. Translates `DomainError` and `ApiError` into the
+ * duplicated per route. Translates domain errors, API errors and imported
+ * content write refusals into the
  * stable `{ code, message, field, details }` response shape at the
  * correct documented status.
  *
@@ -531,8 +533,8 @@ function internalErrorResponse(): NextResponse {
  *     (should be unreachable given the compile-time exhaustiveness check
  *     above, but defended at runtime too — e.g. if a future refactor ever
  *     bypasses the `satisfies` guarantee);
- *   - anything that isn't a `DomainError` or `ApiError` at all (a genuine,
- *     unexpected bug — a raw Prisma error, a thrown string, a null
+ *   - an unrecognized error (a genuine,
+ *     unexpected bug — an unrecognized database error, a thrown string, a null
  *     dereference, ...).
  * Neither path ever includes the original code, message, Prisma shape,
  * stack trace, or internal path in the response body — only the generic
@@ -557,6 +559,10 @@ export function toErrorResponse(error: unknown): NextResponse {
     return NextResponse.json(errorBody(error.code, error.message, error.field), {
       status: error.status,
     });
+  }
+
+  if (isContentPackOwnershipViolation(error)) {
+    return NextResponse.json(errorBody("CONTENT_PACK.READ_ONLY", "Imported content and its revisions are read-only."), { status: 409 });
   }
 
   // Intentional server-side-only log; nothing from this reaches the response body.

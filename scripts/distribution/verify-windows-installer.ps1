@@ -3,6 +3,7 @@ param(
     [Parameter(Mandatory)] [string] $ArtifactDirectory,
     [Parameter(Mandatory)] [string] $EvidenceDirectory,
     [string] $ExpectedCommit,
+    [string] $UpgradeFromArtifact,
     [switch] $BuildRunner
 )
 
@@ -51,6 +52,8 @@ $installedManifest = Join-Path $package 'payload\prototype.json'
 $node = Join-Path $package 'payload\runtime\node.exe'
 $script = Join-Path $artifact 'installed-smoke.mjs'
 $first = Join-Path $evidence 'workspace-smoke.json'
+$pack = Join-Path $evidence 'installed-source.prowesspack'
+$transfer = Join-Path $evidence 'pack-transfer.json'
 $summary = Join-Path $evidence 'installed-evidence.json'
 $beforePath = $env:Path
 $status = [ordered]@{
@@ -65,6 +68,19 @@ try {
     $env:Path = "$env:SystemRoot\System32;$env:SystemRoot"
     foreach ($command in @('node.exe', 'git.exe', 'pnpm.cmd', 'postgres.exe')) {
         if (Get-Command $command -ErrorAction SilentlyContinue) { throw "$command is visible to the test through PATH." }
+    }
+    if ($UpgradeFromArtifact) {
+        $previous = (Get-Item -LiteralPath $UpgradeFromArtifact).FullName
+        $previousEvidence = Join-Path $evidence 'dist-wo1-before-upgrade'
+        $previousCommit = '332639f8b0842aa13b02af27d31d0807908cb924'
+        & (Join-Path $previous 'verify-windows-installer.ps1') -ArtifactDirectory $previous `
+            -EvidenceDirectory $previousEvidence -ExpectedCommit $previousCommit -BuildRunner:$BuildRunner
+        $previousResult = Get-Content -LiteralPath (Join-Path $previousEvidence 'installed-evidence.json') -Raw | ConvertFrom-Json
+        if ($previousResult.result -ne 'passed' -or $previousResult.source.commit -cne $previousCommit) {
+            throw 'The verified DIST-WO1 installer did not produce a usable demo workspace.'
+        }
+        $status.upgradedFrom = $previousResult.source
+        $status.previousInstallerSha256 = $previousResult.installerSha256
     }
     $clock = [Diagnostics.Stopwatch]::StartNew()
     $setup = Start-Process -FilePath $installer -ArgumentList '/S' -WorkingDirectory $artifact -Wait -PassThru
@@ -81,6 +97,16 @@ try {
     $status.tests += 'per-user installation and shortcut'
     Push-Location $artifact
     try {
+        if ($UpgradeFromArtifact) {
+            $launch = Start-Process -FilePath $launcher -WorkingDirectory $package -PassThru
+            $priorWorkspace = Join-Path $previousEvidence 'workspace-smoke.json'
+            & $node $script upgrade $data $installedManifest $priorWorkspace
+            if ($LASTEXITCODE -ne 0) { throw 'The DIST-WO1 workspace did not survive the DIST-WO2 upgrade.' }
+            if (-not $launch.WaitForExit(35000) -or $launch.ExitCode -ne 0) { throw 'The upgraded launcher did not exit cleanly.' }
+            $status.tests += 'DIST-WO1 app upgrade preserves the demo Release and Character'
+            $upgradedData = Join-Path $local ('Prowess Studio Upgrade ' + [guid]::NewGuid().ToString('N'))
+            Move-Item -LiteralPath $data -Destination $upgradedData
+        }
         $launch = Start-Process -FilePath $launcher -WorkingDirectory $package -PassThru
         $targetProcessId = $launch.Id
         $status.launcher = & $hostProbe | ConvertFrom-Json
@@ -89,7 +115,7 @@ try {
             $status.launcher.nativeMachine -ne 0x8664 -or $status.launcher.processMachine -ne 0) {
             throw 'The installed launcher process has an unexpected Windows token or architecture.'
         }
-        & $node $script initial $data $installedManifest $first
+        & $node $script initial $data $installedManifest $first $pack
         if ($LASTEXITCODE -ne 0) { throw 'The installed workspace smoke failed.' }
         if (-not $launch.WaitForExit(35000) -or $launch.ExitCode -ne 0) { throw 'The first launcher did not exit cleanly.' }
         $status.tests += @('demo first run', 'local HTTP isolation', 'Character creation and Release identity',
@@ -99,6 +125,21 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'The installed restart smoke failed.' }
         if (-not $launch.WaitForExit(35000) -or $launch.ExitCode -ne 0) { throw 'The restarted launcher did not exit cleanly.' }
         $status.tests += 'owned processes restart with exact Character'
+
+        # A new data directory starts another PostgreSQL cluster. Only the exported file enters the receiving catalog.
+        $sourceData = Join-Path $local ('Prowess Studio Source ' + [guid]::NewGuid().ToString('N'))
+        Move-Item -LiteralPath $data -Destination $sourceData
+        $launch = Start-Process -FilePath $launcher -WorkingDirectory $package -PassThru
+        & $node $script transfer $data $installedManifest $transfer $pack $first
+        if ($LASTEXITCODE -ne 0) { throw 'The installed content pack transfer failed.' }
+        if (-not $launch.WaitForExit(35000) -or $launch.ExitCode -ne 0) { throw 'The receiving launcher did not exit cleanly.' }
+        $status.tests += @('file-only transfer into independent installed workspace', 'read-only preview',
+            'invalid pack refusal', 'idempotent replay', 'Character and receipt survive workspace restore')
+        $launch = Start-Process -FilePath $launcher -WorkingDirectory $package -PassThru
+        & $node $script transfer-restart $data $installedManifest $transfer
+        if ($LASTEXITCODE -ne 0) { throw 'The installed content pack restart check failed.' }
+        if (-not $launch.WaitForExit(35000) -or $launch.ExitCode -ne 0) { throw 'The receiving launcher restart did not exit cleanly.' }
+        $status.tests += 'receiving catalog, receipt and Character persist after restart'
     } finally { Pop-Location }
     $status.result = 'passed'
 } catch {

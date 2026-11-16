@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import { closeSync, existsSync, mkdirSync, openSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -18,7 +19,7 @@ const statusPath = path.join(root, "status.json");
 const controlPath = path.join(root, "control.json");
 const journalPath = path.join(root, "upgrade.json");
 const log = path.join(root, "launcher.log");
-const demoFile = path.join(stage, "desktop", "Demo.prowess-backup");
+const demoFile = path.join(stage, "desktop", "Demo.prowesspack");
 const readJSON = (file) => JSON.parse(readFileSync(file, "utf8"));
 const systemRoot = process.env.SystemRoot;
 const system = process.platform === "win32" ? {
@@ -87,6 +88,7 @@ async function launchStudio(database) {
       env: { ...system, NODE_ENV: "production", DATABASE_URL: storage.url(database), APP_URL: gateway.origin,
         PORT: String(port), HOSTNAME: "127.0.0.1", LOG_LEVEL: "warn", DEVELOPMENT_MODE: "false",
         NEXT_TELEMETRY_DISABLED: "1", PROWESS_DESKTOP_MODE: "true", PROWESS_DESKTOP_BACKEND_TOKEN: backendToken,
+        PROWESS_DESKTOP_WORKSPACE_ID: storage.state.id,
       },
     });
   } finally { closeSync(descriptor); }
@@ -150,6 +152,38 @@ async function activate(database, choice) {
   setStatus("Studio is ready.", true);
 }
 
+async function activateSample(database) {
+  const bytes = readFileSync(demoFile);
+  if (!manifest.demo || createHash("sha256").update(bytes).digest("hex") !== manifest.demo.sha256) {
+    throw new Error("The bundled sample pack has changed. Reinstall Prowess Studio.");
+  }
+  await storage.checkSchema(database);
+  const port = await launchStudio(database);
+  const origin = "http://127.0.0.1:" + port;
+  const headers = { "x-prowess-desktop-backend": backendToken };
+  try {
+    const reviewed = await fetch(origin + "/api/content-packs/preview", {
+      method: "POST", headers, body: bytes, signal: AbortSignal.timeout(60_000),
+    });
+    const preview = await reviewed.json();
+    if (!reviewed.ok || preview.state !== "Ready" || preview.manifest.provenance.category !== "sample" ||
+        preview.manifest.contentDigest !== manifest.demo.contentDigest || preview.manifest.release.releaseId !== manifest.demo.release) {
+      throw new Error("The bundled sample Release did not pass content pack validation.");
+    }
+    const result = await fetch(origin + "/api/content-packs/install", {
+      method: "POST", headers: { ...headers, "x-prowess-pack-preview": preview.previewFingerprint }, body: bytes,
+      signal: AbortSignal.timeout(60_000),
+    });
+    if (!result.ok || (await result.json()).state !== "Installed") throw new Error("The bundled sample Release did not install.");
+    storage.persist({ active: database, setup: "demo", ...installedSpec() });
+    gateway.setBackend(port);
+    setStatus("Studio is ready.", true);
+  } catch (error) {
+    await stopStudio();
+    throw error;
+  }
+}
+
 async function restoreWorkspace(request) {
   if (!ready) throw new Error("Open the existing workspace before restoring it.");
   const { entries, setup } = inspectBackup(await readBody(request, backupLimit), installedSpec());
@@ -177,15 +211,13 @@ async function chooseWorkspace(choice) {
     throw new Error("This workspace already has a first-run choice.");
   }
   setStatus("Preparing your workspace.");
-  let database = storage.state.active;
   if (choice === "demo") {
-    const { entries, setup } = inspectBackup(readFileSync(demoFile), installedSpec());
-    if (setup !== "demo") throw new Error("The installed demo does not declare its sample-rules provenance.");
-    database = await storage.newDatabase();
+    const database = await storage.newDatabase();
     await storage.prisma(database, "migrate", "deploy");
-    await storage.withClient(database, (client) => loadBackup(client, entries, manifest.desktopTables));
+    await activateSample(database);
+  } else {
+    await activate(storage.state.active, choice);
   }
-  await activate(database, choice);
   return "Studio is ready.";
 }
 

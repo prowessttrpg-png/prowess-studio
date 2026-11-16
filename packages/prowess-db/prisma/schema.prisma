@@ -823,6 +823,7 @@ model SourceReference {
   @@index([sourceBlockId], map: "source_references_source_block_id_idx")
   @@index([sourceTableId], map: "source_references_source_table_id_idx")
   @@map("source_references")
+  contentPackLocation ContentPackSourceLocation? // DIST-WO2 back-relation
 }
 
 /// Governance lifecycle of a Ruleset (PAS-10 M2-WO1 §6). Deliberately its OWN
@@ -1487,6 +1488,7 @@ model RulesetRelease {
   @@index([manifestId], map: "ruleset_releases_manifest_id_idx")
   @@index([canonPolicyId], map: "ruleset_releases_canon_policy_id_idx")
   @@map("ruleset_releases")
+  contentPackReceipt ContentPackReceipt? // DIST-WO2 back-relation
 }
 
 /// Structural change of one Entity between two exact Release compositions (PAS-10 M2-WO11 §5). Kept in lockstep with
@@ -2775,3 +2777,57 @@ model CharacterPlayEvent {
   @@map("character_play_events")
 }
 // <<< M6-WO10 Character Play Workspace
+
+// >>> DIST-WO2 content pack persistence
+/// DIST-WO2 receipt. The creator and category are source claims.
+model ContentPackReceipt {
+  contentDigest String   @id @map("content_digest") @db.Char(64)
+  archiveSha256 String   @map("archive_sha256") @db.Char(64)
+  producerId    String   @map("producer_id") @db.Uuid
+  releaseId     String   @unique @map("release_id") @db.Uuid
+  manifest      Json
+  installedAt   DateTime @default(now()) @map("installed_at") @db.Timestamptz(6)
+
+  release RulesetRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  ownership ContentPackOwnership[]
+
+  @@map("content_pack_receipts")
+}
+
+/// Only records inserted by DIST-WO2 acquire imported ownership.
+model ContentPackOwnership {
+  kind          String
+  identity      String
+  contentDigest String @map("content_digest") @db.Char(64)
+
+  receipt ContentPackReceipt @relation(fields: [contentDigest], references: [contentDigest], onDelete: Restrict)
+
+  @@id([kind, identity])
+  @@index([contentDigest])
+  @@map("content_pack_ownership")
+}
+
+/// Optional source locator from the producer. IDs describe provenance in its workspace.
+model ContentPackSourceLocation {
+  id               String  @id @db.Uuid
+  sourceDocumentId String  @map("source_document_id") @db.Uuid
+  snapshotId       String  @map("snapshot_id") @db.Uuid
+  contentHash      String  @map("content_hash") @db.Char(64)
+  sectionId        String? @map("section_id") @db.Uuid
+  blockId          String? @map("block_id") @db.Uuid
+  tableId          String? @map("table_id") @db.Uuid
+
+  reference SourceReference @relation(fields: [id], references: [id], onDelete: Restrict)
+
+  @@map("content_pack_source_locations")
+}
+
+/// Content-addressed bytes covered by the checked receipt inventory.
+model ContentPackAsset {
+  sha256    String @id @db.Char(64)
+  mediaType String @map("media_type")
+  bytes     Bytes
+
+  @@map("content_pack_assets")
+}
+// <<< DIST-WO2 content pack persistence

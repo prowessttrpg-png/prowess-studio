@@ -220,6 +220,7 @@ export default function CompendiumPage() {
     <div className="prowess-compendium">
       <header className="prowess-compendium__header">
         <h1>Compendium</h1>
+        <Link className="gov-button" href="/compendium/content-packs">Content Packs</Link>
         <p className="prowess-compendium__description">
           An internal browser for the Prowess Entity system — identities, their latest
           authored revision, aliases, Keywords, relationships, and source provenance. This

@@ -140,6 +140,7 @@ export function ReleaseBrowser({ rulesetId, releaseId }: { rulesetId: string; re
           <ReleaseSelector rulesetId={rulesetId} releaseId={releaseId} releases={releases} />
           <ViewLatestReleaseButton rulesetId={rulesetId} />
           <CompareWithSelector rulesetId={rulesetId} releaseId={releaseId} releases={releases} />
+          <a className="gov-button" href={`/api/ruleset-releases/${releaseId}/content-pack`} download>Export for Players</a>
           {/* M6-WO6: this exact Release's Weapon & Attack Library. */}
           <Link className="gov-button" href={weaponLibraryHref(rulesetId, releaseId)} data-testid="reference-weapon-library-link">
             Weapon Library

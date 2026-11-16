@@ -362,7 +362,7 @@ extend). Two things are checked:
 | `@prowess/ui` | React | `@prisma/client`, `@prisma/adapter-pg`, `prisma`, `pg`, `@prowess/db` |
 | `apps/studio` (`app/`) | the packages below it | `@prisma/client`, `@prisma/adapter-pg`, `prisma` directly (must always go through `@prowess/db`) |
 | `apps/studio` (`src/`) | the packages below it | same as `app/` — application-level modules (config, navigation) are held to the same standard |
-| `apps/studio` (`app/api/`) | `@prowess/db`'s bare public import only | same Prisma bans as `app/`, PLUS any *deep* import into `@prowess/db` internals (e.g. `@prowess/db/src/entity/repository.js`) — API route handlers are the final HTTP boundary (M1-WO8) and must use only the public service surface |
+| `apps/studio` (`app/api/`) | `@prowess/db` and the exported `@prowess/db/content-packs` service | Same Prisma bans as `app/`. Deep imports into `@prowess/db` internals are forbidden. |
 | `apps/studio` (`app/compendium/`) | the HTTP API only (via `fetch`) | `@prowess/db` entirely — bare or deep — plus the same Prisma bans as everywhere else; the Compendium frontend (M1-WO9) has no legitimate reason to import `@prowess/db` at all |
 
 **Circular workspace dependencies:** every workspace package's declared

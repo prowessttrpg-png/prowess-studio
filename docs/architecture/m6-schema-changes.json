@@ -67,5 +67,16 @@
       "CharacterPlayEvent",
       "CharacterPlayRuntime"
     ]
+  },
+  "DIST-WO2": {
+    "migrations": [
+      "20261115010000_dist_wo2_content_packs"
+    ],
+    "models": [
+      "ContentPackReceipt",
+      "ContentPackOwnership",
+      "ContentPackSourceLocation",
+      "ContentPackAsset"
+    ]
   }
 }

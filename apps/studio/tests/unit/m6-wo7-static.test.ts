@@ -279,7 +279,7 @@ describe("M6-WO7 gate — registered schema change and migration (§116–§118,
 
   it("removing exactly the marked WO7 additions restores the M6-WO6 schema; earlier migrations are untouched", () => {
     expect(BASELINE.baseCommit).toBe("28bcfaecd98c0852446dbb278a88d6091d347cc9");
-    const registered = Object.keys(JSON.parse(read("docs/architecture/m6-schema-changes.json")) as Record<string, unknown>).filter((k) => /^M\d+-WO\d+$/.test(k));
+    const registered = Object.keys(JSON.parse(read("docs/architecture/m6-schema-changes.json")) as Record<string, unknown>).filter((k) => /^(?:M\d+-WO\d+|DIST-WO2)$/.test(k));
     let without = SCHEMA;
     for (const wo of registered.slice(registered.indexOf("M6-WO7"))) {
       const w = wo.replace(/-/g, "\\-");

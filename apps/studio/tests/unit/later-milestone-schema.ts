@@ -20,7 +20,7 @@ interface Registry {
 }
 function registry(): Array<[string, { migrations: readonly string[]; models: readonly string[] }]> {
   const raw = JSON.parse(readFileSync(path.join(ROOT, "docs/architecture/m6-schema-changes.json"), "utf8")) as Registry;
-  return Object.entries(raw).filter((e): e is [string, { migrations: readonly string[]; models: readonly string[] }] => /^M\d+-WO\d+$/.test(e[0]) && typeof e[1] === "object");
+  return Object.entries(raw).filter((e): e is [string, { migrations: readonly string[]; models: readonly string[] }] => /^(?:M\d+-WO\d+|DIST-WO2)$/.test(e[0]) && typeof e[1] === "object");
 }
 
 /** Registered later migration directory names. */
