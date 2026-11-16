@@ -60,9 +60,9 @@ function component(options, key) {
   return matches[0].ref;
 }
 
-async function stageCharacter(api) {
+async function stageCharacter(api, release, wardCost) {
   const created = await send(api, "/api/characters", "POST", {
-    name: "P15 Mid-Turn Character", rulesetReleaseId: manifest.demo.release,
+    name: "P15 Mid-Turn " + release.versionLabel, rulesetReleaseId: release.releaseId,
   }, 201);
   const route = "/api/characters/" + created.id;
   const options = await get(api, route + "/creation-context");
@@ -95,7 +95,7 @@ async function stageCharacter(api) {
     duration: { definition: component(catalog.durations, "spell.duration.sustained"), parameters: {} },
   };
   const working = await send(api, spellRoute + "/draft", "PUT", { expectedVersion: spell.lockVersion, draft });
-  assert.equal(working.spell.draft.evaluation.cost.finalMpCost, 4);
+  assert.equal(working.spell.draft.evaluation.cost.finalMpCost, wardCost);
   const finalized = await send(api, spellRoute + "/finalize", "POST", { expectedVersion: working.spell.lockVersion });
   const { revisionId, revisionNumber } = finalized.spell.current;
   assert.equal(revisionNumber, 1);
@@ -105,11 +105,11 @@ async function stageCharacter(api) {
   const preCast = await capture(api, route);
   await commit(api, route, { kind: "SPELL", abilityId: spell.id, revisionNumber, targets: [{ targetKey: "self" }], inputs: [] });
   const midTurn = await capture(api, route);
-  assert.equal(midTurn.release.id, manifest.demo.release);
-  assert.equal(midTurn.release.releaseNumber, 1);
+  assert.equal(midTurn.release.id, release.releaseId);
+  assert.equal(midTurn.release.releaseNumber, release.releaseNumber);
   assert.equal(midTurn.runtime.combat.turn, "ACTIVE");
   assert.equal(midTurn.runtime.combat.round, 1);
-  assert.equal(mana(preCast) - mana(midTurn), 4);
+  assert.equal(mana(preCast) - mana(midTurn), wardCost);
   assert.equal(midTurn.events.length, 4);
   assert.ok(midTurn.events.every((event) => event.rulesetReleaseId === midTurn.release.id));
   const active = midTurn.activeMagic.state.effects.filter((effect) => effect.status === "ACTIVE");
@@ -117,28 +117,69 @@ async function stageCharacter(api) {
   assert.ok(active[0].sustain);
   assert.equal(active[0].ability.signatureAbilityId, spell.id);
   assert.equal(active[0].ability.revisionNumber, revisionNumber);
-  return { route, midTurn, manaBeforeCast: mana(preCast), ward: { id: spell.id, revisionId, revisionNumber, paidMp: 4 } };
+  return { route, midTurn, manaBeforeCast: mana(preCast), ward: { id: spell.id, revisionId, revisionNumber, paidMp: wardCost } };
+}
+
+const expectedPackHashes = [
+  "4dc65e1d70712af980f3d915ee88c038233257c0a27d8176f99523513e78f0fa",
+  "e59bc87b7dbe040334119bb58c0225e6d24c2aba9b41c0f74bac18c3d5feb143",
+];
+const imageSha256 = "7763df3ba6c41ec2bede67e9d31076b664495142a50b079fb926aa27b8fc02c1";
+
+async function installPack(api, number) {
+  const bytes = readFileSync(path.join(input, "R" + number + ".prowesspack"));
+  assert.equal(sha256(bytes), expectedPackHashes[number - 1]);
+  const request = { method: "POST", body: bytes };
+  const preview = await (await api("/api/content-packs/preview", request)).json();
+  assert.equal(preview.state, "Ready");
+  const install = async () => (await (await api("/api/content-packs/install", {
+    ...request, headers: { "x-prowess-pack-preview": preview.previewFingerprint },
+  })).json()).state;
+  assert.equal(await install(), "Installed");
+  assert.equal(await install(), "Already installed");
+  return preview.manifest.release;
+}
+
+function catalog(bytes) {
+  const { tables } = backupContents(bytes);
+  const rows = (table) => tables.find((entry) => entry.table === table).rows.map(JSON.parse);
+  const receipts = rows("content_pack_receipts").map(({ release_id, content_digest }) => ({ release_id, content_digest }))
+    .sort((a, b) => a.release_id.localeCompare(b.release_id));
+  const assets = rows("content_pack_assets").map(({ sha256: digest, bytes }) => {
+    assert.ok(bytes.startsWith("\\x"));
+    return { digest, bytesSha256: sha256(Buffer.from(bytes.slice(2), "hex")) };
+  });
+  assert.equal(receipts.length, 2);
+  assert.deepEqual(assets, [{ digest: imageSha256, bytesSha256: imageSha256 }]);
+  return { receipts, assets, tables: Object.fromEntries(tables.map(({ table, rows }) => [table,
+    { count: rows.length, sha256: sha256(JSON.stringify(rows.toSorted())) }])) };
 }
 
 if (phase === "source") {
-  const { gateway, api } = await setup(root, "demo", manifest);
-  const fixture = await stageCharacter(api);
+  const { gateway, api } = await setup(root, "empty", manifest);
+  const r1Release = await installPack(api, 1);
+  const fixture = await stageCharacter(api, r1Release, 4);
+  const r2Release = await installPack(api, 2);
+  assert.equal(r1Release.rulesetId, r2Release.rulesetId);
+  assert.deepEqual(await capture(api, fixture.route), fixture.midTurn);
+  const r2 = await stageCharacter(api, r2Release, 3);
   const bytes = await backup(api);
-  const id = fixture.midTurn.character.id;
-  const sourceFingerprint = fingerprint(backupContents(bytes).tables, id);
-  for (const table of ["character_play_runtimes", "character_play_events", "character_resource_states", "character_signature_spell_revisions"]) {
-    const actualTable = sourceFingerprint.rows[table];
-    assert.ok(actualTable, "Backup is missing Character records for " + table);
-  }
-  assert.deepEqual(await capture(api, fixture.route), fixture.midTurn, "Backup changed the live source Character.");
-  write("source.json", { ...proof, ...fixture, workspace: safeWorkspace(), backupSha256: sha256(bytes), fingerprint: sourceFingerprint });
+  const packedCatalog = catalog(bytes);
+  assert.deepEqual(packedCatalog.receipts.map((r) => r.release_id).sort(), [r1Release.releaseId, r2Release.releaseId].sort());
+  assert.deepEqual(await capture(api, fixture.route), fixture.midTurn);
+  assert.deepEqual(await capture(api, r2.route), r2.midTurn);
+  const sourceFingerprint = fingerprint(backupContents(bytes).tables, fixture.midTurn.character.id);
+  write("source.json", { ...proof, ...fixture, r2, catalog: packedCatalog, workspace: safeWorkspace(),
+    backupSha256: sha256(bytes), fingerprint: sourceFingerprint });
   writeFileSync(path.join(evidence, "p15.prowess-backup"), bytes);
-  console.log("Source backed up the active R1 turn with its 4 MP sustained Ward and four committed events.");
+  console.log("Source backed up both imported Releases, their receipts, a PNG and both live turns.");
   await (await gateway.control("quit")).text();
 } else if (phase === "restore") {
   const source = read(path.join(input, "source.json"));
   assert.notEqual(proof.host.sha256, source.host.sha256, "The restore must run on a different Windows installation.");
-  assert.equal(proof.installerSha256, source.installerSha256);
+  assert.equal(source.ciRunId, 43767082829);
+  assert.equal(proof.ciRunId, 43777171367);
+  assert.notEqual(proof.installerSha256, source.installerSha256);
   const bytes = readFileSync(path.join(input, "p15.prowess-backup"));
   assert.equal(sha256(bytes), source.backupSha256);
   const { gateway, api } = await setup(root, "empty", manifest);
@@ -154,9 +195,14 @@ if (phase === "source") {
   assert.notEqual(after.active, before.active);
   const snapshot = await capture(session, source.route);
   assert.deepEqual(snapshot, source.midTurn, "Live Character state changed on restore.");
-  const restoredFingerprint = fingerprint(backupContents(await backup(session)).tables, source.midTurn.character.id);
+  const r2Snapshot = await capture(session, source.r2.route);
+  assert.deepEqual(r2Snapshot, source.r2.midTurn);
+  const restoredBytes = await backup(session);
+  const restoredCatalog = catalog(restoredBytes);
+  assert.deepEqual(restoredCatalog, source.catalog);
+  const restoredFingerprint = fingerprint(backupContents(restoredBytes).tables, source.midTurn.character.id);
   assert.deepEqual(restoredFingerprint, source.fingerprint, "Restored database rows differ.");
-  write("restore.json", { ...proof, empty, before, after, snapshot, fingerprint: restoredFingerprint, backupSha256: source.backupSha256 });
+  write("restore.json", { ...proof, empty, before, after, snapshot, r2Snapshot, catalog: restoredCatalog, fingerprint: restoredFingerprint, backupSha256: source.backupSha256 });
   console.log("Fresh receiving Windows installation restored the exact Character and Character records.");
   await (await gateway.control("quit")).text();
 } else if (phase === "restart") {
@@ -170,7 +216,12 @@ if (phase === "source") {
   assert.deepEqual(safeWorkspace(), restored.after);
   const snapshot = await capture(api, source.route);
   assert.deepEqual(snapshot, source.midTurn, "Restart changed the restored live Character state.");
-  const restartedFingerprint = fingerprint(backupContents(await backup(api)).tables, source.midTurn.character.id);
+  const r2Snapshot = await capture(api, source.r2.route);
+  assert.deepEqual(r2Snapshot, source.r2.midTurn);
+  const restartedBytes = await backup(api);
+  const restartedCatalog = catalog(restartedBytes);
+  assert.deepEqual(restartedCatalog, source.catalog);
+  const restartedFingerprint = fingerprint(backupContents(restartedBytes).tables, source.midTurn.character.id);
   assert.deepEqual(restartedFingerprint, source.fingerprint, "Restart changed the restored Character rows.");
   const move = await commit(api, source.route, { kind: "GENERAL_ACTION", actionKey: "MOVE" });
   const continued = await capture(api, source.route);
@@ -185,7 +236,7 @@ if (phase === "source") {
   assert.equal(move.event.sequence, snapshot.events[0].sequence + 1);
   assert.equal(move.event.classification, "RULES_EXECUTED");
   assert.equal(move.event.rulesetReleaseId, snapshot.release.id);
-  write("restart-and-play.json", { ...proof, result: "passed", snapshot, fingerprint: restartedFingerprint, continued, moveEvent: move.event });
+  write("restart-and-play.json", { ...proof, result: "passed", snapshot, r2Snapshot, catalog: restartedCatalog, fingerprint: restartedFingerprint, continued, moveEvent: move.event });
   console.log("After native restart, the same turn continued. Move spent 1 AP, granted movement, kept the Ward active and appended one event.");
   await (await gateway.control("quit")).text();
 } else {

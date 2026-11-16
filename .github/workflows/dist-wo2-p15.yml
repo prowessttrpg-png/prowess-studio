@@ -1,36 +1,62 @@
-name: DIST-WO2 P15 Windows backup restore
+name: DIST-WO2 P15 Windows Releases and assets
 on:
   push:
-    branches: [dist-wo2-p15-proof]
+    branches: [dist-wo2-p15-content-proof]
 permissions:
   actions: read
   contents: read
 env:
-  CI_INSTALLER: prowess-windows-x64-775efb5ab630e45080a82b39be15adc854e81497
+  SOURCE_RUN: '43767082829'
+  SOURCE_INSTALLER: prowess-windows-x64-775efb5ab630e45080a82b39be15adc854e81497
+  CI_RUN: '43777171367'
+  CI_INSTALLER: prowess-windows-x64-71b6bbf4d2a5fc01de2536d26b570c9d84f50bb1
 jobs:
+  package:
+    name: 'Find the CI #280 candidate installer'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    outputs:
+      artifact: ${{ steps.installer.outputs.id }}
+    steps:
+      - id: installer
+        name: Wait for the exact candidate artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for (( attempt=0; attempt<40; attempt++ )); do
+            id=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN/artifacts?name=$CI_INSTALLER" --jq '.artifacts[0].id // empty')
+            if [[ -n "$id" ]]; then
+              echo "id=$id" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            sleep 30
+          done
+          exit 1
   source:
-    name: Windows A — install, play and back up
+    name: Windows A — install R1 and R2 and export live workspace
     runs-on: windows-2025
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          name: ${{ env.CI_INSTALLER }}
-          run-id: 43767082829
+          name: ${{ env.SOURCE_INSTALLER }}
+          run-id: ${{ env.SOURCE_RUN }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/installer
-      - name: Save a live mid-turn Character through the installed app
+      - name: Back up both Releases, receipts, PNG and live play states
         shell: pwsh
-        run: ./scripts/distribution/p15/verify.ps1 -Mode source -Artifact "$env:RUNNER_TEMP/installer" -Evidence "$env:RUNNER_TEMP/p15-source"
+        run: |
+          Expand-Archive -LiteralPath ./scripts/distribution/p15/fixtures.zip -DestinationPath "$env:RUNNER_TEMP/fixtures"
+          ./scripts/distribution/p15/verify.ps1 -Mode source -Artifact "$env:RUNNER_TEMP/installer" -InputDirectory "$env:RUNNER_TEMP/fixtures" -Evidence "$env:RUNNER_TEMP/p15-source" -InstallerArtifactId 14183350774
       - uses: actions/upload-artifact@v4
         with:
-          name: p15-source-backup-and-baseline
+          name: p15-content-source
           path: ${{ runner.temp }}/p15-source
           if-no-files-found: error
   receiver:
-    name: Windows B — fresh install, restore, restart and continue
-    needs: source
+    name: Windows B — restore both Releases and continue play
+    needs: [package, source]
     runs-on: windows-2025
     timeout-minutes: 20
     steps:
@@ -38,19 +64,21 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: ${{ env.CI_INSTALLER }}
-          run-id: 43767082829
+          run-id: ${{ env.CI_RUN }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/installer
       - uses: actions/download-artifact@v4
         with:
-          name: p15-source-backup-and-baseline
+          name: p15-content-source
           path: ${{ runner.temp }}/input
       - name: Compare restore, restart and continued play through the installed app
+        env:
+          INSTALLER_ARTIFACT_ID: ${{ needs.package.outputs.artifact }}
         shell: pwsh
-        run: ./scripts/distribution/p15/verify.ps1 -Mode receiver -Artifact "$env:RUNNER_TEMP/installer" -InputDirectory "$env:RUNNER_TEMP/input" -Evidence "$env:RUNNER_TEMP/p15-receiver"
+        run: ./scripts/distribution/p15/verify.ps1 -Mode receiver -Artifact "$env:RUNNER_TEMP/installer" -InputDirectory "$env:RUNNER_TEMP/input" -Evidence "$env:RUNNER_TEMP/p15-receiver" -InstallerArtifactId $env:INSTALLER_ARTIFACT_ID
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: p15-receiver-comparison
+          name: p15-content-receiver
           path: ${{ runner.temp }}/p15-receiver
           if-no-files-found: warn
