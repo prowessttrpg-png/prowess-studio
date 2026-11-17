@@ -43,7 +43,7 @@ function AffectsRow({ row, rulesetId, releaseId, stat }: { row: StatImpactRowDto
               {r.variable ? (
                 <>
                   {" "}
-                  — <code>{r.variable}</code> is {formatEnumLabel(r.from.split(":")[1] ?? r.from)}
+                  — <code>{r.variable}</code> is {r.from.startsWith("STAT:") ? `the Stat ${r.from.slice(5)}` : formatEnumLabel(r.from.split(":")[1] ?? r.from)}
                 </>
               ) : null}
             </>

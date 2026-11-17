@@ -191,7 +191,7 @@ export function FormulaEditor({ value, onChange, catalog, sourceKinds, label, ow
         <ul className="prowess-formula__inputs" aria-label={`${label}: inputs`}>
           {decls.map((d, i) => (
             <li key={d.variable} data-testid="formula-input" data-variable={d.variable}>
-              <code>{d.variable}</code> = {desc?.sourceLabels[i] ?? ""}
+              <code>{d.variable}</code> = {desc?.sourceLabels[i] ?? ""}{" "}
               <SourcePicker catalog={catalog} sourceKinds={sourceKinds} value={d.source} label={`Replace input ${d.variable}`} disabled={busy} onChoose={(s) => void replaceInput(d.variable, s)} />
             </li>
           ))}
