@@ -1,4 +1,4 @@
-import {
+import { compendiumSection, kindsShownInSection,
   COMPENDIUM_REFERENCE_ERROR_CODES,
   DomainError,
   RULESET_RELEASE_DIFF_TYPES,
@@ -131,6 +131,8 @@ export interface ReferenceEntryQuery {
   readonly branch?: string;
   readonly entityType?: string;
   readonly keywordId?: string;
+  /** PRE-M7-WO1: a Compendium section key — the kinds the section shows (presentation grouping, same records). */
+  readonly section?: string;
 }
 
 export interface ReferenceEntryPage {
@@ -321,10 +323,16 @@ function facetFilters(query: ReferenceEntryQuery): Pick<PinnedEntryFilters, "def
     return { genericOnly: true };
   }
   let kinds: AuthoringDefinitionKind[] | null = null;
+  if (has(query.section)) {
+    const section = compendiumSection(query.section);
+    if (section === null) throw invalid(`Not a Compendium section: ${JSON.stringify(query.section)}`);
+    const shown = kindsShownInSection(section);
+    kinds = catalog.kinds.filter((k) => shown.includes(k.definitionKind));
+  }
   if (has(query.kind)) {
     const k = catalog.kinds.find((x) => x.definitionKind === query.kind);
     if (k === undefined) throw invalid(`Not a Definition kind in the catalog: ${JSON.stringify(query.kind)}`);
-    kinds = [k];
+    kinds = kinds === null ? [k] : kinds.filter((x) => x.definitionKind === k.definitionKind);
   }
   if (has(query.family)) {
     if (!catalog.systemFamilies.includes(query.family)) throw invalid(`Not a system family in the catalog: ${JSON.stringify(query.family)}`);

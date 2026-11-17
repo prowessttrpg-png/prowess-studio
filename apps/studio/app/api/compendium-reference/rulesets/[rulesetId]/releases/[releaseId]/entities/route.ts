@@ -4,14 +4,14 @@ import { strictQuery } from "../../../../../../../../src/api/m2/index";
 
 /**
  * GET /api/compendium-reference/rulesets/:rulesetId/releases/:releaseId/entities — the Release's pinned entries
- * (PAS-10 M6-WO2): server-side facets (search, kind, family, branch, entityType, keywordId) and paging, ordered by
+ * (PAS-10 M6-WO2): server-side facets (search, kind, family, branch, entityType, keywordId and — PRE-M7-WO1 — a Compendium section) and paging, ordered by
  * display name, canonical key, Entity id. Each card is computed from the EXACT pinned revision. Read-only.
  */
 export async function GET(request: Request, { params }: { params: Promise<{ rulesetId: string; releaseId: string }> }): Promise<Response> {
   try {
     const { rulesetId, releaseId } = await params;
     const { searchParams } = new URL(request.url);
-    strictQuery(searchParams, ["page", "pageSize", "search", "kind", "family", "branch", "entityType", "keywordId"]);
+    strictQuery(searchParams, ["page", "pageSize", "search", "kind", "family", "branch", "entityType", "keywordId", "section"]);
     const { page, pageSize } = parsePaginationParams(searchParams);
     const opt = (k: string) => searchParams.get(k) ?? undefined;
     const result = await listReferenceEntries(parseUuidParam(rulesetId, "rulesetId"), parseUuidParam(releaseId, "releaseId"), {
@@ -23,6 +23,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ rule
       branch: opt("branch"),
       entityType: opt("entityType"),
       keywordId: opt("keywordId"),
+      section: opt("section"),
     });
     return apiSuccessList(serializeForApi(result.items) as unknown[], result.page, result.pageSize, result.total);
   } catch (error) {

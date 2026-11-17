@@ -88,5 +88,10 @@
     "apps/studio/app/api/content-packs/install/route.ts",
     "apps/studio/app/api/content-packs/preview/route.ts",
     "apps/studio/app/api/ruleset-releases/[releaseId]/content-pack/route.ts"
+  ],
+  "PRE-M7-WO1": [
+    "apps/studio/app/api/compendium-rules/preview/route.ts",
+    "apps/studio/app/api/compendium-rules/releases/[releaseId]/entities/[entityId]/usage/route.ts",
+    "apps/studio/app/api/compendium-rules/releases/[releaseId]/stats/[stat]/route.ts"
   ]
 }
