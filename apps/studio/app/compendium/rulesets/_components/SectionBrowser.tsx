@@ -7,7 +7,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { ErrorState } from "../../_components/ErrorState";
 import { LoadingState } from "../../_components/LoadingState";
-import { getRelease, listEntries, ReferenceApiError, type EntryCardDto, type ReleaseDetailDto } from "../_lib/reference-client";
+import { getRelease, listEntries, ReferenceApiError, searchKeywords, type EntryCardDto, type ReleaseDetailDto } from "../_lib/reference-client";
 import { entryHref, readableToken, releaseHref, releaseName, rulesReferenceHref, rulesetReferenceHref, sectionHref, sectionsHref, statHref } from "../_lib/reference-urls";
 import { EntryCard } from "./EntryCard";
 
@@ -92,7 +92,7 @@ export function SectionsOverview({ rulesetId, releaseId }: { rulesetId: string; 
   );
 }
 
-function EntryList({ rulesetId, releaseId, label, filters, search, testid }: { rulesetId: string; releaseId: string; label: string; filters: { section?: string; kind?: string; entityType?: string }; search: string; testid: string }) {
+function EntryList({ rulesetId, releaseId, label, filters, search, testid, hideWhenEmpty = false }: { rulesetId: string; releaseId: string; label: string; filters: { section?: string; kind?: string; entityType?: string }; search: string; testid: string; hideWhenEmpty?: boolean }) {
   const [page, setPage] = useState(1);
   const [state, setState] = useState<{ items: EntryCardDto[]; total: number; totalPages: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -117,6 +117,8 @@ function EntryList({ rulesetId, releaseId, label, filters, search, testid }: { r
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
   }, [search]);
+  // Optional reference lists (generic EntityTypes) stay out of the way when this Release simply has none.
+  if (hideWhenEmpty && search === "" && state !== null && state.total === 0) return null;
   return (
     <section aria-label={label} aria-busy={state === null && error === null} data-testid={testid}>
       <h2>{label}</h2>
@@ -213,8 +215,9 @@ export function SectionBrowser({ rulesetId, releaseId, sectionKey }: { rulesetId
         <EntryList rulesetId={rulesetId} releaseId={releaseId} label={`${section.title} rules`} filters={{ section: section.key }} search={search} testid="section-definitions" />
       ) : null}
       {section.genericEntityTypes.map((t) => (
-        <EntryList key={t} rulesetId={rulesetId} releaseId={releaseId} label={`${readableToken(t)} reference entries`} filters={{ kind: "GENERIC", entityType: t }} search={search} testid={`section-generic-${t}`} />
+        <EntryList key={t} rulesetId={rulesetId} releaseId={releaseId} label={`${readableToken(t)} reference entries`} filters={{ kind: "GENERIC", entityType: t }} search={search} testid={`section-generic-${t}`} hideWhenEmpty />
       ))}
+      {section.key === "keywords-references" ? <KeywordList rulesetId={rulesetId} releaseId={releaseId} search={search} /> : null}
       {section.alsoShows.length > 0 ? (
         <p className="gov-muted" data-testid="section-also-shows">
           Also listed here (owned by another topic): {section.alsoShows.map(readableToken).join(", ")}.
@@ -230,5 +233,51 @@ export function SectionBrowser({ rulesetId, releaseId, sectionKey }: { rulesetId
         </section>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Keywords are one shared vocabulary (not pinned by a Release). Each links to the entries of THIS Release tagged with it.
+ * Keyword definitions are maintained through the existing Keyword API; there is no Keyword editor screen yet.
+ */
+function KeywordList({ rulesetId, releaseId, search }: { rulesetId: string; releaseId: string; search: string }) {
+  const [items, setItems] = useState<Array<{ id: string; canonicalKey: string; name: string; deprecated: boolean }> | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(async () => {
+    setItems(null);
+    setError(null);
+    try {
+      setItems(await searchKeywords(search));
+    } catch (e) {
+      setError(errorText(e));
+    }
+  }, [search]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-dependency-change
+    void load();
+  }, [load]);
+  return (
+    <section aria-label="Keywords" data-testid="section-keywords">
+      <h2>Keywords</h2>
+      <p className="gov-muted">Keywords are shared across Releases. Open one to see the entries of this Release tagged with it.</p>
+      {error !== null ? <ErrorState message={error} onRetry={() => void load()} /> : null}
+      {items === null && error === null ? <LoadingState label="Loading Keywords…" /> : null}
+      {items !== null ? (
+        items.length === 0 ? (
+          <EmptyState title={search ? "No Keyword matches this search" : "No Keywords are defined"} description="Keywords appear here once they are defined." />
+        ) : (
+          <ul className="prowess-authoring__chips" aria-label="Keywords">
+            {items.map((k) => (
+              <li key={k.id}>
+                <Link href={`${releaseHref(rulesetId, releaseId)}?keywordId=${encodeURIComponent(k.id)}&keywordLabel=${encodeURIComponent(k.name)}`} className="prowess-keyword-chip">
+                  {k.name}
+                  {k.deprecated ? " (deprecated)" : ""}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )
+      ) : null}
+    </section>
   );
 }
