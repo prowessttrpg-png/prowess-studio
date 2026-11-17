@@ -51,7 +51,17 @@ export type VocabularyName =
   | "formulaSourceKinds"
   | "derivedFormulaSourceKinds"
   | "characterFields"
-  | "formulaRoundings";
+  | "formulaRoundings"
+  // PRE-M7-WO1 runtime / progression vocabularies.
+  | "creatureSizes"
+  | "terrainKinds"
+  | "weaknessSeverities"
+  | "movementFormulaSourceKinds";
+
+/** PRE-M7-WO1: one column of a guided table of flat records (every row keeps any other stored key untouched). */
+export type RowColumn =
+  | { readonly key: string; readonly label: string; readonly type: "token" | "integer" | "boolean" }
+  | { readonly key: string; readonly label: string; readonly type: "select"; readonly vocabulary: VocabularyName };
 
 interface FieldBase {
   /** The payload key this field edits. */
@@ -88,6 +98,11 @@ export type FieldDescriptor =
   | (FieldBase & { readonly input: "attackRefs"; readonly refKind: string })
   // PRE-M7-WO1: an authored core Formula, edited as contributions / inputs / advanced expression (never raw JSON).
   | (FieldBase & { readonly input: "coreFormula"; readonly sources: VocabularyName; readonly ownStatisticKey?: string })
+  // PRE-M7-WO1: guided tables, whole-number lists, true/false and an optional { feet } value.
+  | (FieldBase & { readonly input: "rows"; readonly columns: readonly RowColumn[]; readonly itemLabel: string })
+  | (FieldBase & { readonly input: "integerList" })
+  | (FieldBase & { readonly input: "boolean" })
+  | (FieldBase & { readonly input: "optionalFeet" })
   | (FieldBase & { readonly input: "damageProfiles" })
   | (FieldBase & { readonly input: "weaponRequirements" })
   | (FieldBase & { readonly input: "equippedModifiers" })
@@ -333,6 +348,66 @@ export const CORE_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescriptor>>
   },
 };
 
+/**
+ * PRE-M7-WO1: guided editors for the uniform core / runtime / progression kinds. Field keys are EXACTLY the M5 reader's
+ * required-and-allowed keys (a strict record), so a new Definition starts with a complete, readable shape.
+ */
+const RULES_FIELD: FieldDescriptor = { key: "rules", label: "Rule notes", group: "Rules data", input: "authoredData", required: true, help: "Authored rule data the engine carries with this Definition (empty group = none)." };
+export const RUNTIME_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescriptor>> = {
+  RANK_LADDER: {
+    purpose: "A rank ladder: the ordered ranks a Skill (or another ladder user) can hold. Order 0 is the lowest rank.",
+    fields: [
+      { key: "ladderKey", label: "Ladder", group: "Identity", input: "token", required: true, help: "The ladder's token, e.g. SKILL." },
+      { key: "ranks", label: "Ranks", group: "Ranks", input: "rows", itemLabel: "rank", required: true, columns: [{ key: "rankKey", label: "Rank", type: "token" }, { key: "order", label: "Order", type: "integer" }] },
+      CORE_SOURCE,
+    ],
+  },
+  SKILL_RANK: {
+    purpose: "What each rank of a ladder means for Skill checks: its bonus and whether an attempt is allowed at that rank.",
+    fields: [
+      { key: "ladderKey", label: "Ladder", group: "Identity", input: "token", required: true, help: "The rank ladder these entries give meaning to." },
+      { key: "entries", label: "Rank bonuses", group: "Ranks", input: "rows", itemLabel: "rank", required: true, columns: [{ key: "rankKey", label: "Rank", type: "token" }, { key: "bonus", label: "Bonus", type: "integer" }, { key: "attemptAllowed", label: "Attempt allowed", type: "boolean" }] },
+      CORE_SOURCE,
+    ],
+  },
+  CHARACTER_DIE_PROGRESSION: {
+    purpose: "The Character Die: every legal Character Level, the dice, and which die each band of Levels uses (each Level in exactly one band).",
+    fields: [
+      { key: "levels", label: "Character Levels", group: "Levels", input: "integerList", required: true, help: "Every legal Level, strictly increasing." },
+      { key: "dice", label: "Dice", group: "Dice", input: "rows", itemLabel: "die", required: true, columns: [{ key: "dieKey", label: "Die", type: "token" }, { key: "faces", label: "Faces", type: "integer" }] },
+      { key: "progression", label: "Die by Level", group: "Dice", input: "rows", itemLabel: "band", required: true, columns: [{ key: "levelMinimum", label: "From Level", type: "integer" }, { key: "levelMaximum", label: "To Level", type: "integer" }, { key: "dieKey", label: "Die", type: "token" }] },
+      CORE_SOURCE,
+    ],
+  },
+  AFFINITY_WEAKNESS_SEVERITY: {
+    purpose: "How much each Weakness severity raises a matching Ability's cost, as a percentage.",
+    fields: [
+      { key: "severities", label: "Severities", group: "Severities", input: "rows", itemLabel: "severity", required: true, columns: [{ key: "severity", label: "Severity", type: "select", vocabulary: "weaknessSeverities" }, { key: "percent", label: "Percent", type: "integer" }] },
+      CORE_SOURCE,
+    ],
+  },
+  TERRAIN: {
+    purpose: "A terrain kind and how much movement allowance crossing it costs (the formula reads the distance moved exactly once).",
+    fields: [
+      { key: "terrainKey", label: "Terrain", group: "Identity", input: "select", vocabulary: "terrainKinds", required: true },
+      { key: "allowanceCost", label: "Movement allowance cost", group: "Calculation", input: "coreFormula", sources: "movementFormulaSourceKinds", required: true, help: "For example the distance moved, or twice it for difficult terrain." },
+      RULES_FIELD,
+      CORE_SOURCE,
+    ],
+  },
+  CREATURE_SIZE: {
+    purpose: "A creature Size: the space it occupies and its Base Movement.",
+    fields: [
+      { key: "sizeKey", label: "Size", group: "Identity", input: "select", vocabulary: "creatureSizes", required: true },
+      { key: "occupiedSpaceFeet", label: "Occupied space (feet)", group: "Space", input: "integerList", required: true, help: "One or two dimensions, e.g. 5 or 10, 10." },
+      { key: "orLarger", label: "This size or larger", group: "Space", input: "boolean", required: true },
+      { key: "baseMovement", label: "Base Movement (feet)", group: "Movement", input: "optionalFeet", required: false, help: "Leave empty while the value is not yet decided." },
+      RULES_FIELD,
+      CORE_SOURCE,
+    ],
+  },
+};
+
 export const GENERIC_DESCRIPTOR: ContractDescriptor = {
   purpose: "This kind has no dedicated authoring descriptor yet: author its payload as structured data. The M5 contract still validates every field.",
   fields: [{ key: "", label: "Payload", group: "Payload", input: "authoredData", required: true, help: "The complete payload for this Definition kind." }],
@@ -343,6 +418,7 @@ export function descriptorFor(kind: { definitionKind: string; sharedContract: st
   if (schemaVersion === 1 && CHARACTER_KIND_DESCRIPTORS[kind.definitionKind] !== undefined) return CHARACTER_KIND_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
   if (schemaVersion === 1 && CORE_KIND_DESCRIPTORS[kind.definitionKind] !== undefined) return CORE_KIND_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
   if (schemaVersion === 1 && EQUIPMENT_KIND_DESCRIPTORS[kind.definitionKind] !== undefined) return EQUIPMENT_KIND_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
+  if (schemaVersion === 1 && RUNTIME_KIND_DESCRIPTORS[kind.definitionKind] !== undefined) return RUNTIME_KIND_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
   if (kind.definitionKind === "AFFINITY" && schemaVersion === 1) return AFFINITY_V1;
   return GENERIC_DESCRIPTOR;
 }
@@ -428,6 +504,13 @@ export function initialFieldValue(field: FieldDescriptor): unknown {
       return { mode: "" };
     case "equipmentSource":
       return { locators: [], conflicts: [], designerAuthority: [] };
+    case "rows":
+    case "integerList":
+      return [];
+    case "boolean":
+      return false;
+    case "optionalFeet":
+      return null;
     case "coreFormula":
       return { expression: "0", rounding: "NONE", minimum: null, maximum: null, unit: null, variables: [] };
   }

@@ -121,6 +121,10 @@ describe("M6-WO1 authoring catalog (M6-I002 no second Definition catalog)", () =
       derivedFormulaSourceKinds: ["STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "EXPLICIT_BONUSES", "CREATURE_SIZE_BASE_MOVEMENT"],
       characterFields: ["LEVEL", "BASE_HP", "BASE_MP"],
       formulaRoundings: ["NONE", "FLOOR", "CEIL"],
+      creatureSizes: ["SMALL", "MEDIUM", "LARGE", "HUGE", "MASSIVE"],
+      terrainKinds: ["NORMAL", "DIFFICULT"],
+      weaknessSeverities: ["MINOR", "MODERATE", "MAJOR"],
+      movementFormulaSourceKinds: ["MOVEMENT_DISTANCE"],
     });
   });
 

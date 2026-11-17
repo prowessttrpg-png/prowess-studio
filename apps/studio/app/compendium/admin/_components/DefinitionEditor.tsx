@@ -7,6 +7,7 @@ import { fieldDomId, fieldErrorId, issuesForField, stableStringify, type Definit
 import { AuthoredDataEditor } from "./AuthoredDataEditor";
 import { DefinitionReferencePicker } from "./DefinitionReferencePicker";
 import { FormulaEditor } from "./FormulaEditor";
+import { IntegerListInput, OptionalFeetInput, RowsEditor } from "./GuidedInputs";
 import { KeywordPicker } from "./KeywordPicker";
 import {
   AttackRefsEditor,
@@ -441,6 +442,19 @@ function FieldControl({ field, value, onChange, catalog, issues, payload }: { fi
         </Shell>
       );
     }
+    // ---- PRE-M7-WO1 guided runtime / progression inputs -------------------------------------------------------------
+    case "rows":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <RowsEditor value={value} onChange={onChange} columns={field.columns} itemLabel={field.itemLabel} label={field.label} catalog={catalog} />
+        </Shell>
+      );
+    case "integerList":
+      return <LabeledControl field={field} issues={issues}>{(p) => <IntegerListInput id={p.id} describedBy={p["aria-describedby"]} value={value} onChange={onChange} />}</LabeledControl>;
+    case "optionalFeet":
+      return <LabeledControl field={field} issues={issues}>{(p) => <OptionalFeetInput id={p.id} describedBy={p["aria-describedby"]} value={value} onChange={onChange} />}</LabeledControl>;
+    case "boolean":
+      return <LabeledControl field={field} issues={issues}>{(p) => <input {...p} type="checkbox" checked={value === true} onChange={(e) => onChange(e.target.checked)} />}</LabeledControl>;
     case "equipmentSource":
       return (
         <Shell field={field} issues={issues} composite>

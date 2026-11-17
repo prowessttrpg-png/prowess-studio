@@ -16,7 +16,8 @@ describe("authoring descriptors (M6-I002 UI never owns mechanics)", () => {
   it("cover every shared contract the catalog reports; other kinds fall back to the generic structured editor", () => {
     for (const k of CATALOG.kinds.filter((x) => x.sharedContract !== null)) expect(descriptorFor(k, 1), k.definitionKind).toBe(CONTRACT_DESCRIPTORS[k.sharedContract!]);
     expect(descriptorFor({ definitionKind: "AFFINITY", sharedContract: null }, 2)).toBe(GENERIC_DESCRIPTOR);
-    expect(descriptorFor({ definitionKind: "STAT", sharedContract: null }, 1)).toBe(GENERIC_DESCRIPTOR);
+    expect(descriptorFor({ definitionKind: "STAT", sharedContract: null }, 1)).not.toBe(GENERIC_DESCRIPTOR); // PRE-M7-WO1 guided core editor
+    expect(descriptorFor({ definitionKind: "SPELL_DEFINITION", sharedContract: null }, 1)).toBe(GENERIC_DESCRIPTOR);
     expect(descriptorFor({ definitionKind: "AFFINITY", sharedContract: null }, 1).fields.map((f) => f.key)).toEqual(["affinity"]);
   });
 

@@ -35,6 +35,9 @@ import {
   BONUS_TARGETS,
   CORE_PROCEDURES,
   DERIVED_STATISTICS,
+  AFFINITY_WEAKNESS_SEVERITIES,
+  CREATURE_SIZES,
+  TERRAIN_KINDS,
 } from "@prowess/game";
 
 /**
@@ -134,6 +137,11 @@ export function getAuthoringCatalog(): AuthoringCatalog {
       derivedFormulaSourceKinds: [...DERIVED_FORMULA_SOURCE_KINDS],
       characterFields: [...CHARACTER_FIELD_TOKENS],
       formulaRoundings: ["NONE", "FLOOR", "CEIL"],
+      // PRE-M7-WO1 guided editors for the runtime / progression kinds.
+      creatureSizes: [...CREATURE_SIZES],
+      terrainKinds: [...TERRAIN_KINDS],
+      weaknessSeverities: [...AFFINITY_WEAKNESS_SEVERITIES],
+      movementFormulaSourceKinds: ["MOVEMENT_DISTANCE"],
     },
     legacyTerms: TERMINOLOGY_INVENTORY.filter((t) => t.status === "LEGACY" && t.canonicalTerm !== null)
       .map((t) => ({ legacyTerm: t.term, canonicalTerm: t.canonicalTerm as string }))

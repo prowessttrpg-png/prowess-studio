@@ -210,7 +210,32 @@ function FieldValue({ field, payload, context, keywordName }: { field: FieldDesc
     case "useSites":
     case "traitContract":
     case "equipmentSource":
+    // PRE-M7-WO1 guided inputs: shown exactly as stored.
+    case "rows":
+    case "integerList":
+    case "boolean":
+    case "optionalFeet":
       return value === null || value === undefined ? <span className="gov-muted">not authored</span> : <StructuredValue value={value} path={path} context={context} />;
+    case "coreFormula": {
+      // The Formula as written, then its declared inputs exactly as stored (never evaluated here).
+      const expression = value !== null && typeof value === "object" ? (value as { expression?: unknown }).expression : undefined;
+      return value === null || value === undefined ? (
+        <span className="gov-muted">not authored</span>
+      ) : (
+        <div data-field={field.key}>
+          {typeof expression === "string" ? (
+            <p>
+              <code data-testid="reference-formula">{expression}</code>
+            </p>
+          ) : null}
+          <StructuredValue value={value} path={path} context={context} />
+        </div>
+      );
+    }
+    default: {
+      const unhandled: never = field;
+      return unhandled;
+    }
   }
 }
 

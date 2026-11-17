@@ -784,6 +784,93 @@
     "weaponRequirementKinds": [
       "MARTIAL_RANK_AT_LEAST",
       "STAT_AT_LEAST"
+    ],
+    "derivedStatistics": [
+      "HALF_CHARACTER_DIE",
+      "MAXIMUM_HP",
+      "MAXIMUM_MP",
+      "ACCURACY",
+      "DODGE_PERCEPTION_BONUS",
+      "DODGE",
+      "CHARACTER_DC_RESOLVE_BONUS",
+      "CHARACTER_DC",
+      "STRENGTH_ARMOR",
+      "AP_AGILITY_BONUS",
+      "BASE_AP_CAPACITY",
+      "COUNTER_ACTION_CAPACITY",
+      "BASE_RANGE",
+      "BASE_MANA_EFFICIENCY",
+      "SIGNATURE_ABILITY_SLOTS",
+      "BASE_MOVEMENT",
+      "MOVEMENT"
+    ],
+    "coreProcedures": [
+      "CORE_ROLL",
+      "SKILL_CHECK",
+      "SKILL_AUTOMATIC_SUCCESS",
+      "SAVING_THROW",
+      "ATTACK_ROLL",
+      "STAT_MASTERY",
+      "INITIATIVE"
+    ],
+    "bonusTargets": [
+      "CORE_ROLL",
+      "SKILL_CHECK",
+      "SAVING_THROW",
+      "ATTACK_ROLL",
+      "DODGE",
+      "CHARACTER_DC",
+      "INITIATIVE",
+      "MOVEMENT"
+    ],
+    "formulaSourceKinds": [
+      "STAT",
+      "CHOSEN_STAT",
+      "CHARACTER",
+      "CHARACTER_DIE_FACES",
+      "DERIVED",
+      "NATURAL",
+      "SKILL_RANK_BONUS",
+      "EXPLICIT_BONUSES",
+      "MOVEMENT_DISTANCE",
+      "CREATURE_SIZE_BASE_MOVEMENT"
+    ],
+    "derivedFormulaSourceKinds": [
+      "STAT",
+      "CHARACTER",
+      "CHARACTER_DIE_FACES",
+      "DERIVED",
+      "EXPLICIT_BONUSES",
+      "CREATURE_SIZE_BASE_MOVEMENT"
+    ],
+    "characterFields": [
+      "LEVEL",
+      "BASE_HP",
+      "BASE_MP"
+    ],
+    "formulaRoundings": [
+      "NONE",
+      "FLOOR",
+      "CEIL"
+    ],
+    "creatureSizes": [
+      "SMALL",
+      "MEDIUM",
+      "LARGE",
+      "HUGE",
+      "MASSIVE"
+    ],
+    "terrainKinds": [
+      "NORMAL",
+      "DIFFICULT"
+    ],
+    "weaknessSeverities": [
+      "MINOR",
+      "MODERATE",
+      "MAJOR"
+    ],
+    "movementFormulaSourceKinds": [
+      "MOVEMENT_DISTANCE"
     ]
   },
   "legacyTerms": [
