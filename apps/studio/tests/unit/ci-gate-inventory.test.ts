@@ -19,7 +19,7 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
     expect(checkInventory(ROOT)).toEqual([]);
   });
 
-  it("keeps all 719 historical controls and adds DIST-WO2's four controls", () => {
+  it("keeps all 719 historical controls and adds DIST-WO2's four and PRE-M7-WO1's seven controls", () => {
     const counts = Object.fromEntries(inventory.gates.filter((g) => g.controls).map((g) => [g.controls!.script, g.controls!.count]));
     expect(counts).toEqual({
       "scripts/m4-final-negative-controls.mjs": 3,
@@ -49,9 +49,10 @@ describe("CI gate inventory (M5-CLOSEOUT-03)", () => {
       "scripts/m6-wo11-negative-controls.mjs": 25,
       "scripts/m6-wo12-negative-controls.mjs": 25,
       "scripts/dist-wo2-negative-controls.mjs": 4,
+      "scripts/pre-m7-wo1-negative-controls.mjs": 7,
     });
-    expect(Object.values(counts).reduce((sum, count) => sum + count, 0)).toBe(723);
-    expect(inventory.gates.length).toBe(45);
+    expect(Object.values(counts).reduce((sum, count) => sum + count, 0)).toBe(730);
+    expect(inventory.gates.length).toBe(46);
   });
 
   it("WO8 remains a Tier 2/3 gate over every required domain, historical, database, API, UI and static suite", () => {

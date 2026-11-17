@@ -43,6 +43,10 @@ export interface RuleDefinitionSummary {
 
 export interface StatImpactRow {
   readonly role: RuleNode["role"];
+  /** Reader-facing name of the role ("Calculated value", "Core procedure", "Rule"). */
+  readonly roleLabel: string;
+  /** True when this row is a calculation whose owning Definition is edited to change the contribution. */
+  readonly editable: boolean;
   readonly token: string;
   readonly depth: number;
   readonly direct: boolean;
@@ -86,6 +90,8 @@ async function releaseIdentity(releaseId: string) {
   return release;
 }
 
+const ROLE_LABELS: Record<RuleNode["role"], string> = { STAT: "Stat", DERIVED_STAT: "Calculated value", CORE_RESOLUTION: "Core procedure", DEFINITION: "Rule" };
+
 export async function getStatImpacts(releaseId: string, stat: string): Promise<StatImpacts> {
   if (!(PROWESS_STATS as readonly string[]).includes(stat)) throw invalid(`Not a Stat: ${JSON.stringify(stat)}`);
   const release = await releaseIdentity(releaseId);
@@ -108,6 +114,8 @@ export async function getStatImpacts(releaseId: string, stat: string): Promise<S
     rulesText: statVersion?.rulesText ?? null,
     impacts: impacts.map((i) => ({
       role: i.node.role,
+      roleLabel: ROLE_LABELS[i.node.role],
+      editable: i.node.definition !== null && (i.node.role === "DERIVED_STAT" || i.node.role === "CORE_RESOLUTION"),
       token: i.node.token,
       depth: i.depth,
       direct: i.depth === 1,

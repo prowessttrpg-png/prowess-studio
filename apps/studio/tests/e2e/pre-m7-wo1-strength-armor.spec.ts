@@ -168,12 +168,18 @@ test("PRE-M7-WO1 Strength → Armor: edit the owning rule, preview, publish R2; 
   let armorEntityId = "";
   {
     await page.goto(`${base1}/stats/STR`);
+    // The Rules Reference stays read-only: "Edit this rule" opens the OWNING rule in Compendium Admin, carrying the
+    // Release, the Stat and the revision that Release pins; the Draft is created there, by an explicit action.
     await page.getByTestId("impact-edit-STRENGTH_ARMOR").click();
+    await expect(page.getByTestId("ws-from-release")).toContainText("Stats → STR");
+    await page.getByLabel("Change summary (why this revision exists)").fill("Strength no longer adds Armor.");
+    await page.getByRole("button", { name: "Create New Revision from Revision 1" }).click();
     await page.waitForURL(/\/compendium\/admin\/entities\/[0-9a-f-]+\/revisions\/[0-9a-f-]+\?release=/);
     const u = new URL(page.url());
     revisionId = u.pathname.split("/").at(-1)!;
     armorEntityId = u.pathname.split("/").at(-3)!;
     await expect(page.getByRole("heading", { level: 1, name: /— Revision 2$/ })).toBeVisible();
+    await expect(page.getByTestId("revision-return")).toHaveAttribute("href", `${base1}/stats/STR`);
     await expect(page.getByTestId("formula-expression")).toHaveText("floor(str / 3)");
     await page.getByRole("button", { name: "Remove contribution 1 (floor(str / 3))" }).click();
     await expect(page.getByTestId("formula-expression")).toHaveText("0");

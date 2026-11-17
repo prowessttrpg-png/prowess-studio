@@ -324,6 +324,18 @@ jobs:
           path: ${{ runner.temp }}/dist-wo2-service/transfer-evidence.json
           if-no-files-found: error
           retention-days: 7
+      - name: PRE-M7-WO1 — Strength → Armor across machines, restart and restore
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/prowess_studio_test
+          PROWESS_PM7_EVIDENCE_DIR: ${{ runner.temp }}/pre-m7-wo1-transfer
+        run: node scripts/distribution/verify-pre-m7-wo1-transfer.mjs
+      - name: Upload PRE-M7-WO1 transfer evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: pre-m7-wo1-transfer-evidence
+          path: ${{ runner.temp }}/pre-m7-wo1-transfer/pre-m7-wo1-transfer-evidence.json
+          if-no-files-found: error
+          retention-days: 7
       # M1-WO8: API route-handler tests, calling each Next.js route handler directly against prowess_studio_test.
       - name: API integration tests (apps/studio)
         env:
@@ -470,6 +482,10 @@ jobs:
         run: |
           node scripts/ci/verify-gate.mjs DIST-WO2 apps/studio/tests/unit/dist-wo2-static.test.ts packages/prowess-db/tests/unit/content-pack-manifest.test.ts
           PROWESS_EXPECT_CONTROLS=4 node scripts/dist-wo2-negative-controls.mjs
+      - name: PRE-M7-WO1 audit gate — Compendium authoring and rule control
+        run: |
+          node scripts/ci/verify-gate.mjs PRE-M7-WO1 apps/studio/tests/unit/pre-m7-wo1-static.test.ts apps/studio/tests/unit/pre-m7-wo1-descriptors.test.ts packages/prowess-db/tests/unit/pre-m7-wo1-formula-guide.test.ts
+          PROWESS_EXPECT_CONTROLS=7 node scripts/pre-m7-wo1-negative-controls.mjs
       - name: M1 audit gate — static invariants (no current-version state, enum parity, errors, migrations, layering)
         run: node scripts/ci/verify-gate.mjs M1-STATIC apps/studio/tests/unit/m1-audit-static.test.ts
       - name: M1 audit gate — database-level suite

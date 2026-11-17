@@ -1,7 +1,18 @@
-import { parseFormulaExpression, type FormulaNode } from "@prowess/rules";
+import { validateFormulaProgram, type FormulaNode } from "@prowess/rules";
 
 /**
- * PRE-M7-WO1 — the guided view of an authored M4 Formula (presentation; the server is the authority).
+ * The ENGINE's reading of an expression. This module never parses: it asks the M4 Formula engine's public program
+ * validator for the validated AST (exactly what the engine itself would run) and only classifies and prints that tree.
+ */
+type EngineReading = { readonly ok: true; readonly ast: FormulaNode; readonly variables: readonly string[] } | { readonly ok: false; readonly diagnostics: ReadonlyArray<{ readonly message: string }> };
+function engineReading(expression: string): EngineReading {
+  const v = validateFormulaProgram({ expression });
+  return v.ok ? { ok: true, ast: v.program.ast, variables: v.program.variables } : { ok: false, diagnostics: v.diagnostics };
+}
+
+/**
+ * PRE-M7-WO1 — the guided (presentation) view of an authored M4 Formula, on the SERVER (the Studio never reads a
+ * Formula itself). Pure: classify and print the engine-validated tree — never parse, never evaluate.
  *
  * The expression is parsed with the SAME M4 parser the engine uses. Its top-level sum is shown as a list of
  * CONTRIBUTIONS (terms joined by + / −); each term is classified only so ordinary controls can edit it:
@@ -130,13 +141,13 @@ export function buildExpression(terms: readonly FormulaTerm[]): string {
 
 /** The guided view of `expression`, or why it cannot be shown losslessly. */
 export function guidedFormula(expression: string): GuidedFormula {
-  const parsed = parseFormulaExpression(expression);
+  const parsed = engineReading(expression);
   if (!parsed.ok) return { ok: false, reason: parsed.diagnostics.map((d) => d.message).join("; ") };
   const terms: FormulaTerm[] = [];
   // A leading unary minus on the whole expression is one negative term.
   if (parsed.ast.type === "UNARY" && parsed.ast.operator === "-") terms.push(classify(parsed.ast.operand, -1));
   else split(parsed.ast, 1, terms);
-  const rebuilt = parseFormulaExpression(buildExpression(terms));
+  const rebuilt = engineReading(buildExpression(terms));
   if (!rebuilt.ok || !sameAst(rebuilt.ast, parsed.ast)) return { ok: false, reason: "this expression's structure cannot be shown as a list of contributions without changing it" };
   return { ok: true, terms };
 }
@@ -145,16 +156,16 @@ export function guidedFormula(expression: string): GuidedFormula {
  * Applies a guided edit: the new expression is accepted only if it parses, and — for a pure presentation change — only
  * if `intended` (when given) is the AST it produces. Returns the new expression or the parse problem.
  */
-export function applyTerms(terms: readonly FormulaTerm[]): { ok: true; expression: string; variables: readonly string[] } | { ok: false; reason: string } {
+export function rebuildFromTerms(terms: readonly FormulaTerm[]): { ok: true; expression: string; variables: readonly string[] } | { ok: false; reason: string } {
   const expression = buildExpression(terms);
-  const parsed = parseFormulaExpression(expression);
+  const parsed = engineReading(expression);
   if (!parsed.ok) return { ok: false, reason: parsed.diagnostics.map((d) => d.message).join("; ") };
   return { ok: true, expression, variables: parsed.variables };
 }
 
 /** Every variable the terms read (first-use order). */
 export function variablesOf(expression: string): readonly string[] {
-  const parsed = parseFormulaExpression(expression);
+  const parsed = engineReading(expression);
   return parsed.ok ? parsed.variables : [];
 }
 
@@ -165,4 +176,62 @@ export function termHazards(terms: readonly FormulaTerm[]): string[] {
     if (t.kind === "DIVIDED" && t.divisor === 0) out.push(`Contribution ${i + 1} divides by zero.`);
   });
   return out;
+}
+
+/** Renames one variable throughout an AST (structure, precedence and every other node unchanged). */
+export function renameVariable(n: FormulaNode, from: string, to: string): FormulaNode {
+  switch (n.type) {
+    case "NUMBER":
+      return n;
+    case "VARIABLE":
+      return n.key === from ? { ...n, key: to } : n;
+    case "UNARY":
+      return { ...n, operand: renameVariable(n.operand, from, to) };
+    case "BINARY":
+      return { ...n, left: renameVariable(n.left, from, to), right: renameVariable(n.right, from, to) };
+    case "CALL":
+      return { ...n, arguments: n.arguments.map((a) => renameVariable(a, from, to)) };
+  }
+}
+
+/** The presentation of one expression: parse result and the guided contributions (each with its printed text). */
+export interface FormulaPresentation {
+  readonly parse: { readonly ok: true; readonly variables: readonly string[] } | { readonly ok: false; readonly problem: string };
+  readonly guided: { readonly ok: true; readonly terms: ReadonlyArray<FormulaTerm & { readonly text: string }> } | { readonly ok: false; readonly reason: string };
+  readonly hazards: readonly string[];
+}
+
+export function presentFormula(expression: string): FormulaPresentation {
+  const parsed = engineReading(expression);
+  const guided = guidedFormula(expression === "" ? "0" : expression);
+  return {
+    parse: parsed.ok ? { ok: true, variables: parsed.variables } : { ok: false, problem: parsed.diagnostics.map((d) => d.message).join("; ") },
+    guided: guided.ok ? { ok: true, terms: guided.terms.map((t) => ({ ...t, text: termExpression(t) })) } : guided,
+    hazards: guided.ok ? termHazards(guided.terms) : [],
+  };
+}
+
+/** A term as it travels from a client: an OTHER term carries only its printed text, which is re-parsed here. */
+export type FormulaTermInput = Exclude<FormulaTerm, { readonly kind: "OTHER" }> | { readonly sign: 1 | -1; readonly kind: "OTHER"; readonly text: string };
+
+/** Rebuilds an expression from client terms (OTHER text re-parsed), or says which term does not parse. */
+export function composeFormula(terms: readonly FormulaTermInput[]): { ok: true; expression: string; variables: readonly string[] } | { ok: false; reason: string } {
+  const built: FormulaTerm[] = [];
+  for (const [i, t] of terms.entries()) {
+    if (t.kind !== "OTHER") {
+      built.push(t);
+      continue;
+    }
+    const parsed = engineReading(t.text);
+    if (!parsed.ok) return { ok: false, reason: `contribution ${i + 1} does not parse: ${parsed.diagnostics.map((d) => d.message).join("; ")}` };
+    built.push({ sign: t.sign, kind: "OTHER", node: parsed.ast });
+  }
+  return rebuildFromTerms(built);
+}
+
+/** Renames one variable of an expression, or explains why it cannot (an unparsable expression is never rewritten). */
+export function renameFormulaVariable(expression: string, from: string, to: string): { ok: true; expression: string } | { ok: false; reason: string } {
+  const parsed = engineReading(expression);
+  if (!parsed.ok) return { ok: false, reason: "Fix the expression before replacing an input." };
+  return { ok: true, expression: from === to ? expression : printFormula(renameVariable(parsed.ast, from, to)) };
 }

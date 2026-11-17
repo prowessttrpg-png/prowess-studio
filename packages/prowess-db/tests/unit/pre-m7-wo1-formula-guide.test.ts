@@ -2,14 +2,15 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { parseFormulaExpression, type FormulaNode } from "@prowess/rules";
+import { buildExpression, guidedFormula, printFormula, rebuildFromTerms, sameAst, termHazards, type FormulaTerm } from "../../src/compendium-rules/formula-presentation";
 import { describe, expect, it } from "vitest";
-import { applyTerms, buildExpression, guidedFormula, printFormula, sameAst, termHazards, type FormulaTerm } from "../../app/compendium/_lib/formula-model";
+import { formulaGuide } from "../../src/compendium-rules/formula-guide";
 
 /**
  * PRE-M7-WO1 C08 — the guided Formula view round-trips the full supported expression without changing precedence or
  * evaluation semantics, and refuses (rather than rewrites) what it cannot show as contributions.
  */
-const ROOT = path.resolve(process.cwd(), "../..");
+const ROOT = path.resolve(import.meta.dirname, "../../../..");
 const ast = (e: string): FormulaNode => {
   const p = parseFormulaExpression(e);
   if (!p.ok) throw new Error(`${e}: ${p.diagnostics.map((d) => d.message).join("; ")}`);
@@ -31,7 +32,7 @@ function contentExpressions(): string[] {
   return [...new Set(out)];
 }
 
-describe("PRE-M7-WO1 guided Formula model", () => {
+describe("PRE-M7-WO1 guided Formula model (server-side; the Studio never parses a Formula)", () => {
   const corpus = [
     ...contentExpressions(),
     "a - (b + c)",
@@ -71,16 +72,31 @@ describe("PRE-M7-WO1 guided Formula model", () => {
     const g = guidedFormula("floor(str / 3)");
     if (!g.ok) throw new Error("expected guided");
     const t = g.terms[0] as Extract<FormulaTerm, { kind: "DIVIDED" }>;
-    expect(applyTerms([{ ...t, divisor: 2 }])).toEqual({ ok: true, expression: "floor(str / 2)", variables: ["str"] });
-    expect(applyTerms([{ ...t, variable: "con" }])).toEqual({ ok: true, expression: "floor(con / 3)", variables: ["con"] });
-    expect(applyTerms([t, { sign: 1, kind: "DIVIDED", variable: "per", divisor: 4, rounding: "floor" }])).toEqual({ ok: true, expression: "floor(str / 3) + floor(per / 4)", variables: ["str", "per"] });
-    expect(applyTerms([t, { sign: -1, kind: "CONSTANT", value: 1 }])).toMatchObject({ expression: "floor(str / 3) - 1" });
-    expect(applyTerms([])).toEqual({ ok: true, expression: "0", variables: [] });
+    expect(rebuildFromTerms([{ ...t, divisor: 2 }])).toEqual({ ok: true, expression: "floor(str / 2)", variables: ["str"] });
+    expect(rebuildFromTerms([{ ...t, variable: "con" }])).toEqual({ ok: true, expression: "floor(con / 3)", variables: ["con"] });
+    expect(rebuildFromTerms([t, { sign: 1, kind: "DIVIDED", variable: "per", divisor: 4, rounding: "floor" }])).toEqual({ ok: true, expression: "floor(str / 3) + floor(per / 4)", variables: ["str", "per"] });
+    expect(rebuildFromTerms([t, { sign: -1, kind: "CONSTANT", value: 1 }])).toMatchObject({ expression: "floor(str / 3) - 1" });
+    expect(rebuildFromTerms([])).toEqual({ ok: true, expression: "0", variables: [] });
     expect(termHazards([{ ...t, divisor: 0 }])).toEqual(["Contribution 1 divides by zero."]);
   });
 
   it("W1-FORMULA an unparsable expression is reported, never coerced", () => {
     expect(guidedFormula("floor(str / ")).toMatchObject({ ok: false });
     expect(guidedFormula("str $ 3")).toMatchObject({ ok: false });
+  });
+
+  it("W1-FORMULA the Studio operations: describe, compose, rename and name — validated input, no database", () => {
+    const d = formulaGuide({ op: "describe", expression: "floor(str / 3)", sources: [{ kind: "STAT", stat: "STR" }] }) as { description: { guided: { ok: boolean; terms: Array<{ text: string }> }; sourceLabels: string[] } };
+    expect(d.description.guided.ok).toBe(true);
+    expect(d.description.guided.terms[0]!.text).toBe("floor(str / 3)");
+    expect(d.description.sourceLabels).toEqual(["Stat STR"]);
+    expect(formulaGuide({ op: "compose", terms: [] })).toMatchObject({ ok: true, expression: "0", variables: [] });
+    expect(formulaGuide({ op: "compose", terms: [{ sign: 1, kind: "DIVIDED", variable: "str", divisor: 2, rounding: "floor" }, { sign: -1, kind: "OTHER", text: "a + b" }] })).toMatchObject({ ok: true, expression: "floor(str / 2) - (a + b)" });
+    expect(formulaGuide({ op: "rename", expression: "floor(str / 3) + str", from: "str", to: "con" })).toMatchObject({ ok: true, expression: "floor(con / 3) + con" });
+    expect(formulaGuide({ op: "name", source: { kind: "STAT", stat: "STR" }, taken: ["str"] })).toEqual({ variable: "str_2", label: "Stat STR" });
+    expect(() => formulaGuide({ op: "compose", terms: [{ sign: 2, kind: "INPUT", variable: "x" }] })).toThrow(/sign/);
+    expect(formulaGuide({ op: "compose", terms: [{ sign: 1, kind: "OTHER", text: "x $ 1" }] })).toMatchObject({ ok: false, reason: expect.stringMatching(/does not parse/) });
+    expect(() => formulaGuide({ op: "describe", expression: "x".repeat(2001) })).toThrow(/at most/);
+    expect(() => formulaGuide({ op: "eval" })).toThrow(/op is/);
   });
 });

@@ -3,7 +3,7 @@
 import { COMPENDIUM_STAT_TOKENS } from "@prowess/model";
 import { formatEnumLabel } from "@prowess/ui";
 import { useState } from "react";
-import { previewRuleCandidate, type PreviewExampleDto, type RuleCandidatePreviewDto } from "../admin/_lib/authoring-client";
+import { previewRuleCandidate, type PreviewExampleDto, type RuleCandidatePreviewDto } from "../_lib/rules-client";
 
 /**
  * PRE-M7-WO1 — side-effect-free rule preview. Sends the SAVED Draft revision ids and explicit example inputs to the
@@ -18,7 +18,7 @@ const defaultRows = (vary: string): Row[] =>
 
 const messageOf = (e: unknown) => (e instanceof Error ? e.message : "The preview could not be calculated.");
 
-export function RulePreviewPanel({ releaseId, drafts, vary = "STR", focus = [], unsavedChanges = false, title = "Preview the effect" }: { releaseId: string; drafts: readonly string[]; vary?: string; focus?: readonly string[]; unsavedChanges?: boolean; title?: string }) {
+export function RulePreviewPanel({ releaseId, drafts, vary = COMPENDIUM_STAT_TOKENS[0] as string, focus = [], unsavedChanges = false, title = "Preview the effect" }: { releaseId: string; drafts: readonly string[]; vary?: string; focus?: readonly string[]; unsavedChanges?: boolean; title?: string }) {
   const [rows, setRows] = useState<Row[]>(() => defaultRows(vary));
   const [result, setResult] = useState<RuleCandidatePreviewDto | null>(null);
   const [error, setError] = useState("");

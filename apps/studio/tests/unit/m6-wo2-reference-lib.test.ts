@@ -34,7 +34,7 @@ describe("M6-WO2 presentation descriptors (M6-I015)", () => {
     const affinity = CATALOG.kinds.find((k) => k.definitionKind === "AFFINITY")!;
     for (const v of affinity.supportedSchemaVersions) expect(presentationDescriptorFor(affinity, v), `AFFINITY v${v}`).not.toBeNull();
     // M6-WO3 gives ANCESTRY, SKILL and CHARACTER_CREATION_RULE dedicated presentation (pinned by m6-wo3 tests).
-    const dedicated = new Set(["AFFINITY", "ANCESTRY", "SKILL", "CHARACTER_CREATION_RULE", "CHARACTER_ADVANCEMENT_RULE", "WEAPON", "ATTACK", "EQUIPMENT_TRAIT"]); // + M6-WO4, M6-WO6
+    const dedicated = new Set(["AFFINITY", "ANCESTRY", "SKILL", "CHARACTER_CREATION_RULE", "CHARACTER_ADVANCEMENT_RULE", "WEAPON", "ATTACK", "EQUIPMENT_TRAIT", "STAT", "DERIVED_STAT", "RANK_LADDER", "SKILL_RANK", "CHARACTER_DIE_PROGRESSION", "AFFINITY_WEAKNESS_SEVERITY", "TERRAIN", "CREATURE_SIZE"]); // + M6-WO4, M6-WO6, PRE-M7-WO1 (pinned by pre-m7-wo1-descriptors)
     const generic = CATALOG.kinds.filter((k) => k.sharedContract === null && !dedicated.has(k.definitionKind) && k.supportedSchemaVersions.length > 0);
     expect(generic.length).toBeGreaterThan(0);
     for (const k of generic) expect(presentationDescriptorFor(k, k.supportedSchemaVersions[0]!), k.definitionKind).toBeNull();

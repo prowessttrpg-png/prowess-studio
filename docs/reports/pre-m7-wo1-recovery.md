@@ -35,7 +35,7 @@ Written before any implementation change (Phase A, acceptance C01).
 
 ## Existing work preserved
 
-The older checkout `/home/claude/prowess-studio` (branch `m6-wo12`, HEAD `d6006db`) had uncommitted correction work for the superseded WO12 follow-up; it was stashed in place (`stash@{0}`), not discarded, and this assignment uses a separate fresh clone.
+The older working checkout (branch `m6-wo12`, HEAD `d6006db`) had uncommitted correction work for the superseded WO12 follow-up; it was stashed in place (`stash@{0}`), not discarded, and this assignment uses a separate fresh clone.
 
 ## Inaccessible artifacts
 

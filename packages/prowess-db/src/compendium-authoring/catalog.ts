@@ -39,6 +39,10 @@ import {
   CREATURE_SIZES,
   TERRAIN_KINDS,
 } from "@prowess/game";
+import { FORMULA_ROUNDING_MODES } from "@prowess/rules";
+import { CHARACTER_FIELD_TOKENS, DERIVED_FORMULA_SOURCE_KINDS, FORMULA_SOURCE_KINDS } from "../compendium-rules/formula-vocabulary.js";
+
+export { CHARACTER_FIELD_TOKENS, DERIVED_FORMULA_SOURCE_KINDS, FORMULA_SOURCE_KINDS };
 
 /**
  * The Compendium authoring catalog (PAS-10 M6-WO1 §8, §40) — a read-only PROJECTION of the certified M5 Definition
@@ -85,13 +89,6 @@ function kindRow(kind: ProwessDefinitionKind): AuthoringDefinitionKind {
   };
 }
 
-/** Mirror of the M5 core Formula variable-source kinds (definition/core-payload.ts `FormulaVariableSource`). */
-export const FORMULA_SOURCE_KINDS = Object.freeze(["STAT", "CHOSEN_STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "NATURAL", "SKILL_RANK_BONUS", "EXPLICIT_BONUSES", "MOVEMENT_DISTANCE", "CREATURE_SIZE_BASE_MOVEMENT"] as const);
-/** Mirror of the M5 `DERIVED_VARIABLE_SOURCE_KINDS`: the sources a DERIVED_STAT Formula may read. */
-export const DERIVED_FORMULA_SOURCE_KINDS = Object.freeze(["STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "EXPLICIT_BONUSES", "CREATURE_SIZE_BASE_MOVEMENT"] as const);
-/** Mirror of the M5 `CHARACTER_FIELDS` (vocabulary/core.ts) a `{ kind: "CHARACTER", field }` source names. */
-export const CHARACTER_FIELD_TOKENS = Object.freeze(["LEVEL", "BASE_HP", "BASE_MP"] as const);
-
 export function getAuthoringCatalog(): AuthoringCatalog {
   return {
     kinds: PROWESS_DEFINITION_KIND_NAMES.map(kindRow),
@@ -136,7 +133,7 @@ export function getAuthoringCatalog(): AuthoringCatalog {
       formulaSourceKinds: [...FORMULA_SOURCE_KINDS],
       derivedFormulaSourceKinds: [...DERIVED_FORMULA_SOURCE_KINDS],
       characterFields: [...CHARACTER_FIELD_TOKENS],
-      formulaRoundings: ["NONE", "FLOOR", "CEIL"],
+      formulaRoundings: [...FORMULA_ROUNDING_MODES],
       // PRE-M7-WO1 guided editors for the runtime / progression kinds.
       creatureSizes: [...CREATURE_SIZES],
       terrainKinds: [...TERRAIN_KINDS],

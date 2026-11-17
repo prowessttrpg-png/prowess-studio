@@ -141,7 +141,11 @@ describe("M4-WO3 boundaries (§5–7, §114)", () => {
       expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/evaluateFormula|parseFormulaExpression/);
       if (rel(f) !== "apps/studio/src/rules-evaluation/service.ts" && !rel(f).startsWith("apps/studio/app/developer/rules/") && rel(f) !== "apps/studio/src/api-client/rules.ts") expect(readFileSync(f, "utf8"), rel(f)).not.toContain("@prowess/rules");
     }
-    expect(walk(path.join(ROOT, "apps", "studio", "app")).map(rel).filter((f) => /\/formula/i.test(f))).toEqual([]);
+    // PRE-M7-WO1 adds the guided Formula AUTHORING editor and its pure server operation (registered in
+    // docs/architecture/m6-api-routes.json): no Formula persistence, no evaluation; the server reads the engine-validated tree
+    // (validateFormulaProgram) and only classifies and prints it. Any other Formula path still fails here.
+    const PRE_M7_WO1 = ["apps/studio/app/api/compendium-rules/formula/route.ts", "apps/studio/app/compendium/admin/_components/FormulaEditor.tsx"];
+    expect(walk(path.join(ROOT, "apps", "studio", "app")).map(rel).filter((f) => /\/formula/i.test(f) && !PRE_M7_WO1.includes(f))).toEqual([]);
     for (const f of walk(path.join(ROOT, "packages", "prowess-db", "src")).filter((file) => file.endsWith(".ts"))) {
       expect(readFileSync(f, "utf8"), rel(f)).not.toMatch(/evaluateFormula|parseFormulaExpression/);
     }

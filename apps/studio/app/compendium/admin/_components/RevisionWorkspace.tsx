@@ -5,7 +5,7 @@ import { formatEnumLabel, VersionStatusBadge } from "@prowess/ui";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { RulePreviewPanel } from "../../_components/RulePreviewPanel";
+import { RulePreviewPanel } from "./RulePreviewPanel";
 import { safeReturnTo } from "../../rulesets/_lib/reference-urls";
 import type { EntityDto, EntityVersionDto, SourceDocumentDto, SourceReferenceDto } from "../../_lib/api-client";
 import {
@@ -85,9 +85,6 @@ const SECTIONS = [
   ["rev-history", "History"],
 ] as const;
 
-/** Kinds whose Drafts change calculated values the preview can show (derived statistics and the procedures that read them). */
-const PREVIEWABLE_KINDS: readonly string[] = ["DERIVED_STAT", "STAT", "CORE_RESOLUTION", "CHARACTER_DIE_PROGRESSION"];
-
 export function RevisionWorkspace({ entityId, versionId }: { entityId: string; versionId: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -140,6 +137,7 @@ export function RevisionWorkspace({ entityId, versionId }: { entityId: string; v
   // PRE-M7-WO1: opened from a Release context (Stat page) — keep it for the side-effect-free preview and the way back.
   const previewRelease = /^[0-9a-f-]{36}$/i.test(searchParams.get("release") ?? "") ? searchParams.get("release") : null;
   const returnTo = safeReturnTo(searchParams.get("returnTo"));
+  const previewStat = /^[A-Z]{2,5}$/.test(searchParams.get("stat") ?? "") ? (searchParams.get("stat") as string) : undefined;
   const dirty = editable && saved !== null && form !== null && isDirty(saved, form);
   useUnsavedChangesGuard(Boolean(dirty));
 
@@ -299,8 +297,8 @@ export function RevisionWorkspace({ entityId, versionId }: { entityId: string; v
         </ul>
       </nav>
 
-      {previewRelease !== null && form.candidate !== null && PREVIEWABLE_KINDS.includes(form.candidate.definitionKind) ? (
-        <RulePreviewPanel releaseId={previewRelease} drafts={editable ? [version.id] : []} unsavedChanges={Boolean(dirty)} title="Preview this Draft against the Release" />
+      {previewRelease !== null && form.candidate !== null ? (
+        <RulePreviewPanel releaseId={previewRelease} vary={previewStat} drafts={editable ? [version.id] : []} unsavedChanges={Boolean(dirty)} title="Preview this Draft against the Release" />
       ) : null}
 
       <section id="rev-content" className="gov-panel" aria-labelledby="rev-content-h">

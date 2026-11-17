@@ -72,7 +72,8 @@ describe("M6-WO2 gate — layering and read-only surface (M6-I020)", () => {
   it("the reference client issues GET requests only, to the read-only routes and the shared catalog / Keyword reads", () => {
     expect(CLIENT).toMatch(/await fetchJsonBody\(path\);/);
     expect(CLIENT).not.toMatch(/fetchJsonBody\(path,|method|body:/);
-    for (const [, url] of CLIENT.matchAll(/`(\/api\/[^`$]+)/g)) expect(url).toMatch(/^\/api\/compendium-(reference\/rulesets\/|authoring\/(catalog|keywords))/);
+    // PRE-M7-WO1: plus the read-only (GET) "What this affects" rule graph of one exact Release.
+    for (const [, url] of CLIENT.matchAll(/`(\/api\/[^`$]+)/g)) expect(url).toMatch(/^\/api\/compendium-(reference\/rulesets\/|authoring\/(catalog|keywords)|rules\/releases\/$)/);
   });
 
   it("routes are thin GET-only adapters over @prowess/db's compendium-reference reads, with central error mapping", () => {

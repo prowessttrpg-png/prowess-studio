@@ -181,7 +181,7 @@ export function AuthoringDashboard() {
                   <td>{item.definitionKind ?? <span className="gov-muted">Generic / non-Prowess Entity</span>}</td>
                   <td>{item.latestRevision ? `Revision ${item.latestRevision.revisionNumber}` : "No revisions"}</td>
                   <td>{item.latestRevision ? <VersionStatusBadge status={item.latestRevision.status} /> : "—"}</td>
-                  <td data-validation={item.structuralValidation ?? "NONE"}>{validationLabel(item.structuralValidation)}</td>
+                  <td data-validation={item.structuralValidation ?? "UNCHECKED"}>{validationLabel(item.structuralValidation)}</td>
                   <td>{item.latestRevision ? new Date(item.latestRevision.updatedAt).toLocaleString() : "—"}</td>
                 </tr>
               ))}

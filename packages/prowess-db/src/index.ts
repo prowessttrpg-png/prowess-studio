@@ -324,4 +324,6 @@ export {
   type RuleUsage,
   type StatImpactRow,
   type StatImpacts,
+  formulaGuide,
+  type FormulaDescription,
 } from "./compendium-rules/index.js";

@@ -13,3 +13,6 @@ export {
   type StatImpactRow,
   type StatImpacts,
 } from "./service.js";
+export { formulaGuide, formulaSourceLabel, variableNameFor, type FormulaDescription, type FormulaSource } from "./formula-guide.js";
+export { buildExpression, composeFormula, guidedFormula, presentFormula, printFormula, rebuildFromTerms, renameFormulaVariable, renameVariable, sameAst, termExpression, termHazards, variablesOf, type FormulaPresentation, type FormulaTerm, type FormulaTermInput, type GuidedFormula } from "./formula-presentation.js";
+export { CHARACTER_FIELD_TOKENS, DERIVED_FORMULA_SOURCE_KINDS, FORMULA_SOURCE_KINDS } from "./formula-vocabulary.js";

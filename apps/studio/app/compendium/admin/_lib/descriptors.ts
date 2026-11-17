@@ -512,7 +512,8 @@ export function initialFieldValue(field: FieldDescriptor): unknown {
     case "optionalFeet":
       return null;
     case "coreFormula":
-      return { expression: "0", rounding: "NONE", minimum: null, maximum: null, unit: null, variables: [] };
+      // The rounding is the author's choice (from the catalog) — a new Formula starts without one.
+      return { expression: "0", rounding: "", minimum: null, maximum: null, unit: null, variables: [] };
   }
 }
 

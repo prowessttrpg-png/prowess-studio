@@ -2,53 +2,31 @@
 
 import { formatEnumLabel } from "@prowess/ui";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { createRevision, getStatImpacts, type StatImpactRowDto, type StatImpactsDto } from "../../admin/_lib/authoring-client";
 import { ErrorState } from "../../_components/ErrorState";
 import { LoadingState } from "../../_components/LoadingState";
-import { RulePreviewPanel } from "../../_components/RulePreviewPanel";
-import { entryHref, releaseHref, revisionWorkspaceHref, releaseName, rulesReferenceHref, sectionHref, sectionsHref, statHref } from "../_lib/reference-urls";
+import { getStatImpacts, ReferenceApiError, type StatImpactRowDto, type StatImpactsDto } from "../_lib/reference-client";
+import { adminEntityHref, entryHref, releaseHref, releaseName, revisionWorkspaceHref, rulesReferenceHref, sectionHref, sectionsHref, statHref } from "../_lib/reference-urls";
 
 /**
- * PRE-M7-WO1 — Stats → <Stat> → "What this affects", for ONE exact Release.
+ * PRE-M7-WO1 — Stats → <Stat> → "What this affects", for ONE exact Release (read-only, like all of the Rules Reference).
  *
  * Every row comes from the server's rule graph of the pinned Definitions (formula variable sources and structured
- * statistic fields), direct and indirect. Nothing here is a copy of a rule: "Edit this rule" opens (or creates) a Draft
- * revision of the Definition that OWNS the calculation, in the normal governed authoring workspace; publication still
- * goes through review and a new Release. The preview evaluates open Drafts without saving anything.
+ * statistic fields), direct and indirect. Nothing here is a copy of a rule and nothing here writes: "Edit this rule"
+ * opens the Definition that OWNS the calculation in Compendium Admin (carrying this Release and Stat so the authoring
+ * workspace can preview the Draft against it and lead back here); publication still goes through review and a new
+ * Release.
  */
-const messageOf = (e: unknown, fallback: string) => (e instanceof Error && e.message ? e.message : fallback);
+const messageOf = (e: unknown) => (e instanceof ReferenceApiError ? `${e.message} (${e.code})` : "Could not load what this Stat affects.");
 
-const ROLE_LABEL: Record<StatImpactRowDto["role"], string> = {
-  STAT: "Stat",
-  DERIVED_STAT: "Calculated value",
-  CORE_RESOLUTION: "Core procedure",
-  DEFINITION: "Rule",
-};
-
-function ImpactRow({ row, rulesetId, releaseId, stat }: { row: StatImpactRowDto; rulesetId: string; releaseId: string; stat: string }) {
-  const router = useRouter();
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+function AffectsRow({ row, rulesetId, releaseId, stat }: { row: StatImpactRowDto; rulesetId: string; releaseId: string; stat: string }) {
   const def = row.definition;
-  const editable = def !== null && (row.role === "DERIVED_STAT" || row.role === "CORE_RESOLUTION");
-  async function edit() {
-    if (def === null) return;
-    setBusy(true);
-    setError("");
-    try {
-      const created = await createRevision(def.entityId, { baseVersionId: def.entityVersionId, changeSummary: `Change how ${stat} contributes to ${formatEnumLabel(row.token)}` });
-      router.push(revisionWorkspaceHref(def.entityId, created.id, releaseId, statHref(rulesetId, releaseId, stat)));
-    } catch (e) {
-      setError(messageOf(e, "Could not start a Draft of this rule."));
-      setBusy(false);
-    }
-  }
+  const back = statHref(rulesetId, releaseId, stat);
+  const context = `release=${encodeURIComponent(releaseId)}&stat=${encodeURIComponent(stat)}&returnTo=${encodeURIComponent(back)}`;
   return (
     <li className="prowess-impact" data-testid={`impact-${row.token}`} data-direct={row.direct ? "true" : "false"}>
       <p>
-        <strong>{def?.displayName ?? formatEnumLabel(row.token)}</strong> <span className="gov-tag">{ROLE_LABEL[row.role]}</span>{" "}
+        <strong>{def?.displayName ?? formatEnumLabel(row.token)}</strong> <span className="gov-tag">{row.roleLabel}</span>{" "}
         {row.direct ? <span className="gov-tag">Reads {stat} directly</span> : <span className="gov-tag">Through {row.through.map((t) => t.displayName ?? formatEnumLabel(t.token)).join(" → ")}</span>}
       </p>
       {row.reads.map((r, i) => (
@@ -74,28 +52,23 @@ function ImpactRow({ row, rulesetId, releaseId, stat }: { row: StatImpactRowDto;
       ))}
       <div className="gov-actions">
         {def !== null ? <Link href={entryHref(rulesetId, releaseId, def.entityId)}>View rule (revision {def.revisionNumber})</Link> : null}
-        {editable && def !== null ? (
+        {row.editable && def !== null ? (
           def.openDraft !== null ? (
-            <Link className="gov-button" href={revisionWorkspaceHref(def.entityId, def.openDraft.entityVersionId, releaseId, statHref(rulesetId, releaseId, stat))} data-testid={`impact-continue-${row.token}`}>
+            <Link className="gov-button" href={revisionWorkspaceHref(def.entityId, def.openDraft.entityVersionId, releaseId, back) + `&stat=${encodeURIComponent(stat)}`} data-testid={`impact-continue-${row.token}`}>
               Continue the open Draft (revision {def.openDraft.revisionNumber}, {formatEnumLabel(def.openDraft.status)})
             </Link>
           ) : (
-            <button type="button" className="gov-button" onClick={() => void edit()} disabled={busy} data-testid={`impact-edit-${row.token}`}>
-              {busy ? "Starting a Draft…" : "Edit this rule"}
-            </button>
+            <Link className="gov-button" href={`${adminEntityHref(def.entityId)}?${context}&base=${encodeURIComponent(def.entityVersionId)}`} data-testid={`impact-edit-${row.token}`}>
+              Edit this rule
+            </Link>
           )
         ) : null}
       </div>
-      {error ? (
-        <p className="gov-error" role="alert">
-          {error}
-        </p>
-      ) : null}
     </li>
   );
 }
 
-export function StatImpactPage({ rulesetId, releaseId, stat }: { rulesetId: string; releaseId: string; stat: string }) {
+export function StatAffectsPage({ rulesetId, releaseId, stat }: { rulesetId: string; releaseId: string; stat: string }) {
   const [data, setData] = useState<StatImpactsDto | null>(null);
   const [error, setError] = useState<string | null>(null);
   const load = useCallback(async () => {
@@ -103,7 +76,7 @@ export function StatImpactPage({ rulesetId, releaseId, stat }: { rulesetId: stri
     try {
       setData(await getStatImpacts(releaseId, stat));
     } catch (e) {
-      setError(messageOf(e, "Could not load what this Stat affects."));
+      setError(messageOf(e));
     }
   }, [releaseId, stat]);
   useEffect(() => {
@@ -115,7 +88,6 @@ export function StatImpactPage({ rulesetId, releaseId, stat }: { rulesetId: stri
   if (data === null) return <LoadingState label={`Loading ${stat}…`} />;
   const direct = data.impacts.filter((i) => i.direct);
   const indirect = data.impacts.filter((i) => !i.direct);
-  const drafts = [...new Set(data.impacts.flatMap((i) => (i.definition?.openDraft ? [i.definition.openDraft.entityVersionId] : [])))];
   const range = data.payload as { minimum?: number; maximum?: number } | null;
   return (
     <div className="prowess-reference" data-testid="stat-impacts" data-stat={stat}>
@@ -152,7 +124,7 @@ export function StatImpactPage({ rulesetId, releaseId, stat }: { rulesetId: stri
             <h3>Directly</h3>
             <ul className="prowess-impacts" data-testid="stat-affects-direct">
               {direct.map((r) => (
-                <ImpactRow key={`${r.role}:${r.token}`} row={r} rulesetId={rulesetId} releaseId={releaseId} stat={stat} />
+                <AffectsRow key={`${r.role}:${r.token}`} row={r} rulesetId={rulesetId} releaseId={releaseId} stat={stat} />
               ))}
             </ul>
           </>
@@ -162,7 +134,7 @@ export function StatImpactPage({ rulesetId, releaseId, stat }: { rulesetId: stri
             <h3>Through other values</h3>
             <ul className="prowess-impacts" data-testid="stat-affects-indirect">
               {indirect.map((r) => (
-                <ImpactRow key={`${r.role}:${r.token}`} row={r} rulesetId={rulesetId} releaseId={releaseId} stat={stat} />
+                <AffectsRow key={`${r.role}:${r.token}`} row={r} rulesetId={rulesetId} releaseId={releaseId} stat={stat} />
               ))}
             </ul>
           </>
@@ -183,7 +155,7 @@ export function StatImpactPage({ rulesetId, releaseId, stat }: { rulesetId: stri
         <Link href={sectionHref(rulesetId, releaseId, "rules-calculations")}>Go to Rules &amp; Calculations</Link>
       </section>
 
-      <RulePreviewPanel releaseId={releaseId} drafts={drafts} vary={stat} title={drafts.length === 0 ? "Preview (no open Drafts)" : "Preview the open Drafts"} />
+      <p className="gov-muted">To see how a change would alter calculated values, edit the rule: its Draft workspace previews the change against this Release without publishing anything.</p>
     </div>
   );
 }
