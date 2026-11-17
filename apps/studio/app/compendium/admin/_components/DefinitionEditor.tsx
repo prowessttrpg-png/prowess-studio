@@ -6,6 +6,7 @@ import { descriptorFor, groupsOf, GENERIC_DESCRIPTOR, type FieldDescriptor } fro
 import { fieldDomId, fieldErrorId, issuesForField, stableStringify, type DefinitionCandidate } from "../_lib/definition-form";
 import { AuthoredDataEditor } from "./AuthoredDataEditor";
 import { DefinitionReferencePicker } from "./DefinitionReferencePicker";
+import { FormulaEditor } from "./FormulaEditor";
 import { KeywordPicker } from "./KeywordPicker";
 import {
   AttackRefsEditor,
@@ -96,7 +97,7 @@ function LabeledControl({ field, issues, children }: { field: FieldDescriptor; i
 const asArray = (v: unknown): Array<Record<string, unknown>> => (Array.isArray(v) ? (v as Array<Record<string, unknown>>) : []);
 const asObject = (v: unknown): Record<string, unknown> => (v !== null && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {});
 
-function FieldControl({ field, value, onChange, catalog, issues }: { field: FieldDescriptor; value: unknown; onChange: (v: unknown) => void; catalog: AuthoringCatalogDto; issues: ValidationIssueDto[] }) {
+function FieldControl({ field, value, onChange, catalog, issues, payload }: { field: FieldDescriptor; value: unknown; onChange: (v: unknown) => void; catalog: AuthoringCatalogDto; issues: ValidationIssueDto[]; payload?: Payload }) {
   const listId = useId();
   switch (field.input) {
     case "select": {
@@ -432,6 +433,14 @@ function FieldControl({ field, value, onChange, catalog, issues }: { field: Fiel
           <TraitContractEditor value={value} onChange={onChange} />
         </Shell>
       );
+    case "coreFormula": {
+      const own = field.ownStatisticKey !== undefined ? payload?.[field.ownStatisticKey] : undefined;
+      return (
+        <Shell field={field} issues={issues} composite>
+          <FormulaEditor value={value} onChange={onChange} catalog={catalog} sourceKinds={catalog.vocabularies[field.sources] ?? []} label={field.label} ownStatistic={typeof own === "string" ? own : null} />
+        </Shell>
+      );
+    }
     case "equipmentSource":
       return (
         <Shell field={field} issues={issues} composite>
@@ -772,7 +781,7 @@ export function DefinitionEditor({
             {descriptor.fields
               .filter((f) => f.group === group)
               .map((f) => (
-                <FieldControl key={`${f.key}:${stableStringify(kind.definitionKind)}`} field={f} value={generic ? candidate.payload : candidate.payload[f.key]} onChange={(v) => setField(f.key, v)} catalog={catalog} issues={issuesForField(issues, f.key)} />
+                <FieldControl key={`${f.key}:${stableStringify(kind.definitionKind)}`} field={f} value={generic ? candidate.payload : candidate.payload[f.key]} onChange={(v) => setField(f.key, v)} catalog={catalog} issues={issuesForField(issues, f.key)} payload={candidate.payload} />
               ))}
           </section>
         ))}

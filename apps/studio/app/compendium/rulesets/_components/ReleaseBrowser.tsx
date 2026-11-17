@@ -17,7 +17,7 @@ import {
   type ReleaseDetailDto,
   type ReleaseSummaryDto,
 } from "../_lib/reference-client";
-import { entryHref, formatDate, readableToken, releaseName, rulesReferenceHref, rulesetReferenceHref, weaponLibraryHref } from "../_lib/reference-urls";
+import { entryHref, formatDate, sectionsHref, readableToken, releaseName, rulesReferenceHref, rulesetReferenceHref, weaponLibraryHref } from "../_lib/reference-urls";
 import { EntryCard } from "./EntryCard";
 import { ReferenceFilters, type ReferenceFilterValue } from "./ReferenceFilters";
 import { CompareWithSelector, IntegrityNotice, ReleaseSelector, ViewLatestReleaseButton } from "./ReleaseControls";
@@ -141,6 +141,10 @@ export function ReleaseBrowser({ rulesetId, releaseId }: { rulesetId: string; re
           <ViewLatestReleaseButton rulesetId={rulesetId} />
           <CompareWithSelector rulesetId={rulesetId} releaseId={releaseId} releases={releases} />
           <a className="gov-button" href={`/api/ruleset-releases/${releaseId}/content-pack`} download>Export for Players</a>
+          {/* PRE-M7-WO1: the same pinned entries grouped by topic. */}
+          <Link className="gov-button gov-button--primary" href={sectionsHref(rulesetId, releaseId)} data-testid="reference-sections-link">
+            Browse by topic
+          </Link>
           {/* M6-WO6: this exact Release's Weapon & Attack Library. */}
           <Link className="gov-button" href={weaponLibraryHref(rulesetId, releaseId)} data-testid="reference-weapon-library-link">
             Weapon Library

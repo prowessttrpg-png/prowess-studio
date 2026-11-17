@@ -32,6 +32,9 @@ import {
   TRAIT_SCOPES,
   isProwessDefinitionKind,
   type ProwessDefinitionKind,
+  BONUS_TARGETS,
+  CORE_PROCEDURES,
+  DERIVED_STATISTICS,
 } from "@prowess/game";
 
 /**
@@ -79,6 +82,13 @@ function kindRow(kind: ProwessDefinitionKind): AuthoringDefinitionKind {
   };
 }
 
+/** Mirror of the M5 core Formula variable-source kinds (definition/core-payload.ts `FormulaVariableSource`). */
+export const FORMULA_SOURCE_KINDS = Object.freeze(["STAT", "CHOSEN_STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "NATURAL", "SKILL_RANK_BONUS", "EXPLICIT_BONUSES", "MOVEMENT_DISTANCE", "CREATURE_SIZE_BASE_MOVEMENT"] as const);
+/** Mirror of the M5 `DERIVED_VARIABLE_SOURCE_KINDS`: the sources a DERIVED_STAT Formula may read. */
+export const DERIVED_FORMULA_SOURCE_KINDS = Object.freeze(["STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "EXPLICIT_BONUSES", "CREATURE_SIZE_BASE_MOVEMENT"] as const);
+/** Mirror of the M5 `CHARACTER_FIELDS` (vocabulary/core.ts) a `{ kind: "CHARACTER", field }` source names. */
+export const CHARACTER_FIELD_TOKENS = Object.freeze(["LEVEL", "BASE_HP", "BASE_MP"] as const);
+
 export function getAuthoringCatalog(): AuthoringCatalog {
   return {
     kinds: PROWESS_DEFINITION_KIND_NAMES.map(kindRow),
@@ -113,6 +123,17 @@ export function getAuthoringCatalog(): AuthoringCatalog {
       savingThrowDcs: [...SAVING_THROW_DCS],
       equipmentModifierTargets: [...EQUIPMENT_MODIFIER_TARGETS],
       weaponRequirementKinds: [...WEAPON_REQUIREMENT_KINDS],
+      // PRE-M7-WO1: the core Formula grammar the guided rule editor renders (DERIVED_STAT / CORE_RESOLUTION). The
+      // statistic / procedure / bonus-target lists are the M5 constants; the source kinds and Character fields mirror
+      // the M5 Formula reader (not exported by @prowess/game) and are pinned by a test that feeds each value through
+      // that reader, so the mirror cannot drift silently.
+      derivedStatistics: [...DERIVED_STATISTICS],
+      coreProcedures: [...CORE_PROCEDURES],
+      bonusTargets: [...BONUS_TARGETS],
+      formulaSourceKinds: [...FORMULA_SOURCE_KINDS],
+      derivedFormulaSourceKinds: [...DERIVED_FORMULA_SOURCE_KINDS],
+      characterFields: [...CHARACTER_FIELD_TOKENS],
+      formulaRoundings: ["NONE", "FLOOR", "CEIL"],
     },
     legacyTerms: TERMINOLOGY_INVENTORY.filter((t) => t.status === "LEGACY" && t.canonicalTerm !== null)
       .map((t) => ({ legacyTerm: t.term, canonicalTerm: t.canonicalTerm as string }))

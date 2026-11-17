@@ -172,6 +172,8 @@ export interface EntryFilters {
   branch?: string;
   entityType?: string;
   keywordId?: string;
+  /** PRE-M7-WO1: a Compendium section key. */
+  section?: string;
 }
 
 // --- calls (GET only) ------------------------------------------------------------------------------------------------

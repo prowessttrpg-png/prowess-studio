@@ -15,6 +15,15 @@ export const entryHref = (rulesetId: string, releaseId: string, entityId: string
 export const weaponLibraryHref = (rulesetId: string, releaseId: string) => `${releaseHref(rulesetId, releaseId)}/weapons`;
 export const weaponHref = (rulesetId: string, releaseId: string, entityId: string) => `${weaponLibraryHref(rulesetId, releaseId)}/${enc(entityId)}`;
 export const attackHref = (rulesetId: string, releaseId: string, entityId: string) => `${releaseHref(rulesetId, releaseId)}/attacks/${enc(entityId)}`;
+/** PRE-M7-WO1: topic sections and Stat pages of ONE exact Release. */
+export const sectionsHref = (rulesetId: string, releaseId: string) => `${releaseHref(rulesetId, releaseId)}/sections`;
+export const sectionHref = (rulesetId: string, releaseId: string, section: string) => `${sectionsHref(rulesetId, releaseId)}/${enc(section)}`;
+export const statHref = (rulesetId: string, releaseId: string, stat: string) => `${releaseHref(rulesetId, releaseId)}/stats/${enc(stat)}`;
+/** The governed authoring workspace of one Draft revision, opened from a Release context (kept for preview / back). */
+export const revisionWorkspaceHref = (entityId: string, versionId: string, releaseId: string, returnTo?: string) =>
+  `/compendium/admin/entities/${enc(entityId)}/revisions/${enc(versionId)}?release=${enc(releaseId)}${returnTo ? `&returnTo=${enc(returnTo)}` : ""}`;
+/** Only same-app Compendium paths are honoured as a return target (never an absolute or protocol-relative URL). */
+export const safeReturnTo = (v: string | null): string | null => (v !== null && /^\/compendium\/[A-Za-z0-9/_\-?=&%.]*$/.test(v) && !v.startsWith("//") ? v : null);
 export const comparisonHref = (rulesetId: string, releaseId: string, otherReleaseId: string) => `${releaseHref(rulesetId, releaseId)}/compare/${enc(otherReleaseId)}`;
 
 /** The Entity Library (all revisions, not Release-scoped) — revision history and revision comparison live there. */

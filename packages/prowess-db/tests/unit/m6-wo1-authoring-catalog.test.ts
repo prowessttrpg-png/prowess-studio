@@ -33,6 +33,9 @@ import {
   WEAPON_HANDEDNESS,
   WEAPON_PROFILE_KINDS,
   WEAPON_SCALING_MODELS,
+  BONUS_TARGETS,
+  CORE_PROCEDURES,
+  DERIVED_STATISTICS,
 } from "@prowess/game";
 import { authoringKind, getAuthoringCatalog } from "../../src/compendium-authoring/catalog.js";
 
@@ -110,6 +113,14 @@ describe("M6-WO1 authoring catalog (M6-I002 no second Definition catalog)", () =
       savingThrowDcs: [...SAVING_THROW_DCS],
       equipmentModifierTargets: [...EQUIPMENT_MODIFIER_TARGETS],
       weaponRequirementKinds: [...WEAPON_REQUIREMENT_KINDS],
+      // PRE-M7-WO1 core Formula grammar (the two mirrors are pinned against the M5 reader in pre-m7-wo1-catalog).
+      derivedStatistics: [...DERIVED_STATISTICS],
+      coreProcedures: [...CORE_PROCEDURES],
+      bonusTargets: [...BONUS_TARGETS],
+      formulaSourceKinds: ["STAT", "CHOSEN_STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "NATURAL", "SKILL_RANK_BONUS", "EXPLICIT_BONUSES", "MOVEMENT_DISTANCE", "CREATURE_SIZE_BASE_MOVEMENT"],
+      derivedFormulaSourceKinds: ["STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "EXPLICIT_BONUSES", "CREATURE_SIZE_BASE_MOVEMENT"],
+      characterFields: ["LEVEL", "BASE_HP", "BASE_MP"],
+      formulaRoundings: ["NONE", "FLOOR", "CEIL"],
     });
   });
 
@@ -138,5 +149,13 @@ describe("Studio UI catalog fixture", () => {
     const live = `${JSON.stringify(getAuthoringCatalog(), null, 2)}\n`;
     if (process.env.M6_WO1_WRITE_FIXTURE === "1") writeFileSync(fixturePath, live);
     expect(readFileSync(fixturePath, "utf8")).toBe(live);
+  });
+});
+
+describe("PRE-M7-WO1 Compendium Stat token mirror", () => {
+  it("COMPENDIUM_STAT_TOKENS equals the engine's PROWESS_STATS", async () => {
+    const { COMPENDIUM_STAT_TOKENS } = await import("@prowess/model");
+    const { PROWESS_STATS } = await import("@prowess/game");
+    expect([...COMPENDIUM_STAT_TOKENS]).toEqual([...PROWESS_STATS]);
   });
 });

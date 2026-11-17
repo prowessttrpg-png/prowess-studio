@@ -16,7 +16,9 @@ import {
   submitChangeSetForReview,
   transitionEntityVersionStatus,
   updateAuthoredDraftDefinition,
+  validateAuthoringCandidate,
 } from "../../src/index";
+import { CHARACTER_FIELD_TOKENS, DERIVED_FORMULA_SOURCE_KINDS, FORMULA_SOURCE_KINDS } from "../../src/compendium-authoring/catalog";
 import { assertRunningAgainstTestDatabase } from "../../src/testDatabaseGuard";
 import { getTestDatabaseUrl } from "./env";
 import { cleanupCharacterWorlds, seedCharacterRelease, workedChoices, type CharacterReleaseWorld } from "../fixtures/m6-wo3-character-release";
@@ -66,6 +68,19 @@ afterAll(async () => {
 }, TIMEOUT);
 
 describe("PRE-M7-WO1 Stat impacts and rule control", () => {
+  it("C02 the catalog's Formula-grammar mirrors are exactly what the M5 DERIVED_STAT reader accepts", async () => {
+    const derived = (source: Record<string, unknown>) =>
+      validateAuthoringCandidate({ definitionKind: "DERIVED_STAT", prowessDefinition: { schemaVersion: 1, systemFamily: "CHARACTER", definitionKind: "DERIVED_STAT", payload: { statistic: "STRENGTH_ARMOR", formula: { expression: "x", rounding: "NONE", variables: [{ variable: "x", source }] }, bonusTarget: source.kind === "EXPLICIT_BONUSES" ? "DODGE" : null, source: { locators: ["s20"], conflicts: [] } } } });
+    const sample = (kind: string): Record<string, unknown> => (kind === "STAT" ? { kind, stat: "STR" } : kind === "CHARACTER" ? { kind, field: "LEVEL" } : kind === "DERIVED" ? { kind, statistic: "ACCURACY" } : { kind });
+    for (const kind of FORMULA_SOURCE_KINDS) {
+      const r = await derived(sample(kind));
+      expect(r.status, `${kind} ${JSON.stringify(r.issues)}`).toBe((DERIVED_FORMULA_SOURCE_KINDS as readonly string[]).includes(kind) ? "PASS" : "FAIL");
+    }
+    for (const field of CHARACTER_FIELD_TOKENS) expect((await derived({ kind: "CHARACTER", field })).status, field).toBe("PASS");
+    expect((await derived({ kind: "CHARACTER", field: "NOT_A_FIELD" })).status).toBe("FAIL");
+    expect((await derived({ kind: "NOT_A_KIND" })).status).toBe("FAIL");
+  }, TIMEOUT);
+
   it("C06 Strength's impacts are the ACTUAL rules that read STR in this exact Release, direct and indirect", async () => {
     const impacts = await getStatImpacts(r1.release.id, "STR");
     expect(impacts.payload).toMatchObject({ stat: "STR" });

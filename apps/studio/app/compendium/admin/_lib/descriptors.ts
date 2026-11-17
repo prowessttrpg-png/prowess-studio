@@ -43,7 +43,15 @@ export type VocabularyName =
   | "damageOutcomes"
   | "savingThrowDcs"
   | "equipmentModifierTargets"
-  | "weaponRequirementKinds";
+  | "weaponRequirementKinds"
+  // PRE-M7-WO1 core Formula grammar.
+  | "derivedStatistics"
+  | "coreProcedures"
+  | "bonusTargets"
+  | "formulaSourceKinds"
+  | "derivedFormulaSourceKinds"
+  | "characterFields"
+  | "formulaRoundings";
 
 interface FieldBase {
   /** The payload key this field edits. */
@@ -78,6 +86,8 @@ export type FieldDescriptor =
   | (FieldBase & { readonly input: "traitUses"; readonly refKind: string })
   | (FieldBase & { readonly input: "traitUse"; readonly refKind: string })
   | (FieldBase & { readonly input: "attackRefs"; readonly refKind: string })
+  // PRE-M7-WO1: an authored core Formula, edited as contributions / inputs / advanced expression (never raw JSON).
+  | (FieldBase & { readonly input: "coreFormula"; readonly sources: VocabularyName; readonly ownStatisticKey?: string })
   | (FieldBase & { readonly input: "damageProfiles" })
   | (FieldBase & { readonly input: "weaponRequirements" })
   | (FieldBase & { readonly input: "equippedModifiers" })
@@ -296,6 +306,33 @@ export const EQUIPMENT_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescrip
 };
 
 /** Kinds without a dedicated descriptor: the whole payload is edited as structured authored data. */
+/**
+ * PRE-M7-WO1: core Character kinds — a Stat's identity and range, and a derived statistic's Formula. Presentation only:
+ * the M5 core readers validate every value (variables declared exactly once and used, bonus target iff an
+ * EXPLICIT_BONUSES input, known statistics), and the rule preview evaluates candidates with the shared engine.
+ */
+const CORE_SOURCE: FieldDescriptor = { key: "source", label: "Source", group: "Source", input: "source", required: true, help: "Core Playtest section keys (sNNN) this rule comes from, and any source-conflict keys." };
+export const CORE_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescriptor>> = {
+  STAT: {
+    purpose: "A Stat's identity and its legal range. What the Stat DOES is owned by the rules that read it — see Stats → this Stat → What this affects.",
+    fields: [
+      { key: "stat", label: "Stat", group: "Identity", input: "select", vocabulary: "prowessStats", required: true, help: "The Stat this Definition describes (one Definition per Stat in a Release)." },
+      { key: "minimum", label: "Minimum value", group: "Range", input: "integer", required: true },
+      { key: "maximum", label: "Maximum value", group: "Range", input: "integer", required: true },
+      CORE_SOURCE,
+    ],
+  },
+  DERIVED_STAT: {
+    purpose: "A derived statistic and the Formula that computes it — for example Armor from Strength. Characters, builders, cards and play read the value computed from the exact Release's Formula.",
+    fields: [
+      { key: "statistic", label: "Statistic", group: "Identity", input: "select", vocabulary: "derivedStatistics", required: true, help: "The statistic this rule computes (one rule per statistic in a Release)." },
+      { key: "formula", label: "Formula", group: "Calculation", input: "coreFormula", sources: "derivedFormulaSourceKinds", ownStatisticKey: "statistic", required: true, help: "Add, remove or change contributions. A rule with no contributions is the constant 0 — the statistic still exists." },
+      { key: "bonusTarget", label: "Explicit bonuses apply to", group: "Calculation", input: "nullableSelect", vocabulary: "bonusTargets", required: false, help: "Set exactly when the Formula reads an Explicit Bonuses input." },
+      CORE_SOURCE,
+    ],
+  },
+};
+
 export const GENERIC_DESCRIPTOR: ContractDescriptor = {
   purpose: "This kind has no dedicated authoring descriptor yet: author its payload as structured data. The M5 contract still validates every field.",
   fields: [{ key: "", label: "Payload", group: "Payload", input: "authoredData", required: true, help: "The complete payload for this Definition kind." }],
@@ -304,6 +341,7 @@ export const GENERIC_DESCRIPTOR: ContractDescriptor = {
 export function descriptorFor(kind: { definitionKind: string; sharedContract: string | null }, schemaVersion: number | null): ContractDescriptor {
   if (kind.sharedContract !== null && CONTRACT_DESCRIPTORS[kind.sharedContract] !== undefined) return CONTRACT_DESCRIPTORS[kind.sharedContract] as ContractDescriptor;
   if (schemaVersion === 1 && CHARACTER_KIND_DESCRIPTORS[kind.definitionKind] !== undefined) return CHARACTER_KIND_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
+  if (schemaVersion === 1 && CORE_KIND_DESCRIPTORS[kind.definitionKind] !== undefined) return CORE_KIND_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
   if (schemaVersion === 1 && EQUIPMENT_KIND_DESCRIPTORS[kind.definitionKind] !== undefined) return EQUIPMENT_KIND_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
   if (kind.definitionKind === "AFFINITY" && schemaVersion === 1) return AFFINITY_V1;
   return GENERIC_DESCRIPTOR;
@@ -390,6 +428,8 @@ export function initialFieldValue(field: FieldDescriptor): unknown {
       return { mode: "" };
     case "equipmentSource":
       return { locators: [], conflicts: [], designerAuthority: [] };
+    case "coreFormula":
+      return { expression: "0", rounding: "NONE", minimum: null, maximum: null, unit: null, variables: [] };
   }
 }
 

@@ -183,3 +183,9 @@ export function homeSectionOfKind(kind: string): CompendiumSection | null {
 export function kindsShownInSection(s: CompendiumSection): readonly string[] {
   return [...s.kinds, ...s.alsoShows.filter((k) => !s.kinds.includes(k))];
 }
+
+/**
+ * The six Stat tokens the Stats section links to (presentation; mirrors @prowess/game PROWESS_STATS — a DB unit test
+ * asserts equality so the mirror can never drift). The engine owns what each Stat does; this list only builds links.
+ */
+export const COMPENDIUM_STAT_TOKENS = Object.freeze(["STR", "AGI", "CON", "PER", "RES", "PRO"] as const);

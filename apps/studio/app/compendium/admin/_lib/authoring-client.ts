@@ -212,3 +212,62 @@ export type { RulesetDto as RulesetOptionDto } from "../../../../src/api-client/
 export { listAllRulesets } from "../../../../src/api-client/governance";
 /** A Ruleset's Manifests (one bounded page), for an EXPLICIT optional target choice — never an automatic "latest". */
 export { listManifests } from "../../../../src/api-client/governance";
+
+// --- PRE-M7-WO1 rule control (read-only; the preview is a POST because it carries a body, and writes nothing) -------
+
+export interface RuleDefinitionSummaryDto {
+  entityId: string;
+  entityVersionId: string;
+  canonicalKey: string;
+  definitionKind: string;
+  displayName: string;
+  revisionNumber: number;
+  openDraft: { entityVersionId: string; revisionNumber: number; status: string } | null;
+}
+export interface StatImpactRowDto {
+  role: "STAT" | "DERIVED_STAT" | "CORE_RESOLUTION" | "DEFINITION";
+  token: string;
+  depth: number;
+  direct: boolean;
+  definition: RuleDefinitionSummaryDto | null;
+  through: Array<{ role: string; token: string; displayName: string | null }>;
+  reads: Array<{ from: string; via: "FORMULA_VARIABLE" | "CHOSEN_STAT" | "STRUCTURED_FIELD"; path: string; variable: string | null; expression: string | null }>;
+}
+export interface StatImpactsDto {
+  release: { id: string; rulesetId: string; releaseNumber: number; versionLabel: string };
+  stat: string;
+  definition: RuleDefinitionSummaryDto | null;
+  payload: Record<string, unknown> | null;
+  shortDescription: string | null;
+  rulesText: string | null;
+  impacts: StatImpactRowDto[];
+  limits: string[];
+}
+export interface PreviewExampleDto {
+  label: string;
+  level: number;
+  stats: Record<string, number>;
+  baseHp: number;
+  baseMp: number;
+}
+export interface PreviewOutcomeDto {
+  ok: boolean;
+  values: Array<{ statistic: string; value: number | null }>;
+  problems: string[];
+}
+export interface RuleCandidatePreviewDto {
+  release: { id: string; rulesetId: string; releaseNumber: number; versionLabel: string };
+  substitutions: Array<{ entityId: string; from: string; to: string; toRevision: number; toStatus: string }>;
+  candidateProblems: string[];
+  examples: Array<{ label: string; published: PreviewOutcomeDto; candidate: PreviewOutcomeDto }>;
+  changed: string[];
+}
+export interface RuleUsageDto {
+  node: { role: string; token: string };
+  reads: Array<{ from: string; via: string; variable: string | null }>;
+  usedBy: Array<{ role: string; token: string; displayName: string | null; depth: number }>;
+}
+
+export const getStatImpacts = (releaseId: string, stat: string) => get<StatImpactsDto>(`/api/compendium-rules/releases/${enc(releaseId)}/stats/${enc(stat)}`);
+export const getRuleUsage = (releaseId: string, entityId: string) => get<RuleUsageDto | null>(`/api/compendium-rules/releases/${enc(releaseId)}/entities/${enc(entityId)}/usage`);
+export const previewRuleCandidate = (body: { releaseId: string; drafts: string[]; examples: PreviewExampleDto[] }) => post<RuleCandidatePreviewDto>("/api/compendium-rules/preview", body);
