@@ -22,6 +22,9 @@ import { getTestDatabaseUrl } from "./env";
 
 const TEST_DATABASE_URL = getTestDatabaseUrl();
 const FIXTURE_PREFIX = "test.";
+// Cleanup touches ONLY this file's own fixtures (PRE-M7-WO1 F12): a database-wide "test." sweep also deleted — or, when
+// another suite's rows were still referenced, failed on — fixtures this file does not own.
+const OWN_PREFIX = `${FIXTURE_PREFIX}entkw.`;
 let fixtureCounter = 0;
 
 function nextCanonicalKey(label: string): string {
@@ -44,15 +47,15 @@ describe("EntityKeyword — entity-level assignment (prowess_studio_test only)",
 
   afterAll(async () => {
     const testEntities = await prisma.entity.findMany({
-      where: { canonicalKey: { startsWith: FIXTURE_PREFIX } },
+      where: { canonicalKey: { startsWith: OWN_PREFIX } },
       select: { id: true },
     });
     const testEntityIds = testEntities.map((e) => e.id);
     await prisma.entityKeyword.deleteMany({ where: { entityId: { in: testEntityIds } } });
     await prisma.entityVersion.deleteMany({ where: { entityId: { in: testEntityIds } } });
-    await prisma.entity.deleteMany({ where: { canonicalKey: { startsWith: FIXTURE_PREFIX } } });
+    await prisma.entity.deleteMany({ where: { canonicalKey: { startsWith: OWN_PREFIX } } });
     await prisma.keywordDefinition.deleteMany({
-      where: { canonicalKey: { startsWith: FIXTURE_PREFIX } },
+      where: { canonicalKey: { startsWith: OWN_PREFIX } },
     });
   });
 

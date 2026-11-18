@@ -172,6 +172,8 @@ export interface EntryFilters {
   branch?: string;
   entityType?: string;
   keywordId?: string;
+  /** PRE-M7-WO1: a Compendium section key. */
+  section?: string;
 }
 
 // --- calls (GET only) ------------------------------------------------------------------------------------------------
@@ -287,3 +289,37 @@ export interface ReferenceWeaponLibraryDto {
 }
 export const getWeaponLibrary = async (rulesetId: string, releaseId: string) => (await get<ReferenceWeaponLibraryDto>(`${releaseBase(rulesetId, releaseId)}/weapons`)).data;
 export const getAttackLibrary = async (rulesetId: string, releaseId: string) => (await get<{ ruleset: RulesetSummaryDto; release: ReleaseSummaryDto; attacks: ReferenceAttackDto[] }>(`${releaseBase(rulesetId, releaseId)}/attacks`)).data;
+
+// ---- PRE-M7-WO1 "What this affects" (GET; built on the server from the exact Release's rule references) -------------
+
+export interface RuleDefinitionSummaryDto {
+  entityId: string;
+  entityVersionId: string;
+  canonicalKey: string;
+  definitionKind: string;
+  displayName: string;
+  revisionNumber: number;
+  openDraft: { entityVersionId: string; revisionNumber: number; status: string } | null;
+}
+export interface StatImpactRowDto {
+  role: string;
+  roleLabel: string;
+  editable: boolean;
+  token: string;
+  depth: number;
+  direct: boolean;
+  definition: RuleDefinitionSummaryDto | null;
+  through: Array<{ role: string; token: string; displayName: string | null }>;
+  reads: Array<{ from: string; via: "FORMULA_VARIABLE" | "CHOSEN_STAT" | "STRUCTURED_FIELD"; path: string; variable: string | null; expression: string | null }>;
+}
+export interface StatImpactsDto {
+  release: { id: string; rulesetId: string; releaseNumber: number; versionLabel: string };
+  stat: string;
+  definition: RuleDefinitionSummaryDto | null;
+  payload: Record<string, unknown> | null;
+  shortDescription: string | null;
+  rulesText: string | null;
+  impacts: StatImpactRowDto[];
+  limits: string[];
+}
+export const getStatImpacts = async (releaseId: string, stat: string) => (await get<StatImpactsDto>(`/api/compendium-rules/releases/${enc(releaseId)}/stats/${enc(stat)}`)).data;

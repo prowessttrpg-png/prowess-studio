@@ -1249,6 +1249,28 @@
         2,
         3
       ]
+    },
+    {
+      "id": "PRE-M7-WO1",
+      "name": "PRE-M7-WO1 audit gate — Compendium authoring and rule control",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/pre-m7-wo1-static.test.ts",
+        "apps/studio/tests/unit/pre-m7-wo1-descriptors.test.ts",
+        "packages/prowess-db/tests/unit/pre-m7-wo1-formula-guide.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/pre-m7-wo1-negative-controls.mjs",
+        "count": 13
+      },
+      "smoke": [],
+      "previous": [],
+      "tiers": [
+        2,
+        3
+      ]
     }
   ],
   "checks": [

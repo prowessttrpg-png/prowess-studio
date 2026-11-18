@@ -234,6 +234,9 @@ export default function CompendiumPage() {
               <Link href="/compendium/rulesets">Rules Reference</Link> — the rules exactly as a published Release defines them.
             </li>
             <li>
+              <Link href="/compendium/rulesets" data-testid="compendium-topics-entry">Browse by topic</Link> — Gameplay Basics, Stats, Rules &amp; Calculations, Combat, Skills, Magic, Maneuvers, Equipment and more: choose a Release, then “Browse by topic”.
+            </li>
+            <li>
               <a href="#entity-library">Entity Library</a> — every Entity and every revision, not tied to a Release.
             </li>
             <li>

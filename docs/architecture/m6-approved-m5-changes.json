@@ -1,5 +1,5 @@
 {
-  "$comment": "Exact M5 (@prowess/game) file changes approved by later M6 Work Orders. Earlier frozen gates accept ONLY these exact hashes for these exact paths, and ONLY these exact added files; any other edit, addition or removal still fails them. Each Work Order's own gate pins its entry and characterizes the change (M6-WO3 §10, §84: ANCESTRY v1, SKILL v1, CHARACTER_CREATION_RULE v1; no M5 mechanical result changes).",
+  "$comment": "Exact M5 (@prowess/game) file changes approved by later M6 Work Orders. Earlier frozen gates accept ONLY these exact hashes for these exact paths, and ONLY these exact added files; any other edit, addition or removal still fails them. Each Work Order's own gate pins its entry and characterizes the change (M6-WO3 \u00a710, \u00a784: ANCESTRY v1, SKILL v1, CHARACTER_CREATION_RULE v1; no M5 mechanical result changes). PRE-M7-WO1 (owner-decided Compendium scope): MAGE_ART reserved \u2192 payload version 1 for authoring and reference only \u2014 no compiler, card, pricing or play operation reads it; the Mage Art card stays UNAVAILABLE.",
   "M6-WO3": {
     "changedFiles": {
       "packages/prowess-game/src/compilation/compile.ts": "788d5268cdb9add7735d033ac1d7fa428d113097a6d6e8bd08ae38f243838b36",
@@ -172,6 +172,22 @@
       "packages/prowess-game/src/play/state.ts": "4271a93146bdb9c527361ea5a8d48923cd11b600a5da014d19c591201b7a2f8b",
       "packages/prowess-game/src/play/workspace.ts": "66c4dea4802eacb39572931a0781d1067c5c20d2752a2d6cc355cd2222c8b00d",
       "packages/prowess-game/src/testing/play-fixtures.ts": "a4308f6e3878e8285eec5ee69aa67d9a7307b8d6453e9975edcec1f5512706ae"
+    }
+  },
+  "PRE-M7-WO1": {
+    "changedFiles": {
+      "packages/prowess-game/src/card-phase-b.test.ts": "5efaf86815e56bb3b5371ca7251865aed9cb97542ea0a33e96be209941be1d4e",
+      "packages/prowess-game/src/definition/payload.ts": "9dd50502c761d3e769c3ed918f3fdb6d975928b338841f229cdc8a44ef04936a",
+      "packages/prowess-game/src/index.ts": "17a8ec2dfbfdd40b8abd50186f3e42a00c69bd3de45f8d2f00804b9d3cc2787e",
+      "packages/prowess-game/src/m6-wo3-registry.test.ts": "1f16decc4096a2083af998ca216a2254e90918bafb761c6e8e220f55b3a6a91d",
+      "packages/prowess-game/src/m6-wo4-registry.test.ts": "3a1045cfe92d2db9dd6c6a83e1f9536ae4a79eb03d15a40a347969d77ed3c155",
+      "packages/prowess-game/src/m6-wo6-registry.test.ts": "1163b5574361286b7c3719fba288019f4158b25e2703cde8f49802f5c4c118e5",
+      "packages/prowess-game/src/m6-wo9-registry.test.ts": "479c23e95a009ef996d9b7c3c4550e77af86f5ae92b01cdd690948b30b046cb2",
+      "packages/prowess-game/src/vocabulary/families.ts": "430034153cb9fa87f2e542c8ee370cda166c910c4e58b954ab1cad7c67e8b8b9"
+    },
+    "addedFiles": {
+      "packages/prowess-game/src/definition/mage-art-payload.ts": "bfe47558c9469d9364d392d8e89878b5039de38d660186fb2a583121d64c6f99",
+      "packages/prowess-game/src/pre-m7-wo1-mage-art.test.ts": "83af3127f79709914e715e17679e1ecf1714d29829f847bf1c65f0cf929e962c"
     }
   }
 }

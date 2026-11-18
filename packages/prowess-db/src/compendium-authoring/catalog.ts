@@ -1,5 +1,6 @@
 import {
   ABILITY_COMPONENT_CONTRACTS,
+  MAGE_ART_ACTIVE_EFFECT_WINDOWS,
   ANCESTRY_SKILL_SELECTION_KINDS,
   ANCESTRY_STAT_GRANT_KINDS,
   ATTACK_AREA_SHAPES,
@@ -32,7 +33,37 @@ import {
   TRAIT_SCOPES,
   isProwessDefinitionKind,
   type ProwessDefinitionKind,
+  BONUS_TARGETS,
+  CORE_PROCEDURES,
+  DERIVED_STATISTICS,
+  AFFINITY_WEAKNESS_SEVERITIES,
+  CREATURE_SIZES,
+  TERRAIN_KINDS,
+  ACTION_COST_MODELS,
+  ACTION_IMPROVEMENT_MODIFICATION_KINDS,
+  ACTION_IMPROVEMENT_PREREQUISITE_KINDS,
+  ACTION_TIMINGS,
+  AFFINITY_ADVANCEMENT_ACTIONS,
+  AFFINITY_PROGRESSION_MODES,
+  AFFINITY_RANKS,
+  AFFINITY_RANK_UP_TARGETS,
+  AFFINITY_ROLES,
+  COMBAT_TIMING_EVENTS,
+  INITIATIVE_TIEBREAK_KINDS,
+  PAYMENT_POLICIES,
+  RESOURCE_EXPIRY_TARGETS,
+  RESOURCE_MAXIMUM_SOURCES,
+  RESOURCE_SPENDING,
+  RESOURCE_USAGE_RESTRICTIONS,
+  ROLL_MODES,
+  ROLL_PROCEDURES,
+  RUNTIME_RESOURCE_KEYS,
+  VARIABLE_COST_DETERMINERS,
 } from "@prowess/game";
+import { FORMULA_ROUNDING_MODES, RESOURCE_CEILINGS, RESOURCE_KINDS, RESOURCE_OVERFLOW_POLICIES, RESOURCE_REFRESH_TARGETS } from "@prowess/rules";
+import { CHARACTER_FIELD_TOKENS, DERIVED_FORMULA_SOURCE_KINDS, FORMULA_SOURCE_KINDS, INITIATIVE_FORMULA_SOURCE_KINDS, MOVEMENT_GRANT_SOURCE_KINDS, ROLL_FORMULA_SOURCE_KINDS } from "../compendium-rules/formula-vocabulary.js";
+
+export { CHARACTER_FIELD_TOKENS, DERIVED_FORMULA_SOURCE_KINDS, FORMULA_SOURCE_KINDS };
 
 /**
  * The Compendium authoring catalog (PAS-10 M6-WO1 §8, §40) — a read-only PROJECTION of the certified M5 Definition
@@ -113,6 +144,51 @@ export function getAuthoringCatalog(): AuthoringCatalog {
       savingThrowDcs: [...SAVING_THROW_DCS],
       equipmentModifierTargets: [...EQUIPMENT_MODIFIER_TARGETS],
       weaponRequirementKinds: [...WEAPON_REQUIREMENT_KINDS],
+      // PRE-M7-WO1: the core Formula grammar the guided rule editor renders (DERIVED_STAT / CORE_RESOLUTION). The
+      // statistic / procedure / bonus-target lists are the M5 constants; the source kinds and Character fields mirror
+      // the M5 Formula reader (not exported by @prowess/game) and are pinned by a test that feeds each value through
+      // that reader, so the mirror cannot drift silently.
+      derivedStatistics: [...DERIVED_STATISTICS],
+      coreProcedures: [...CORE_PROCEDURES],
+      bonusTargets: [...BONUS_TARGETS],
+      formulaSourceKinds: [...FORMULA_SOURCE_KINDS],
+      derivedFormulaSourceKinds: [...DERIVED_FORMULA_SOURCE_KINDS],
+      characterFields: [...CHARACTER_FIELD_TOKENS],
+      formulaRoundings: [...FORMULA_ROUNDING_MODES],
+      // PRE-M7-WO1 guided editors for the runtime / progression kinds.
+      creatureSizes: [...CREATURE_SIZES],
+      terrainKinds: [...TERRAIN_KINDS],
+      weaknessSeverities: [...AFFINITY_WEAKNESS_SEVERITIES],
+      movementFormulaSourceKinds: ["MOVEMENT_DISTANCE"],
+      rollFormulaSourceKinds: [...ROLL_FORMULA_SOURCE_KINDS],
+      initiativeFormulaSourceKinds: [...INITIATIVE_FORMULA_SOURCE_KINDS],
+      movementGrantSourceKinds: [...MOVEMENT_GRANT_SOURCE_KINDS],
+      mageArtActiveEffectWindows: [...MAGE_ART_ACTIVE_EFFECT_WINDOWS],
+      // PRE-M7-WO1 guided editors for actions, resources, core procedures, Affinity rules and action improvements.
+      actionTimings: [...ACTION_TIMINGS],
+      actionCostModels: [...ACTION_COST_MODELS],
+      variableCostDeterminers: [...VARIABLE_COST_DETERMINERS],
+      paymentPolicies: [...PAYMENT_POLICIES],
+      combatTimingEvents: [...COMBAT_TIMING_EVENTS],
+      runtimeResourceKeys: [...RUNTIME_RESOURCE_KEYS],
+      resourceKinds: [...RESOURCE_KINDS],
+      resourceMaximumSources: [...RESOURCE_MAXIMUM_SOURCES],
+      resourceRefreshTargets: [...RESOURCE_REFRESH_TARGETS],
+      resourceExpiryTargets: [...RESOURCE_EXPIRY_TARGETS],
+      resourceSpending: [...RESOURCE_SPENDING],
+      resourceCeilings: [...RESOURCE_CEILINGS],
+      resourceOverflowPolicies: [...RESOURCE_OVERFLOW_POLICIES],
+      resourceUsageRestrictions: [...RESOURCE_USAGE_RESTRICTIONS],
+      rollModes: [...ROLL_MODES],
+      rollProcedures: [...ROLL_PROCEDURES],
+      initiativeTiebreakKinds: [...INITIATIVE_TIEBREAK_KINDS],
+      affinityRanks: [...AFFINITY_RANKS],
+      affinityProgressionModes: [...AFFINITY_PROGRESSION_MODES],
+      affinityAdvancementActions: [...AFFINITY_ADVANCEMENT_ACTIONS],
+      affinityRankUpTargets: [...AFFINITY_RANK_UP_TARGETS],
+      affinityRoles: [...AFFINITY_ROLES],
+      actionImprovementPrerequisites: [...ACTION_IMPROVEMENT_PREREQUISITE_KINDS],
+      actionImprovementModifications: [...ACTION_IMPROVEMENT_MODIFICATION_KINDS],
     },
     legacyTerms: TERMINOLOGY_INVENTORY.filter((t) => t.status === "LEGACY" && t.canonicalTerm !== null)
       .map((t) => ({ legacyTerm: t.term, canonicalTerm: t.canonicalTerm as string }))

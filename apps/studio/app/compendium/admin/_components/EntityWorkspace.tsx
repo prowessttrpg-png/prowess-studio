@@ -3,7 +3,7 @@
 import { RELATIONSHIP_TYPES } from "@prowess/model";
 import { EntityTypeBadge, formatEnumLabel, VersionStatusBadge } from "@prowess/ui";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { EntityDto, EntityVersionDto } from "../../_lib/api-client";
 import {
@@ -25,6 +25,7 @@ import {
   type RelationshipRowDto,
 } from "../_lib/authoring-client";
 import { storedCandidate } from "../_lib/definition-form";
+import { safeReturnTo } from "../../rulesets/_lib/reference-urls";
 import { AuthoredDataEditor } from "./AuthoredDataEditor";
 import { KeywordPicker } from "./KeywordPicker";
 
@@ -53,6 +54,13 @@ const messageOf = (e: unknown, fallback: string) => (e instanceof AuthoringApiEr
 
 export function EntityWorkspace({ entityId }: { entityId: string }) {
   const router = useRouter();
+  const params = useSearchParams();
+  // PRE-M7-WO1: opened from a Rules Reference "What this affects" row — the exact Release, the Stat, the revision that
+  // Release pins (the Draft starts from it, not necessarily from the latest revision) and the way back.
+  const fromRelease = /^[0-9a-f-]{36}$/i.test(params.get("release") ?? "") ? (params.get("release") as string) : null;
+  const fromStat = /^[A-Z]{2,5}$/.test(params.get("stat") ?? "") ? (params.get("stat") as string) : null;
+  const fromBase = params.get("base");
+  const returnTo = safeReturnTo(params.get("returnTo"));
   const [data, setData] = useState<Loaded | null>(null);
   const [loadError, setLoadError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -99,6 +107,8 @@ export function EntityWorkspace({ entityId }: { entityId: string }) {
 
   const { entity, versions } = data;
   const latest = versions.length === 0 ? null : versions[versions.length - 1]!;
+  const pinned = fromBase === null ? null : (versions.find((v) => v.id === fromBase) ?? null);
+  const start = pinned ?? latest!;
   const kind = latest === null ? null : (storedCandidate(latest.structuredData)?.definitionKind ?? null);
 
   async function newRevision(base: EntityVersionDto) {
@@ -106,7 +116,8 @@ export function EntityWorkspace({ entityId }: { entityId: string }) {
     setRevisionError("");
     try {
       const created = await createRevision(entityId, { baseVersionId: base.id, changeSummary: revisionSummary || null });
-      router.push(`/compendium/admin/entities/${entityId}/revisions/${created.id}`);
+      const context = fromRelease === null ? "" : `?release=${encodeURIComponent(fromRelease)}${fromStat ? `&stat=${encodeURIComponent(fromStat)}` : ""}${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""}`;
+      router.push(`/compendium/admin/entities/${entityId}/revisions/${created.id}${context}`);
     } catch (e) {
       setRevisionError(messageOf(e, "Could not create a new revision."));
       setBusy(false);
@@ -172,16 +183,27 @@ export function EntityWorkspace({ entityId }: { entityId: string }) {
           ))}
         </ol>
         {latest !== null ? (
-          <div className="gov-form">
+          <div className="gov-form" data-testid="ws-new-revision">
             <h3>Create New Revision</h3>
-            <p className="gov-muted">Copies the content of Revision {latest.revisionNumber} into a new DRAFT of this same Entity. The server allocates the revision number; Revision {latest.revisionNumber} is not changed.</p>
+            {fromRelease !== null && pinned !== null ? (
+              <p className="gov-ok" role="note" data-testid="ws-from-release">
+                Opened from {fromStat ? `Stats → ${fromStat}` : "the Rules Reference"}. The new Draft starts from Revision {pinned.revisionNumber} — the revision that Release uses — and its workspace previews the change against that Release.
+                {returnTo !== null ? (
+                  <>
+                    {" "}
+                    <Link href={returnTo}>Back</Link>
+                  </>
+                ) : null}
+              </p>
+            ) : null}
+            <p className="gov-muted">Copies the content of Revision {start.revisionNumber} into a new DRAFT of this same Entity. The server allocates the revision number; Revision {start.revisionNumber} is not changed.</p>
             <label className="gov-field" htmlFor="ws-revision-summary">
               <span>Change summary (why this revision exists)</span>
               <input id="ws-revision-summary" value={revisionSummary} onChange={(e) => setRevisionSummary(e.target.value)} />
             </label>
             <div className="gov-actions">
-              <button type="button" className="gov-button gov-button--primary" disabled={busy} onClick={() => void newRevision(latest)}>
-                Create New Revision from Revision {latest.revisionNumber}
+              <button type="button" className="gov-button gov-button--primary" disabled={busy} onClick={() => void newRevision(start)}>
+                Create New Revision from Revision {start.revisionNumber}
               </button>
             </div>
             <ErrorLine error={revisionError} />

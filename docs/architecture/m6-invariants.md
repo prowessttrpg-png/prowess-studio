@@ -1155,3 +1155,53 @@ Required by the permanent M6-WO2 gate (`apps/studio/tests/unit/m6-wo2-static.tes
 - **Group:** Governance
 - **Meaning:** The slice is "playtest verified on an isolated Release": its content is test-only and isolated, no canonical Release or shared game content changes, and the missing governed content is listed rather than filled with fixtures, invented prices or relaxed eligibility.
 - **Guards:** `apps/studio/tests/unit/m6-wo12-static.test.ts`, `docs/architecture/m6-wo12-playtest-vertical-slice.md`
+
+## PRE-M7-WO1 — Compendium Authoring And Rule Control (M6-I190 – M6-I197)
+
+### M6-I190 — Topic Sections Are Presentation Only
+
+- **Group:** Compendium
+- **Meaning:** Each Definition kind has exactly one home topic section, sections name only catalog kinds, reserved kinds are exactly the kinds with no supported schema version and are never offered as editable, and a section lists the SAME pinned revisions of one exact Release (server-side facet) — nothing is copied, renamed or stored.
+- **Guards:** `apps/studio/tests/unit/pre-m7-wo1-static.test.ts`, `packages/prowess-db/tests/unit/m6-wo1-authoring-catalog.test.ts`
+
+### M6-I191 — What A Stat Affects Comes From The Rules
+
+- **Group:** Rules
+- **Meaning:** "What this affects" is built on the server from the exact Release's rule references (formula variable sources and structured statistic fields), direct and indirect, never from a hand-written list; a Release whose rule no longer reads the Stat no longer lists it.
+- **Guards:** `packages/prowess-db/tests/integration/pre-m7-wo1-rule-control.test.ts`, `apps/studio/tests/e2e/pre-m7-wo1-strength-armor.spec.ts`, `apps/studio/tests/unit/pre-m7-wo1-static.test.ts`
+
+### M6-I192 — Editing The Owning Rule
+
+- **Group:** Governance
+- **Meaning:** Changing a Stat's contribution edits a Draft revision of the Definition that OWNS the calculation, created explicitly in Compendium Admin from the revision the Release pins; the Rules Reference stays read-only and nothing reaches play without review, approval and a new Release.
+- **Guards:** `apps/studio/tests/unit/pre-m7-wo1-static.test.ts`, `apps/studio/tests/e2e/pre-m7-wo1-strength-armor.spec.ts`, `packages/prowess-db/tests/integration/pre-m7-wo1-rule-control.test.ts`, `scripts/pre-m7-wo1-negative-controls.mjs`
+
+### M6-I193 — Lossless Guided Formula
+
+- **Group:** Rules
+- **Meaning:** The guided Formula view is computed on the server from the engine-validated tree (validateFormulaProgram); a guided edit is accepted only when it reprints to exactly the intended tree, an expression it cannot show losslessly is offered as an advanced expression unchanged, and removing every contribution yields the neutral 0. The Studio never parses, prints or evaluates a Formula.
+- **Guards:** `packages/prowess-db/tests/unit/pre-m7-wo1-formula-guide.test.ts`, `apps/studio/tests/unit/pre-m7-wo1-static.test.ts`, `scripts/pre-m7-wo1-negative-controls.mjs`
+
+### M6-I194 — Side-Effect-Free Rule Preview
+
+- **Group:** Rules
+- **Meaning:** The rule preview evaluates every derived statistic twice through the shared compiler and M4 orchestration — the published Release and a never-persisted candidate with saved Drafts substituted (no release identity, no manifest hash) — validates its inputs, reports cycles and writes nothing.
+- **Guards:** `packages/prowess-db/tests/integration/pre-m7-wo1-rule-control.test.ts`, `apps/studio/tests/unit/pre-m7-wo1-static.test.ts`, `scripts/pre-m7-wo1-negative-controls.mjs`
+
+### M6-I195 — Guided Editors Match The M5 Contract
+
+- **Group:** Compendium
+- **Meaning:** Every dedicated core / runtime descriptor names exactly the payload keys the M5 reader accepts (proved against every shipped payload of the kind), every vocabulary it names is served by the live catalog, and the kinds left on the structured editor are an explicit reviewed list.
+- **Guards:** `apps/studio/tests/unit/pre-m7-wo1-descriptors.test.ts`, `scripts/pre-m7-wo1-negative-controls.mjs`
+
+### M6-I196 — Existing Characters Keep Their Release
+
+- **Group:** Character
+- **Meaning:** Publishing a changed rule as a new Release never changes a Character on an earlier Release: its sheet and stored row are byte-identical, while a new Character on the new Release uses the new rule.
+- **Guards:** `packages/prowess-db/tests/integration/pre-m7-wo1-rule-control.test.ts`, `apps/studio/tests/e2e/pre-m7-wo1-strength-armor.spec.ts`
+
+### M6-I197 — The Change Travels Exactly
+
+- **Group:** Distribution
+- **Meaning:** The changed rule crosses machines only as its exact published Release: both Releases install into an independent database, read the same, and survive a restart and a whole-workspace restore with identical Characters.
+- **Guards:** `scripts/distribution/verify-pre-m7-wo1-transfer.mjs`, `.github/workflows/ci.yml`

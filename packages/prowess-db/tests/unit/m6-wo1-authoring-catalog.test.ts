@@ -1,3 +1,11 @@
+import {
+  MAGE_ART_ACTIVE_EFFECT_WINDOWS,
+  ACTION_COST_MODELS, ACTION_IMPROVEMENT_MODIFICATION_KINDS, ACTION_IMPROVEMENT_PREREQUISITE_KINDS, ACTION_TIMINGS, AFFINITY_ADVANCEMENT_ACTIONS,
+  AFFINITY_PROGRESSION_MODES, AFFINITY_RANKS, AFFINITY_RANK_UP_TARGETS, AFFINITY_ROLES, COMBAT_TIMING_EVENTS, INITIATIVE_TIEBREAK_KINDS,
+  PAYMENT_POLICIES, RESOURCE_EXPIRY_TARGETS, RESOURCE_MAXIMUM_SOURCES, RESOURCE_SPENDING, RESOURCE_USAGE_RESTRICTIONS, ROLL_MODES,
+  ROLL_PROCEDURES, RUNTIME_RESOURCE_KEYS, VARIABLE_COST_DETERMINERS,
+} from "@prowess/game";
+import { RESOURCE_CEILINGS, RESOURCE_KINDS, RESOURCE_OVERFLOW_POLICIES, RESOURCE_REFRESH_TARGETS } from "@prowess/rules";
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -33,6 +41,9 @@ import {
   WEAPON_HANDEDNESS,
   WEAPON_PROFILE_KINDS,
   WEAPON_SCALING_MODELS,
+  BONUS_TARGETS,
+  CORE_PROCEDURES,
+  DERIVED_STATISTICS,
 } from "@prowess/game";
 import { authoringKind, getAuthoringCatalog } from "../../src/compendium-authoring/catalog.js";
 
@@ -110,6 +121,46 @@ describe("M6-WO1 authoring catalog (M6-I002 no second Definition catalog)", () =
       savingThrowDcs: [...SAVING_THROW_DCS],
       equipmentModifierTargets: [...EQUIPMENT_MODIFIER_TARGETS],
       weaponRequirementKinds: [...WEAPON_REQUIREMENT_KINDS],
+      // PRE-M7-WO1 core Formula grammar (the two mirrors are pinned against the M5 reader in pre-m7-wo1-catalog).
+      derivedStatistics: [...DERIVED_STATISTICS],
+      coreProcedures: [...CORE_PROCEDURES],
+      bonusTargets: [...BONUS_TARGETS],
+      formulaSourceKinds: ["STAT", "CHOSEN_STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "NATURAL", "SKILL_RANK_BONUS", "EXPLICIT_BONUSES", "MOVEMENT_DISTANCE", "CREATURE_SIZE_BASE_MOVEMENT"],
+      derivedFormulaSourceKinds: ["STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "EXPLICIT_BONUSES", "CREATURE_SIZE_BASE_MOVEMENT"],
+      characterFields: ["LEVEL", "BASE_HP", "BASE_MP"],
+      formulaRoundings: ["NONE", "FLOOR", "CEIL"],
+      creatureSizes: ["SMALL", "MEDIUM", "LARGE", "HUGE", "MASSIVE"],
+      terrainKinds: ["NORMAL", "DIFFICULT"],
+      weaknessSeverities: ["MINOR", "MODERATE", "MAJOR"],
+      movementFormulaSourceKinds: ["MOVEMENT_DISTANCE"],
+      rollFormulaSourceKinds: ["STAT", "CHOSEN_STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "NATURAL", "SKILL_RANK_BONUS", "EXPLICIT_BONUSES", "CREATURE_SIZE_BASE_MOVEMENT"],
+      initiativeFormulaSourceKinds: ["NATURAL", "STAT", "EXPLICIT_BONUSES"],
+      movementGrantSourceKinds: ["DERIVED"],
+      mageArtActiveEffectWindows: [...MAGE_ART_ACTIVE_EFFECT_WINDOWS],
+      actionTimings: [...ACTION_TIMINGS],
+      actionCostModels: [...ACTION_COST_MODELS],
+      variableCostDeterminers: [...VARIABLE_COST_DETERMINERS],
+      paymentPolicies: [...PAYMENT_POLICIES],
+      combatTimingEvents: [...COMBAT_TIMING_EVENTS],
+      runtimeResourceKeys: [...RUNTIME_RESOURCE_KEYS],
+      resourceKinds: [...RESOURCE_KINDS],
+      resourceMaximumSources: [...RESOURCE_MAXIMUM_SOURCES],
+      resourceRefreshTargets: [...RESOURCE_REFRESH_TARGETS],
+      resourceExpiryTargets: [...RESOURCE_EXPIRY_TARGETS],
+      resourceSpending: [...RESOURCE_SPENDING],
+      resourceCeilings: [...RESOURCE_CEILINGS],
+      resourceOverflowPolicies: [...RESOURCE_OVERFLOW_POLICIES],
+      resourceUsageRestrictions: [...RESOURCE_USAGE_RESTRICTIONS],
+      rollModes: [...ROLL_MODES],
+      rollProcedures: [...ROLL_PROCEDURES],
+      initiativeTiebreakKinds: [...INITIATIVE_TIEBREAK_KINDS],
+      affinityRanks: [...AFFINITY_RANKS],
+      affinityProgressionModes: [...AFFINITY_PROGRESSION_MODES],
+      affinityAdvancementActions: [...AFFINITY_ADVANCEMENT_ACTIONS],
+      affinityRankUpTargets: [...AFFINITY_RANK_UP_TARGETS],
+      affinityRoles: [...AFFINITY_ROLES],
+      actionImprovementPrerequisites: [...ACTION_IMPROVEMENT_PREREQUISITE_KINDS],
+      actionImprovementModifications: [...ACTION_IMPROVEMENT_MODIFICATION_KINDS],
     });
   });
 
@@ -138,5 +189,13 @@ describe("Studio UI catalog fixture", () => {
     const live = `${JSON.stringify(getAuthoringCatalog(), null, 2)}\n`;
     if (process.env.M6_WO1_WRITE_FIXTURE === "1") writeFileSync(fixturePath, live);
     expect(readFileSync(fixturePath, "utf8")).toBe(live);
+  });
+});
+
+describe("PRE-M7-WO1 Compendium Stat token mirror", () => {
+  it("COMPENDIUM_STAT_TOKENS equals the engine's PROWESS_STATS", async () => {
+    const { COMPENDIUM_STAT_TOKENS } = await import("@prowess/model");
+    const { PROWESS_STATS } = await import("@prowess/game");
+    expect([...COMPENDIUM_STAT_TOKENS]).toEqual([...PROWESS_STATS]);
   });
 });

@@ -146,7 +146,11 @@ const DEFINITION_KIND_TABLE = {
   MANEUVER_FOUNDATION: { family: "MANEUVER", branch: "MANEUVER", contract: "FOUNDATION", entityTypes: ["GENERIC_RULE"], schemaVersions: [1] },
 
   // Later families — known, reserved.
-  MAGE_ART: reserved("MAGE_ART"),
+  /**
+   * PRE-M7-WO1: MAGE_ART payload version 1 — authoring and reference of a fixed Mage Art (definition/mage-art-payload.ts).
+   * Not executable: nothing compiles, prices or plays a Mage Art; the Character card stays UNAVAILABLE.
+   */
+  MAGE_ART: active("MAGE_ART"),
   // Weapons & Attacks — reserved by M5; WEAPON and EQUIPMENT_TRAIT are activated at version 1 and ATTACK is added by
   // PAS-10 M6-WO6 (definition/equipment-payload.ts). ARMOR stays reserved (worn Armor is later equipment work, §7).
   WEAPON: active("EQUIPMENT"),

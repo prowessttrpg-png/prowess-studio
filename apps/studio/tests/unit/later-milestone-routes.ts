@@ -12,7 +12,7 @@ const ROOT = path.resolve(process.cwd(), "..", "..");
 export function laterMilestoneRoutes(): string[] {
   const registry = JSON.parse(readFileSync(path.join(ROOT, "docs/architecture/m6-api-routes.json"), "utf8")) as Record<string, unknown>;
   return Object.entries(registry)
-    .filter(([key]) => /^(?:M\d+-WO\d+|DIST-WO2)$/.test(key))
+    .filter(([key]) => /^(?:M\d+-WO\d+|DIST-WO2|PRE-M7-WO1)$/.test(key))
     .flatMap(([, routes]) => routes as string[]);
 }
 

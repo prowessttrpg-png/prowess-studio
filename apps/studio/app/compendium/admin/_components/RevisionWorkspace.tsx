@@ -5,6 +5,10 @@ import { formatEnumLabel, VersionStatusBadge } from "@prowess/ui";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { RulePreviewPanel } from "./RulePreviewPanel";
+import { withChildComponent } from "./AbilityDefinitionEditor";
+import { childCreateHref, readChildRef, stashParent, takeParent } from "../_lib/child-draft";
+import { safeReturnTo } from "../../rulesets/_lib/reference-urls";
 import type { EntityDto, EntityVersionDto, SourceDocumentDto, SourceReferenceDto } from "../../_lib/api-client";
 import {
   AuthoringApiError,
@@ -118,7 +122,13 @@ export function RevisionWorkspace({ entityId, versionId }: { entityId: string; v
       setDocuments(d);
       const snap = snapshotOf(v);
       setSaved(snap);
-      setForm(snap);
+      // PRE-M7-WO1 child-Draft return: restore this tab's unsaved parent work and add the newly created component.
+      const child = readChildRef(new URLSearchParams(window.location.search).get("childRef"));
+      const stashed = child !== null && v.status === "DRAFT" ? takeParent<Snapshot>(versionId) : null;
+      if (stashed !== null && child !== null && stashed.form.candidate !== null) {
+        setForm({ ...stashed.form, candidate: { ...stashed.form.candidate, payload: withChildComponent(stashed.form.candidate.payload, stashed.slot, child, c.vocabularies.traitScopes ?? []) } });
+        setNotice(`Created ${child.canonicalKey} as its own Draft and added it here. Save this Draft to keep the change.`);
+      } else setForm(snap);
       if (snap.candidate !== null) {
         validateStoredRevision(versionId).then((r) => setValidation({ result: r, forCandidate: JSON.stringify(snap.candidate) }), () => undefined);
       }
@@ -132,6 +142,10 @@ export function RevisionWorkspace({ entityId, versionId }: { entityId: string; v
   }, [load]);
 
   const editable = version?.status === "DRAFT";
+  // PRE-M7-WO1: opened from a Release context (Stat page) — keep it for the side-effect-free preview and the way back.
+  const previewRelease = /^[0-9a-f-]{36}$/i.test(searchParams.get("release") ?? "") ? searchParams.get("release") : null;
+  const returnTo = safeReturnTo(searchParams.get("returnTo"));
+  const previewStat = /^[A-Z]{2,5}$/.test(searchParams.get("stat") ?? "") ? (searchParams.get("stat") as string) : undefined;
   const dirty = editable && saved !== null && form !== null && isDirty(saved, form);
   useUnsavedChangesGuard(Boolean(dirty));
 
@@ -208,6 +222,13 @@ export function RevisionWorkspace({ entityId, versionId }: { entityId: string; v
           <li aria-current="page">Revision {version.revisionNumber}</li>
         </ol>
       </nav>
+      {returnTo !== null ? (
+        <p>
+          <Link href={returnTo} data-testid="revision-return">
+            ← Back to where you started
+          </Link>
+        </p>
+      ) : null}
       <header>
         <p className="gov-eyebrow">{editable ? "Edit Draft" : "Revision (read-only)"}</p>
         <h1>
@@ -284,6 +305,10 @@ export function RevisionWorkspace({ entityId, versionId }: { entityId: string; v
         </ul>
       </nav>
 
+      {previewRelease !== null && form.candidate !== null ? (
+        <RulePreviewPanel releaseId={previewRelease} vary={previewStat} drafts={editable ? [version.id] : []} unsavedChanges={Boolean(dirty)} title="Preview this Draft against the Release" />
+      ) : null}
+
       <section id="rev-content" className="gov-panel" aria-labelledby="rev-content-h">
         <h2 id="rev-content-h">Revision content</h2>
         <fieldset disabled={!editable} className="prowess-authoring__groups">
@@ -321,7 +346,26 @@ export function RevisionWorkspace({ entityId, versionId }: { entityId: string; v
       <section id="rev-definition" className="gov-panel" aria-labelledby="rev-definition-h">
         <h2 id="rev-definition-h">Prowess Definition</h2>
         {form.candidate !== null && kind !== null ? (
-          <DefinitionEditor kind={kind} catalog={catalog} candidate={form.candidate} onChange={(candidate) => set({ candidate })} issues={staleValidation ? [] : (validation?.result.issues ?? [])} readOnly={!editable} />
+          <DefinitionEditor
+            kind={kind}
+            catalog={catalog}
+            candidate={form.candidate}
+            onChange={(candidate) => set({ candidate })}
+            issues={staleValidation ? [] : (validation?.result.issues ?? [])}
+            readOnly={!editable}
+            onCreateChild={
+              editable
+                ? (childKind, slot) => {
+                    const here = `${window.location.pathname}${window.location.search.replace(/[?&]childRef=[^&]*/g, "")}`;
+                    if (!stashParent(versionId, form, slot)) {
+                      setError({ code: "CHILD_DRAFT.STORAGE_UNAVAILABLE", message: "This browser cannot keep your unsaved changes during the round trip. Save this Draft first, then create the component." });
+                      return;
+                    }
+                    router.push(childCreateHref(childKind, slot, here));
+                  }
+                : undefined
+            }
+          />
         ) : form.candidate !== null ? (
           <p className="gov-bad">This revision declares Definition kind {form.candidate.definitionKind}, which is not in the M5 catalog. It cannot be edited here.</p>
         ) : (

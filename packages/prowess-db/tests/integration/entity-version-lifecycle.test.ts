@@ -28,6 +28,9 @@ import { getTestDatabaseUrl } from "./env";
 
 const TEST_DATABASE_URL = getTestDatabaseUrl();
 const FIXTURE_PREFIX = "test.";
+// Cleanup touches ONLY this file's own fixtures (PRE-M7-WO1 F12): a database-wide "test." sweep also deleted — or, when
+// another suite's rows were still referenced, failed on — fixtures this file does not own.
+const OWN_PREFIX = `${FIXTURE_PREFIX}lifecycle.`;
 let fixtureCounter = 0;
 
 /** Unique canonical keys per test, so tests never collide with each other. */
@@ -67,12 +70,12 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
 
   afterAll(async () => {
     const testEntities = await prisma.entity.findMany({
-      where: { canonicalKey: { startsWith: FIXTURE_PREFIX } },
+      where: { canonicalKey: { startsWith: OWN_PREFIX } },
       select: { id: true },
     });
     const testEntityIds = testEntities.map((e) => e.id);
     await prisma.entityVersion.deleteMany({ where: { entityId: { in: testEntityIds } } });
-    await prisma.entity.deleteMany({ where: { canonicalKey: { startsWith: FIXTURE_PREFIX } } });
+    await prisma.entity.deleteMany({ where: { canonicalKey: { startsWith: OWN_PREFIX } } });
   });
 
   it("updates a DRAFT Version's content, changing updatedAt but not createdAt/id/revisionNumber", async () => {
@@ -279,6 +282,9 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     // function, and no raw Prisma update payload type, ever gets added
     // without this test failing first.
     const exportedNames = Object.keys(DbPackage).sort();
+    // PRE-M7-WO1 added formulaGuide (pure: classifies / prints the engine-validated Formula tree), getStatImpacts and
+    // getRuleUsage (reads of one exact Release's rule graph) and previewRuleCandidate (evaluates a never-persisted
+    // candidate; no write). None mutates anything.
     // M4-WO2 added resolveRulesetContextFromManifest / resolveRulesetContextFromRelease: exact-id, read-only builders of
     // the M4 RulesetContext (SELECTs only — proven by the table fingerprints in ruleset-context.test.ts). No mutation.
     // M3-WO6 added reviewImportCandidate (the ONLY Candidate status change: an explicit, append-only, atomic decision),
@@ -545,6 +551,11 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "getCharacterPlayWorkspace",
         "listCharacterPlayEvents",
         "previewCharacterPlayOperation",
+        // PRE-M7-WO1 Compendium rule control: reads and side-effect-free evaluations only (pinned by pre-m7-wo1-static).
+        "formulaGuide",
+        "getRuleUsage",
+        "getStatImpacts",
+        "previewRuleCandidate",
       ].sort(),
     );
 

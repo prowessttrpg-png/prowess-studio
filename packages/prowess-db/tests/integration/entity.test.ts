@@ -19,6 +19,8 @@ const TEST_DATABASE_URL = getTestDatabaseUrl();
 
 /** All fixtures in this file use this prefix, so cleanup can target them precisely. */
 const FIXTURE_PREFIX = "test.";
+// Cleanup touches ONLY this file's own fixture namespaces (PRE-M7-WO1 F12), never every "test." row in the database.
+const OWN_PREFIXES = [`${FIXTURE_PREFIX}rule.`, `${FIXTURE_PREFIX}resource.`];
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -28,7 +30,7 @@ describe("Entity (prowess_studio_test only)", () => {
   });
 
   afterAll(async () => {
-    await prisma.entity.deleteMany({ where: { canonicalKey: { startsWith: FIXTURE_PREFIX } } });
+    await prisma.entity.deleteMany({ where: { OR: OWN_PREFIXES.map((startsWith) => ({ canonicalKey: { startsWith } })) } });
   });
 
   it("creates an Entity with a UUID identity following the project's UUID convention", async () => {

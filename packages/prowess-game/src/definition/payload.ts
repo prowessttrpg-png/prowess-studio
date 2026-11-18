@@ -25,6 +25,7 @@ import { isCharacterPayloadKind, readCharacterPayload } from "./character-payloa
 import { isEquipmentPayloadKind, readEquipmentPayload } from "./equipment-payload.js";
 import { isAdvancementPayloadKind, readAdvancementPayload } from "./advancement-payload.js";
 import { isActionImprovementPayloadKind, readActionImprovementPayload } from "./action-improvement-payload.js";
+import { readMageArtPayload } from "./mage-art-payload.js";
 import { readAbilityConstructionRulePayload } from "./ability-construction-payload.js";
 import { readTraitRules, readTraitCosts } from "./trait-payload.js";
 import { readAuthoredAbilityPayload } from "./authored-ability-payload.js";
@@ -388,6 +389,7 @@ export function readDefinitionPayload(kind: ProwessDefinitionKind, contract: Abi
   else if (isActionImprovementPayloadKind(kind)) payload = readActionImprovementPayload(kind, value, at, p);
   else if (kind === "SPELL_DEFINITION" || kind === "MANEUVER_DEFINITION") payload = readAuthoredAbilityPayload(kind, value, at, p) as unknown as JsonObject | null;
   else if (kind === "ABILITY_CONSTRUCTION_RULE") payload = readAbilityConstructionRulePayload(value, at, p);
+  else if (kind === "MAGE_ART") payload = readMageArtPayload(value, at, p);
   else if (kind === "AFFINITY" && schemaVersion === 2) {
     // M5-WO4: the full Affinity rule content. Legacy terminology was already refused above (M5-I115).
     const affinity = readAffinityDefinitionPayload(value, at, p);

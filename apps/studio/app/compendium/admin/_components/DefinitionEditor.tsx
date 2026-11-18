@@ -2,10 +2,14 @@
 
 import { useId, useState, type ReactNode } from "react";
 import type { AuthoringCatalogDto, AuthoringKindDto, ValidationIssueDto } from "../_lib/authoring-client";
-import { descriptorFor, groupsOf, GENERIC_DESCRIPTOR, type FieldDescriptor } from "../_lib/descriptors";
+import { formatEnumLabel } from "@prowess/ui";
+import { descriptorFor, groupsOf, GENERIC_DESCRIPTOR, initialFieldValue, type FieldDescriptor } from "../_lib/descriptors";
 import { fieldDomId, fieldErrorId, issuesForField, stableStringify, type DefinitionCandidate } from "../_lib/definition-form";
 import { AuthoredDataEditor } from "./AuthoredDataEditor";
 import { DefinitionReferencePicker } from "./DefinitionReferencePicker";
+import { FormulaEditor } from "./FormulaEditor";
+import { IntegerListInput, OptionalFeetInput, RowsEditor } from "./GuidedInputs";
+import { AbilityDefinitionEditor } from "./AbilityDefinitionEditor";
 import { KeywordPicker } from "./KeywordPicker";
 import {
   AttackRefsEditor,
@@ -95,8 +99,11 @@ function LabeledControl({ field, issues, children }: { field: FieldDescriptor; i
 
 const asArray = (v: unknown): Array<Record<string, unknown>> => (Array.isArray(v) ? (v as Array<Record<string, unknown>>) : []);
 const asObject = (v: unknown): Record<string, unknown> => (v !== null && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {});
+/** A nested field's value: key "" is the containing record itself (a whole-record variant). */
+const sub = (o: Record<string, unknown>, key: string): unknown => (key === "" ? o : o[key]);
+const put = (o: Record<string, unknown>, key: string, v: unknown): Record<string, unknown> => (key === "" ? asObject(v) : { ...o, [key]: v });
 
-function FieldControl({ field, value, onChange, catalog, issues }: { field: FieldDescriptor; value: unknown; onChange: (v: unknown) => void; catalog: AuthoringCatalogDto; issues: ValidationIssueDto[] }) {
+function FieldControl({ field, value, onChange, catalog, issues, payload, onCreateChild }: { field: FieldDescriptor; value: unknown; onChange: (v: unknown) => void; catalog: AuthoringCatalogDto; issues: ValidationIssueDto[]; payload?: Payload; onCreateChild?: (kind: string, slot: string) => void }) {
   const listId = useId();
   switch (field.input) {
     case "select": {
@@ -108,7 +115,7 @@ function FieldControl({ field, value, onChange, catalog, issues }: { field: Fiel
               <option value="">Choose…</option>
               {options.map((o) => (
                 <option key={o} value={o}>
-                  {o}
+                  {formatEnumLabel(o)}
                 </option>
               ))}
             </select>
@@ -353,7 +360,7 @@ function FieldControl({ field, value, onChange, catalog, issues }: { field: Fiel
         </LabeledControl>
       );
     case "text":
-      return <LabeledControl field={field} issues={issues}>{(p) => <textarea {...p} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(e.target.value)} />}</LabeledControl>;
+      return <LabeledControl field={field} issues={issues}>{(p) => <textarea {...p} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(field.nullable === true && e.target.value === "" ? null : e.target.value)} />}</LabeledControl>;
     case "textList":
       return (
         <Shell field={field} issues={issues} composite>
@@ -432,6 +439,191 @@ function FieldControl({ field, value, onChange, catalog, issues }: { field: Fiel
           <TraitContractEditor value={value} onChange={onChange} />
         </Shell>
       );
+    case "coreFormula": {
+      const own = field.ownStatisticKey !== undefined ? payload?.[field.ownStatisticKey] : undefined;
+      return (
+        <Shell field={field} issues={issues} composite>
+          <FormulaEditor value={value} onChange={onChange} catalog={catalog} sourceKinds={catalog.vocabularies[field.sources] ?? []} label={field.label} ownStatistic={typeof own === "string" ? own : null} />
+        </Shell>
+      );
+    }
+    // ---- PRE-M7-WO1 guided runtime / progression inputs -------------------------------------------------------------
+    case "rows":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <RowsEditor value={value} onChange={onChange} columns={field.columns} itemLabel={field.itemLabel} label={field.label} catalog={catalog} />
+        </Shell>
+      );
+    case "integerList":
+      return <LabeledControl field={field} issues={issues}>{(p) => <IntegerListInput id={p.id} describedBy={p["aria-describedby"]} value={value} onChange={onChange} />}</LabeledControl>;
+    case "optionalFeet":
+      return <LabeledControl field={field} issues={issues}>{(p) => <OptionalFeetInput id={p.id} describedBy={p["aria-describedby"]} value={value} onChange={onChange} />}</LabeledControl>;
+    // ---- PRE-M7-WO1 recursive structure (every key the form does not show is kept) -----------------------------------
+    case "group": {
+      if (value === null || value === undefined) {
+        return (
+          <Shell field={field} issues={issues} composite>
+            <p className="gov-muted">Not set.</p>
+            <button type="button" className="gov-link-button" onClick={() => onChange(Object.fromEntries(field.fields.map((f) => [f.key, initialFieldValue(f)])))}>
+              Set {field.label.toLowerCase()}
+            </button>
+          </Shell>
+        );
+      }
+      const obj = asObject(value);
+      return (
+        <Shell field={field} issues={issues} composite>
+          {field.fields.map((sf) => (
+            <FieldControl key={sf.key} field={{ ...sf, key: `${field.key}.${sf.key}` }} value={sub(obj, sf.key)} onChange={(v) => onChange(put(obj, sf.key, v))} catalog={catalog} issues={[]} payload={payload} />
+          ))}
+          {field.nullable ? (
+            <button type="button" className="gov-link-button" onClick={() => onChange(null)}>
+              Clear {field.label.toLowerCase()}
+            </button>
+          ) : null}
+        </Shell>
+      );
+    }
+    case "list": {
+      const items = asArray(value);
+      const setAt = (i: number, v: unknown) => onChange(items.map((x, j) => (j === i ? v : x)));
+      const move = (i: number, d: -1 | 1) => {
+        const next = [...items];
+        const [x] = next.splice(i, 1);
+        next.splice(i + d, 0, x as Record<string, unknown>);
+        onChange(next);
+      };
+      return (
+        <Shell field={field} issues={issues} composite>
+          {items.length === 0 ? <p className="gov-muted">None.</p> : null}
+          <ol className="prowess-formula__terms">
+            {items.map((item, i) => (
+              <li key={i} className="prowess-impact" data-testid="guided-list-item">
+                <p>
+                  <strong>
+                    {field.itemLabel} {i + 1}
+                  </strong>
+                </p>
+                {field.item.map((sf) => (
+                  <FieldControl key={sf.key} field={{ ...sf, key: `${field.key}.${i}.${sf.key}` }} value={sub(asObject(item), sf.key)} onChange={(v) => setAt(i, put(asObject(item), sf.key, v))} catalog={catalog} issues={[]} payload={payload} />
+                ))}
+                <div className="gov-actions">
+                  <button type="button" className="gov-link-button" disabled={i === 0} onClick={() => move(i, -1)} aria-label={`Move ${field.itemLabel} ${i + 1} up`}>
+                    Up
+                  </button>
+                  <button type="button" className="gov-link-button" disabled={i === items.length - 1} onClick={() => move(i, 1)} aria-label={`Move ${field.itemLabel} ${i + 1} down`}>
+                    Down
+                  </button>
+                  <button type="button" className="gov-link-button" onClick={() => onChange(items.filter((_, j) => j !== i))} aria-label={`Remove ${field.itemLabel} ${i + 1}`}>
+                    Remove
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <button type="button" className="gov-button" onClick={() => onChange([...items, Object.fromEntries(field.item.map((f) => [f.key, initialFieldValue(f)]))])}>
+            Add {field.itemLabel.toLowerCase()}
+          </button>
+        </Shell>
+      );
+    }
+    case "variant": {
+      const obj = value === null || value === undefined ? null : asObject(value);
+      const current = obj === null ? "" : String(obj[field.discriminator] ?? "");
+      const fields = field.variants[current] ?? [];
+      const choose = (next: string) => {
+        if (next === "" && field.nullable) return onChange(null);
+        const nextFields = field.variants[next] ?? [];
+        const keep = new Set([field.discriminator, ...nextFields.map((f) => f.key)]);
+        const dropped = obj === null ? [] : Object.keys(obj).filter((k) => !keep.has(k) && obj[k] !== null && obj[k] !== undefined && obj[k] !== "");
+        // Switching shape never silently discards populated data: the designer confirms what will be dropped.
+        if (dropped.length > 0 && !window.confirm(`Switching to ${formatEnumLabel(next)} removes: ${dropped.join(", ")}. Continue?`)) return;
+        onChange({ [field.discriminator]: next, ...Object.fromEntries(nextFields.map((f) => [f.key, obj?.[f.key] ?? initialFieldValue(f)])) });
+      };
+      return (
+        <Shell field={field} issues={issues} composite>
+          <label className="gov-field">
+            <span>{formatEnumLabel(field.discriminator)}</span>
+            <select value={current} onChange={(e) => choose(e.target.value)}>
+              <option value="">{field.nullable ? "None" : "Choose…"}</option>
+              {(catalog.vocabularies[field.vocabulary] ?? []).map((o) => (
+                <option key={o} value={o}>
+                  {formatEnumLabel(o)}
+                </option>
+              ))}
+            </select>
+          </label>
+          {obj !== null
+            ? fields.map((sf) => <FieldControl key={sf.key} field={{ ...sf, key: `${field.key}.${sf.key}` }} value={sub(obj, sf.key)} onChange={(v) => onChange(put(obj, sf.key, v))} catalog={catalog} issues={[]} payload={payload} />)
+            : null}
+        </Shell>
+      );
+    }
+    case "multiSelect": {
+      const chosen = Array.isArray(value) ? (value as unknown[]) : [];
+      return (
+        <Shell field={field} issues={issues} composite>
+          {(catalog.vocabularies[field.vocabulary] ?? []).map((o) => (
+            <label key={o} className="prowess-rule-preview__toggle">
+              <input type="checkbox" checked={chosen.includes(o)} onChange={(e) => onChange(e.target.checked ? [...chosen, o] : chosen.filter((x) => x !== o))} /> {formatEnumLabel(o)}
+            </label>
+          ))}
+        </Shell>
+      );
+    }
+    case "byVocabulary": {
+      // One sub-record per value of a vocabulary (e.g. per roll mode); values the vocabulary does not list are kept.
+      const obj = asObject(value);
+      return (
+        <Shell field={field} issues={issues} composite>
+          {(catalog.vocabularies[field.vocabulary] ?? []).map((v) => (
+            <fieldset key={v} className="prowess-authoring__nested">
+              <legend>{formatEnumLabel(v)}</legend>
+              {field.fields.map((sf) => (
+                <FieldControl key={sf.key} field={{ ...sf, key: `${field.key}.${v}.${sf.key}` }} value={asObject(obj[v])[sf.key]} onChange={(x) => onChange({ ...obj, [v]: { ...asObject(obj[v]), [sf.key]: x } })} catalog={catalog} issues={[]} payload={payload} />
+              ))}
+            </fieldset>
+          ))}
+        </Shell>
+      );
+    }
+    case "optionalData":
+      // Optional advanced data: absent stays absent (never written as an empty object).
+      return (
+        <Shell field={field} issues={issues} composite>
+          {value === undefined ? (
+            <>
+              <p className="gov-muted">Not set.</p>
+              <button type="button" className="gov-link-button" onClick={() => onChange({})}>
+                Add {field.label.toLowerCase()}
+              </button>
+            </>
+          ) : (
+            <>
+              <AuthoredDataEditor value={asObject(value)} onChange={onChange as (v: Record<string, unknown>) => void} label={field.label} />
+              <button type="button" className="gov-link-button" onClick={() => onChange(undefined)}>
+                Remove {field.label.toLowerCase()}
+              </button>
+            </>
+          )}
+        </Shell>
+      );
+    case "line":
+      return <LabeledControl field={field} issues={issues}>{(p) => <input {...p} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(e.target.value)} autoComplete="off" spellCheck={false} />}</LabeledControl>;
+    case "reference":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <SingleReference value={value} refKind={field.refKind} label={field.label} onChange={onChange} />
+        </Shell>
+      );
+    case "abilityDefinition":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <AbilityDefinitionEditor branch={field.branch} affinityKind={field.affinityKind} payload={payload ?? {}} onPayloadChange={onChange} catalog={catalog} onCreateChild={onCreateChild} />
+        </Shell>
+      );
+    case "boolean":
+      return <LabeledControl field={field} issues={issues}>{(p) => <input {...p} type="checkbox" checked={value === true} onChange={(e) => onChange(e.target.checked)} />}</LabeledControl>;
     case "equipmentSource":
       return (
         <Shell field={field} issues={issues} composite>
@@ -745,6 +937,7 @@ export function DefinitionEditor({
   onChange,
   issues,
   readOnly = false,
+  onCreateChild,
 }: {
   kind: AuthoringKindDto;
   catalog: AuthoringCatalogDto;
@@ -752,6 +945,8 @@ export function DefinitionEditor({
   onChange: (c: DefinitionCandidate) => void;
   issues: readonly ValidationIssueDto[];
   readOnly?: boolean;
+  /** PRE-M7-WO1: create a reusable child component as its own Draft and return here (the caller keeps unsaved work). */
+  onCreateChild?: (kind: string, slot: string) => void;
 }) {
   const descriptor = descriptorFor(kind, candidate.schemaVersion);
   const generic = descriptor === GENERIC_DESCRIPTOR;
@@ -772,13 +967,45 @@ export function DefinitionEditor({
             {descriptor.fields
               .filter((f) => f.group === group)
               .map((f) => (
-                <FieldControl key={`${f.key}:${stableStringify(kind.definitionKind)}`} field={f} value={generic ? candidate.payload : candidate.payload[f.key]} onChange={(v) => setField(f.key, v)} catalog={catalog} issues={issuesForField(issues, f.key)} />
+                <FieldControl key={`${f.key}:${stableStringify(kind.definitionKind)}`} field={f} value={generic || f.key === "" ? candidate.payload : candidate.payload[f.key]} onChange={(v) => setField(f.key, v)} catalog={catalog} issues={issuesForField(issues, f.key)} payload={candidate.payload} onCreateChild={onCreateChild} />
               ))}
           </section>
         ))}
         <LegacyTermsEditor candidate={candidate} onChange={onChange} catalog={catalog} />
       </fieldset>
       <RawJson candidate={candidate} onChange={onChange} readOnly={readOnly} />
+    </div>
+  );
+}
+
+/** One exact Definition reference (never a name, never "latest"), chosen with the reference picker. */
+function SingleReference({ value, refKind, label, onChange }: { value: unknown; refKind: string; label: string; onChange: (v: unknown) => void }) {
+  const [picking, setPicking] = useState(false);
+  const ref = value !== null && typeof value === "object" ? (value as { canonicalKey?: string; definitionKind?: string }) : null;
+  return (
+    <div>
+      {ref?.canonicalKey ? (
+        <p>
+          <code>{ref.canonicalKey}</code> <span className="gov-tag">{formatEnumLabel(ref.definitionKind ?? "")}</span>
+        </p>
+      ) : (
+        <p className="gov-muted">Not chosen.</p>
+      )}
+      {picking ? (
+        <DefinitionReferencePicker
+          label={`Choose the exact ${label.toLowerCase()}`}
+          definitionKind={refKind}
+          onSelect={(r) => {
+            onChange(r);
+            setPicking(false);
+          }}
+          onCancel={() => setPicking(false)}
+        />
+      ) : (
+        <button type="button" className="gov-link-button" onClick={() => setPicking(true)}>
+          {ref ? `Change ${label.toLowerCase()}` : `Choose ${label.toLowerCase()}`}
+        </button>
+      )}
     </div>
   );
 }

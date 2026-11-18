@@ -301,3 +301,7 @@ export type { AbilityCardEntry, CardSlot, CharacterActionDirectoryView, Characte
 // PAS-10 M6-WO10 Character Play Workspace.
 export { commitCharacterPlayOperation, getCharacterPlayWorkspace, listCharacterPlayEvents, previewCharacterPlayOperation } from "./character/index.js";
 export type { CharacterPlayWorkspaceView, PlayCommitResult, PlayEventView, PlayVersions } from "./character/index.js";
+// PRE-M7-WO1: Compendium rule control — four read-only / side-effect-free operations: what a Stat affects, where a rule
+// is used, the Draft preview (published Release vs never-persisted candidate) and the pure guided-Formula operation.
+export { formulaGuide, getRuleUsage, getStatImpacts, previewRuleCandidate } from "./compendium-rules/index.js";
+export type { FormulaDescription, PreviewExample, PreviewOutcome, RuleCandidatePreview, RuleDefinitionSummary, RuleUsage, StatImpactRow, StatImpacts } from "./compendium-rules/index.js";

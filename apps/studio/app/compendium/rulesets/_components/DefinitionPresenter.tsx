@@ -210,7 +210,56 @@ function FieldValue({ field, payload, context, keywordName }: { field: FieldDesc
     case "useSites":
     case "traitContract":
     case "equipmentSource":
+    // PRE-M7-WO1 guided inputs: shown exactly as stored.
+    case "rows":
+    case "integerList":
+    case "boolean":
+    case "optionalFeet":
+    case "group":
+    case "list":
+    case "variant":
+    case "multiSelect":
+    case "line":
+    case "reference":
+    case "byVocabulary":
+    case "optionalData":
       return value === null || value === undefined ? <span className="gov-muted">not authored</span> : <StructuredValue value={value} path={path} context={context} />;
+    case "abilityDefinition": {
+      // A reusable Spell / Maneuver Definition: its name and description, then its composition exactly as stored
+      // (exact component references link to this Release's pins through StructuredValue).
+      const p = value as Record<string, unknown>;
+      return (
+        <div data-field="ability" data-testid="reference-ability">
+          {typeof p.name === "string" ? (
+            <p>
+              <strong>{p.name}</strong>
+            </p>
+          ) : null}
+          {typeof p.description === "string" && p.description !== "" ? <p>{p.description}</p> : null}
+          <StructuredValue value={Object.fromEntries(Object.entries(p).filter(([k]) => k !== "name" && k !== "description"))} path={path} context={context} />
+        </div>
+      );
+    }
+    case "coreFormula": {
+      // The Formula as written, then its declared inputs exactly as stored (never evaluated here).
+      const expression = value !== null && typeof value === "object" ? (value as { expression?: unknown }).expression : undefined;
+      return value === null || value === undefined ? (
+        <span className="gov-muted">not authored</span>
+      ) : (
+        <div data-field={field.key}>
+          {typeof expression === "string" ? (
+            <p>
+              <code data-testid="reference-formula">{expression}</code>
+            </p>
+          ) : null}
+          <StructuredValue value={value} path={path} context={context} />
+        </div>
+      );
+    }
+    default: {
+      const unhandled: never = field;
+      return unhandled;
+    }
   }
 }
 

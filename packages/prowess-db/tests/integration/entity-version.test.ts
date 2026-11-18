@@ -24,6 +24,8 @@ import { getTestDatabaseUrl } from "./env";
 
 const TEST_DATABASE_URL = getTestDatabaseUrl();
 const FIXTURE_PREFIX = "test.";
+// Cleanup touches ONLY this file's own fixture namespaces (PRE-M7-WO1 F12), never every "test." row in the database.
+const OWN_PREFIXES = [`${FIXTURE_PREFIX}rule.`, `${FIXTURE_PREFIX}resource.`];
 
 describe("EntityVersion (prowess_studio_test only)", () => {
   beforeAll(() => {
@@ -32,12 +34,12 @@ describe("EntityVersion (prowess_studio_test only)", () => {
 
   afterAll(async () => {
     const testEntities = await prisma.entity.findMany({
-      where: { canonicalKey: { startsWith: FIXTURE_PREFIX } },
+      where: { OR: OWN_PREFIXES.map((startsWith) => ({ canonicalKey: { startsWith } })) },
       select: { id: true },
     });
     const testEntityIds = testEntities.map((e) => e.id);
     await prisma.entityVersion.deleteMany({ where: { entityId: { in: testEntityIds } } });
-    await prisma.entity.deleteMany({ where: { canonicalKey: { startsWith: FIXTURE_PREFIX } } });
+    await prisma.entity.deleteMany({ where: { OR: OWN_PREFIXES.map((startsWith) => ({ canonicalKey: { startsWith } })) } });
   });
 
   it("creates the first Version for an Entity at revision 1", async () => {

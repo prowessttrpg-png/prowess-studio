@@ -62,3 +62,4 @@ export * from "./change-set-impact.js";
 export * from "./review-lifecycle.js";
 export * from "./ruleset-release.js";
 export * from "./migration-plan.js";
+export * from "./compendium-sections.js";

@@ -47,6 +47,8 @@ async function request<T>(method: Method, path: string, body?: unknown): Promise
 }
 const get = async <T>(path: string) => (await request<T>("GET", path)).data;
 const post = async <T>(path: string, body?: unknown) => (await request<T>("POST", path, body)).data;
+/** PRE-M7-WO1: the same transport for the side-effect-free rule tools (admin/_lib/rules-client.ts). */
+export const postAuthoring = post;
 const put = async <T>(path: string, body: unknown) => (await request<T>("PUT", path, body)).data;
 const del = async (path: string) => {
   await request<unknown>("DELETE", path);
@@ -212,3 +214,4 @@ export type { RulesetDto as RulesetOptionDto } from "../../../../src/api-client/
 export { listAllRulesets } from "../../../../src/api-client/governance";
 /** A Ruleset's Manifests (one bounded page), for an EXPLICIT optional target choice — never an automatic "latest". */
 export { listManifests } from "../../../../src/api-client/governance";
+

@@ -139,7 +139,8 @@ describe("3–6 · cards show the evaluated authority", () => {
     await openLibrary({ card: "MAGE_ART:domain" });
     const panel = screen.getByTestId("card-unavailable");
     expect(panel).toHaveTextContent("Unavailable.");
-    expect(panel).toHaveTextContent("Mage Arts are reserved");
+    // PRE-M7-WO1: MAGE_ART v1 is authorable reference content; the Character-facing domain is still unavailable.
+    expect(panel).toHaveTextContent("no Character-facing Mage Art domain exists");
     expect(screen.queryByTestId("card-ap")).toBeNull();
   });
 });

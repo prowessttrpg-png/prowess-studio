@@ -1236,3 +1236,28 @@ body {
 .library-table-scroll { max-width: 100%; overflow-x: auto; }
 .library-action { margin-right: var(--space-2); white-space: nowrap; }
 .library-pages { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin-top: var(--space-3); }
+
+/* PRE-M7-WO1 — guided Formula editor, "What this affects", rule preview, topic sections. */
+.prowess-table-scroll { position: relative; max-width: 100%; overflow-x: auto; }
+.prowess-rule-table { border-collapse: collapse; min-width: 100%; }
+.prowess-rule-table th, .prowess-rule-table td { padding: var(--space-2); text-align: left; border-bottom: 1px solid var(--color-border); vertical-align: top; }
+.prowess-rule-table input { font: inherit; padding: var(--space-1); border: 1px solid var(--color-border); border-radius: 4px; background: transparent; color: inherit; min-width: 0; max-width: 9rem; }
+.prowess-rule-preview__num { width: 4.5rem; }
+.prowess-rule-preview { display: flex; flex-direction: column; gap: var(--space-3); margin-block: var(--space-4); }
+.prowess-rule-preview__toggle { display: inline-flex; gap: var(--space-2); align-items: center; }
+.prowess-rule-table tr[data-changed="true"] th { font-weight: 700; }
+.prowess-impacts { list-style: none; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.prowess-impact { border: 1px solid var(--color-border); border-radius: 6px; padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); overflow-wrap: anywhere; }
+.prowess-impact__formula { font-family: ui-monospace, monospace; }
+.prowess-formula__terms { list-style: none; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.prowess-formula__term { border: 1px solid var(--color-border); border-radius: 6px; padding: var(--space-2); display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.prowess-formula__term-body { display: inline-flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.prowess-formula__summary { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: baseline; font-family: ui-monospace, monospace; overflow-wrap: anywhere; }
+.prowess-formula__source { display: inline-flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+@media (max-width: 480px) {
+  .prowess-formula__term, .prowess-impact { padding: var(--space-2); }
+}
+/* Long canonical keys and breadcrumb names wrap instead of widening the page at 390 px (pre-existing overflow). */
+.prowess-authoring code, .prowess-authoring h1, .prowess-authoring .gov-crumbs a, .prowess-reference code, .prowess-reference h1, .prowess-reference .gov-crumbs a { overflow-wrap: anywhere; word-break: break-word; }
+.prowess-authoring .gov-crumbs li, .prowess-reference .gov-crumbs { min-width: 0; max-width: 100%; }
+.prowess-rule-preview, .prowess-rule-preview > *, .prowess-rule-preview details { min-width: 0; max-width: 100%; }
