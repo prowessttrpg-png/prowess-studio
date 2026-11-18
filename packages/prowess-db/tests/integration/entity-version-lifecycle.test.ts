@@ -556,6 +556,15 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "getRuleUsage",
         "getStatImpacts",
         "previewRuleCandidate",
+        // M7-WO1 Encounter foundation: encounter preparation only. Five reads and two writes (createEncounter,
+        // commandEncounter) that touch only the encounter tables — never an Entity/Version, Release, Character or play
+        // state (pinned by m7-wo1-static and the encounter integration suite's Character fingerprints).
+        "commandEncounter",
+        "createEncounter",
+        "getEncounter",
+        "listEncounterCandidates",
+        "listEncounterEvents",
+        "listEncounters",
       ].sort(),
     );
 

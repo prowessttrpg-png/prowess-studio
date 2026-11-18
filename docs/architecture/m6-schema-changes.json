@@ -78,5 +78,16 @@
       "ContentPackSourceLocation",
       "ContentPackAsset"
     ]
+  },
+  "M7-WO1": {
+    "migrations": [
+      "20261118010000_m7_wo1_encounter_foundation"
+    ],
+    "models": [
+      "Encounter",
+      "EncounterSide",
+      "EncounterParticipant",
+      "EncounterEvent"
+    ]
   }
 }

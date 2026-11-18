@@ -177,6 +177,8 @@ describe("M1 audit — error vocabulary (§17)", () => {
         "COMPENDIUM_AUTHORING_ERROR_CODES",
         "COMPENDIUM_REFERENCE_ERROR_CODES",
         "CHARACTER_ERROR_CODES",
+        // M7-WO1: the encounter domain (mapped in src/api/errors.ts; pinned by m7-wo1-static).
+        "ENCOUNTER_ERROR_CODES",
       ].sort(),
     );
   });
