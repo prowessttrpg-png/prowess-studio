@@ -197,7 +197,7 @@ describe("M1 audit — error vocabulary (§17)", () => {
   });
 
   const CONTROLLED_UNIONS =
-    "Entity|EntityVersion|EntityAlias|KeywordCategory|Keyword|KeywordAssignment|Relationship|SourceDocument|SourceReference|ImportBatch|ImportMatch|ImportDecision|ImportReview|RulesetResolution|CompendiumAuthoring|CompendiumReference|Character".split("|").map((n) => `${n}ErrorCode`).join("|");
+    "Entity|EntityVersion|EntityAlias|KeywordCategory|Keyword|KeywordAssignment|Relationship|SourceDocument|SourceReference|ImportBatch|ImportMatch|ImportDecision|ImportReview|RulesetResolution|CompendiumAuthoring|CompendiumReference|Character|Encounter".split("|").map((n) => `${n}ErrorCode`).join("|");
 
   it("every DomainError thrown in @prowess/db uses a controlled constant (or a parameter typed with a controlled union) — never a raw string", () => {
     const files = walk(path.join(ROOT, "packages", "prowess-db", "src"), isSource);

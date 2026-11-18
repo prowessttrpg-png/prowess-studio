@@ -208,3 +208,19 @@ access, so the owner pushes the branch and opens the PR with the commands in `RE
 the Windows jobs and the Prisma migrate / drift job; none of them is claimed here.
 
 Stop point: nothing is merged and no M7 work has begun.
+
+## 10. Reconciliation — 18 November 2026 (added by M7-WO1; the sections above are the historical record)
+
+The text above describes the local candidate as it stood before publication; it is kept unchanged. Since then:
+
+- The branch was published and merged as PR #77. The merge commit on `main` is
+  `4714d085073b8452bf36d8005978f4d5127212c7` (tree `fa1ea3512bdfe89ad2eb358ef5726df58c263320`, the same tree as the
+  reviewed candidate `96d892a`).
+- Merged-main CI run #283 (`44237969975`) on that commit concluded **Success**, with 18 checks, including Tier 2, the
+  Windows installer build and installed Windows verification.
+- The "Publication blocked" status, C22 "Blocked" and the "pending hosted CI" rows above are therefore historical. They
+  were true for the local checkpoint and are superseded by this merge and CI result.
+- **Still open:**
+  - the Mage Art decisions D1–D3 (§7);
+  - the deferred DIST-WO1 standard-user Windows 11 manual lifecycle check, which a green Windows CI run does not
+    replace.

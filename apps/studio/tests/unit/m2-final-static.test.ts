@@ -157,6 +157,9 @@ describe("§50 public service surface", () => {
         // M6-WO8 additive Character-owned Maneuver operations use the SAME kind-checked CAS lifecycle repository.
         // Only a DRAFT or explicitly started rebuild draft can be saved; finalized history and Canon stay immutable.
         "createCharacterSignatureManeuver", "updateCharacterSignatureManeuverDraft",
+        // M7-WO1 Encounter foundation (pinned by m7-wo1-static): one creation in the encounter's own tables; roster and
+        // lifecycle changes are the named command `commandEncounter`. Neither touches an Entity, Release or Character.
+        "createEncounter",
       ].sort(),
     );
   });

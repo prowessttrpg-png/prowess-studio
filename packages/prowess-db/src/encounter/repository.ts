@@ -1,4 +1,5 @@
 import { prisma } from "../client.js";
+import { selectPlayRuntime } from "../character/play-repository.js";
 
 /**
  * Encounter persistence (M7-WO1) — the only module that reads or writes `encounters`, `encounter_sides`,
@@ -90,10 +91,13 @@ export async function selectCharacterCandidates(search: string | null, take: num
     select: { ...CHARACTER_SELECT, rulesetRelease: { select: RELEASE_SELECT } },
   });
 }
-/** The stored standalone play runtimes of these Characters (read-only; WO10 is their only writer). */
+/**
+ * The stored standalone play runtimes of these Characters, read through the M6-WO10 play repository — the only module
+ * that touches the play tables (W10-I155). Read-only.
+ */
 export async function selectPlayRuntimes(characterIds: readonly string[]) {
-  if (characterIds.length === 0) return [];
-  return prisma.characterPlayRuntime.findMany({ where: { characterId: { in: [...characterIds] } }, select: { characterId: true, rulesetReleaseId: true, state: true, lockVersion: true } });
+  const rows = await Promise.all(characterIds.map(async (characterId) => ({ characterId, runtime: await selectPlayRuntime(characterId) })));
+  return rows.flatMap(({ characterId, runtime }) => (runtime === null ? [] : [{ characterId, rulesetReleaseId: runtime.rulesetReleaseId, state: runtime.state, lockVersion: runtime.lockVersion }]));
 }
 
 // ---- writes ------------------------------------------------------------------------------------------------------------
