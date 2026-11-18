@@ -173,7 +173,33 @@ Also still open: the guided Formula lives in `@prowess/db` (using `validateFormu
 
 ## 8. Verification (local, on the final commit)
 
-{{VERIFICATION}}
+Run on the final branch commit in this environment (Linux, Node 22.23.4, PostgreSQL 16, production build).
+
+| Check | Result |
+| --- | --- |
+| `pnpm lint`, `pnpm typecheck`, `scripts/check-architecture.mjs` | pass |
+| `@prowess/game` unit | 57 files / 1837 pass (includes `pre-m7-wo1-mage-art`, 16) |
+| `@prowess/rules` unit | 659 pass (M4 unchanged) |
+| `@prowess/model` / `@prowess/import` / `@prowess/ui` unit | 513 / 128 / 21 pass |
+| Studio unit | 113 files / 3798 pass |
+| `@prowess/db` unit | 24 files / 179 pass |
+| `@prowess/db` integration, CI-equivalent (2 shards, each on a freshly migrated disposable database) | shard 1: 32 files / 302 pass; shard 2: 32 files / 342 pass (644 total, including `m6-wo11-library` and the six isolation-fixed M1 suites) |
+| Studio integration | 40 files / 242 pass |
+| Playwright, full suite against the production build | 96 / 96 pass (15.8 min), including S01–S06 and G01–G02 |
+| PRE-M7-WO1 negative controls | 13 / 13 caught and restored byte-for-byte |
+| Gate inventory | consistent: 9 suites, 46 gates, 736 controls, 20 checks |
+| Strength → Armor transfer, restart and restore proof | pass (44 s): receiver R1 Armor 2, R2 Armor 0; unchanged after a new process and after a restore into an independent database |
+| `prisma validate` | pass |
+| `prisma migrate deploy` / `migrate diff` (drift) | **Not runnable here — environment.** Both need the native schema engine, which Prisma downloads from `binaries.prisma.sh`; the egress policy refuses it with 403 here and on the linked computer. The CLI's bundled WebAssembly schema engine is not used by these commands in the `classic` engine mode this project configures. What was verified instead: the branch changes nothing under `packages/prowess-db/prisma` (`git diff 16ee5c6 -- packages/prowess-db/prisma` is empty, so it matches the schema and migration chain that passed hosted drift on `main`); all 30 migrations were applied as SQL to every disposable database used above, and the migration-compatibility and schema suites in the DB integration run pass. The hosted `db-api` job remains the authority. |
+| Hosted Tier 2, Windows installer and installed checks | **pending** — run only after the owner pushes |
+
+Two results needed investigation:
+
+- **`entity-keyword.test.ts`** (F12): a pre-existing isolation defect, reproduced on the baseline; fixed.
+- **`m6-wo11-library` L01 in a single combined run** (after the browser and Studio integration suites had used the same
+  database): it asserts that a global `"_"` search returns only its own Character, so earlier suites' Characters break
+  it. The unchanged baseline fails identically on the same database. CI runs this suite on a fresh database, and so
+  does the CI-equivalent run above, where it passes. Not a regression; recorded as an order dependence, not changed.
 
 ## 9. Publication
 
