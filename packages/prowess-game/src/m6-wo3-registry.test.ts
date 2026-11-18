@@ -27,6 +27,7 @@ describe("M6-WO3 registry characterization (§10, §84)", () => {
       if (kind === "ANCESTRY" || kind === "SKILL") continue;
       // Activated by a LATER Work Order and characterized by its own registry test (M6-WO6: m6-wo6-registry.test.ts).
       if (kind === "WEAPON" || kind === "EQUIPMENT_TRAIT") continue;
+      if (kind === "MAGE_ART") continue; // Activated by a LATER Work Order (PRE-M7-WO1: pre-m7-wo1-mage-art.test.ts).
       expect(JSON.stringify(current[kind]), kind).toBe(JSON.stringify(spec));
     }
   });

@@ -115,7 +115,7 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
               <option value="">Choose…</option>
               {options.map((o) => (
                 <option key={o} value={o}>
-                  {o}
+                  {formatEnumLabel(o)}
                 </option>
               ))}
             </select>
@@ -360,7 +360,7 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
         </LabeledControl>
       );
     case "text":
-      return <LabeledControl field={field} issues={issues}>{(p) => <textarea {...p} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(e.target.value)} />}</LabeledControl>;
+      return <LabeledControl field={field} issues={issues}>{(p) => <textarea {...p} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(field.nullable === true && e.target.value === "" ? null : e.target.value)} />}</LabeledControl>;
     case "textList":
       return (
         <Shell field={field} issues={issues} composite>

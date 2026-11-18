@@ -245,9 +245,11 @@
       "allowedEntityTypes": [
         "GENERIC_RULE"
       ],
-      "supportedSchemaVersions": [],
-      "authoringSchemaVersion": null,
-      "authorable": false
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
     },
     {
       "definitionKind": "MANEUVER_CONDITION",
@@ -871,6 +873,29 @@
     ],
     "movementFormulaSourceKinds": [
       "MOVEMENT_DISTANCE"
+    ],
+    "rollFormulaSourceKinds": [
+      "STAT",
+      "CHOSEN_STAT",
+      "CHARACTER",
+      "CHARACTER_DIE_FACES",
+      "DERIVED",
+      "NATURAL",
+      "SKILL_RANK_BONUS",
+      "EXPLICIT_BONUSES",
+      "CREATURE_SIZE_BASE_MOVEMENT"
+    ],
+    "initiativeFormulaSourceKinds": [
+      "NATURAL",
+      "STAT",
+      "EXPLICIT_BONUSES"
+    ],
+    "movementGrantSourceKinds": [
+      "DERIVED"
+    ],
+    "mageArtActiveEffectWindows": [
+      "WHILE_MAINTAINED",
+      "WHILE_CASTING"
     ],
     "actionTimings": [
       "OWN_TURN",

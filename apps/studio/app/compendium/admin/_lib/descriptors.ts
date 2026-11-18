@@ -57,6 +57,10 @@ export type VocabularyName =
   | "terrainKinds"
   | "weaknessSeverities"
   | "movementFormulaSourceKinds"
+  | "rollFormulaSourceKinds"
+  | "initiativeFormulaSourceKinds"
+  | "movementGrantSourceKinds"
+  | "mageArtActiveEffectWindows"
   | "actionTimings"
   | "actionCostModels"
   | "variableCostDeterminers"
@@ -115,7 +119,7 @@ export type FieldDescriptor =
   | (FieldBase & { readonly input: "advancementLevels" })
   // M6-WO6 Weapon / Attack / Equipment Trait inputs (structured, never raw JSON).
   | (FieldBase & { readonly input: "nullableSelect"; readonly vocabulary: VocabularyName })
-  | (FieldBase & { readonly input: "text" })
+  | (FieldBase & { readonly input: "text"; readonly nullable?: boolean })
   | (FieldBase & { readonly input: "textList" })
   | (FieldBase & { readonly input: "traitUses"; readonly refKind: string })
   | (FieldBase & { readonly input: "traitUse"; readonly refKind: string })
@@ -488,7 +492,7 @@ const ACTION_POINT_COST: FieldDescriptor = {
 };
 const ROLL_SHAPE: readonly FieldDescriptor[] = [
   { key: "naturalSelection", label: "Natural result by roll mode", group: "", input: "byVocabulary", vocabulary: "rollModes", required: true, fields: [ln("expression", "Selection", "Uses r1 and r2, for example max(r1, r2).")], help: "How the natural result is read from the dice for each roll mode." },
-  { key: "total", label: "Total", group: "", input: "coreFormula", sources: "formulaSourceKinds", required: true },
+  { key: "total", label: "Total", group: "", input: "coreFormula", sources: "rollFormulaSourceKinds", required: true },
   { key: "bonusTarget", label: "Explicit bonuses apply to", group: "", input: "nullableSelect", vocabulary: "bonusTargets", required: false },
   { key: "comparison", label: "Compared with", group: "", input: "group", required: true, fields: [ln("operator", "Operator"), tok("against", "Against", "The difficulty the total is compared with.")] },
   { key: "critical", label: "Critical rule", group: "", input: "group", nullable: true, required: false, fields: [tok("threat", "Threat"), tok("hit", "Hit"), tok("damage", "Damage")] },
@@ -504,7 +508,7 @@ export const REMAINING_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescrip
       { key: "timing", label: "When", group: "Identity", input: "select", vocabulary: "actionTimings", required: true },
       ACTION_POINT_COST,
       { key: "otherCosts", label: "Other costs", group: "Cost", input: "list", itemLabel: "Cost", required: false, item: [tok("costKey", "Cost"), sel("policy", "Paid as", "paymentPolicies"), n("amount", "Amount")] },
-      { key: "movementGrant", label: "Movement granted", group: "Movement", input: "group", nullable: true, required: false, fields: [{ key: "formula", label: "Distance", group: "", input: "coreFormula", sources: "formulaSourceKinds", required: true }] },
+      { key: "movementGrant", label: "Movement granted", group: "Movement", input: "group", nullable: true, required: false, fields: [{ key: "formula", label: "Distance", group: "", input: "coreFormula", sources: "movementGrantSourceKinds", required: true }] },
       { ...flag("requiresTrigger", "Requires a trigger"), group: "Rules" },
       { ...flag("costOverridableByExplicitRule", "An explicit rule may change its cost"), group: "Rules" },
       { key: "rules", label: "Rule notes", group: "Rules", input: "authoredData", required: true },
@@ -567,6 +571,31 @@ export const REMAINING_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescrip
       { key: "source", label: "Source", group: "Source", input: "source", required: true },
     ],
   },
+  // PRE-M7-WO1: MAGE_ART v1 — authoring and reference only (nothing executes a Mage Art; the Character card stays unavailable).
+  MAGE_ART: {
+    purpose: "A Mage Art: one fixed discipline (never built from Spell components). Records its activation and per-turn maintenance costs, when it counts as an Active Effect, and any modes. What the Art does is written in the description and each mode's rules text — reference only; it is not executed or priced for play.",
+    fields: [
+      tok("artKey", "Art key", "A unique UPPER_SNAKE name, e.g. BARRIER."),
+      { key: "activation", label: "Activation cost", group: "Costs", input: "group", required: true, fields: [n("ap", "AP amount"), n("mp", "MP amount")], help: "AP and MP spent to activate the Art." },
+      {
+        key: "maintenance", label: "Maintenance (each turn)", group: "Costs", input: "group", required: true,
+        fields: [n("ap", "AP amount"), n("mp", "MP amount"), { key: "special", label: "Special cost (optional)", group: "", input: "text", nullable: true, required: false, help: "A maintenance cost that is not AP or MP, exactly as the rules state it. Leave empty when there is none." }],
+        help: "Paid at the start of each of the user's turns; the Art ends if it is not paid.",
+      },
+      { key: "activeEffect", label: "Counts as an Active Effect", group: "Costs", input: "group", required: true, fields: [sel("counts", "When", "mageArtActiveEffectWindows")] },
+      {
+        key: "modes", label: "Modes", group: "Modes", input: "list", itemLabel: "Mode", required: false, help: "Leave empty when the Art has no modes. A mode with no own costs uses the Art's costs.",
+        item: [
+          tok("modeKey", "Mode key"),
+          ln("name", "Name"),
+          { key: "activation", label: "Own activation cost", group: "", input: "group", nullable: true, required: false, fields: [n("ap", "AP amount"), n("mp", "MP amount")] },
+          { key: "maintenance", label: "Own maintenance", group: "", input: "group", nullable: true, required: false, fields: [n("ap", "AP amount"), n("mp", "MP amount"), { key: "special", label: "Special cost (optional)", group: "", input: "text", nullable: true, required: false }] },
+          { key: "rulesText", label: "Rules text", group: "", input: "text", required: true },
+        ],
+      },
+      SOURCE,
+    ],
+  },
   AFFINITY_PROGRESSION: {
     purpose: "When Characters gain or improve Affinities: for each Level, whether the step is required or a choice, and its options.",
     fields: [
@@ -599,7 +628,7 @@ export const REMAINING_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescrip
           ],
           INITIATIVE: [
             ROLL_SHAPE[0] as FieldDescriptor,
-            ROLL_SHAPE[1] as FieldDescriptor,
+            { key: "total", label: "Total", group: "", input: "coreFormula", sources: "initiativeFormulaSourceKinds", required: true },
             ROLL_SHAPE[2] as FieldDescriptor,
             { key: "tiebreak", label: "Tie-breaks in order", group: "", input: "list", itemLabel: "Tie-break", required: true, item: [{ key: "", label: "Tie-break", group: "", input: "variant", discriminator: "kind", vocabulary: "initiativeTiebreakKinds", required: true, variants: { HIGHEST_STAT: [sel("stat", "Stat", "prowessStats")], REROLL: [] } }] },
             { key: "source", label: "Source", group: "", input: "source", required: true },
@@ -745,7 +774,7 @@ export function initialFieldValue(field: FieldDescriptor): unknown {
     case "traitContract":
       return null;
     case "text":
-      return "";
+      return field.nullable ? null : "";
     case "textList":
     case "traitUses":
     case "attackRefs":

@@ -22,8 +22,10 @@ describe("M6-WO9 registry characterization (Phase B, decision C1)", () => {
   });
 
   it("every pre-Phase-B kind is byte-for-byte unchanged — ACTION included, MAGE_ART still reserved", () => {
-    for (const [kind, spec] of Object.entries(baseline.kinds)) expect(JSON.stringify(current[kind]), kind).toBe(JSON.stringify(spec));
-    expect(current.MAGE_ART?.schemaVersions).toEqual([]);
+    // MAGE_ART was reserved at this checkpoint; a LATER Work Order (PRE-M7-WO1) changes ONLY its schemaVersions [] → [1].
+    expect(baseline.kinds.MAGE_ART?.schemaVersions).toEqual([]);
+    for (const [kind, spec] of Object.entries(baseline.kinds)) if (kind !== "MAGE_ART") expect(JSON.stringify(current[kind]), kind).toBe(JSON.stringify(spec));
+    expect(current.MAGE_ART).toEqual({ ...baseline.kinds.MAGE_ART, schemaVersions: [1] });
   });
 
   it("the only new kind is ACTION_IMPROVEMENT: ACTION_ECONOMY family, no shared contract, GENERIC_RULE storage, v1", () => {

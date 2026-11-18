@@ -108,8 +108,8 @@ export const COMPENDIUM_SECTIONS: readonly CompendiumSection[] = Object.freeze([
   section({
     key: "magic-abilities",
     title: "Magic & Abilities",
-    summary: "Affinities, ability construction, and the Spell components a Signature Spell is built from.",
-    role: "EXECUTABLE",
+    summary: "Affinities, ability construction, reusable Spells and the components they are built from, and Mage Arts.",
+    role: "MIXED", // PRE-M7-WO1: Mage Arts are reference content (not executed)
     kinds: [
       "AFFINITY",
       "AFFINITY_RANK_RULE",
@@ -123,9 +123,11 @@ export const COMPENDIUM_SECTIONS: readonly CompendiumSection[] = Object.freeze([
       "SPELL_TRAIT",
       "SPELL_CASTING_CONDITION",
       "SPELL_DURATION",
+      // PRE-M7-WO1: MAGE_ART v1 (authoring and reference; not executable).
+      "MAGE_ART",
     ],
     alsoShows: [],
-    reservedKinds: ["MAGE_ART"],
+    reservedKinds: [],
     genericEntityTypes: ["SPELL_EFFECT", "SPELL_TRAIT", "TARGETING"],
   }),
   section({

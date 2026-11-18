@@ -36,8 +36,11 @@ describe("M6-WO2 presentation descriptors (M6-I015)", () => {
     // M6-WO3 gives ANCESTRY, SKILL and CHARACTER_CREATION_RULE dedicated presentation (pinned by m6-wo3 tests).
     const dedicated = new Set(["AFFINITY", "ANCESTRY", "SKILL", "CHARACTER_CREATION_RULE", "CHARACTER_ADVANCEMENT_RULE", "WEAPON", "ATTACK", "EQUIPMENT_TRAIT", "STAT", "DERIVED_STAT", "RANK_LADDER", "SKILL_RANK", "CHARACTER_DIE_PROGRESSION", "AFFINITY_WEAKNESS_SEVERITY", "TERRAIN", "CREATURE_SIZE"]); // + M6-WO4, M6-WO6, PRE-M7-WO1 (pinned by pre-m7-wo1-descriptors)
     const generic = CATALOG.kinds.filter((k) => k.sharedContract === null && !dedicated.has(k.definitionKind) && k.supportedSchemaVersions.length > 0);
-    expect(generic.length).toBeGreaterThan(0);
-    for (const k of generic) expect(presentationDescriptorFor(k, k.supportedSchemaVersions[0]!), k.definitionKind).toBeNull();
+    // PRE-M7-WO1 guides every remaining supported kind, so each now has dedicated presentation (pre-m7-wo1-descriptors);
+    // a kind or version without a descriptor still presents generically (null).
+    for (const k of generic) expect(presentationDescriptorFor(k, k.supportedSchemaVersions[0]!), k.definitionKind).not.toBeNull();
+    expect(presentationDescriptorFor({ definitionKind: "ARMOR", sharedContract: null, supportedSchemaVersions: [1] }, 1)).toBeNull();
+    expect(presentationDescriptorFor(affinity, 99)).toBeNull();
   });
 
   it("an unsupported or missing schema version is never given a dedicated presenter (historical content is not migrated on view)", () => {

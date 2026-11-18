@@ -833,6 +833,9 @@ export { actionCostPhrase, attackCheckSentences, renderAttackRules, renderGenera
 export { attackCardKey, attackRulesOf, projectAttackCard, projectEquipmentCards, projectWeaponCard, weaponCardKey, type CharacterCardContext } from "./card/equipment.js";
 export { buildActionDirectory, generalActionCardKey, projectGeneralActionCard, type ActionDirectory } from "./card/action.js";
 export { MAGE_ART_UNAVAILABLE_CODE, mageArtDomainOf, projectMageArtCard } from "./card/mage-art.js";
+// PRE-M7-WO1: MAGE_ART payload version 1 (authoring and reference only — not executable).
+export { MAGE_ART_ACTIVE_EFFECT_WINDOWS } from "./definition/mage-art-payload.js";
+export type { MageArtActiveEffectWindow, MageArtCost, MageArtMaintenance, MageArtMode, MageArtPayload } from "./definition/mage-art-payload.js";
 export {
   ACTION_IMPROVEMENT_MODIFICATION_KINDS,
   ACTION_IMPROVEMENT_PAYLOAD_KINDS,

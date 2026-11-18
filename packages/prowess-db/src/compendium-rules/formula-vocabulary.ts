@@ -12,3 +12,9 @@ export const FORMULA_SOURCE_KINDS = Object.freeze(["STAT", "CHOSEN_STAT", "CHARA
 export const DERIVED_FORMULA_SOURCE_KINDS = Object.freeze(["STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "EXPLICIT_BONUSES", "CREATURE_SIZE_BASE_MOVEMENT"] as const);
 /** The Character values a `{ kind: "CHARACTER", field }` source names (M5 `CHARACTER_FIELDS`). */
 export const CHARACTER_FIELD_TOKENS = Object.freeze(["LEVEL", "BASE_HP", "BASE_MP"] as const);
+/** The sources a roll procedure's total may read (M5 `VARIABLE_SOURCE_KINDS`). */
+export const ROLL_FORMULA_SOURCE_KINDS = Object.freeze(["STAT", "CHOSEN_STAT", "CHARACTER", "CHARACTER_DIE_FACES", "DERIVED", "NATURAL", "SKILL_RANK_BONUS", "EXPLICIT_BONUSES", "CREATURE_SIZE_BASE_MOVEMENT"] as const);
+/** The sources the Initiative total may read (core-payload readInitiative). */
+export const INITIATIVE_FORMULA_SOURCE_KINDS = Object.freeze(["NATURAL", "STAT", "EXPLICIT_BONUSES"] as const);
+/** The sources an Action's movement grant may read (runtime-payload readAction). */
+export const MOVEMENT_GRANT_SOURCE_KINDS = Object.freeze(["DERIVED"] as const);

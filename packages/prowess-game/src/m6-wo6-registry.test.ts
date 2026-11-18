@@ -24,6 +24,7 @@ describe("M6-WO6 registry characterization (§6–§7)", () => {
   it("every pre-WO6 kind except WEAPON and EQUIPMENT_TRAIT is byte-for-byte unchanged — ARMOR stays reserved", () => {
     for (const [kind, spec] of Object.entries(baseline.kinds)) {
       if (kind === "WEAPON" || kind === "EQUIPMENT_TRAIT") continue;
+      if (kind === "MAGE_ART") continue; // Activated by a LATER Work Order (PRE-M7-WO1: pre-m7-wo1-mage-art.test.ts).
       expect(JSON.stringify(current[kind]), kind).toBe(JSON.stringify(spec));
     }
     expect(current.ARMOR).toEqual({ family: "EQUIPMENT", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [] });

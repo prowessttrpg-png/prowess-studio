@@ -1,5 +1,6 @@
 import {
   ABILITY_COMPONENT_CONTRACTS,
+  MAGE_ART_ACTIVE_EFFECT_WINDOWS,
   ANCESTRY_SKILL_SELECTION_KINDS,
   ANCESTRY_STAT_GRANT_KINDS,
   ATTACK_AREA_SHAPES,
@@ -60,7 +61,7 @@ import {
   VARIABLE_COST_DETERMINERS,
 } from "@prowess/game";
 import { FORMULA_ROUNDING_MODES, RESOURCE_CEILINGS, RESOURCE_KINDS, RESOURCE_OVERFLOW_POLICIES, RESOURCE_REFRESH_TARGETS } from "@prowess/rules";
-import { CHARACTER_FIELD_TOKENS, DERIVED_FORMULA_SOURCE_KINDS, FORMULA_SOURCE_KINDS } from "../compendium-rules/formula-vocabulary.js";
+import { CHARACTER_FIELD_TOKENS, DERIVED_FORMULA_SOURCE_KINDS, FORMULA_SOURCE_KINDS, INITIATIVE_FORMULA_SOURCE_KINDS, MOVEMENT_GRANT_SOURCE_KINDS, ROLL_FORMULA_SOURCE_KINDS } from "../compendium-rules/formula-vocabulary.js";
 
 export { CHARACTER_FIELD_TOKENS, DERIVED_FORMULA_SOURCE_KINDS, FORMULA_SOURCE_KINDS };
 
@@ -159,6 +160,10 @@ export function getAuthoringCatalog(): AuthoringCatalog {
       terrainKinds: [...TERRAIN_KINDS],
       weaknessSeverities: [...AFFINITY_WEAKNESS_SEVERITIES],
       movementFormulaSourceKinds: ["MOVEMENT_DISTANCE"],
+      rollFormulaSourceKinds: [...ROLL_FORMULA_SOURCE_KINDS],
+      initiativeFormulaSourceKinds: [...INITIATIVE_FORMULA_SOURCE_KINDS],
+      movementGrantSourceKinds: [...MOVEMENT_GRANT_SOURCE_KINDS],
+      mageArtActiveEffectWindows: [...MAGE_ART_ACTIVE_EFFECT_WINDOWS],
       // PRE-M7-WO1 guided editors for actions, resources, core procedures, Affinity rules and action improvements.
       actionTimings: [...ACTION_TIMINGS],
       actionCostModels: [...ACTION_COST_MODELS],

@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { COMPENDIUM_SECTIONS, COMPENDIUM_SECTION_KEYS, homeSectionOfKind } from "@prowess/model";
@@ -110,5 +111,29 @@ describe("PRE-M7-WO1 gate — invariants", () => {
       expect(md).toContain(`### ${row.id} — ${row.title}`);
       for (const f of row.guards) expect(existsSync(path.join(ROOT, f)), `${row.id}: ${f}`).toBe(true);
     }
+  });
+});
+
+describe("PRE-M7-WO1 gate — the one approved M5 change (MAGE_ART v1, authoring and reference only)", () => {
+  const G = "packages/prowess-game/src/";
+  const sha = (f: string) => createHash("sha256").update(readFileSync(path.join(ROOT, f))).digest("hex");
+  const entry = (JSON.parse(read("docs/architecture/m6-approved-m5-changes.json")) as Record<string, { changedFiles: Record<string, string>; addedFiles: Record<string, string> }>)["PRE-M7-WO1"]!;
+
+  it("registers exactly the activated kind, its reader, its export and the registry tests that characterize it — at their exact hashes", () => {
+    expect(Object.keys(entry.changedFiles).sort()).toEqual(
+      ["card-phase-b.test.ts", "definition/payload.ts", "index.ts", "m6-wo3-registry.test.ts", "m6-wo4-registry.test.ts", "m6-wo6-registry.test.ts", "m6-wo9-registry.test.ts", "vocabulary/families.ts"].map((f) => G + f),
+    );
+    expect(Object.keys(entry.addedFiles).sort()).toEqual([G + "definition/mage-art-payload.ts", G + "pre-m7-wo1-mage-art.test.ts"]);
+    for (const [f, h] of [...Object.entries(entry.changedFiles), ...Object.entries(entry.addedFiles)]) expect(sha(f), f).toBe(h);
+  });
+
+  it("MAGE_ART is activated for reading only: no compiler, card, pricing or play module reads the payload", () => {
+    expect(read(G + "vocabulary/families.ts")).toContain('MAGE_ART: active("MAGE_ART"),');
+    expect(read(G + "definition/payload.ts")).toContain('else if (kind === "MAGE_ART") payload = readMageArtPayload(value, at, p);');
+    expect(read(G + "compilation/compile.ts")).toContain("MAGE_ART: null,");
+    const readers = walk(G.slice(0, -1)).filter((f) => f.endsWith(".ts") && !f.endsWith(".test.ts") && strip(read(f)).includes("mage-art-payload"));
+    expect(readers.map((f) => f.split(path.sep).join("/")).sort()).toEqual([G + "definition/payload.ts", G + "index.ts"]);
+    expect(homeSectionOfKind("MAGE_ART")?.key).toBe("magic-abilities");
+    expect(COMPENDIUM_SECTIONS.flatMap((s) => s.reservedKinds)).not.toContain("MAGE_ART");
   });
 });

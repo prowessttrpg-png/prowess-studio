@@ -48,19 +48,27 @@ The editor names below are the actual descriptors and components:
 
 - **Shared contract (WO1)** — the `CONTRACT_DESCRIPTORS` of the kind's M5 shared component contract.
 - **WO3 / WO4 / WO6** — the per-kind descriptors added by those Work Orders.
-- **PRE-M7-WO1 guided** — the new descriptors (`CORE_KIND_DESCRIPTORS`, `RUNTIME_KIND_DESCRIPTORS`).
-- **Structured editor** — the generic `AuthoredDataEditor`. It uses typed form controls and exact reference pickers,
-  never a raw JSON box, but it is not field-by-field guided.
+- **PRE-M7-WO1 guided** — the new descriptors (`CORE_KIND_DESCRIPTORS`, `RUNTIME_KIND_DESCRIPTORS`,
+  `REMAINING_KIND_DESCRIPTORS`, `AFFINITY_V2`, `ABILITY_DEFINITION_DESCRIPTORS`). Recursive controls: nested groups, lists
+  of records, shape-by-discriminator variants (switching a shape asks before discarding data), several values of one
+  vocabulary, one exact reference, per-vocabulary records and optional engine policies that stay absent until set.
+- **Advanced fallback** — exceptional nested data (rule notes, optional engine policies, a Spell's advanced effect chain)
+  is edited by the structured `AuthoredDataEditor`: typed controls and exact reference pickers, never a raw JSON box.
+
+No authorable kind or schema version is left on the generic structured editor (`pre-m7-wo1-descriptors`, "no authorable
+kind / schema version is left on the generic structured editor"). Every key of every shipped payload is described by its
+kind's guided form, recursively (same test), and rendering a stored payload never rewrites it
+(`pre-m7-wo1-guided-editors-ui`).
 
 | Kind | Home section | Editor | Guided | Tests | Limitations |
 | --- | --- | --- | --- | --- | --- |
-| CORE_RESOLUTION | Gameplay Basics (also Rules & Calculations) | Structured editor | No | m6-wo1 authoring, pre-m7-wo1-descriptors (reviewed list) | Several procedure shapes (roll, mastery, initiative, …) under one kind; a single guided form would not be exact. Its formulas are visible in "What this affects". |
+| CORE_RESOLUTION | Gameplay Basics (also Rules & Calculations) | PRE-M7-WO1 guided: procedure variant (roll shape / Stat Mastery / Initiative), natural selection per roll mode, total Formula with the roll / Initiative input lists, comparison, optional critical, tiebreak steps | Yes | pre-m7-wo1-descriptors (every shipped key covered), -guided-editors-ui (render never rewrites; lossless edit) | — |
 | CHARACTER_DIE_PROGRESSION | Gameplay Basics | PRE-M7-WO1 guided (Levels list, dice table, die-by-Level table) | Yes | pre-m7-wo1-descriptors | — |
 | STAT | Stats | PRE-M7-WO1 guided | Yes | pre-m7-wo1-descriptors, pre-m7-wo1-rule-control | — |
 | DERIVED_STAT | Rules & Calculations | PRE-M7-WO1 guided Formula editor (contributions / inputs / advanced) | Yes | pre-m7-wo1-formula-guide, -rule-control, -strength-armor e2e | An expression that is not a sum of simple contributions is edited as an advanced expression (shown exactly as written). |
-| ACTION | Combat | Structured editor | No | reviewed list | Nested cost and movement-grant records; candidate for a later guided form. |
-| ACTION_IMPROVEMENT | Combat | Structured editor | No | reviewed list | Typed prerequisite and modification unions. |
-| RESOURCE | Combat | Structured editor | No | reviewed list | Many nested policy records. |
+| ACTION | Combat | PRE-M7-WO1 guided: timing, AP cost variant (fixed / range / minimum / variable / none), other costs, payment, movement grant Formula | Yes | pre-m7-wo1-descriptors (every shipped key covered), -guided-editors-ui (render never rewrites; lossless edit) | — |
+| ACTION_IMPROVEMENT | Combat | PRE-M7-WO1 guided: exact ACTION reference, prerequisite and modification variants; the optional condition is advanced data | Yes | pre-m7-wo1-descriptors (every shipped key covered), -guided-editors-ui (render never rewrites; lossless edit) | — |
+| RESOURCE | Combat | PRE-M7-WO1 guided: kind, maximum, refresh / expiry targets, spending, ceiling, overflow, usage restrictions | Yes | pre-m7-wo1-descriptors (every shipped key covered), -guided-editors-ui (render never rewrites; lossless edit) | — |
 | TERRAIN | Combat | PRE-M7-WO1 guided (Formula reads the distance moved) | Yes | pre-m7-wo1-descriptors | — |
 | CREATURE_SIZE | Combat | PRE-M7-WO1 guided | Yes | pre-m7-wo1-descriptors | Rule notes stay structured data. |
 | ANCESTRY, CHARACTER_CREATION_RULE, CHARACTER_ADVANCEMENT_RULE | Character Creation & Progression | WO3 / WO4 descriptors | Yes | m6-wo3, m6-wo4 | — |
@@ -68,22 +76,22 @@ The editor names below are the actual descriptors and components:
 | SKILL | Skills | WO3 descriptor | Yes | m6-wo3 | — |
 | SKILL_RANK | Skills | PRE-M7-WO1 guided (rank bonus table) | Yes | pre-m7-wo1-descriptors | — |
 | AFFINITY v1 | Magic & Abilities | WO1 descriptor | Yes | m6-wo1 | — |
-| AFFINITY v2 | Magic & Abilities | Structured editor (WO2 read-only presentation) | Partial | m6-wo2 | Strengths and Weaknesses are lists of nested records. |
-| AFFINITY_RANK_RULE, AFFINITY_PROGRESSION | Magic & Abilities | Structured editor | No | reviewed list | Nested authority and option unions. |
+| AFFINITY v2 | Magic & Abilities | PRE-M7-WO1 guided (identity, themes, Strengths and Weaknesses lists) | Yes | pre-m7-wo1-descriptors (every shipped key covered), -guided-editors-ui (render never rewrites; lossless edit) | — |
+| AFFINITY_RANK_RULE, AFFINITY_PROGRESSION | Magic & Abilities | PRE-M7-WO1 guided: rank rows and authority; per-Level steps with option variants (choose primary / rank up / gain) | Yes | pre-m7-wo1-descriptors (every shipped key covered), -guided-editors-ui (render never rewrites; lossless edit) | — |
 | AFFINITY_WEAKNESS_SEVERITY | Magic & Abilities | PRE-M7-WO1 guided (severity table) | Yes | pre-m7-wo1-descriptors | — |
-| ABILITY_CONSTRUCTION_RULE | Magic & Abilities | Structured editor | No | reviewed list | Holds named formulas; its own Formula grammar differs from DERIVED_STAT (variables are names, not sources). |
-| SPELL_DEFINITION | Magic & Abilities | Structured editor | No | reviewed list | Whole-ability composition. See §7. |
+| ABILITY_CONSTRUCTION_RULE | Magic & Abilities | PRE-M7-WO1 guided: named formulas, Spell / Maneuver / Signature groups, cost rows; the four optional engine policies are advanced data and stay absent until set | Yes | pre-m7-wo1-descriptors (every shipped key covered), -guided-editors-ui (render never rewrites; lossless edit) | — |
+| SPELL_DEFINITION | Magic & Abilities | PRE-M7-WO1 `AbilityDefinitionEditor`: name, description, Affinity, authority, Keywords; component slots (targeting, effects, traits with scope, conditions, duration) pinned to exact revisions with their declared parameters; construction options; additional Affinity traits; advanced effect chain; "Create a new …" child-Draft round trip | Yes | pre-m7-wo1-descriptors, -guided-editors-ui | Legality (costs, limits) is the server's M5 validation; the editor never prices. |
 | SPELL_TARGETING / EFFECT / TRAIT / DURATION / CASTING_CONDITION, SHARED_TRAIT | Magic & Abilities (Conditions also cross-lists durations and conditions) | Shared contract (WO1) | Yes | m6-wo1 | — |
-| MANEUVER_DEFINITION | Maneuvers | Structured editor | No | reviewed list | Whole-ability composition. See §7. |
+| MANEUVER_DEFINITION | Maneuvers | PRE-M7-WO1 `AbilityDefinitionEditor`: as Spell, plus Foundation actions, Effect-to-action attachments and Powerful Blow | Yes | same | same |
 | MANEUVER_FOUNDATION / TARGETING / EFFECT / TRAIT / CONDITION / DURATION | Maneuvers | Shared contract (WO1) | Yes | m6-wo1 | — |
 | WEAPON, ATTACK, EQUIPMENT_TRAIT | Equipment | WO6 descriptors | Yes | m6-wo6 | — |
-| MAGE_ART | Magic & Abilities (reserved) | none | — | pre-m7-wo1-static (reserved = unsupported) | No M5 payload contract exists. See §7. |
-| ARMOR | Equipment (reserved) | none | — | same | No M5 payload contract. |
+| MAGE_ART v1 | Magic & Abilities | PRE-M7-WO1 guided: Art key, activation AP / MP, per-turn maintenance AP / MP and optional special cost text, Active Effect window, modes (own costs optional, rules text) | Yes | pre-m7-wo1-mage-art (game), -static, -descriptors, -guided-editors-ui | Authoring and reference only: nothing executes, prices or plays a Mage Art; the Character card stays unavailable. See §7. |
+| ARMOR | Equipment (reserved) | none | — | pre-m7-wo1-static (reserved = unsupported) | No M5 payload contract. |
 | STATUS_CONDITION, SUMMON_TYPE, SUMMON_TRAIT, SUMMON_ACTION_MODEL, MISSION_RULE | Conditions & Ongoing Effects (reserved) | none | — | same | No M5 payload contract. |
 | Keyword definitions | Keywords & References | Existing Keyword API (no screen) | — | m1 keyword suites | Keywords are shared across Releases and listed per Release. There is still no Keyword editing screen. |
 
-The kinds still on the structured editor are pinned as an explicit list by `pre-m7-wo1-descriptors`, so adding or dropping
-one is always a reviewed change.
+Reusable Spell and Maneuver Definitions are Compendium content. A Character's Signature Spell or Maneuver is a separate,
+personal instance built in the Character builders; the builders and their exact-reference model are unchanged.
 
 ## 3. "What this affects" and editing the owning rule
 
@@ -200,16 +208,47 @@ A new Release therefore needs no cache invalidation, and an existing Character c
 
 ## 7. Decisions recorded, not invented
 
-- **Mage Art.** `MAGE_ART` is a reserved kind with no M5 payload contract. This Work Order shows it as "not yet
-  authorable" and does not invent a contract, an editor or a placeholder. It needs a product decision on its payload
-  before any editor can exist.
-- **Whole-ability Definitions** (`SPELL_DEFINITION`, `MANEUVER_DEFINITION`). These are compositions of exact component
-  references. Two things are left for a later Work Order:
-  - a guided "add a component" flow with a child-Draft round trip (create a missing component as its own Draft, then
-    return and reference its exact revision);
-  - a decision on whether whole authored abilities belong in the Compendium at all, or only in the Character builders.
+- **Scope (owner decision).** Mage Arts, reusable Spell Definitions and reusable Maneuver Definitions belong in the
+  Compendium. They are authored there with descriptions and compatible components. A Character's Signature Spell or
+  Maneuver stays a separate personal instance built in the Character builders, which keep their exact-reference model.
+- **Mage Art — the contract was genuinely missing.** Verified before any change:
+  - registry: `MAGE_ART: reserved("MAGE_ART")`, `schemaVersions: []`;
+  - validator: `readDefinitionPayload` had no `MAGE_ART` branch, so every payload was refused;
+  - card: `card/mage-art.ts` is always UNAVAILABLE and names the reserved kind as the reason;
+  - runtime / compiler: `compile.ts` maps `MAGE_ART: null`; no play operation, pricing or investment reads it;
+  - fixtures: no shipped content has a Mage Art;
+  - rules: the only authoritative structure in the repository is the M5 system map §11 (s1905–s1977). The rulebook text
+    itself is not in the repository (M3-I19).
+- **Mage Art v1 — the smallest compatible contract** (`packages/prowess-game/src/definition/mage-art-payload.ts`,
+  registered as an approved M5 change under `PRE-M7-WO1` in `m6-approved-m5-changes.json`). It records only what §11
+  states for every Art:
 
-  Today they remain on the structured editor, whose reference picker already stores exact identities.
+  ```
+  { artKey: TOKEN,
+    activation:  { ap, mp },                          // listed activation cost
+    maintenance: { ap, mp, special: text | null },    // paid each turn; special = e.g. overload damage, as text
+    activeEffect: { counts: WHILE_MAINTAINED | WHILE_CASTING },   // Contract counts only while casting
+    modes: [ { modeKey, name, activation | null, maintenance | null, rulesText } ],   // e.g. Reinforcement
+    source: { locators: [sNNN…], conflicts: [M5-SC-NNN…] } }
+  ```
+
+  What each Art does (Barrier, Domain, Overdrive, …) is written in the Definition's description and each mode's rules
+  text. Nothing executes, prices or plays it: the compiler still maps it to null and the Character card stays
+  UNAVAILABLE (its reason is now "no Character-facing Mage Art domain exists"). The registry change is reserved `[]` →
+  `[1]` only. The historical registry tests skip it as "activated by a later Work Order", following the WO6 / WO9
+  precedent. The section moves MAGE_ART from reserved to authorable and becomes MIXED (executable rules and reference
+  content).
+- **Mage Art decisions still open for the owner** (defaults applied, all reversible before publication):
+  - D1 cost shape: (a) fixed AP / MP per Art — applied; (b) per-Level cost rows; (c) a cost Formula. §11 mentions
+    "Level-based tables", so (b) or (c) may be needed once the rulebook text is checked.
+  - D2 Art effects: (a) rules text — applied; (b) structured per-Art fields; (c) reuse the Spell Effect components.
+  - D3 play: (a) authoring and reference only, card stays unavailable — applied; (b) also Signature Ability investment
+    and play activation (a later Work Order with its own contract).
+- **Whole-ability Definitions** (`SPELL_DEFINITION`, `MANEUVER_DEFINITION`) are guided by `AbilityDefinitionEditor`.
+  Each component slot holds an exact revision, chosen by kind and revision, with that revision's declared parameters.
+  "Create a new …" stashes the unsaved parent (one use, 24 hours, this browser tab), opens New Definition with the kind
+  preset, and on create returns to the parent with the new exact revision appended to the slot. Nothing is saved
+  automatically.
 - **M4 stays frozen.** Sixteen historical gates pin `@prowess/rules` byte-for-byte. The guided Formula therefore lives in
   `@prowess/db` and reaches the engine only through its public validator. Moving it into the engine would need an
   explicit owner decision to reopen M4.

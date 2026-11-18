@@ -23,7 +23,7 @@ describe("M6-WO4 registry characterization", () => {
 
   it("every pre-WO4 kind is byte-for-byte unchanged (CHARACTER_DIE_PROGRESSION and AFFINITY_PROGRESSION included)", () => {
     // WEAPON / EQUIPMENT_TRAIT are activated by the LATER M6-WO6 and characterized by m6-wo6-registry.test.ts.
-    const later = ["WEAPON", "EQUIPMENT_TRAIT"];
+    const later = ["WEAPON", "EQUIPMENT_TRAIT", "MAGE_ART"]; // MAGE_ART: activated by PRE-M7-WO1 (pre-m7-wo1-mage-art.test.ts).
     for (const [kind, spec] of Object.entries(baseline.kinds)) if (!later.includes(kind)) expect(JSON.stringify(current[kind]), kind).toBe(JSON.stringify(spec));
     expect(Object.keys(baseline.kinds).filter((k) => !(k in current))).toEqual([]);
   });

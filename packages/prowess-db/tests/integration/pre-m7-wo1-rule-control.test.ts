@@ -19,6 +19,7 @@ import {
   validateAuthoringCandidate,
 } from "../../src/index";
 import { CHARACTER_FIELD_TOKENS, DERIVED_FORMULA_SOURCE_KINDS, FORMULA_SOURCE_KINDS } from "../../src/compendium-authoring/catalog";
+import { INITIATIVE_FORMULA_SOURCE_KINDS, MOVEMENT_GRANT_SOURCE_KINDS, ROLL_FORMULA_SOURCE_KINDS } from "../../src/compendium-rules/formula-vocabulary";
 import { assertRunningAgainstTestDatabase } from "../../src/testDatabaseGuard";
 import { getTestDatabaseUrl } from "./env";
 import { cleanupCharacterWorlds, seedCharacterRelease, workedChoices, type CharacterReleaseWorld } from "../fixtures/m6-wo3-character-release";
@@ -79,6 +80,14 @@ describe("PRE-M7-WO1 Stat impacts and rule control", () => {
     for (const field of CHARACTER_FIELD_TOKENS) expect((await derived({ kind: "CHARACTER", field })).status, field).toBe("PASS");
     expect((await derived({ kind: "CHARACTER", field: "NOT_A_FIELD" })).status).toBe("FAIL");
     expect((await derived({ kind: "NOT_A_KIND" })).status).toBe("FAIL");
+    // The per-context source lists the guided editors offer are exactly what each M5 reader accepts.
+    const action = (source: Record<string, unknown>) =>
+      validateAuthoringCandidate({ definitionKind: "ACTION", prowessDefinition: { schemaVersion: 1, systemFamily: "ACTION_ECONOMY", definitionKind: "ACTION", payload: { actionKey: "MOVE", timing: "OWN_TURN", actionPointCost: { model: "FIXED", amount: 1 }, otherCosts: [], movementGrant: { formula: { expression: "x", rounding: "NONE", unit: "ft", variables: [{ variable: "x", source }] } }, requiresTrigger: false, costOverridableByExplicitRule: true, rules: {}, source: { locators: ["s44"], conflicts: [] } } } });
+    for (const kind of FORMULA_SOURCE_KINDS) expect((await action(sample(kind))).status, `movement grant ${kind}`).toBe((MOVEMENT_GRANT_SOURCE_KINDS as readonly string[]).includes(kind) ? "PASS" : "FAIL");
+    const initiative = (source: Record<string, unknown>) =>
+      validateAuthoringCandidate({ definitionKind: "CORE_RESOLUTION", prowessDefinition: { schemaVersion: 1, systemFamily: "CORE", definitionKind: "CORE_RESOLUTION", payload: { procedure: "INITIATIVE", naturalSelection: { NORMAL: { expression: "r1" }, ADVANTAGE: { expression: "max(r1, r2)" }, DISADVANTAGE: { expression: "min(r1, r2)" } }, total: { expression: source.kind === "NATURAL" ? "x" : "natural + x", rounding: "NONE", variables: source.kind === "NATURAL" ? [{ variable: "x", source }] : [{ variable: "natural", source: { kind: "NATURAL" } }, { variable: "x", source }] }, bonusTarget: source.kind === "EXPLICIT_BONUSES" ? "INITIATIVE" : null, tiebreak: [{ kind: "REROLL" }], source: { locators: ["s13"], conflicts: [] } } } });
+    for (const kind of FORMULA_SOURCE_KINDS) expect((await initiative(sample(kind))).status, `initiative ${kind}`).toBe((INITIATIVE_FORMULA_SOURCE_KINDS as readonly string[]).includes(kind) ? "PASS" : "FAIL");
+    expect([...ROLL_FORMULA_SOURCE_KINDS].sort()).toEqual(FORMULA_SOURCE_KINDS.filter((k) => k !== "MOVEMENT_DISTANCE").sort());
   }, TIMEOUT);
 
   it("C06 Strength's impacts are the ACTUAL rules that read STR in this exact Release, direct and indirect", async () => {

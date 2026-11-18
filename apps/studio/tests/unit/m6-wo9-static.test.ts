@@ -188,7 +188,8 @@ describe("M6-WO9 permanent card system contracts", () => {
   });
 
   it("W9-I144 Mage Arts are an unavailable domain: reserved kind, no card, no cost, no evaluation", () => {
-    expect(read(G + "vocabulary/families.ts")).toMatch(/MAGE_ART: reserved\("MAGE_ART"\),/);
+    // PRE-M7-WO1 activates MAGE_ART v1 for authoring and reference only (pre-m7-wo1-static); the card domain stays UNAVAILABLE.
+    expect(read(G + "vocabulary/families.ts")).toMatch(/MAGE_ART: (?:reserved|active)\("MAGE_ART"\),/);
     const mage = read(CARD + "mage-art.ts");
     expect(mage).toContain('availability: "UNAVAILABLE" as const,');
     expect(mage).toContain("costs: { ap: unavailable<number>(MAGE_ART_UNAVAILABLE_CODE, reason), mp: unavailable<number>(MAGE_ART_UNAVAILABLE_CODE, reason), breakdown: [] },");
