@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RulePreviewPanel } from "./RulePreviewPanel";
+import { withChildComponent } from "./AbilityDefinitionEditor";
+import { childCreateHref, readChildRef, stashParent, takeParent } from "../_lib/child-draft";
 import { safeReturnTo } from "../../rulesets/_lib/reference-urls";
 import type { EntityDto, EntityVersionDto, SourceDocumentDto, SourceReferenceDto } from "../../_lib/api-client";
 import {
@@ -120,7 +122,13 @@ export function RevisionWorkspace({ entityId, versionId }: { entityId: string; v
       setDocuments(d);
       const snap = snapshotOf(v);
       setSaved(snap);
-      setForm(snap);
+      // PRE-M7-WO1 child-Draft return: restore this tab's unsaved parent work and add the newly created component.
+      const child = readChildRef(new URLSearchParams(window.location.search).get("childRef"));
+      const stashed = child !== null && v.status === "DRAFT" ? takeParent<Snapshot>(versionId) : null;
+      if (stashed !== null && child !== null && stashed.form.candidate !== null) {
+        setForm({ ...stashed.form, candidate: { ...stashed.form.candidate, payload: withChildComponent(stashed.form.candidate.payload, stashed.slot, child, c.vocabularies.traitScopes ?? []) } });
+        setNotice(`Created ${child.canonicalKey} as its own Draft and added it here. Save this Draft to keep the change.`);
+      } else setForm(snap);
       if (snap.candidate !== null) {
         validateStoredRevision(versionId).then((r) => setValidation({ result: r, forCandidate: JSON.stringify(snap.candidate) }), () => undefined);
       }
@@ -338,7 +346,26 @@ export function RevisionWorkspace({ entityId, versionId }: { entityId: string; v
       <section id="rev-definition" className="gov-panel" aria-labelledby="rev-definition-h">
         <h2 id="rev-definition-h">Prowess Definition</h2>
         {form.candidate !== null && kind !== null ? (
-          <DefinitionEditor kind={kind} catalog={catalog} candidate={form.candidate} onChange={(candidate) => set({ candidate })} issues={staleValidation ? [] : (validation?.result.issues ?? [])} readOnly={!editable} />
+          <DefinitionEditor
+            kind={kind}
+            catalog={catalog}
+            candidate={form.candidate}
+            onChange={(candidate) => set({ candidate })}
+            issues={staleValidation ? [] : (validation?.result.issues ?? [])}
+            readOnly={!editable}
+            onCreateChild={
+              editable
+                ? (childKind, slot) => {
+                    const here = `${window.location.pathname}${window.location.search.replace(/[?&]childRef=[^&]*/g, "")}`;
+                    if (!stashParent(versionId, form, slot)) {
+                      setError({ code: "CHILD_DRAFT.STORAGE_UNAVAILABLE", message: "This browser cannot keep your unsaved changes during the round trip. Save this Draft first, then create the component." });
+                      return;
+                    }
+                    router.push(childCreateHref(childKind, slot, here));
+                  }
+                : undefined
+            }
+          />
         ) : form.candidate !== null ? (
           <p className="gov-bad">This revision declares Definition kind {form.candidate.definitionKind}, which is not in the M5 catalog. It cannot be edited here.</p>
         ) : (

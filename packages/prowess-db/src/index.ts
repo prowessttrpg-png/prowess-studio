@@ -301,29 +301,7 @@ export type { AbilityCardEntry, CardSlot, CharacterActionDirectoryView, Characte
 // PAS-10 M6-WO10 Character Play Workspace.
 export { commitCharacterPlayOperation, getCharacterPlayWorkspace, listCharacterPlayEvents, previewCharacterPlayOperation } from "./character/index.js";
 export type { CharacterPlayWorkspaceView, PlayCommitResult, PlayEventView, PlayVersions } from "./character/index.js";
-// PRE-M7-WO1: Compendium rule control — rule dependency graph, Stat impacts and side-effect-free Draft previews.
-export {
-  buildRuleGraph,
-  dependenciesOf,
-  dependentsOf,
-  derivedCycle,
-  evaluateDerivedForExample,
-  getReleaseRuleGraph,
-  getRuleUsage,
-  getStatImpacts,
-  previewRuleCandidate,
-  type Impact,
-  type PreviewExample,
-  type PreviewOutcome,
-  type RuleCandidatePreview,
-  type RuleDefinitionSummary,
-  type RuleEdge,
-  type RuleGraph,
-  type RuleNode,
-  type RuleNodeKey,
-  type RuleUsage,
-  type StatImpactRow,
-  type StatImpacts,
-  formulaGuide,
-  type FormulaDescription,
-} from "./compendium-rules/index.js";
+// PRE-M7-WO1: Compendium rule control — four read-only / side-effect-free operations: what a Stat affects, where a rule
+// is used, the Draft preview (published Release vs never-persisted candidate) and the pure guided-Formula operation.
+export { formulaGuide, getRuleUsage, getStatImpacts, previewRuleCandidate } from "./compendium-rules/index.js";
+export type { FormulaDescription, PreviewExample, PreviewOutcome, RuleCandidatePreview, RuleDefinitionSummary, RuleUsage, StatImpactRow, StatImpacts } from "./compendium-rules/index.js";

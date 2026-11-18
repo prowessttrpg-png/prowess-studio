@@ -1,3 +1,10 @@
+import {
+  ACTION_COST_MODELS, ACTION_IMPROVEMENT_MODIFICATION_KINDS, ACTION_IMPROVEMENT_PREREQUISITE_KINDS, ACTION_TIMINGS, AFFINITY_ADVANCEMENT_ACTIONS,
+  AFFINITY_PROGRESSION_MODES, AFFINITY_RANKS, AFFINITY_RANK_UP_TARGETS, AFFINITY_ROLES, COMBAT_TIMING_EVENTS, INITIATIVE_TIEBREAK_KINDS,
+  PAYMENT_POLICIES, RESOURCE_EXPIRY_TARGETS, RESOURCE_MAXIMUM_SOURCES, RESOURCE_SPENDING, RESOURCE_USAGE_RESTRICTIONS, ROLL_MODES,
+  ROLL_PROCEDURES, RUNTIME_RESOURCE_KEYS, VARIABLE_COST_DETERMINERS,
+} from "@prowess/game";
+import { RESOURCE_CEILINGS, RESOURCE_KINDS, RESOURCE_OVERFLOW_POLICIES, RESOURCE_REFRESH_TARGETS } from "@prowess/rules";
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -125,6 +132,30 @@ describe("M6-WO1 authoring catalog (M6-I002 no second Definition catalog)", () =
       terrainKinds: ["NORMAL", "DIFFICULT"],
       weaknessSeverities: ["MINOR", "MODERATE", "MAJOR"],
       movementFormulaSourceKinds: ["MOVEMENT_DISTANCE"],
+      actionTimings: [...ACTION_TIMINGS],
+      actionCostModels: [...ACTION_COST_MODELS],
+      variableCostDeterminers: [...VARIABLE_COST_DETERMINERS],
+      paymentPolicies: [...PAYMENT_POLICIES],
+      combatTimingEvents: [...COMBAT_TIMING_EVENTS],
+      runtimeResourceKeys: [...RUNTIME_RESOURCE_KEYS],
+      resourceKinds: [...RESOURCE_KINDS],
+      resourceMaximumSources: [...RESOURCE_MAXIMUM_SOURCES],
+      resourceRefreshTargets: [...RESOURCE_REFRESH_TARGETS],
+      resourceExpiryTargets: [...RESOURCE_EXPIRY_TARGETS],
+      resourceSpending: [...RESOURCE_SPENDING],
+      resourceCeilings: [...RESOURCE_CEILINGS],
+      resourceOverflowPolicies: [...RESOURCE_OVERFLOW_POLICIES],
+      resourceUsageRestrictions: [...RESOURCE_USAGE_RESTRICTIONS],
+      rollModes: [...ROLL_MODES],
+      rollProcedures: [...ROLL_PROCEDURES],
+      initiativeTiebreakKinds: [...INITIATIVE_TIEBREAK_KINDS],
+      affinityRanks: [...AFFINITY_RANKS],
+      affinityProgressionModes: [...AFFINITY_PROGRESSION_MODES],
+      affinityAdvancementActions: [...AFFINITY_ADVANCEMENT_ACTIONS],
+      affinityRankUpTargets: [...AFFINITY_RANK_UP_TARGETS],
+      affinityRoles: [...AFFINITY_ROLES],
+      actionImprovementPrerequisites: [...ACTION_IMPROVEMENT_PREREQUISITE_KINDS],
+      actionImprovementModifications: [...ACTION_IMPROVEMENT_MODIFICATION_KINDS],
     });
   });
 

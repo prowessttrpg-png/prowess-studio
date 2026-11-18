@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { SourceDocumentDto } from "../../_lib/api-client";
 import {
@@ -16,6 +16,7 @@ import {
 } from "../_lib/authoring-client";
 import { isDirty, newCandidate, suggestCanonicalKey, type DefinitionCandidate } from "../_lib/definition-form";
 import { descriptorFor } from "../_lib/descriptors";
+import { safeReturnTo } from "../../rulesets/_lib/reference-urls";
 import { useUnsavedChangesGuard } from "../_lib/use-navigation-guard";
 import { DefinitionEditor } from "./DefinitionEditor";
 import { DefinitionPreview } from "./DefinitionPreview";
@@ -58,6 +59,23 @@ export function NewDefinitionForm() {
   const [validation, setValidation] = useState<{ result: ValidationResultDto; forCandidate: string } | null>(null);
   const [busy, setBusy] = useState<"" | "validate" | "create">("");
   const [error, setError] = useState<{ code: string; message: string } | null>(null);
+
+  // PRE-M7-WO1 child-Draft flow: opened from a parent Definition's component slot with the kind preselected; after
+  // Create, return to the parent (which restores its own unsaved work and adds this exact revision).
+  const params = useSearchParams();
+  const returnTo = safeReturnTo(params.get("returnTo"));
+  const presetKind = params.get("kind");
+  const presetApplied = useRef(false);
+  useEffect(() => {
+    if (catalog === null || presetApplied.current || presetKind === null) return;
+    presetApplied.current = true;
+    const k = catalog.kinds.find((x) => x.definitionKind === presetKind && x.authorable);
+    if (k === undefined) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time preset from the URL once the catalog is known
+    setFamily(k.systemFamily);
+    setKindName(k.definitionKind);
+    setCandidate(newCandidate(k));
+  }, [catalog, presetKind]);
 
   useEffect(() => {
     getCatalog().then(setCatalog, (e: unknown) => setLoadError(e instanceof AuthoringApiError ? e.message : "Could not load the authoring catalog."));
@@ -109,6 +127,11 @@ export function NewDefinitionForm() {
         versionKeywordIds: versionKeywords.map((k) => k.id),
         sources: sources.map((s) => ({ sourceDocumentId: s.sourceDocumentId, sectionLabel: s.sectionLabel || null, pageReference: s.pageReference || null, sourceExcerptNote: s.sourceExcerptNote || null })),
       });
+      if (returnTo !== null) {
+        const ref = { entityId: created.entity.id, entityVersionId: created.version.id, canonicalKey: created.entity.canonicalKey, definitionKind: kind.definitionKind, systemFamily: kind.systemFamily };
+        router.push(`${returnTo}${returnTo.includes("?") ? "&" : "?"}childRef=${encodeURIComponent(JSON.stringify(ref))}`);
+        return;
+      }
       router.push(`/compendium/admin/entities/${created.entity.id}/revisions/${created.version.id}?created=1`);
     } catch (e) {
       setBusy("");
@@ -138,6 +161,14 @@ export function NewDefinitionForm() {
           <li aria-current="page">New Definition</li>
         </ol>
       </nav>
+      {returnTo !== null ? (
+        <p className="gov-ok" role="note" data-testid="new-definition-child">
+          You are creating a reusable component for a Definition you are editing. After Create you return there, with your unsaved changes, and this new Draft is added to it.{" "}
+          <Link href={returnTo} data-skip-unsaved-guard>
+            Cancel and go back
+          </Link>
+        </p>
+      ) : null}
       <h1 id="new-definition-heading">New Definition</h1>
       <p className="gov-muted">The new Definition is saved as Revision 1 in DRAFT. It does not enter any Ruleset until it is proposed through the Canon Manager.</p>
 

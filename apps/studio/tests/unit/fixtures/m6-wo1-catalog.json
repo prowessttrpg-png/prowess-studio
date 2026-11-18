@@ -871,6 +871,128 @@
     ],
     "movementFormulaSourceKinds": [
       "MOVEMENT_DISTANCE"
+    ],
+    "actionTimings": [
+      "OWN_TURN",
+      "OUTSIDE_OWN_TURN"
+    ],
+    "actionCostModels": [
+      "FIXED",
+      "RANGE",
+      "MINIMUM",
+      "VARIABLE",
+      "NONE"
+    ],
+    "variableCostDeterminers": [
+      "SPELL",
+      "SKILL_ACTION"
+    ],
+    "paymentPolicies": [
+      "ACTION_POINT_COST",
+      "COUNTER_ACTION_COST",
+      "MAGICAL_COST",
+      "ME_ELIGIBLE_MAGICAL_COST"
+    ],
+    "combatTimingEvents": [
+      "START_OF_ROUND",
+      "START_OF_TURN",
+      "END_OF_TURN",
+      "END_OF_ROUND"
+    ],
+    "runtimeResourceKeys": [
+      "HP",
+      "MP",
+      "ME",
+      "AP",
+      "COUNTER_ACTION",
+      "MOVEMENT_ALLOWANCE"
+    ],
+    "resourceKinds": [
+      "POOL",
+      "ACTION",
+      "CAPACITY",
+      "SLOT",
+      "TRACKER",
+      "TEMPORARY_POOL",
+      "RESERVED_CAPACITY"
+    ],
+    "resourceMaximumSources": [
+      "DERIVED",
+      "UNBOUNDED"
+    ],
+    "resourceRefreshTargets": [
+      "TO_NOMINAL_MAXIMUM",
+      "TO_AVAILABLE_MAXIMUM"
+    ],
+    "resourceExpiryTargets": [
+      "MINIMUM"
+    ],
+    "resourceSpending": [
+      "DIRECT",
+      "PAYMENT_ONLY",
+      "NONE"
+    ],
+    "resourceCeilings": [
+      "NOMINAL_MAXIMUM",
+      "AVAILABLE_MAXIMUM"
+    ],
+    "resourceOverflowPolicies": [
+      "CLAMP",
+      "INVALID"
+    ],
+    "resourceUsageRestrictions": [
+      "SURPRISED"
+    ],
+    "rollModes": [
+      "NORMAL",
+      "ADVANTAGE",
+      "DISADVANTAGE"
+    ],
+    "rollProcedures": [
+      "CORE_ROLL",
+      "SKILL_CHECK",
+      "SKILL_AUTOMATIC_SUCCESS",
+      "SAVING_THROW",
+      "ATTACK_ROLL",
+      "INITIATIVE"
+    ],
+    "initiativeTiebreakKinds": [
+      "HIGHEST_STAT",
+      "REROLL"
+    ],
+    "affinityRanks": [
+      "NONE",
+      "TRAINED",
+      "EXPERT",
+      "MASTER"
+    ],
+    "affinityProgressionModes": [
+      "REQUIRED",
+      "CHOOSE_ONE"
+    ],
+    "affinityAdvancementActions": [
+      "CHOOSE_PRIMARY_AFFINITY",
+      "RANK_UP",
+      "GAIN_AFFINITY"
+    ],
+    "affinityRankUpTargets": [
+      "PRIMARY",
+      "ANY_OWNED"
+    ],
+    "affinityRoles": [
+      "PRIMARY",
+      "SECONDARY"
+    ],
+    "actionImprovementPrerequisites": [
+      "LEVEL_AT_LEAST",
+      "STAT_AT_LEAST",
+      "SKILL_RANK_AT_LEAST",
+      "AFFINITY_RANK_AT_LEAST"
+    ],
+    "actionImprovementModifications": [
+      "ACTION_POINT_COST",
+      "ADDITIONAL_USE_CASE",
+      "RULE_OPERATION"
     ]
   },
   "legacyTerms": [
