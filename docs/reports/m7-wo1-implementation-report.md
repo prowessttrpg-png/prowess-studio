@@ -4,7 +4,10 @@
 `fa1ea3512bdfe89ad2eb358ef5726df58c263320`). Architecture and decision record:
 `docs/architecture/m7-wo1-encounter-foundation.md`. Invariants: `docs/architecture/m7-invariants.md` (M7-I001–I012).
 
-**Status: {{STATUS}}**
+**Status: partially complete — ready for review locally, not published.** Every E01–E16 criterion that can run here is met
+on the tested commit. E15 (hosted CI, Tier 2, both Windows jobs) is pending, because this session cannot push: the git
+proxy refused the push with "repository not in this session's authorized repository set". The branch is delivered as a
+verified git bundle (§7). Nothing is merged and no WO2 work has begun.****
 
 ## 1. Outcome in plain language
 
@@ -55,7 +58,7 @@ A GM can now open **Encounters** and do the following:
 
 ## 3. Acceptance matrix (E01–E16)
 
-Tested commit: `{{SHA}}` (local). "Local" means run in this environment against disposable PostgreSQL 16 databases.
+Tested commit: `3f6ff2e` (local). "Local" means run in this environment against disposable PostgreSQL 16 databases.
 
 | ID | Required proof | Status | Evidence |
 | --- | --- | --- | --- |
@@ -71,14 +74,27 @@ Tested commit: `{{SHA}}` (local). "Local" means run in this environment against 
 | E10 | Archived encounters keep inspectable history and reject edits | Met | DB E10 (service and database triggers: update, roster insert / delete, delete, event update all refused); API archived test; e2e B05 |
 | E11 | Restart preserves encounter and memberships | Met (local) | Restore proof: a new process on the same database reads identically; DB E11 (new connection); e2e B03 (reload) |
 | E12 | Workspace backup restores into an independent database identically | Met (local) | `verify-m7-wo1-encounter-restore.mjs`: the desktop backup format (every public table) restored into a fresh database. Encounters, memberships, Release references and Character rows are identical; the archived freeze and append-only history still hold. Evidence JSON in the package. |
-| E13 | Standalone play, Compendium authoring, content packs and Character library regression gates green | {{E13}} | §6 |
+| E13 | Standalone play, Compendium authoring, content packs and Character library regression gates green | Met (local) | §6 |
 | E14 | Desktop and 390 px browser evidence of the complete flow and error states | Met | e2e B01–B06 with screenshots (field errors, ineligible explanations, occupied side, stale refusal, archived view; 390 px list, archived workspace, editable workspace and new form, all with 0 px overflow) |
 | E15 | Required CI, Tier 2 and both Windows installer checks pass; installed verification exercises encounter persistence | **Pending (hosted)** | The installed smoke now creates an encounter on the demo Release, adds a side, confirms the draft sample Character is refused, and checks the encounter is identical after backup / restore and after restart. It runs only on the Windows CI job, which has not run for this branch. |
-| E16 | PR, report, invariants, inventories and evidence complete; no merge, no WO2 | {{E16}} | This report; invariants; registries; nothing merged; no WO2 code |
+| E16 | PR, report, invariants, inventories and evidence complete; no merge, no WO2 | Met locally; the PR is not open (publication blocked, §7) | This report; invariants; registries; nothing merged; no WO2 code |
 
 ## 4. Migration and backup / restore evidence
 
-{{MIGRATION}}
+- **Fresh.** A new disposable database gets all 31 migrations; the WebAssembly-engine drift check reports "No difference
+  detected" (exit 0).
+- **Upgrade.** A populated workspace (23 Releases, 16 Characters and their sheets / play rows) at the 30-migration
+  pre-M7 chain gets `20261118010000_m7_wo1_encounter_foundation`. A row-hash fingerprint of every pre-existing table is
+  identical before and after (0 tables changed), the four new tables are empty, and drift exits 0.
+- **Drift control.** Dropping one index makes the same check report the difference and exit 2.
+- **Restart and restore** (`verify-m7-wo1-encounter-restore.mjs`, 29 s):
+  - the source has 2 encounters (one archived), 3 memberships and 8 events;
+  - a new process on the same database reads identically;
+  - the desktop workspace backup restored into an independent database reads identically: encounter views, memberships,
+    the Release reference and every Character-owned row;
+  - the archived freeze and append-only history are enforced after the restore.
+- **Desktop backup coverage.** Automatic: `stage-prototype.mjs` derives the backup table list from the migrations, and
+  the restore proof asserts that all four encounter tables are in it.
 
 ## 5. Desktop and narrow-screen evidence
 
@@ -94,11 +110,44 @@ Screenshots from the e2e run on the tested commit, against the production build:
 
 ## 6. Verification (local, on the tested commit)
 
-{{VERIFICATION}}
+| Check | Result |
+| --- | --- |
+| `pnpm lint`, `pnpm typecheck`, `scripts/check-architecture.mjs` (14 rules) | pass |
+| Gate inventory | consistent: 9 suites, 47 gates, 746 controls |
+| `@prowess/game` unit | 1837 pass (unchanged package) |
+| `@prowess/rules` unit | 659 pass (M4 unchanged) |
+| `@prowess/model` / `import` / `ui` unit | 513 / 128 / 21 pass |
+| `@prowess/db` unit | 179 pass |
+| Studio unit | 115 files / 3831 pass (includes `m7-wo1-static`, `m7-wo1-encounter-ui`) |
+| `@prowess/db` integration, CI-equivalent (2 shards, each on a freshly migrated disposable database) | 308 + 346 = 654 pass (includes `m7-wo1-encounter-foundation`, 10) |
+| Studio integration | 41 files / 247 pass (includes `m7-wo1-encounter-api`, 5) |
+| Playwright, full suite against the production build | 100 / 100 pass (20.1 min), including B01–B06 |
+| M7-WO1 negative controls | 10 / 10 caught and restored |
+| PRE-M7-WO1 negative controls (regression) | 13 / 13 caught and restored |
+| `prisma validate` | pass |
+| Fresh / upgrade migrations and drift | pass (§4) |
+| Restart and whole-workspace restore | pass (§4) |
+| Hosted CI (Tier 2, Windows installer, installed verification) | **pending** — not run (branch not pushed) |
+
+**Which commit each check ran on.**
+
+- On `3f6ff2e`: typecheck, both integration suites, Playwright, both control sets, the restore proof and the migration
+  checks.
+- On the same tree minus `3f6ff2e`'s two changes: lint, architecture and the unit suites. Those changes are a one-line
+  type fix in the e2e spec and this report; neither is read by a unit suite.
+
+**Why typecheck ran twice.** Its first run failed on that e2e type error. The error was fixed in `3f6ff2e`, and typecheck
+then passed.
 
 ## 7. Publication and CI
 
-{{PUBLICATION}}
+- **Blocked.** `git push` was refused by the session's git proxy: "prowessttrpg-png/prowess-studio is not in this
+  session's authorized repository set". No credentials were requested.
+- **Delivered instead.** A verified git bundle (the branch and `main`), with recovery and push / PR commands, is
+  delivered to the owner. A fresh clone recovered the exact HEAD and tree.
+- **To publish.** Add the repository to the session's sources, or push from the owner's machine. Then open the PR and
+  let CI run, including Tier 2, the Windows installer build and the installed verification, which now exercises encounter
+  persistence (E15). Do not merge under this assignment.
 
 ## 8. WO2 readiness note
 
