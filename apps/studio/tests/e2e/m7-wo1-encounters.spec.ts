@@ -194,7 +194,7 @@ test("B06 390 px: the list and the workspace fit the screen", async ({ page }) =
   const workspace = await overflow(page);
   await shot(page, "b06-workspace-390");
   // An EDITABLE workspace (every roster control present) at 390 px, prepared through the service.
-  const created = await db.createEncounter({ name: `Narrow ${runA}`, rulesetReleaseId: (await db.getCharacterPlayWorkspace(ids.alpha)).release.id, idempotencyKey: randomUUID() });
+  const created = await db.createEncounter({ name: `Narrow ${runA}`, rulesetReleaseId: (await db.getCharacterPlayWorkspace(ids.alpha!)).release.id, idempotencyKey: randomUUID() });
   const side = (await db.commandEncounter(created.encounter.id, { command: { kind: "ADD_SIDE", name: "Vanguard" }, expectedVersion: 1, idempotencyKey: randomUUID() })).encounter.sides[0]!;
   await db.commandEncounter(created.encounter.id, { command: { kind: "ADD_PARTICIPANT", characterId: ids.alpha, sideId: side.id }, expectedVersion: 2, idempotencyKey: randomUUID() });
   await page.goto(`/encounters/${created.encounter.id}`);
