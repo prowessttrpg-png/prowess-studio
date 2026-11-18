@@ -1263,7 +1263,7 @@
       "allOf": [],
       "controls": {
         "script": "scripts/pre-m7-wo1-negative-controls.mjs",
-        "count": 7
+        "count": 13
       },
       "smoke": [],
       "previous": [],
