@@ -447,6 +447,42 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
         </Shell>
       );
     }
+    // ---- RULES-WO1: a Formula the rulebook may leave unstated, an optional source, a list of exact references --------
+    case "optionalFormula": {
+      const present = value !== null && value !== undefined;
+      return (
+        <Shell field={field} issues={issues} composite>
+          <div role="radiogroup" aria-label={field.label}>
+            <label className="prowess-authoring__inline">
+              <input type="radio" name={`${listId}-optional`} checked={present} onChange={() => onChange(initialFieldValue({ ...field, input: "coreFormula" }))} /> {field.presentLabel}
+            </label>
+            <label className="prowess-authoring__inline">
+              <input type="radio" name={`${listId}-optional`} checked={!present} onChange={() => onChange(null)} /> {field.absentLabel}
+            </label>
+          </div>
+          {present ? <FormulaEditor value={value} onChange={onChange} catalog={catalog} sourceKinds={catalog.vocabularies[field.sources] ?? []} label={field.label} /> : <p className="gov-muted" data-testid="formula-not-stated">Not stated in the rulebook — no base value is invented.</p>}
+        </Shell>
+      );
+    }
+    case "optionalSource": {
+      const present = value !== null && value !== undefined;
+      return (
+        <Shell field={field} issues={issues} composite>
+          <label className="prowess-authoring__inline">
+            <input type="checkbox" checked={present} onChange={(e) => onChange(e.target.checked ? { locators: [], conflicts: [] } : null)} /> Cite rulebook sections
+          </label>
+          {present ? <FieldControl field={{ key: field.key, label: field.label, group: field.group, input: "source", required: true }} value={value} onChange={onChange} catalog={catalog} issues={[]} payload={payload} /> : null}
+        </Shell>
+      );
+    }
+    case "refList": {
+      const items = asArray(value);
+      return (
+        <Shell field={field} issues={issues} composite>
+          <RefList items={items} onChange={onChange} refKind={field.refKind} itemLabel={field.itemLabel} />
+        </Shell>
+      );
+    }
     // ---- PRE-M7-WO1 guided runtime / progression inputs -------------------------------------------------------------
     case "rows":
       return (
@@ -954,6 +990,11 @@ export function DefinitionEditor({
   return (
     <div className="prowess-authoring__definition" data-definition-kind={kind.definitionKind}>
       <p className="prowess-authoring__purpose">{descriptor.purpose}</p>
+      {descriptor === GENERIC_DESCRIPTOR ? (
+        <p className="gov-muted" data-testid="generic-editor-build-note">
+          If you expected a guided editor here, check <a href="/about">About this build</a>: it shows which build is running and which kinds it edits with a guided editor.
+        </p>
+      ) : null}
       <p className="gov-muted">
         {kind.definitionKind} · family {kind.systemFamily}
         {kind.branch ? ` · ${kind.branch} branch` : ""}
@@ -974,6 +1015,41 @@ export function DefinitionEditor({
         <LegacyTermsEditor candidate={candidate} onChange={onChange} catalog={catalog} />
       </fieldset>
       <RawJson candidate={candidate} onChange={onChange} readOnly={readOnly} />
+    </div>
+  );
+}
+
+/** RULES-WO1: a list of exact Definition references (e.g. the Actions a Skill benefit grants). */
+function RefList({ items, onChange, refKind, itemLabel }: { items: readonly Record<string, unknown>[]; onChange: (v: unknown) => void; refKind: string; itemLabel: string }) {
+  const [picking, setPicking] = useState(false);
+  return (
+    <div>
+      {items.length === 0 ? <p className="gov-muted">None.</p> : null}
+      <ol>
+        {items.map((r, i) => (
+          <li key={`${String(r.entityVersionId)}-${i}`}>
+            <code>{String(r.canonicalKey ?? "")}</code>{" "}
+            <button type="button" className="gov-link-button" onClick={() => onChange(items.filter((_, j) => j !== i))} aria-label={`Remove ${itemLabel} ${i + 1}`}>
+              Remove
+            </button>
+          </li>
+        ))}
+      </ol>
+      {picking ? (
+        <DefinitionReferencePicker
+          label={`Choose the exact ${itemLabel.toLowerCase()}`}
+          definitionKind={refKind}
+          onSelect={(r) => {
+            onChange([...items, r]);
+            setPicking(false);
+          }}
+          onCancel={() => setPicking(false)}
+        />
+      ) : (
+        <button type="button" className="gov-button" onClick={() => setPicking(true)}>
+          Add {itemLabel.toLowerCase()}
+        </button>
+      )}
     </div>
   );
 }

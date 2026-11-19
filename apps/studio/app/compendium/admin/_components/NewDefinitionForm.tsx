@@ -15,6 +15,7 @@ import {
   type ValidationResultDto,
 } from "../_lib/authoring-client";
 import { isDirty, newCandidate, suggestCanonicalKey, type DefinitionCandidate } from "../_lib/definition-form";
+import { statFormula } from "./FormulaEditor";
 import { descriptorFor } from "../_lib/descriptors";
 import { safeReturnTo } from "../../rulesets/_lib/reference-urls";
 import { useUnsavedChangesGuard } from "../_lib/use-navigation-guard";
@@ -65,6 +66,10 @@ export function NewDefinitionForm() {
   const params = useSearchParams();
   const returnTo = safeReturnTo(params.get("returnTo"));
   const presetKind = params.get("kind");
+  // RULES-WO1: "Make <Stat> affect something new" opens a new calculated value that already reads that Stat, and the
+  // new Draft opens with the Release preview of the page it came from.
+  const presetStat = /^[A-Z]{2,5}$/.test(params.get("stat") ?? "") ? (params.get("stat") as string) : null;
+  const presetRelease = /^[0-9a-f-]{36}$/i.test(params.get("release") ?? "") ? (params.get("release") as string) : null;
   const presetApplied = useRef(false);
   useEffect(() => {
     if (catalog === null || presetApplied.current || presetKind === null) return;
@@ -74,8 +79,10 @@ export function NewDefinitionForm() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time preset from the URL once the catalog is known
     setFamily(k.systemFamily);
     setKindName(k.definitionKind);
-    setCandidate(newCandidate(k));
-  }, [catalog, presetKind]);
+    const fresh = newCandidate(k);
+    const presetField = descriptorFor(k, fresh.schemaVersion).fields.find((f) => f.input === "optionalFormula" && f.presetFromStat === true);
+    setCandidate(presetStat !== null && presetField !== undefined ? { ...fresh, payload: { ...fresh.payload, [presetField.key]: statFormula(presetStat) } } : fresh);
+  }, [catalog, presetKind, presetStat]);
 
   useEffect(() => {
     getCatalog().then(setCatalog, (e: unknown) => setLoadError(e instanceof AuthoringApiError ? e.message : "Could not load the authoring catalog."));
@@ -132,7 +139,7 @@ export function NewDefinitionForm() {
         router.push(`${returnTo}${returnTo.includes("?") ? "&" : "?"}childRef=${encodeURIComponent(JSON.stringify(ref))}`);
         return;
       }
-      router.push(`/compendium/admin/entities/${created.entity.id}/revisions/${created.version.id}?created=1`);
+      router.push(`/compendium/admin/entities/${created.entity.id}/revisions/${created.version.id}?created=1${presetRelease !== null ? `&release=${presetRelease}` : ""}${presetStat !== null ? `&stat=${presetStat}` : ""}`);
     } catch (e) {
       setBusy("");
       setError(e instanceof AuthoringApiError ? { code: e.code, message: e.message } : { code: "UNKNOWN", message: "The Definition could not be created." });

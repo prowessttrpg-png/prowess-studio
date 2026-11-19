@@ -164,6 +164,15 @@ const DEFINITION_KIND_TABLE = {
   /** A state applied TO a target (Burning, Prone …) — never an Ability Condition (M5-I040). */
   STATUS_CONDITION: reserved("CONDITION"),
   MISSION_RULE: reserved("MISSION"),
+
+  // RULES-WO1 — authored rules without a new engine (definition/rules-authoring-payload.ts). Additive kinds: every
+  // existing kind and its payload contract are unchanged.
+  /** An authored game value (Carry Capacity, Throw Distance …): an M4 Formula over named inputs, with a canon status. */
+  CALCULATED_VALUE: active("CHARACTER"),
+  /** One benefit a Skill grants from a rank onward: value contributions, granted Actions and the written benefit. */
+  SKILL_BENEFIT: active("SKILL"),
+  /** The Concentration capacity / sustained-Spell upkeep / allocation rule (owner override). Reference and preview only. */
+  CONCENTRATION_RULE: active("ABILITY"),
 } as const satisfies Record<string, DefinitionKindSpec>;
 
 export type ProwessDefinitionKind = keyof typeof DEFINITION_KIND_TABLE;

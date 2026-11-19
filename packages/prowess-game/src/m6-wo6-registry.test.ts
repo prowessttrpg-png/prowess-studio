@@ -3,6 +3,9 @@ import { PROWESS_DEFINITION_KINDS } from "./index.js";
 import { EQUIPMENT_PAYLOAD_KINDS } from "./definition/equipment-payload.js";
 import certified from "./testing/m6-wo6-registry-baseline.json";
 
+/** Kinds added by the LATER RULES-WO1 Work Order, characterized by rules-wo1-authoring.test.ts. */
+const RULES_WO1_KINDS: readonly string[] = ["CALCULATED_VALUE", "SKILL_BENEFIT", "CONCENTRATION_RULE"];
+
 /**
  * PAS-10 M6-WO6 §6–§7 — registry change guard. Every Prowess Definition kind specification that existed at the M6-WO6
  * base commit (M6-WO5 merged) is byte-for-byte equal to its certified form (src/testing/m6-wo6-registry-baseline.json)
@@ -39,7 +42,7 @@ describe("M6-WO6 registry characterization (§6–§7)", () => {
 
   it("the only new kind is ATTACK: EQUIPMENT family, no shared contract, GENERIC_RULE storage, v1", () => {
     // Kinds added by LATER Work Orders are characterized by their own registry tests (M6-WO9: m6-wo9-registry.test.ts).
-    expect(Object.keys(current).filter((k) => !(k in baseline.kinds) && k !== "ACTION_IMPROVEMENT")).toEqual(["ATTACK"]);
+    expect(Object.keys(current).filter((k) => !(k in baseline.kinds) && k !== "ACTION_IMPROVEMENT" && !RULES_WO1_KINDS.includes(k))).toEqual(["ATTACK"]);
     expect(current.ATTACK).toEqual({ family: "EQUIPMENT", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1] });
     expect(Object.keys(baseline.kinds).filter((k) => !(k in current))).toEqual([]);
     expect([...EQUIPMENT_PAYLOAD_KINDS]).toEqual(["WEAPON", "ATTACK", "EQUIPMENT_TRAIT"]);

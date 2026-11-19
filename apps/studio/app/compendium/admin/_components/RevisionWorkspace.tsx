@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RulePreviewPanel } from "./RulePreviewPanel";
+import { AuthoredRulePreviewPanel } from "./AuthoredRulePreviewPanel";
 import { withChildComponent } from "./AbilityDefinitionEditor";
 import { childCreateHref, readChildRef, stashParent, takeParent } from "../_lib/child-draft";
 import { safeReturnTo } from "../../rulesets/_lib/reference-urls";
@@ -305,8 +306,14 @@ export function RevisionWorkspace({ entityId, versionId }: { entityId: string; v
         </ul>
       </nav>
 
-      {previewRelease !== null && form.candidate !== null ? (
+      {previewRelease !== null && form.candidate !== null && descriptor?.preview === "AUTHORED_RULE" ? (
+        <AuthoredRulePreviewPanel releaseId={previewRelease} drafts={editable ? [version.id] : []} unsavedChanges={Boolean(dirty)} focusStat={previewStat} />
+      ) : previewRelease !== null && form.candidate !== null ? (
         <RulePreviewPanel releaseId={previewRelease} vary={previewStat} drafts={editable ? [version.id] : []} unsavedChanges={Boolean(dirty)} title="Preview this Draft against the Release" />
+      ) : form.candidate !== null && descriptor?.preview === "AUTHORED_RULE" ? (
+        <p className="gov-muted" data-testid="authored-preview-needs-release">
+          To preview this rule, open it from a Release in the Rules Reference (for example a Stat&apos;s &ldquo;What this affects&rdquo;).
+        </p>
       ) : null}
 
       <section id="rev-content" className="gov-panel" aria-labelledby="rev-content-h">

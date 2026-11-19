@@ -68,6 +68,10 @@ export const COMPONENT_COMPILERS: Readonly<Record<ProwessDefinitionKind, Compone
   SUMMON_ACTION_MODEL: null,
   STATUS_CONDITION: null,
   MISSION_RULE: null,
+  // RULES-WO1: read through their own entry points (character/calculated-values.ts, ability/concentration-preview.ts).
+  CALCULATED_VALUE: null,
+  SKILL_BENEFIT: null,
+  CONCENTRATION_RULE: null,
 });
 
 const REQUEST_FIELDS = ["contractVersion", "subject", "definitions", "ruleset", "actor", "build", "runtime"];

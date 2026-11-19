@@ -1,6 +1,12 @@
 import {
   ABILITY_COMPONENT_CONTRACTS,
   MAGE_ART_ACTIVE_EFFECT_WINDOWS,
+  CALCULATED_VALUE_PLACEMENTS,
+  CANON_STATUSES,
+  VALUE_INPUT_KINDS,
+  BENEFIT_AMOUNT_INPUT_KINDS,
+  CONCENTRATION_CAPACITY_INPUT_KINDS,
+  CONCENTRATION_UPKEEP_INPUT_KINDS,
   ANCESTRY_SKILL_SELECTION_KINDS,
   ANCESTRY_STAT_GRANT_KINDS,
   ATTACK_AREA_SHAPES,
@@ -189,6 +195,16 @@ export function getAuthoringCatalog(): AuthoringCatalog {
       affinityRoles: [...AFFINITY_ROLES],
       actionImprovementPrerequisites: [...ACTION_IMPROVEMENT_PREREQUISITE_KINDS],
       actionImprovementModifications: [...ACTION_IMPROVEMENT_MODIFICATION_KINDS],
+      // RULES-WO1: authored calculated values, Skill benefits and the Concentration rule (M5 constants; the per-field
+      // input lists are exactly what the M5 reader allows at that field).
+      canonStatuses: [...CANON_STATUSES],
+      calculatedValuePlacements: [...CALCULATED_VALUE_PLACEMENTS],
+      valueInputKinds: [...VALUE_INPUT_KINDS],
+      // The guided input list omits reading ANOTHER calculated value (no static list of values exists to pick from).
+      valueBaseSourceKinds: [...BENEFIT_AMOUNT_INPUT_KINDS],
+      benefitAmountSourceKinds: [...BENEFIT_AMOUNT_INPUT_KINDS],
+      concentrationCapacitySourceKinds: [...CONCENTRATION_CAPACITY_INPUT_KINDS],
+      concentrationUpkeepSourceKinds: [...CONCENTRATION_UPKEEP_INPUT_KINDS],
     },
     legacyTerms: TERMINOLOGY_INVENTORY.filter((t) => t.status === "LEGACY" && t.canonicalTerm !== null)
       .map((t) => ({ legacyTerm: t.term, canonicalTerm: t.canonicalTerm as string }))

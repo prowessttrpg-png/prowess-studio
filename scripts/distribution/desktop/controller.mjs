@@ -89,6 +89,9 @@ async function launchStudio(database) {
         PORT: String(port), HOSTNAME: "127.0.0.1", LOG_LEVEL: "warn", DEVELOPMENT_MODE: "false",
         NEXT_TELEMETRY_DISABLED: "1", PROWESS_DESKTOP_MODE: "true", PROWESS_DESKTOP_BACKEND_TOKEN: backendToken,
         PROWESS_DESKTOP_WORKSPACE_ID: storage.state.id,
+        // RULES-WO1: the exact build identity, shown on Studio's "About this build" page.
+        PROWESS_APP_VERSION: manifest.appVersion, PROWESS_BUILD_COMMIT: manifest.build.commit, PROWESS_BUILD_TREE: manifest.build.tree,
+        PROWESS_PACKAGE_SHA256: manifest.packageSha256,
       },
     });
   } finally { closeSync(descriptor); }

@@ -3,6 +3,9 @@ import { PROWESS_DEFINITION_KINDS } from "./index.js";
 import { ADVANCEMENT_PAYLOAD_KINDS } from "./definition/advancement-payload.js";
 import certified from "./testing/m6-wo4-registry-baseline.json";
 
+/** Kinds added by the LATER RULES-WO1 Work Order, characterized by rules-wo1-authoring.test.ts. */
+const RULES_WO1_KINDS: readonly string[] = ["CALCULATED_VALUE", "SKILL_BENEFIT", "CONCENTRATION_RULE"];
+
 /**
  * PAS-10 M6-WO4 — registry change guard. Every Prowess Definition kind specification that existed at the M6-WO4 base
  * commit (after M6-WO3) is byte-for-byte equal to its certified form (src/testing/m6-wo4-registry-baseline.json); the
@@ -29,7 +32,7 @@ describe("M6-WO4 registry characterization", () => {
   });
 
   it("the only new kind is CHARACTER_ADVANCEMENT_RULE: CHARACTER family, no shared contract, v1", () => {
-    expect(Object.keys(current).filter((k) => !(k in baseline.kinds) && k !== "ATTACK" && k !== "ACTION_IMPROVEMENT")).toEqual(["CHARACTER_ADVANCEMENT_RULE"]);
+    expect(Object.keys(current).filter((k) => !(k in baseline.kinds) && k !== "ATTACK" && k !== "ACTION_IMPROVEMENT" && !RULES_WO1_KINDS.includes(k))).toEqual(["CHARACTER_ADVANCEMENT_RULE"]);
     expect(current.CHARACTER_ADVANCEMENT_RULE).toEqual({ family: "CHARACTER", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1] });
     expect([...ADVANCEMENT_PAYLOAD_KINDS]).toEqual(["CHARACTER_ADVANCEMENT_RULE"]);
   });

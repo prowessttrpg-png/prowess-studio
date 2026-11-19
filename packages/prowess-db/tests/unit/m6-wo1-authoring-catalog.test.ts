@@ -1,4 +1,10 @@
 import {
+  CALCULATED_VALUE_PLACEMENTS,
+  CANON_STATUSES,
+  VALUE_INPUT_KINDS,
+  BENEFIT_AMOUNT_INPUT_KINDS,
+  CONCENTRATION_CAPACITY_INPUT_KINDS,
+  CONCENTRATION_UPKEEP_INPUT_KINDS,
   MAGE_ART_ACTIVE_EFFECT_WINDOWS,
   ACTION_COST_MODELS, ACTION_IMPROVEMENT_MODIFICATION_KINDS, ACTION_IMPROVEMENT_PREREQUISITE_KINDS, ACTION_TIMINGS, AFFINITY_ADVANCEMENT_ACTIONS,
   AFFINITY_PROGRESSION_MODES, AFFINITY_RANKS, AFFINITY_RANK_UP_TARGETS, AFFINITY_ROLES, COMBAT_TIMING_EVENTS, INITIATIVE_TIEBREAK_KINDS,
@@ -161,6 +167,15 @@ describe("M6-WO1 authoring catalog (M6-I002 no second Definition catalog)", () =
       affinityRoles: [...AFFINITY_ROLES],
       actionImprovementPrerequisites: [...ACTION_IMPROVEMENT_PREREQUISITE_KINDS],
       actionImprovementModifications: [...ACTION_IMPROVEMENT_MODIFICATION_KINDS],
+      // RULES-WO1 authored values, Skill benefits and the Concentration rule.
+      canonStatuses: [...CANON_STATUSES],
+      calculatedValuePlacements: [...CALCULATED_VALUE_PLACEMENTS],
+      valueInputKinds: [...VALUE_INPUT_KINDS],
+      // The guided input list omits reading ANOTHER calculated value (no static list of values exists to pick from).
+      valueBaseSourceKinds: [...BENEFIT_AMOUNT_INPUT_KINDS],
+      benefitAmountSourceKinds: [...BENEFIT_AMOUNT_INPUT_KINDS],
+      concentrationCapacitySourceKinds: [...CONCENTRATION_CAPACITY_INPUT_KINDS],
+      concentrationUpkeepSourceKinds: [...CONCENTRATION_UPKEEP_INPUT_KINDS],
     });
   });
 

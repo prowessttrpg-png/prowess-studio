@@ -9,6 +9,7 @@ import type { ResourceDefinitionPayload } from "../definition/runtime-payload.js
 import { deepFreeze } from "../internal/plain-data.js";
 import { PROWESS_STATS, type DerivedStatistic, type ProwessStat } from "../vocabulary/core.js";
 import type { CharacterMechanicalProfile } from "./advancement.js";
+import { calculatedValuesForCharacter, type CalculatedValueResult } from "./calculated-values.js";
 import { characterAccessSummary } from "./eligibility.js";
 import { numericCompare, rankAtLeast } from "./requirements.js";
 
@@ -95,6 +96,11 @@ export interface CharacterSheetMechanics {
   readonly affinities: readonly SheetAffinity[];
   readonly attunement: { readonly maximum: SheetValue; readonly used: SheetValue };
   readonly carry: { readonly currentWeight: SheetValue; readonly maximumLoad: SheetValue };
+  /**
+   * RULES-WO1: every published CALCULATED_VALUE of the Release, evaluated for this Character (with each Skill benefit's
+   * contribution). Present ONLY when the Release publishes at least one — otherwise the sheet is byte-identical.
+   */
+  readonly calculatedValues?: readonly CalculatedValueResult[];
   readonly signatureCapacity: number | null;
   readonly issues: readonly { readonly code: string; readonly path: string; readonly message: string }[];
 }
@@ -242,6 +248,19 @@ export function buildCharacterSheetMechanics(request: { readonly bundle: Prowess
   });
 
   const none = "this Release defines no rule for it yet";
+  // RULES-WO1: authored calculated values. The one placed as the Carry maximum fills that slot (labelled by its canon
+  // status on the sheet); with none published, Carry stays unavailable exactly as before.
+  const calculated = calculatedValuesForCharacter({ bundle, profile });
+  for (const issue of calculated.issues) issues.push(issue);
+  const carryValues = calculated.values.filter((v) => v.placement === "CARRY_MAXIMUM_LOAD");
+  const carryMax: SheetValue =
+    carryValues.length === 1
+      ? carryValues[0]!.total === null
+        ? unavailable(`Carry & Weight: ${carryValues[0]!.unavailable ?? "not available"}`)
+        : { value: carryValues[0]!.total, unit: carryValues[0]!.unit, unavailable: null, source: carryValues[0]!.definition }
+      : carryValues.length > 1
+        ? unavailable("Carry & Weight: more than one published value claims the Carry maximum")
+        : unavailable(`Carry & Weight: ${none}`);
   return deepFreeze({
     stats,
     combat: {
@@ -260,7 +279,8 @@ export function buildCharacterSheetMechanics(request: { readonly bundle: Prowess
     skills,
     affinities,
     attunement: { maximum: unavailable(`Attunement: ${none}`), used: unavailable(`Attunement: ${none}`) },
-    carry: { currentWeight: unavailable(`Carry & Weight: ${none}`), maximumLoad: unavailable(`Carry & Weight: ${none}`) },
+    carry: { currentWeight: unavailable(`Carry & Weight: ${none}`), maximumLoad: carryMax },
+    ...(calculated.values.length > 0 ? { calculatedValues: calculated.values } : {}),
     signatureCapacity: profile.signatureCapacity,
     issues,
   });

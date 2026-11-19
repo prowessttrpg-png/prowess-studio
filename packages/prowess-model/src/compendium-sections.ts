@@ -70,7 +70,7 @@ export const COMPENDIUM_SECTIONS: readonly CompendiumSection[] = Object.freeze([
     title: "Rules & Calculations",
     summary: "Derived statistics and their formulas — Armor from Strength, Dodge, Maximum HP / MP, Movement and the rest.",
     role: "EXECUTABLE",
-    kinds: ["DERIVED_STAT"],
+    kinds: ["DERIVED_STAT", "CALCULATED_VALUE"], // RULES-WO1: authored calculated values (Carry Capacity …)
     alsoShows: ["CORE_RESOLUTION"],
     reservedKinds: [],
     genericEntityTypes: [],
@@ -100,7 +100,7 @@ export const COMPENDIUM_SECTIONS: readonly CompendiumSection[] = Object.freeze([
     title: "Skills",
     summary: "Skills and what each Skill rank grants.",
     role: "EXECUTABLE",
-    kinds: ["SKILL", "SKILL_RANK"],
+    kinds: ["SKILL", "SKILL_RANK", "SKILL_BENEFIT"], // RULES-WO1: Skill rank benefits
     alsoShows: ["RANK_LADDER"],
     reservedKinds: [],
     genericEntityTypes: [],
@@ -155,7 +155,7 @@ export const COMPENDIUM_SECTIONS: readonly CompendiumSection[] = Object.freeze([
     title: "Conditions & Ongoing Effects",
     summary: "Status conditions and ongoing effects. The engine's ongoing-effect policies live with the components that use them.",
     role: "REFERENCE",
-    kinds: [],
+    kinds: ["CONCENTRATION_RULE"], // RULES-WO1: the Concentration rule (reference and preview; play does not read it yet)
     alsoShows: ["SPELL_DURATION", "MANEUVER_DURATION", "SPELL_CASTING_CONDITION", "MANEUVER_CONDITION"],
     reservedKinds: ["STATUS_CONDITION", "SUMMON_TYPE", "SUMMON_TRAIT", "SUMMON_ACTION_MODEL", "MISSION_RULE"],
     genericEntityTypes: [],

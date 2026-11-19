@@ -140,6 +140,20 @@
       "authorable": true
     },
     {
+      "definitionKind": "CALCULATED_VALUE",
+      "systemFamily": "CHARACTER",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
       "definitionKind": "CHARACTER_ADVANCEMENT_RULE",
       "systemFamily": "CHARACTER",
       "branch": null,
@@ -170,6 +184,20 @@
     {
       "definitionKind": "CHARACTER_DIE_PROGRESSION",
       "systemFamily": "CORE",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "CONCENTRATION_RULE",
+      "systemFamily": "ABILITY",
       "branch": null,
       "sharedContract": null,
       "allowedEntityTypes": [
@@ -405,6 +433,20 @@
     },
     {
       "definitionKind": "SKILL",
+      "systemFamily": "SKILL",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "SKILL_BENEFIT",
       "systemFamily": "SKILL",
       "branch": null,
       "sharedContract": null,
@@ -1018,6 +1060,40 @@
       "ACTION_POINT_COST",
       "ADDITIONAL_USE_CASE",
       "RULE_OPERATION"
+    ],
+    "canonStatuses": [
+      "CANONICAL",
+      "OWNER_PROVIDED",
+      "TEST_ONLY"
+    ],
+    "calculatedValuePlacements": [
+      "CARRY_MAXIMUM_LOAD",
+      "ADDITIONAL_VALUES",
+      "REFERENCE_ONLY"
+    ],
+    "valueInputKinds": [
+      "STAT",
+      "LEVEL",
+      "DERIVED",
+      "CALCULATED_VALUE",
+      "CAST_AP"
+    ],
+    "valueBaseSourceKinds": [
+      "STAT",
+      "LEVEL",
+      "DERIVED"
+    ],
+    "benefitAmountSourceKinds": [
+      "STAT",
+      "LEVEL",
+      "DERIVED"
+    ],
+    "concentrationCapacitySourceKinds": [
+      "STAT",
+      "LEVEL"
+    ],
+    "concentrationUpkeepSourceKinds": [
+      "CAST_AP"
     ]
   },
   "legacyTerms": [

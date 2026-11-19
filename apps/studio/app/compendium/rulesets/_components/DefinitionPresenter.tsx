@@ -223,7 +223,12 @@ function FieldValue({ field, payload, context, keywordName }: { field: FieldDesc
     case "reference":
     case "byVocabulary":
     case "optionalData":
+    // RULES-WO1 inputs: shown exactly as stored; an unstated base is said in words, never shown as 0.
+    case "optionalSource":
+    case "refList":
       return value === null || value === undefined ? <span className="gov-muted">not authored</span> : <StructuredValue value={value} path={path} context={context} />;
+    case "optionalFormula":
+      return value === null || value === undefined ? <span data-testid="reference-not-stated">Not stated in the rulebook</span> : <StructuredValue value={value} path={path} context={context} />;
     case "abilityDefinition": {
       // A reusable Spell / Maneuver Definition: its name and description, then its composition exactly as stored
       // (exact component references link to this Release's pins through StructuredValue).

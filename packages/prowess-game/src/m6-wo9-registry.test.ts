@@ -3,6 +3,9 @@ import { PROWESS_DEFINITION_KINDS } from "./index.js";
 import { ACTION_IMPROVEMENT_PAYLOAD_KINDS } from "./definition/action-improvement-payload.js";
 import certified from "./testing/m6-wo9-registry-baseline.json";
 
+/** Kinds added by the LATER RULES-WO1 Work Order, characterized by rules-wo1-authoring.test.ts. */
+const RULES_WO1_KINDS: readonly string[] = ["CALCULATED_VALUE", "SKILL_BENEFIT", "CONCENTRATION_RULE"];
+
 /**
  * PAS-10 M6-WO9 Phase B — registry change guard (decision C1). Every Prowess Definition kind specification that existed
  * at the accepted Phase A checkpoint is byte-for-byte unchanged (src/testing/m6-wo9-registry-baseline.json); the ONLY
@@ -29,7 +32,7 @@ describe("M6-WO9 registry characterization (Phase B, decision C1)", () => {
   });
 
   it("the only new kind is ACTION_IMPROVEMENT: ACTION_ECONOMY family, no shared contract, GENERIC_RULE storage, v1", () => {
-    expect(Object.keys(current).filter((k) => !(k in baseline.kinds))).toEqual(["ACTION_IMPROVEMENT"]);
+    expect(Object.keys(current).filter((k) => !(k in baseline.kinds) && !RULES_WO1_KINDS.includes(k))).toEqual(["ACTION_IMPROVEMENT"]);
     expect(current.ACTION_IMPROVEMENT).toEqual({ family: "ACTION_ECONOMY", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1] });
     expect([...ACTION_IMPROVEMENT_PAYLOAD_KINDS]).toEqual(["ACTION_IMPROVEMENT"]);
   });

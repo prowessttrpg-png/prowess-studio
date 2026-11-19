@@ -28,6 +28,12 @@ const SOURCE_DETAIL: Readonly<Record<string, { readonly key: "stat" | "statistic
   DERIVED: { key: "statistic", vocabulary: "derivedStatistics", prompt: "derived statistic" },
   CHARACTER: { key: "field", vocabulary: "characterFields", prompt: "Character value" },
 };
+/** RULES-WO1: a one-input Formula that reads one Stat as it is (used to start a new value from a Stat page). */
+export function statFormula(stat: string): Formula {
+  const kind = Object.entries(SOURCE_DETAIL).find(([, d]) => d.key === "stat")?.[0] ?? "";
+  const variable = stat.toLowerCase();
+  return { expression: variable, rounding: "", minimum: null, maximum: null, unit: null, variables: [{ variable, source: { kind, stat } }] };
+}
 export const sourceComplete = (s: FormulaSourceDto) => {
   const detail = SOURCE_DETAIL[s.kind];
   return s.kind !== "" && (detail === undefined || (typeof s[detail.key] === "string" && s[detail.key] !== ""));
@@ -342,7 +348,7 @@ function SourcePicker({ catalog, sourceKinds, value, label, onChoose, disabled }
 
 
 function SourceFields({ catalog, sourceKinds, value, onChange, label }: { catalog: AuthoringCatalogDto; sourceKinds: readonly string[]; value: FormulaSourceDto; onChange: (s: FormulaSourceDto) => void; label: string }) {
-  const kinds = sourceKinds.filter((k) => (catalog.vocabularies.formulaSourceKinds ?? []).includes(k));
+  const kinds = sourceKinds.filter((k) => [...(catalog.vocabularies.formulaSourceKinds ?? []), ...(catalog.vocabularies.valueInputKinds ?? [])].includes(k));
   return (
     <>
       <select aria-label={`${label}: source`} value={value.kind} onChange={(e) => onChange({ kind: e.target.value })}>

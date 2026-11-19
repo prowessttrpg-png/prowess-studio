@@ -303,7 +303,8 @@ export { commitCharacterPlayOperation, getCharacterPlayWorkspace, listCharacterP
 export type { CharacterPlayWorkspaceView, PlayCommitResult, PlayEventView, PlayVersions } from "./character/index.js";
 // PRE-M7-WO1: Compendium rule control — four read-only / side-effect-free operations: what a Stat affects, where a rule
 // is used, the Draft preview (published Release vs never-persisted candidate) and the pure guided-Formula operation.
-export { formulaGuide, getRuleUsage, getStatImpacts, previewRuleCandidate } from "./compendium-rules/index.js";
+export { formulaGuide, getRuleUsage, getStatImpacts, previewAuthoredRules, previewRuleCandidate } from "./compendium-rules/index.js";
+export type { AuthoredRuleSample, AuthoredRulesPreview, AuthoredRulesSide } from "./compendium-rules/index.js";
 export type { FormulaDescription, PreviewExample, PreviewOutcome, RuleCandidatePreview, RuleDefinitionSummary, RuleUsage, StatImpactRow, StatImpacts } from "./compendium-rules/index.js";
 // M7-WO1 Encounter foundation and roster (encounter preparation only — no combat, no Character resource writes).
 export { commandEncounter, createEncounter, getEncounter, listEncounterCandidates, listEncounterEvents, listEncounters } from "./encounter/index.js";

@@ -91,6 +91,10 @@ async function releaseIdentity(releaseId: string) {
 }
 
 const ROLE_LABELS: Record<RuleNode["role"], string> = { STAT: "Stat", DERIVED_STAT: "Calculated value", CORE_RESOLUTION: "Core procedure", DEFINITION: "Rule" };
+/** RULES-WO1: authored rule kinds whose page is edited directly from a Stat's "What this affects". */
+const AUTHORED_RULE_KINDS = new Set(["CALCULATED_VALUE", "SKILL_BENEFIT", "CONCENTRATION_RULE"]);
+const KIND_LABELS: Readonly<Record<string, string>> = { CALCULATED_VALUE: "Calculated value", SKILL_BENEFIT: "Skill benefit", CONCENTRATION_RULE: "Concentration rule" };
+const roleLabelOf = (n: RuleNode) => (n.definition !== null && KIND_LABELS[n.definition.definitionKind] !== undefined ? (KIND_LABELS[n.definition.definitionKind] as string) : ROLE_LABELS[n.role]);
 
 export async function getStatImpacts(releaseId: string, stat: string): Promise<StatImpacts> {
   if (!(PROWESS_STATS as readonly string[]).includes(stat)) throw invalid(`Not a Stat: ${JSON.stringify(stat)}`);
@@ -114,8 +118,8 @@ export async function getStatImpacts(releaseId: string, stat: string): Promise<S
     rulesText: statVersion?.rulesText ?? null,
     impacts: impacts.map((i) => ({
       role: i.node.role,
-      roleLabel: ROLE_LABELS[i.node.role],
-      editable: i.node.definition !== null && (i.node.role === "DERIVED_STAT" || i.node.role === "CORE_RESOLUTION"),
+      roleLabel: roleLabelOf(i.node),
+      editable: i.node.definition !== null && (i.node.role === "DERIVED_STAT" || i.node.role === "CORE_RESOLUTION" || AUTHORED_RULE_KINDS.has(i.node.definition.definitionKind)),
       token: i.node.token,
       depth: i.depth,
       direct: i.depth === 1,

@@ -101,5 +101,8 @@
     "apps/studio/app/api/encounters/[encounterId]/events/route.ts",
     "apps/studio/app/api/encounters/[encounterId]/route.ts",
     "apps/studio/app/api/encounters/route.ts"
+  ],
+  "RULES-WO1": [
+    "apps/studio/app/api/compendium-rules/authored-preview/route.ts"
   ]
 }

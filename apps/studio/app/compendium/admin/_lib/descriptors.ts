@@ -84,7 +84,15 @@ export type VocabularyName =
   | "affinityRankUpTargets"
   | "affinityRoles"
   | "actionImprovementPrerequisites"
-  | "actionImprovementModifications";
+  | "actionImprovementModifications"
+  // RULES-WO1 authored values, Skill benefits and the Concentration rule.
+  | "canonStatuses"
+  | "calculatedValuePlacements"
+  | "valueInputKinds"
+  | "valueBaseSourceKinds"
+  | "benefitAmountSourceKinds"
+  | "concentrationCapacitySourceKinds"
+  | "concentrationUpkeepSourceKinds";
 
 /** PRE-M7-WO1: one column of a guided table of flat records (every row keeps any other stored key untouched). */
 export type RowColumn =
@@ -152,11 +160,17 @@ export type FieldDescriptor =
   | (FieldBase & { readonly input: "traitParameters" })
   | (FieldBase & { readonly input: "useSites" })
   | (FieldBase & { readonly input: "equipmentSource" })
-  | (FieldBase & { readonly input: "traitContract" });
+  | (FieldBase & { readonly input: "traitContract" })
+  // RULES-WO1: a Formula the source may leave unstated (null = "not stated"), and a source citation that may be absent.
+  | (FieldBase & { readonly input: "optionalFormula"; readonly sources: VocabularyName; readonly absentLabel: string; readonly presentLabel: string; readonly presetFromStat?: boolean })
+  | (FieldBase & { readonly input: "optionalSource" })
+  | (FieldBase & { readonly input: "refList"; readonly refKind: string; readonly itemLabel: string });
 
 export interface ContractDescriptor {
   /** Short explanation of what this kind of Definition is FOR (§59) — presentation only. */
   readonly purpose: string;
+  /** RULES-WO1: previewed with a sample Character (authored values, Skill benefits, the Concentration rule). */
+  readonly preview?: "AUTHORED_RULE";
   readonly fields: readonly FieldDescriptor[];
 }
 
@@ -692,6 +706,84 @@ const AFFINITY_V2: ContractDescriptor = {
   ],
 };
 
+/**
+ * RULES-WO1: authored rules in game language. The M5 readers (definition/rules-authoring-payload.ts) validate every
+ * value; the preview evaluates the saved Draft with the same code the Character sheet uses.
+ */
+const RULE_SOURCE: FieldDescriptor = { key: "source", label: "Source", group: "Source", input: "optionalSource", required: false, help: "Cite the rulebook sections this comes from. Required when the rule is canonical." };
+const CANON: FieldDescriptor = { key: "canonStatus", label: "Where this rule comes from", group: "Status", input: "select", vocabulary: "canonStatuses", required: true, help: "Canonical = stated in the rulebook. Owner provided = a designer ruling. Test only = a labelled placeholder that is never presented as canon." };
+const NOTE: FieldDescriptor = { key: "note", label: "Why it is not canonical", group: "Status", input: "text", nullable: true, required: false, help: "Required for owner-provided and test-only rules: the ruling, or what is missing from the source." };
+const formulaField = (key: string, label: string, sources: VocabularyName, help: string): FieldDescriptor => ({ key, label, group: "Calculation", input: "coreFormula", sources, required: true, help });
+export const RULES_AUTHORING_DESCRIPTORS: Readonly<Record<string, ContractDescriptor>> = {
+  CALCULATED_VALUE: {
+    preview: "AUTHORED_RULE",
+    purpose: "A game value calculated from a Character — for example Carry Capacity from Strength. Skill benefits can add to it, and it can be shown on the Character sheet.",
+    fields: [
+      { key: "valueKey", label: "Value name used by other rules", group: "Identity", input: "token", required: true, placeholder: "CARRY_CAPACITY", help: "A short capitalised name other rules use to add to this value." },
+      { key: "unit", label: "Unit", group: "Identity", input: "text", nullable: true, required: false, help: "For example lb or ft." },
+      { key: "placement", label: "Shown on the Character sheet as", group: "Identity", input: "select", vocabulary: "calculatedValuePlacements", required: true },
+      { key: "base", label: "Base calculation", group: "Calculation", input: "optionalFormula", sources: "valueBaseSourceKinds", presetFromStat: true, required: false, presentLabel: "The rule states a base calculation", absentLabel: "The rulebook does not state a base value (only bonuses are added)", help: "Each contribution reads a Stat, the Character's Level or another statistic." },
+      CANON,
+      NOTE,
+      RULE_SOURCE,
+    ],
+  },
+  SKILL_BENEFIT: {
+    preview: "AUTHORED_RULE",
+    purpose: "Something a Skill grants from a rank onward — for example Athletics at Trained adds 5 ft of Throw Distance per point of Strength.",
+    fields: [
+      { key: "benefitKey", label: "Benefit name", group: "Identity", input: "token", required: true, placeholder: "ATHLETICS_TRAINED_THROW" },
+      { key: "skill", label: "Skill", group: "When it applies", input: "reference", refKind: "SKILL", required: true },
+      { key: "minimumRankKey", label: "From rank", group: "When it applies", input: "token", required: true, help: "The rank name as the Skill ladder spells it, for example Trained in capitals. The benefit applies at this rank and every higher rank." },
+      { key: "writtenBenefit", label: "The benefit as written", group: "Benefit", input: "text", required: true },
+      {
+        key: "contributions",
+        label: "Adds to values",
+        group: "Benefit",
+        input: "list",
+        itemLabel: "Addition",
+        required: false,
+        item: [
+          { key: "contributionKey", label: "Addition name", group: "", input: "token", required: true, placeholder: "PER_STR" },
+          { key: "valueKey", label: "Adds to the value named", group: "", input: "token", required: true, placeholder: "THROW_DISTANCE" },
+          { key: "amount", label: "Amount", group: "", input: "coreFormula", sources: "benefitAmountSourceKinds", required: true },
+        ],
+      },
+      { key: "grantedActions", label: "Grants Actions", group: "Benefit", input: "refList", refKind: "ACTION", itemLabel: "Action", required: false },
+      { key: "source", label: "Source", group: "Source", input: "source", required: true },
+    ],
+  },
+  CONCENTRATION_RULE: {
+    preview: "AUTHORED_RULE",
+    purpose: "How Concentration works: how many points a Character has, what a Sustained Spell costs to keep up each round, and how assigned points cover that cost. Reference and preview only — combat does not read this rule yet.",
+    fields: [
+      { key: "ruleKey", label: "Rule name", group: "Identity", input: "token", required: true, placeholder: "CONCENTRATION" },
+      formulaField("capacity", "Concentration points", "concentrationCapacitySourceKinds", "How many Concentration points a Character has."),
+      formulaField("sustainedSpellUpkeepAp", "Sustained Spell upkeep (AP per round)", "concentrationUpkeepSourceKinds", "The AP a Sustained Spell costs each round, from the AP it cost to cast."),
+      {
+        key: "allocation",
+        label: "Assigning points",
+        group: "Assigning points",
+        input: "group",
+        required: true,
+        fields: [
+          { key: "apCoveredPerPoint", label: "AP of upkeep one point covers", group: "", input: "integer", required: true },
+          { key: "maySplitAcrossEffects", label: "Points may be split across Effects", group: "", input: "boolean", required: true },
+          { key: "mayStackOnOneEffect", label: "Several points may be placed on one Effect", group: "", input: "boolean", required: true },
+          { key: "uncoveredApPaid", label: "Upkeep AP not covered is still paid", group: "", input: "boolean", required: true },
+          { key: "waivesMpUpkeep", label: "Points also waive MP upkeep", group: "", input: "boolean", required: true },
+          { key: "waivesManaLock", label: "Points also waive Mana Lock", group: "", input: "boolean", required: true },
+          { key: "pointsReturnWhenEffectEnds", label: "Points return when the Effect ends", group: "", input: "boolean", required: true },
+        ],
+      },
+      { key: "openQuestions", label: "Open questions", group: "Open questions", input: "list", itemLabel: "Question", required: false, item: [tok("questionKey", "Short name"), { key: "question", label: "Question", group: "", input: "text", required: true }] },
+      CANON,
+      NOTE,
+      RULE_SOURCE,
+    ],
+  },
+};
+
 export const GENERIC_DESCRIPTOR: ContractDescriptor = {
   purpose: "This kind has no dedicated authoring descriptor yet: author its payload as structured data. The M5 contract still validates every field.",
   fields: [{ key: "", label: "Payload", group: "Payload", input: "authoredData", required: true, help: "The complete payload for this Definition kind." }],
@@ -707,6 +799,7 @@ export function descriptorFor(kind: { definitionKind: string; sharedContract: st
   if (schemaVersion === 1 && ABILITY_DEFINITION_DESCRIPTORS[kind.definitionKind] !== undefined) return ABILITY_DEFINITION_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
   if (schemaVersion === 1 && RUNTIME_KIND_DESCRIPTORS[kind.definitionKind] !== undefined) return RUNTIME_KIND_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
   if (kind.definitionKind === "AFFINITY" && schemaVersion === 1) return AFFINITY_V1;
+  if (schemaVersion === 1 && RULES_AUTHORING_DESCRIPTORS[kind.definitionKind] !== undefined) return RULES_AUTHORING_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
   return GENERIC_DESCRIPTOR;
 }
 
@@ -815,6 +908,11 @@ export function initialFieldValue(field: FieldDescriptor): unknown {
       return {};
     case "optionalData":
       return undefined;
+    case "optionalFormula":
+    case "optionalSource":
+      return null;
+    case "refList":
+      return [];
     case "coreFormula":
       // The rounding is the author's choice (from the catalog) — a new Formula starts without one.
       return { expression: "0", rounding: "", minimum: null, maximum: null, unit: null, variables: [] };

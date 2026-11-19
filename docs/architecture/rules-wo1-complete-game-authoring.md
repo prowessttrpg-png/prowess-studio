@@ -22,8 +22,8 @@ repository set"). Checkpoints are delivered as verified git bundles until that c
 
 | Record | Value |
 | --- | --- |
-| Primary playtest | `Prowess Core Playtest Packet VO.1_2.docx`, supplied by the owner into the connected `prowess-studio/Prowess Playtest Document/` folder |
-| Bytes / SHA-256 | 98,897,516 / `21fa6771ebdbb984941e55e45adaa8a7b6747555645530854ad401540ecde54d`. These were measured on the owner's machine on 19 Nov 2026 and **match** `docs/import-reports/m3-wo9-core-playtest-v0.1.md` exactly. This is a reaffirmation, not new bytes, so nothing is re-imported. |
+| Primary playtest | The Core Playtest packet supplied by the owner into the connected `prowess-studio/Prowess Playtest Document/` folder (its file name and hash are recorded only in the M3-WO9 import report, per M3-I19) |
+| Bytes / SHA-256 | Measured on the owner's machine on 19 Nov 2026; they **match** `docs/import-reports/m3-wo9-core-playtest-v0.1.md` exactly. This is a reaffirmation, not new bytes, so nothing is re-imported. |
 | Structure (for inventory) | 126,740 words; 772 tables; 2,487 headings (759 H1, 1,394 H2, 320 H3, 14 H4). These were read on the owner's machine. The text is not committed. |
 | Approved parser | `prowess-docx-structure@1.0.0`; recorded structure hash `3d9a429c…`. It is not re-run, because the source bytes are unchanged. |
 
@@ -69,13 +69,29 @@ no dedicated authoring descriptor yet" and a recursive field tree (`stat: Text S
   launcher's "Download diagnostics" JSON (`commit`, `tree`) identifies the build. That is a file download, not a visible
   screen.
 
-**Decision.** Build identity becomes visible in ordinary UI: an **About this build** page in Studio, linked from the
-shell, showing the version, commit, tree, build time and migration count. The installer passes the identity to the
+**Decision.** Build identity becomes visible in ordinary UI: an **About this build** page in Studio showing the version, commit, tree and package fingerprint, plus which kinds
+this build edits with a guided editor. The installer passes the identity to the
 Studio server. The version is bumped so that a new installer is distinguishable.
 
-**Remaining evidence step.** The owner's own diagnostics `commit`. It is requested, not assumed. The R03 reproduction runs
-both builds against one seeded Release: the baseline (`16ee5c6`) shows the generic editor, and this branch shows the
-guided editor.
+**Reproduction (Phase B, code level).** Each commit's own `descriptors.ts` was loaded unchanged and asked which editor
+it gives a STAT v1 Definition:
+
+| Commit | `apps/studio` version | STAT editor | CALCULATED_VALUE editor |
+| --- | --- | --- | --- |
+| `332639f` (DIST-WO1) | 0.1.1 | generic technical tree | — (kind did not exist) |
+| `16ee5c6` (DIST-WO2) | 0.1.2 | generic technical tree | — |
+| `4714d08` (PRE-M7-WO1) | 0.1.2 | guided | — |
+| this branch | 0.1.3 | guided | guided |
+
+So two installers both labelled 0.1.2 behave differently, which is consistent with the screenshot. This is not proof of
+which build the owner has installed.
+
+**Remaining evidence step.** The owner's own build identity: the launcher's "Download diagnostics" `commit`, or (after
+installing this branch) the About page. It is requested, not assumed. A browser reproduction of both builds against one
+seeded Release is part of the Phase D installed check.
+
+The shell link to About is on the Developer page and on the technical-editor notice (a primary-navigation entry was not
+added, to keep the navigation inventory unchanged).
 
 ## 4. Whole-game coverage inventory (R02, initial)
 
@@ -130,7 +146,7 @@ it as a status badge (§5.4).
 | Contract | Purpose | Consumer in RULES-WO1 |
 | --- | --- | --- |
 | `CALCULATED_VALUE` v1 | An authored value: name, description, unit, contributions as an M4 Formula over game inputs (Stats, Level, other values, Skill rank), bounds, rounding, optional conditional applicability, display location, and a **canon status** (CANONICAL / OWNER_PROVIDED / TEST_ONLY) | The Character sheet "Additional values" section evaluates published values for the Character's exact Release |
-| SKILL v2: `rankBenefits` | Per rank: bonuses to a named value (with conditions), granted Actions / Counter Actions (exact refs), choices, passives (written), prerequisites (ALL / ANY) | Calculated values read the "Skill rank" input; the sheet shows benefits |
+| `SKILL_BENEFIT` v1 (decided in Phase B instead of SKILL v2, so SKILL v1 and every Character that pins it stay untouched; one record per benefit) | One benefit of one exact Skill from a rank onward: additions to named calculated values (M4 Formulas over Stats / Level / derived statistics), granted Actions (exact refs), the written benefit | The calculated-value evaluator adds every applying benefit; the sheet and preview show each addition and the rank it needs |
 | `ARMOR` v1 | Armor / Shield: category, Armor value, Strength requirement, Dodge cap, movement and stealth effects, properties | Reference, plus the sheet's equipped Armor (later order) |
 | `STATUS_CONDITION` v1 | Condition: effects (written plus structured modifiers), duration model, stacking, removal, triggers | Reference; play later |
 | `CONCENTRATION_RULE` v1 (OV-01 to OV-03) | Capacity Formula, upkeep Formula, allocation semantics, open questions | Preview: capacity at a RES; upkeep at a casting AP; allocation → payable AP |
@@ -156,6 +172,25 @@ Each entry is found by its familiar name through a search over the catalog. Sour
 | Previewable | A preview evaluator exists for the kind |
 | Connected to | A named consumer registry (code-declared, tested) |
 | Live execution | A runtime consumer exists |
+
+### 5.5 Phase B record (what is built)
+
+- **Game (approved-change entry `RULES-WO1`, additive only):** `CALCULATED_VALUE`, `SKILL_BENEFIT` and `CONCENTRATION_RULE`
+  at payload version 1 (`definition/rules-authoring-payload.ts`); the evaluator `character/calculated-values.ts` (M4
+  `evaluateFormula` for every base and addition, dependency order, cycles refused, missing inputs → unavailable, never
+  0); `ability/concentration-preview.ts` (`appliesInPlay: false`). The sheet gains an optional `calculatedValues` list and
+  fills the Carry maximum only from a published value placed there; with none published the sheet is byte-identical.
+- **Server:** the rule graph links values read by other values and Skill-benefit additions; Stat impacts label authored
+  rules ("Calculated value", "Skill benefit") and make them editable; `previewAuthoredRules` evaluates the published
+  Release and an in-memory candidate in which Drafts replace pins **or are added** (new rules), writing nothing.
+- **Studio:** guided editors for the three kinds (base "not stated in the rulebook" is a choice, never a 0); Stat page
+  "Create a new value from STR" opens a value that already reads the Stat and returns to the Release preview; the
+  authored-rule preview (sample Character, Skill ranks, Sustained Spells; "Preview only — combat does not use this
+  rule yet"); the sheet's Carry maximum and "Additional Values" carry their canon label; **About this build**.
+- **Desktop:** the controller passes `PROWESS_APP_VERSION / BUILD_COMMIT / BUILD_TREE / PACKAGE_SHA256` to Studio; the
+  app version is 0.1.3.
+- **Not yet (Phase C):** readable source-section picker (locators are still typed as section keys), structured Skill
+  rank pickers, reading another calculated value from the guided input list, representative published content.
 
 ## 6. Phase plan and checkpoints
 

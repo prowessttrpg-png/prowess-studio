@@ -5,6 +5,7 @@ import path from "node:path";
 import { COMPENDIUM_SECTIONS, COMPENDIUM_SECTION_KEYS, homeSectionOfKind } from "@prowess/model";
 import { describe, expect, it } from "vitest";
 import catalog from "./fixtures/m6-wo1-catalog.json";
+import { expectedFrozenHash } from "./later-milestone-schema";
 
 /**
  * PRE-M7-WO1 gate — Compendium authoring and rule control. Pins the boundaries this Work Order relies on:
@@ -124,7 +125,8 @@ describe("PRE-M7-WO1 gate — the one approved M5 change (MAGE_ART v1, authoring
       ["card-phase-b.test.ts", "definition/payload.ts", "index.ts", "m6-wo3-registry.test.ts", "m6-wo4-registry.test.ts", "m6-wo6-registry.test.ts", "m6-wo9-registry.test.ts", "vocabulary/families.ts"].map((f) => G + f),
     );
     expect(Object.keys(entry.addedFiles).sort()).toEqual([G + "definition/mage-art-payload.ts", G + "pre-m7-wo1-mage-art.test.ts"]);
-    for (const [f, h] of [...Object.entries(entry.changedFiles), ...Object.entries(entry.addedFiles)]) expect(sha(f), f).toBe(h);
+    // A file this entry approved may change again ONLY through a LATER registered entry (RULES-WO1), at that exact hash.
+    for (const [f, h] of [...Object.entries(entry.changedFiles), ...Object.entries(entry.addedFiles)]) expect(sha(f), f).toBe(expectedFrozenHash(f, h));
   });
 
   it("MAGE_ART is activated for reading only: no compiler, card, pricing or play module reads the payload", () => {

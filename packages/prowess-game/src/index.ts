@@ -887,3 +887,40 @@ export { createPlayEvaluationCache, signatureSourceKey, type PlayAbilitySource, 
 export { evaluatePlayOperation, initialPlayRuntime, legalTimingEvents, readPlayOperation, SPELL_CASTING_ME_ELIGIBLE, type PlayContext, type PlayStored } from "./play/operations.js";
 export { readPlayRuntimeState } from "./play/state.js";
 export { buildPlayWorkspace, type PlayWorkspaceView } from "./play/workspace.js";
+// RULES-WO1: authored calculated values, Skill rank benefits and the Concentration rule (reference + preview).
+export {
+  CALCULATED_VALUE_PLACEMENTS,
+  CANON_STATUSES,
+  RULES_AUTHORING_PAYLOAD_KINDS,
+  VALUE_INPUT_KINDS,
+  VALUE_BASE_INPUT_KINDS,
+  BENEFIT_AMOUNT_INPUT_KINDS,
+  CONCENTRATION_CAPACITY_INPUT_KINDS,
+  CONCENTRATION_UPKEEP_INPUT_KINDS,
+  isRulesAuthoringPayloadKind,
+  type CalculatedValuePayload,
+  type CalculatedValuePlacement,
+  type CanonStatus,
+  type ConcentrationAllocation,
+  type ConcentrationRulePayload,
+  type RulesAuthoringPayloadKind,
+  type SkillBenefitContribution,
+  type SkillBenefitPayload,
+  type ValueFormula,
+  type ValueInputKind,
+  type ValueInputSource,
+} from "./definition/rules-authoring-payload.js";
+export {
+  CALCULATED_VALUE_ISSUE_CODES,
+  authoredValuesOf,
+  calculatedValuesForCharacter,
+  evaluateCalculatedValues,
+  valueFactsOf,
+  type AuthoredBenefit,
+  type AuthoredValue,
+  type CalculatedValueResult,
+  type CalculatedValuesOutcome,
+  type ValueContributionResult,
+  type ValueFacts,
+} from "./character/calculated-values.js";
+export { CONCENTRATION_PREVIEW_ISSUE_CODES, previewConcentration, type ConcentrationPreviewEffect, type ConcentrationPreviewResult } from "./ability/concentration-preview.js";

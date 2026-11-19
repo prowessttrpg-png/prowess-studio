@@ -53,3 +53,52 @@ export interface RuleCandidatePreviewDto {
   changed: string[];
 }
 export const previewRuleCandidate = (body: { releaseId: string; drafts: string[]; examples: PreviewExampleDto[] }) => postAuthoring<RuleCandidatePreviewDto>("/api/compendium-rules/preview", body);
+
+// ---- RULES-WO1: authored rules (calculated values, Skill benefits, the Concentration rule) -----------------------------
+export interface AuthoredRuleSampleDto {
+  level: number;
+  stats: Record<string, number>;
+  skillRanks: Array<{ skillEntityId: string; rankKey: string }>;
+  effects: Array<{ label: string; castAp: number; assignedPoints: number }>;
+}
+export interface AuthoredValueDto {
+  valueKey: string;
+  displayName: string | null;
+  definition: { entityId: string; entityVersionId: string; canonicalKey: string } | null;
+  unit: string | null;
+  canonStatus: string;
+  placement: string;
+  note: string | null;
+  baseStated: boolean;
+  base: number | null;
+  contributions: Array<{ benefitKey: string; contributionKey: string; minimumRankKey: string; applies: boolean; amount: number | null; skill: { canonicalKey: string } }>;
+  total: number | null;
+  unavailable: string | null;
+}
+export interface ConcentrationPreviewDto {
+  capacity: number | null;
+  assignedPoints: number;
+  freePoints: number | null;
+  effects: Array<{ label: string; castAp: number; upkeepAp: number | null; assignedPoints: number; coveredAp: number | null; payableAp: number | null }>;
+  totalPayableAp: number | null;
+  mpUpkeepStillPaid: boolean;
+  manaLockStillApplies: boolean;
+  openQuestions: string[];
+  appliesInPlay: false;
+  issues: Array<{ code: string; message: string }>;
+}
+export interface AuthoredRulesSideDto {
+  ok: boolean;
+  problems: string[];
+  values: AuthoredValueDto[];
+  concentration: Array<{ canonicalKey: string; displayName: string | null; preview: ConcentrationPreviewDto }>;
+  skills: Array<{ entityId: string; canonicalKey: string; displayName: string | null }>;
+  ranks: string[];
+}
+export interface AuthoredRulesPreviewDto {
+  release: { id: string; rulesetId: string; releaseNumber: number; versionLabel: string };
+  overlay: Array<{ entityId: string; entityVersionId: string; revisionNumber: number; status: string; mode: "REPLACES_PIN" | "ADDED" }>;
+  published: AuthoredRulesSideDto;
+  candidate: AuthoredRulesSideDto;
+}
+export const previewAuthoredRules = (body: { releaseId: string; drafts: string[]; sample: AuthoredRuleSampleDto }) => postAuthoring<AuthoredRulesPreviewDto>("/api/compendium-rules/authored-preview", body);

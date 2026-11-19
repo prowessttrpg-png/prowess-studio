@@ -151,8 +151,13 @@ export function StatAffectsPage({ rulesetId, releaseId, stat }: { rulesetId: str
 
       <section aria-label="Add a contribution" className="gov-card gov-card--compact">
         <h2>Make {stat} affect something new</h2>
-        <p>Open the calculated value that should use {stat} — for example from Rules &amp; Calculations — and add {stat} as a contribution in its formula. It will then appear in this list.</p>
-        <Link href={sectionHref(rulesetId, releaseId, "rules-calculations")}>Go to Rules &amp; Calculations</Link>
+        <p>Create a new value that {stat} feeds — for example Carry Capacity — or open an existing calculated value and add {stat} as a contribution. Either way it then appears in this list once published.</p>
+        <p className="gov-actions">
+          <Link className="gov-button" href={`/compendium/admin/new?kind=CALCULATED_VALUE&stat=${encodeURIComponent(stat)}&release=${encodeURIComponent(releaseId)}`} data-testid="stat-new-value">
+            Create a new value from {stat}
+          </Link>
+          <Link href={sectionHref(rulesetId, releaseId, "rules-calculations")}>Go to Rules &amp; Calculations</Link>
+        </p>
       </section>
 
       <p className="gov-muted">To see how a change would alter calculated values, edit the rule: its Draft workspace previews the change against this Release without publishing anything.</p>

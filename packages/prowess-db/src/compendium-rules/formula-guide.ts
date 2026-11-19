@@ -14,6 +14,8 @@ export interface FormulaSource {
   readonly stat?: string;
   readonly statistic?: string;
   readonly field?: string;
+  /** RULES-WO1: the authored calculated value a `{ kind: "CALCULATED_VALUE" }` input reads. */
+  readonly valueKey?: string;
 }
 
 const title = (t: string) => t.toLowerCase().split("_").map((w) => (w === "" ? w : w[0]!.toUpperCase() + w.slice(1))).join(" ");
@@ -23,13 +25,16 @@ export function formulaSourceLabel(s: FormulaSource): string {
   if (s.kind === "STAT") return `Stat ${s.stat ?? "?"}`;
   if (s.kind === "DERIVED") return `derived ${title(s.statistic ?? "?")}`;
   if (s.kind === "CHARACTER") return `Character ${title(s.field ?? "?")}`;
+  if (s.kind === "LEVEL") return "Character Level";
+  if (s.kind === "CAST_AP") return "the Spell's casting AP";
+  if (s.kind === "CALCULATED_VALUE") return `value ${title(s.valueKey ?? "?")}`;
   if (s.kind === "") return "no source";
   return title(s.kind);
 }
 
 /** A readable, unused Formula variable name for a source (`str`, `con`, `accuracy`, `level`, `bonuses` …). */
 export function variableNameFor(s: FormulaSource, taken: readonly string[]): string {
-  const stem = (s.kind === "STAT" ? s.stat : s.kind === "DERIVED" ? s.statistic : s.kind === "CHARACTER" ? s.field : s.kind === "EXPLICIT_BONUSES" ? "bonuses" : s.kind)?.toLowerCase().replace(/[^a-z0-9_]/g, "_") || "input";
+  const stem = (s.kind === "STAT" ? s.stat : s.kind === "DERIVED" ? s.statistic : s.kind === "CHARACTER" ? s.field : s.kind === "EXPLICIT_BONUSES" ? "bonuses" : s.kind === "CALCULATED_VALUE" ? s.valueKey : s.kind)?.toLowerCase().replace(/[^a-z0-9_]/g, "_") || "input";
   const base = /^[a-z_]/.test(stem) ? stem : `v_${stem}`;
   let name = base;
   for (let i = 2; taken.includes(name); i += 1) name = `${base}_${i}`;
@@ -77,7 +82,7 @@ function readSources(v: unknown): FormulaSource[] {
     if (x === null || typeof x !== "object") throw invalid(`sources[${i}] must be an object`);
     const r = x as Record<string, unknown>;
     const str = (k: string) => (typeof r[k] === "string" && (r[k] as string).length <= 64 ? (r[k] as string) : undefined);
-    return { kind: str("kind") ?? "", ...(str("stat") ? { stat: str("stat") } : {}), ...(str("statistic") ? { statistic: str("statistic") } : {}), ...(str("field") ? { field: str("field") } : {}) };
+    return { kind: str("kind") ?? "", ...(str("stat") ? { stat: str("stat") } : {}), ...(str("statistic") ? { statistic: str("statistic") } : {}), ...(str("field") ? { field: str("field") } : {}), ...(str("valueKey") ? { valueKey: str("valueKey") } : {}) };
   });
 }
 

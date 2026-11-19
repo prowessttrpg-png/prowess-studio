@@ -502,6 +502,10 @@ jobs:
         run: |
           node scripts/ci/verify-gate.mjs M7-WO1 apps/studio/tests/unit/m7-wo1-static.test.ts apps/studio/tests/unit/m7-wo1-encounter-ui.test.tsx
           PROWESS_EXPECT_CONTROLS=10 node scripts/m7-wo1-negative-controls.mjs
+      - name: RULES-WO1 audit gate — Complete game authoring
+        run: |
+          node scripts/ci/verify-gate.mjs RULES-WO1 apps/studio/tests/unit/rules-wo1-static.test.ts apps/studio/tests/unit/rules-wo1-authoring-ui.test.tsx packages/prowess-game/src/rules-wo1-authoring.test.ts
+          PROWESS_EXPECT_CONTROLS=10 node scripts/rules-wo1-negative-controls.mjs
       - name: M1 audit gate — static invariants (no current-version state, enum parity, errors, migrations, layering)
         run: node scripts/ci/verify-gate.mjs M1-STATIC apps/studio/tests/unit/m1-audit-static.test.ts
       - name: M1 audit gate — database-level suite

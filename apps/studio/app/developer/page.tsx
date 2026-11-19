@@ -22,6 +22,10 @@ export default function DeveloperPage() {
           <h2 className="gov-card__title"><Link href="/developer/rules">Rules Inspector / Calculation Lab</Link></h2>
           <p>Inspect and test exact Rules Engine evaluations: plans, contexts, execution, explanation, trace and provenance.</p>
         </li>
+        <li className="gov-card">
+          <h2 className="gov-card__title"><Link href="/about">About this build</Link></h2>
+          <p>The running version, the source commit and tree it was built from, and which rule kinds have a guided editor.</p>
+        </li>
       </ul>
     </section>
   );

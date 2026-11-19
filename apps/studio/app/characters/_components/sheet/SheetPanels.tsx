@@ -497,8 +497,23 @@ export function AttunementPanel({ sheet }: { sheet: CharacterSheetDto }) {
   );
 }
 
+const CANON_NOTE: Record<string, string> = { OWNER_PROVIDED: "Owner ruling", TEST_ONLY: "Test value — not canon" };
+const titleOf = (key: string) => key.toLowerCase().split("_").map((w) => (w === "" ? w : w[0]!.toUpperCase() + w.slice(1))).join(" ");
+
+/** RULES-WO1: a non-canonical value is always labelled where it is shown. */
+function CanonMark({ status, testId }: { status: string | undefined; testId?: string }) {
+  if (status === undefined || CANON_NOTE[status] === undefined) return null;
+  return (
+    <span className="sheet-canon" data-canon={status} data-testid={testId}>
+      {" "}
+      ({CANON_NOTE[status]})
+    </span>
+  );
+}
+
 export function CarryPanel({ sheet }: { sheet: CharacterSheetDto }) {
   const c = sheet.mechanics.carry;
+  const carryValue = sheet.mechanics.calculatedValues?.find((v) => v.placement === "CARRY_MAXIMUM_LOAD");
   return (
     <SheetSection id="carry" title="Carry & Weight" icon={<WeightIcon />} collapsible>
       <dl className="sheet-pair">
@@ -511,9 +526,44 @@ export function CarryPanel({ sheet }: { sheet: CharacterSheetDto }) {
         <div>
           <dt>Max Load</dt>
           <dd>
-            <Value v={c.maximumLoad} />
+            <Value v={c.maximumLoad} testId="sheet-carry-max" />
+            <CanonMark status={carryValue?.canonStatus} testId="sheet-carry-canon" />
           </dd>
         </div>
+      </dl>
+    </SheetSection>
+  );
+}
+
+/** RULES-WO1: the Release's other published calculated values (e.g. Throw Distance), each with its source of truth. */
+export function AdditionalValuesPanel({ sheet }: { sheet: CharacterSheetDto }) {
+  const values = (sheet.mechanics.calculatedValues ?? []).filter((v) => v.placement === "ADDITIONAL_VALUES");
+  if (values.length === 0) return null;
+  return (
+    <SheetSection id="additional-values" title="Additional Values" icon={<WeightIcon />} collapsible>
+      <dl className="sheet-pair" data-testid="sheet-additional-values">
+        {values.map((v) => (
+          <div key={v.valueKey} data-testid={`sheet-value-${v.valueKey}`}>
+            <dt>{titleOf(v.valueKey)}</dt>
+            <dd>
+              {v.total === null ? (
+                <Value v={{ value: null, unit: null, unavailable: v.unavailable, source: null }} />
+              ) : v.baseStated ? (
+                <span className="sheet-value">
+                  {v.total}
+                  {v.unit ? ` ${v.unit}` : ""}
+                </span>
+              ) : (
+                <span className="sheet-value" title="The rulebook states no base value; this is the total of the Character's bonuses.">
+                  +{v.total}
+                  {v.unit ? ` ${v.unit}` : ""} <span className="sheet-sr">from bonuses; base not stated</span>
+                  <span aria-hidden="true"> (bonuses; base not stated)</span>
+                </span>
+              )}
+              <CanonMark status={v.canonStatus} />
+            </dd>
+          </div>
+        ))}
       </dl>
     </SheetSection>
   );
