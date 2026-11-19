@@ -285,6 +285,8 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     // PRE-M7-WO1 added formulaGuide (pure: classifies / prints the engine-validated Formula tree), getStatImpacts and
     // getRuleUsage (reads of one exact Release's rule graph) and previewRuleCandidate (evaluates a never-persisted
     // candidate; no write). None mutates anything.
+    // RULES-WO1 added previewAuthoredRules (evaluates the published Release and a never-persisted candidate overlay;
+    // no write — proven by the row counts in rules-wo1-authored-rules.test.ts).
     // M4-WO2 added resolveRulesetContextFromManifest / resolveRulesetContextFromRelease: exact-id, read-only builders of
     // the M4 RulesetContext (SELECTs only — proven by the table fingerprints in ruleset-context.test.ts). No mutation.
     // M3-WO6 added reviewImportCandidate (the ONLY Candidate status change: an explicit, append-only, atomic decision),
@@ -498,6 +500,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "getCharacterAdvancementContext",
         "getCharacterDefinitionEligibility",
         "listCharacterEligibleDefinitions",
+        "previewAuthoredRules",
         "previewCharacterAdvancementFor",
         // M6-WO5 Digital Character Sheet: one read model, play-state / sheet-text / portrait writes to their OWN tables
         // (each a lockVersion compare-and-set), portrait validation helpers and constants. None touches entity_versions.

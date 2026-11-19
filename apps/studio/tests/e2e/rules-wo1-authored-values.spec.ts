@@ -163,7 +163,7 @@ test("RULES-WO1 a new value from STR: guided create, preview, publish R2; the sh
   await page.getByLabel("Display Name (required)").fill(name);
   await page.getByLabel("Canonical Key (required)").fill(`test.m6wo12.${runId}.value.carry_capacity`);
   await page.getByLabel(/^Value name used by other rules/).fill("CARRY_CAPACITY");
-  await page.getByLabel(/^Unit/).fill("lb");
+  await page.getByRole("textbox", { name: "Unit", exact: true }).fill("lb");
   await page.getByLabel(/^Shown on the Character sheet as/).selectOption("CARRY_MAXIMUM_LOAD");
   await page.getByLabel(/^Where this rule comes from/).selectOption("TEST_ONLY");
   await page.getByLabel(/^Why it is not canonical/).fill("Test-only placeholder: the rulebook states no Carry Capacity formula.");
