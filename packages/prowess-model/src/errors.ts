@@ -859,3 +859,42 @@ export const CHARACTER_ERROR_CODES = {
 } as const;
 
 export type CharacterErrorCode = (typeof CHARACTER_ERROR_CODES)[keyof typeof CHARACTER_ERROR_CODES];
+
+/**
+ * M7-WO1 Encounter foundation and roster. An encounter is prepared on ONE exact published Release; its memberships are
+ * references to completed Characters on that same Release. Nothing here starts combat or changes a Character.
+ */
+export const ENCOUNTER_ERROR_CODES = {
+  /** No encounter with this id. */
+  NOT_FOUND: "ENCOUNTER.NOT_FOUND",
+  /** A request field is missing, malformed or not accepted (closed commands; derived readiness is never an input). */
+  INVALID_INPUT: "ENCOUNTER.INVALID_INPUT",
+  /** The expected encounter version is not the current one: it changed since it was loaded. Reload and review. */
+  STALE_WRITE: "ENCOUNTER.STALE_WRITE",
+  /** The encounter is archived: a read-only historical record. */
+  ARCHIVED: "ENCOUNTER.ARCHIVED",
+  /** The idempotency key was already used for a DIFFERENT request; nothing was applied. */
+  IDEMPOTENCY_CONFLICT: "ENCOUNTER.IDEMPOTENCY_CONFLICT",
+  /** The chosen Release does not exist. */
+  RELEASE_NOT_FOUND: "ENCOUNTER.RELEASE_NOT_FOUND",
+  /** The Release's manifest failed integrity verification; no encounter is prepared on it. */
+  RELEASE_INTEGRITY_FAILED: "ENCOUNTER.RELEASE_INTEGRITY_FAILED",
+  /** No Character with this id. */
+  CHARACTER_NOT_FOUND: "ENCOUNTER.CHARACTER_NOT_FOUND",
+  /** The Character's core creation is not complete (a DRAFT Character cannot join an encounter). */
+  CHARACTER_NOT_ELIGIBLE: "ENCOUNTER.CHARACTER_NOT_ELIGIBLE",
+  /** The Character is pinned to a different exact Release than the encounter. */
+  CHARACTER_RELEASE_MISMATCH: "ENCOUNTER.CHARACTER_RELEASE_MISMATCH",
+  /** The Character is already a member of this encounter. */
+  DUPLICATE_PARTICIPANT: "ENCOUNTER.DUPLICATE_PARTICIPANT",
+  /** No side with this id belongs to this encounter. */
+  SIDE_NOT_FOUND: "ENCOUNTER.SIDE_NOT_FOUND",
+  /** No membership with this id belongs to this encounter. */
+  PARTICIPANT_NOT_FOUND: "ENCOUNTER.PARTICIPANT_NOT_FOUND",
+  /** The side still has members: move or remove them deliberately before removing the side. */
+  SIDE_NOT_EMPTY: "ENCOUNTER.SIDE_NOT_EMPTY",
+  /** Another side of this encounter already has this name. */
+  DUPLICATE_SIDE_NAME: "ENCOUNTER.DUPLICATE_SIDE_NAME",
+} as const;
+
+export type EncounterErrorCode = (typeof ENCOUNTER_ERROR_CODES)[keyof typeof ENCOUNTER_ERROR_CODES];

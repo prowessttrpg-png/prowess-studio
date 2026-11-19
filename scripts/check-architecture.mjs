@@ -246,6 +246,15 @@ const RULES = [
     forbiddenSubstrings: ["generated/prisma"],
     reason: "the Character frontend must consume only the HTTP API layer — no Prisma, no @prowess/db, no @prowess/game / @prowess/rules",
   },
+  {
+    // M7-WO1: the encounter frontend consumes only the Studio HTTP API. Readiness, eligibility and Release compatibility
+    // are decided on the server; the browser never imports the database, the M5 domain or the M4 engine.
+    name: "apps/studio (app/encounters/)",
+    srcDir: path.join(ROOT, "apps/studio/app/encounters"),
+    forbidden: ["@prisma/client", "@prisma/adapter-pg", "prisma", "@prowess/db", "@prowess/game", "@prowess/rules"],
+    forbiddenSubstrings: ["generated/prisma"],
+    reason: "the encounter frontend must consume only the HTTP API layer — no Prisma, no @prowess/db, no @prowess/game / @prowess/rules",
+  },
 ];
 
 const violations = [];

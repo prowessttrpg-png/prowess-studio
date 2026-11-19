@@ -4,7 +4,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { frozenFileContent, frozenSchemaText, notLaterMigration } from "./later-milestone-schema";
-import { withLaterMilestoneRoutes } from "./later-milestone-routes";
+import { laterMilestoneRoutes, withLaterMilestoneRoutes } from "./later-milestone-routes";
 import { auditWo3Content, auditWo3Source, type Wo3Layer } from "./m5-wo3-audit-helpers";
 
 /**
@@ -99,10 +99,13 @@ describe("M5-WO3 audit — Runtime resources, action economy & movement", () => 
     expect(Object.fromEntries(walk("packages/prowess-db/prisma/migrations").filter((f) => f.endsWith("migration.sql")).filter(notLaterMigration).map((f) => [f, hash(read(f))]))).toEqual(wo1.migrations);
     const wo3 = JSON.parse(read("docs/architecture/m5-wo3-baseline.json")) as { apiRoutes: string[] };
     expect(walk("apps/studio/app/api").filter((f) => f.endsWith("route.ts")).sort()).toEqual(withLaterMilestoneRoutes(wo3.apiRoutes));
-    expect(walk("apps/studio/app/api").join("\n")).not.toMatch(/commit-turn|spend|apply-to-character|evaluate-and-save|encounter/i);
+    // A REGISTERED later milestone (M7-WO1 encounter preparation, docs/architecture/m6-api-routes.json) is not an M5-WO3
+    // endpoint; every unregistered route still must not be an encounter / spend / commit path.
+    expect(walk("apps/studio/app/api").filter((f) => !laterMilestoneRoutes().includes(f)).join("\n")).not.toMatch(/commit-turn|spend|apply-to-character|evaluate-and-save|encounter/i);
     expect(Object.keys((JSON.parse(read("apps/studio/package.json")) as { dependencies: Record<string, string> }).dependencies)).not.toContain("@prowess/game");
     expect(Object.keys((JSON.parse(read("packages/prowess-game/package.json")) as { dependencies: Record<string, string> }).dependencies).sort()).toEqual(["@prowess/model", "@prowess/rules"]);
-    expect(read("packages/prowess-db/prisma/schema.prisma")).not.toMatch(/model\s+Encounter|currentHp|currentAp/i);
+    // The schema AS CERTIFIED (registered, marked later additions removed — M7-WO1's encounter models among them).
+    expect(frozenSchemaText()).not.toMatch(/model\s+Encounter|currentHp|currentAp/i);
   });
 
   it("M5-I097 RESOURCE and ACTION are active v1 structured payloads; no action-name cost table exists in code", () => {

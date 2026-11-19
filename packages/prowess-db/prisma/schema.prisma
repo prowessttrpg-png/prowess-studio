@@ -1489,6 +1489,7 @@ model RulesetRelease {
   @@index([canonPolicyId], map: "ruleset_releases_canon_policy_id_idx")
   @@map("ruleset_releases")
   contentPackReceipt ContentPackReceipt? // DIST-WO2 back-relation
+  encounters Encounter[] // M7-WO1 back-relation
 }
 
 /// Structural change of one Entity between two exact Release compositions (PAS-10 M2-WO11 §5). Kept in lockstep with
@@ -2417,6 +2418,7 @@ model Character {
   weaponLoadout        CharacterWeaponLoadout? // M6-WO6 back-relation
   signatureAbilities   CharacterSignatureAbility[] // M6-WO7 back-relation
   playRuntime          CharacterPlayRuntime? // M6-WO10 back-relation
+  encounterMemberships EncounterParticipant[] // M7-WO1 back-relation
 
   @@index([rulesetReleaseId], map: "characters_ruleset_release_id_idx")
   @@index([ancestryEntityVersionId], map: "characters_ancestry_entity_version_id_idx")
@@ -2831,3 +2833,102 @@ model ContentPackAsset {
   @@map("content_pack_assets")
 }
 // <<< DIST-WO2 content pack persistence
+
+// >>> M7-WO1 Encounter foundation and roster — registered in docs/architecture/m6-schema-changes.json
+/// An encounter being PREPARED (M7-WO1): a name, optional notes, ONE exact published Release, named sides and roster
+/// memberships. Workspace state, never published rules content (it is not part of a content pack). It holds no
+/// resource, initiative, round or turn: a Character's HP / MP / AP stay in character_resource_states and its play runtime
+/// stays in character_play_runtimes. `status` is PREPARATION or ARCHIVED (terminal, read-only; database-enforced).
+model Encounter {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  name  String
+  notes String?
+
+  rulesetReleaseId String         @map("ruleset_release_id") @db.Uuid
+  rulesetRelease   RulesetRelease @relation(fields: [rulesetReleaseId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  status     String
+  archivedAt DateTime? @map("archived_at") @db.Timestamptz(6)
+
+  lockVersion Int      @default(1) @map("lock_version")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  sides        EncounterSide[]
+  participants EncounterParticipant[]
+  events       EncounterEvent[]
+
+  @@unique([id, rulesetReleaseId], map: "encounters_id_ruleset_release_id_key")
+  @@index([rulesetReleaseId], map: "encounters_ruleset_release_id_idx")
+  @@map("encounters")
+}
+
+/// A named side of one encounter. `ordinal` is its stable display order (allocated once, never reused).
+model EncounterSide {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  encounterId String    @map("encounter_id") @db.Uuid
+  encounter   Encounter @relation(fields: [encounterId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  name    String
+  ordinal Int
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  participants EncounterParticipant[]
+
+  @@unique([id, encounterId], map: "encounter_sides_id_encounter_id_key")
+  @@unique([encounterId, ordinal], map: "encounter_sides_encounter_id_ordinal_key")
+  @@map("encounter_sides")
+}
+
+/// One Character's membership in one encounter: a REFERENCE (never a copy of its resources and never a lock). The
+/// composite keys make a cross-encounter side and a membership on another Release impossible; a database trigger requires
+/// the Character's own Release to be the encounter's. `sideId` null = in the roster, not yet assigned to a side.
+model EncounterParticipant {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  encounterId      String    @map("encounter_id") @db.Uuid
+  rulesetReleaseId String    @map("ruleset_release_id") @db.Uuid
+  encounter        Encounter @relation(fields: [encounterId, rulesetReleaseId], references: [id, rulesetReleaseId], onDelete: Restrict, onUpdate: Restrict)
+
+  sideId String?        @map("side_id") @db.Uuid
+  side   EncounterSide? @relation(fields: [sideId, encounterId], references: [id, encounterId], onDelete: Restrict, onUpdate: Restrict)
+
+  characterId String    @map("character_id") @db.Uuid
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([encounterId, characterId], map: "encounter_participants_encounter_id_character_id_key")
+  @@index([sideId, encounterId], map: "encounter_participants_side_id_encounter_id_idx")
+  @@index([characterId], map: "encounter_participants_character_id_idx")
+  @@index([encounterId, rulesetReleaseId], map: "encounter_participants_encounter_id_ruleset_release_id_idx")
+  @@map("encounter_participants")
+}
+
+/// One committed roster or lifecycle command (append-only; a database trigger refuses UPDATE / DELETE). `record` keeps
+/// what changed exactly as committed. `idempotencyKey` (unique across all encounters) makes a retried command — including
+/// a retried CREATE, before any encounter id exists — return this event instead of applying again.
+model EncounterEvent {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  encounterId String    @map("encounter_id") @db.Uuid
+  encounter   Encounter @relation(fields: [encounterId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  sequence         Int
+  idempotencyKey   String @map("idempotency_key") @db.Uuid
+  requestHash      String @map("request_hash")
+  kind             String
+  summary          String
+  encounterVersion Int    @map("encounter_version")
+  record           Json
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([encounterId, sequence], map: "encounter_events_encounter_id_sequence_key")
+  @@unique([idempotencyKey], map: "encounter_events_idempotency_key_key")
+  @@map("encounter_events")
+}
+// <<< M7-WO1 Encounter foundation and roster

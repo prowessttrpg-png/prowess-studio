@@ -3,7 +3,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import catalog from "./fixtures/m6-wo1-catalog.json";
-import { expectedFrozenHash, laterMigrations } from "./later-milestone-schema";
+import { expectedFrozenHash, frozenSchemaText, laterMigrations } from "./later-milestone-schema";
 import { auditM5Source } from "./m5-wo1-audit-helpers";
 
 /**
@@ -290,7 +290,8 @@ describe("M6-WO6 gate — registered schema change and migration (§140–§143,
   });
 
   it("§7 no inventory, ammunition, Armor or encounter model exists", () => {
-    expect(SCHEMA).not.toMatch(/model (?!MigrationPlanItem\b)\w*(Inventory|Item|Ammo|Ammunition|Armou?r|Magazine|Reload|Gear|Encounter)\w* \{/);
+    // As certified for WO6: registered, marked later additions (M7-WO1's encounter models) are removed first.
+    expect(frozenSchemaText()).not.toMatch(/model (?!MigrationPlanItem\b)\w*(Inventory|Item|Ammo|Ammunition|Armou?r|Magazine|Reload|Gear|Encounter)\w* \{/);
   });
 });
 

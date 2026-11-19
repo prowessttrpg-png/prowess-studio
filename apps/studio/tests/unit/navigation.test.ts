@@ -6,6 +6,8 @@ const EXPECTED_ENTRIES: Array<{ id: string; label: string; href: string }> = [
   { id: "compendium", label: "Compendium", href: "/compendium" },
   { id: "studio", label: "Studio", href: "/studio" },
   { id: "characters", label: "Characters", href: "/characters" },
+  // M7-WO1: encounter preparation.
+  { id: "encounters", label: "Encounters", href: "/encounters" },
   { id: "world", label: "World", href: "/world" },
   { id: "gm", label: "GM", href: "/gm" },
   { id: "publishing", label: "Publishing", href: "/publishing" },
@@ -13,14 +15,14 @@ const EXPECTED_ENTRIES: Array<{ id: string; label: string; href: string }> = [
 ];
 
 describe("PRIMARY_NAVIGATION", () => {
-  it("contains exactly the eight required primary entries, in order", () => {
+  it("contains exactly the nine primary entries (eight required + M7-WO1 Encounters), in order", () => {
     expect(PRIMARY_NAVIGATION.map(({ id, label, href }) => ({ id, label, href }))).toEqual(
       EXPECTED_ENTRIES,
     );
   });
 
-  it("marks Dashboard, Compendium, Characters (M6-WO3) and Developer as functional (not placeholders)", () => {
-    for (const id of ["dashboard", "compendium", "characters", "developer"]) {
+  it("marks Dashboard, Compendium, Characters (M6-WO3), Encounters (M7-WO1) and Developer as functional (not placeholders)", () => {
+    for (const id of ["dashboard", "compendium", "characters", "encounters", "developer"]) {
       const entry = PRIMARY_NAVIGATION.find((e) => e.id === id);
       expect(entry?.placeholder).toBeFalsy();
     }

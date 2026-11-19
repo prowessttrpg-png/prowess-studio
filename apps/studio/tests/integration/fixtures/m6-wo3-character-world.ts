@@ -279,6 +279,7 @@ export async function cleanupCharacterWorlds(prefix: string): Promise<void> {
     }
     await prisma.characterSignatureAbility.deleteMany({ where: { id: { in: abilityIds } } });
   }
+  await cleanupEncounters({ releaseIds, characterIds });
   await prisma.character.deleteMany({ where: { id: { in: characterIds } } });
   const inR = { rulesetId: { in: rulesetIds } };
   await prisma.rulesetRelease.deleteMany({ where: inR });
@@ -296,4 +297,28 @@ export async function cleanupCharacterWorlds(prefix: string): Promise<void> {
   await prisma.entityVersion.updateMany({ where: { entityId: { in: entityIds } }, data: { parentVersionId: null } });
   await prisma.entityVersion.deleteMany({ where: { entityId: { in: entityIds } } });
   await prisma.entity.deleteMany({ where: { id: { in: entityIds } } });
+}
+
+/**
+ * M7-WO1 teardown (test database only): encounters prepared on these Releases or naming these Characters. Encounters are
+ * never deleted and their history is append-only (database guards); teardown lifts those guards for its own rows only.
+ */
+export async function cleanupEncounters(scope: { readonly releaseIds?: readonly string[]; readonly characterIds?: readonly string[] }): Promise<void> {
+  const ids = (
+    await prisma.encounter.findMany({
+      where: { OR: [{ rulesetReleaseId: { in: [...(scope.releaseIds ?? [])] } }, { participants: { some: { characterId: { in: [...(scope.characterIds ?? [])] } } } }] },
+      select: { id: true },
+    })
+  ).map((e: { id: string }) => e.id);
+  if (ids.length === 0) return;
+  const guards: Array<[string, string]> = [["encounter_events", "encounter_events_append_only"], ["encounters", "encounters_no_delete"], ["encounters", "encounters_guard"], ["encounter_sides", "encounter_sides_roster_open"], ["encounter_participants", "encounter_participants_roster_open"]];
+  for (const [t, g] of guards) await prisma.$executeRawUnsafe(`ALTER TABLE "${t}" DISABLE TRIGGER "${g}"`);
+  try {
+    await prisma.encounterEvent.deleteMany({ where: { encounterId: { in: ids } } });
+    await prisma.encounterParticipant.deleteMany({ where: { encounterId: { in: ids } } });
+    await prisma.encounterSide.deleteMany({ where: { encounterId: { in: ids } } });
+    await prisma.encounter.deleteMany({ where: { id: { in: ids } } });
+  } finally {
+    for (const [t, g] of guards) await prisma.$executeRawUnsafe(`ALTER TABLE "${t}" ENABLE TRIGGER "${g}"`);
+  }
 }

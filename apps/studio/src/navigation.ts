@@ -48,6 +48,8 @@ export const PRIMARY_NAVIGATION: readonly NavEntry[] = [
   },
   // M6-WO3: Character creation is functional (a minimal index, New Character and the core creation wizard).
   { id: "characters", label: "Characters", href: "/characters" },
+  // M7-WO1: encounter preparation (sides and roster on one exact Release). Combat arrives with later M7 Work Orders.
+  { id: "encounters", label: "Encounters", href: "/encounters" },
   { id: "world", label: "World", href: "/world", placeholder: true },
   { id: "gm", label: "GM", href: "/gm", placeholder: true },
   { id: "publishing", label: "Publishing", href: "/publishing", placeholder: true },

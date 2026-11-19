@@ -1261,3 +1261,15 @@ body {
 .prowess-authoring code, .prowess-authoring h1, .prowess-authoring .gov-crumbs a, .prowess-reference code, .prowess-reference h1, .prowess-reference .gov-crumbs a { overflow-wrap: anywhere; word-break: break-word; }
 .prowess-authoring .gov-crumbs li, .prowess-reference .gov-crumbs { min-width: 0; max-width: 100%; }
 .prowess-rule-preview, .prowess-rule-preview > *, .prowess-rule-preview details { min-width: 0; max-width: 100%; }
+
+/* M7-WO1 encounter preparation */
+.prowess-encounter { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; overflow-wrap: anywhere; }
+.prowess-encounter__sides { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--space-3); }
+.prowess-encounter__side { display: flex; flex-direction: column; gap: var(--space-2); }
+.prowess-encounter__members, .prowess-encounter__candidates, .prowess-encounter__list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.prowess-encounter__members > li, .prowess-encounter__candidates > li { border-top: 1px solid var(--color-border); padding-top: var(--space-2); }
+.prowess-encounter__inline { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-2); min-width: 0; }
+.prowess-encounter__inline .gov-field { flex: 1 1 12rem; min-width: 0; }
+.prowess-encounter__filters { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: flex-end; }
+.prowess-encounter__radio { margin-right: var(--space-3); white-space: nowrap; }
+.prowess-encounter__history { margin: 0; padding-left: var(--space-4); }

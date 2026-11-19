@@ -1271,6 +1271,27 @@
         2,
         3
       ]
+    },
+    {
+      "id": "M7-WO1",
+      "name": "M7-WO1 audit gate — Encounter foundation and roster",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/m7-wo1-static.test.ts",
+        "apps/studio/tests/unit/m7-wo1-encounter-ui.test.tsx"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/m7-wo1-negative-controls.mjs",
+        "count": 10
+      },
+      "smoke": [],
+      "previous": [],
+      "tiers": [
+        2,
+        3
+      ]
     }
   ],
   "checks": [

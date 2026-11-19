@@ -33,6 +33,7 @@ import {
   COMPENDIUM_AUTHORING_ERROR_CODES,
   COMPENDIUM_REFERENCE_ERROR_CODES,
   CHARACTER_ERROR_CODES,
+  ENCOUNTER_ERROR_CODES,
   type EntityAliasErrorCode,
   type EntityErrorCode,
   type EntityVersionErrorCode,
@@ -65,6 +66,7 @@ import {
   type CompendiumAuthoringErrorCode,
   type CompendiumReferenceErrorCode,
   type CharacterErrorCode,
+  type EncounterErrorCode,
 } from "@prowess/model";
 import { NextResponse } from "next/server";
 
@@ -146,7 +148,8 @@ type KnownDomainErrorCode =
   | ProwessMaterializationErrorCode
   | CompendiumAuthoringErrorCode
   | CompendiumReferenceErrorCode
-  | CharacterErrorCode;
+  | CharacterErrorCode
+  | EncounterErrorCode;
 
 /**
  * Centralized `DomainError.code` -> HTTP status mapping (PAS-10 M1-WO8
@@ -492,6 +495,25 @@ const DOMAIN_ERROR_STATUS_MAP = {
   [CHARACTER_ERROR_CODES.INVALID_PLAY_OPERATION]: 400,
   [CHARACTER_ERROR_CODES.PLAY_IDEMPOTENCY_CONFLICT]: 409,
   [CHARACTER_ERROR_CODES.PLAY_STATE_UNREADABLE]: 409,
+  // Encounter foundation (M7-WO1): malformed commands are invalid input (400); unknown encounters, Characters, sides
+  // and memberships are not found (404) — a side or membership of ANOTHER encounter is "not found" in this one; a stale
+  // version, a reused key, an archived encounter, an ineligible / other-Release / duplicate Character, a non-empty side
+  // or a duplicate side name conflict with current state (409); an unknown or corrupt Release is a conflict too (409).
+  [ENCOUNTER_ERROR_CODES.NOT_FOUND]: 404,
+  [ENCOUNTER_ERROR_CODES.INVALID_INPUT]: 400,
+  [ENCOUNTER_ERROR_CODES.STALE_WRITE]: 409,
+  [ENCOUNTER_ERROR_CODES.ARCHIVED]: 409,
+  [ENCOUNTER_ERROR_CODES.IDEMPOTENCY_CONFLICT]: 409,
+  [ENCOUNTER_ERROR_CODES.RELEASE_NOT_FOUND]: 404,
+  [ENCOUNTER_ERROR_CODES.RELEASE_INTEGRITY_FAILED]: 409,
+  [ENCOUNTER_ERROR_CODES.CHARACTER_NOT_FOUND]: 404,
+  [ENCOUNTER_ERROR_CODES.CHARACTER_NOT_ELIGIBLE]: 409,
+  [ENCOUNTER_ERROR_CODES.CHARACTER_RELEASE_MISMATCH]: 409,
+  [ENCOUNTER_ERROR_CODES.DUPLICATE_PARTICIPANT]: 409,
+  [ENCOUNTER_ERROR_CODES.SIDE_NOT_FOUND]: 404,
+  [ENCOUNTER_ERROR_CODES.PARTICIPANT_NOT_FOUND]: 404,
+  [ENCOUNTER_ERROR_CODES.SIDE_NOT_EMPTY]: 409,
+  [ENCOUNTER_ERROR_CODES.DUPLICATE_SIDE_NAME]: 409,
 } satisfies Record<KnownDomainErrorCode, number>;
 
 /**

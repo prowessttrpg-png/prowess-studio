@@ -305,3 +305,6 @@ export type { CharacterPlayWorkspaceView, PlayCommitResult, PlayEventView, PlayV
 // is used, the Draft preview (published Release vs never-persisted candidate) and the pure guided-Formula operation.
 export { formulaGuide, getRuleUsage, getStatImpacts, previewRuleCandidate } from "./compendium-rules/index.js";
 export type { FormulaDescription, PreviewExample, PreviewOutcome, RuleCandidatePreview, RuleDefinitionSummary, RuleUsage, StatImpactRow, StatImpacts } from "./compendium-rules/index.js";
+// M7-WO1 Encounter foundation and roster (encounter preparation only — no combat, no Character resource writes).
+export { commandEncounter, createEncounter, getEncounter, listEncounterCandidates, listEncounterEvents, listEncounters } from "./encounter/index.js";
+export type { EncounterCandidate, EncounterCommandResult, EncounterEventView, EncounterListItem, EncounterParticipantView, EncounterReadiness, EncounterReleaseView, EncounterSideView, EncounterView, ReadinessItem } from "./encounter/index.js";

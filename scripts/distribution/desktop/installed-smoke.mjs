@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import http from "node:http";
 import path from "node:path";
@@ -99,6 +99,20 @@ export async function exercise(root, manifest, packFile) {
   assert.equal(character.release.id, manifest.demo.release);
   const route = "/api/characters/" + character.id;
   assert.deepEqual((await (await api(route)).json()).data, character);
+  // M7-WO1: an encounter prepared on the demo Release persists through backup, restore and restart. Its sample
+  // Character is a creation draft, so the roster correctly refuses it (only completed Characters join).
+  const json = { "content-type": "application/json" };
+  const prepared = (await (await api("/api/encounters", { method: "POST", headers: json,
+    body: JSON.stringify({ name: "M7-WO1 Windows encounter é", rulesetReleaseId: manifest.demo.release, idempotencyKey: randomUUID() }) }, 201)).json()).data.encounter;
+  const encounterRoute = "/api/encounters/" + prepared.id;
+  const command = (body, status = 200) => api(encounterRoute + "/commands", { method: "POST", headers: json, body: JSON.stringify(body) }, status);
+  await (await command({ command: { kind: "ADD_SIDE", name: "Windows side" }, expectedVersion: 1, idempotencyKey: randomUUID() })).text();
+  const refused = await (await command({ command: { kind: "ADD_PARTICIPANT", characterId: character.id, sideId: null }, expectedVersion: 2, idempotencyKey: randomUUID() }, 409)).json();
+  assert.equal(refused.code, "ENCOUNTER.CHARACTER_NOT_ELIGIBLE");
+  const encounter = (await (await api(encounterRoute)).json()).data;
+  assert.equal(encounter.version, 2);
+  assert.equal(encounter.release.id, manifest.demo.release);
+  assert.deepEqual(encounter.sides.map((side) => side.name), ["Windows side"]);
   const first = workspace(root).active;
   const backup = Buffer.from(await (await api(prefix + "/backup")).arrayBuffer());
   const archive = JSON.parse(backup.toString());
@@ -114,6 +128,7 @@ export async function exercise(root, manifest, packFile) {
   await (await api(route, {}, 401)).text();
   const reopened = await gateway.browser();
   assert.deepEqual((await (await reopened(route)).json()).data, character);
+  assert.deepEqual((await (await reopened(encounterRoute)).json()).data, encounter);
   const after = JSON.parse(JSON.parse(await (await reopened(prefix + "/backup")).text()).payload);
   const restored = after.tables.find((entry) => entry.table === "characters").rows;
   assert.equal(restored.find((entry) => JSON.parse(entry).id === character.id), row);
@@ -129,7 +144,7 @@ export async function exercise(root, manifest, packFile) {
       manifestId: release.manifest_id, manifestHash: release.manifest_hash };
   }
   await (await gateway.control("quit")).text();
-  return { startupMilliseconds, fingerprint, character, route, pack };
+  return { startupMilliseconds, fingerprint, character, route, pack, encounterRoute, encounter };
 }
 
 export async function verifyRestart(root, initial) {
@@ -137,6 +152,7 @@ export async function verifyRestart(root, initial) {
   const api = await gateway.browser();
   await waitFor(async () => (await (await api(prefix + "/status")).json()).ready, "Studio restart");
   assert.deepEqual((await (await api(initial.route)).json()).data, initial.character);
+  assert.deepEqual((await (await api(initial.encounterRoute)).json()).data, initial.encounter);
   await (await gateway.control("quit")).text();
 }
 
