@@ -32,11 +32,14 @@ async function chooseSource(page: Page, query: string): Promise<"TITLE" | "ADVAN
   const picker = page.getByTestId("source-picker").first();
   const none = picker.getByTestId("source-no-snapshot");
   const search = picker.getByTestId("source-search");
+  // The picker first shows "Loading…", then EITHER the title search OR the no-rulebook note (never both).
+  await expect(picker.getByTestId("source-loading")).toHaveCount(0);
   await expect(none.or(search)).toBeVisible();
   if (await search.isVisible()) {
     await search.fill(query);
     const matches = picker.getByTestId("source-matches");
-    if (await matches.isVisible({ timeout: 10_000 }).catch(() => false)) {
+    const found = await matches.waitFor({ state: "visible", timeout: 10_000 }).then(() => true, () => false);
+    if (found) {
       await matches.getByRole("button", { name: /^Add / }).first().click();
       await expect(picker.getByTestId("source-chosen")).toBeVisible();
       return "TITLE";

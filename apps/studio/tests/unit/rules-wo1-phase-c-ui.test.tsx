@@ -77,7 +77,7 @@ describe("RULES-WO1 Phase C — readable source picker", () => {
     }));
     const changes: DefinitionCandidate[] = [];
     render(<Editor initial={newCandidate(kindRow("ARMOR"))} onChange={(c) => changes.push(c)} />);
-    fireEvent.change(await screen.findByTestId("source-search"), { target: { value: "armor" } });
+    fireEvent.change(await screen.findByTestId("source-search", {}, { timeout: 5000 }), { target: { value: "armor" } });
     const matches = await screen.findByTestId("source-matches");
     fireEvent.click(within(matches).getByRole("button", { name: "Add ARMOR" }));
     await waitFor(() => expect(changes.at(-1)?.payload.source).toEqual({ locators: ["s540"], conflicts: [] }));
@@ -85,7 +85,7 @@ describe("RULES-WO1 Phase C — readable source picker", () => {
   });
   it("without an imported rulebook it says so and keeps the keys editable", async () => {
     render(<Editor initial={newCandidate(kindRow("STATUS_CONDITION"))} />);
-    expect((await screen.findByTestId("source-no-snapshot")).textContent).toMatch(/No rulebook is imported/);
+    expect((await screen.findByTestId("source-no-snapshot", {}, { timeout: 5000 })).textContent).toMatch(/No rulebook is imported/);
   });
 });
 

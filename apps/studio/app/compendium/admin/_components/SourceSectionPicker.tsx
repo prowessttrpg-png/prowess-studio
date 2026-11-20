@@ -63,7 +63,11 @@ export function SourceSectionPicker({ value, onChange, extraListFields = [] }: {
           })}
         </ul>
       )}
-      {lookup !== null && lookup.snapshot === null ? (
+      {lookup === null && !failed ? (
+        <p role="status" className="gov-muted" data-testid="source-loading">
+          Loading the rulebook sections…
+        </p>
+      ) : lookup === null ? null : lookup.snapshot === null ? (
         <p className="gov-muted" data-testid="source-no-snapshot">
           No rulebook is imported in this workspace, so sections cannot be searched by title. You can still enter section keys below.
         </p>
