@@ -151,7 +151,7 @@ describe("RULES-WO1 gate — ordinary authoring needs no machine keys", () => {
     const form = read("apps/studio/app/compendium/admin/_components/NewDefinitionForm.tsx");
     expect(form).toContain("Suggest a Canonical Key from the Display Name");
     expect(form).not.toContain("keyEdited");
-    expect(form).toContain('const auto = descriptor.fields.filter((f) => f.input === "token" && f.fromName === true);');
+    expect(form).toContain('const auto = descriptor.fields.flatMap((f) => (f.input === "token" && f.fromName === true ? [f.key] : f.input === "missionRule" && f.nameKey !== undefined ? [f.nameKey] : []));');
   });
   it("About is in the primary navigation; Keywords have a screen", () => {
     expect(read("apps/studio/src/navigation.ts")).toContain('{ id: "about", label: "About", href: "/about" },');
