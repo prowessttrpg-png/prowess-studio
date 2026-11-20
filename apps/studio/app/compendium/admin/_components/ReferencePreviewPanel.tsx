@@ -3,6 +3,7 @@
 import { COMPENDIUM_STAT_TOKENS } from "@prowess/model";
 import { useState } from "react";
 import { previewReference, type ReferencePreviewDto } from "../_lib/rules-client";
+import { asToken } from "../_lib/token-input";
 
 /**
  * RULES-WO1 Phase C — preview of a SAVED Armor, Summon engine or Mission rule for sample inputs. All numbers come from
@@ -54,7 +55,7 @@ export function ReferencePreviewPanel({ entityVersionId, sample, unsavedChanges 
           {sample === "TIERED_SHEET" ? (
             <label className="gov-field">
               <span>Tier name</span>
-              <input aria-label="Sample tier" value={tierKey} onChange={(e) => setTierKey(e.target.value.toUpperCase())} placeholder="TIER_1" />
+              <input aria-label="Sample tier" value={tierKey} onChange={(e) => setTierKey(asToken(e.target.value))} onBlur={(e) => setTierKey(asToken(e.target.value, true))} placeholder="TIER_1" />
             </label>
           ) : null}
         </fieldset>

@@ -181,7 +181,7 @@ export type FieldDescriptor =
   | (FieldBase & { readonly input: "refList"; readonly refKind: string; readonly itemLabel: string })
   // RULES-WO1 Phase C: yes / no / not stated, and the whole Mission rule (its parts depend on the chosen shape).
   | (FieldBase & { readonly input: "triState"; readonly yes: string; readonly no: string; readonly unknown: string })
-  | (FieldBase & { readonly input: "missionRule"; readonly shapes?: VocabularyName })
+  | (FieldBase & { readonly input: "missionRule"; readonly shapes?: VocabularyName; /** RULES-WO1: the rule-name part filled in from the Display Name. */ readonly nameKey?: string })
   // RULES-WO1: a token that names other content, chosen from what exists (a Skill rank, a calculated value).
   | (FieldBase & { readonly input: "contentToken"; readonly options: "skillRanks" | "calculatedValues" });
 
@@ -884,13 +884,13 @@ export const REFERENCE_FAMILY_DESCRIPTORS: Readonly<Record<string, ContractDescr
     preview: "SAMPLE_INPUTS",
     previewSample: "ROLL_OR_CLOCK",
     purpose: "A GM / Mission rule: a die-range table (every roll must be covered), a Threat Clock with its escalation points, an Intel token or a written reference rule. Reference and preview — nothing generates or runs a Mission yet.",
-    fields: [{ key: "", label: "Mission rule", group: "Rule", input: "missionRule", required: true }],
+    fields: [{ key: "", label: "Mission rule", group: "Rule", input: "missionRule", nameKey: "ruleKey", required: true }],
   },
   REFERENCE_RULE: {
     preview: "SAMPLE_INPUTS",
     previewSample: "ROLL_OR_CLOCK",
     purpose: "A written gameplay rule: a die-range table (difficulty, critical results, cover …) or rule points (grappling, flanking …). Reference and table preview — nothing calculates from it.",
-    fields: [{ key: "", label: "Gameplay rule", group: "Rule", input: "missionRule", shapes: "referenceRuleShapes", required: true }],
+    fields: [{ key: "", label: "Gameplay rule", group: "Rule", input: "missionRule", shapes: "referenceRuleShapes", nameKey: "ruleKey", required: true }],
   },
   METAMAGIC: {
     purpose: "A Metamagic option or trait: its cost, what it does and its restrictions. Reference — the Spell builder does not offer Metamagic yet.",

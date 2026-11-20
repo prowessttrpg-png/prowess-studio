@@ -101,11 +101,11 @@ export function NewDefinitionForm() {
     const before = displayName;
     setDisplayName(next);
     if (candidate !== null && descriptor !== null) {
-      const auto = descriptor.fields.filter((f) => f.input === "token" && f.fromName === true);
+      const auto = descriptor.fields.flatMap((f) => (f.input === "token" && f.fromName === true ? [f.key] : f.input === "missionRule" && f.nameKey !== undefined ? [f.nameKey] : []));
       const patch: Record<string, unknown> = {};
-      for (const f of auto) {
-        const current = candidate.payload[f.key];
-        if (current === "" || current === undefined || current === tokenOf(before)) patch[f.key] = tokenOf(next);
+      for (const key of auto) {
+        const current = candidate.payload[key];
+        if (current === "" || current === undefined || current === tokenOf(before)) patch[key] = tokenOf(next);
       }
       if (Object.keys(patch).length > 0) setCandidate({ ...candidate, payload: { ...candidate.payload, ...patch } });
     }

@@ -3,6 +3,7 @@
 import { formatEnumLabel } from "@prowess/ui";
 import type { AuthoringCatalogDto } from "../_lib/authoring-client";
 import { SourceSectionPicker } from "./SourceSectionPicker";
+import { asToken } from "../_lib/token-input";
 
 /**
  * RULES-WO1 Phase C — guided editor for a whole MISSION_RULE payload. The shape decides which part exists: a die-range
@@ -53,7 +54,8 @@ export function MissionRuleEditor({ value, onChange, catalog, shapesVocabulary =
     <div data-testid="mission-rule-editor">
       <label className="gov-field">
         <span>Rule name used by other rules</span>
-        <input value={typeof rule.ruleKey === "string" ? rule.ruleKey : ""} onChange={(e) => set({ ruleKey: e.target.value })} placeholder="CONTRACT_CLAUSES" spellCheck={false} />
+        <input value={typeof rule.ruleKey === "string" ? rule.ruleKey : ""} onChange={(e) => set({ ruleKey: asToken(e.target.value) })} onBlur={(e) => set({ ruleKey: asToken(e.target.value, true) })} placeholder="CONTRACT_CLAUSES" spellCheck={false} />
+        <small className="gov-muted">Filled in from the Display Name; change it only if two rules would share a name.</small>
       </label>
       <label className="gov-field">
         <span>Kind of rule</span>

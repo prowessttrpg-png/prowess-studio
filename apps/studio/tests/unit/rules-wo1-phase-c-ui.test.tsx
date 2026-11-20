@@ -24,6 +24,7 @@ const { EntryOverview, readableNode } = await import("../../app/compendium/admin
 const { ReferencePreviewPanel } = await import("../../app/compendium/admin/_components/ReferencePreviewPanel");
 const { KeywordsScreen } = await import("../../app/compendium/admin/_components/KeywordsScreen");
 const { DefinitionPreview } = await import("../../app/compendium/admin/_components/DefinitionPreview");
+const { asToken } = await import("../../app/compendium/admin/_lib/token-input");
 
 const NO_SNAPSHOT = { snapshot: null, snapshots: [], matches: [], known: [], unknown: [] };
 beforeEach(() => {
@@ -178,5 +179,23 @@ describe("RULES-WO1 Phase D — the Definition preview names fields in words", (
     expect(within(summary).getByText("Movement penalty (feet)")).toBeTruthy();
     expect(within(summary).getByText("Extra part")).toBeTruthy();
     expect(summary.textContent).not.toMatch(/armorValue|movementPenaltyFeet|extraPart/);
+  });
+});
+
+describe("RULES-WO1 Phase D — names are typed in plain words, never as tokens", () => {
+  it("derives the stored token as the author types, visibly, and leaves a valid token unchanged", () => {
+    expect(asToken("Tier 1", true)).toBe("TIER_1");
+    expect(asToken("tactical ")).toBe("TACTICAL_");
+    expect(asToken("tactical plating!", true)).toBe("TACTICAL_PLATING");
+    expect(asToken("ALREADY_A_TOKEN", true)).toBe("ALREADY_A_TOKEN");
+  });
+  it("an identity name field stores the token of what was typed", async () => {
+    const changes: DefinitionCandidate[] = [];
+    render(<Editor initial={newCandidate(kindRow("ARMOR"))} onChange={(c) => changes.push(c)} />);
+    const input = screen.getByLabelText(/^Armor name used by other rules/);
+    fireEvent.change(input, { target: { value: "Tactical plating" } });
+    fireEvent.blur(input);
+    await waitFor(() => expect(changes.at(-1)?.payload.armorKey).toBe("TACTICAL_PLATING"));
+    expect((input as HTMLInputElement).value).toBe("TACTICAL_PLATING");
   });
 });
