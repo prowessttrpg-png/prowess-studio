@@ -124,7 +124,7 @@ interface FieldBase {
 
 export type FieldDescriptor =
   | (FieldBase & { readonly input: "select"; readonly vocabulary: VocabularyName })
-  | (FieldBase & { readonly input: "token"; readonly placeholder?: string; /** RULES-WO1: filled in from the Display Name. */ readonly fromName?: boolean })
+  | (FieldBase & { readonly input: "token"; readonly placeholder?: string; /** RULES-WO1: filled in from the Display Name. */ readonly fromName?: boolean; /** RULES-WO1: typed in plain words, stored as a token. */ readonly plainWords?: boolean })
   | (FieldBase & { readonly input: "keywords" })
   | (FieldBase & { readonly input: "compatibility" })
   | (FieldBase & { readonly input: "costContributions" })
@@ -814,6 +814,8 @@ const idTok = (key: string, label: string, placeholder: string): FieldDescriptor
 const txt = (key: string, label: string, group: string, help?: string): FieldDescriptor => ({ key, label, group, input: "text", required: true, ...(help ? { help } : {}) });
 const txtList = (key: string, label: string, group: string, help?: string): FieldDescriptor => ({ key, label, group, input: "textList", required: false, ...(help ? { help } : {}) });
 const optInt = (key: string, label: string, group: string, help?: string): FieldDescriptor => ({ key, label, group, input: "integer", required: false, ...(help ? { help } : {}) });
+/** A short name inside a list (a tier, an effect, a question): typed in plain words, stored as a token. */
+const ptok = (key: string, label: string, help?: string): FieldDescriptor => ({ ...tok(key, label, help), plainWords: true } as FieldDescriptor);
 export const REFERENCE_FAMILY_DESCRIPTORS: Readonly<Record<string, ContractDescriptor>> = {
   ARMOR: {
     preview: "SAMPLE_INPUTS",
@@ -835,7 +837,7 @@ export const REFERENCE_FAMILY_DESCRIPTORS: Readonly<Record<string, ContractDescr
     purpose: "A Condition placed on a creature (Burning, Stunned …): what it does, how long it lasts, how it is removed, when it acts and whether it stacks. Reference — play does not apply Conditions yet.",
     fields: [
       idTok("conditionKey", "Condition name used by other rules", "BURNING"),
-      { key: "effects", label: "What it does", group: "Effect", input: "list", itemLabel: "Effect", required: true, item: [tok("effectKey", "Short name"), { key: "text", label: "Effect", group: "", input: "text", required: true }] },
+      { key: "effects", label: "What it does", group: "Effect", input: "list", itemLabel: "Effect", required: true, item: [ptok("effectKey", "Short name"), { key: "text", label: "Effect", group: "", input: "text", required: true }] },
       {
         key: "duration", label: "How long it lasts", group: "Duration", input: "group", required: true,
         fields: [sel("model", "Lasts", "conditionDurationModels"), { key: "rounds", label: "Number of rounds (only for a number of rounds)", group: "", input: "integer", required: false }, { key: "text", label: "Description (needed for a special duration)", group: "", input: "text", nullable: true, required: false }],
@@ -855,7 +857,7 @@ export const REFERENCE_FAMILY_DESCRIPTORS: Readonly<Record<string, ContractDescr
       { key: "engine", label: "Engine", group: "Identity", input: "select", vocabulary: "summonEngines", required: true },
       {
         key: "tiers", label: "Tiers", group: "Tiers", input: "list", itemLabel: "Tier", required: true,
-        item: [tok("tierKey", "Tier name"), ln("label", "Label"), optInt("baseMp", "Base MP", ""), optInt("dieFaces", "Die (faces)", ""), optInt("staticValue", "Static value", ""), optInt("hp", "Hit points (HP)", ""), optInt("armor", "Armor", ""), optInt("resolve", "Resolve", ""), optInt("radiusFeet", "Radius (feet)", ""), { key: "size", label: "Size", group: "", input: "text", nullable: true, required: false }, optInt("traitSlots", "Trait slots", "")],
+        item: [ptok("tierKey", "Tier name"), ln("label", "Label"), optInt("baseMp", "Base MP", ""), optInt("dieFaces", "Die (faces)", ""), optInt("staticValue", "Static value", ""), optInt("hp", "Hit points (HP)", ""), optInt("armor", "Armor", ""), optInt("resolve", "Resolve", ""), optInt("radiusFeet", "Radius (feet)", ""), { key: "size", label: "Size", group: "", input: "text", nullable: true, required: false }, optInt("traitSlots", "Trait slots", "")],
       },
       { key: "castingAp", label: "Casting AP", group: "Costs", input: "optionalFormula", sources: "summonCostSourceKinds", required: false, presentLabel: "Casting AP is calculated", absentLabel: "The rulebook states no casting AP for this engine" },
       { key: "sustainMode", label: "Sustain", group: "Costs", input: "select", vocabulary: "summonSustainModes", required: true },
@@ -874,7 +876,7 @@ export const REFERENCE_FAMILY_DESCRIPTORS: Readonly<Record<string, ContractDescr
     fields: [
       idTok("traitKey", "Trait name used by other rules", "WARDING_PULSE"),
       { key: "engines", label: "Engines that can take it", group: "Access", input: "multiSelect", vocabulary: "summonEngines", required: true },
-      { key: "costs", label: "Cost per tier", group: "Access", input: "list", itemLabel: "Cost", required: false, item: [tok("tierKey", "Tier name"), n("mp", "MP cost")] },
+      { key: "costs", label: "Cost per tier", group: "Access", input: "list", itemLabel: "Cost", required: false, item: [ptok("tierKey", "Tier name"), n("mp", "MP cost")] },
       { ...flag("forbidden", "Forbidden trait"), group: "Access" },
       txt("effect", "What it does", "Effect"),
       { key: "source", label: "Source", group: "Source", input: "source", required: true },
@@ -930,7 +932,7 @@ const MAGE_ART_V2_DESCRIPTOR: ContractDescriptor | null =
         fields: [
           ...MAGE_ART_V1.fields.map((f): FieldDescriptor =>
             f.key === "modes" && f.input === "list"
-              ? { ...f, item: [...f.item, { key: "scaling", label: "Scaling steps", group: "", input: "list", itemLabel: "Step", required: false, item: [tok("stepKey", "Step name"), ln("label", "Label"), { key: "text", label: "What changes", group: "", input: "text", required: true }] }] }
+              ? { ...f, item: [...f.item, { key: "scaling", label: "Scaling steps", group: "", input: "list", itemLabel: "Step", required: false, item: [ptok("stepKey", "Step name"), ln("label", "Label"), { key: "text", label: "What changes", group: "", input: "text", required: true }] }] }
               : f,
           ).filter((f) => f.key !== "source"),
           { key: "grantedBenefits", label: "Benefits it grants", group: "Benefits", input: "textList", required: false },

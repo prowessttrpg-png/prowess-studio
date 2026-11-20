@@ -128,9 +128,16 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
     }
     case "token":
       return (
-        <LabeledControl field={{ ...field, help: field.help ?? "Type a short name in plain words; it is stored in capitals with underscores (Tier 1 → TIER_1)." }} issues={issues}>
-          {(p) => <input {...p} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(asToken(e.target.value))} onBlur={(e) => onChange(asToken(e.target.value, true))} autoComplete="off" spellCheck={false} />}
-        </LabeledControl>
+        field.fromName === true || field.plainWords === true ? (
+          // RULES-WO1 names: typed in plain words, stored (and shown) as the token ("Tier 1" → TIER_1).
+          <LabeledControl field={{ ...field, help: field.help ?? "Type a short name in plain words; it is stored in capitals with underscores (Tier 1 → TIER_1)." }} issues={issues}>
+            {(p) => <input {...p} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(asToken(e.target.value))} onBlur={(e) => onChange(asToken(e.target.value, true))} autoComplete="off" spellCheck={false} />}
+          </LabeledControl>
+        ) : (
+          <LabeledControl field={{ ...field, help: field.help ?? "An explicit SCREAMING_SNAKE_CASE token." }} issues={issues}>
+            {(p) => <input {...p} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(e.target.value)} autoComplete="off" spellCheck={false} />}
+          </LabeledControl>
+        )
       );
     case "keywords": {
       const keys = Array.isArray(value) ? (value as string[]) : [];
