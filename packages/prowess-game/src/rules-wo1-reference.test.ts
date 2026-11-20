@@ -107,10 +107,10 @@ describe("RULES-WO1 SUMMON_TYPE / SUMMON_TRAIT v1", () => {
   it("accepts the Totem engine with its published tier rows and previews costs through M4", () => {
     expect(codes(validateStoredProwessDefinition(stored("SUMMON", "SUMMON_TYPE", TOTEM)))).toEqual([]);
     // Tier 2: 22 MP; PRO 4 → casting AP floor(22 / 4) = 5; sustain MP 5; 1 AP per round.
-    expect(previewSummonCosts({ summon: TOTEM, tierKey: "TIER_2", totalMp: null, stats: { PRO: 4 } })).toMatchObject({ totalMp: 22, castingAp: 5, sustainMp: 5, sustainApPerRound: 1, countsTowardConcentration: null, appliesInPlay: false });
+    expect(previewSummonCosts({ summon: TOTEM as unknown as Parameters<typeof previewSummonCosts>[0]["summon"], tierKey: "TIER_2", totalMp: null, stats: { PRO: 4 } })).toMatchObject({ totalMp: 22, castingAp: 5, sustainMp: 5, sustainApPerRound: 1, countsTowardConcentration: null, appliesInPlay: false });
     // Minimum 1: 12 MP at PRO 20 → 1.
-    expect(previewSummonCosts({ summon: TOTEM, tierKey: "TIER_1", totalMp: null, stats: { PRO: 20 } }).castingAp).toBe(1);
-    expect(previewSummonCosts({ summon: TOTEM, tierKey: "TIER_1", totalMp: null, stats: {} }).castingAp).toBeNull();
+    expect(previewSummonCosts({ summon: TOTEM as unknown as Parameters<typeof previewSummonCosts>[0]["summon"], tierKey: "TIER_1", totalMp: null, stats: { PRO: 20 } }).castingAp).toBe(1);
+    expect(previewSummonCosts({ summon: TOTEM as unknown as Parameters<typeof previewSummonCosts>[0]["summon"], tierKey: "TIER_1", totalMp: null, stats: {} }).castingAp).toBeNull();
   });
   it("refuses an engine without sustain that states a sustain cost, and a duplicate tier", () => {
     expect(paths(validateStoredProwessDefinition(stored("SUMMON", "SUMMON_TYPE", { ...TOTEM, sustainMode: "NONE" })))).toContain("/prowessDefinition/payload/sustainMode");

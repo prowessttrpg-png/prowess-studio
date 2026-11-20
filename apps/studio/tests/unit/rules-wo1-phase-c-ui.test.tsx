@@ -23,6 +23,7 @@ const { DefinitionEditor } = await import("../../app/compendium/admin/_component
 const { EntryOverview, readableNode } = await import("../../app/compendium/admin/_components/EntryOverview");
 const { ReferencePreviewPanel } = await import("../../app/compendium/admin/_components/ReferencePreviewPanel");
 const { KeywordsScreen } = await import("../../app/compendium/admin/_components/KeywordsScreen");
+const { DefinitionPreview } = await import("../../app/compendium/admin/_components/DefinitionPreview");
 
 const NO_SNAPSHOT = { snapshot: null, snapshots: [], matches: [], known: [], unknown: [] };
 beforeEach(() => {
@@ -159,5 +160,23 @@ describe("RULES-WO1 Phase C — reference previews and Keywords", () => {
     fireEvent.change(screen.getByLabelText("Category"), { target: { value: "c1" } });
     fireEvent.click(screen.getByRole("button", { name: "Create Keyword" }));
     await waitFor(() => expect(auth.postAuthoring).toHaveBeenCalledWith("/api/keywords", { canonicalKey: "keyword_category.element.cold_iron", name: "Cold Iron", categoryId: "c1", description: null }));
+  });
+  it("shows the Keyword's permanent key before it is created (never set silently, never typed)", async () => {
+    auth.getAuthoring.mockResolvedValue([]);
+    render(<KeywordsScreen />);
+    fireEvent.change(screen.getByLabelText("Name (required)"), { target: { value: "Cold Iron" } });
+    expect(screen.getByTestId("keyword-key-preview").textContent).toContain("keyword.cold_iron");
+  });
+});
+
+describe("RULES-WO1 Phase D — the Definition preview names fields in words", () => {
+  it("labels each stored field with the editor's label (or the field name in words) — never a payload key", () => {
+    const candidate = { ...newCandidate(kindRow("ARMOR")), payload: { armorKey: "PLATE", armorValue: 5, movementPenaltyFeet: -5, extraPart: { a: 1 } } };
+    render(<DefinitionPreview content={{ displayName: "Plate", shortDescription: "", rulesText: "", status: null, revisionNumber: null, sources: [] }} candidate={candidate} validation={null} fields={descriptorFor(kindRow("ARMOR"), 1).fields} />);
+    const summary = screen.getByRole("region", { name: "Structured mechanical summary" });
+    expect(within(summary).getByText("Armor granted")).toBeTruthy();
+    expect(within(summary).getByText("Movement penalty (feet)")).toBeTruthy();
+    expect(within(summary).getByText("Extra part")).toBeTruthy();
+    expect(summary.textContent).not.toMatch(/armorValue|movementPenaltyFeet|extraPart/);
   });
 });

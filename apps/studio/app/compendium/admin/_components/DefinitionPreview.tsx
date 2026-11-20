@@ -3,6 +3,7 @@
 import { VersionStatusBadge } from "@prowess/ui";
 import type { ValidationResultDto } from "../_lib/authoring-client";
 import type { DefinitionCandidate } from "../_lib/definition-form";
+import type { FieldDescriptor } from "../_lib/descriptors";
 
 /**
  * Definition Preview (PAS-10 M6-WO1 §27, §63): how the content reads in the Compendium — name, kind, Keywords,
@@ -19,16 +20,23 @@ export interface PreviewContent {
   sources: Array<{ title: string; sectionLabel: string | null; pageReference: string | null }>;
 }
 
+/** A stored field name in words ("armorValue" → "Armor value"): the preview never shows payload keys (RULES-WO1). */
+export function fieldWords(key: string): string {
+  const words = key.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/_/g, " ").toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 function summarize(value: unknown): string {
   if (value === null || value === undefined) return "—";
   if (typeof value === "string") return value === "" ? "—" : value;
   if (typeof value === "number" || typeof value === "boolean") return String(value);
   if (Array.isArray(value)) return value.length === 0 ? "none" : `${value.length} item(s)`;
   const keys = Object.keys(value);
-  return keys.length === 0 ? "none" : `${keys.length} field(s): ${keys.join(", ")}`;
+  return keys.length === 0 ? "none" : `${keys.length} part(s): ${keys.map(fieldWords).join(", ")}`;
 }
 
-export function DefinitionPreview({ content, candidate, validation }: { content: PreviewContent; candidate: DefinitionCandidate | null; validation: ValidationResultDto | null }) {
+export function DefinitionPreview({ content, candidate, validation, fields = [] }: { content: PreviewContent; candidate: DefinitionCandidate | null; validation: ValidationResultDto | null; fields?: readonly FieldDescriptor[] }) {
+  const labelOf = (key: string) => fields.find((f) => f.key === key)?.label ?? fieldWords(key);
   const payload = validation?.status === "PASS" && validation.normalized !== null ? validation.normalized.payload : (candidate?.payload ?? null);
   const keywords = payload !== null && Array.isArray(payload.keywords) ? (payload.keywords as string[]) : [];
   return (
@@ -66,7 +74,7 @@ export function DefinitionPreview({ content, candidate, validation }: { content:
               .filter(([k]) => k !== "keywords")
               .map(([k, v]) => (
                 <div key={k} style={{ display: "contents" }}>
-                  <dt>{k}</dt>
+                  <dt>{labelOf(k)}</dt>
                   <dd>{summarize(v)}</dd>
                 </div>
               ))}

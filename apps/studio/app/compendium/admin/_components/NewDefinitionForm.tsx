@@ -374,6 +374,7 @@ export function NewDefinitionForm() {
         content={{ displayName, shortDescription, rulesText, status: null, revisionNumber: null, sources: sources.map((s) => ({ title: s.title, sectionLabel: s.sectionLabel || null, pageReference: s.pageReference || null })) }}
         candidate={candidate}
         validation={staleValidation ? null : (validation?.result ?? null)}
+        fields={descriptor?.fields ?? []}
       />
 
       {error ? (

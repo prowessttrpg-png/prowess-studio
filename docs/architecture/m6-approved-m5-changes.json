@@ -215,7 +215,7 @@
       "packages/prowess-game/src/definition/rules-reference-payload.ts": "d722323bb83eb6814559d55728ed5d08568a29806001967504014ef93da9fc86",
       "packages/prowess-game/src/reference/preview.ts": "9a911d07b0566f5597c1750f2095ea854a75ef6ab67f2c3d7f539c6bb30d9373",
       "packages/prowess-game/src/rules-wo1-authoring.test.ts": "52ca82f8c716ab100da809f34c650848b0841a07768cf97a642291186d755280",
-      "packages/prowess-game/src/rules-wo1-reference.test.ts": "5f9c414633ee1941fe88862a0295725cb532d455993cc48b4c3f2ff49e2c2911"
+      "packages/prowess-game/src/rules-wo1-reference.test.ts": "8422f533b7bd19a9eb145ec55f43f4ea9334addc2bf12d41c3054fbff1cf289a"
     }
   }
 }

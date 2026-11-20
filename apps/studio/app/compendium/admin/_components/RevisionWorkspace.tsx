@@ -530,6 +530,7 @@ export function RevisionWorkspace({ entityId, versionId }: { entityId: string; v
           }}
           candidate={form.candidate}
           validation={staleValidation ? null : (validation?.result ?? null)}
+          fields={descriptor?.fields ?? []}
         />
       </section>
 
