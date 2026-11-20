@@ -38,14 +38,19 @@ export type ValueInputSource =
   | { readonly kind: "LEVEL" }
   | { readonly kind: "DERIVED"; readonly statistic: DerivedStatistic }
   | { readonly kind: "CALCULATED_VALUE"; readonly valueKey: string }
-  | { readonly kind: "CAST_AP" };
+  | { readonly kind: "CAST_AP" }
+  | { readonly kind: "TOTAL_MP" };
 export type ValueInputKind = ValueInputSource["kind"];
-export const VALUE_INPUT_KINDS = deepFreeze(["STAT", "LEVEL", "DERIVED", "CALCULATED_VALUE", "CAST_AP"] as const satisfies readonly ValueInputKind[]);
+export const VALUE_INPUT_KINDS = deepFreeze(["STAT", "LEVEL", "DERIVED", "CALCULATED_VALUE", "CAST_AP", "TOTAL_MP"] as const satisfies readonly ValueInputKind[]);
 /** The input kinds each Formula of these contracts accepts — exactly what the readers below allow at that field. */
 export const VALUE_BASE_INPUT_KINDS = deepFreeze(["STAT", "LEVEL", "DERIVED", "CALCULATED_VALUE"] as const satisfies readonly ValueInputKind[]);
 export const BENEFIT_AMOUNT_INPUT_KINDS = deepFreeze(["STAT", "LEVEL", "DERIVED"] as const satisfies readonly ValueInputKind[]);
 export const CONCENTRATION_CAPACITY_INPUT_KINDS = deepFreeze(["STAT", "LEVEL"] as const satisfies readonly ValueInputKind[]);
 export const CONCENTRATION_UPKEEP_INPUT_KINDS = deepFreeze(["CAST_AP"] as const satisfies readonly ValueInputKind[]);
+/** RULES-WO1 Phase C: a Summon engine's casting / sustain cost reads its total MP and the caster's Stats. */
+export const SUMMON_COST_INPUT_KINDS = deepFreeze(["STAT", "TOTAL_MP"] as const satisfies readonly ValueInputKind[]);
+/** RULES-WO1 Phase C: a Summon engine's active-Summon limit reads only the caster's Stats. */
+export const SUMMON_LIMIT_INPUT_KINDS = deepFreeze(["STAT"] as const satisfies readonly ValueInputKind[]);
 
 export interface ValueFormula {
   readonly expression: string;

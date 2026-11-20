@@ -106,5 +106,40 @@
       "scripts/rules-wo1-negative-controls.mjs",
       "apps/studio/tests/unit/rules-wo1-authoring-ui.test.tsx"
     ]
+  },
+  {
+    "id": "RW1-I010",
+    "title": "Reference Families Are Authored, Not Executed",
+    "group": "Scope",
+    "meaning": "ARMOR, STATUS_CONDITION, SUMMON_TYPE, SUMMON_TRAIT, MISSION_RULE, METAMAGIC, JOB_TEMPLATE and MAGE_ART v2 are created, edited, validated, shown and previewed; no play, combat, construction, equipment, card or sheet module reads them, and every preview reports that play does not use the rule yet.",
+    "guards": [
+      "apps/studio/tests/unit/rules-wo1-static.test.ts",
+      "scripts/rules-wo1-negative-controls.mjs",
+      "packages/prowess-game/src/rules-wo1-reference.test.ts",
+      "packages/prowess-db/tests/unit/rules-wo1-capabilities.test.ts"
+    ]
+  },
+  {
+    "id": "RW1-I011",
+    "title": "Ordinary Authoring Needs No Machine Keys",
+    "group": "Interface",
+    "meaning": "Rulebook sections are chosen by title (section keys only under an advanced disclosure), the Canonical Key and the Definition's name fields follow the Display Name, Skill ranks and calculated values are chosen by name, and every authorable kind has a guided editor.",
+    "guards": [
+      "apps/studio/tests/unit/rules-wo1-static.test.ts",
+      "scripts/rules-wo1-negative-controls.mjs",
+      "apps/studio/tests/unit/rules-wo1-phase-c-ui.test.tsx"
+    ]
+  },
+  {
+    "id": "RW1-I012",
+    "title": "Status Indicators Are Truthful",
+    "group": "Interface",
+    "meaning": "Each entry page states validation, publication in the Release it was opened from, preview, consumers and live execution from real sources; the code-declared capability registry covers every kind, and a kind marked reference-only is read by no runtime module.",
+    "guards": [
+      "apps/studio/tests/unit/rules-wo1-static.test.ts",
+      "scripts/rules-wo1-negative-controls.mjs",
+      "packages/prowess-db/tests/unit/rules-wo1-capabilities.test.ts",
+      "apps/studio/tests/unit/rules-wo1-phase-c-ui.test.tsx"
+    ]
   }
 ]

@@ -121,9 +121,11 @@
       "allowedEntityTypes": [
         "GENERIC_RULE"
       ],
-      "supportedSchemaVersions": [],
-      "authoringSchemaVersion": null,
-      "authorable": false
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
     },
     {
       "definitionKind": "ATTACK",
@@ -266,8 +268,8 @@
       "authorable": true
     },
     {
-      "definitionKind": "MAGE_ART",
-      "systemFamily": "MAGE_ART",
+      "definitionKind": "JOB_TEMPLATE",
+      "systemFamily": "CHARACTER",
       "branch": null,
       "sharedContract": null,
       "allowedEntityTypes": [
@@ -277,6 +279,21 @@
         1
       ],
       "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "MAGE_ART",
+      "systemFamily": "MAGE_ART",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1,
+        2
+      ],
+      "authoringSchemaVersion": 2,
       "authorable": true
     },
     {
@@ -378,6 +395,20 @@
       "authorable": true
     },
     {
+      "definitionKind": "METAMAGIC",
+      "systemFamily": "SPELL",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
       "definitionKind": "MISSION_RULE",
       "systemFamily": "MISSION",
       "branch": null,
@@ -385,13 +416,29 @@
       "allowedEntityTypes": [
         "GENERIC_RULE"
       ],
-      "supportedSchemaVersions": [],
-      "authoringSchemaVersion": null,
-      "authorable": false
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
     },
     {
       "definitionKind": "RANK_LADDER",
       "systemFamily": "SKILL",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "REFERENCE_RULE",
+      "systemFamily": "CORE",
       "branch": null,
       "sharedContract": null,
       "allowedEntityTypes": [
@@ -579,9 +626,11 @@
       "allowedEntityTypes": [
         "GENERIC_RULE"
       ],
-      "supportedSchemaVersions": [],
-      "authoringSchemaVersion": null,
-      "authorable": false
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
     },
     {
       "definitionKind": "SUMMON_ACTION_MODEL",
@@ -603,9 +652,11 @@
       "allowedEntityTypes": [
         "GENERIC_RULE"
       ],
-      "supportedSchemaVersions": [],
-      "authoringSchemaVersion": null,
-      "authorable": false
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
     },
     {
       "definitionKind": "SUMMON_TYPE",
@@ -615,9 +666,11 @@
       "allowedEntityTypes": [
         "GENERIC_RULE"
       ],
-      "supportedSchemaVersions": [],
-      "authoringSchemaVersion": null,
-      "authorable": false
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
     },
     {
       "definitionKind": "TERRAIN",
@@ -1076,7 +1129,8 @@
       "LEVEL",
       "DERIVED",
       "CALCULATED_VALUE",
-      "CAST_AP"
+      "CAST_AP",
+      "TOTAL_MP"
     ],
     "valueBaseSourceKinds": [
       "STAT",
@@ -1094,6 +1148,76 @@
     ],
     "concentrationUpkeepSourceKinds": [
       "CAST_AP"
+    ],
+    "armorCategories": [
+      "LIGHT",
+      "MEDIUM",
+      "HEAVY"
+    ],
+    "stealthEffects": [
+      "NORMAL",
+      "DISADVANTAGE"
+    ],
+    "conditionDurationModels": [
+      "UNTIL_REMOVED",
+      "ROUNDS",
+      "END_OF_NEXT_TURN",
+      "UNTIL_SAVE",
+      "SCENE",
+      "SPECIAL"
+    ],
+    "conditionOngoingTimings": [
+      "NONE",
+      "START_OF_TURN",
+      "END_OF_TURN",
+      "EACH_ROUND"
+    ],
+    "conditionStacking": [
+      "DOES_NOT_STACK",
+      "STACKS",
+      "REFRESHES_DURATION",
+      "SPECIAL"
+    ],
+    "summonEngines": [
+      "SUMMON_ENTITY",
+      "TOTEM",
+      "PERSISTENT_CONSTRUCT",
+      "BOUND_SUMMON",
+      "MANIFESTED_ENTITY",
+      "FUSION",
+      "EQUIPMENT_SUMMONING"
+    ],
+    "summonSustainModes": [
+      "SUSTAINED",
+      "PERIODIC",
+      "SUSTAINED_OR_PERIODIC",
+      "NONE"
+    ],
+    "summonCostSourceKinds": [
+      "STAT",
+      "TOTAL_MP"
+    ],
+    "summonLimitSourceKinds": [
+      "STAT"
+    ],
+    "missionRuleShapes": [
+      "ROLL_TABLE",
+      "CLOCK",
+      "INTEL",
+      "POINTS"
+    ],
+    "referenceRuleShapes": [
+      "ROLL_TABLE",
+      "POINTS"
+    ],
+    "clockVisibilities": [
+      "VISIBLE",
+      "HIDDEN",
+      "EITHER"
+    ],
+    "metamagicForms": [
+      "OPTION",
+      "TRAIT"
     ]
   },
   "legacyTerms": [
@@ -1125,5 +1249,438 @@
       "legacyTerm": "Total Movement",
       "canonicalTerm": "Movement"
     }
-  ]
+  ],
+  "capabilities": {
+    "ABILITY_CONSTRUCTION_RULE": {
+      "execution": "LIVE",
+      "consumers": [
+        "Signature Spell and Maneuver builders",
+        "Play (Active Magic)"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "ACTION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Play",
+        "Action cards"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "ACTION_IMPROVEMENT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Action cards",
+        "Character access"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "AFFINITY": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character creation",
+        "Advancement",
+        "Spell builder"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "AFFINITY_PROGRESSION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Advancement"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "AFFINITY_RANK_RULE": {
+      "execution": "LIVE",
+      "consumers": [
+        "Advancement",
+        "Spell builder"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "AFFINITY_WEAKNESS_SEVERITY": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "CONTENT",
+      "notYet": "A reference scale only."
+    },
+    "ANCESTRY": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character creation"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "ARMOR": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "REFERENCE_PREVIEW",
+      "notYet": "The Character sheet does not equip worn Armor yet."
+    },
+    "ATTACK": {
+      "execution": "LIVE",
+      "consumers": [
+        "Weapon library",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "CALCULATED_VALUE": {
+      "execution": "PARTIAL",
+      "consumers": [
+        "Character sheet (Carry maximum, Additional Values)"
+      ],
+      "preview": "AUTHORED_RULE",
+      "notYet": "Combat and play do not read calculated values yet."
+    },
+    "CHARACTER_ADVANCEMENT_RULE": {
+      "execution": "LIVE",
+      "consumers": [
+        "Advancement"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "CHARACTER_CREATION_RULE": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character creation"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "CHARACTER_DIE_PROGRESSION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character creation",
+        "Advancement",
+        "Character sheet"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "CONCENTRATION_RULE": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "AUTHORED_RULE",
+      "notYet": "Combat and Active Magic do not use this rule yet; they still use the earlier Concentration policy."
+    },
+    "CORE_RESOLUTION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character sheet (saves, Initiative)",
+        "Play (rolls)"
+      ],
+      "preview": "RULE_PREVIEW",
+      "notYet": ""
+    },
+    "CREATURE_SIZE": {
+      "execution": "PARTIAL",
+      "consumers": [
+        "Play (space and movement)"
+      ],
+      "preview": "CONTENT",
+      "notYet": "Massive's movement adjustment is pending canon."
+    },
+    "DERIVED_STAT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character sheet",
+        "Play"
+      ],
+      "preview": "RULE_PREVIEW",
+      "notYet": ""
+    },
+    "EQUIPMENT_TRAIT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Weapon library"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "JOB_TEMPLATE": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "CONTENT",
+      "notYet": "Character creation does not offer Job templates yet (they are optional rules)."
+    },
+    "MAGE_ART": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "CONTENT",
+      "notYet": "Nothing plays a Mage Art yet; its card shows as unavailable."
+    },
+    "MANEUVER_CONDITION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Maneuver builder"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "MANEUVER_DEFINITION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Maneuver builder",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "MANEUVER_DURATION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Maneuver builder"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "MANEUVER_EFFECT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Maneuver builder",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "MANEUVER_FOUNDATION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Maneuver builder",
+        "Weapon bridge"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "MANEUVER_TARGETING": {
+      "execution": "LIVE",
+      "consumers": [
+        "Maneuver builder",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "MANEUVER_TRAIT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Maneuver builder",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "METAMAGIC": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "CONTENT",
+      "notYet": "The Spell builder does not offer Metamagic yet."
+    },
+    "MISSION_RULE": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "REFERENCE_PREVIEW",
+      "notYet": "Nothing generates or runs a Mission yet."
+    },
+    "RANK_LADDER": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character creation",
+        "Advancement",
+        "Character sheet"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "REFERENCE_RULE": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "REFERENCE_PREVIEW",
+      "notYet": "A written gameplay rule (table or points) for players and GMs; nothing calculates from it."
+    },
+    "RESOURCE": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character sheet (resources)",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SHARED_TRAIT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Spell and Maneuver builders"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SKILL": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character creation",
+        "Advancement",
+        "Character sheet"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SKILL_BENEFIT": {
+      "execution": "PARTIAL",
+      "consumers": [
+        "Character sheet (value additions)"
+      ],
+      "preview": "AUTHORED_RULE",
+      "notYet": "Granted Actions are listed but not yet added to the Character's actions."
+    },
+    "SKILL_RANK": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character sheet (Skill scores)",
+        "Play (Skill checks)"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SPELL_CASTING_CONDITION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Spell builder"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SPELL_DEFINITION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Spell builder",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SPELL_DURATION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Spell builder",
+        "Play (Active Magic)"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SPELL_EFFECT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Spell builder",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SPELL_TARGETING": {
+      "execution": "LIVE",
+      "consumers": [
+        "Spell builder",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SPELL_TRAIT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Spell builder",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "STAT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character creation",
+        "Character sheet",
+        "every rule that reads a Stat"
+      ],
+      "preview": "RULE_PREVIEW",
+      "notYet": ""
+    },
+    "STATUS_CONDITION": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "CONTENT",
+      "notYet": "Play does not apply Conditions yet."
+    },
+    "SUMMON_ACTION_MODEL": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "CONTENT",
+      "notYet": "Reserved: the action economy is written on each Summon engine."
+    },
+    "SUMMON_TRAIT": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "CONTENT",
+      "notYet": "No Summon is created or played yet."
+    },
+    "SUMMON_TYPE": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "REFERENCE_PREVIEW",
+      "notYet": "No Summon is created or played yet."
+    },
+    "TERRAIN": {
+      "execution": "PARTIAL",
+      "consumers": [
+        "Play (movement cost)"
+      ],
+      "preview": "CONTENT",
+      "notYet": "Hazard effects are not applied."
+    },
+    "WEAPON": {
+      "execution": "LIVE",
+      "consumers": [
+        "Weapon library",
+        "Character sheet (equipment)",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    }
+  }
 }

@@ -68,6 +68,8 @@ export const PRIMARY_NAVIGATION: readonly NavEntry[] = [
       { label: "Tests", href: "/developer/tests" },
     ],
   },
+  // RULES-WO1: which build is running (version, source commit) and which rule kinds it edits with a guided editor.
+  { id: "about", label: "About", href: "/about" },
 ] as const;
 
 /**

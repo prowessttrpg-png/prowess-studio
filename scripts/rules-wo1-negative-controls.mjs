@@ -2,7 +2,8 @@
  * intended guard must fail for the named reason, and every file is restored byte-for-byte. Covers the additive kind
  * registration (01), M4-only arithmetic (02), no invented base (03), missing inputs never 0 (04), the canon note (05),
  * the cycle refusal (06), play not reading the Concentration rule (07), the "preview only" statement (08), the sheet's
- * test-value label (09) and build identity reaching Studio (10). */
+ * test-value label (09), build identity reaching Studio (10), Mission table coverage (11), truthful capabilities (12) and
+ * the readable source picker (13). */
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { applyEdits, runControls, vitestGuard } from "./lib/control-harness.mjs";
@@ -12,6 +13,8 @@ const options = { timeout: 600_000, ciEnv: false };
 const gate = vitestGuard(root, "apps/studio", ["tests/unit/rules-wo1-static.test.ts", "--maxWorkers=1", "--reporter=dot"], options);
 const ui = vitestGuard(root, "apps/studio", ["tests/unit/rules-wo1-authoring-ui.test.tsx", "--maxWorkers=1", "--reporter=dot"], options);
 const game = vitestGuard(root, "packages/prowess-game", ["src/rules-wo1-authoring.test.ts", "--maxWorkers=1", "--reporter=dot"], options);
+const reference = vitestGuard(root, "packages/prowess-game", ["src/rules-wo1-reference.test.ts", "--maxWorkers=1", "--reporter=dot"], options);
+const capabilities = vitestGuard(root, "packages/prowess-db", ["--config", "vitest.unit.config.ts", "tests/unit/rules-wo1-capabilities.test.ts", "--maxWorkers=1", "--reporter=dot"], options);
 
 const FAMILIES = "packages/prowess-game/src/vocabulary/families.ts";
 const VALUES = "packages/prowess-game/src/character/calculated-values.ts";
@@ -20,6 +23,8 @@ const ENGINE = "packages/prowess-game/src/play/engine.ts";
 const PANEL = "apps/studio/app/compendium/admin/_components/AuthoredRulePreviewPanel.tsx";
 const SHEET = "apps/studio/app/characters/_components/sheet/SheetPanels.tsx";
 const CONTROLLER = "scripts/distribution/desktop/controller.mjs";
+const REFERENCE = "packages/prowess-game/src/definition/rules-reference-payload.ts";
+const CAPABILITIES = "packages/prowess-db/src/compendium-rules/capabilities.ts";
 
 const rows = [
   ["01 the Concentration rule is registered under another family", FAMILIES, [['  CONCENTRATION_RULE: active("ABILITY"),', '  CONCENTRATION_RULE: active("CONDITION"),']], game, /CONCENTRATION_RULE \(ABILITY\)/],
@@ -32,6 +37,9 @@ const rows = [
   ["08 the Concentration preview no longer says play does not use it", PANEL, [["            Preview only — combat does not use this rule yet.", "            Concentration preview."]], ui, /preview only/],
   ["09 a test value is shown on the sheet without its label", SHEET, [['TEST_ONLY: "Test value — not canon"', 'TEST_ONLY: "Test value"']], ui, /labelled by where they come from/],
   ["10 the installed build no longer passes its commit to Studio", CONTROLLER, [["PROWESS_BUILD_COMMIT: manifest.build.commit, ", ""]], gate, /build identity reaches Studio/],
+  ["11 a Mission table may leave rolls uncovered", REFERENCE, [["        if (high === null || expect !== m4(\"last + 1\", { last: high })) p.add(", "        if (false as boolean) p.add("]], reference, /must cover every roll exactly once/],
+  ["12 worn Armor is claimed to be used in play", CAPABILITIES, [['  ARMOR: reference("The Character sheet does not equip worn Armor yet.", "REFERENCE_PREVIEW"),', '  ARMOR: live(["Character sheet"], "REFERENCE_PREVIEW"),']], capabilities, /reference families are reference only/],
+  ["13 the source picker is replaced by typed section keys", "apps/studio/app/compendium/admin/_components/DefinitionEditor.tsx", [["          <SourceSectionPicker value={value} onChange={onChange} />", "          <input aria-label=\"Source sections (comma-separated, e.g. s20)\" />"]], gate, /chosen by title/],
 ];
 
 runControls({

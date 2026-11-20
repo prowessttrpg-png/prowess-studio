@@ -45,6 +45,8 @@ test("G01 a Mage Art is authored with guided controls, validates PASS and reopen
   await mode.getByLabel("Mode key (required)").fill("WARD");
   await mode.getByLabel("Name (required)").fill("Ward");
   await mode.getByLabel("Rules text (required)").fill("Uses the Art's own costs (E2E fixture).");
+  // RULES-WO1: sections are normally chosen by title; the section keys are under "Section keys (advanced)".
+  await page.getByText("Section keys (advanced)").click();
   await page.getByLabel(/Source sections/).fill("s1905, s1914");
 
   await page.getByRole("button", { name: "Validate Definition" }).click();

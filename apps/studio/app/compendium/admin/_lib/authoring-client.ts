@@ -46,6 +46,7 @@ async function request<T>(method: Method, path: string, body?: unknown): Promise
   return json as { data: T; pagination?: { page: number; pageSize: number; total: number; totalPages: number } };
 }
 const get = async <T>(path: string) => (await request<T>("GET", path)).data;
+export const getAuthoring = get;
 const post = async <T>(path: string, body?: unknown) => (await request<T>("POST", path, body)).data;
 /** PRE-M7-WO1: the same transport for the side-effect-free rule tools (admin/_lib/rules-client.ts). */
 export const postAuthoring = post;
@@ -73,6 +74,16 @@ export interface AuthoringCatalogDto {
   systemFamilies: string[];
   vocabularies: Record<string, string[]>;
   legacyTerms: Array<{ legacyTerm: string; canonicalTerm: string }>;
+  /** RULES-WO1: what the application does with each kind (truthful status indicators). Absent in older fixtures. */
+  capabilities?: Record<string, KindCapabilityDto>;
+}
+export interface KindCapabilityDto {
+  /** LIVE, PARTIAL or REFERENCE_ONLY — the server's capability registry is the source of the values (kept a string here, as the
+   *  M6-WO1 gate keeps vocabulary values out of the Studio). */
+  execution: string;
+  consumers: string[];
+  preview: "RULE_PREVIEW" | "AUTHORED_RULE" | "REFERENCE_PREVIEW" | "CONTENT";
+  notYet: string;
 }
 
 export interface ValidationIssueDto {

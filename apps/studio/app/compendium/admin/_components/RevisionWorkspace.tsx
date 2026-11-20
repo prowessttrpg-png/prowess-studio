@@ -7,6 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RulePreviewPanel } from "./RulePreviewPanel";
 import { AuthoredRulePreviewPanel } from "./AuthoredRulePreviewPanel";
+import { EntryOverview } from "./EntryOverview";
+import { ReferencePreviewPanel } from "./ReferencePreviewPanel";
 import { withChildComponent } from "./AbilityDefinitionEditor";
 import { childCreateHref, readChildRef, stashParent, takeParent } from "../_lib/child-draft";
 import { safeReturnTo } from "../../rulesets/_lib/reference-urls";
@@ -38,7 +40,7 @@ import {
   type ValidationResultDto,
 } from "../_lib/authoring-client";
 import { isDirty, storedCandidate, type DefinitionCandidate } from "../_lib/definition-form";
-import { descriptorFor } from "../_lib/descriptors";
+import { descriptorFor, groupsOf } from "../_lib/descriptors";
 import { useUnsavedChangesGuard } from "../_lib/use-navigation-guard";
 import { canonManagerChangeSetHref } from "../../../../src/navigation";
 import { DefinitionEditor } from "./DefinitionEditor";
@@ -77,16 +79,29 @@ const snapshotOf = (v: EntityVersionDto): Snapshot => ({
 });
 const messageOf = (e: unknown, fallback: string) => (e instanceof AuthoringApiError ? { code: e.code, message: e.message } : { code: "UNKNOWN", message: fallback });
 
-const SECTIONS = [
-  ["rev-content", "Revision content"],
-  ["rev-definition", "Prowess Definition"],
-  ["rev-keywords", "Keywords"],
-  ["rev-sources", "Sources / provenance"],
-  ["rev-validation", "Validation"],
-  ["rev-preview", "Preview"],
-  ["rev-workflow", "Review and Canon hand-off"],
-  ["rev-history", "History"],
-] as const;
+/**
+ * RULES-WO1 entry-page layout: the six areas every entry has (Overview, Rules and benefits, Requirements and choices,
+ * Preview, Usage and impact, History and source), then the workflow areas. "Requirements and choices" jumps to the
+ * descriptor's requirement-like group when the kind has one, otherwise to the rules.
+ */
+const REQUIREMENT_GROUPS = ["Requirements", "When it applies", "Access", "Suggestions", "Limits"];
+const groupAnchor = (group: string) => `group-${group.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+function sectionsFor(groups: readonly string[]): ReadonlyArray<readonly [string, string]> {
+  const requirement = groups.find((g) => REQUIREMENT_GROUPS.includes(g));
+  return [
+    ["rev-overview", "Overview"],
+    ["rev-definition", "Rules and benefits"],
+    [requirement !== undefined ? groupAnchor(requirement) : "rev-definition", "Requirements and choices"],
+    ["rev-preview", "Preview"],
+    ["rev-usage", "Usage and impact"],
+    ["rev-sources", "History and source"],
+    ["rev-content", "Name and description"],
+    ["rev-keywords", "Keywords"],
+    ["rev-validation", "Validation"],
+    ["rev-workflow", "Review and Canon hand-off"],
+    ["rev-history", "Revision history"],
+  ];
+}
 
 export function RevisionWorkspace({ entityId, versionId }: { entityId: string; versionId: string }) {
   const router = useRouter();
@@ -296,8 +311,8 @@ export function RevisionWorkspace({ entityId, versionId }: { entityId: string; v
 
       <nav aria-label="Workspace sections" className="prowess-authoring__sections">
         <ul>
-          {SECTIONS.map(([id, label]) => (
-            <li key={id}>
+          {sectionsFor(descriptor === null ? [] : groupsOf(descriptor)).map(([id, label]) => (
+            <li key={label}>
               <a href={`#${id}`} data-skip-unsaved-guard>
                 {label}
               </a>
@@ -305,6 +320,16 @@ export function RevisionWorkspace({ entityId, versionId }: { entityId: string; v
           ))}
         </ul>
       </nav>
+
+      <EntryOverview
+        capability={kind !== null && catalog !== null ? (catalog.capabilities?.[kind.definitionKind] ?? null) : null}
+        validationStatus={validation === null || staleValidation ? null : validation.result.status}
+        releaseId={previewRelease}
+        entityId={entity.id}
+        purpose={descriptor?.purpose ?? null}
+      />
+
+      {form.candidate !== null && descriptor?.preview === "SAMPLE_INPUTS" ? <ReferencePreviewPanel entityVersionId={version.id} sample={descriptor.previewSample ?? "SHEET"} unsavedChanges={Boolean(dirty)} /> : null}
 
       {previewRelease !== null && form.candidate !== null && descriptor?.preview === "AUTHORED_RULE" ? (
         <AuthoredRulePreviewPanel releaseId={previewRelease} drafts={editable ? [version.id] : []} unsavedChanges={Boolean(dirty)} focusStat={previewStat} />

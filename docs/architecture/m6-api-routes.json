@@ -103,6 +103,9 @@
     "apps/studio/app/api/encounters/route.ts"
   ],
   "RULES-WO1": [
-    "apps/studio/app/api/compendium-rules/authored-preview/route.ts"
+    "apps/studio/app/api/compendium-rules/authored-preview/route.ts",
+    "apps/studio/app/api/compendium-rules/authoring-options/route.ts",
+    "apps/studio/app/api/compendium-rules/reference-preview/route.ts",
+    "apps/studio/app/api/compendium-rules/source-sections/route.ts"
   ]
 }

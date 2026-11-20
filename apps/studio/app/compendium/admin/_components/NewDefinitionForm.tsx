@@ -94,6 +94,23 @@ export function NewDefinitionForm() {
   const kind = catalog?.kinds.find((k) => k.definitionKind === kindName) ?? null;
   const descriptor = kind !== null && candidate !== null ? descriptorFor(kind, candidate.schemaVersion) : null;
 
+  // RULES-WO1: nobody has to type a machine key. The Definition's own name fields follow the Display Name until the author
+  // edits them; the Canonical Key is never derived silently (M6-WO1) — one click on "Suggest" fills it.
+  const tokenOf = (name: string) => name.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_+|_+$/g, "").replace(/^([0-9])/, "N$1").slice(0, 64);
+  function onDisplayName(next: string) {
+    const before = displayName;
+    setDisplayName(next);
+    if (candidate !== null && descriptor !== null) {
+      const auto = descriptor.fields.filter((f) => f.input === "token" && f.fromName === true);
+      const patch: Record<string, unknown> = {};
+      for (const f of auto) {
+        const current = candidate.payload[f.key];
+        if (current === "" || current === undefined || current === tokenOf(before)) patch[f.key] = tokenOf(next);
+      }
+      if (Object.keys(patch).length > 0) setCandidate({ ...candidate, payload: { ...candidate.payload, ...patch } });
+    }
+  }
+
   const pristine = { family: "", kindName: "", canonicalKey: "", displayName: "", shortDescription: "", rulesText: "", sources: [], entityKeywords: [], versionKeywords: [] };
   const dirty = isDirty(pristine, { family, kindName, canonicalKey, displayName, shortDescription, rulesText, sources, entityKeywords, versionKeywords }) && busy !== "create";
   useUnsavedChangesGuard(dirty);
@@ -234,14 +251,14 @@ export function NewDefinitionForm() {
         <h2 id="new-def-identity">2. Identity</h2>
         <label className="gov-field" htmlFor="new-def-display-name">
           <span>Display Name (required)</span>
-          <input id="new-def-display-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+          <input id="new-def-display-name" value={displayName} onChange={(e) => onDisplayName(e.target.value)} />
         </label>
         <label className="gov-field" htmlFor="new-def-canonical-key">
           <span>Canonical Key (required)</span>
           <input id="new-def-canonical-key" value={canonicalKey} onChange={(e) => setCanonicalKey(e.target.value)} spellCheck={false} aria-describedby="new-def-canonical-key-help" />
         </label>
         <p id="new-def-canonical-key-help" className="gov-muted">
-          The Canonical Key is the Definition&apos;s permanent machine identity (for example <code>spell.effect.force_push</code>). The Display Name is the human-facing name: renaming it later never changes the Canonical Key. A
+          No typing needed: use &ldquo;Suggest a Canonical Key from the Display Name&rdquo;. The Canonical Key is the Definition&apos;s permanent machine identity (for example <code>spell.effect.force_push</code>). The Display Name is the human-facing name: renaming it later never changes the Canonical Key. A
           Canonical Key already in use is an error.
         </p>
         <div className="gov-actions">

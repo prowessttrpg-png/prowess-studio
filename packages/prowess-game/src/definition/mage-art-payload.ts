@@ -3,6 +3,7 @@ import { deepFreeze, type PathSegment } from "../internal/plain-data.js";
 import { Problems, isToken, own, readEnum, readRecord, readSafeInteger } from "../internal/problems.js";
 import { DEFINITION_ERROR_CODES as C } from "./codes.js";
 import { readSource, type CoreDefinitionSource } from "./core-payload.js";
+import { readMageArtV2Extras } from "./rules-reference-payload.js";
 
 /**
  * PRE-M7-WO1 — MAGE_ART payload version 1: the smallest contract for AUTHORING and REFERENCE of a Mage Art.
@@ -108,4 +109,27 @@ export function readMageArtPayload(value: unknown, at: readonly PathSegment[], p
   const source = readSource(own(r, "source"), [...at, "source"], p);
   if (p.count > before || activation === null || maint === null || counts === null || source === null) return null;
   return { artKey: artKey as string, activation, maintenance: maint, activeEffect: { counts }, modes, source } satisfies MageArtPayload as unknown as JsonObject;
+}
+
+/**
+ * RULES-WO1 — MAGE_ART payload version 2: everything in version 1, plus per-mode scaling steps (`modes[].scaling`), the
+ * benefits the Art grants and its maintenance exceptions, all as authored text. Version 1 stays readable unchanged.
+ * Still reference only: nothing executes a Mage Art and the Character card stays UNAVAILABLE.
+ */
+export function readMageArtV2Payload(value: unknown, at: readonly PathSegment[], p: Problems): JsonObject | null {
+  const before = p.count;
+  const r = readRecord(value, at, p, C.INVALID_PAYLOAD, [...FIELDS, "grantedBenefits", "maintenanceExceptions"], [...FIELDS, "grantedBenefits", "maintenanceExceptions"]);
+  if (r === null) return null;
+  const rawModes = own(r, "modes");
+  const v1 = { ...r, modes: Array.isArray(rawModes) ? rawModes.map((m: unknown) => (m !== null && typeof m === "object" && !Array.isArray(m) ? Object.fromEntries(Object.entries(m).filter(([k]) => k !== "scaling")) : m)) : rawModes };
+  delete (v1 as Record<string, unknown>).grantedBenefits;
+  delete (v1 as Record<string, unknown>).maintenanceExceptions;
+  if (Array.isArray(rawModes))
+    rawModes.forEach((m: unknown, i: number) => {
+      if (m !== null && typeof m === "object" && !Array.isArray(m) && own(m as Record<string, unknown>, "scaling") === undefined) p.add(C.INVALID_PAYLOAD, [...at, "modes", i, "scaling"], "a version-2 mode lists its scaling steps (empty = none)");
+    });
+  const base = readMageArtPayload(v1, at, p) as unknown as MageArtPayload | null;
+  const extras = readMageArtV2Extras(r, at, p);
+  if (p.count > before || base === null) return null;
+  return { ...base, modes: base.modes.map((m) => ({ ...m, scaling: extras.scaling[m.modeKey] ?? [] })), grantedBenefits: extras.grantedBenefits, maintenanceExceptions: extras.maintenanceExceptions } as unknown as JsonObject;
 }

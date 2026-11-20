@@ -160,7 +160,8 @@ describe("A. Weapon and Attack cards over the M6-WO6 Character Attack Library", 
 describe("B. Mage Art card — a clear UNAVAILABLE state", () => {
   it("acceptance 2: Mage Arts are UNAVAILABLE — no evaluation, activation, maintenance cost or progression", () => {
     // PRE-M7-WO1 activates MAGE_ART v1 for authoring and reference only (pre-m7-wo1-mage-art.test.ts); the card stays UNAVAILABLE.
-    expect(PROWESS_DEFINITION_KINDS.MAGE_ART.schemaVersions).toEqual([1]);
+    // RULES-WO1 adds version 2 (scaling steps, granted benefits, maintenance exceptions) — still reference only.
+    expect(PROWESS_DEFINITION_KINDS.MAGE_ART.schemaVersions).toEqual([1, 2]);
     const card = projectMageArtCard({ bundle: f.bundle, context: context(f) });
     expect(card.availability).toBe("UNAVAILABLE");
     expect(card.section.domain).toEqual(mageArtDomainOf(f.bundle));

@@ -12,10 +12,12 @@ const EXPECTED_ENTRIES: Array<{ id: string; label: string; href: string }> = [
   { id: "gm", label: "GM", href: "/gm" },
   { id: "publishing", label: "Publishing", href: "/publishing" },
   { id: "developer", label: "Developer", href: "/developer" },
+  // RULES-WO1: About this build.
+  { id: "about", label: "About", href: "/about" },
 ];
 
 describe("PRIMARY_NAVIGATION", () => {
-  it("contains exactly the nine primary entries (eight required + M7-WO1 Encounters), in order", () => {
+  it("contains exactly the ten primary entries (eight required + M7-WO1 Encounters + RULES-WO1 About), in order", () => {
     expect(PRIMARY_NAVIGATION.map(({ id, label, href }) => ({ id, label, href }))).toEqual(
       EXPECTED_ENTRIES,
     );

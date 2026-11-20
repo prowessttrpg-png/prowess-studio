@@ -323,3 +323,25 @@ export interface StatImpactsDto {
   limits: string[];
 }
 export const getStatImpacts = async (releaseId: string, stat: string) => (await get<StatImpactsDto>(`/api/compendium-rules/releases/${enc(releaseId)}/stats/${enc(stat)}`)).data;
+
+// ---- RULES-WO1: "Usage and impact" on an entry page (what a rule reads and what reads it in one exact Release) ----
+export interface RuleUsageDto {
+  node: { role: string; token: string };
+  reads: Array<{ from: string; via: string; variable: string | null }>;
+  usedBy: Array<{ role: string; token: string; displayName: string | null; depth: number }>;
+}
+export const getRuleUsage = async (releaseId: string, entityId: string) => (await get<RuleUsageDto | null>(`/api/compendium-rules/releases/${encodeURIComponent(releaseId)}/entities/${encodeURIComponent(entityId)}/usage`)).data;
+
+/** A rule-graph node in plain words: "STAT:STR" → "Stat STR"; "DERIVED:STRENGTH_ARMOR" → "Strength Armor". */
+export function readableRuleNode(key: string): string {
+  const cut = key.indexOf(":");
+  const role = cut < 0 ? key : key.slice(0, cut);
+  const token = cut < 0 ? "" : key.slice(cut + 1);
+  const words = (t: string) => t.toLowerCase().split("_").filter((w) => w !== "").map((w) => w[0]!.toUpperCase() + w.slice(1)).join(" ");
+  // Graph-node prefixes (not Definition kinds): a Stat token, a derived value, a resolution procedure.
+  const byRole: Record<string, (t: string) => string> = { STAT: (t) => `Stat ${t}`, DERIVED: words, PROCEDURE: (t) => `${words(t)} roll` };
+  const known = byRole[role];
+  if (known !== undefined) return known(token);
+  const last = token.split(".").at(-1) ?? token;
+  return words(last.replace(/_[0-9a-z]{6,}$/, ""));
+}

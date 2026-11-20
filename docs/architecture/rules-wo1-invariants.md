@@ -56,3 +56,21 @@ requires every id below, each naming existing automated guards. M4, M5, M6 and M
 - **Group:** Distribution
 - **Meaning:** The desktop controller passes the app version, source commit, tree and package fingerprint to Studio; About this build shows them and lists which kinds this build edits with a guided editor, refusing malformed values.
 - **Guards:** `apps/studio/tests/unit/rules-wo1-static.test.ts`, `packages/prowess-game/src/rules-wo1-authoring.test.ts`, `scripts/rules-wo1-negative-controls.mjs`, `apps/studio/tests/unit/rules-wo1-authoring-ui.test.tsx`
+
+### RW1-I010 — Reference Families Are Authored, Not Executed
+
+- **Group:** Scope
+- **Meaning:** ARMOR, STATUS_CONDITION, SUMMON_TYPE, SUMMON_TRAIT, MISSION_RULE, METAMAGIC, JOB_TEMPLATE and MAGE_ART v2 are created, edited, validated, shown and previewed; no play, combat, construction, equipment, card or sheet module reads them, and every preview reports that play does not use the rule yet.
+- **Guards:** `apps/studio/tests/unit/rules-wo1-static.test.ts`, `scripts/rules-wo1-negative-controls.mjs`, `packages/prowess-game/src/rules-wo1-reference.test.ts`, `packages/prowess-db/tests/unit/rules-wo1-capabilities.test.ts`
+
+### RW1-I011 — Ordinary Authoring Needs No Machine Keys
+
+- **Group:** Interface
+- **Meaning:** Rulebook sections are chosen by title (section keys only under an advanced disclosure), the Canonical Key and the Definition's name fields follow the Display Name, Skill ranks and calculated values are chosen by name, and every authorable kind has a guided editor.
+- **Guards:** `apps/studio/tests/unit/rules-wo1-static.test.ts`, `scripts/rules-wo1-negative-controls.mjs`, `apps/studio/tests/unit/rules-wo1-phase-c-ui.test.tsx`
+
+### RW1-I012 — Status Indicators Are Truthful
+
+- **Group:** Interface
+- **Meaning:** Each entry page states validation, publication in the Release it was opened from, preview, consumers and live execution from real sources; the code-declared capability registry covers every kind, and a kind marked reference-only is read by no runtime module.
+- **Guards:** `apps/studio/tests/unit/rules-wo1-static.test.ts`, `scripts/rules-wo1-negative-controls.mjs`, `packages/prowess-db/tests/unit/rules-wo1-capabilities.test.ts`, `apps/studio/tests/unit/rules-wo1-phase-c-ui.test.tsx`

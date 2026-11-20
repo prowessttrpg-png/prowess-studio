@@ -92,7 +92,21 @@ export type VocabularyName =
   | "valueBaseSourceKinds"
   | "benefitAmountSourceKinds"
   | "concentrationCapacitySourceKinds"
-  | "concentrationUpkeepSourceKinds";
+  | "concentrationUpkeepSourceKinds"
+  // RULES-WO1 Phase C reference families.
+  | "armorCategories"
+  | "stealthEffects"
+  | "conditionDurationModels"
+  | "conditionOngoingTimings"
+  | "conditionStacking"
+  | "summonEngines"
+  | "summonSustainModes"
+  | "summonCostSourceKinds"
+  | "summonLimitSourceKinds"
+  | "missionRuleShapes"
+  | "referenceRuleShapes"
+  | "clockVisibilities"
+  | "metamagicForms";
 
 /** PRE-M7-WO1: one column of a guided table of flat records (every row keeps any other stored key untouched). */
 export type RowColumn =
@@ -110,7 +124,7 @@ interface FieldBase {
 
 export type FieldDescriptor =
   | (FieldBase & { readonly input: "select"; readonly vocabulary: VocabularyName })
-  | (FieldBase & { readonly input: "token"; readonly placeholder?: string })
+  | (FieldBase & { readonly input: "token"; readonly placeholder?: string; /** RULES-WO1: filled in from the Display Name. */ readonly fromName?: boolean })
   | (FieldBase & { readonly input: "keywords" })
   | (FieldBase & { readonly input: "compatibility" })
   | (FieldBase & { readonly input: "costContributions" })
@@ -164,13 +178,21 @@ export type FieldDescriptor =
   // RULES-WO1: a Formula the source may leave unstated (null = "not stated"), and a source citation that may be absent.
   | (FieldBase & { readonly input: "optionalFormula"; readonly sources: VocabularyName; readonly absentLabel: string; readonly presentLabel: string; readonly presetFromStat?: boolean })
   | (FieldBase & { readonly input: "optionalSource" })
-  | (FieldBase & { readonly input: "refList"; readonly refKind: string; readonly itemLabel: string });
+  | (FieldBase & { readonly input: "refList"; readonly refKind: string; readonly itemLabel: string })
+  // RULES-WO1 Phase C: yes / no / not stated, and the whole Mission rule (its parts depend on the chosen shape).
+  | (FieldBase & { readonly input: "triState"; readonly yes: string; readonly no: string; readonly unknown: string })
+  | (FieldBase & { readonly input: "missionRule"; readonly shapes?: VocabularyName })
+  // RULES-WO1: a token that names other content, chosen from what exists (a Skill rank, a calculated value).
+  | (FieldBase & { readonly input: "contentToken"; readonly options: "skillRanks" | "calculatedValues" });
 
 export interface ContractDescriptor {
   /** Short explanation of what this kind of Definition is FOR (§59) — presentation only. */
   readonly purpose: string;
-  /** RULES-WO1: previewed with a sample Character (authored values, Skill benefits, the Concentration rule). */
-  readonly preview?: "AUTHORED_RULE";
+  /** RULES-WO1: previewed with a sample Character (authored values, Skill benefits, the Concentration rule), or with
+   *  sample inputs for a reference family (Armor, Summon engine, Mission rule). */
+  readonly preview?: "AUTHORED_RULE" | "SAMPLE_INPUTS";
+  /** RULES-WO1 Phase C: the sample a reference preview asks for. */
+  readonly previewSample?: "SHEET" | "TIERED_SHEET" | "ROLL_OR_CLOCK";
   readonly fields: readonly FieldDescriptor[];
 }
 
@@ -719,7 +741,7 @@ export const RULES_AUTHORING_DESCRIPTORS: Readonly<Record<string, ContractDescri
     preview: "AUTHORED_RULE",
     purpose: "A game value calculated from a Character — for example Carry Capacity from Strength. Skill benefits can add to it, and it can be shown on the Character sheet.",
     fields: [
-      { key: "valueKey", label: "Value name used by other rules", group: "Identity", input: "token", required: true, placeholder: "CARRY_CAPACITY", help: "A short capitalised name other rules use to add to this value." },
+      { key: "valueKey", label: "Value name used by other rules", group: "Identity", input: "token", fromName: true, required: true, placeholder: "CARRY_CAPACITY", help: "Filled in from the Display Name. Other rules use it to add to this value." },
       { key: "unit", label: "Unit", group: "Identity", input: "text", nullable: true, required: false, help: "For example lb or ft." },
       { key: "placement", label: "Shown on the Character sheet as", group: "Identity", input: "select", vocabulary: "calculatedValuePlacements", required: true },
       { key: "base", label: "Base calculation", group: "Calculation", input: "optionalFormula", sources: "valueBaseSourceKinds", presetFromStat: true, required: false, presentLabel: "The rule states a base calculation", absentLabel: "The rulebook does not state a base value (only bonuses are added)", help: "Each contribution reads a Stat, the Character's Level or another statistic." },
@@ -732,9 +754,9 @@ export const RULES_AUTHORING_DESCRIPTORS: Readonly<Record<string, ContractDescri
     preview: "AUTHORED_RULE",
     purpose: "Something a Skill grants from a rank onward — for example Athletics at Trained adds 5 ft of Throw Distance per point of Strength.",
     fields: [
-      { key: "benefitKey", label: "Benefit name", group: "Identity", input: "token", required: true, placeholder: "ATHLETICS_TRAINED_THROW" },
+      { key: "benefitKey", label: "Benefit name", group: "Identity", input: "token", fromName: true, required: true, placeholder: "ATHLETICS_TRAINED_THROW" },
       { key: "skill", label: "Skill", group: "When it applies", input: "reference", refKind: "SKILL", required: true },
-      { key: "minimumRankKey", label: "From rank", group: "When it applies", input: "token", required: true, help: "The rank name as the Skill ladder spells it, for example Trained in capitals. The benefit applies at this rank and every higher rank." },
+      { key: "minimumRankKey", label: "From rank", group: "When it applies", input: "contentToken", options: "skillRanks", required: true, help: "The benefit applies at this rank and every higher rank." },
       { key: "writtenBenefit", label: "The benefit as written", group: "Benefit", input: "text", required: true },
       {
         key: "contributions",
@@ -745,7 +767,7 @@ export const RULES_AUTHORING_DESCRIPTORS: Readonly<Record<string, ContractDescri
         required: false,
         item: [
           { key: "contributionKey", label: "Addition name", group: "", input: "token", required: true, placeholder: "PER_STR" },
-          { key: "valueKey", label: "Adds to the value named", group: "", input: "token", required: true, placeholder: "THROW_DISTANCE" },
+          { key: "valueKey", label: "Adds to the value", group: "", input: "contentToken", options: "calculatedValues", required: true },
           { key: "amount", label: "Amount", group: "", input: "coreFormula", sources: "benefitAmountSourceKinds", required: true },
         ],
       },
@@ -757,7 +779,7 @@ export const RULES_AUTHORING_DESCRIPTORS: Readonly<Record<string, ContractDescri
     preview: "AUTHORED_RULE",
     purpose: "How Concentration works: how many points a Character has, what a Sustained Spell costs to keep up each round, and how assigned points cover that cost. Reference and preview only — combat does not read this rule yet.",
     fields: [
-      { key: "ruleKey", label: "Rule name", group: "Identity", input: "token", required: true, placeholder: "CONCENTRATION" },
+      { key: "ruleKey", label: "Rule name", group: "Identity", input: "token", fromName: true, required: true, placeholder: "CONCENTRATION" },
       formulaField("capacity", "Concentration points", "concentrationCapacitySourceKinds", "How many Concentration points a Character has."),
       formulaField("sustainedSpellUpkeepAp", "Sustained Spell upkeep (AP per round)", "concentrationUpkeepSourceKinds", "The AP a Sustained Spell costs each round, from the AP it cost to cast."),
       {
@@ -784,6 +806,139 @@ export const RULES_AUTHORING_DESCRIPTORS: Readonly<Record<string, ContractDescri
   },
 };
 
+/**
+ * RULES-WO1 Phase C: the remaining rule families, in game language. Each is authored, validated by its M5 reader and
+ * shown in the Rules Reference; the entry page states that none of them is executed in play yet.
+ */
+const idTok = (key: string, label: string, placeholder: string): FieldDescriptor => ({ key, label, group: "Identity", input: "token", required: true, placeholder, fromName: true, help: "Filled in from the Display Name; change it only if two entries would share a name." });
+const txt = (key: string, label: string, group: string, help?: string): FieldDescriptor => ({ key, label, group, input: "text", required: true, ...(help ? { help } : {}) });
+const txtList = (key: string, label: string, group: string, help?: string): FieldDescriptor => ({ key, label, group, input: "textList", required: false, ...(help ? { help } : {}) });
+const optInt = (key: string, label: string, group: string, help?: string): FieldDescriptor => ({ key, label, group, input: "integer", required: false, ...(help ? { help } : {}) });
+export const REFERENCE_FAMILY_DESCRIPTORS: Readonly<Record<string, ContractDescriptor>> = {
+  ARMOR: {
+    preview: "SAMPLE_INPUTS",
+    previewSample: "SHEET",
+    purpose: "A suit of worn Armor: its category, the Armor it grants, the Strength it needs and what it costs in Dodge, Movement and Stealth. Reference and preview — the Character sheet does not equip worn Armor yet.",
+    fields: [
+      idTok("armorKey", "Armor name used by other rules", "TACTICAL_PLATING"),
+      { key: "category", label: "Category", group: "Protection", input: "select", vocabulary: "armorCategories", required: true },
+      { key: "armorValue", label: "Armor granted", group: "Protection", input: "integer", required: true },
+      optInt("strengthRequirement", "Strength required (leave empty for none)", "Requirements"),
+      optInt("maxAgiForDodge", "Most AGI that counts toward Dodge (leave empty for no limit)", "Limits"),
+      { key: "movementPenaltyFeet", label: "Movement penalty (feet)", group: "Limits", input: "integer", required: true },
+      { key: "stealth", label: "Stealth", group: "Limits", input: "select", vocabulary: "stealthEffects", required: true },
+      txtList("notes", "Notes", "Limits"),
+      { key: "source", label: "Source", group: "Source", input: "source", required: true },
+    ],
+  },
+  STATUS_CONDITION: {
+    purpose: "A Condition placed on a creature (Burning, Stunned …): what it does, how long it lasts, how it is removed, when it acts and whether it stacks. Reference — play does not apply Conditions yet.",
+    fields: [
+      idTok("conditionKey", "Condition name used by other rules", "BURNING"),
+      { key: "effects", label: "What it does", group: "Effect", input: "list", itemLabel: "Effect", required: true, item: [tok("effectKey", "Short name"), { key: "text", label: "Effect", group: "", input: "text", required: true }] },
+      {
+        key: "duration", label: "How long it lasts", group: "Duration", input: "group", required: true,
+        fields: [sel("model", "Lasts", "conditionDurationModels"), { key: "rounds", label: "Number of rounds (only for a number of rounds)", group: "", input: "integer", required: false }, { key: "text", label: "Description (needed for a special duration)", group: "", input: "text", nullable: true, required: false }],
+      },
+      { key: "removal", label: "How it is removed", group: "Duration", input: "textList", required: true, help: "At least one way to end it." },
+      { key: "ongoingTiming", label: "When it acts", group: "Duration", input: "select", vocabulary: "conditionOngoingTimings", required: true },
+      { key: "stacking", label: "Stacking", group: "Duration", input: "select", vocabulary: "conditionStacking", required: true },
+      { key: "source", label: "Source", group: "Source", input: "source", required: true },
+    ],
+  },
+  SUMMON_TYPE: {
+    preview: "SAMPLE_INPUTS",
+    previewSample: "TIERED_SHEET",
+    purpose: "One Summon engine (Summon Entity, Totem, Persistent Construct, Bound Summon, Manifested Entity, Fusion or Equipment Summoning): its tier table, costs, sustain and limits. Reference and cost preview — no Summon is created or played yet.",
+    fields: [
+      idTok("summonKey", "Engine name used by other rules", "MY_TOTEM"),
+      { key: "engine", label: "Engine", group: "Identity", input: "select", vocabulary: "summonEngines", required: true },
+      {
+        key: "tiers", label: "Tiers", group: "Tiers", input: "list", itemLabel: "Tier", required: true,
+        item: [tok("tierKey", "Tier name"), ln("label", "Label"), optInt("baseMp", "Base MP", ""), optInt("dieFaces", "Die (faces)", ""), optInt("staticValue", "Static value", ""), optInt("hp", "Hit points (HP)", ""), optInt("armor", "Armor", ""), optInt("resolve", "Resolve", ""), optInt("radiusFeet", "Radius (feet)", ""), { key: "size", label: "Size", group: "", input: "text", nullable: true, required: false }, optInt("traitSlots", "Trait slots", "")],
+      },
+      { key: "castingAp", label: "Casting AP", group: "Costs", input: "optionalFormula", sources: "summonCostSourceKinds", required: false, presentLabel: "Casting AP is calculated", absentLabel: "The rulebook states no casting AP for this engine" },
+      { key: "sustainMode", label: "Sustain", group: "Costs", input: "select", vocabulary: "summonSustainModes", required: true },
+      { key: "sustainMp", label: "Sustain MP each round", group: "Costs", input: "optionalFormula", sources: "summonCostSourceKinds", required: false, presentLabel: "Sustain MP is calculated", absentLabel: "No sustain MP" },
+      optInt("sustainApPerRound", "Sustain AP each round (leave empty for none)", "Costs"),
+      { key: "countsTowardConcentration", label: "Counts toward Concentration", group: "Costs", input: "triState", required: false, yes: "Yes", no: "No", unknown: "Not decided (open question)" },
+      { key: "maxActive", label: "Most active at once", group: "Limits", input: "optionalFormula", sources: "summonLimitSourceKinds", required: false, presentLabel: "Calculated from the caster's Stats", absentLabel: "No stated limit" },
+      txt("actionEconomy", "How it acts", "Limits"),
+      txtList("restrictions", "Restrictions", "Limits"),
+      txtList("openQuestions", "Open questions", "Limits"),
+      { key: "source", label: "Source", group: "Source", input: "source", required: true },
+    ],
+  },
+  SUMMON_TRAIT: {
+    purpose: "A trait a Summon engine can take: which engines, what it costs per tier, and what it does. Reference — no Summon is created or played yet.",
+    fields: [
+      idTok("traitKey", "Trait name used by other rules", "WARDING_PULSE"),
+      { key: "engines", label: "Engines that can take it", group: "Access", input: "multiSelect", vocabulary: "summonEngines", required: true },
+      { key: "costs", label: "Cost per tier", group: "Access", input: "list", itemLabel: "Cost", required: false, item: [tok("tierKey", "Tier name"), n("mp", "MP cost")] },
+      { ...flag("forbidden", "Forbidden trait"), group: "Access" },
+      txt("effect", "What it does", "Effect"),
+      { key: "source", label: "Source", group: "Source", input: "source", required: true },
+    ],
+  },
+  MISSION_RULE: {
+    preview: "SAMPLE_INPUTS",
+    previewSample: "ROLL_OR_CLOCK",
+    purpose: "A GM / Mission rule: a die-range table (every roll must be covered), a Threat Clock with its escalation points, an Intel token or a written reference rule. Reference and preview — nothing generates or runs a Mission yet.",
+    fields: [{ key: "", label: "Mission rule", group: "Rule", input: "missionRule", required: true }],
+  },
+  REFERENCE_RULE: {
+    preview: "SAMPLE_INPUTS",
+    previewSample: "ROLL_OR_CLOCK",
+    purpose: "A written gameplay rule: a die-range table (difficulty, critical results, cover …) or rule points (grappling, flanking …). Reference and table preview — nothing calculates from it.",
+    fields: [{ key: "", label: "Gameplay rule", group: "Rule", input: "missionRule", shapes: "referenceRuleShapes", required: true }],
+  },
+  METAMAGIC: {
+    purpose: "A Metamagic option or trait: its cost, what it does and its restrictions. Reference — the Spell builder does not offer Metamagic yet.",
+    fields: [
+      idTok("metamagicKey", "Metamagic name used by other rules", "EXTEND"),
+      { key: "form", label: "Form", group: "Identity", input: "select", vocabulary: "metamagicForms", required: true },
+      optInt("mp", "MP cost (leave empty if none)", "Cost"),
+      optInt("ap", "AP cost (leave empty if none)", "Cost"),
+      { key: "otherCost", label: "Other cost, as written", group: "Cost", input: "text", nullable: true, required: false },
+      txt("effect", "What it does", "Effect"),
+      txtList("restrictions", "Restrictions", "Effect"),
+      { key: "source", label: "Source", group: "Source", input: "source", required: true },
+    ],
+  },
+  JOB_TEMPLATE: {
+    purpose: "An optional Job Class template (Warrior, Thief, Mage …): its role, suggested Stats and Skills, starting gear and features. Reference — Character creation does not offer Job templates yet.",
+    fields: [
+      idTok("jobKey", "Job name used by other rules", "WARRIOR"),
+      txt("role", "Role", "Identity"),
+      { key: "suggestedStats", label: "Suggested Stats", group: "Suggestions", input: "multiSelect", vocabulary: "prowessStats", required: false },
+      { key: "suggestedSkills", label: "Suggested Skills", group: "Suggestions", input: "refList", refKind: "SKILL", itemLabel: "Skill", required: false },
+      txtList("startingEquipment", "Starting equipment", "Suggestions"),
+      txtList("features", "Features", "Suggestions"),
+      { key: "source", label: "Source", group: "Source", input: "source", required: true },
+    ],
+  },
+};
+
+/** RULES-WO1: MAGE_ART version 2 = version 1 plus per-mode scaling steps, granted benefits and maintenance exceptions. */
+const MAGE_ART_KIND = Object.keys(REMAINING_KIND_DESCRIPTORS).find((k) => REMAINING_KIND_DESCRIPTORS[k]!.fields.some((f) => f.key === "artKey")) ?? "";
+const MAGE_ART_V1 = REMAINING_KIND_DESCRIPTORS[MAGE_ART_KIND] ?? null;
+const MAGE_ART_V2_DESCRIPTOR: ContractDescriptor | null =
+  MAGE_ART_V1 === null
+    ? null
+    : {
+        purpose: `${MAGE_ART_V1.purpose} Version 2 also records how each mode scales and the benefits and maintenance exceptions of the Art.`,
+        fields: [
+          ...MAGE_ART_V1.fields.map((f): FieldDescriptor =>
+            f.key === "modes" && f.input === "list"
+              ? { ...f, item: [...f.item, { key: "scaling", label: "Scaling steps", group: "", input: "list", itemLabel: "Step", required: false, item: [tok("stepKey", "Step name"), ln("label", "Label"), { key: "text", label: "What changes", group: "", input: "text", required: true }] }] }
+              : f,
+          ).filter((f) => f.key !== "source"),
+          { key: "grantedBenefits", label: "Benefits it grants", group: "Benefits", input: "textList", required: false },
+          { key: "maintenanceExceptions", label: "Maintenance exceptions", group: "Benefits", input: "textList", required: false },
+          ...MAGE_ART_V1.fields.filter((f) => f.key === "source"),
+        ],
+      };
+
 export const GENERIC_DESCRIPTOR: ContractDescriptor = {
   purpose: "This kind has no dedicated authoring descriptor yet: author its payload as structured data. The M5 contract still validates every field.",
   fields: [{ key: "", label: "Payload", group: "Payload", input: "authoredData", required: true, help: "The complete payload for this Definition kind." }],
@@ -800,6 +955,8 @@ export function descriptorFor(kind: { definitionKind: string; sharedContract: st
   if (schemaVersion === 1 && RUNTIME_KIND_DESCRIPTORS[kind.definitionKind] !== undefined) return RUNTIME_KIND_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
   if (kind.definitionKind === "AFFINITY" && schemaVersion === 1) return AFFINITY_V1;
   if (schemaVersion === 1 && RULES_AUTHORING_DESCRIPTORS[kind.definitionKind] !== undefined) return RULES_AUTHORING_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
+  if (schemaVersion === 1 && REFERENCE_FAMILY_DESCRIPTORS[kind.definitionKind] !== undefined) return REFERENCE_FAMILY_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
+  if (schemaVersion === 2 && MAGE_ART_V2_DESCRIPTOR !== null && kind.definitionKind === MAGE_ART_KIND) return MAGE_ART_V2_DESCRIPTOR;
   return GENERIC_DESCRIPTOR;
 }
 
@@ -913,6 +1070,12 @@ export function initialFieldValue(field: FieldDescriptor): unknown {
       return null;
     case "refList":
       return [];
+    case "triState":
+      return null;
+    case "contentToken":
+      return "";
+    case "missionRule":
+      return { ruleKey: "", shape: "", rollTable: null, clock: null, intel: null, points: null, source: { locators: [], conflicts: [] } };
     case "coreFormula":
       // The rounding is the author's choice (from the catalog) — a new Formula starts without one.
       return { expression: "0", rounding: "", minimum: null, maximum: null, unit: null, variables: [] };

@@ -5,8 +5,13 @@ import {
   createCharacter,
   finalizeCharacterCoreCreation,
   getCharacterSheet,
+  createSourceDocument,
   getStatImpacts,
+  ingestSourceSnapshot,
+  listAuthoringOptions,
+  lookupSourceSections,
   prisma,
+  previewReferenceDefinition,
   previewAuthoredRules,
   proposeDefinitionChangeSet,
   publishRulesetRelease,
@@ -17,6 +22,7 @@ import {
 } from "../../src/index";
 import { assertRunningAgainstTestDatabase } from "../../src/testDatabaseGuard";
 import { getTestDatabaseUrl } from "./env";
+import { docx } from "../fixtures/prowess-structure-fixtures";
 import { cleanupCharacterWorlds, seedCharacterRelease, workedChoices, type CharacterReleaseWorld } from "../fixtures/m6-wo3-character-release";
 
 /**
@@ -135,5 +141,26 @@ describe("RULES-WO1 authored rules end to end", () => {
       expect(c.preview.effects[0]).toMatchObject({ upkeepAp: 2, payableAp: payable });
       expect(p.published.concentration).toEqual([]);
     }
+  }, TIMEOUT);
+
+  it("Phase C: an Armor Draft previews through the contract; sections are found by title; values and ranks are offered by name", async () => {
+    const heavy = { armorKey: "HEAVY_PLATE", category: "HEAVY", armorValue: 5, strengthRequirement: 5, maxAgiForDodge: 5, movementPenaltyFeet: 5, stealth: "DISADVANTAGE", notes: [], source: { locators: ["s1"], conflicts: [] } };
+    const armor = await createAuthoredDefinition({ definitionKind: "ARMOR", canonicalKey: `${PREFIX}.armor.heavy_${Date.now()}`, displayName: "Heavy Plate (test)", prowessDefinition: def("EQUIPMENT", "ARMOR", heavy) });
+    const before = await prisma.entityVersion.count();
+    const p = await previewReferenceDefinition({ entityVersionId: armor.version.id, sample: { stats: { AGI: 8, STR: 4 } } });
+    expect(p.result).toMatchObject({ agiCountedForDodge: 5, agiCapped: true, meetsStrengthRequirement: false, appliesInPlay: false });
+    expect(await prisma.entityVersion.count()).toBe(before);
+    await expect(previewReferenceDefinition({ entityVersionId: carryDraft, sample: {} })).rejects.toThrow(/has no reference preview/);
+
+    const document = await createSourceDocument({ title: `${PREFIX} rulebook`, sourceType: "DOCUMENT" });
+    const { snapshot } = await ingestSourceSnapshot(document.id, docx({ title: "rw1", blocks: [{ kind: "heading", level: 1, text: "ARMOR" }, { kind: "p", text: "Armor text." }, { kind: "heading", level: 2, text: "LIGHT ARMOR" }, { kind: "p", text: "Light." }, { kind: "heading", level: 1, text: "CONCENTRATION" }, { kind: "p", text: "Points." }] }), { label: "rw1", originalFilename: "rw1.docx", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+    const found = await lookupSourceSections({ snapshotId: snapshot.id, q: "armor", locators: ["s0", "s9"] });
+    expect(found.matches.map((m) => [m.locator, m.title, m.parentTitle])).toEqual([["s0", "ARMOR", null], ["s1", "LIGHT ARMOR", "ARMOR"]]);
+    expect(found.known.map((k) => k.title)).toEqual(["ARMOR"]);
+    expect(found.unknown).toEqual(["s9"]);
+    await expect(lookupSourceSections({ locators: ["208"] })).rejects.toThrow(/section keys/);
+
+    expect((await listAuthoringOptions("calculatedValues")).some((o) => o.token === "CARRY_CAPACITY")).toBe(true);
+    expect((await listAuthoringOptions("skillRanks")).map((o) => o.token)).toEqual(expect.arrayContaining(["TRAINED"]));
   }, TIMEOUT);
 });

@@ -5,6 +5,19 @@ import {
   BENEFIT_AMOUNT_INPUT_KINDS,
   CONCENTRATION_CAPACITY_INPUT_KINDS,
   CONCENTRATION_UPKEEP_INPUT_KINDS,
+  ARMOR_CATEGORIES,
+  STEALTH_EFFECTS,
+  CONDITION_DURATION_MODELS,
+  CONDITION_ONGOING_TIMINGS,
+  CONDITION_STACKING,
+  SUMMON_ENGINES,
+  SUMMON_SUSTAIN_MODES,
+  SUMMON_COST_INPUT_KINDS,
+  SUMMON_LIMIT_INPUT_KINDS,
+  MISSION_RULE_SHAPES,
+  REFERENCE_RULE_SHAPES,
+  CLOCK_VISIBILITIES,
+  METAMAGIC_FORMS,
   MAGE_ART_ACTIVE_EFFECT_WINDOWS,
   ACTION_COST_MODELS, ACTION_IMPROVEMENT_MODIFICATION_KINDS, ACTION_IMPROVEMENT_PREREQUISITE_KINDS, ACTION_TIMINGS, AFFINITY_ADVANCEMENT_ACTIONS,
   AFFINITY_PROGRESSION_MODES, AFFINITY_RANKS, AFFINITY_RANK_UP_TARGETS, AFFINITY_ROLES, COMBAT_TIMING_EVENTS, INITIATIVE_TIEBREAK_KINDS,
@@ -87,7 +100,7 @@ describe("M6-WO1 authoring catalog (M6-I002 no second Definition catalog)", () =
     expect(reserved.length).toBeGreaterThan(0);
     for (const kind of reserved) expect(PROWESS_DEFINITION_KINDS[kind].schemaVersions).toEqual([]);
     // M6-WO6 activated WEAPON / EQUIPMENT_TRAIT and added ATTACK; ARMOR stays reserved.
-    expect(reserved).toContain("ARMOR");
+    expect(reserved).toContain("SUMMON_ACTION_MODEL"); // RULES-WO1 Phase C activated ARMOR; SUMMON_ACTION_MODEL stays reserved
     expect(reserved).not.toContain("WEAPON");
   });
 
@@ -176,6 +189,19 @@ describe("M6-WO1 authoring catalog (M6-I002 no second Definition catalog)", () =
       benefitAmountSourceKinds: [...BENEFIT_AMOUNT_INPUT_KINDS],
       concentrationCapacitySourceKinds: [...CONCENTRATION_CAPACITY_INPUT_KINDS],
       concentrationUpkeepSourceKinds: [...CONCENTRATION_UPKEEP_INPUT_KINDS],
+      armorCategories: [...ARMOR_CATEGORIES],
+      stealthEffects: [...STEALTH_EFFECTS],
+      conditionDurationModels: [...CONDITION_DURATION_MODELS],
+      conditionOngoingTimings: [...CONDITION_ONGOING_TIMINGS],
+      conditionStacking: [...CONDITION_STACKING],
+      summonEngines: [...SUMMON_ENGINES],
+      summonSustainModes: [...SUMMON_SUSTAIN_MODES],
+      summonCostSourceKinds: [...SUMMON_COST_INPUT_KINDS],
+      summonLimitSourceKinds: [...SUMMON_LIMIT_INPUT_KINDS],
+      missionRuleShapes: [...MISSION_RULE_SHAPES],
+      referenceRuleShapes: [...REFERENCE_RULE_SHAPES],
+      clockVisibilities: [...CLOCK_VISIBILITIES],
+      metamagicForms: [...METAMAGIC_FORMS],
     });
   });
 

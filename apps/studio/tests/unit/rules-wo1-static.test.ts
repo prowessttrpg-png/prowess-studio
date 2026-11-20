@@ -30,21 +30,59 @@ describe("RULES-WO1 gate — the approved M5 change is additive and exact", () =
 
   it("registers exactly the kinds, readers, evaluator, preview, sheet extension and characterizing tests — at their exact hashes", () => {
     expect(Object.keys(entry.changedFiles).sort()).toEqual(
-      ["character/sheet.ts", "compilation/compile.ts", "definition/payload.ts", "index.ts", "m6-wo3-registry.test.ts", "m6-wo4-registry.test.ts", "m6-wo6-registry.test.ts", "m6-wo9-registry.test.ts", "vocabulary/families.ts"].map((f) => G + f),
+      [
+        "card-phase-b.test.ts", // MAGE_ART reads versions 1 and 2 (the card stays UNAVAILABLE)
+        "character/sheet.ts",
+        "compilation/compile.ts",
+        "definition-envelope.test.ts",
+        "definition/mage-art-payload.ts",
+        "definition/payload.ts",
+        "index.ts",
+        "m6-wo3-registry.test.ts",
+        "m6-wo4-registry.test.ts",
+        "m6-wo6-registry.test.ts",
+        "m6-wo9-registry.test.ts",
+        "pre-m7-wo1-mage-art.test.ts",
+        "stored-definition-validation.test.ts",
+        "vocabulary.test.ts",
+        "vocabulary/families.ts",
+      ].map((f) => G + f),
     );
-    expect(Object.keys(entry.addedFiles).sort()).toEqual(["ability/concentration-preview.ts", "character/calculated-values.ts", "definition/rules-authoring-payload.ts", "rules-wo1-authoring.test.ts"].map((f) => G + f));
+    expect(Object.keys(entry.addedFiles).sort()).toEqual(
+      ["ability/concentration-preview.ts", "character/calculated-values.ts", "definition/rules-authoring-payload.ts", "definition/rules-reference-payload.ts", "reference/preview.ts", "rules-wo1-authoring.test.ts", "rules-wo1-reference.test.ts"].map((f) => G + f),
+    );
     for (const [f, h] of [...Object.entries(entry.changedFiles), ...Object.entries(entry.addedFiles)]) expect(sha(f), f).toBe(h);
   });
 
-  it("adds three version-1 kinds and leaves every other line of the kind table alone", () => {
+  it("adds six version-1 kinds, activates five reserved kinds and MAGE_ART v2, and keeps SUMMON_ACTION_MODEL reserved", () => {
     const families = read(G + "vocabulary/families.ts");
-    for (const line of ['CALCULATED_VALUE: active("CHARACTER"),', 'SKILL_BENEFIT: active("SKILL"),', 'CONCENTRATION_RULE: active("ABILITY"),']) expect(families).toContain(line);
-    for (const k of ["CALCULATED_VALUE", "SKILL_BENEFIT", "CONCENTRATION_RULE"]) expect(read(G + "compilation/compile.ts")).toContain(`  ${k}: null,`);
+    for (const line of [
+      'CALCULATED_VALUE: active("CHARACTER"),',
+      'SKILL_BENEFIT: active("SKILL"),',
+      'CONCENTRATION_RULE: active("ABILITY"),',
+      'METAMAGIC: active("SPELL"),',
+      'JOB_TEMPLATE: active("CHARACTER"),',
+      'ARMOR: active("EQUIPMENT"),',
+      'SUMMON_TYPE: active("SUMMON"),',
+      'SUMMON_TRAIT: active("SUMMON"),',
+      'STATUS_CONDITION: active("CONDITION"),',
+      'MISSION_RULE: active("MISSION"),',
+      'REFERENCE_RULE: active("CORE"),',
+      'SUMMON_ACTION_MODEL: reserved("SUMMON"),',
+    ])
+      expect(families).toContain(line);
+    for (const k of ["CALCULATED_VALUE", "SKILL_BENEFIT", "CONCENTRATION_RULE", "METAMAGIC", "JOB_TEMPLATE", "ARMOR", "SUMMON_TYPE", "SUMMON_TRAIT", "STATUS_CONDITION", "MISSION_RULE", "REFERENCE_RULE"]) expect(read(G + "compilation/compile.ts")).toContain(`  ${k}: null,`);
+    expect(read(G + "definition/payload.ts")).toContain("else if (isRulesReferencePayloadKind(kind)) payload = readRulesReferencePayload(kind, value, at, p);");
     expect(read(G + "definition/payload.ts")).toContain("else if (isRulesAuthoringPayloadKind(kind)) payload = readRulesAuthoringPayload(kind, value, at, p);");
   });
 
-  it("registers one route and no schema or migration change", () => {
-    expect((JSON.parse(read("docs/architecture/m6-api-routes.json")) as Record<string, unknown>)["RULES-WO1"]).toEqual(["apps/studio/app/api/compendium-rules/authored-preview/route.ts"]);
+  it("registers four read-only / preview routes and no schema or migration change", () => {
+    expect((JSON.parse(read("docs/architecture/m6-api-routes.json")) as Record<string, unknown>)["RULES-WO1"]).toEqual([
+      "apps/studio/app/api/compendium-rules/authored-preview/route.ts",
+      "apps/studio/app/api/compendium-rules/authoring-options/route.ts",
+      "apps/studio/app/api/compendium-rules/reference-preview/route.ts",
+      "apps/studio/app/api/compendium-rules/source-sections/route.ts",
+    ]);
     expect((JSON.parse(read("docs/architecture/m6-schema-changes.json")) as Record<string, unknown>)["RULES-WO1"]).toBeUndefined();
     expect(read("packages/prowess-db/prisma/schema.prisma")).not.toContain("RULES-WO1");
   });
@@ -52,7 +90,7 @@ describe("RULES-WO1 gate — the approved M5 change is additive and exact", () =
 
 describe("RULES-WO1 gate — authored rules are M4-evaluated and read only by their own consumers", () => {
   it("the evaluator and the preview run every number through M4 evaluateFormula", () => {
-    for (const f of ["character/calculated-values.ts", "ability/concentration-preview.ts"]) {
+    for (const f of ["character/calculated-values.ts", "ability/concentration-preview.ts", "reference/preview.ts"]) {
       const src = strip(read(G + f));
       expect(src, f).toMatch(/import \{ evaluateFormula \} from "@prowess\/rules";/);
       expect(src, f).not.toMatch(/Math\.|\.reduce\(/);
@@ -61,13 +99,18 @@ describe("RULES-WO1 gate — authored rules are M4-evaluated and read only by th
 
   it("only the payload reader, the index, the evaluator, the preview and the sheet read the new contracts", () => {
     const readers = (needle: string) => GAME_CODE.filter((f) => strip(read(f)).includes(needle)).sort();
-    expect(readers("rules-authoring-payload")).toEqual([G + "ability/concentration-preview.ts", G + "character/calculated-values.ts", G + "definition/payload.ts", G + "index.ts"]);
+    expect(readers("rules-authoring-payload")).toEqual([G + "ability/concentration-preview.ts", G + "character/calculated-values.ts", G + "definition/payload.ts", G + "definition/rules-reference-payload.ts", G + "index.ts", G + "reference/preview.ts"]);
+    expect(readers("rules-reference-payload")).toEqual([G + "definition/mage-art-payload.ts", G + "definition/payload.ts", G + "index.ts"]);
+    expect(readers("reference/preview")).toEqual([G + "index.ts"]);
     expect(readers("concentration-preview")).toEqual([G + "index.ts"]);
     expect(readers("calculated-values")).toEqual([G + "character/sheet.ts", G + "index.ts"]);
   });
 
-  it("no play, combat or Active Magic module reads the Concentration rule; the preview states it does not apply in play", () => {
-    for (const f of GAME_CODE.filter((x) => /\/(play|ability)\//.test(x) && !x.endsWith("concentration-preview.ts"))) expect(strip(read(f)), f).not.toMatch(/CONCENTRATION_RULE|previewConcentration/);
+  it("no play, combat or Active Magic module reads the Concentration rule or a reference family; previews state they do not apply in play", () => {
+    for (const f of GAME_CODE.filter((x) => /\/(play|ability|character|construction|equipment|card)\//.test(x) && !x.endsWith("concentration-preview.ts")))
+      expect(strip(read(f)), f).not.toMatch(/CONCENTRATION_RULE|previewConcentration|definitionKind === "ARMOR"|STATUS_CONDITION|SUMMON_TYPE|SUMMON_TRAIT|MISSION_RULE|METAMAGIC|JOB_TEMPLATE|REFERENCE_RULE|rules-reference-payload|reference\/preview/);
+    for (const fn of ["previewArmor", "previewSummonCosts", "previewMissionTable", "previewThreatClock"]) expect(read(G + "reference/preview.ts")).toMatch(new RegExp(`export function ${fn}[\\s\\S]*?appliesInPlay: false as const`));
+    expect(read("apps/studio/app/compendium/admin/_components/ReferencePreviewPanel.tsx")).toContain("Preview only — play does not use this rule yet.");
     expect(read(G + "ability/concentration-preview.ts")).toContain("appliesInPlay: false as const,");
     expect(read("apps/studio/app/compendium/admin/_components/AuthoredRulePreviewPanel.tsx")).toContain("Preview only — combat does not use this rule yet.");
   });
@@ -95,6 +138,27 @@ describe("RULES-WO1 gate — nothing unstated is invented", () => {
   });
 });
 
+describe("RULES-WO1 gate — ordinary authoring needs no machine keys", () => {
+  it("rulebook sections are chosen by title; the section keys are only under Section keys (advanced)", () => {
+    const picker = read("apps/studio/app/compendium/admin/_components/SourceSectionPicker.tsx");
+    expect(picker).toContain("Find a rulebook section by its title");
+    expect(picker).toMatch(/<details>\s*<summary>Section keys \(advanced\)<\/summary>/);
+    const editor = strip(read("apps/studio/app/compendium/admin/_components/DefinitionEditor.tsx"));
+    expect(editor).not.toContain("Source sections (comma-separated");
+    expect(editor).toContain("<SourceSectionPicker value={value} onChange={onChange} />");
+  });
+  it("the Definition's name fields follow the Display Name until edited; the Canonical Key is one click (never silent)", () => {
+    const form = read("apps/studio/app/compendium/admin/_components/NewDefinitionForm.tsx");
+    expect(form).toContain("Suggest a Canonical Key from the Display Name");
+    expect(form).not.toContain("keyEdited");
+    expect(form).toContain('const auto = descriptor.fields.filter((f) => f.input === "token" && f.fromName === true);');
+  });
+  it("About is in the primary navigation; Keywords have a screen", () => {
+    expect(read("apps/studio/src/navigation.ts")).toContain('{ id: "about", label: "About", href: "/about" },');
+    expect(existsSync(path.join(ROOT, "apps/studio/app/compendium/admin/keywords/page.tsx"))).toBe(true);
+  });
+});
+
 describe("RULES-WO1 gate — build identity reaches Studio", () => {
   it("the desktop controller passes version, commit, tree and package fingerprint; Studio's About page reads them", () => {
     const controller = read("scripts/distribution/desktop/controller.mjs");
@@ -106,9 +170,9 @@ describe("RULES-WO1 gate — build identity reaches Studio", () => {
 });
 
 describe("RULES-WO1 gate — invariants, CI and controls", () => {
-  it("RW1-I001–I009 are documented and name existing guards", () => {
+  it("RW1-I001–I012 are documented and name existing guards", () => {
     const invariants = JSON.parse(read("docs/architecture/rules-wo1-invariants.json")) as { id: string; title: string; guards: string[] }[];
-    expect(invariants.map((x) => x.id)).toEqual(Array.from({ length: 9 }, (_, i) => `RW1-I${String(i + 1).padStart(3, "0")}`));
+    expect(invariants.map((x) => x.id)).toEqual(Array.from({ length: 12 }, (_, i) => `RW1-I${String(i + 1).padStart(3, "0")}`));
     const md = read("docs/architecture/rules-wo1-invariants.md");
     for (const row of invariants) {
       expect(md).toContain(`### ${row.id} — ${row.title}`);
@@ -118,7 +182,9 @@ describe("RULES-WO1 gate — invariants, CI and controls", () => {
 
   it("the CI gate runs this file, the UI test and the game contract test, then the negative controls", () => {
     const ci = read(".github/workflows/ci.yml");
-    expect(ci).toContain("node scripts/ci/verify-gate.mjs RULES-WO1 apps/studio/tests/unit/rules-wo1-static.test.ts apps/studio/tests/unit/rules-wo1-authoring-ui.test.tsx packages/prowess-game/src/rules-wo1-authoring.test.ts");
+    expect(ci).toContain(
+      "node scripts/ci/verify-gate.mjs RULES-WO1 apps/studio/tests/unit/rules-wo1-static.test.ts apps/studio/tests/unit/rules-wo1-authoring-ui.test.tsx apps/studio/tests/unit/rules-wo1-phase-c-ui.test.tsx packages/prowess-game/src/rules-wo1-authoring.test.ts packages/prowess-game/src/rules-wo1-reference.test.ts packages/prowess-db/tests/unit/rules-wo1-capabilities.test.ts",
+    );
     expect(ci).toMatch(/PROWESS_EXPECT_CONTROLS=\d+ node scripts\/rules-wo1-negative-controls\.mjs/);
   });
 });

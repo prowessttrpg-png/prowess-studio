@@ -79,7 +79,7 @@ describe("validateStoredProwessDefinition (M6-WO1 §81 approved M5 public surfac
     ["family / kind mismatch (cross-branch)", storedOf(d, { systemFamily: "MANEUVER" }), C.FAMILY_KIND_MISMATCH],
     ["unsupported schema version", storedOf(d, { schemaVersion: 9 }), C.UNSUPPORTED_SCHEMA_VERSION],
     // M6-WO6 activated WEAPON; ARMOR is the EQUIPMENT kind that stays reserved.
-    ["reserved kind", storedOf(d, { definitionKind: "ARMOR", systemFamily: "EQUIPMENT", schemaVersion: 1 }), C.UNSUPPORTED_SCHEMA_VERSION, "GENERIC_RULE"],
+    ["reserved kind", storedOf(d, { definitionKind: "SUMMON_ACTION_MODEL", systemFamily: "SUMMON", schemaVersion: 1 }), C.UNSUPPORTED_SCHEMA_VERSION, "GENERIC_RULE"],
     ["incompatible EntityType", storedOf(d), C.ENTITY_TYPE_MISMATCH, "SPELL_TRAIT"],
     ["stored blob claiming identity", storedOf(d, { entityVersionId: "00000000-0000-4000-8000-000000000001" }), C.INVALID_STORED_DEFINITION],
     ["malformed payload — unsupported resolution mode", mutate((p) => { p.resolution = { mode: "TELEPATHY", data: {} }; }), C.INVALID_PAYLOAD],

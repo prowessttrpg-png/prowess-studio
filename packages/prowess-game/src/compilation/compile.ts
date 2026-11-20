@@ -72,6 +72,9 @@ export const COMPONENT_COMPILERS: Readonly<Record<ProwessDefinitionKind, Compone
   CALCULATED_VALUE: null,
   SKILL_BENEFIT: null,
   CONCENTRATION_RULE: null,
+  METAMAGIC: null,
+  JOB_TEMPLATE: null,
+  REFERENCE_RULE: null,
 });
 
 const REQUEST_FIELDS = ["contractVersion", "subject", "definitions", "ruleset", "actor", "build", "runtime"];

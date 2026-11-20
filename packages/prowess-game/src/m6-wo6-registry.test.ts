@@ -4,7 +4,9 @@ import { EQUIPMENT_PAYLOAD_KINDS } from "./definition/equipment-payload.js";
 import certified from "./testing/m6-wo6-registry-baseline.json";
 
 /** Kinds added by the LATER RULES-WO1 Work Order, characterized by rules-wo1-authoring.test.ts. */
-const RULES_WO1_KINDS: readonly string[] = ["CALCULATED_VALUE", "SKILL_BENEFIT", "CONCENTRATION_RULE"];
+const RULES_WO1_KINDS: readonly string[] = ["CALCULATED_VALUE", "SKILL_BENEFIT", "CONCENTRATION_RULE", "METAMAGIC", "JOB_TEMPLATE", "REFERENCE_RULE"];
+/** Reserved kinds a LATER Work Order (RULES-WO1 Phase C) activated: ONLY their schemaVersions change (rules-wo1-reference.test.ts). */
+const RULES_WO1_ACTIVATED: readonly string[] = ["ARMOR", "STATUS_CONDITION", "SUMMON_TYPE", "SUMMON_TRAIT", "MISSION_RULE"];
 
 /**
  * PAS-10 M6-WO6 §6–§7 — registry change guard. Every Prowess Definition kind specification that existed at the M6-WO6
@@ -28,9 +30,12 @@ describe("M6-WO6 registry characterization (§6–§7)", () => {
     for (const [kind, spec] of Object.entries(baseline.kinds)) {
       if (kind === "WEAPON" || kind === "EQUIPMENT_TRAIT") continue;
       if (kind === "MAGE_ART") continue; // Activated by a LATER Work Order (PRE-M7-WO1: pre-m7-wo1-mage-art.test.ts).
+      if (RULES_WO1_ACTIVATED.includes(kind)) continue; // Activated by RULES-WO1 Phase C — only schemaVersions change (below).
       expect(JSON.stringify(current[kind]), kind).toBe(JSON.stringify(spec));
     }
-    expect(current.ARMOR).toEqual({ family: "EQUIPMENT", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [] });
+    // ARMOR stayed reserved through M6-WO6; RULES-WO1 Phase C activates it, changing ONLY its schemaVersions.
+    expect(current.ARMOR).toEqual({ family: "EQUIPMENT", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1] });
+    for (const kind of RULES_WO1_ACTIVATED) expect({ ...current[kind], schemaVersions: baseline.kinds[kind]!.schemaVersions }, kind).toEqual(baseline.kinds[kind]);
   });
 
   it("WEAPON and EQUIPMENT_TRAIT change ONLY from reserved ([]) to schema version 1", () => {

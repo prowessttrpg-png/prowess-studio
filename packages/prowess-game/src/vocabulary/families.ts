@@ -150,20 +150,25 @@ const DEFINITION_KIND_TABLE = {
    * PRE-M7-WO1: MAGE_ART payload version 1 — authoring and reference of a fixed Mage Art (definition/mage-art-payload.ts).
    * Not executable: nothing compiles, prices or plays a Mage Art; the Character card stays UNAVAILABLE.
    */
-  MAGE_ART: active("MAGE_ART"),
+  MAGE_ART: { family: "MAGE_ART", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1, 2] }, // RULES-WO1: v2 adds scaling / benefits / exceptions
   // Weapons & Attacks — reserved by M5; WEAPON and EQUIPMENT_TRAIT are activated at version 1 and ATTACK is added by
   // PAS-10 M6-WO6 (definition/equipment-payload.ts). ARMOR stays reserved (worn Armor is later equipment work, §7).
   WEAPON: active("EQUIPMENT"),
   /** M6-WO6: one exact Weapon Move (a Moveset entry) — its own AP, damage, targeting and resolution (§12). */
   ATTACK: active("EQUIPMENT"),
-  ARMOR: reserved("EQUIPMENT"),
+  /** RULES-WO1: worn Armor, version 1 (reference and preview; the sheet does not equip it yet). */
+  ARMOR: active("EQUIPMENT"),
   EQUIPMENT_TRAIT: active("EQUIPMENT"),
-  SUMMON_TYPE: reserved("SUMMON"),
-  SUMMON_TRAIT: reserved("SUMMON"),
+  /** RULES-WO1: one Summon engine (7 engines), version 1 (reference and cost preview; no Summon is played yet). */
+  SUMMON_TYPE: active("SUMMON"),
+  /** RULES-WO1: a trait a Summon engine can take, version 1 (reference). */
+  SUMMON_TRAIT: active("SUMMON"),
   SUMMON_ACTION_MODEL: reserved("SUMMON"),
   /** A state applied TO a target (Burning, Prone …) — never an Ability Condition (M5-I040). */
-  STATUS_CONDITION: reserved("CONDITION"),
-  MISSION_RULE: reserved("MISSION"),
+  /** RULES-WO1: version 1 (reference; play does not apply Conditions yet). */
+  STATUS_CONDITION: active("CONDITION"),
+  /** RULES-WO1: GM / Mission rules — die-range tables, Threat Clocks, Intel and reference rules, version 1. */
+  MISSION_RULE: active("MISSION"),
 
   // RULES-WO1 — authored rules without a new engine (definition/rules-authoring-payload.ts). Additive kinds: every
   // existing kind and its payload contract are unchanged.
@@ -173,6 +178,12 @@ const DEFINITION_KIND_TABLE = {
   SKILL_BENEFIT: active("SKILL"),
   /** The Concentration capacity / sustained-Spell upkeep / allocation rule (owner override). Reference and preview only. */
   CONCENTRATION_RULE: active("ABILITY"),
+  /** RULES-WO1 Phase C: a Metamagic option or trait (reference). */
+  METAMAGIC: active("SPELL"),
+  /** RULES-WO1 Phase C: an OPTIONAL Job Class template (reference; Character creation does not read it). */
+  JOB_TEMPLATE: active("CHARACTER"),
+  /** RULES-WO1 Phase C: a written gameplay rule — a die-range table or written points (reference). */
+  REFERENCE_RULE: active("CORE"),
 } as const satisfies Record<string, DefinitionKindSpec>;
 
 export type ProwessDefinitionKind = keyof typeof DEFINITION_KIND_TABLE;

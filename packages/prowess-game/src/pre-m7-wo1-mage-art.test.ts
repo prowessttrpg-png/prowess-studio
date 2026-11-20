@@ -38,7 +38,8 @@ const ART = {
 
 describe("PRE-M7-WO1 MAGE_ART v1", () => {
   it("the registry activates MAGE_ART at schema version 1 and changes nothing else about it", () => {
-    expect(PROWESS_DEFINITION_KINDS.MAGE_ART).toEqual({ family: "MAGE_ART", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1] });
+    // RULES-WO1 Phase C later adds version 2 alongside 1 (rules-wo1-reference.test.ts); version 1 stays readable.
+    expect(PROWESS_DEFINITION_KINDS.MAGE_ART).toEqual({ family: "MAGE_ART", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1, 2] });
   });
 
   it("accepts a complete Art with modes and returns a detached, normalized payload", () => {

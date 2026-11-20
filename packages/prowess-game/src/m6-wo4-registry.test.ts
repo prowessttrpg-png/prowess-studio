@@ -4,7 +4,9 @@ import { ADVANCEMENT_PAYLOAD_KINDS } from "./definition/advancement-payload.js";
 import certified from "./testing/m6-wo4-registry-baseline.json";
 
 /** Kinds added by the LATER RULES-WO1 Work Order, characterized by rules-wo1-authoring.test.ts. */
-const RULES_WO1_KINDS: readonly string[] = ["CALCULATED_VALUE", "SKILL_BENEFIT", "CONCENTRATION_RULE"];
+const RULES_WO1_KINDS: readonly string[] = ["CALCULATED_VALUE", "SKILL_BENEFIT", "CONCENTRATION_RULE", "METAMAGIC", "JOB_TEMPLATE", "REFERENCE_RULE"];
+/** Reserved kinds a LATER Work Order (RULES-WO1 Phase C) activated: ONLY their schemaVersions change (rules-wo1-reference.test.ts). */
+const RULES_WO1_ACTIVATED: readonly string[] = ["ARMOR", "STATUS_CONDITION", "SUMMON_TYPE", "SUMMON_TRAIT", "MISSION_RULE"];
 
 /**
  * PAS-10 M6-WO4 — registry change guard. Every Prowess Definition kind specification that existed at the M6-WO4 base
@@ -27,7 +29,8 @@ describe("M6-WO4 registry characterization", () => {
   it("every pre-WO4 kind is byte-for-byte unchanged (CHARACTER_DIE_PROGRESSION and AFFINITY_PROGRESSION included)", () => {
     // WEAPON / EQUIPMENT_TRAIT are activated by the LATER M6-WO6 and characterized by m6-wo6-registry.test.ts.
     const later = ["WEAPON", "EQUIPMENT_TRAIT", "MAGE_ART"]; // MAGE_ART: activated by PRE-M7-WO1 (pre-m7-wo1-mage-art.test.ts).
-    for (const [kind, spec] of Object.entries(baseline.kinds)) if (!later.includes(kind)) expect(JSON.stringify(current[kind]), kind).toBe(JSON.stringify(spec));
+    for (const [kind, spec] of Object.entries(baseline.kinds)) if (!later.includes(kind) && !RULES_WO1_ACTIVATED.includes(kind)) expect(JSON.stringify(current[kind]), kind).toBe(JSON.stringify(spec));
+    for (const kind of RULES_WO1_ACTIVATED) expect({ ...current[kind], schemaVersions: baseline.kinds[kind]!.schemaVersions }, kind).toEqual(baseline.kinds[kind]);
     expect(Object.keys(baseline.kinds).filter((k) => !(k in current))).toEqual([]);
   });
 

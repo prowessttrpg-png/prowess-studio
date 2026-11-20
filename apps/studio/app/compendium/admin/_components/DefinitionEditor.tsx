@@ -8,6 +8,9 @@ import { fieldDomId, fieldErrorId, issuesForField, stableStringify, type Definit
 import { AuthoredDataEditor } from "./AuthoredDataEditor";
 import { DefinitionReferencePicker } from "./DefinitionReferencePicker";
 import { FormulaEditor } from "./FormulaEditor";
+import { SourceSectionPicker } from "./SourceSectionPicker";
+import { MissionRuleEditor } from "./MissionRuleEditor";
+import { ContentTokenSelect } from "./ContentTokenSelect";
 import { IntegerListInput, OptionalFeetInput, RowsEditor } from "./GuidedInputs";
 import { AbilityDefinitionEditor } from "./AbilityDefinitionEditor";
 import { KeywordPicker } from "./KeywordPicker";
@@ -16,7 +19,6 @@ import {
   AttackResolutionEditor,
   AttackTargetingEditor,
   DamageProfilesEditor,
-  EquipmentSourceEditor,
   EquippedModifiersEditor,
   GrantedFeaturesEditor,
   NullableSelect,
@@ -317,23 +319,13 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
           )}
         </LabeledControl>
       );
-    case "source": {
-      const src = asObject(value);
-      const list = (k: string) => (Array.isArray(src[k]) ? (src[k] as string[]) : []);
-      const setList = (k: string, text: string) => onChange({ ...src, [k]: text.split(",").map((x) => x.trim()).filter((x) => x !== "") });
+    case "source":
+      // RULES-WO1: rulebook sections are chosen by title; the section keys are only shown under "Section keys".
       return (
         <Shell field={field} issues={issues} composite>
-          <label className="gov-field">
-            <span>Source sections (comma-separated, e.g. s20, s21)</span>
-            <input value={list("locators").join(", ")} onChange={(e) => setList("locators", e.target.value)} autoComplete="off" spellCheck={false} />
-          </label>
-          <label className="gov-field">
-            <span>Source-conflict keys (comma-separated, optional)</span>
-            <input value={list("conflicts").join(", ")} onChange={(e) => setList("conflicts", e.target.value)} autoComplete="off" spellCheck={false} />
-          </label>
+          <SourceSectionPicker value={value} onChange={onChange} />
         </Shell>
       );
-    }
     case "statGrants":
       return (
         <Shell field={field} issues={issues} composite>
@@ -475,6 +467,30 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
         </Shell>
       );
     }
+    case "contentToken":
+      return (
+        <LabeledControl field={field} issues={issues}>
+          {(p) => <ContentTokenSelect id={p.id} describedBy={p["aria-describedby"]} value={value} onChange={onChange} options={field.options} />}
+        </LabeledControl>
+      );
+    case "triState":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <div role="radiogroup" aria-label={field.label}>
+            {([[true, field.yes], [false, field.no], [null, field.unknown]] as const).map(([v, label]) => (
+              <label key={String(v)} className="prowess-authoring__inline">
+                <input type="radio" name={`${listId}-tri`} checked={value === v || (v === null && value === undefined)} onChange={() => onChange(v)} /> {label}
+              </label>
+            ))}
+          </div>
+        </Shell>
+      );
+    case "missionRule":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <MissionRuleEditor value={value} onChange={onChange} catalog={catalog} shapesVocabulary={field.shapes ?? "missionRuleShapes"} />
+        </Shell>
+      );
     case "refList": {
       const items = asArray(value);
       return (
@@ -663,7 +679,7 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
     case "equipmentSource":
       return (
         <Shell field={field} issues={issues} composite>
-          <EquipmentSourceEditor value={value} onChange={onChange} />
+          <SourceSectionPicker value={value} onChange={onChange} extraListFields={[{ key: "designerAuthority", label: "Designer authority (comma-separated, e.g. M6-WO6 §103)" }]} />
         </Shell>
       );
   }
@@ -1003,7 +1019,7 @@ export function DefinitionEditor({
       <fieldset disabled={readOnly} className="prowess-authoring__groups">
         <legend className="prowess-visually-hidden">Prowess Definition fields</legend>
         {groupsOf(descriptor).map((group) => (
-          <section key={group} className="prowess-authoring__group" aria-label={group}>
+          <section key={group} id={`group-${group.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`} className="prowess-authoring__group" aria-label={group}>
             <h4>{group}</h4>
             {descriptor.fields
               .filter((f) => f.group === group)

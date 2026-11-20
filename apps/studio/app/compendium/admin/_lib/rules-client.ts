@@ -1,4 +1,4 @@
-import { postAuthoring } from "./authoring-client";
+import { getAuthoring, postAuthoring } from "./authoring-client";
 
 /**
  * PRE-M7-WO1 — clients for the two side-effect-free rule tools used while authoring. Both are POST only because they
@@ -102,3 +102,30 @@ export interface AuthoredRulesPreviewDto {
   candidate: AuthoredRulesSideDto;
 }
 export const previewAuthoredRules = (body: { releaseId: string; drafts: string[]; sample: AuthoredRuleSampleDto }) => postAuthoring<AuthoredRulesPreviewDto>("/api/compendium-rules/authored-preview", body);
+
+// ---- RULES-WO1 Phase C: readable source sections and reference previews -------------------------------------------
+export interface SourceSectionOptionDto {
+  locator: string;
+  title: string;
+  headingLevel: number;
+  parentTitle: string | null;
+}
+export interface SourceSectionLookupDto {
+  snapshot: { id: string; label: string; sectionCount: number } | null;
+  snapshots: Array<{ id: string; label: string; sectionCount: number }>;
+  matches: SourceSectionOptionDto[];
+  known: SourceSectionOptionDto[];
+  unknown: string[];
+}
+export const lookupSourceSections = (q: string, locators: readonly string[]) =>
+  getAuthoring<SourceSectionLookupDto>(`/api/compendium-rules/source-sections?q=${encodeURIComponent(q)}&locators=${encodeURIComponent(locators.join(","))}`);
+export interface ReferencePreviewDto {
+  definitionKind: string;
+  result: Record<string, unknown>;
+}
+export interface AuthoringOptionDto {
+  token: string;
+  label: string;
+}
+export const listAuthoringOptions = (list: "skillRanks" | "calculatedValues") => getAuthoring<AuthoringOptionDto[]>(`/api/compendium-rules/authoring-options?list=${list}`);
+export const previewReference = (body: { entityVersionId: string; sample: Record<string, unknown> }) => postAuthoring<ReferencePreviewDto>("/api/compendium-rules/reference-preview", body);

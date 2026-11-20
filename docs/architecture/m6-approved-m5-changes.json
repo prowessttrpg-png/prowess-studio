@@ -1,5 +1,5 @@
 {
-  "$comment": "Exact M5 (@prowess/game) file changes approved by later M6 Work Orders. Earlier frozen gates accept ONLY these exact hashes for these exact paths, and ONLY these exact added files; any other edit, addition or removal still fails them. Each Work Order's own gate pins its entry and characterizes the change (M6-WO3 \u00a710, \u00a784: ANCESTRY v1, SKILL v1, CHARACTER_CREATION_RULE v1; no M5 mechanical result changes). PRE-M7-WO1 (owner-decided Compendium scope): MAGE_ART reserved \u2192 payload version 1 for authoring and reference only \u2014 no compiler, card, pricing or play operation reads it; the Mage Art card stays UNAVAILABLE. RULES-WO1 (owner-decided Complete Game Authoring): three ADDITIVE kinds \u2014 CALCULATED_VALUE (CHARACTER), SKILL_BENEFIT (SKILL) and CONCENTRATION_RULE (ABILITY) at payload version 1 \u2014 their readers, the calculated-value evaluator and the Concentration preview; the Character sheet gains an optional calculatedValues list (absent when a Release publishes none) and fills the Carry maximum only from a published value placed there. No existing kind, payload contract or mechanical result changes; nothing in play reads a CONCENTRATION_RULE.",
+  "$comment": "Exact M5 (@prowess/game) file changes approved by later M6 Work Orders. Earlier frozen gates accept ONLY these exact hashes for these exact paths, and ONLY these exact added files; any other edit, addition or removal still fails them. Each Work Order's own gate pins its entry and characterizes the change (M6-WO3 \u00a710, \u00a784: ANCESTRY v1, SKILL v1, CHARACTER_CREATION_RULE v1; no M5 mechanical result changes). PRE-M7-WO1 (owner-decided Compendium scope): MAGE_ART reserved \u2192 payload version 1 for authoring and reference only \u2014 no compiler, card, pricing or play operation reads it; the Mage Art card stays UNAVAILABLE. RULES-WO1 (owner-decided Complete Game Authoring): three ADDITIVE kinds \u2014 CALCULATED_VALUE (CHARACTER), SKILL_BENEFIT (SKILL) and CONCENTRATION_RULE (ABILITY) at payload version 1 \u2014 their readers, the calculated-value evaluator and the Concentration preview; the Character sheet gains an optional calculatedValues list (absent when a Release publishes none) and fills the Carry maximum only from a published value placed there. No existing kind, payload contract or mechanical result changes; nothing in play reads a CONCENTRATION_RULE. RULES-WO1 Phase C (same entry): the reserved ARMOR, STATUS_CONDITION, SUMMON_TYPE, SUMMON_TRAIT and MISSION_RULE kinds change ONLY from [] to payload version 1, METAMAGIC (SPELL) and JOB_TEMPLATE (CHARACTER) are added, and MAGE_ART gains version 2 beside version 1 \u2014 authoring, validation, reference and preview only; no compiler, play, combat or sheet module reads them. SUMMON_ACTION_MODEL stays reserved.",
   "M6-WO3": {
     "changedFiles": {
       "packages/prowess-game/src/compilation/compile.ts": "788d5268cdb9add7735d033ac1d7fa428d113097a6d6e8bd08ae38f243838b36",
@@ -192,21 +192,30 @@
   },
   "RULES-WO1": {
     "changedFiles": {
+      "packages/prowess-game/src/card-phase-b.test.ts": "5d2ef95d97664fad5afc482932d3f9d3c77363a3373ee57db487d9e5a2f5742a",
       "packages/prowess-game/src/character/sheet.ts": "392126c98ad2fbf4ac36acde91761b1c53b75fa4206fda02f3650ba4cc650e01",
-      "packages/prowess-game/src/compilation/compile.ts": "3ceaa76f5563e07a23e3be328245dac5fba97d63f82e34ca20fb10d14ac43b86",
-      "packages/prowess-game/src/definition/payload.ts": "ed63408df9d0a2844084ccc06a0ca70630e59a1b6972eb54dc9a7bbda175ec25",
-      "packages/prowess-game/src/index.ts": "ed719d3a5eb7d612245cf91412bc3b7f38e6fa3928af1d27613d545db2cf6413",
-      "packages/prowess-game/src/m6-wo3-registry.test.ts": "692f72b2641df47f5219c497c9959d06c40b472a54ea4125f56a2057768d7ee2",
-      "packages/prowess-game/src/m6-wo4-registry.test.ts": "62c867597e0f4e950f27a7909375bf8750c809b6ece84bf8c5170d378dd79f28",
-      "packages/prowess-game/src/m6-wo6-registry.test.ts": "bd8628810e26ae3f985f9cc5398937740c6c6ddf9baf9f8043f29fb531ff5dc0",
-      "packages/prowess-game/src/m6-wo9-registry.test.ts": "af24203e3f2f4eb9c90802c2f4e12d2155c495f1e20d58791a3340433e72a9a5",
-      "packages/prowess-game/src/vocabulary/families.ts": "69735f95906e67bc818c4d3da26b75fb4bb392f6c14d1fc1bef462cfcff14028"
+      "packages/prowess-game/src/compilation/compile.ts": "72c640d20a1d61bff4d8f4b73c8b2196c662828de7a3b7b92b9d3d7ae47f837c",
+      "packages/prowess-game/src/definition-envelope.test.ts": "2a32d8081f5085e6397287043c38aaf25d1d32a9a1ffc1960ace1532cefc8e83",
+      "packages/prowess-game/src/definition/mage-art-payload.ts": "8386c1fb7726260c2388001d3fb299ec43ef71f86bc51f2d5a32fdaac71d1f65",
+      "packages/prowess-game/src/definition/payload.ts": "4a6ecc631c6ee12b8030e05e42064a4b4dff768039361276a41eeb35cfa66567",
+      "packages/prowess-game/src/index.ts": "a2d2d93b25d9fa9e96b9a8ebd13172ea4ccf336e61c5c311467a75333749790c",
+      "packages/prowess-game/src/m6-wo3-registry.test.ts": "1aa1cac8811f463dc843e7ccb0541383393f9d477e40b936490293cd612de7fb",
+      "packages/prowess-game/src/m6-wo4-registry.test.ts": "76e9fa1234f0f16e0851d80719c1d2f62f88ef8c933dcf56cb0b9445da4e2ad4",
+      "packages/prowess-game/src/m6-wo6-registry.test.ts": "7e44f398047d71ad9f9f6105f910716c98424cc1b8551a8e38c24724e87ff36d",
+      "packages/prowess-game/src/m6-wo9-registry.test.ts": "b5dc02e1da7d9949cf7666a0f336a034eb2ccb1bf67175343b86e4ea15212797",
+      "packages/prowess-game/src/pre-m7-wo1-mage-art.test.ts": "8fb11873b1a46bf2db4cd9706b8c44d00f61b04c71bf29e73cb7af6a2b8c6f1d",
+      "packages/prowess-game/src/stored-definition-validation.test.ts": "56b558411335a2e9de0b6a107f2b528cd540d61b864ec89628fb0c7c04314a09",
+      "packages/prowess-game/src/vocabulary.test.ts": "b0a1507f7bfde0a8a079c37bdab274d7babb16b85e361bcf2fef9abac4e810da",
+      "packages/prowess-game/src/vocabulary/families.ts": "ea28bef2d993ede1ec851694c2692d8601f9f13b44f8f95e25f8fc149e7a83a7"
     },
     "addedFiles": {
       "packages/prowess-game/src/ability/concentration-preview.ts": "319acad333bcb06fa7c41652dc0e4e86020320d3590df72eb18f2fd1f7b0500c",
-      "packages/prowess-game/src/character/calculated-values.ts": "848379576c1fdea42f21a76e5159ab25ef72690063447bd14a18477b258122d5",
-      "packages/prowess-game/src/definition/rules-authoring-payload.ts": "e3ca41de7e1ddc11573db67d624cc5fec4a65c54b2506ece62e1f4d342f89db5",
-      "packages/prowess-game/src/rules-wo1-authoring.test.ts": "52ca82f8c716ab100da809f34c650848b0841a07768cf97a642291186d755280"
+      "packages/prowess-game/src/character/calculated-values.ts": "bd207d34c1660792d1be80a45d02cce52341227604d30286bc95cdebf263a33c",
+      "packages/prowess-game/src/definition/rules-authoring-payload.ts": "94638540b2cea72a7d9b715ab8120d5ea9baf6e04303ddca4e36e61bd8456bcb",
+      "packages/prowess-game/src/definition/rules-reference-payload.ts": "d722323bb83eb6814559d55728ed5d08568a29806001967504014ef93da9fc86",
+      "packages/prowess-game/src/reference/preview.ts": "9a911d07b0566f5597c1750f2095ea854a75ef6ab67f2c3d7f539c6bb30d9373",
+      "packages/prowess-game/src/rules-wo1-authoring.test.ts": "52ca82f8c716ab100da809f34c650848b0841a07768cf97a642291186d755280",
+      "packages/prowess-game/src/rules-wo1-reference.test.ts": "5f9c414633ee1941fe88862a0295725cb532d455993cc48b4c3f2ff49e2c2911"
     }
   }
 }

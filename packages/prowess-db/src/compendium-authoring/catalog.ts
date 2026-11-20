@@ -7,6 +7,19 @@ import {
   BENEFIT_AMOUNT_INPUT_KINDS,
   CONCENTRATION_CAPACITY_INPUT_KINDS,
   CONCENTRATION_UPKEEP_INPUT_KINDS,
+  ARMOR_CATEGORIES,
+  STEALTH_EFFECTS,
+  CONDITION_DURATION_MODELS,
+  CONDITION_ONGOING_TIMINGS,
+  CONDITION_STACKING,
+  SUMMON_ENGINES,
+  SUMMON_SUSTAIN_MODES,
+  SUMMON_COST_INPUT_KINDS,
+  SUMMON_LIMIT_INPUT_KINDS,
+  MISSION_RULE_SHAPES,
+  REFERENCE_RULE_SHAPES,
+  CLOCK_VISIBILITIES,
+  METAMAGIC_FORMS,
   ANCESTRY_SKILL_SELECTION_KINDS,
   ANCESTRY_STAT_GRANT_KINDS,
   ATTACK_AREA_SHAPES,
@@ -80,6 +93,8 @@ export { CHARACTER_FIELD_TOKENS, DERIVED_FORMULA_SOURCE_KINDS, FORMULA_SOURCE_KI
  * `schemaVersions: []` is known but RESERVED — its payload contract belongs to a later Work Order — so authoring
  * fails closed for it (§55) instead of guessing a shape.
  */
+import { capabilityOf, type KindCapability } from "../compendium-rules/capabilities.js";
+
 export interface AuthoringDefinitionKind {
   readonly definitionKind: ProwessDefinitionKind;
   readonly systemFamily: string;
@@ -99,6 +114,8 @@ export interface AuthoringCatalog {
   readonly vocabularies: Readonly<Record<string, readonly string[]>>;
   /** Inventoried LEGACY → CANONICAL terminology pairs: the only legacy terms provenance may record (§68). */
   readonly legacyTerms: readonly { readonly legacyTerm: string; readonly canonicalTerm: string }[];
+  /** RULES-WO1: what the application does with each kind (live / partial / reference only), for truthful status. */
+  readonly capabilities: Readonly<Record<string, KindCapability>>;
 }
 
 function kindRow(kind: ProwessDefinitionKind): AuthoringDefinitionKind {
@@ -205,10 +222,25 @@ export function getAuthoringCatalog(): AuthoringCatalog {
       benefitAmountSourceKinds: [...BENEFIT_AMOUNT_INPUT_KINDS],
       concentrationCapacitySourceKinds: [...CONCENTRATION_CAPACITY_INPUT_KINDS],
       concentrationUpkeepSourceKinds: [...CONCENTRATION_UPKEEP_INPUT_KINDS],
+      // RULES-WO1 Phase C reference families.
+      armorCategories: [...ARMOR_CATEGORIES],
+      stealthEffects: [...STEALTH_EFFECTS],
+      conditionDurationModels: [...CONDITION_DURATION_MODELS],
+      conditionOngoingTimings: [...CONDITION_ONGOING_TIMINGS],
+      conditionStacking: [...CONDITION_STACKING],
+      summonEngines: [...SUMMON_ENGINES],
+      summonSustainModes: [...SUMMON_SUSTAIN_MODES],
+      summonCostSourceKinds: [...SUMMON_COST_INPUT_KINDS],
+      summonLimitSourceKinds: [...SUMMON_LIMIT_INPUT_KINDS],
+      missionRuleShapes: [...MISSION_RULE_SHAPES],
+      referenceRuleShapes: [...REFERENCE_RULE_SHAPES],
+      clockVisibilities: [...CLOCK_VISIBILITIES],
+      metamagicForms: [...METAMAGIC_FORMS],
     },
     legacyTerms: TERMINOLOGY_INVENTORY.filter((t) => t.status === "LEGACY" && t.canonicalTerm !== null)
       .map((t) => ({ legacyTerm: t.term, canonicalTerm: t.canonicalTerm as string }))
       .sort((a, b) => (a.legacyTerm < b.legacyTerm ? -1 : a.legacyTerm > b.legacyTerm ? 1 : 0)),
+    capabilities: Object.fromEntries(PROWESS_DEFINITION_KIND_NAMES.map((k) => [k, capabilityOf(k)])),
   };
 }
 

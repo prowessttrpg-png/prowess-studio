@@ -102,6 +102,10 @@ function bindInputs(formula: ValueFormula, facts: ValueFacts, values: ReadonlyMa
         v = undefined;
         what = "casting AP";
         break;
+      case "TOTAL_MP":
+        v = undefined;
+        what = "total MP";
+        break;
     }
     if (typeof v !== "number") return { missing: what };
     bindings[variable] = v;

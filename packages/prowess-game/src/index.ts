@@ -924,3 +924,24 @@ export {
   type ValueFacts,
 } from "./character/calculated-values.js";
 export { CONCENTRATION_PREVIEW_ISSUE_CODES, previewConcentration, type ConcentrationPreviewEffect, type ConcentrationPreviewResult } from "./ability/concentration-preview.js";
+// RULES-WO1 Phase C: reference rule families (authoring, validation, reference and preview — not executed).
+export {
+  ARMOR_CATEGORIES,
+  CLOCK_VISIBILITIES,
+  CONDITION_DURATION_MODELS,
+  CONDITION_ONGOING_TIMINGS,
+  CONDITION_STACKING,
+  METAMAGIC_FORMS,
+  MISSION_RULE_SHAPES,
+  REFERENCE_RULE_SHAPES,
+  RULES_REFERENCE_PAYLOAD_KINDS,
+  STEALTH_EFFECTS,
+  SUMMON_ENGINES,
+  SUMMON_SUSTAIN_MODES,
+  isRulesReferencePayloadKind,
+  type ArmorCategory,
+  type RulesReferencePayloadKind,
+  type SummonEngine,
+} from "./definition/rules-reference-payload.js";
+export { SUMMON_COST_INPUT_KINDS, SUMMON_LIMIT_INPUT_KINDS } from "./definition/rules-authoring-payload.js";
+export { previewArmor, previewMissionTable, previewSummonCosts, previewThreatClock } from "./reference/preview.js";

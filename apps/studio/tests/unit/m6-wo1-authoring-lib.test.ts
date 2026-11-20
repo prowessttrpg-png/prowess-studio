@@ -18,7 +18,7 @@ describe("authoring descriptors (M6-I002 UI never owns mechanics)", () => {
     // PRE-M7-WO1 guides AFFINITY v2 and whole Spell / Maneuver Definitions; the generic editor stays the fallback for a
     // kind or version with no descriptor (a reserved kind, or an unknown version).
     expect(descriptorFor({ definitionKind: "AFFINITY", sharedContract: null }, 2)).not.toBe(GENERIC_DESCRIPTOR);
-    expect(descriptorFor({ definitionKind: "ARMOR", sharedContract: null }, 1)).toBe(GENERIC_DESCRIPTOR);
+    expect(descriptorFor({ definitionKind: "SUMMON_ACTION_MODEL", sharedContract: null }, 1)).toBe(GENERIC_DESCRIPTOR); // RULES-WO1 guides ARMOR; this kind stays reserved
     expect(descriptorFor({ definitionKind: "AFFINITY", sharedContract: null }, 3)).toBe(GENERIC_DESCRIPTOR);
     expect(descriptorFor({ definitionKind: "STAT", sharedContract: null }, 1)).not.toBe(GENERIC_DESCRIPTOR); // PRE-M7-WO1 guided core editor
     expect(descriptorFor({ definitionKind: "SPELL_DEFINITION", sharedContract: null }, 1)).not.toBe(GENERIC_DESCRIPTOR);

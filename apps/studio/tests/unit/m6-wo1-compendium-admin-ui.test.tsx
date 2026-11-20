@@ -311,10 +311,10 @@ describe("new Definition form (§10–11, §55)", () => {
   it("derives the EntityType from the catalog, disables reserved kinds and never derives the Canonical Key silently", async () => {
     client.createDefinition.mockResolvedValue({ entity: { id: "e7" }, version: { id: "v7" }, validation: PASS });
     render(<NewDefinitionForm />);
-    fireEvent.change(await screen.findByLabelText("Definition family"), { target: { value: "EQUIPMENT" } });
+    fireEvent.change(await screen.findByLabelText("Definition family"), { target: { value: "SUMMON" } });
     const kindSelect = screen.getByLabelText("Definition kind") as HTMLSelectElement;
-    // M6-WO6 activated WEAPON; ARMOR is still a reserved Equipment kind.
-    expect([...kindSelect.options].find((o) => o.value === "ARMOR")).toMatchObject({ disabled: true });
+    // RULES-WO1 Phase C activated ARMOR and the Summon engine kinds; SUMMON_ACTION_MODEL stays reserved.
+    expect([...kindSelect.options].find((o) => o.value === "SUMMON_ACTION_MODEL")).toMatchObject({ disabled: true });
     fireEvent.change(screen.getByLabelText("Definition family"), { target: { value: "SPELL" } });
     fireEvent.change(screen.getByLabelText("Definition kind"), { target: { value: "SPELL_EFFECT" } });
     expect(screen.getByText(/Stored as Entity Type/)).toHaveTextContent("SPELL_EFFECT");

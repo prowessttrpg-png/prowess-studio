@@ -1,6 +1,6 @@
 # RULES-WO1 — Complete Game Authoring: plan, source register and coverage inventory
 
-Status: **Phase A complete; Phase B in progress.** Branch `rules-wo1-complete-game-authoring` from `main`
+Status: **Phases A–C built; Phase D verification in progress; publication blocked; owner walkthrough pending.** Branch `rules-wo1-complete-game-authoring` from `main`
 `23f3c03e95da4c7a4c1db51449d79754895adecb`. This document is the Phase A deliverable: verified baseline, source and
 override register, build-identity finding, whole-game coverage inventory, architecture plan and decision ledger. It is
 updated at each phase checkpoint.
@@ -12,7 +12,7 @@ updated at each phase checkpoint.
 | M7-WO1 PR | #78, merged | `origin/main` merge commit `23f3c03` ("Merge pull request #78 …") |
 | Baseline `main` | `23f3c03e95da4c7a4c1db51449d79754895adecb` | `git fetch origin main`, 19 Nov 2026 |
 | Tree | `11f95d50e50b010cf635fada99e4d17e318b6de5` | `git rev-parse origin/main^{tree}`. It equals the M7-WO1 review candidate `27db918`'s tree. |
-| Merged-main CI | Run #285 (`44438453243`) on `23f3c03…` | **In progress** when checked; 2 jobs completed. It is **not** recorded as passed. It must be rechecked before certification. |
+| Merged-main CI | Run #285 (`44438453243`) on `23f3c03…` | **Passed — all 18 jobs**, independently verified by the owner (19 Nov 2026). This is the BASELINE result; it says nothing about the RULES-WO1 candidate, which has no hosted CI run yet. |
 | Prior verified main | `4714d08…` (PRE-M7 PR #77, CI #283, Success) | M7-WO1 report §0 |
 
 Publication from this session is blocked. The git proxy refuses pushes ("repository not in this session's authorized
@@ -126,6 +126,37 @@ This is the Phase A floor. Rows are expanded to individual entries as Phase C pr
 
 "Form exists" is not "rule executes". Each row's **Run** column comes from the real consumers, and the entry page shows
 it as a status badge (§5.4).
+
+## 4b. Whole-game coverage at the Phase C candidate (R02)
+
+Authoring support (create / edit / validate / preview) and live execution are separate columns. "Ref" = shown in the
+Rules Reference and previewable, but no runtime reads it; each entry page states this in its "Live in play" line (from the
+code-declared capability registry, `packages/prowess-db/src/compendium-rules/capabilities.ts`, pinned by
+`rules-wo1-capabilities.test.ts`).
+
+| # | Family | Definition kinds | Guided create / edit | Validated | Preview | Live execution |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Gameplay basics and resolution | CORE_RESOLUTION, CHARACTER_DIE_PROGRESSION, RANK_LADDER, **REFERENCE_RULE** (new) | yes | yes | before / after for resolution; table lookup for reference rules | resolution live; reference rules Ref |
+| 2 | Stats and calculations | STAT, DERIVED_STAT, **CALCULATED_VALUE** (new) | yes; "Create a new value from STR" | yes | rule preview; sample-Character preview | Stats / derived live; calculated values live on the sheet only (Partial) |
+| 3 | Creation and progression | ANCESTRY, CHARACTER_CREATION_RULE, CHARACTER_ADVANCEMENT_RULE, AFFINITY_PROGRESSION, **JOB_TEMPLATE** (new) | yes | yes | creation wizard | live; Job templates Ref (optional rules) |
+| 4 | Skills | SKILL, SKILL_RANK, **SKILL_BENEFIT** (new) | yes; ranks and values chosen by name | yes | sample-Character preview | ranks live; benefit additions live on the sheet; granted Actions not yet applied (Partial) |
+| 5 | Combat and resources | ACTION, ACTION_IMPROVEMENT, RESOURCE, TERRAIN, CREATURE_SIZE; cover / grappling as REFERENCE_RULE | yes | yes | play | live (terrain hazards and Massive size Partial) |
+| 6 | Affinities and Keywords | AFFINITY v1 / v2, AFFINITY_RANK_RULE, AFFINITY_WEAKNESS_SEVERITY; **Keywords screen** (new) | yes; Keywords create / list (no edit service exists) | yes | builders | live |
+| 7 | Spell construction | SPELL_* , ABILITY_CONSTRUCTION_RULE, **METAMAGIC** (new), **CONCENTRATION_RULE** (new) | yes | yes | builder; Concentration preview | Spells live; Metamagic Ref; Concentration override Ref (combat keeps the earlier policy) |
+| 8 | Maneuver construction | MANEUVER_* | yes | yes | builder | live |
+| 9 | Mage Arts | MAGE_ART v1 and **v2** (new: scaling, benefits, exceptions) | yes | yes | content | Ref (card unavailable) |
+| 10 | Equipment | WEAPON (incl. shield profiles), ATTACK, EQUIPMENT_TRAIT, **ARMOR** (activated) | yes | yes | library; Armor preview | weapons live; worn Armor Ref |
+| 11 | Conditions and ongoing magic | **STATUS_CONDITION** (activated); Concentration (row 7) | yes | yes | content | Ref |
+| 12 | Summoning | **SUMMON_TYPE** (7 engines, activated), **SUMMON_TRAIT** (activated); SUMMON_ACTION_MODEL stays reserved (the action economy is a field of the engine) | yes | yes | cost preview | Ref |
+| 13 | GM and Missions | **MISSION_RULE** (activated: roll tables, Threat Clocks, Intel, rule points) | yes | yes; tables must cover every roll | table / clock preview | Ref |
+| 14 | Written reference | Display name, description and rules text on every entry; entry-page layout; readable source picker | yes | n/a | Rules Reference | n/a |
+
+**Not modelled in RULES-WO1 (recorded, not hidden):**
+
+- ammunition and reload, and weapon modifications;
+- Spell branch subdivisions as separate contracts;
+- difficulty / critical tables as executable rules (they are written REFERENCE_RULE tables);
+- Keyword editing (no M1 edit service).
 
 ## 5. Architecture plan
 
