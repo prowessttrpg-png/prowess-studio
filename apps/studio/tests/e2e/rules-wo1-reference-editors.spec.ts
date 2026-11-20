@@ -79,7 +79,7 @@ test("RULES-WO1 P02 Armor: guided form, title source picker, Draft, truthful Ove
   await page.getByLabel(/^Armor granted/).fill("5");
   await page.getByLabel(/^Strength required/).fill("5");
   await page.getByLabel(/^Most AGI that counts toward Dodge/).fill("5");
-  await page.getByLabel(/^Movement penalty \(feet\)/).fill("-5");
+  await page.getByLabel(/^Movement penalty \(feet\)/).fill("5"); // stored as feet lost (the contract refuses a negative number)
   await page.getByLabel(/^Stealth/).selectOption("DISADVANTAGE");
   const how = await chooseSource(page, "armor");
   // No payload field names or technical tree on the page.
