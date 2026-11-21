@@ -772,6 +772,18 @@ export const RULES_AUTHORING_DESCRIPTORS: Readonly<Record<string, ContractDescri
         ],
       },
       { key: "grantedActions", label: "Grants Actions", group: "Benefit", input: "refList", refKind: "ACTION", itemLabel: "Action", required: false },
+      {
+        // R08: further prerequisites, in the Action-improvement grammar. The sheet does not evaluate them yet, so a benefit
+        // with any is not applied there (its entry page says so).
+        key: "prerequisites", label: "Further prerequisites", group: "When it applies", input: "list", itemLabel: "Prerequisite", required: false,
+        help: "Beyond the rank above. Leave empty when the rank is the only requirement.",
+        item: [{ key: "", label: "Prerequisite", group: "", input: "variant", discriminator: "kind", vocabulary: "actionImprovementPrerequisites", required: true, variants: {
+          LEVEL_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, n("minimum", "Minimum Level")],
+          STAT_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, sel("stat", "Stat", "prowessStats"), n("minimum", "Minimum")],
+          SKILL_RANK_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, ln("skillKey", "Skill (its canonical key)"), { key: "minimumRank", label: "Minimum rank", group: "", input: "contentToken", options: "skillRanks", required: true }],
+          AFFINITY_RANK_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, { key: "affinity", label: "Affinity", group: "", input: "reference", refKind: "AFFINITY", required: true }, sel("minimumRank", "Minimum rank", "affinityRanks")],
+        } }],
+      },
       { key: "source", label: "Source", group: "Source", input: "source", required: true },
     ],
   },

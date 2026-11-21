@@ -35,6 +35,7 @@ describe("RULES-WO1 gate — the approved M5 change is additive and exact", () =
         "character/sheet.ts",
         "compilation/compile.ts",
         "definition-envelope.test.ts",
+        "definition/action-improvement-payload.ts", // readPrerequisite is shared with Skill benefits (R08); behaviour unchanged
         "definition/mage-art-payload.ts",
         "definition/payload.ts",
         "index.ts",

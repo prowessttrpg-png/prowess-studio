@@ -59,6 +59,7 @@ const benefit = (over: Partial<SkillBenefitPayload> = {}): SkillBenefitPayload =
   minimumRankKey: "TRAINED",
   contributions: [{ contributionKey: "PER_STR", valueKey: "THROW_DISTANCE", amount: { expression: "5 * str", rounding: "NONE", minimum: null, maximum: null, unit: null, variables: [{ variable: "str", source: { kind: "STAT", stat: "STR" } }] } }],
   grantedActions: [],
+  prerequisites: [],
   writtenBenefit: "Increase Throw Distance by 5 ft per STR.",
   source: { locators: ["s52"], conflicts: [] },
   ...over,
@@ -131,6 +132,14 @@ describe("RULES-WO1 SKILL_BENEFIT v1", () => {
     const out = validateStoredProwessDefinition(stored("SKILL", "SKILL_BENEFIT", payload));
     expect(paths(out)).toContain(path);
   });
+  it("R08: carries structured prerequisites (the Action-improvement grammar) and refuses a malformed one", () => {
+    const withPrereqs = benefit({ prerequisites: [{ prerequisiteKey: "STR_3", kind: "STAT_AT_LEAST", stat: "STR", minimum: 3 }, { prerequisiteKey: "LEVEL_2", kind: "LEVEL_AT_LEAST", minimum: 2 }] });
+    expect(codes(validateStoredProwessDefinition(stored("SKILL", "SKILL_BENEFIT", withPrereqs)))).toEqual([]);
+    const bad = { ...benefit(), prerequisites: [{ prerequisiteKey: "X", kind: "STAT_AT_LEAST", stat: "LUCK", minimum: 3 }] };
+    expect(paths(validateStoredProwessDefinition(stored("SKILL", "SKILL_BENEFIT", bad)))).toContain("/prowessDefinition/payload/prerequisites/0/stat");
+    const twice = { ...benefit(), prerequisites: [{ prerequisiteKey: "X", kind: "LEVEL_AT_LEAST", minimum: 2 }, { prerequisiteKey: "X", kind: "LEVEL_AT_LEAST", minimum: 3 }] };
+    expect(paths(validateStoredProwessDefinition(stored("SKILL", "SKILL_BENEFIT", twice)))).toContain("/prowessDefinition/payload/prerequisites/1/prerequisiteKey");
+  });
 });
 
 describe("RULES-WO1 CONCENTRATION_RULE v1", () => {
@@ -196,6 +205,15 @@ describe("RULES-WO1 evaluation: values, Skill benefits and the Character sheet",
       ["ATHLETICS_EXPERT_THROW", true, 5],
       ["ATHLETICS_TRAINED_THROW", true, 20],
     ]);
+  });
+
+  it("R08: a benefit with further prerequisites is never applied on the sheet yet, and says so", () => {
+    const gated = benefit({ prerequisites: [{ prerequisiteKey: "STR_3", kind: "STAT_AT_LEAST", stat: "STR", minimum: 3 }] });
+    const out = evaluateCalculatedValues({ values, benefits: [{ definition: null, payload: gated }], ladder, facts: facts("TRAINED") });
+    const throwDistance = out.values.find((v) => v.valueKey === "THROW_DISTANCE")!;
+    expect(throwDistance.contributions.map((c) => [c.benefitKey, c.applies, c.amount])).toEqual([["ATHLETICS_TRAINED_THROW", false, null]]);
+    expect(throwDistance.total).toBe(0);
+    expect(out.issues.map((i) => i.code)).toEqual([V.PREREQUISITES_NOT_EVALUATED]);
   });
 
   it("a value reading another value is evaluated after it; a cycle is refused, not broken", () => {

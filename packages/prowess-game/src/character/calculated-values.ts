@@ -22,6 +22,7 @@ export const CALCULATED_VALUE_ISSUE_CODES = deepFreeze({
   INPUT_UNAVAILABLE: "PROWESS_VALUE.INPUT_UNAVAILABLE",
   EVALUATION_FAILED: "PROWESS_VALUE.EVALUATION_FAILED",
   UNKNOWN_RANK: "PROWESS_VALUE.UNKNOWN_RANK",
+  PREREQUISITES_NOT_EVALUATED: "PROWESS_VALUE.PREREQUISITES_NOT_EVALUATED",
 } as const);
 const E = CALCULATED_VALUE_ISSUE_CODES;
 
@@ -152,6 +153,7 @@ export function evaluateCalculatedValues(request: {
   const contributionsFor = new Map<string, { benefit: AuthoredBenefit; contribution: SkillBenefitPayload["contributions"][number] }[]>();
   for (const benefit of [...request.benefits].sort((a, b) => (a.payload.benefitKey < b.payload.benefitKey ? -1 : a.payload.benefitKey > b.payload.benefitKey ? 1 : 0))) {
     if (!ladder.some((r) => r.rankKey === benefit.payload.minimumRankKey)) issues.push({ code: E.UNKNOWN_RANK, path: benefit.payload.benefitKey, message: `${benefit.payload.benefitKey} names rank ${benefit.payload.minimumRankKey}, which is not on the Skill rank ladder` });
+    if (benefit.payload.prerequisites.length > 0) issues.push({ code: E.PREREQUISITES_NOT_EVALUATED, path: benefit.payload.benefitKey, message: `${benefit.payload.benefitKey} has prerequisites beyond its rank; the sheet does not evaluate them yet, so it is not applied` });
     for (const contribution of benefit.payload.contributions) {
       if (!byKey.has(contribution.valueKey)) {
         issues.push({ code: E.UNKNOWN_VALUE, path: `${benefit.payload.benefitKey}.${contribution.contributionKey}`, message: `${benefit.payload.benefitKey} adds to ${contribution.valueKey}, which this Release does not define` });
@@ -204,7 +206,9 @@ export function evaluateCalculatedValues(request: {
     const contributions: ValueContributionResult[] = (contributionsFor.get(key) ?? []).map(({ benefit, contribution }) => {
       const held = rankOf(benefit.payload.skill.entityId);
       const required = ladder.find((r) => r.rankKey === benefit.payload.minimumRankKey);
-      const applies = held !== null && required !== undefined && held.order >= required.order;
+      // A benefit with further prerequisites is never applied here: the sheet does not evaluate them yet (R08).
+      const gated = benefit.payload.prerequisites.length > 0;
+      const applies = !gated && held !== null && required !== undefined && held.order >= required.order;
       let amount: number | null = null;
       if (applies) {
         const bound = bindInputs(contribution.amount, request.facts, totals);

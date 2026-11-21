@@ -112,7 +112,8 @@ function readCondition(value: unknown, at: readonly PathSegment[], p: Problems):
   return undefined;
 }
 
-function readPrerequisite(x: unknown, taken: readonly string[], at: readonly PathSegment[], p: Problems): ActionImprovementPrerequisite | null {
+/** Shared with RULES-WO1 Skill benefits (R08): the same structured prerequisite grammar, read the same way. */
+export function readPrerequisite(x: unknown, taken: readonly string[], at: readonly PathSegment[], p: Problems): ActionImprovementPrerequisite | null {
   if (!isPlainObject(x)) {
     p.add(C.INVALID_PAYLOAD, at, "a prerequisite is a structured record");
     return null;

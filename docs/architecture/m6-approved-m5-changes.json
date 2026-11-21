@@ -196,6 +196,7 @@
       "packages/prowess-game/src/character/sheet.ts": "392126c98ad2fbf4ac36acde91761b1c53b75fa4206fda02f3650ba4cc650e01",
       "packages/prowess-game/src/compilation/compile.ts": "72c640d20a1d61bff4d8f4b73c8b2196c662828de7a3b7b92b9d3d7ae47f837c",
       "packages/prowess-game/src/definition-envelope.test.ts": "2a32d8081f5085e6397287043c38aaf25d1d32a9a1ffc1960ace1532cefc8e83",
+      "packages/prowess-game/src/definition/action-improvement-payload.ts": "11aaf5be2ef2d510c41e15053638be33f44f13443dc9ff75318dccb08e7df06d",
       "packages/prowess-game/src/definition/mage-art-payload.ts": "8386c1fb7726260c2388001d3fb299ec43ef71f86bc51f2d5a32fdaac71d1f65",
       "packages/prowess-game/src/definition/payload.ts": "4a6ecc631c6ee12b8030e05e42064a4b4dff768039361276a41eeb35cfa66567",
       "packages/prowess-game/src/index.ts": "a2d2d93b25d9fa9e96b9a8ebd13172ea4ccf336e61c5c311467a75333749790c",
@@ -210,11 +211,11 @@
     },
     "addedFiles": {
       "packages/prowess-game/src/ability/concentration-preview.ts": "319acad333bcb06fa7c41652dc0e4e86020320d3590df72eb18f2fd1f7b0500c",
-      "packages/prowess-game/src/character/calculated-values.ts": "bd207d34c1660792d1be80a45d02cce52341227604d30286bc95cdebf263a33c",
-      "packages/prowess-game/src/definition/rules-authoring-payload.ts": "94638540b2cea72a7d9b715ab8120d5ea9baf6e04303ddca4e36e61bd8456bcb",
+      "packages/prowess-game/src/character/calculated-values.ts": "8ce96f5a0b6e9db83bb7e2b71e568cbc9fe1512687e0c8108d22f27c5ab45bda",
+      "packages/prowess-game/src/definition/rules-authoring-payload.ts": "f7fd1fc1dd8a0e51634cae2efff41e454b2a944861319a289589768d9db93bad",
       "packages/prowess-game/src/definition/rules-reference-payload.ts": "29abf518dac5975a4469428271091b016369bf977ceb76d070c7685420538dc1",
       "packages/prowess-game/src/reference/preview.ts": "9a911d07b0566f5597c1750f2095ea854a75ef6ab67f2c3d7f539c6bb30d9373",
-      "packages/prowess-game/src/rules-wo1-authoring.test.ts": "52ca82f8c716ab100da809f34c650848b0841a07768cf97a642291186d755280",
+      "packages/prowess-game/src/rules-wo1-authoring.test.ts": "4e7e29e66ec35f93721eb7b3fb58cc1111f4cc305baa07a32771116ee7a81401",
       "packages/prowess-game/src/rules-wo1-reference.test.ts": "c95ccf60d1d717e44eb5f72ddf0dd5ba8837d473ae49707522b75d986c31b06f"
     }
   }

@@ -26,7 +26,7 @@ export const KIND_CAPABILITIES: Readonly<Record<string, KindCapability>> = Objec
   STAT: live(["Character creation", "Character sheet", "every rule that reads a Stat"], "RULE_PREVIEW"),
   DERIVED_STAT: live(["Character sheet", "Play"], "RULE_PREVIEW"),
   CALCULATED_VALUE: partial(["Character sheet (Carry maximum, Additional Values)"], "Combat and play do not read calculated values yet.", "AUTHORED_RULE"),
-  SKILL_BENEFIT: partial(["Character sheet (value additions)"], "Granted Actions are listed but not yet added to the Character's actions.", "AUTHORED_RULE"),
+  SKILL_BENEFIT: partial(["Character sheet (value additions)"], "Granted Actions are listed but not yet added to the Character's actions; a benefit with further prerequisites is not applied on the sheet yet.", "AUTHORED_RULE"),
   CONCENTRATION_RULE: reference("Combat and Active Magic do not use this rule yet; they still use the earlier Concentration policy.", "AUTHORED_RULE"),
   RANK_LADDER: live(["Character creation", "Advancement", "Character sheet"]),
   SKILL_RANK: live(["Character sheet (Skill scores)", "Play (Skill checks)"]),

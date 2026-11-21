@@ -6,6 +6,7 @@ import { DERIVED_STATISTICS, PROWESS_STATS, type DerivedStatistic, type ProwessS
 import { DEFINITION_ERROR_CODES as C } from "./codes.js";
 import { readSource, type CoreDefinitionSource } from "./core-payload.js";
 import { readDefinitionRef, type ProwessDefinitionRef } from "./envelope.js";
+import { readPrerequisite, type ActionImprovementPrerequisite } from "./action-improvement-payload.js";
 
 /**
  * RULES-WO1 — the authored-rule contracts that let a designer add a game value, a Skill rank benefit and the
@@ -87,6 +88,9 @@ export interface SkillBenefitPayload {
   readonly minimumRankKey: string;
   readonly contributions: readonly SkillBenefitContribution[];
   readonly grantedActions: readonly ProwessDefinitionRef[];
+  /** Further prerequisites beyond the rank (Level, Stat, another Skill's rank, an Affinity rank) — the Action-improvement
+   *  grammar. The sheet does not evaluate them yet, so a benefit that has any is never applied there (and says why). */
+  readonly prerequisites: readonly ActionImprovementPrerequisite[];
   readonly writtenBenefit: string;
   readonly source: CoreDefinitionSource;
 }
@@ -232,7 +236,7 @@ function readCalculatedValue(value: unknown, at: readonly PathSegment[], p: Prob
 }
 
 function readSkillBenefit(value: unknown, at: readonly PathSegment[], p: Problems): SkillBenefitPayload | null {
-  const FIELDS = ["benefitKey", "skill", "minimumRankKey", "contributions", "grantedActions", "writtenBenefit", "source"];
+  const FIELDS = ["benefitKey", "skill", "minimumRankKey", "contributions", "grantedActions", "prerequisites", "writtenBenefit", "source"];
   const r = readRecord(value, at, p, C.INVALID_PAYLOAD, FIELDS, FIELDS);
   if (r === null) return null;
   const before = p.count;
@@ -268,10 +272,18 @@ function readSkillBenefit(value: unknown, at: readonly PathSegment[], p: Problem
       else if (grantedActions.some((y) => y.entityId === ref.entityId)) p.add(C.INVALID_PAYLOAD, [...at, "grantedActions", i], "each Action is granted once");
       else grantedActions.push(ref);
     });
+  const prerequisites: ActionImprovementPrerequisite[] = [];
+  const rawP = own(r, "prerequisites");
+  if (!Array.isArray(rawP)) p.add(C.INVALID_PAYLOAD, [...at, "prerequisites"], "prerequisites is an array (empty = only the rank)");
+  else
+    rawP.forEach((x: unknown, i: number) => {
+      const q = readPrerequisite(x, prerequisites.map((y) => y.prerequisiteKey), [...at, "prerequisites", i], p);
+      if (q !== null) prerequisites.push(q);
+    });
   const writtenBenefit = readText(own(r, "writtenBenefit"), [...at, "writtenBenefit"], p, "writtenBenefit", false);
   const source = readSource(own(r, "source"), [...at, "source"], p);
   if (p.count > before || skill === null || writtenBenefit === null || source === null) return null;
-  return { benefitKey: benefitKey as string, skill, minimumRankKey: minimumRankKey as string, contributions, grantedActions, writtenBenefit, source };
+  return { benefitKey: benefitKey as string, skill, minimumRankKey: minimumRankKey as string, contributions, grantedActions, prerequisites, writtenBenefit, source };
 }
 
 function readConcentrationRule(value: unknown, at: readonly PathSegment[], p: Problems): ConcentrationRulePayload | null {

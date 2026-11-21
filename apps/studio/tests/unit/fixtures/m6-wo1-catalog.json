@@ -1558,7 +1558,7 @@
         "Character sheet (value additions)"
       ],
       "preview": "AUTHORED_RULE",
-      "notYet": "Granted Actions are listed but not yet added to the Character's actions."
+      "notYet": "Granted Actions are listed but not yet added to the Character's actions; a benefit with further prerequisites is not applied on the sheet yet."
     },
     "SKILL_RANK": {
       "execution": "LIVE",
