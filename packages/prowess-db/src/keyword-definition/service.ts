@@ -9,6 +9,7 @@ import {
 } from "@prowess/model";
 import { getKeywordCategory } from "../keyword-category/service.js";
 import {
+  isKeywordImported,
   selectKeywordUsage,
   updateKeywordPresentation,
   insertKeywordDefinition,
@@ -143,6 +144,8 @@ export async function changeKeywordPresentation(id: string, edit: KeywordPresent
   if (e === null || typeof e !== "object" || typeof e.name !== "string" || typeof e.deprecated !== "boolean" || (e.description !== null && typeof e.description !== "string")) {
     throw new DomainError(KEYWORD_ERROR_CODES.INVALID_INPUT, "expected names the values the editor loaded (name, description, deprecated)");
   }
+  // Imported content stays exactly as its pack delivered it (the database refuses the write too); say so plainly.
+  if (await isKeywordImported(current.id)) throw new DomainError(KEYWORD_ERROR_CODES.IMPORTED_READ_ONLY, `Keyword ${current.name} was installed from a content pack, and imported content is read-only. Nothing was changed.`);
   const description = edit.description === null || edit.description.trim() === "" ? null : edit.description.trim();
   const updated = await updateKeywordPresentation(current.id, { name: e.name, description: e.description, deprecated: e.deprecated }, { name, description, deprecated: edit.deprecated });
   if (updated === null) throw new DomainError(KEYWORD_ERROR_CODES.STALE_EDIT, `Keyword ${current.canonicalKey} changed after it was loaded. Reload it before saving — nothing was changed.`);
@@ -150,7 +153,8 @@ export async function changeKeywordPresentation(id: string, edit: KeywordPresent
 }
 
 /** Where a Keyword is used, so an editor can say what a name change will be shown on (read-only). */
-export async function getKeywordUsage(id: string): Promise<{ entityAssignments: number; versionAssignments: number; definitionRevisions: number; releases: number }> {
+export async function getKeywordUsage(id: string): Promise<{ entityAssignments: number; versionAssignments: number; definitionRevisions: number; releases: number; imported: boolean }> {
   const current = await getKeywordDefinition(id);
-  return selectKeywordUsage(current.id, current.canonicalKey);
+  const [usage, imported] = await Promise.all([selectKeywordUsage(current.id, current.canonicalKey), isKeywordImported(current.id)]);
+  return { ...usage, imported };
 }

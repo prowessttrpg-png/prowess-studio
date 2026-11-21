@@ -15,9 +15,10 @@ import { inspectBackup, loadBackup, makeBackup } from "./desktop/backup.mjs";
  *   receiver DB (independent, fresh) → installs both packs → Characters on both Releases, an encounter and saved play
  *                state → recorded state
  *   restart    → a new process re-reads the receiver: identical
- *   upgrade    → the receiver's workspace backup is written as the PREVIOUS app version (0.1.2) and accepted by this one
- *                (0.1.3): restored into a third fresh DB → identical. RULES-WO1 adds no migration, so the schema is the
- *                same on both sides; the backup check compares the migration list exactly.
+ *   restore    → the receiver's workspace backup is restored into a third fresh DB → identical. The backup is written by
+ *                THIS build's backup code carrying an older version TAG (0.1.2), so this only proves that the version
+ *                check accepts an older tag. It is NOT a backup from a previous build: that proof is
+ *                verify-rules-wo1-previous-build-restore.mjs (a backup made by an identified earlier commit's own code).
  *
  * Every database is created and dropped here; names must end in `_test` on a loopback host.
  */
@@ -82,12 +83,12 @@ try {
     tables: (await c.query("SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename <> '_prisma_migrations' ORDER BY tablename")).rows.map((r) => r.tablename).sort(),
   }));
   const bytes = await withDb(urls.receiver, (c) => makeBackup(c, { ...spec, setup: null }));
-  // Upgrade: a backup written by the previous app version is accepted by this version (same migrations).
+  // Version-tag compatibility only (this build's code writes the backup; the tag says 0.1.2). See the header.
   const studioVersion = JSON.parse(await readFile(path.join(root, "apps/studio/package.json"), "utf8")).version;
   assert.equal(studioVersion, "0.1.3");
   const { entries } = inspectBackup(bytes, { ...spec, appVersion: studioVersion });
   await withDb(urls.restored, (c) => loadBackup(c, entries, spec.tables));
-  records.push({ stage: "backup", bytes: bytes.length, tables: spec.tables.length });
+  records.push({ stage: "backup-version-tag", writtenBy: "this build (tag 0.1.2)", bytes: bytes.length, tables: spec.tables.length });
   stage("resume", urls.restored);
 
   assert(records.some((r) => r.stage === "receiver" && r.r2Kinds === 14), "Missing receiver proof");

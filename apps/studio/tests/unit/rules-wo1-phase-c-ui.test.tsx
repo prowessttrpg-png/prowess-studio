@@ -14,7 +14,7 @@ import { CATALOG, kindRow } from "./m6-wo1-fixtures";
  */
 const rules = vi.hoisted(() => ({ describeFormula: vi.fn(), composeFormula: vi.fn(), renameFormulaInput: vi.fn(), nameFormulaInput: vi.fn(), lookupSourceSections: vi.fn(), previewReference: vi.fn(), listAuthoringOptions: vi.fn() }));
 vi.mock("../../app/compendium/admin/_lib/rules-client", async (importActual) => ({ ...(await importActual<object>()), ...rules }));
-const auth = vi.hoisted(() => ({ getAuthoring: vi.fn(), postAuthoring: vi.fn() }));
+const auth = vi.hoisted(() => ({ getAuthoring: vi.fn(), postAuthoring: vi.fn(), patchAuthoring: vi.fn() }));
 const reference = vi.hoisted(() => ({ getRuleUsage: vi.fn(), getKindCapabilities: vi.fn() }));
 vi.mock("../../app/compendium/rulesets/_lib/reference-client", async (importActual) => ({ ...(await importActual<object>()), ...reference }));
 vi.mock("../../app/compendium/admin/_lib/authoring-client", async (importActual) => ({ ...(await importActual<object>()), ...auth }));
@@ -168,6 +168,43 @@ describe("RULES-WO1 Phase C — reference previews and Keywords", () => {
     render(<KeywordsScreen />);
     fireEvent.change(screen.getByLabelText("Name (required)"), { target: { value: "Cold Iron" } });
     expect(screen.getByTestId("keyword-key-preview").textContent).toContain("keyword.cold_iron");
+  });
+  it("R09: edits a Keyword's words only — shows where it is used, sends the values it loaded, and reports a stale edit", async () => {
+    const fire = { id: "k1", canonicalKey: "keyword_category.element.fire", name: "Fire", categoryId: "c1", description: null, deprecated: false };
+    auth.getAuthoring.mockImplementation(async (path: string) =>
+      path === "/api/keywords" ? [fire] : path.endsWith("/usage") ? { entityAssignments: 2, versionAssignments: 1, definitionRevisions: 4, releases: 2, imported: false } : [{ id: "c1", canonicalKey: "keyword_category.element", name: "Element", description: null }],
+    );
+    auth.patchAuthoring.mockResolvedValueOnce({ ...fire, name: "Flame" });
+    render(<KeywordsScreen />);
+    fireEvent.click(await screen.findByRole("button", { name: "Edit Fire" }));
+    expect((await screen.findByTestId("keyword-usage")).textContent).toMatch(/4 Definition revision\(s\) in 2 Release\(s\)/);
+    expect(screen.getByTestId("keyword-usage").textContent).toContain("permanent key and category stay the same");
+    expect(screen.getByTestId("keyword-editor").textContent).not.toContain("keyword_category.element.fire");
+    await waitFor(() => expect(screen.getByTestId("keyword-usage").textContent).toMatch(/Used by/));
+    fireEvent.change(screen.getByLabelText("Keyword name"), { target: { value: "Flame" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save Keyword" }));
+    await waitFor(() => expect(auth.patchAuthoring).toHaveBeenCalledWith("/api/keywords/k1/presentation", { expected: { name: "Fire", description: null, deprecated: false }, name: "Flame", description: null, deprecated: false }));
+    expect((await screen.findByTestId("keyword-list")).textContent).toContain("Flame");
+
+    const { AuthoringApiError } = await vi.importActual<typeof import("../../app/compendium/admin/_lib/authoring-client")>("../../app/compendium/admin/_lib/authoring-client");
+    auth.patchAuthoring.mockRejectedValueOnce(new AuthoringApiError("KEYWORD.STALE_EDIT", "Keyword changed after it was loaded. Reload it before saving — nothing was changed.", 409));
+    fireEvent.click(await screen.findByRole("button", { name: "Edit Flame" }));
+    await waitFor(() => expect(screen.getByTestId("keyword-usage").textContent).toMatch(/Used by/));
+    fireEvent.change(screen.getByLabelText("Keyword name"), { target: { value: "Blaze" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save Keyword" }));
+    expect((await screen.findByRole("alert")).textContent).toMatch(/nothing was changed/);
+  });
+  it("R09: an imported Keyword is shown read-only and cannot be saved", async () => {
+    const fire = { id: "k1", canonicalKey: "keyword_category.element.fire", name: "Fire", categoryId: "c1", description: null, deprecated: false };
+    auth.getAuthoring.mockImplementation(async (path: string) =>
+      path === "/api/keywords" ? [fire] : path.endsWith("/usage") ? { entityAssignments: 0, versionAssignments: 0, definitionRevisions: 1, releases: 1, imported: true } : [{ id: "c1", canonicalKey: "keyword_category.element", name: "Element", description: null }],
+    );
+    render(<KeywordsScreen />);
+    fireEvent.click(await screen.findByRole("button", { name: "Edit Fire" }));
+    expect((await screen.findByTestId("keyword-imported")).textContent).toMatch(/read-only/);
+    expect((screen.getByLabelText("Keyword name") as HTMLInputElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "Save Keyword" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(auth.patchAuthoring).not.toHaveBeenCalled();
   });
 });
 

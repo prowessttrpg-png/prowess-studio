@@ -367,7 +367,7 @@ export function ActionsPanel({ sheet, mode, value, onChange }: { sheet: Characte
 }
 
 /** RULES-WO1 (R08): Actions this Character gains from its Skill benefits (rank held and every prerequisite group met). */
-function SkillGrantedActionRows({ sheet }: { sheet: CharacterSheetDto }) {
+export function SkillGrantedActionRows({ sheet }: { sheet: CharacterSheetDto }) {
   const granted = (sheet.mechanics.skillBenefits ?? []).filter((b) => b.status === "GRANTED").flatMap((b) => b.grantedActions.filter((g) => g.state === "PINNED").map((g) => ({ g, b })));
   if (granted.length === 0) return null;
   return (

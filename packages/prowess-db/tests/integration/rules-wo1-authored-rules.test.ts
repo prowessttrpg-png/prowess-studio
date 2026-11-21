@@ -279,7 +279,7 @@ describe("RULES-WO1 authored rules end to end", () => {
   it("Phase D (R09): a Keyword's presentation is edited safely — key and category never change; a stale edit is refused and writes nothing", async () => {
     const kw = await createKeywordDefinition({ canonicalKey: `${PREFIX}.keyword.rt_${Date.now()}` as never, name: "Ember (test)", categoryId: null, description: null });
     const usage = await getKeywordUsage(kw.id);
-    expect(usage).toEqual({ entityAssignments: 0, versionAssignments: 0, definitionRevisions: 0, releases: 0 });
+    expect(usage).toEqual({ entityAssignments: 0, versionAssignments: 0, definitionRevisions: 0, releases: 0, imported: false });
     const changed = await changeKeywordPresentation(kw.id, { expected: { name: "Ember (test)", description: null, deprecated: false }, name: "Cinder (test)", description: "Renamed for readability.", deprecated: true });
     expect(changed).toMatchObject({ id: kw.id, canonicalKey: kw.canonicalKey, categoryId: null, name: "Cinder (test)", description: "Renamed for readability.", deprecated: true });
     const before = await getKeywordDefinition(kw.id);

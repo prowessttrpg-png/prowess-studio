@@ -115,6 +115,11 @@ export async function updateKeywordPresentation(
 }
 
 /** RULES-WO1: where a Keyword is used — assignments, Definition revisions naming its key, and Releases pinning those. */
+/** Whether a content pack owns this Keyword (DIST-WO2): imported records are read-only on every write path. */
+export async function isKeywordImported(id: string): Promise<boolean> {
+  return (await prisma.contentPackOwnership.count({ where: { kind: "keyword-definitions", identity: id } })) > 0;
+}
+
 export async function selectKeywordUsage(id: string, canonicalKey: string): Promise<{ entityAssignments: number; versionAssignments: number; definitionRevisions: number; releases: number }> {
   const [entityAssignments, versionAssignments] = await Promise.all([prisma.entityKeyword.count({ where: { keywordId: id } }), prisma.entityVersionKeyword.count({ where: { keywordId: id } })]);
   const rows = await prisma.$queryRaw<Array<{ revisions: bigint; releases: bigint }>>`

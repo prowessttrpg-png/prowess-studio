@@ -20,6 +20,8 @@ interface KeywordUsage {
   versionAssignments: number;
   definitionRevisions: number;
   releases: number;
+  /** Installed from a content pack: imported content is read-only. */
+  imported: boolean;
 }
 
 function KeywordEditor({ keyword, onSaved, onCancel }: { keyword: Keyword; onSaved: (k: Keyword) => void; onCancel: () => void }) {
@@ -64,13 +66,18 @@ function KeywordEditor({ keyword, onSaved, onCancel }: { keyword: Keyword; onSav
           : `Used by ${usage.definitionRevisions} Definition revision(s) in ${usage.releases} Release(s), and assigned to ${usage.entityAssignments + usage.versionAssignments} entr${usage.entityAssignments + usage.versionAssignments === 1 ? "y" : "ies"}.`}{" "}
         A new name or description is shown everywhere, including older Releases. What the Keyword means does not change: its permanent key and category stay the same, so no Character or rule changes.
       </p>
+      {usage?.imported ? (
+        <p className="gov-bad" role="note" data-testid="keyword-imported">
+          This Keyword was installed from a content pack. Imported content is read-only, so it cannot be edited here.
+        </p>
+      ) : null}
       <label className="gov-field">
         <span>Name (required)</span>
-        <input aria-label="Keyword name" value={name} onChange={(e) => setName(e.target.value)} />
+        <input aria-label="Keyword name" value={name} disabled={usage?.imported === true} onChange={(e) => setName(e.target.value)} />
       </label>
       <label className="gov-field">
         <span>Description</span>
-        <input aria-label="Keyword description" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <input aria-label="Keyword description" value={description} disabled={usage?.imported === true} onChange={(e) => setDescription(e.target.value)} />
       </label>
       <label className="prowess-authoring__inline">
         <input type="checkbox" checked={deprecated} onChange={(e) => setDeprecated(e.target.checked)} /> Mark as deprecated (still usable; shown as deprecated)
@@ -81,7 +88,7 @@ function KeywordEditor({ keyword, onSaved, onCancel }: { keyword: Keyword; onSav
         </p>
       ) : null}
       <p className="gov-actions">
-        <button type="button" className="gov-button gov-button--primary" disabled={busy || name.trim() === ""} onClick={() => void save()}>
+        <button type="button" className="gov-button gov-button--primary" disabled={busy || name.trim() === "" || usage === null || usage.imported} onClick={() => void save()}>
           {busy ? "Saving…" : "Save Keyword"}
         </button>{" "}
         <button type="button" className="gov-link-button" onClick={onCancel}>

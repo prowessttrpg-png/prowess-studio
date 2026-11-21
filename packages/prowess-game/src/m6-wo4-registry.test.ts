@@ -4,7 +4,7 @@ import { ADVANCEMENT_PAYLOAD_KINDS } from "./definition/advancement-payload.js";
 import certified from "./testing/m6-wo4-registry-baseline.json";
 
 /** Kinds added by the LATER RULES-WO1 Work Order, characterized by rules-wo1-authoring.test.ts. */
-const RULES_WO1_KINDS: readonly string[] = ["CALCULATED_VALUE", "SKILL_BENEFIT", "CONCENTRATION_RULE", "METAMAGIC", "JOB_TEMPLATE", "REFERENCE_RULE"];
+const RULES_WO1_KINDS: readonly string[] = ["CALCULATED_VALUE", "SKILL_BENEFIT", "CONCENTRATION_RULE", "METAMAGIC", "JOB_TEMPLATE", "REFERENCE_RULE", "AMMUNITION", "WEAPON_MODIFICATION"];
 /** Reserved kinds a LATER Work Order (RULES-WO1 Phase C) activated: ONLY their schemaVersions change (rules-wo1-reference.test.ts). */
 const RULES_WO1_ACTIVATED: readonly string[] = ["ARMOR", "STATUS_CONDITION", "SUMMON_TYPE", "SUMMON_TRAIT", "MISSION_RULE"];
 

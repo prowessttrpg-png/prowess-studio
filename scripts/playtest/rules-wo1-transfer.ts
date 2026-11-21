@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
-  approveChangeSet, assertRunningAgainstTestDatabase, commandEncounter, commitCharacterPlayOperation, createAuthoredDefinition, createChangeSet,
+  approveChangeSet, assertRunningAgainstTestDatabase, changeKeywordPresentation, commandEncounter, commitCharacterPlayOperation, createAuthoredDefinition, createChangeSet,
   createCharacter, createEncounter, finalizeCharacterCoreCreation, getCharacterPlayWorkspace, getCharacterSheet, getEncounter, getRulesetRelease,
   materializeProwessDefinitionsFromRelease, prisma, publishRulesetRelease, saveCharacterCreation, submitAuthoredRevisionForReview,
   submitChangeSetForReview, transitionEntityVersionStatus,
@@ -24,8 +24,9 @@ import { TEST_ANCESTRY_KEY } from "../../packages/prowess-game/src/testing/chara
  *   receiver : an independent fresh DB installs both packs; R2's bundle holds every new kind (R1 none); a Character on
  *              each Release (the R2 sheet shows the labelled Carry value, R1's does not); an R1 encounter; saved play
  *              state on the R1 Character. Everything is recorded.
- *   resume   : a NEW process (restart) — and, separately, a DB restored from the receiver's workspace backup written by
- *              an EARLIER app version — reads the same Releases, kinds, sheets, encounter and play state, writing nothing.
+ *   resume   : a NEW process (restart) — and, separately, a DB restored from the receiver's workspace backup (written by
+ *              this build's code with an older version tag) — reads the same Releases, kinds, sheets, encounter and play
+ *              state, writing nothing. A backup from an earlier BUILD is proved by verify-rules-wo1-previous-build-restore.mjs.
  */
 const [role, runId, directory] = process.argv.slice(2);
 assert(role && runId && directory, "Usage: rules-wo1-transfer.ts source|receiver|resume <run-id> <directory>");
@@ -132,7 +133,16 @@ async function characterState(id: string) {
 async function receiver() {
   assert.equal(await prisma.rulesetRelease.count(), 0, "Use a fresh disposable receiver database");
   const r1 = await install(1);
+  // R09: a Keyword installed from the R1 pack keeps the DIST-WO2 protection — the edit service refuses it plainly and
+  // writes nothing; the R2 pack still installs and the Keyword is exactly as delivered.
+  const imported = await prisma.keywordDefinition.findFirst({ orderBy: { canonicalKey: "asc" } });
+  assert(imported, "the R1 pack carries Keywords");
+  await assert.rejects(
+    changeKeywordPresentation(imported.id, { expected: { name: imported.name, description: imported.description, deprecated: imported.deprecated }, name: `${imported.name} (renamed here)`, description: imported.description, deprecated: imported.deprecated }),
+    (e: unknown) => (e as { code?: string }).code === "KEYWORD.IMPORTED_READ_ONLY",
+  );
   const r2 = await install(2);
+  assert.deepEqual(await prisma.keywordDefinition.findUniqueOrThrow({ where: { id: imported.id } }), imported, "an imported Keyword is unchanged");
   assert.deepEqual(await newKindsIn(r1.id), [], "Release 1 carries none of the new kinds");
   assert.deepEqual(await newKindsIn(r2.id), [...NEW_KINDS].sort(), "Release 2 carries every new kind");
   // The Mission rule's link to the Grappling reference rule arrives as an exact reference to the installed revision.
