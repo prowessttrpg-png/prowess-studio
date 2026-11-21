@@ -76,7 +76,7 @@ const contentOf = async (c, tables) => {
 
 const identity = {
   previous: { commit: git(previous, "rev-parse", "HEAD"), tree: git(previous, "rev-parse", "HEAD^{tree}"), appVersion: await version(previous) },
-  candidate: { commit: git(root, "rev-parse", "HEAD"), tree: git(root, "rev-parse", "HEAD^{tree}"), appVersion: await version(root), clean: git(root, "status", "--porcelain") === "" },
+  candidate: { commit: git(root, "rev-parse", "HEAD"), tree: git(root, "rev-parse", "HEAD^{tree}"), appVersion: await version(root), clean: git(root, "status", "--porcelain", "--untracked-files=no") === "" },
 };
 assert.notEqual(identity.previous.commit, identity.candidate.commit, "The previous build must be a different commit");
 await rm(output, { force: true, recursive: true });
