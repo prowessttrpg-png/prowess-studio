@@ -1,4 +1,6 @@
 import { expect as baseExpect, test, type Page } from "@playwright/test";
+import "./m6-wo8-fixture-loader";
+import "./m6-wo11-fixture-loader";
 
 /**
  * RULES-WO1 Phase C — the reference-family guided editors, through the real UI against the production build and
@@ -308,6 +310,15 @@ test("RULES-WO1 P08 Mage Art v2: a Level table scales a mode, a structured benef
 });
 
 test("RULES-WO1 P09 ammunition fitted to Weapon families by name, and its reload preview (R13)", async ({ page }) => {
+  test.setTimeout(300_000);
+  // Weapon families are offered from the Compendium's Weapons: this test seeds its own isolated test world (WO12 Release,
+  // which includes Weapons) instead of depending on another spec having run first, and removes it afterwards.
+  const db = (await import("@prowess/db")) as { assertRunningAgainstTestDatabase(url: string): void };
+  db.assertRunningAgainstTestDatabase(process.env.DATABASE_URL as string);
+  const prep = (await import("../../../../packages/prowess-db/tests/fixtures/m6-wo12-playtest" as string)) as { preparePlaytestWorld(runId: string): Promise<unknown>; cleanupPlaytestWorlds(runId: string): Promise<number> };
+  const worldId = `rw1p9${tag}`;
+  await prep.preparePlaytestWorld(worldId);
+  test.info().annotations.push({ type: "world", description: worldId });
   const name = `Rounds E2E ${tag}`;
   await startNew(page, "EQUIPMENT", "AMMUNITION", name);
   const families = page.getByTestId("content-token-list-weaponFamilies");
@@ -324,5 +335,6 @@ test("RULES-WO1 P09 ammunition fitted to Weapon families by name, and its reload
   await preview.getByTestId("reference-preview-run").click();
   await expect(preview.getByTestId("preview-reload-attacks")).toContainText("12 (4 Bursts)");
   await expect(preview.getByTestId("preview-reload-split")).toContainText("5 AP over 2 turn(s): 3 AP then 2 AP");
+  await prep.cleanupPlaytestWorlds(worldId);
 });
 
