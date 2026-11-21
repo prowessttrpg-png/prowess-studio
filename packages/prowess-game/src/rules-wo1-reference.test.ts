@@ -189,7 +189,7 @@ describe("RULES-WO1 MISSION_RULE linked rules (R16)", () => {
     ["a link without its exact version", [{ ...ruleRef("REFERENCE_RULE", 1), entityVersionId: "latest" }], "/prowessDefinition/payload/relatedRules/0/entityVersionId"],
   ])("refuses %s", (_l, relatedRules, path) => expect(paths(validateStoredProwessDefinition(stored("MISSION", "MISSION_RULE", { ...CLAUSES, relatedRules })))).toContain(path));
   it("requires the linked-rules list (empty when there are none)", () => {
-    const { relatedRules: _omit, ...without } = CLAUSES;
+    const without = Object.fromEntries(Object.entries(CLAUSES).filter(([k]) => k !== "relatedRules"));
     expect(paths(validateStoredProwessDefinition(stored("MISSION", "MISSION_RULE", without)))).toContain("/prowessDefinition/payload/relatedRules");
   });
 });
