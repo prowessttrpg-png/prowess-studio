@@ -1044,10 +1044,9 @@ export function DefinitionEditor({
 }
 
 /** RULES-WO1: a list of exact Definition references (e.g. the Actions a Skill benefit grants). */
-/** A reference in words: the name chosen in this session, otherwise the last part of its key ("….rw1.reference.grappling" → "Grappling"). */
-function refWords(r: Record<string, unknown>, names: ReadonlyMap<string, string>): string {
-  const known = names.get(String(r.entityVersionId));
-  if (known !== undefined) return known;
+/** A reference in words: the last part of its key ("….rw1.reference.grappling" → "Grappling"). The picker hands back only the
+ *  exact reference (M6-WO1), and the Canonical Key is suggested from the Display Name, so this reads as the entry's name. */
+function refWords(r: Record<string, unknown>): string {
   const last = String(r.canonicalKey ?? "").split(".").at(-1) ?? "";
   const words = last.replace(/_[0-9a-z]{6,}$/, "").split("_").filter((w) => w !== "").join(" ");
   return words === "" ? "Unnamed rule" : words.charAt(0).toUpperCase() + words.slice(1);
@@ -1055,14 +1054,13 @@ function refWords(r: Record<string, unknown>, names: ReadonlyMap<string, string>
 
 function RefList({ items, onChange, refKind, itemLabel }: { items: readonly Record<string, unknown>[]; onChange: (v: unknown) => void; refKind: string; itemLabel: string }) {
   const [picking, setPicking] = useState(false);
-  const [names, setNames] = useState<ReadonlyMap<string, string>>(new Map());
   return (
     <div>
       {items.length === 0 ? <p className="gov-muted">None.</p> : null}
       <ol>
         {items.map((r, i) => (
           <li key={`${String(r.entityVersionId)}-${i}`}>
-            <strong data-testid="ref-list-name">{refWords(r, names)}</strong>{" "}
+            <strong data-testid="ref-list-name">{refWords(r)}</strong>{" "}
             <button type="button" className="gov-link-button" onClick={() => onChange(items.filter((_, j) => j !== i))} aria-label={`Remove ${itemLabel} ${i + 1}`}>
               Remove
             </button>
@@ -1073,8 +1071,7 @@ function RefList({ items, onChange, refKind, itemLabel }: { items: readonly Reco
         <DefinitionReferencePicker
           label={`Choose the exact ${itemLabel.toLowerCase()}`}
           definitionKind={refKind}
-          onSelect={(r, displayName) => {
-            if (displayName !== undefined) setNames((m) => new Map(m).set(String(r.entityVersionId), displayName));
+          onSelect={(r) => {
             onChange([...items, r]);
             setPicking(false);
           }}

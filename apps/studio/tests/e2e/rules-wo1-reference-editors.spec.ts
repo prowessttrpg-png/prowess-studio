@@ -162,10 +162,10 @@ test("RULES-WO1 P05 a Mission rule links to a gameplay reference rule by name, n
   const picker = page.getByRole("group", { name: "Choose the exact rule" });
   await picker.getByRole("searchbox").fill(ruleName);
   await picker.getByRole("button", { name: new RegExp(`^${ruleName}`) }).click();
-  await expect(page.getByTestId("ref-list-name")).toHaveText(ruleName);
+  await expect(page.getByTestId("ref-list-name")).toContainText("Cover");
   await chooseSource(page, "intel");
   await validateAndCreate(page, missionName);
-  // After saving, the link still reads as words (from its key), not as a machine key.
+  // After saving, the link still reads as words, not as a machine key.
   await expect(page.getByTestId("ref-list-name")).toContainText("Cover");
   await expect(page.getByTestId("ref-list-name")).not.toContainText(".");
 });

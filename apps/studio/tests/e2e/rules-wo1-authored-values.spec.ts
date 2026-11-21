@@ -39,6 +39,7 @@ let db: Db;
 let prep: Prep;
 const rows: Array<{ id: string; title: string; evidence: Record<string, unknown> }> = [];
 let runId = "";
+let world: World | null = null;
 
 test.describe.configure({ mode: "serial" });
 test.beforeAll(async () => {
@@ -131,6 +132,7 @@ test("RULES-WO1 a new value from STR: guided create, preview, publish R2; the sh
   test.setTimeout(900_000);
   runId = `rw1v${Date.now().toString(36)}`;
   const w = await prep.preparePlaytestWorld(runId);
+  world = w;
   const base1 = `/compendium/rulesets/${w.rulesetId}/releases/${w.release1.id}`;
   const { page, close } = await fresh(browser);
   const shots = path.join(process.cwd(), "test-results", "rules-wo1");
@@ -245,3 +247,51 @@ test("RULES-WO1 a new value from STR: guided create, preview, publish R2; the sh
     pass("V05", "R2 sheet Max Load = STR lb (test value); R2 STR page lists it; R1 Character unchanged", { r2Character: c2, maxLoad: `${str1} lb`, r1Character: c1 });
   }
 });
+
+test("RULES-WO1 R04 every Stat page reads in words, lists what the Stat affects and starts a new relationship without technical fields", async ({ browser }) => {
+  test.setTimeout(300_000);
+  if (world === null) throw new Error("runs after the value journey, on the same isolated test world");
+  const base1 = `/compendium/rulesets/${world.rulesetId}/releases/${world.release1.id}`;
+  const { page, close } = await fresh(browser);
+  const writes = writesOf(page);
+  const seen: Record<string, { direct: number; indirect: number }> = {};
+  for (const stat of ["STR", "AGI", "CON", "PER", "RES", "PRO"] as const) {
+    await page.goto(`${base1}/stats/${stat}`);
+    const root = page.getByTestId("stat-impacts");
+    await expect(root).toHaveAttribute("data-stat", stat);
+    // The heading is the Stat rule's own display name (this isolated test world names its Stats by key); the Stat is also shown as a tag.
+    await expect(page.getByRole("heading", { level: 1 })).not.toHaveText("");
+    await expect(root.locator(".gov-tag", { hasText: new RegExp(`^${stat}$`) })).toHaveCount(1);
+    await expect(page.getByTestId("stat-affects")).toBeVisible();
+    await expect(page.getByTestId("stat-affects-direct").or(page.getByTestId("stat-affects-none"))).toBeVisible();
+    // The page names rules, never payload keys or Formula syntax.
+    await expect(page.getByTestId("stat-affects")).not.toContainText(/payload|prowessDefinition|\{|"variables"/);
+    const link = page.getByTestId("stat-new-value");
+    await expect(link).toHaveAttribute("href", new RegExp(`stat=${stat}`));
+    seen[stat] = { direct: await page.getByTestId("stat-affects-direct").locator("li").count(), indirect: await page.getByTestId("stat-affects-indirect").locator("li").count() };
+  }
+  expect(writes, "reading the Stat pages writes nothing").toEqual([]);
+  // Starting a new relationship from AGI opens the guided calculated-value form already reading AGI.
+  await page.goto(`${base1}/stats/AGI`);
+  await page.getByTestId("stat-new-value").click();
+  await expect(page.getByRole("heading", { level: 1, name: "New Definition" })).toBeVisible();
+  await expect(page.getByLabel("Definition kind")).toHaveValue("CALCULATED_VALUE");
+  await expect(page.getByText(/no dedicated authoring descriptor/)).toHaveCount(0);
+  // The calculation already reads AGI (one named input), with nothing typed.
+  await expect(page.locator('[data-testid="formula-input"][data-variable="agi"]')).toHaveCount(1);
+  // R07: replace that input with another Stat through the guided picker (the server renames it in the calculation).
+  await page.getByRole("button", { name: "Replace input agi" }).click();
+  const replace = page.getByRole("group", { name: "Replace input agi" });
+  const statSelect = replace.locator("select").nth(1);
+  if ((await replace.locator("select").count()) < 2) await replace.locator("select").first().selectOption({ index: 1 });
+  await statSelect.selectOption("CON");
+  await replace.getByRole("button", { name: "Apply" }).click();
+  await expect(page.locator('[data-testid="formula-input"][data-variable="con"]')).toHaveCount(1);
+  await expect(page.locator('[data-testid="formula-input"][data-variable="agi"]')).toHaveCount(0);
+  await expect(page.getByTestId("formula-expression")).toHaveText("con");
+  // The editor's Formula helpers are read-only computations (POST bodies, no stored change); nothing is created here.
+  expect(writes.filter((w) => !w.includes("/api/compendium-rules/formula") && !w.includes("/api/compendium-authoring/validate"))).toEqual([]);
+  pass("R04", "All six Stat pages: description, what each Stat affects, and a guided new relationship", { stats: seen, newFromAgi: true, replacedAgiWithCon: true, writes: 0 });
+  await close();
+});
+

@@ -766,7 +766,7 @@ export const RULES_AUTHORING_DESCRIPTORS: Readonly<Record<string, ContractDescri
         itemLabel: "Addition",
         required: false,
         item: [
-          { key: "contributionKey", label: "Addition name", group: "", input: "token", required: true, placeholder: "PER_STR" },
+          { key: "contributionKey", label: "Addition name", group: "", input: "token", plainWords: true, required: true, placeholder: "PER_STR" },
           { key: "valueKey", label: "Adds to the value", group: "", input: "contentToken", options: "calculatedValues", required: true },
           { key: "amount", label: "Amount", group: "", input: "coreFormula", sources: "benefitAmountSourceKinds", required: true },
         ],

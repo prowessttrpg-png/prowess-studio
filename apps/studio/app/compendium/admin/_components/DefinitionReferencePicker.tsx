@@ -18,8 +18,7 @@ export function DefinitionReferencePicker({
 }: {
   label: string;
   definitionKind?: string;
-  /** RULES-WO1: the chosen revision's display name is passed too, so a list can show it by name. */
-  onSelect: (ref: DefinitionReferenceDto["ref"], displayName?: string) => void;
+  onSelect: (ref: DefinitionReferenceDto["ref"]) => void;
   onCancel?: () => void;
 }) {
   const id = useId();
@@ -66,7 +65,7 @@ export function DefinitionReferencePicker({
         <ul className="gov-list" aria-label={`${label} results`}>
           {shown.map((r) => (
             <li key={r.ref.entityVersionId}>
-              <button type="button" className="gov-button" onClick={() => onSelect(r.ref, r.displayName)}>
+              <button type="button" className="gov-button" onClick={() => onSelect(r.ref)}>
                 {r.displayName} — <code>{r.ref.canonicalKey}</code> · {r.ref.definitionKind} · Revision {r.revisionNumber} ({STATUS_LABELS[r.status] ?? r.status})
               </button>
             </li>
