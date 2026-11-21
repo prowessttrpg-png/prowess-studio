@@ -287,6 +287,9 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     // candidate; no write). None mutates anything.
     // RULES-WO1 added previewAuthoredRules (evaluates the published Release and a never-persisted candidate overlay;
     // no write — proven by the row counts in rules-wo1-authored-rules.test.ts). Its Phase C adds three reads:
+    // RULES-WO1 Phase E adds changeKeywordPresentation (a compare-and-set edit of a Keyword's NAME / description /
+    // deprecated mark only — never its key or category; imported Keywords refused; not an EntityVersion write) and
+    // getKeywordUsage (counts; SELECT-only). Proven in rules-wo1-authored-rules.test.ts.
     // listAuthoringOptions (named Skill ranks and calculated values for pickers), lookupSourceSections (section titles
     // for the readable source picker) and previewReferenceDefinition (a sample-input preview of one stored revision).
     // All are SELECT-only — no mutation (rules-wo1-authored-rules.test.ts).
@@ -323,6 +326,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "assertSafeToResetTestDatabase",
         "assignKeywordToEntity",
         "assignKeywordToEntityVersion",
+        "changeKeywordPresentation",
         "createEntity",
         "createCanonPolicy",
         "createCanonDecision",
@@ -419,6 +423,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "getIncomingRelationships",
         "getKeywordCategory",
         "getKeywordDefinition",
+        "getKeywordUsage",
         "getLatestEntityVersion",
         "getLatestCanonPolicy",
         "getLatestRulesetManifest",
