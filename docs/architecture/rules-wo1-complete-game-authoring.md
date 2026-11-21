@@ -1,6 +1,6 @@
 # RULES-WO1 — Complete Game Authoring: plan, source register and coverage inventory
 
-Status: **Phases A–D built and verified locally on `476b0e0`; publication, hosted CI and the Windows installer blocked; owner walkthrough pending.** Acceptance status per criterion: `rules-wo1-acceptance.md`. Branch `rules-wo1-complete-game-authoring` from `main`
+Status: **Partially complete.** Phases A–E are built and verified locally on `ef18499`. Still outstanding: publication, hosted CI (with Tier 2 and the Windows installers) and the owner walkthrough. The reconciled R01–R28 status is in `rules-wo1-acceptance.md`. Branch `rules-wo1-complete-game-authoring` from `main`
 `23f3c03e95da4c7a4c1db51449d79754895adecb`. This document is the Phase A deliverable: verified baseline, source and
 override register, build-identity finding, whole-game coverage inventory, architecture plan and decision ledger. It is
 updated at each phase checkpoint.
@@ -90,8 +90,7 @@ which build the owner has installed.
 installing this branch) the About page. It is requested, not assumed. A browser reproduction of both builds against one
 seeded Release is part of the Phase D installed check.
 
-The shell link to About is on the Developer page and on the technical-editor notice (a primary-navigation entry was not
-added, to keep the navigation inventory unchanged).
+About is in the main navigation (added in Phase C).
 
 ## 4. Whole-game coverage inventory (R02, initial)
 
@@ -127,38 +126,35 @@ This is the Phase A floor. Rows are expanded to individual entries as Phase C pr
 "Form exists" is not "rule executes". Each row's **Run** column comes from the real consumers, and the entry page shows
 it as a status badge (§5.4).
 
-## 4b. Whole-game coverage at the Phase C candidate (R02)
+## 4b. Whole-game coverage at the Phase E candidate (R02)
 
-Authoring support (create / edit / validate / preview) and live execution are separate columns. "Ref" = shown in the
-Rules Reference and previewable, but no runtime reads it; each entry page states this in its "Live in play" line (from the
-code-declared capability registry, `packages/prowess-db/src/compendium-rules/capabilities.ts`, pinned by
-`rules-wo1-capabilities.test.ts`).
+Each family is shown against four separate kinds of support: structured authoring, validation, preview and live
+execution. The live column comes from the code-declared capability registry
+(`packages/prowess-db/src/compendium-rules/capabilities.ts`, pinned by `rules-wo1-capabilities.test.ts`). Every entry
+page states the same in its "Live in play" line. **A guided editor never implies live execution.**
 
-| # | Family | Definition kinds | Guided create / edit | Validated | Preview | Live execution |
+| # | Family | Definition kinds | Structured authoring | Validation | Preview | Live execution |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Gameplay basics and resolution | CORE_RESOLUTION, CHARACTER_DIE_PROGRESSION, RANK_LADDER, **REFERENCE_RULE** (new) | yes | yes | before / after for resolution; table lookup for reference rules | resolution live; reference rules Ref |
-| 2 | Stats and calculations | STAT, DERIVED_STAT, **CALCULATED_VALUE** (new) | yes; "Create a new value from STR" | yes | rule preview; sample-Character preview | Stats / derived live; calculated values live on the sheet only (Partial) |
-| 3 | Creation and progression | ANCESTRY, CHARACTER_CREATION_RULE, CHARACTER_ADVANCEMENT_RULE, AFFINITY_PROGRESSION, **JOB_TEMPLATE** (new) | yes | yes | creation wizard | live; Job templates Ref (optional rules) |
-| 4 | Skills | SKILL, SKILL_RANK, **SKILL_BENEFIT** (new, with structured prerequisites) | yes; ranks and values chosen by name | yes | sample-Character preview | ranks live; benefit additions live on the sheet; granted Actions not yet applied; a benefit with further prerequisites is not applied yet (Partial) |
-| 5 | Combat and resources | ACTION, ACTION_IMPROVEMENT, RESOURCE, TERRAIN, CREATURE_SIZE; cover / grappling as REFERENCE_RULE | yes | yes | play | live (terrain hazards and Massive size Partial) |
-| 6 | Affinities and Keywords | AFFINITY v1 / v2, AFFINITY_RANK_RULE, AFFINITY_WEAKNESS_SEVERITY; **Keywords screen** (new) | yes; Keywords create / list (no edit service exists) | yes | builders | live |
-| 7 | Spell construction | SPELL_* , ABILITY_CONSTRUCTION_RULE, **METAMAGIC** (new), **CONCENTRATION_RULE** (new) | yes | yes | builder; Concentration preview | Spells live; Metamagic Ref; Concentration override Ref (combat keeps the earlier policy) |
-| 8 | Maneuver construction | MANEUVER_* | yes | yes | builder | live |
-| 9 | Mage Arts | MAGE_ART v1 and **v2** (new: scaling, benefits, exceptions) | yes | yes | content | Ref (card unavailable) |
-| 10 | Equipment | WEAPON (incl. shield profiles), ATTACK, EQUIPMENT_TRAIT, **ARMOR** (activated) | yes | yes | library; Armor preview | weapons live; worn Armor Ref |
-| 11 | Conditions and ongoing magic | **STATUS_CONDITION** (activated); Concentration (row 7) | yes | yes | content | Ref |
-| 12 | Summoning | **SUMMON_TYPE** (all 7 engines authored in the browser, activated), **SUMMON_TRAIT** (activated); SUMMON_ACTION_MODEL stays reserved (the action economy is a field of the engine) | yes | yes | cost preview | Ref |
-| 13 | GM and Missions | **MISSION_RULE** (activated: roll tables, Threat Clocks, Intel, rule points, linked reference rules) | yes | yes; tables must cover every roll | table / clock preview | Ref |
-| 14 | Written reference | Display name, description and rules text on every entry; entry-page layout; readable source picker; Rules Reference Status panel | yes | n/a | Rules Reference | n/a |
+| 1 | Gameplay basics | CORE_RESOLUTION, CHARACTER_DIE_PROGRESSION, RANK_LADDER, REFERENCE_RULE | yes | yes | rule preview; table lookup | resolution **live**; reference rules reference only |
+| 2 | Stats and calculations | STAT, DERIVED_STAT, CALCULATED_VALUE | yes | yes | rule preview; sample Character | Stats and derived values **live**; calculated values **partial** (sheet) |
+| 3 | Creation and progression | ANCESTRY, CHARACTER_CREATION_RULE, CHARACTER_ADVANCEMENT_RULE, AFFINITY_PROGRESSION, JOB_TEMPLATE | yes | yes | wizard | **live**; Job templates reference only |
+| 4 | Skills | SKILL, SKILL_RANK, SKILL_BENEFIT (rank; additions, optionally situational; granted Actions; prerequisite groups) | yes | yes | sample Character | ranks **live**. Benefits **partial**: the sheet evaluates rank and prerequisites, adds unconditional bonuses, and lists granted Actions; the Action card marks them. Using an Action in play is unchanged. |
+| 5 | Combat and resources | ACTION, ACTION_IMPROVEMENT, RESOURCE, TERRAIN, CREATURE_SIZE | yes | yes | play | **live** (terrain hazards and Massive size partial) |
+| 6 | Affinities and Keywords | AFFINITY v1 / v2, AFFINITY_RANK_RULE, AFFINITY_WEAKNESS_SEVERITY; Keywords | yes; Keyword create **and edit** (presentation only; imported ones read-only) | yes | builders; Keyword usage | **live** |
+| 7 | Spell construction | SPELL_*, ABILITY_CONSTRUCTION_RULE, METAMAGIC, CONCENTRATION_RULE | yes (compatibility rules from lists and pickers) | yes | builder; Concentration preview | Spells **live**; Metamagic and the Concentration override reference only |
+| 8 | Maneuver construction | MANEUVER_* | yes | yes | builder | **live** |
+| 9 | Mage Arts | MAGE_ART v1 / v2 (Level-table or Formula scaling, structured benefits and exceptions) | yes | yes | scaling at a Level | reference only (card unavailable) |
+| 10 | Equipment | WEAPON (including shield profiles), ATTACK, EQUIPMENT_TRAIT, ARMOR, **AMMUNITION**, **WEAPON_MODIFICATION** | yes | yes | library; Armor; reload split; modified sample weapon | weapons **live**; Armor, ammunition and modifications reference only |
+| 11 | Conditions | STATUS_CONDITION (structured triggers) | yes | yes | written | reference only |
+| 12 | Summoning | SUMMON_TYPE (7 engines, action model, AP / MP ownership, restrictions, dismissal), SUMMON_TRAIT; SUMMON_ACTION_MODEL reserved | yes | yes | costs | reference only |
+| 13 | GM and Missions | MISSION_RULE (roll tables, clocks, Intel, rule points, linked rules) | yes | yes; tables must cover every roll | roll / clock | reference only |
+| 14 | Written reference | names, descriptions and rules text; entry pages; title source picker; Rules Reference Status | yes | n/a | Rules Reference | n/a |
 
 **Not modelled in RULES-WO1 (recorded, not hidden):**
 
-- ammunition and reload, and weapon modifications;
-- Spell branch subdivisions as separate contracts;
-- difficulty / critical tables as executable rules (they are written REFERENCE_RULE tables);
-- Keyword editing (no M1 edit service);
-- evaluating Skill-benefit prerequisites on the sheet, and adding granted Actions to a Character;
-- plain-word entry for the 13 older M6 token fields (owner decision: it changes the M6-WO1 validation journey).
+- Spell-branch subdivisions as separate contracts;
+- difficulty and critical tables as executable rules (they are written REFERENCE_RULE tables);
+- every runtime named "reference only" above. Those are later Work Orders.
 
 ## 5. Architecture plan
 
