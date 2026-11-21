@@ -49,6 +49,9 @@ Do these in a Ruleset you use for testing. Nothing is published unless you choos
 | T10 | Gameplay | New Definition → **REFERENCE_RULE**, Kind of rule **Points** (for example "Grappling" as rule points). | Written rules or tables only. |
 | T11 | Keywords | Compendium Admin → **Keywords**. Create a category and a Keyword. | No key is typed. Editing an existing Keyword is not offered, because the platform has no edit service for Keywords. |
 | T12 | Publish (optional) | Submit T1 for review, propose it, approve it and publish a new Release. Create a Character on it. | The sheet's Max Load shows the value followed by "(Test value — not canon)". A Character on the earlier Release is unchanged. |
+| T13 | GM rules | After T10, open the T9 Mission rule (or make a new one) → **Linked reference rules** → **Add rule** → search for the T10 rule by name → choose it. Save. | The link is chosen and shown by name. Nothing is typed as a key. |
+| T14 | Skills | On the T3 benefit, add a **Further prerequisite** (for example Stat STR at least 3). Save, then open the Overview. | The prerequisite is chosen from lists. The "Live in play" line says a benefit with further prerequisites is not applied on the sheet yet. |
+| T15 | Phone width | Narrow the window to phone width (about 390 px) and repeat T6. | The form fits the width without sideways scrolling, and every field is labelled. |
 
 ## 4. What is deliberately not in RULES-WO1
 
