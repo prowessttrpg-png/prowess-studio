@@ -154,34 +154,16 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
       );
     }
     case "compatibility": {
+      // RULES-WO1: every compatibility rule is built from lists and pickers — the relation is chosen from the M5 list,
+      // and each allowed label is chosen by name (a Definition, a Keyword) or typed in plain words (a vocabulary label).
+      // The stored value is still the exact label the M5 reader requires.
       const rows = asArray(value);
       const set = (i: number, patch: Record<string, unknown>) => onChange(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
       return (
         <Shell field={field} issues={issues} composite>
-          <datalist id={listId}>
-            {(catalog.vocabularies.componentContracts ?? []).map((c) => (
-              <option key={c} value={c} />
-            ))}
-          </datalist>
           <ol className="prowess-authoring__rows">
             {rows.map((r, i) => (
-              <li key={i} className="prowess-authoring__row">
-                <label className="gov-field">
-                  <span>Relation</span>
-                  <input list={listId} value={typeof r.relation === "string" ? r.relation : ""} onChange={(e) => set(i, { relation: e.target.value })} spellCheck={false} />
-                </label>
-                <label className="gov-field">
-                  <span>Allowed labels (comma-separated, exact)</span>
-                  <input
-                    value={Array.isArray(r.allow) ? (r.allow as string[]).join(", ") : ""}
-                    onChange={(e) => set(i, { allow: e.target.value.split(",").map((s) => s.trim()).filter((s) => s !== "") })}
-                    spellCheck={false}
-                  />
-                </label>
-                <button type="button" className="gov-button" onClick={() => onChange(rows.filter((_, j) => j !== i))} aria-label={`Remove compatibility rule ${i + 1}`}>
-                  Remove
-                </button>
-              </li>
+              <CompatibilityRow key={i} index={i} row={r} relations={catalog.vocabularies.compatibilityRelations ?? []} onChange={(patch) => set(i, patch)} onRemove={() => onChange(rows.filter((_, j) => j !== i))} />
             ))}
           </ol>
           <button type="button" className="gov-button" onClick={() => onChange([...rows, { relation: "", allow: [] }])}>
@@ -1111,11 +1093,80 @@ export function DefinitionEditor({
 }
 
 /** RULES-WO1: a list of exact Definition references (e.g. the Actions a Skill benefit grants). */
+/** One compatibility rule: a relation from the list; allowed labels chosen by name or typed in plain words. */
+function CompatibilityRow({ index, row, relations, onChange, onRemove }: { index: number; row: Record<string, unknown>; relations: readonly string[]; onChange: (patch: Record<string, unknown>) => void; onRemove: () => void }) {
+  const [adding, setAdding] = useState<"" | "definition" | "keyword" | "label">("");
+  const [label, setLabel] = useState("");
+  const allow = Array.isArray(row.allow) ? (row.allow as string[]) : [];
+  const add = (l: string) => {
+    if (l !== "" && !allow.includes(l)) onChange({ allow: [...allow, l] });
+    setAdding("");
+    setLabel("");
+  };
+  return (
+    <li className="prowess-authoring__row" data-testid="compatibility-rule">
+      <label className="gov-field">
+        <span>Relation</span>
+        <select value={typeof row.relation === "string" ? row.relation : ""} onChange={(e) => onChange({ relation: e.target.value })}>
+          <option value="">Choose…</option>
+          {relations.map((r) => (
+            <option key={r} value={r}>
+              {formatEnumLabel(r)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div>
+        <span>Allowed</span>
+        {allow.length === 0 ? <p className="gov-muted">Nothing chosen yet.</p> : null}
+        <ul aria-label={`Compatibility rule ${index + 1}: allowed`}>
+          {allow.map((l) => (
+            <li key={l} data-testid="compatibility-allowed">
+              {refWords({ canonicalKey: l })}{" "}
+              <button type="button" className="gov-link-button" onClick={() => onChange({ allow: allow.filter((x) => x !== l) })} aria-label={`Remove ${refWords({ canonicalKey: l })}`}>
+                Remove
+              </button>
+            </li>
+          ))}
+        </ul>
+        {adding === "definition" ? (
+          <DefinitionReferencePicker label="Choose an allowed Definition" onSelect={(r) => add(String(r.canonicalKey))} onCancel={() => setAdding("")} />
+        ) : adding === "keyword" ? (
+          <KeywordPicker label="Choose an allowed Keyword" exclude={allow} onPick={(k) => add(k.canonicalKey)} />
+        ) : adding === "label" ? (
+          <label className="gov-field">
+            <span>Allowed label in plain words</span>
+            <input value={label} onChange={(e) => setLabel(asToken(e.target.value))} onBlur={(e) => setLabel(asToken(e.target.value, true))} />
+            <button type="button" className="gov-button" disabled={asToken(label, true) === ""} onClick={() => add(asToken(label, true))}>
+              Add
+            </button>
+          </label>
+        ) : (
+          <p className="gov-actions">
+            <button type="button" className="gov-button" onClick={() => setAdding("definition")}>
+              Add a Definition
+            </button>{" "}
+            <button type="button" className="gov-button" onClick={() => setAdding("keyword")}>
+              Add a Keyword
+            </button>{" "}
+            <button type="button" className="gov-link-button" onClick={() => setAdding("label")}>
+              Add another label
+            </button>
+          </p>
+        )}
+      </div>
+      <button type="button" className="gov-button" onClick={onRemove} aria-label={`Remove compatibility rule ${index + 1}`}>
+        Remove
+      </button>
+    </li>
+  );
+}
+
 /** A reference in words: the last part of its key ("….rw1.reference.grappling" → "Grappling"). The picker hands back only the
  *  exact reference (M6-WO1), and the Canonical Key is suggested from the Display Name, so this reads as the entry's name. */
 function refWords(r: Record<string, unknown>): string {
   const last = String(r.canonicalKey ?? "").split(".").at(-1) ?? "";
-  const words = last.replace(/_[0-9a-z]{6,}$/, "").split("_").filter((w) => w !== "").join(" ");
+  const words = last.replace(/_[0-9a-z]{6,}$/, "").split("_").filter((w) => w !== "").join(" ").toLowerCase();
   return words === "" ? "Unnamed rule" : words.charAt(0).toUpperCase() + words.slice(1);
 }
 

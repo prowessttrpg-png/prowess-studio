@@ -808,6 +808,17 @@
       "ABILITY_CONDITION",
       "FOUNDATION"
     ],
+    "compatibilityRelations": [
+      "TARGETING",
+      "EFFECT",
+      "TRAIT",
+      "DURATION",
+      "ABILITY_CONDITION",
+      "FOUNDATION",
+      "AFFINITY",
+      "ABILITY_KIND",
+      "KEYWORD"
+    ],
     "prowessStats": [
       "STR",
       "AGI",

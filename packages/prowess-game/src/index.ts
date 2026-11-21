@@ -93,6 +93,7 @@ export {
 } from "./definition/envelope.js";
 export {
   ABILITY_CONDITION_FORBIDDEN_KEYS,
+  COMPATIBILITY_RELATIONS,
   TARGETING_FORBIDDEN_KEYS,
   type AbilityConditionDefinitionPayload,
   type AffinityDefinitionPayload,

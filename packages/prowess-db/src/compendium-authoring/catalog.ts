@@ -1,5 +1,6 @@
 import {
   ABILITY_COMPONENT_CONTRACTS,
+  COMPATIBILITY_RELATIONS,
   MAGE_ART_ACTIVE_EFFECT_WINDOWS,
   CALCULATED_VALUE_PLACEMENTS,
   CANON_STATUSES,
@@ -156,6 +157,8 @@ export function getAuthoringCatalog(): AuthoringCatalog {
       costCurrencies: [...COST_CURRENCIES],
       canonicalAffinities: [...CANONICAL_AFFINITIES],
       componentContracts: [...ABILITY_COMPONENT_CONTRACTS],
+      // RULES-WO1: the relations a compatibility rule may name, offered as a list (never typed).
+      compatibilityRelations: [...COMPATIBILITY_RELATIONS],
       // M6-WO3: the character-facing contracts (ANCESTRY / CHARACTER_CREATION_RULE) — Stat tokens and grant grammar.
       prowessStats: [...PROWESS_STATS],
       ancestryStatGrantKinds: [...ANCESTRY_STAT_GRANT_KINDS],

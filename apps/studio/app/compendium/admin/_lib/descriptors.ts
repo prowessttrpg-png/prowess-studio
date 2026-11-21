@@ -597,18 +597,18 @@ export const REMAINING_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescrip
       {
         key: "prerequisites", label: "Prerequisites", group: "Prerequisites", input: "list", itemLabel: "Prerequisite", required: false,
         item: [{ key: "", label: "Prerequisite", group: "", input: "variant", discriminator: "kind", vocabulary: "actionImprovementPrerequisites", required: true, variants: {
-          LEVEL_AT_LEAST: [tok("prerequisiteKey", "Key"), n("minimum", "Minimum Level")],
-          STAT_AT_LEAST: [tok("prerequisiteKey", "Key"), sel("stat", "Stat", "prowessStats"), n("minimum", "Minimum")],
-          SKILL_RANK_AT_LEAST: [tok("prerequisiteKey", "Key"), { key: "skillKey", label: "Skill", group: "", input: "contentToken", options: "skills", required: true, help: "Chosen by name; the Skill's permanent key is stored." }, { key: "minimumRank", label: "Minimum rank", group: "", input: "contentToken", options: "skillRanks", required: true }],
-          AFFINITY_RANK_AT_LEAST: [tok("prerequisiteKey", "Key"), { key: "affinity", label: "Affinity", group: "", input: "reference", refKind: "AFFINITY", required: true }, sel("minimumRank", "Minimum rank", "affinityRanks")],
+          LEVEL_AT_LEAST: [tok("prerequisiteKey", "Short name"), n("minimum", "Minimum Level")],
+          STAT_AT_LEAST: [tok("prerequisiteKey", "Short name"), sel("stat", "Stat", "prowessStats"), n("minimum", "Minimum")],
+          SKILL_RANK_AT_LEAST: [tok("prerequisiteKey", "Short name"), { key: "skillKey", label: "Skill", group: "", input: "contentToken", options: "skills", required: true, help: "Chosen by name; the Skill's permanent key is stored." }, { key: "minimumRank", label: "Minimum rank", group: "", input: "contentToken", options: "skillRanks", required: true }],
+          AFFINITY_RANK_AT_LEAST: [tok("prerequisiteKey", "Short name"), { key: "affinity", label: "Affinity", group: "", input: "reference", refKind: "AFFINITY", required: true }, sel("minimumRank", "Minimum rank", "affinityRanks")],
         } }],
       },
       {
         key: "modifications", label: "Modifications", group: "Modifications", input: "list", itemLabel: "Modification", required: true,
         item: [{ key: "", label: "Modification", group: "", input: "variant", discriminator: "kind", vocabulary: "actionImprovementModifications", required: true, variants: {
-          ACTION_POINT_COST: [tok("modificationKey", "Key"), { key: "rulesText", label: "Rules text", group: "", input: "text", required: true }, { key: "condition", label: "Only when (advanced requirement)", group: "", input: "optionalData", required: false }, { key: "actionPointCost", label: "New AP cost", group: "", input: "group", required: true, fields: [ln("model", "Model"), n("amount", "AP amount")] }],
-          ADDITIONAL_USE_CASE: [tok("modificationKey", "Key"), { key: "rulesText", label: "Rules text", group: "", input: "text", required: true }, { key: "condition", label: "Only when (advanced requirement)", group: "", input: "optionalData", required: false }, tok("useCaseKey", "Use case")],
-          RULE_OPERATION: [tok("modificationKey", "Key"), { key: "rulesText", label: "Rules text", group: "", input: "text", required: true }, { key: "condition", label: "Only when (advanced requirement)", group: "", input: "optionalData", required: false }, tok("operationKey", "Operation"), { key: "data", label: "Operation data", group: "", input: "authoredData", required: true }],
+          ACTION_POINT_COST: [tok("modificationKey", "Short name"), { key: "rulesText", label: "Rules text", group: "", input: "text", required: true }, { key: "condition", label: "Only when (advanced requirement)", group: "", input: "optionalData", required: false }, { key: "actionPointCost", label: "New AP cost", group: "", input: "group", required: true, fields: [ln("model", "Model"), n("amount", "AP amount")] }],
+          ADDITIONAL_USE_CASE: [tok("modificationKey", "Short name"), { key: "rulesText", label: "Rules text", group: "", input: "text", required: true }, { key: "condition", label: "Only when (advanced requirement)", group: "", input: "optionalData", required: false }, tok("useCaseKey", "Use case")],
+          RULE_OPERATION: [tok("modificationKey", "Short name"), { key: "rulesText", label: "Rules text", group: "", input: "text", required: true }, { key: "condition", label: "Only when (advanced requirement)", group: "", input: "optionalData", required: false }, tok("operationKey", "Operation"), { key: "data", label: "Operation data", group: "", input: "authoredData", required: true }],
         } }],
       },
       { key: "source", label: "Source", group: "Source", input: "source", required: true },

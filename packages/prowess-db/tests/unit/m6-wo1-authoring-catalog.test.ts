@@ -41,6 +41,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   ABILITY_COMPONENT_CONTRACTS,
+  COMPATIBILITY_RELATIONS,
   ANCESTRY_SKILL_SELECTION_KINDS,
   ANCESTRY_STAT_GRANT_KINDS,
   CANONICAL_AFFINITIES,
@@ -129,6 +130,7 @@ describe("M6-WO1 authoring catalog (M6-I002 no second Definition catalog)", () =
       costCurrencies: [...COST_CURRENCIES],
       canonicalAffinities: [...CANONICAL_AFFINITIES],
       componentContracts: [...ABILITY_COMPONENT_CONTRACTS],
+      compatibilityRelations: [...COMPATIBILITY_RELATIONS],
       // M6-WO3 character-facing vocabularies.
       prowessStats: [...PROWESS_STATS],
       ancestryStatGrantKinds: [...ANCESTRY_STAT_GRANT_KINDS],

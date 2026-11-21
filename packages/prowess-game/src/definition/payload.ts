@@ -181,13 +181,16 @@ function readKeywords(value: unknown, at: readonly PathSegment[], p: Problems): 
   return [...out].sort();
 }
 
+/** Every relation a compatibility rule may name (RULES-WO1: exported so the Studio offers them as a list). */
+export const COMPATIBILITY_RELATIONS = Object.freeze([...ABILITY_COMPONENT_CONTRACTS, "AFFINITY", "ABILITY_KIND", "KEYWORD"] as const);
+
 function readCompatibility(value: unknown, at: readonly PathSegment[], p: Problems): CompatibilityRule[] {
   if (value === undefined) return [];
   if (!Array.isArray(value)) {
     p.add(C.INVALID_PAYLOAD, at, "compatibility is an array of { relation, allow } rules");
     return [];
   }
-  const relations = [...ABILITY_COMPONENT_CONTRACTS, "AFFINITY", "ABILITY_KIND", "KEYWORD"] as const;
+  const relations = COMPATIBILITY_RELATIONS;
   return value.flatMap((item: unknown, i: number) => {
     const r = readRecord(item, [...at, i], p, C.INVALID_PAYLOAD, ["relation", "allow"], ["relation", "allow"]);
     if (r === null) return [];

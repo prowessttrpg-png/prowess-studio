@@ -255,3 +255,22 @@ describe("RULES-WO1 Phase D — the Rules Reference entry states its status trut
     expect(reference.getKindCapabilities).not.toHaveBeenCalled();
   });
 });
+
+describe("RULES-WO1 Phase E — compatibility rules without typed keys (R18)", () => {
+  it("chooses the relation from the list and adds an allowed label in plain words; the stored label stays exact", async () => {
+    const changes: DefinitionCandidate[] = [];
+    render(<Editor initial={newCandidate(kindRow("SPELL_EFFECT"))} onChange={(c) => changes.push(c)} />);
+    fireEvent.click(screen.getByRole("button", { name: "Add compatibility rule" }));
+    const rule = await screen.findByTestId("compatibility-rule");
+    const relation = within(rule).getByLabelText("Relation") as HTMLSelectElement;
+    expect([...relation.options].map((o) => o.value)).toEqual(expect.arrayContaining(["TARGETING", "KEYWORD", "AFFINITY", "ABILITY_KIND"]));
+    expect([...relation.options].find((o) => o.value === "ABILITY_KIND")?.textContent).toBe("Ability Kind");
+    fireEvent.change(relation, { target: { value: "ABILITY_KIND" } });
+    fireEvent.click(within(rule).getByRole("button", { name: "Add another label" }));
+    fireEvent.change(within(rule).getByLabelText("Allowed label in plain words"), { target: { value: "single target" } });
+    fireEvent.click(within(rule).getByRole("button", { name: "Add" }));
+    await waitFor(() => expect(changes.at(-1)?.payload.compatibility).toEqual([{ relation: "ABILITY_KIND", allow: ["SINGLE_TARGET"] }]));
+    expect(within(rule).getByTestId("compatibility-allowed").textContent).toMatch(/^Single target/);
+    expect(within(rule).queryByText(/comma-separated/)).toBeNull();
+  });
+});
