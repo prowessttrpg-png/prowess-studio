@@ -19,6 +19,7 @@ import {
   submitAuthoredRevisionForReview,
   submitChangeSetForReview,
   transitionEntityVersionStatus,
+  updateAuthoredDraftDefinition,
 } from "../../src/index";
 import { assertRunningAgainstTestDatabase } from "../../src/testDatabaseGuard";
 import { getTestDatabaseUrl } from "./env";
@@ -163,4 +164,51 @@ describe("RULES-WO1 authored rules end to end", () => {
     expect((await listAuthoringOptions("calculatedValues")).some((o) => o.token === "CARRY_CAPACITY")).toBe(true);
     expect((await listAuthoringOptions("skillRanks")).map((o) => o.token)).toEqual(expect.arrayContaining(["TRAINED"]));
   }, TIMEOUT);
+
+  it("Phase D (R19/R20): every new reference kind round-trips losslessly; a stale save and an invalid table are refused and write nothing", async () => {
+    const SRC = { locators: ["s1"], conflicts: [] };
+    const athletics = r1.pins.get("test.m6wo3.skill.athletics")!;
+    const skillRef = { entityId: athletics.entityId, entityVersionId: athletics.entityVersionId, canonicalKey: athletics.canonicalKey, definitionKind: "SKILL", systemFamily: "SKILL" };
+    const rows = [{ from: 1, to: 2, result: "No public combat." }, { from: 3, to: 4, result: "Hidden clause." }];
+    const cases: Array<[string, string, number, Record<string, unknown>]> = [
+      ["EQUIPMENT", "ARMOR", 1, { armorKey: "RT_PLATE", category: "MEDIUM", armorValue: 3, strengthRequirement: null, maxAgiForDodge: null, movementPenaltyFeet: 0, stealth: "NORMAL", notes: ["Illustrative."], source: SRC }],
+      ["CONDITION", "STATUS_CONDITION", 1, { conditionKey: "RT_BURNING", effects: [{ effectKey: "DOT", text: "Takes damage over time." }], duration: { model: "ROUNDS", rounds: 2, text: null }, removal: ["Put out the flames."], ongoingTiming: "START_OF_TURN", stacking: "REFRESHES_DURATION", source: SRC }],
+      ["SUMMON", "SUMMON_TYPE", 1, { summonKey: "RT_FUSION", engine: "FUSION", tiers: [{ tierKey: "TIER_1", label: "Tier 1", baseMp: 10, dieFaces: null, staticValue: null, hp: null, armor: null, resolve: null, radiusFeet: null, size: null, traitSlots: 1 }], castingAp: null, sustainMode: "NONE", sustainMp: null, sustainApPerRound: null, countsTowardConcentration: null, maxActive: null, actionEconomy: "Merges with the caster.", restrictions: [], openQuestions: ["Does it count toward Concentration?"], source: SRC }],
+      ["SUMMON", "SUMMON_TRAIT", 1, { traitKey: "RT_PULSE", engines: ["TOTEM", "FUSION"], costs: [{ tierKey: "TIER_1", mp: 5 }], forbidden: false, effect: "Illustrative.", source: SRC }],
+      ["MISSION", "MISSION_RULE", 1, { ruleKey: "RT_CLAUSES", shape: "ROLL_TABLE", rollTable: { dieCount: 1, dieFaces: 4, rows }, clock: null, intel: null, points: null, relatedRules: [], source: SRC }],
+      ["CORE", "REFERENCE_RULE", 1, { ruleKey: "RT_GRAPPLE", shape: "POINTS", rollTable: null, clock: null, intel: null, points: ["Movement becomes 0."], relatedRules: [], source: SRC }],
+      ["SPELL", "METAMAGIC", 1, { metamagicKey: "RT_EXTEND", form: "OPTION", mp: 2, ap: null, otherCost: null, effect: "Illustrative.", restrictions: [], source: SRC }],
+      ["CHARACTER", "JOB_TEMPLATE", 1, { jobKey: "RT_WARRIOR", role: "Front line.", suggestedStats: ["STR"], suggestedSkills: [skillRef], startingEquipment: [], features: [], source: SRC }],
+    ];
+    for (const [family, kind, schemaVersion, payload] of cases) {
+      const created = await createAuthoredDefinition({ definitionKind: kind, canonicalKey: `${PREFIX}.rt.${kind.toLowerCase()}_${Date.now()}`, displayName: `${kind} round trip`, prowessDefinition: { schemaVersion, systemFamily: family, definitionKind: kind, payload } });
+      expect(created.validation?.status, kind).toBe("PASS");
+      const stored = await prisma.entityVersion.findUniqueOrThrow({ where: { id: created.version.id } });
+      expect((stored.structuredData as { prowessDefinition: { payload: unknown } }).prowessDefinition.payload, `${kind} is stored exactly as authored`).toEqual(payload);
+    }
+
+    // A linked Mission rule, then a stale save (loaded before another save) is refused and changes nothing.
+    const grapple = await createAuthoredDefinition({ definitionKind: "REFERENCE_RULE", canonicalKey: `${PREFIX}.rt.link_${Date.now()}`, displayName: "Cover (test)", prowessDefinition: def("CORE", "REFERENCE_RULE", cases[5]![3]) });
+    const link = { entityId: grapple.entity.id, entityVersionId: grapple.version.id, canonicalKey: grapple.entity.canonicalKey, definitionKind: "REFERENCE_RULE", systemFamily: "CORE" };
+    const mission = await createAuthoredDefinition({ definitionKind: "MISSION_RULE", canonicalKey: `${PREFIX}.rt.mission_${Date.now()}`, displayName: "Clauses (test)", prowessDefinition: def("MISSION", "MISSION_RULE", { ...cases[4]![3], relatedRules: [link] }) });
+    expect(mission.validation?.status).toBe("PASS");
+    const loadedAt = mission.version.updatedAt.toISOString();
+    const first = await updateAuthoredDraftDefinition(mission.version.id, { expectedUpdatedAt: loadedAt, changeType: "MECHANICAL_PATCH", changeSummary: "first save", prowessDefinition: def("MISSION", "MISSION_RULE", { ...cases[4]![3], relatedRules: [link], rollTable: { dieCount: 1, dieFaces: 4, rows: [{ from: 1, to: 4, result: "One clause." }] } }) });
+    const afterFirst = await prisma.entityVersion.findUniqueOrThrow({ where: { id: mission.version.id } });
+    await expect(updateAuthoredDraftDefinition(mission.version.id, { expectedUpdatedAt: loadedAt, changeType: "MECHANICAL_PATCH", changeSummary: "stale", prowessDefinition: def("MISSION", "MISSION_RULE", { ...cases[4]![3], relatedRules: [] }) })).rejects.toThrow(/changed after it was loaded/);
+    expect(await prisma.entityVersion.findUniqueOrThrow({ where: { id: mission.version.id } })).toEqual(afterFirst);
+    expect(first.version.updatedAt.toISOString()).not.toBe(loadedAt);
+
+    // An invalid table (a gap at 3): a Draft may hold work in progress, but validation FAILS with the row and the expected
+    // number, and the Draft cannot be submitted for review — so it can never reach a Release.
+    const gap = { ...cases[4]![3], rollTable: { dieCount: 1, dieFaces: 4, rows: [rows[0], { from: 4, to: 4, result: "x" }] } };
+    const saved = await updateAuthoredDraftDefinition(mission.version.id, { expectedUpdatedAt: first.version.updatedAt.toISOString(), changeType: "MECHANICAL_PATCH", changeSummary: "gap", prowessDefinition: def("MISSION", "MISSION_RULE", gap) });
+    expect(saved.validation?.status).toBe("FAIL");
+    expect(saved.validation?.issues.map((i) => i.message).join(" ")).toMatch(/continue at 3/);
+    const changeSetsBefore = await prisma.changeSet.count();
+    await expect(submitAuthoredRevisionForReview(mission.version.id)).rejects.toThrow();
+    expect((await prisma.entityVersion.findUniqueOrThrow({ where: { id: mission.version.id } })).status).toBe("DRAFT");
+    expect(await prisma.changeSet.count()).toBe(changeSetsBefore);
+  }, TIMEOUT);
 });
+
