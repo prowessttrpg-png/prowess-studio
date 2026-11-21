@@ -18,6 +18,7 @@ import {
   rulesetReferenceHref,
 } from "../_lib/reference-urls";
 import { DefinitionPresenter } from "./DefinitionPresenter";
+import { EntryStatus } from "./EntryStatus";
 import { EntryCard } from "./EntryCard";
 
 /**
@@ -142,6 +143,8 @@ export function EntryDetailView({ rulesetId, releaseId, entityId }: { rulesetId:
         {pinned.rulesText ? <p className="prowess-detail-fields__rules-text">{pinned.rulesText}</p> : <p className="gov-muted">No Rules Text authored for this revision.</p>}
         <p className="gov-muted">Rules Text is prose for readers. The mechanics are the structured data below — nothing is derived from this text.</p>
       </section>
+
+      <EntryStatus definitionKind={detail.kind?.definitionKind ?? null} revisionNumber={pinned.revisionNumber} />
 
       <DefinitionPresenter detail={detail} renderReference={renderReference} />
 

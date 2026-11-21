@@ -15,7 +15,7 @@ import { CATALOG, kindRow } from "./m6-wo1-fixtures";
 const rules = vi.hoisted(() => ({ describeFormula: vi.fn(), composeFormula: vi.fn(), renameFormulaInput: vi.fn(), nameFormulaInput: vi.fn(), lookupSourceSections: vi.fn(), previewReference: vi.fn(), listAuthoringOptions: vi.fn() }));
 vi.mock("../../app/compendium/admin/_lib/rules-client", async (importActual) => ({ ...(await importActual<object>()), ...rules }));
 const auth = vi.hoisted(() => ({ getAuthoring: vi.fn(), postAuthoring: vi.fn() }));
-const reference = vi.hoisted(() => ({ getRuleUsage: vi.fn() }));
+const reference = vi.hoisted(() => ({ getRuleUsage: vi.fn(), getKindCapabilities: vi.fn() }));
 vi.mock("../../app/compendium/rulesets/_lib/reference-client", async (importActual) => ({ ...(await importActual<object>()), ...reference }));
 vi.mock("../../app/compendium/admin/_lib/authoring-client", async (importActual) => ({ ...(await importActual<object>()), ...auth }));
 vi.mock("next/link", () => ({ default: ({ href, children, ...rest }: { href: string; children: React.ReactNode; [k: string]: unknown }) => <a href={href} {...rest}>{children}</a> }));
@@ -25,6 +25,7 @@ const { ReferencePreviewPanel } = await import("../../app/compendium/admin/_comp
 const { KeywordsScreen } = await import("../../app/compendium/admin/_components/KeywordsScreen");
 const { DefinitionPreview } = await import("../../app/compendium/admin/_components/DefinitionPreview");
 const { asToken } = await import("../../app/compendium/admin/_lib/token-input");
+const { EntryStatus } = await import("../../app/compendium/rulesets/_components/EntryStatus");
 
 const NO_SNAPSHOT = { snapshot: null, snapshots: [], matches: [], known: [], unknown: [] };
 beforeEach(() => {
@@ -197,5 +198,23 @@ describe("RULES-WO1 Phase D — names are typed in plain words, never as tokens"
     fireEvent.blur(input);
     await waitFor(() => expect(changes.at(-1)?.payload.armorKey).toBe("TACTICAL_PLATING"));
     expect((input as HTMLInputElement).value).toBe("TACTICAL_PLATING");
+  });
+});
+
+describe("RULES-WO1 Phase D — the Rules Reference entry states its status truthfully (R17)", () => {
+  it("says the Release pins the revision and what this build does with the kind, from the capability registry", async () => {
+    reference.getKindCapabilities.mockResolvedValue({ ARMOR: { execution: "REFERENCE_ONLY", consumers: ["Rules Reference"], preview: "REFERENCE_PREVIEW", notYet: "The sheet does not equip worn Armor yet." } });
+    render(<EntryStatus definitionKind="ARMOR" revisionNumber={2} />);
+    expect(screen.getByTestId("reference-status-published").textContent).toContain("Revision 2");
+    const live = await screen.findByTestId("reference-status-live");
+    expect(live.getAttribute("data-state")).toBe("REFERENCE_ONLY");
+    expect(live.textContent).toContain("Reference only — not used in play yet");
+    expect(live.textContent).toContain("does not equip worn Armor");
+    expect(screen.getByTestId("reference-status-preview").textContent).toContain("sample inputs");
+  });
+  it("a non-Prowess entry is content only and asks the registry nothing", () => {
+    render(<EntryStatus definitionKind={null} revisionNumber={1} />);
+    expect(screen.getByText(/content only/)).toBeTruthy();
+    expect(reference.getKindCapabilities).not.toHaveBeenCalled();
   });
 });

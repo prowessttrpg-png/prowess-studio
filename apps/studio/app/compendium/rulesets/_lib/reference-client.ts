@@ -345,3 +345,12 @@ export function readableRuleNode(key: string): string {
   const last = token.split(".").at(-1) ?? token;
   return words(last.replace(/_[0-9a-z]{6,}$/, ""));
 }
+
+/** RULES-WO1 (R17): what this build does with each kind — the code-declared capability registry served with the catalog. */
+export interface KindCapabilityView {
+  execution: string;
+  consumers: string[];
+  preview: string;
+  notYet: string;
+}
+export const getKindCapabilities = async () => (await get<{ capabilities?: Record<string, KindCapabilityView> }>("/api/compendium-authoring/catalog")).data.capabilities ?? {};
