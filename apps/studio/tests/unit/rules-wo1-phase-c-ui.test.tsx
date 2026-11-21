@@ -57,7 +57,7 @@ describe("RULES-WO1 Phase C — every family has a guided editor", () => {
   });
   it("new entries start with every field the M5 reader requires", () => {
     expect(Object.keys(newCandidate(kindRow("ARMOR")).payload).sort()).toEqual(["armorKey", "armorValue", "category", "maxAgiForDodge", "movementPenaltyFeet", "notes", "source", "stealth", "strengthRequirement"]);
-    expect(newCandidate(kindRow("MISSION_RULE")).payload).toEqual({ ruleKey: "", shape: "", rollTable: null, clock: null, intel: null, points: null, source: { locators: [], conflicts: [] } });
+    expect(newCandidate(kindRow("MISSION_RULE")).payload).toEqual({ ruleKey: "", shape: "", rollTable: null, clock: null, intel: null, points: null, relatedRules: [], source: { locators: [], conflicts: [] } });
     expect(newCandidate(kindRow("MAGE_ART")).schemaVersion).toBe(2);
     expect(Object.keys(newCandidate(kindRow("MAGE_ART")).payload)).toEqual(expect.arrayContaining(["grantedBenefits", "maintenanceExceptions"]));
   });

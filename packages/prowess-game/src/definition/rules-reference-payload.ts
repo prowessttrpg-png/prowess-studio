@@ -277,8 +277,19 @@ function readMissionRule(r: Record<string, unknown>, at: readonly PathSegment[],
   } else if (shape === "POINTS") {
     points = texts(parts.points, [...at, "points"], p, "rule points", true);
   }
+  // Linked rules (R16): exact references to the Mission / gameplay reference rules this rule points to.
+  const rawRelated = own(r, "relatedRules");
+  const relatedRules: ProwessDefinitionRef[] = [];
+  if (!Array.isArray(rawRelated)) p.add(C.INVALID_PAYLOAD, [...at, "relatedRules"], "relatedRules is a list of exact MISSION_RULE or REFERENCE_RULE references");
+  else
+    rawRelated.forEach((x: unknown, i: number) => {
+      const ref = readDefinitionRef(x, [...at, "relatedRules", i], p, C.INVALID_PAYLOAD);
+      if (ref !== null && ref.definitionKind !== "MISSION_RULE" && ref.definitionKind !== "REFERENCE_RULE") p.add(C.INVALID_PAYLOAD, [...at, "relatedRules", i, "definitionKind"], "a linked rule is an exact MISSION_RULE or REFERENCE_RULE Definition");
+      else if (ref !== null && relatedRules.some((q) => q.entityId === ref.entityId)) p.add(C.INVALID_PAYLOAD, [...at, "relatedRules", i], "each linked rule is listed once");
+      else if (ref !== null) relatedRules.push(ref);
+    });
   const source = readSource(own(r, "source"), [...at, "source"], p);
-  return done(p, before, { ruleKey, shape, rollTable, clock, intel, points, source }, ruleKey, shape, source);
+  return done(p, before, { ruleKey, shape, rollTable, clock, intel, points, relatedRules, source }, ruleKey, shape, source);
 }
 
 function readMetamagic(r: Record<string, unknown>, at: readonly PathSegment[], p: Problems): JsonObject | null {
@@ -335,10 +346,10 @@ const FIELDS: Readonly<Record<RulesReferencePayloadKind, readonly string[]>> = {
   STATUS_CONDITION: ["conditionKey", "effects", "duration", "removal", "ongoingTiming", "stacking", "source"],
   SUMMON_TYPE: ["summonKey", "engine", "tiers", "castingAp", "sustainMode", "sustainMp", "sustainApPerRound", "countsTowardConcentration", "maxActive", "actionEconomy", "restrictions", "openQuestions", "source"],
   SUMMON_TRAIT: ["traitKey", "engines", "costs", "forbidden", "effect", "source"],
-  MISSION_RULE: ["ruleKey", "shape", "rollTable", "clock", "intel", "points", "source"],
+  MISSION_RULE: ["ruleKey", "shape", "rollTable", "clock", "intel", "points", "relatedRules", "source"],
   METAMAGIC: ["metamagicKey", "form", "mp", "ap", "otherCost", "effect", "restrictions", "source"],
   JOB_TEMPLATE: ["jobKey", "role", "suggestedStats", "suggestedSkills", "startingEquipment", "features", "source"],
-  REFERENCE_RULE: ["ruleKey", "shape", "rollTable", "clock", "intel", "points", "source"],
+  REFERENCE_RULE: ["ruleKey", "shape", "rollTable", "clock", "intel", "points", "relatedRules", "source"],
 };
 const READERS = { ARMOR: readArmor, STATUS_CONDITION: readCondition, SUMMON_TYPE: readSummonType, SUMMON_TRAIT: readSummonTrait, MISSION_RULE: readMissionRule, METAMAGIC: readMetamagic, JOB_TEMPLATE: readJobTemplate, REFERENCE_RULE: readReferenceRule } as const;
 

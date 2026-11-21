@@ -124,3 +124,100 @@ test("RULES-WO1 P03 Mission rule: a table with a gap is refused; a covering tabl
   await preview.getByTestId("reference-preview-run").click();
   await expect(preview.getByTestId("preview-table-result")).toContainText("Hidden clause.");
 });
+
+const ENGINES = ["SUMMON_ENTITY", "TOTEM", "PERSISTENT_CONSTRUCT", "BOUND_SUMMON", "MANIFESTED_ENTITY", "FUSION", "EQUIPMENT_SUMMONING"] as const;
+
+test("RULES-WO1 P04 every Summon engine is authored through the guided form (R15)", async ({ page }) => {
+  test.setTimeout(240_000);
+  for (const engine of ENGINES) {
+    const name = `${engine.toLowerCase().replace(/_/g, " ")} E2E ${tag}`;
+    await startNew(page, "SUMMON", "SUMMON_TYPE", name);
+    await page.getByLabel("Engine (required)", { exact: true }).selectOption(engine);
+    await page.getByLabel("Sustain (required)", { exact: true }).selectOption("NONE");
+    await page.getByRole("button", { name: "Add tier" }).click();
+    const tier = page.getByTestId("guided-list-item").first();
+    await tier.getByLabel(/^Tier name/).fill("Tier 1");
+    await tier.getByLabel(/^Label/).fill("Tier 1");
+    await expect(tier.getByLabel(/^Tier name/)).toHaveValue("TIER_1");
+    await page.getByLabel(/^How it acts/).fill("Illustrative E2E entry (not canon).");
+    await chooseSource(page, "summon");
+    await validateAndCreate(page, name);
+    await expect(page.getByTestId("status-live")).toHaveAttribute("data-state", "REFERENCE_ONLY");
+  }
+});
+
+test("RULES-WO1 P05 a Mission rule links to a gameplay reference rule by name, never by key (R16)", async ({ page }) => {
+  const ruleName = `Cover E2E ${tag}`;
+  await startNew(page, "CORE", "REFERENCE_RULE", ruleName);
+  await page.getByLabel("Kind of rule").selectOption("POINTS");
+  await page.getByLabel("Rule points (one per line)").fill("Half cover: +2 Dodge (illustrative E2E).");
+  await chooseSource(page, "cover");
+  await validateAndCreate(page, ruleName);
+
+  const missionName = `Intel E2E ${tag}`;
+  await startNew(page, "MISSION", "MISSION_RULE", missionName);
+  await page.getByLabel("Kind of rule").selectOption("INTEL");
+  await page.getByLabel("What an Intel token can do (one per line)").fill("Reveal one hidden clock.");
+  await page.getByRole("button", { name: "Add rule" }).click();
+  const picker = page.getByRole("group", { name: "Choose the exact rule" });
+  await picker.getByRole("searchbox").fill(ruleName);
+  await picker.getByRole("button", { name: new RegExp(`^${ruleName}`) }).click();
+  await expect(page.getByTestId("ref-list-name")).toHaveText(ruleName);
+  await chooseSource(page, "intel");
+  await validateAndCreate(page, missionName);
+  // After saving, the link still reads as words (from its key), not as a machine key.
+  await expect(page.getByTestId("ref-list-name")).toContainText("Cover");
+  await expect(page.getByTestId("ref-list-name")).not.toContainText(".");
+});
+
+test("RULES-WO1 P06 390 px layout, keyboard use, empty and error states and timing for the guided editors (R25)", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  const started = Date.now();
+  await page.goto("/compendium/admin/new");
+  await page.getByLabel("Definition family").selectOption("EQUIPMENT");
+  await page.getByLabel("Definition kind").selectOption("ARMOR");
+  await expect(page.getByLabel(/^Armor granted/)).toBeVisible();
+  const editorReadyMs = Date.now() - started;
+  const noSideScroll = async () => expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
+  await noSideScroll();
+  // Keyboard: every control is reachable and labelled; typing a name works without a mouse.
+  await page.getByLabel("Display Name (required)").focus();
+  await page.keyboard.type(`Mobile Plate ${tag}`);
+  await page.keyboard.press("Tab");
+  const focused = await page.evaluate(() => {
+    const el = document.activeElement as HTMLElement | null;
+    return { tag: el?.tagName ?? "", label: el ? (el.getAttribute("aria-label") ?? (el.id ? document.querySelector(`label[for="${el.id}"]`)?.textContent : null) ?? el.closest("label")?.textContent ?? el.textContent ?? "") : "" };
+  });
+  expect(focused.tag).not.toBe("BODY");
+  expect(focused.label.trim()).not.toBe("");
+  // Empty state: the source picker says what is there (loading → search or the no-rulebook note).
+  const picker = page.getByTestId("source-picker").first();
+  await expect(picker.getByTestId("source-no-snapshot").or(picker.getByTestId("source-search"))).toBeVisible();
+  // Error state: validating an incomplete form names the problems in a live region and marks the fields.
+  await page.getByRole("button", { name: "Validate Definition" }).click();
+  const status = page.getByRole("region", { name: "Validation" }).getByRole("status");
+  await expect(status).toContainText("FAIL");
+  await noSideScroll();
+  // Timing: a reference preview round trip on a saved Draft.
+  await page.getByRole("button", { name: "Suggest a Canonical Key from the Display Name" }).click();
+  await page.getByLabel(/^Category/).selectOption("LIGHT");
+  await page.getByLabel(/^Armor granted/).fill("1");
+  await page.getByLabel(/^Movement penalty \(feet\)/).fill("0");
+  await page.getByLabel(/^Stealth/).selectOption("NORMAL");
+  await chooseSource(page, "armor");
+  await validateAndCreate(page, `Mobile Plate ${tag}`);
+  await noSideScroll();
+  const preview = page.getByTestId("reference-preview");
+  const t0 = Date.now();
+  await preview.getByTestId("reference-preview-run").click();
+  await expect(preview.getByTestId("preview-armor-agi")).toBeVisible();
+  const previewMs = Date.now() - t0;
+  const timing = JSON.stringify({ viewport: "390x844", editorReadyMs, previewMs });
+  test.info().annotations.push({ type: "timing", description: timing });
+  console.log(`RULES-WO1 P06 timing ${timing}`);
+  // Representative budgets for a local production build (generous; they catch regressions of an order of magnitude).
+  expect(editorReadyMs).toBeLessThan(15_000);
+  expect(previewMs).toBeLessThan(5_000);
+  await context.close();
+});

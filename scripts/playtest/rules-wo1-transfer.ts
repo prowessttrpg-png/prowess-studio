@@ -47,8 +47,8 @@ function contents(athletics: Pin) {
     ["CONDITION", "STATUS_CONDITION", 1, "condition.burning", "Burning", { conditionKey: "BURNING", effects: [{ effectKey: "DAMAGE_OVER_TIME", text: "Takes damage over time." }], duration: { model: "UNTIL_REMOVED", rounds: null, text: null }, removal: ["Put out the flames."], ongoingTiming: "START_OF_TURN", stacking: "DOES_NOT_STACK", source: SRC }],
     ["SUMMON", "SUMMON_TYPE", 1, "summon.totem", "Totem", { summonKey: "TOTEM", engine: "TOTEM", tiers: [{ tierKey: "TIER_1", label: "Tier 1", baseMp: 12, dieFaces: 4, staticValue: 2, hp: 10, armor: 2, resolve: 2, radiusFeet: 10, size: "Small", traitSlots: null }], castingAp: f("total_mp / pro", [{ variable: "total_mp", source: { kind: "TOTAL_MP" } }, { variable: "pro", source: { kind: "STAT", stat: "PRO" } }], "FLOOR", 1), sustainMode: "SUSTAINED", sustainMp: null, sustainApPerRound: 1, countsTowardConcentration: null, maxActive: null, actionEconomy: "Resolves on its timing.", restrictions: [], openQuestions: [], source: SRC }],
     ["SUMMON", "SUMMON_TRAIT", 1, "summon_trait.warding_pulse", "Warding Pulse", { traitKey: "WARDING_PULSE", engines: ["TOTEM"], costs: [{ tierKey: "TIER_1", mp: 5 }], forbidden: false, effect: "Illustrative.", source: SRC }],
-    ["MISSION", "MISSION_RULE", 1, "mission.contract_clause", "Contract Clause", { ruleKey: "CONTRACT_CLAUSE", shape: "ROLL_TABLE", rollTable: { dieCount: 1, dieFaces: 4, rows: [{ from: 1, to: 2, result: "No public combat." }, { from: 3, to: 4, result: "Hidden clause." }] }, clock: null, intel: null, points: null, source: SRC }],
-    ["CORE", "REFERENCE_RULE", 1, "reference.grappling", "Grappling", { ruleKey: "GRAPPLING", shape: "POINTS", rollTable: null, clock: null, intel: null, points: ["Movement becomes 0."], source: SRC }],
+    ["CORE", "REFERENCE_RULE", 1, "reference.grappling", "Grappling", { ruleKey: "GRAPPLING", shape: "POINTS", rollTable: null, clock: null, intel: null, points: ["Movement becomes 0."], relatedRules: [], source: SRC }],
+    ["MISSION", "MISSION_RULE", 1, "mission.contract_clause", "Contract Clause", { ruleKey: "CONTRACT_CLAUSE", shape: "ROLL_TABLE", rollTable: { dieCount: 1, dieFaces: 4, rows: [{ from: 1, to: 2, result: "No public combat." }, { from: 3, to: 4, result: "Hidden clause." }] }, clock: null, intel: null, points: null, relatedRules: ["@reference.grappling"], source: SRC }],
     ["SPELL", "METAMAGIC", 1, "metamagic.extend", "Extend", { metamagicKey: "EXTEND", form: "OPTION", mp: 2, ap: null, otherCost: null, effect: "Illustrative.", restrictions: [], source: SRC }],
     ["CHARACTER", "JOB_TEMPLATE", 1, "job.warrior", "Warrior", { jobKey: "WARRIOR", role: "Front line.", suggestedStats: ["STR"], suggestedSkills: [ref], startingEquipment: [], features: [], source: SRC }],
     ["MAGE_ART", "MAGE_ART", 2, "mage_art.barrier", "Barrier", { artKey: "BARRIER", activation: { ap: 1, mp: 2 }, maintenance: { ap: 0, mp: 1, special: null }, activeEffect: { counts: "WHILE_MAINTAINED" }, modes: [{ modeKey: "WARD", name: "Ward", activation: null, maintenance: null, rulesText: "Illustrative.", scaling: [{ stepKey: "D1", label: "Domain 1", text: "Illustrative." }] }], grantedBenefits: [], maintenanceExceptions: [], source: SRC }],
@@ -70,8 +70,13 @@ async function source() {
   const athletics = world.pins.get("test.m6wo3.skill.athletics");
   assert(athletics, "the test Release pins Athletics");
   const operations = [];
-  for (const [family, kind, schemaVersion, key, name, payload] of contents(athletics)) {
+  // "@key" in relatedRules is replaced by the exact reference of the entry created earlier in this list (R16 link).
+  const createdRefs = new Map<string, Record<string, string>>();
+  for (const [family, kind, schemaVersion, key, rawPayload, ] of contents(athletics).map((c) => [c[0], c[1], c[2], c[3], c[5]] as const)) {
+    const name = contents(athletics).find((c) => c[3] === key)![4];
+    const payload = "relatedRules" in rawPayload ? { ...rawPayload, relatedRules: (rawPayload.relatedRules as readonly string[]).map((k) => createdRefs.get(k.slice(1))!) } : rawPayload;
     const created = await createAuthoredDefinition({ definitionKind: kind, canonicalKey: `${prefix}.rw1.${key}`, displayName: name, prowessDefinition: { schemaVersion, systemFamily: family, definitionKind: kind, payload } });
+    createdRefs.set(key, { entityId: created.entity.id, entityVersionId: created.version.id, canonicalKey: `${prefix}.rw1.${key}`, definitionKind: kind, systemFamily: family });
     assert.equal(created.validation?.status, "PASS", `${kind}: ${JSON.stringify(created.validation?.issues)}`);
     await submitAuthoredRevisionForReview(created.version.id);
     await transitionEntityVersionStatus(created.version.id, "APPROVED");
@@ -89,7 +94,12 @@ async function install(n: 1 | 2) {
   const preview = await previewContentPack(bytes);
   assert.equal(preview.state, "Ready", JSON.stringify(preview.conflicts));
   assert.equal((await installContentPack(bytes, preview.previewFingerprint)).state, "Installed");
-  assert.equal((await previewContentPack(bytes)).state, "Already installed");
+  // Replay is idempotent: the same pack previews and installs as "Already installed" and writes nothing.
+  const versionsBefore = await prisma.entityVersion.count();
+  const again = await previewContentPack(bytes);
+  assert.equal(again.state, "Already installed");
+  assert.equal((await installContentPack(bytes, again.previewFingerprint)).state, "Already installed");
+  assert.equal(await prisma.entityVersion.count(), versionsBefore, "a replayed install writes no Entity versions");
   return getRulesetRelease(readContentPack(bytes).manifest.release.releaseId);
 }
 
@@ -123,6 +133,12 @@ async function receiver() {
   const r2 = await install(2);
   assert.deepEqual(await newKindsIn(r1.id), [], "Release 1 carries none of the new kinds");
   assert.deepEqual(await newKindsIn(r2.id), [...NEW_KINDS].sort(), "Release 2 carries every new kind");
+  // The Mission rule's link to the Grappling reference rule arrives as an exact reference to the installed revision.
+  const r2Defs = (await materializeProwessDefinitionsFromRelease(r2.id)).bundle.definitions;
+  const mission = r2Defs.find((d) => d.definitionKind === "MISSION_RULE")!;
+  const grappling = r2Defs.find((d) => d.definitionKind === "REFERENCE_RULE")!;
+  const linked = (mission.payload as { relatedRules: Array<{ entityVersionId: string }> }).relatedRules;
+  assert.deepEqual(linked.map((l) => l.entityVersionId), [grappling.entityVersionId], "the linked rule survives the transfer exactly");
   const ids: Record<string, string> = {};
   for (const r of [r1, r2]) {
     const w = await worldOf(r);

@@ -97,7 +97,8 @@ describe("M6-WO1 gate — one Definition catalog, no duplicated M5 validation, n
       // m6-wo3-static), and since PAS-10 M6-WO6 name ATTACK and EQUIPMENT_TRAIT as the exact kinds the Weapon editors'
       // reference pickers search (pinned by m6-wo6-static).
       // PRE-M7-WO1 adds ACTION: the exact kind the Action Improvement editor's reference picker searches.
-      const sanctioned = f.endsWith("_lib/descriptors.ts") ? ["ACTION", "AFFINITY", "ATTACK", "EQUIPMENT_TRAIT", "SKILL"] : [];
+      // RULES-WO1 adds REFERENCE_RULE: the exact kind the Mission / gameplay rules' "Linked reference rules" picker searches (R16).
+      const sanctioned = f.endsWith("_lib/descriptors.ts") ? ["ACTION", "AFFINITY", "ATTACK", "EQUIPMENT_TRAIT", "REFERENCE_RULE", "SKILL"] : [];
       expect([...kinds].sort(), f).toEqual(sanctioned);
       // A sanctioned kind name that is ALSO a vocabulary value (ACTION is a resource kind too) is the kind literal above.
       const values = VOCABULARY_VALUES.filter((v) => !sanctioned.includes(v) && new RegExp(`["'\`]${v}["'\`]`).test(src));

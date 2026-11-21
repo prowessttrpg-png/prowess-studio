@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   PROWESS_DEFINITION_KINDS,
   PROWESS_DEFINITION_STORAGE_KEY,
+  SUMMON_ENGINES,
   previewArmor,
   previewMissionTable,
   previewSummonCosts,
@@ -62,9 +63,10 @@ export const CLAUSES = {
   clock: null,
   intel: null,
   points: null,
+  relatedRules: [],
   source: { locators: ["s2236"], conflicts: [] },
 };
-export const SIX_CLOCK = { ruleKey: "STANDARD_CLOCK", shape: "CLOCK", rollTable: null, clock: { segments: 6, visibility: "EITHER", advancesWhen: ["A Mission Turn passes."], escalations: [{ atSegment: 2, text: "First warning." }, { atSegment: 4, text: "Major complication." }, { atSegment: 6, text: "Clock completes." }] }, intel: null, points: null, source: { locators: ["s2214"], conflicts: [] } };
+export const SIX_CLOCK = { ruleKey: "STANDARD_CLOCK", shape: "CLOCK", rollTable: null, clock: { segments: 6, visibility: "EITHER", advancesWhen: ["A Mission Turn passes."], escalations: [{ atSegment: 2, text: "First warning." }, { atSegment: 4, text: "Major complication." }, { atSegment: 6, text: "Clock completes." }] }, intel: null, points: null, relatedRules: [], source: { locators: ["s2214"], conflicts: [] } };
 
 describe("RULES-WO1 Phase C registry", () => {
   it("activates the reserved reference kinds at version 1, adds METAMAGIC and JOB_TEMPLATE, and MAGE_ART reads versions 1 and 2", () => {
@@ -143,6 +145,52 @@ describe("RULES-WO1 MISSION_RULE v1", () => {
   it("Intel tokens and reference rules are text", () => {
     expect(codes(validateStoredProwessDefinition(stored("MISSION", "MISSION_RULE", { ...SIX_CLOCK, ruleKey: "INTEL", shape: "INTEL", clock: null, intel: { uses: ["Reveal one hidden clock."] } })))).toEqual([]);
     expect(codes(validateStoredProwessDefinition(stored("MISSION", "MISSION_RULE", { ...SIX_CLOCK, ruleKey: "FAIL_FORWARD", shape: "POINTS", clock: null, points: ["Failure changes the situation."] })))).toEqual([]);
+  });
+});
+
+describe("RULES-WO1 SUMMON_TYPE — every engine is authorable (R15)", () => {
+  // Illustrative test configurations (not canon numbers): one per engine, each with its own sustain model.
+  const ENGINE_CASES = [
+    ["SUMMON_ENTITY", "SUSTAINED", "Acts on the caster's turn."],
+    ["TOTEM", "SUSTAINED_OR_PERIODIC", "Stationary; acts on the caster's turn."],
+    ["PERSISTENT_CONSTRUCT", "NONE", "Persists until destroyed."],
+    ["BOUND_SUMMON", "PERIODIC", "Bound to an object; called with an action."],
+    ["MANIFESTED_ENTITY", "SUSTAINED", "Manifests in an area."],
+    ["FUSION", "SUSTAINED", "Merges with the caster."],
+    ["EQUIPMENT_SUMMONING", "NONE", "Creates an item the caster wields."],
+  ] as const;
+  it.each(ENGINE_CASES)("%s validates, keeps its engine and previews its casting cost", (engine, sustainMode, actionEconomy) => {
+    const none = sustainMode === "NONE";
+    const payload = { ...TOTEM, summonKey: `TEST_${engine}`, engine, sustainMode, actionEconomy, sustainMp: none ? null : TOTEM.sustainMp, sustainApPerRound: none ? null : 1 };
+    const result = validateStoredProwessDefinition(stored("SUMMON", "SUMMON_TYPE", payload));
+    expect(codes(result)).toEqual([]);
+    expect(previewSummonCosts({ summon: payload as unknown as Parameters<typeof previewSummonCosts>[0]["summon"], tierKey: "TIER_1", totalMp: null, stats: { PRO: 4 } })).toMatchObject({ castingAp: 3, appliesInPlay: false });
+  });
+  it("covers exactly the seven engines of the rulebook", () => {
+    expect([...SUMMON_ENGINES].sort()).toEqual(["BOUND_SUMMON", "EQUIPMENT_SUMMONING", "FUSION", "MANIFESTED_ENTITY", "PERSISTENT_CONSTRUCT", "SUMMON_ENTITY", "TOTEM"]);
+  });
+});
+
+describe("RULES-WO1 MISSION_RULE linked rules (R16)", () => {
+  const ruleRef = (kind: "REFERENCE_RULE" | "MISSION_RULE" | "SKILL", n: number) => ({
+    entityId: `00000000-0000-4000-8000-00000000000${n}`,
+    entityVersionId: `00000000-0000-4000-8000-00000000010${n}`,
+    canonicalKey: `test.rw1.linked_${n}`,
+    definitionKind: kind,
+    systemFamily: kind === "REFERENCE_RULE" ? "CORE" : kind === "MISSION_RULE" ? "MISSION" : "SKILL",
+  });
+  it("links a Mission table to the exact reference and Mission rules it points to", () => {
+    const linked = { ...CLAUSES, relatedRules: [ruleRef("REFERENCE_RULE", 1), ruleRef("MISSION_RULE", 2)] };
+    expect(codes(validateStoredProwessDefinition(stored("MISSION", "MISSION_RULE", linked)))).toEqual([]);
+  });
+  it.each([
+    ["a link to another kind", [ruleRef("SKILL", 3)], "/prowessDefinition/payload/relatedRules/0/definitionKind"],
+    ["the same rule twice", [ruleRef("REFERENCE_RULE", 1), ruleRef("REFERENCE_RULE", 1)], "/prowessDefinition/payload/relatedRules/1"],
+    ["a link without its exact version", [{ ...ruleRef("REFERENCE_RULE", 1), entityVersionId: "latest" }], "/prowessDefinition/payload/relatedRules/0/entityVersionId"],
+  ])("refuses %s", (_l, relatedRules, path) => expect(paths(validateStoredProwessDefinition(stored("MISSION", "MISSION_RULE", { ...CLAUSES, relatedRules })))).toContain(path));
+  it("requires the linked-rules list (empty when there are none)", () => {
+    const { relatedRules: _omit, ...without } = CLAUSES;
+    expect(paths(validateStoredProwessDefinition(stored("MISSION", "MISSION_RULE", without)))).toContain("/prowessDefinition/payload/relatedRules");
   });
 });
 

@@ -814,6 +814,8 @@ const idTok = (key: string, label: string, placeholder: string): FieldDescriptor
 const txt = (key: string, label: string, group: string, help?: string): FieldDescriptor => ({ key, label, group, input: "text", required: true, ...(help ? { help } : {}) });
 const txtList = (key: string, label: string, group: string, help?: string): FieldDescriptor => ({ key, label, group, input: "textList", required: false, ...(help ? { help } : {}) });
 const optInt = (key: string, label: string, group: string, help?: string): FieldDescriptor => ({ key, label, group, input: "integer", required: false, ...(help ? { help } : {}) });
+/** RULES-WO1 (R16): the exact kind a Mission / gameplay rule's "Linked reference rules" picker searches (sanctioned in m6-wo1-static). */
+export const LINKED_RULE_KIND = "REFERENCE_RULE";
 /** A short name inside a list (a tier, an effect, a question): typed in plain words, stored as a token. */
 const ptok = (key: string, label: string, help?: string): FieldDescriptor => ({ ...tok(key, label, help), plainWords: true } as FieldDescriptor);
 export const REFERENCE_FAMILY_DESCRIPTORS: Readonly<Record<string, ContractDescriptor>> = {
@@ -886,13 +888,13 @@ export const REFERENCE_FAMILY_DESCRIPTORS: Readonly<Record<string, ContractDescr
     preview: "SAMPLE_INPUTS",
     previewSample: "ROLL_OR_CLOCK",
     purpose: "A GM / Mission rule: a die-range table (every roll must be covered), a Threat Clock with its escalation points, an Intel token or a written reference rule. Reference and preview — nothing generates or runs a Mission yet.",
-    fields: [{ key: "", label: "Mission rule", group: "Rule", input: "missionRule", nameKey: "ruleKey", required: true }],
+    fields: [{ key: "", label: "Mission rule", group: "Rule", input: "missionRule", nameKey: "ruleKey", required: true }, { key: "relatedRules", label: "Linked reference rules", group: "Links", input: "refList", refKind: LINKED_RULE_KIND, itemLabel: "Rule", required: false, help: "Gameplay reference rules this rule points readers to (for example the cover or critical tables a Mission table uses). Each link names the exact revision." }],
   },
   REFERENCE_RULE: {
     preview: "SAMPLE_INPUTS",
     previewSample: "ROLL_OR_CLOCK",
     purpose: "A written gameplay rule: a die-range table (difficulty, critical results, cover …) or rule points (grappling, flanking …). Reference and table preview — nothing calculates from it.",
-    fields: [{ key: "", label: "Gameplay rule", group: "Rule", input: "missionRule", shapes: "referenceRuleShapes", nameKey: "ruleKey", required: true }],
+    fields: [{ key: "", label: "Gameplay rule", group: "Rule", input: "missionRule", shapes: "referenceRuleShapes", nameKey: "ruleKey", required: true }, { key: "relatedRules", label: "Linked reference rules", group: "Links", input: "refList", refKind: LINKED_RULE_KIND, itemLabel: "Rule", required: false, help: "Gameplay reference rules this rule points readers to (for example the cover or critical tables a Mission table uses). Each link names the exact revision." }],
   },
   METAMAGIC: {
     purpose: "A Metamagic option or trait: its cost, what it does and its restrictions. Reference — the Spell builder does not offer Metamagic yet.",
@@ -1077,7 +1079,7 @@ export function initialFieldValue(field: FieldDescriptor): unknown {
     case "contentToken":
       return "";
     case "missionRule":
-      return { ruleKey: "", shape: "", rollTable: null, clock: null, intel: null, points: null, source: { locators: [], conflicts: [] } };
+      return { ruleKey: "", shape: "", rollTable: null, clock: null, intel: null, points: null, relatedRules: [], source: { locators: [], conflicts: [] } };
     case "coreFormula":
       // The rounding is the author's choice (from the catalog) — a new Formula starts without one.
       return { expression: "0", rounding: "", minimum: null, maximum: null, unit: null, variables: [] };
