@@ -24,7 +24,7 @@ import { SUMMON_COST_INPUT_KINDS, SUMMON_LIMIT_INPUT_KINDS, readValueFormula, ty
  *   REFERENCE_RULE    a written gameplay rule: a die-range table (difficulty, critical, cover …) or written rule points
  *   MAGE_ART (v2)     v1 plus per-mode scaling steps, granted benefits and maintenance exceptions
  */
-export const RULES_REFERENCE_PAYLOAD_KINDS = deepFreeze(["ARMOR", "STATUS_CONDITION", "SUMMON_TYPE", "SUMMON_TRAIT", "MISSION_RULE", "METAMAGIC", "JOB_TEMPLATE", "REFERENCE_RULE"] as const);
+export const RULES_REFERENCE_PAYLOAD_KINDS = deepFreeze(["ARMOR", "STATUS_CONDITION", "SUMMON_TYPE", "SUMMON_TRAIT", "MISSION_RULE", "METAMAGIC", "JOB_TEMPLATE", "REFERENCE_RULE", "AMMUNITION", "WEAPON_MODIFICATION"] as const);
 export type RulesReferencePayloadKind = (typeof RULES_REFERENCE_PAYLOAD_KINDS)[number];
 export const isRulesReferencePayloadKind = (kind: string): kind is RulesReferencePayloadKind => (RULES_REFERENCE_PAYLOAD_KINDS as readonly string[]).includes(kind);
 
@@ -41,6 +41,20 @@ export const MISSION_RULE_SHAPES = deepFreeze(["ROLL_TABLE", "CLOCK", "INTEL", "
 export const REFERENCE_RULE_SHAPES = deepFreeze(["ROLL_TABLE", "POINTS"] as const);
 export const CLOCK_VISIBILITIES = deepFreeze(["VISIBLE", "HIDDEN", "EITHER"] as const);
 export const METAMAGIC_FORMS = deepFreeze(["OPTION", "TRAIT"] as const);
+/** Phase D: the trigger points the source establishes for Conditions and Condition Traits (on hit, failed Save, entering
+ *  an area, start of turn), plus the turn / round boundaries where Conditions tick and ongoing effects resolve. */
+export const CONDITION_TRIGGERS = deepFreeze(["ON_HIT", "ON_FAILED_SAVE", "ON_ENTERING_AREA", "START_OF_TURN", "END_OF_TURN", "END_OF_ROUND"] as const);
+/** Phase D: the Summon action models the source lists, and who owns a Summon's AP, HP and MP. */
+export const SUMMON_ACTION_MODELS = deepFreeze(["DEPENDENT", "INDEPENDENT", "PASSIVE", "TEMPLATE_BASED", "SELF_BOUND", "SPLIT_RESOURCE"] as const);
+export const SUMMON_ACTION_TIMINGS = deepFreeze(["CASTER_TURN", "END_OF_CASTER_TURN", "AUTOMATIC_AT_TRIGGER", "NONE"] as const);
+export const SUMMON_RESOURCE_OWNERS = deepFreeze(["SUMMON", "CASTER", "SPLIT", "NONE"] as const);
+export const SUMMON_RESTRICTION_KINDS = deepFreeze(["NO_ACTIONS_WITHOUT_TRAIT", "NO_EXTRA_ACTIONS", "NO_COUNTER_ACTIONS", "NO_IMPROVISATION", "NO_MP_REFUND", "MAX_ACTIVE", "WRITTEN_ONLY"] as const);
+export const SUMMON_DISMISSALS = deepFreeze(["FREE_ACTION", "ACTION", "CANNOT_DISMISS", "SPECIAL"] as const);
+/** Phase D: Mage Art v2 structured benefits and maintenance exceptions (the written text stays with each). */
+export const MAGE_ART_BENEFIT_KINDS = deepFreeze(["IMMUNITY", "ADVANTAGE", "SENSE", "STAT_SUBSTITUTION", "RANGE_MULTIPLIER", "COUNTER_ACTION", "RESOURCE", "WRITTEN_ONLY"] as const);
+export const MAGE_ART_EXCEPTION_KINDS = deepFreeze(["ACTIVE_EFFECT_ONLY_WHILE_CASTING", "NO_MAINTENANCE", "SPECIAL_COST", "DOES_NOT_COUNT_TOWARD_LIMIT", "WRITTEN_ONLY"] as const);
+/** Phase D: ammunition and weapon modifications (Ammo, Loading (X), Reload X AP; attachments and crafting slots). */
+export const WEAPON_MODIFICATION_CHANGE_KINDS = deepFreeze(["RELOAD_AP", "LOADING", "TO_HIT", "DAMAGE_DICE", "LOUD_RADIUS_FEET", "RANGE_FEET", "WRITTEN_ONLY"] as const);
 export type ArmorCategory = (typeof ARMOR_CATEGORIES)[number];
 export type SummonEngine = (typeof SUMMON_ENGINES)[number];
 
@@ -155,8 +169,16 @@ function readCondition(r: Record<string, unknown>, at: readonly PathSegment[], p
   const removal = texts(own(r, "removal"), [...at, "removal"], p, "removal", true);
   const ongoingTiming = readEnum(own(r, "ongoingTiming"), CONDITION_ONGOING_TIMINGS, [...at, "ongoingTiming"], p, C.INVALID_PAYLOAD, "ongoing timing");
   const stacking = readEnum(own(r, "stacking"), CONDITION_STACKING, [...at, "stacking"], p, C.INVALID_PAYLOAD, "stacking");
+  // Triggers: when the Condition acts or is applied, what happens, and how it is resisted (a Save names its Stat).
+  const triggers = keyedRows(own(r, "triggers"), [...at, "triggers"], p, "triggers", "triggerKey", ["triggerKey", "when", "resistStat", "text"], (t, tat) => {
+    const when = readEnum(own(t, "when"), CONDITION_TRIGGERS, [...tat, "when"], p, C.INVALID_PAYLOAD, "trigger");
+    const resistStat = own(t, "resistStat") === null ? null : readEnum(own(t, "resistStat"), PROWESS_STATS, [...tat, "resistStat"], p, C.INVALID_PAYLOAD, "save Stat");
+    const tt = text(own(t, "text"), [...tat, "text"], p, "trigger text");
+    if (when === "ON_FAILED_SAVE" && own(t, "resistStat") === null) p.add(C.INVALID_PAYLOAD, [...tat, "resistStat"], "an ON_FAILED_SAVE trigger names the Stat of the Save");
+    return when === null || tt === null ? null : { triggerKey: own(t, "triggerKey") as string, when, resistStat, text: tt };
+  });
   const source = readSource(own(r, "source"), [...at, "source"], p);
-  return done(p, before, { conditionKey, effects, duration, removal, ongoingTiming, stacking, source }, conditionKey, duration, ongoingTiming, stacking, source);
+  return done(p, before, { conditionKey, effects, duration, removal, ongoingTiming, stacking, triggers, source }, conditionKey, duration, ongoingTiming, stacking, source);
 }
 
 const TIER_FIELDS = ["tierKey", "label", "baseMp", "dieFaces", "staticValue", "hp", "armor", "resolve", "radiusFeet", "size", "traitSlots"];
@@ -179,10 +201,34 @@ function readSummonType(r: Record<string, unknown>, at: readonly PathSegment[], 
   const maxActive = own(r, "maxActive") === null ? null : readValueFormula(own(r, "maxActive"), [...at, "maxActive"], p, SUMMON_LIMIT_INPUT_KINDS);
   if (sustainMode === "NONE" && (sustainMp !== null || sustainApPerRound !== null)) p.add(C.INVALID_PAYLOAD, [...at, "sustainMode"], "an engine without sustain states no sustain cost");
   const actionEconomy = text(own(r, "actionEconomy"), [...at, "actionEconomy"], p, "actionEconomy");
-  const restrictions = texts(own(r, "restrictions"), [...at, "restrictions"], p, "restrictions");
+  // Phase D: who acts and who pays — the action model, when it acts, its own AP (if any) and who owns its AP, HP and MP.
+  const o = readRecord(own(r, "ownership"), [...at, "ownership"], p, C.INVALID_PAYLOAD, ["actionModel", "actsWhen", "baseAp", "apOwner", "hpOwner", "mpOwner", "counterActions", "dismissal"], ["actionModel", "actsWhen", "baseAp", "apOwner", "hpOwner", "mpOwner", "counterActions", "dismissal"]);
+  let ownership: Out | null = null;
+  if (o !== null) {
+    const oat = [...at, "ownership"];
+    const actionModel = readEnum(own(o, "actionModel"), SUMMON_ACTION_MODELS, [...oat, "actionModel"], p, C.INVALID_PAYLOAD, "action model");
+    const actsWhen = readEnum(own(o, "actsWhen"), SUMMON_ACTION_TIMINGS, [...oat, "actsWhen"], p, C.INVALID_PAYLOAD, "when it acts");
+    const baseAp = whole(own(o, "baseAp"), [...oat, "baseAp"], p, "baseAp", { nullable: true });
+    const apOwner = readEnum(own(o, "apOwner"), SUMMON_RESOURCE_OWNERS, [...oat, "apOwner"], p, C.INVALID_PAYLOAD, "AP owner");
+    const hpOwner = readEnum(own(o, "hpOwner"), SUMMON_RESOURCE_OWNERS, [...oat, "hpOwner"], p, C.INVALID_PAYLOAD, "HP owner");
+    const mpOwner = readEnum(own(o, "mpOwner"), SUMMON_RESOURCE_OWNERS, [...oat, "mpOwner"], p, C.INVALID_PAYLOAD, "MP owner");
+    const counterActions = bool(own(o, "counterActions"), [...oat, "counterActions"], p, "counterActions", true);
+    const dismissal = readEnum(own(o, "dismissal"), SUMMON_DISMISSALS, [...oat, "dismissal"], p, C.INVALID_PAYLOAD, "dismissal");
+    // The source's own consistency rules: a Passive Summon has no AP; a Summon whose AP is the caster's has no AP of its own.
+    if (actionModel === "PASSIVE" && (baseAp !== null || apOwner !== "NONE")) p.add(C.INVALID_PAYLOAD, [...oat, "baseAp"], "a PASSIVE Summon has no AP (baseAp null, AP owner NONE)");
+    if ((actionModel === "DEPENDENT" || actionModel === "SELF_BOUND") && apOwner !== "CASTER") p.add(C.INVALID_PAYLOAD, [...oat, "apOwner"], `a ${actionModel} Summon uses the caster's AP`);
+    if ((actionModel === "INDEPENDENT" || actionModel === "TEMPLATE_BASED") && (apOwner !== "SUMMON" || baseAp === null)) p.add(C.INVALID_PAYLOAD, [...oat, "apOwner"], `a ${actionModel} Summon has its own AP (AP owner SUMMON and a base AP)`);
+    if (actionModel === "SPLIT_RESOURCE" && apOwner !== "SPLIT" && hpOwner !== "SPLIT" && mpOwner !== "SPLIT") p.add(C.INVALID_PAYLOAD, [...oat, "actionModel"], "a SPLIT_RESOURCE Summon splits at least one of AP, HP or MP with the caster");
+    if (actionModel !== null && actsWhen !== null && apOwner !== null && hpOwner !== null && mpOwner !== null && dismissal !== null) ownership = { actionModel, actsWhen, baseAp, apOwner, hpOwner, mpOwner, counterActions, dismissal };
+  }
+  const restrictions = keyedRows(own(r, "restrictions"), [...at, "restrictions"], p, "restrictions", "restrictionKey", ["restrictionKey", "kind", "text"], (x, xat) => {
+    const kind = readEnum(own(x, "kind"), SUMMON_RESTRICTION_KINDS, [...xat, "kind"], p, C.INVALID_PAYLOAD, "restriction kind");
+    const t = text(own(x, "text"), [...xat, "text"], p, "restriction text");
+    return kind === null || t === null ? null : { restrictionKey: own(x, "restrictionKey") as string, kind, text: t };
+  });
   const openQuestions = texts(own(r, "openQuestions"), [...at, "openQuestions"], p, "openQuestions");
   const source = readSource(own(r, "source"), [...at, "source"], p);
-  return done(p, before, { summonKey, engine, tiers, castingAp, sustainMode, sustainMp, sustainApPerRound, countsTowardConcentration, maxActive, actionEconomy, restrictions, openQuestions, source }, summonKey, engine, sustainMode, actionEconomy, source);
+  return done(p, before, { summonKey, engine, tiers, castingAp, sustainMode, sustainMp, sustainApPerRound, countsTowardConcentration, maxActive, actionEconomy, ownership, restrictions, openQuestions, source }, summonKey, engine, sustainMode, actionEconomy, ownership, source);
 }
 
 function readSummonTrait(r: Record<string, unknown>, at: readonly PathSegment[], p: Problems): JsonObject | null {
@@ -341,17 +387,64 @@ function readReferenceRule(r: Record<string, unknown>, at: readonly PathSegment[
   return readMissionRule(r, at, p);
 }
 
+function familyTokens(value: unknown, at: readonly PathSegment[], p: Problems, atLeastOne: boolean): string[] {
+  if (!Array.isArray(value) || (atLeastOne && value.length === 0)) {
+    p.add(C.INVALID_PAYLOAD, at, `weaponFamilies is a list of Weapon family tokens${atLeastOne ? " with at least one entry" : ""}`);
+    return [];
+  }
+  const out: string[] = [];
+  value.forEach((v: unknown, i: number) => {
+    if (!isToken(v) || out.includes(v)) p.add(C.INVALID_PAYLOAD, [...at, i], "each Weapon family is a SCREAMING_SNAKE token, listed once");
+    else out.push(v);
+  });
+  return out;
+}
+
+/** AMMUNITION v1: a kind of ammunition for weapons with the Ammo property (Loading and Reload stay weapon properties). */
+function readAmmunition(r: Record<string, unknown>, at: readonly PathSegment[], p: Problems): JsonObject | null {
+  const before = p.count;
+  const ammoKey = token(own(r, "ammoKey"), [...at, "ammoKey"], p, "ammoKey");
+  const weaponFamilies = familyTokens(own(r, "weaponFamilies"), [...at, "weaponFamilies"], p, true);
+  const perAttack = whole(own(r, "perAttack"), [...at, "perAttack"], p, "perAttack", { min: 1 });
+  const burstPerAttack = whole(own(r, "burstPerAttack"), [...at, "burstPerAttack"], p, "burstPerAttack", { nullable: true, min: 1 });
+  const effect = text(own(r, "effect"), [...at, "effect"], p, "effect");
+  const notes = texts(own(r, "notes"), [...at, "notes"], p, "notes");
+  const source = readSource(own(r, "source"), [...at, "source"], p);
+  return done(p, before, { ammoKey, weaponFamilies, perAttack, burstPerAttack, effect, notes, source }, ammoKey, perAttack, effect, source);
+}
+
+/** WEAPON_MODIFICATION v1: an attachment or crafted modification — where it fits, the slots it uses and what it changes. */
+function readWeaponModification(r: Record<string, unknown>, at: readonly PathSegment[], p: Problems): JsonObject | null {
+  const before = p.count;
+  const modificationKey = token(own(r, "modificationKey"), [...at, "modificationKey"], p, "modificationKey");
+  const weaponFamilies = familyTokens(own(r, "weaponFamilies"), [...at, "weaponFamilies"], p, false);
+  const slotCost = whole(own(r, "slotCost"), [...at, "slotCost"], p, "slotCost", { min: 1 });
+  const changes = keyedRows(own(r, "changes"), [...at, "changes"], p, "changes", "changeKey", ["changeKey", "kind", "amount", "text"], (c, cat) => {
+    const kind = readEnum(own(c, "kind"), WEAPON_MODIFICATION_CHANGE_KINDS, [...cat, "kind"], p, C.INVALID_PAYLOAD, "change kind");
+    const amount = own(c, "amount") === null ? null : readSafeInteger(own(c, "amount"), [...cat, "amount"], p, C.INVALID_PAYLOAD, "amount");
+    const t = text(own(c, "text"), [...cat, "text"], p, "change text");
+    if (kind !== null && kind !== "WRITTEN_ONLY" && own(c, "amount") === null) p.add(C.INVALID_PAYLOAD, [...cat, "amount"], `a ${kind} change states its amount (a whole number; negative reduces)`);
+    if (kind === "WRITTEN_ONLY" && own(c, "amount") !== null) p.add(C.INVALID_PAYLOAD, [...cat, "amount"], "a WRITTEN_ONLY change is written text only (amount null)");
+    return kind === null || t === null ? null : { changeKey: own(c, "changeKey") as string, kind, amount, text: t };
+  }, true);
+  const requirements = texts(own(r, "requirements"), [...at, "requirements"], p, "requirements");
+  const source = readSource(own(r, "source"), [...at, "source"], p);
+  return done(p, before, { modificationKey, weaponFamilies, slotCost, changes, requirements, source }, modificationKey, slotCost, source);
+}
+
 const FIELDS: Readonly<Record<RulesReferencePayloadKind, readonly string[]>> = {
+  AMMUNITION: ["ammoKey", "weaponFamilies", "perAttack", "burstPerAttack", "effect", "notes", "source"],
+  WEAPON_MODIFICATION: ["modificationKey", "weaponFamilies", "slotCost", "changes", "requirements", "source"],
   ARMOR: ["armorKey", "category", "armorValue", "strengthRequirement", "maxAgiForDodge", "movementPenaltyFeet", "stealth", "notes", "source"],
-  STATUS_CONDITION: ["conditionKey", "effects", "duration", "removal", "ongoingTiming", "stacking", "source"],
-  SUMMON_TYPE: ["summonKey", "engine", "tiers", "castingAp", "sustainMode", "sustainMp", "sustainApPerRound", "countsTowardConcentration", "maxActive", "actionEconomy", "restrictions", "openQuestions", "source"],
+  STATUS_CONDITION: ["conditionKey", "effects", "duration", "removal", "ongoingTiming", "stacking", "triggers", "source"],
+  SUMMON_TYPE: ["summonKey", "engine", "tiers", "castingAp", "sustainMode", "sustainMp", "sustainApPerRound", "countsTowardConcentration", "maxActive", "actionEconomy", "ownership", "restrictions", "openQuestions", "source"],
   SUMMON_TRAIT: ["traitKey", "engines", "costs", "forbidden", "effect", "source"],
   MISSION_RULE: ["ruleKey", "shape", "rollTable", "clock", "intel", "points", "relatedRules", "source"],
   METAMAGIC: ["metamagicKey", "form", "mp", "ap", "otherCost", "effect", "restrictions", "source"],
   JOB_TEMPLATE: ["jobKey", "role", "suggestedStats", "suggestedSkills", "startingEquipment", "features", "source"],
   REFERENCE_RULE: ["ruleKey", "shape", "rollTable", "clock", "intel", "points", "relatedRules", "source"],
 };
-const READERS = { ARMOR: readArmor, STATUS_CONDITION: readCondition, SUMMON_TYPE: readSummonType, SUMMON_TRAIT: readSummonTrait, MISSION_RULE: readMissionRule, METAMAGIC: readMetamagic, JOB_TEMPLATE: readJobTemplate, REFERENCE_RULE: readReferenceRule } as const;
+const READERS = { ARMOR: readArmor, STATUS_CONDITION: readCondition, SUMMON_TYPE: readSummonType, SUMMON_TRAIT: readSummonTrait, MISSION_RULE: readMissionRule, METAMAGIC: readMetamagic, JOB_TEMPLATE: readJobTemplate, REFERENCE_RULE: readReferenceRule, AMMUNITION: readAmmunition, WEAPON_MODIFICATION: readWeaponModification } as const;
 
 /** Validates `value` as the version-1 payload of a Phase C reference kind (the caller checked the version). */
 export function readRulesReferencePayload(kind: RulesReferencePayloadKind, value: unknown, at: readonly PathSegment[], p: Problems): JsonObject | null {
@@ -359,19 +452,69 @@ export function readRulesReferencePayload(kind: RulesReferencePayloadKind, value
   return r === null ? null : READERS[kind](r, at, p);
 }
 
-/** MAGE_ART payload version 2: v1 plus per-mode scaling steps, granted benefits and maintenance exceptions (text). */
-export function readMageArtV2Extras(r: Record<string, unknown>, at: readonly PathSegment[], p: Problems): { grantedBenefits: string[]; maintenanceExceptions: string[]; scaling: Record<string, { stepKey: string; label: string; text: string }[]> } {
-  const grantedBenefits = texts(own(r, "grantedBenefits"), [...at, "grantedBenefits"], p, "grantedBenefits");
-  const maintenanceExceptions = texts(own(r, "maintenanceExceptions"), [...at, "maintenanceExceptions"], p, "maintenanceExceptions");
-  const scaling: Record<string, { stepKey: string; label: string; text: string }[]> = {};
+/**
+ * MAGE_ART payload version 2 (Phase D, structured): per-mode SCALING as level tables (rows over Levels, contiguous) or an
+ * M4 Formula over Stats and Level, GRANTED BENEFITS by kind (immunity, Advantage, sense, Stat substitution, range
+ * multiplier, Counter Action, resource), and MAINTENANCE EXCEPTIONS by kind — each with its written text.
+ */
+export interface MageArtScaling {
+  readonly scalingKey: string;
+  readonly label: string;
+  readonly unit: string | null;
+  readonly byLevel: readonly { readonly fromLevel: number; readonly toLevel: number; readonly value: number }[] | null;
+  readonly formula: ValueFormula | null;
+  readonly text: string;
+}
+/** The inputs a Mage Art scaling Formula may read (Stats and Level). */
+export const MAGE_ART_SCALING_INPUT_KINDS = deepFreeze(["STAT", "LEVEL"] as const);
+export function readMageArtV2Extras(r: Record<string, unknown>, at: readonly PathSegment[], p: Problems): { grantedBenefits: Out[]; maintenanceExceptions: Out[]; scaling: Record<string, MageArtScaling[]> } {
+  const grantedBenefits = keyedRows(own(r, "grantedBenefits"), [...at, "grantedBenefits"], p, "grantedBenefits", "benefitKey", ["benefitKey", "kind", "subject", "text"], (b, bat) => {
+    const kind = readEnum(own(b, "kind"), MAGE_ART_BENEFIT_KINDS, [...bat, "kind"], p, C.INVALID_PAYLOAD, "benefit kind");
+    const subject = text(own(b, "subject"), [...bat, "subject"], p, "subject", true);
+    const t = text(own(b, "text"), [...bat, "text"], p, "benefit text");
+    if (kind !== null && kind !== "WRITTEN_ONLY" && subject === null) p.add(C.INVALID_PAYLOAD, [...bat, "subject"], `a ${kind} benefit names what it applies to`);
+    return kind === null || t === null ? null : { benefitKey: own(b, "benefitKey") as string, kind, subject, text: t };
+  });
+  const maintenanceExceptions = keyedRows(own(r, "maintenanceExceptions"), [...at, "maintenanceExceptions"], p, "maintenanceExceptions", "exceptionKey", ["exceptionKey", "kind", "text"], (x, xat) => {
+    const kind = readEnum(own(x, "kind"), MAGE_ART_EXCEPTION_KINDS, [...xat, "kind"], p, C.INVALID_PAYLOAD, "exception kind");
+    const t = text(own(x, "text"), [...xat, "text"], p, "exception text");
+    return kind === null || t === null ? null : { exceptionKey: own(x, "exceptionKey") as string, kind, text: t };
+  });
+  const scaling: Record<string, MageArtScaling[]> = {};
   const raw = own(r, "modes");
   if (Array.isArray(raw))
     raw.forEach((m: unknown, i: number) => {
       if (!isPlainObject(m)) return;
-      const steps = keyedRows(own(m, "scaling"), [...at, "modes", i, "scaling"], p, "scaling", "stepKey", ["stepKey", "label", "text"], (s, sat) => {
-        const label = text(own(s, "label"), [...sat, "label"], p, "step label");
-        const t = text(own(s, "text"), [...sat, "text"], p, "step text");
-        return label === null || t === null ? null : { stepKey: own(s, "stepKey") as string, label, text: t };
+      const steps = keyedRows(own(m, "scaling"), [...at, "modes", i, "scaling"], p, "scaling", "scalingKey", ["scalingKey", "label", "unit", "byLevel", "formula", "text"], (sc, sat) => {
+        const label = text(own(sc, "label"), [...sat, "label"], p, "scaling label");
+        const unit = text(own(sc, "unit"), [...sat, "unit"], p, "unit", true);
+        const t = text(own(sc, "text"), [...sat, "text"], p, "scaling text");
+        const rawRows = own(sc, "byLevel");
+        const rawFormula = own(sc, "formula");
+        if ((rawRows === null) === (rawFormula === null)) p.add(C.INVALID_PAYLOAD, [...sat, "byLevel"], "a scaling is EITHER a level table OR a Formula (exactly one)");
+        let byLevel: MageArtScaling["byLevel"] = null;
+        if (rawRows !== null) {
+          if (!Array.isArray(rawRows) || rawRows.length === 0) p.add(C.INVALID_PAYLOAD, [...sat, "byLevel"], "a level table has at least one row");
+          else {
+            const rows: { fromLevel: number; toLevel: number; value: number }[] = [];
+            rawRows.forEach((x: unknown, ri: number) => {
+              const rat = [...sat, "byLevel", ri];
+              const row = readRecord(x, rat, p, C.INVALID_PAYLOAD, ["fromLevel", "toLevel", "value"], ["fromLevel", "toLevel", "value"]);
+              if (row === null) return;
+              const fromLevel = whole(own(row, "fromLevel"), [...rat, "fromLevel"], p, "fromLevel", { min: 1 });
+              const toLevel = whole(own(row, "toLevel"), [...rat, "toLevel"], p, "toLevel", { min: 1 });
+              const value = readSafeInteger(own(row, "value"), [...rat, "value"], p, C.INVALID_PAYLOAD, "value");
+              if (fromLevel === null || toLevel === null || value === null) return;
+              if (fromLevel > toLevel) p.add(C.INVALID_PAYLOAD, [...rat, "toLevel"], "a row runs from a lower to a higher Level");
+              const previous = rows.at(-1);
+              if (previous !== undefined && fromLevel !== m4("last + 1", { last: previous.toLevel })) p.add(C.INVALID_PAYLOAD, [...rat, "fromLevel"], `the level table must continue at Level ${String(m4("last + 1", { last: previous.toLevel }))} (no gap or overlap)`);
+              rows.push({ fromLevel, toLevel, value });
+            });
+            byLevel = rows;
+          }
+        }
+        const formula = rawFormula === null ? null : readValueFormula(rawFormula, [...sat, "formula"], p, MAGE_ART_SCALING_INPUT_KINDS);
+        return label === null || t === null ? null : { scalingKey: own(sc, "scalingKey") as string, label, unit, byLevel, formula, text: t };
       });
       scaling[String(own(m, "modeKey"))] = steps;
     });

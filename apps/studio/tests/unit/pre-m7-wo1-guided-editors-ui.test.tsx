@@ -99,7 +99,8 @@ describe("PRE-M7-WO1 guided editors on shipped content", () => {
     render(<Editor initial={candidateOf("ACTION", 1, grapple.payload)} onChange={(c) => changes.push(c)} />);
     const cost = screen.getByRole("group", { name: /AP cost/ });
     fireEvent.change(within(cost).getByRole("combobox"), { target: { value: "VARIABLE" } });
-    expect(confirm).toHaveBeenCalledWith(expect.stringMatching(/removes: minimum, maximum/));
+    // RULES-WO1 Phase D: the confirmation names the fields in words (their labels), not their payload keys.
+    expect(confirm).toHaveBeenCalledWith(expect.stringMatching(/removes: Minimum AP, Maximum AP/));
     expect(changes).toEqual([]);
     confirm.mockReturnValue(true);
     fireEvent.change(within(cost).getByRole("combobox"), { target: { value: "VARIABLE" } });

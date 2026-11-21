@@ -343,6 +343,19 @@ export interface PossessionDto {
   item: string;
   weight: string;
 }
+export interface SheetSkillBenefitDto {
+  benefit: DefinitionRefDto;
+  benefitKey: string;
+  skill: DefinitionRefDto;
+  minimumRankKey: string;
+  heldRankKey: string | null;
+  rankMet: boolean;
+  eligibility: "RANK_ONLY" | "ELIGIBLE" | "INELIGIBLE" | "UNRESOLVED";
+  groups: Array<{ groupKey: string; mode: "ALL" | "ANY"; satisfied: boolean | null; prerequisites: Array<{ prerequisiteKey: string; kind: string; satisfied: boolean | null; reason: string | null }> }>;
+  grantedActions: Array<{ action: DefinitionRefDto; state: string; actionKey: string | null }>;
+  writtenBenefit: string;
+  status: "GRANTED" | "RANK_NOT_REACHED" | "INELIGIBLE" | "UNRESOLVED";
+}
 export interface CharacterSheetDto {
   identity: { id: string; name: string; concept: string | null; level: number; maximumLevel: number; status: string; ancestry: DefinitionRefDto | null; primaryAffinity: DefinitionRefDto | null; companyPac: string | null };
   release: ReleaseSummaryDto;
@@ -366,6 +379,8 @@ export interface CharacterSheetDto {
     carry: { currentWeight: SheetValueDto; maximumLoad: SheetValueDto };
     /** RULES-WO1: published calculated values of the Release, evaluated for this Character (absent when none). */
     calculatedValues?: SheetCalculatedValueDto[];
+    /** RULES-WO1 (R08): published Skill benefits evaluated for this Character (absent when none). */
+    skillBenefits?: SheetSkillBenefitDto[];
     signatureCapacity: number | null;
     issues: Array<{ code: string; path: string; message: string }>;
   };
@@ -750,7 +765,7 @@ export interface SheetCalculatedValueDto {
   note: string | null;
   baseStated: boolean;
   base: number | null;
-  contributions: Array<{ benefitKey: string; contributionKey: string; minimumRankKey: string; applies: boolean; amount: number | null }>;
+  contributions: Array<{ benefitKey: string; contributionKey: string; minimumRankKey: string; applies: boolean; amount: number | null; eligibility?: string; condition?: { conditionKey: string; text: string } | null }>;
   total: number | null;
   unavailable: string | null;
 }

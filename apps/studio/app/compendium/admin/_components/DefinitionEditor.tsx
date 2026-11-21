@@ -10,7 +10,7 @@ import { DefinitionReferencePicker } from "./DefinitionReferencePicker";
 import { FormulaEditor } from "./FormulaEditor";
 import { SourceSectionPicker } from "./SourceSectionPicker";
 import { MissionRuleEditor } from "./MissionRuleEditor";
-import { ContentTokenSelect } from "./ContentTokenSelect";
+import { ContentTokenList, ContentTokenSelect } from "./ContentTokenSelect";
 import { IntegerListInput, OptionalFeetInput, RowsEditor } from "./GuidedInputs";
 import { AbilityDefinitionEditor } from "./AbilityDefinitionEditor";
 import { KeywordPicker } from "./KeywordPicker";
@@ -128,16 +128,11 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
     }
     case "token":
       return (
-        field.fromName === true || field.plainWords === true ? (
-          // RULES-WO1 names: typed in plain words, stored (and shown) as the token ("Tier 1" → TIER_1).
-          <LabeledControl field={{ ...field, help: field.help ?? "Type a short name in plain words; it is stored in capitals with underscores (Tier 1 → TIER_1)." }} issues={issues}>
-            {(p) => <input {...p} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(asToken(e.target.value))} onBlur={(e) => onChange(asToken(e.target.value, true))} autoComplete="off" spellCheck={false} />}
-          </LabeledControl>
-        ) : (
-          <LabeledControl field={{ ...field, help: field.help ?? "An explicit SCREAMING_SNAKE_CASE token." }} issues={issues}>
-            {(p) => <input {...p} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(e.target.value)} autoComplete="off" spellCheck={false} />}
-          </LabeledControl>
-        )
+        // RULES-WO1 Phase D: every name field is typed in plain words and stored (and shown) as the token ("Tier 1" →
+        // TIER_1). The server still refuses a malformed raw token (M5 reader); only the typing is helped here.
+        <LabeledControl field={{ ...field, help: field.help ?? "Type a short name in plain words; it is stored in capitals with underscores (Tier 1 → TIER_1)." }} issues={issues}>
+          {(p) => <input {...p} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(asToken(e.target.value))} onBlur={(e) => onChange(asToken(e.target.value, true))} autoComplete="off" spellCheck={false} />}
+        </LabeledControl>
       );
     case "keywords": {
       const keys = Array.isArray(value) ? (value as string[]) : [];
@@ -296,8 +291,8 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
       return (
         <Shell field={field} issues={issues} composite>
           <label className="gov-field">
-            <span>Restriction key (SCREAMING_SNAKE_CASE)</span>
-            <input value={typeof r.restrictionKey === "string" ? r.restrictionKey : ""} onChange={(e) => onChange({ ...r, restrictionKey: e.target.value })} spellCheck={false} />
+            <span>Restriction name (plain words)</span>
+            <input value={typeof r.restrictionKey === "string" ? r.restrictionKey : ""} onChange={(e) => onChange({ ...r, restrictionKey: asToken(e.target.value) })} onBlur={(e) => onChange({ ...r, restrictionKey: asToken(e.target.value, true) })} spellCheck={false} />
           </label>
           <fieldset className="prowess-authoring__nested">
             <legend>Restriction data</legend>
@@ -447,6 +442,64 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
         </Shell>
       );
     }
+    // ---- RULES-WO1 Phase D: one Mage Art scaling — a level table OR a Formula over Stats and Level, with its text ----
+    case "mageArtScaling": {
+      const sc = asObject(value);
+      const table = sc.byLevel !== null && sc.byLevel !== undefined;
+      const rows = Array.isArray(sc.byLevel) ? (sc.byLevel as Array<{ fromLevel?: number | null; toLevel?: number | null; value?: number | null }>) : [];
+      const set = (patch: Record<string, unknown>) => onChange({ ...sc, ...patch });
+      const num = (v: string) => (v.trim() === "" || !Number.isFinite(Number(v)) ? null : Math.trunc(Number(v)));
+      return (
+        <Shell field={field} issues={issues} composite>
+          <FieldControl field={{ key: "scalingKey", label: "Scaling name", group: "", input: "token", required: true }} value={sc.scalingKey} onChange={(v) => set({ scalingKey: v })} catalog={catalog} issues={[]} />
+          <FieldControl field={{ key: "label", label: "Label", group: "", input: "line", required: true }} value={sc.label} onChange={(v) => set({ label: v })} catalog={catalog} issues={[]} />
+          <label className="gov-field">
+            <span>Unit (optional, e.g. ft)</span>
+            <input value={typeof sc.unit === "string" ? sc.unit : ""} onChange={(e) => set({ unit: e.target.value.trim() === "" ? null : e.target.value })} />
+          </label>
+          <div role="radiogroup" aria-label="How it scales">
+            <label className="prowess-authoring__inline">
+              <input type="radio" name={`${listId}-scaling`} checked={table} onChange={() => set({ byLevel: [], formula: null })} /> By a Level table
+            </label>
+            <label className="prowess-authoring__inline">
+              <input type="radio" name={`${listId}-scaling`} checked={!table} onChange={() => set({ byLevel: null, formula: initialFieldValue({ key: "formula", label: "", group: "", input: "coreFormula", sources: "mageArtScalingSourceKinds", required: true }) })} /> By a Formula (Stats and Level)
+            </label>
+          </div>
+          {table ? (
+            <fieldset className="prowess-authoring__nested" data-testid="mage-art-level-table">
+              <legend>Level table (every Level covered once, in order)</legend>
+              <ol>
+                {rows.map((r, i) => (
+                  <li key={i} className="prowess-authoring__row">
+                    <label className="gov-field">
+                      <span>From Level</span>
+                      <input aria-label={`Level row ${i + 1} from`} type="number" value={r.fromLevel ?? ""} onChange={(e) => set({ byLevel: rows.map((x, j) => (j === i ? { ...x, fromLevel: num(e.target.value) } : x)) })} />
+                    </label>
+                    <label className="gov-field">
+                      <span>To Level</span>
+                      <input aria-label={`Level row ${i + 1} to`} type="number" value={r.toLevel ?? ""} onChange={(e) => set({ byLevel: rows.map((x, j) => (j === i ? { ...x, toLevel: num(e.target.value) } : x)) })} />
+                    </label>
+                    <label className="gov-field">
+                      <span>Value</span>
+                      <input aria-label={`Level row ${i + 1} value`} type="number" value={r.value ?? ""} onChange={(e) => set({ byLevel: rows.map((x, j) => (j === i ? { ...x, value: num(e.target.value) } : x)) })} />
+                    </label>
+                    <button type="button" className="gov-link-button" onClick={() => set({ byLevel: rows.filter((_, j) => j !== i) })}>
+                      Remove row {i + 1}
+                    </button>
+                  </li>
+                ))}
+              </ol>
+              <button type="button" className="gov-button" onClick={() => set({ byLevel: [...rows, { fromLevel: rows.length === 0 ? 1 : null, toLevel: null, value: null }] })}>
+                Add Level row
+              </button>
+            </fieldset>
+          ) : (
+            <FieldControl field={{ key: "formula", label: "Formula", group: "", input: "coreFormula", sources: "mageArtScalingSourceKinds", required: true }} value={sc.formula} onChange={(v) => set({ formula: v })} catalog={catalog} issues={[]} />
+          )}
+          <FieldControl field={{ key: "text", label: "As written", group: "", input: "text", required: true }} value={sc.text} onChange={(v) => set({ text: v })} catalog={catalog} issues={[]} />
+        </Shell>
+      );
+    }
     // ---- RULES-WO1: a Formula the rulebook may leave unstated, an optional source, a list of exact references --------
     case "optionalFormula": {
       const present = value !== null && value !== undefined;
@@ -478,8 +531,14 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
     case "contentToken":
       return (
         <LabeledControl field={field} issues={issues}>
-          {(p) => <ContentTokenSelect id={p.id} describedBy={p["aria-describedby"]} value={value} onChange={onChange} options={field.options} />}
+          {(p) => <ContentTokenSelect id={p.id} describedBy={p["aria-describedby"]} value={value} onChange={(v) => onChange(v === "" && !field.required ? null : v)} options={field.options} />}
         </LabeledControl>
+      );
+    case "contentTokenList":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <ContentTokenList value={value} onChange={onChange} options={field.options} label={field.label} />
+        </Shell>
       );
     case "triState":
       return (
@@ -581,7 +640,14 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
               </li>
             ))}
           </ol>
-          <button type="button" className="gov-button" onClick={() => onChange([...items, Object.fromEntries(field.item.map((f) => [f.key, initialFieldValue(f)]))])}>
+          <button
+            type="button"
+            className="gov-button"
+            onClick={() =>
+              // A whole-item field (key "", e.g. a Mage Art scaling) starts as that field's own initial value.
+              onChange([...items, field.item.length === 1 && field.item[0]!.key === "" && field.item[0]!.input !== "variant" ? initialFieldValue(field.item[0]!) : Object.fromEntries(field.item.map((f) => [f.key, initialFieldValue(f)]))])
+            }
+          >
             Add {field.itemLabel.toLowerCase()}
           </button>
         </Shell>
@@ -597,7 +663,8 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
         const keep = new Set([field.discriminator, ...nextFields.map((f) => f.key)]);
         const dropped = obj === null ? [] : Object.keys(obj).filter((k) => !keep.has(k) && obj[k] !== null && obj[k] !== undefined && obj[k] !== "");
         // Switching shape never silently discards populated data: the designer confirms what will be dropped.
-        if (dropped.length > 0 && !window.confirm(`Switching to ${formatEnumLabel(next)} removes: ${dropped.join(", ")}. Continue?`)) return;
+        const labelOfKey = (k: string) => Object.values(field.variants).flat().find((f) => f.key === k)?.label ?? formatEnumLabel(k);
+        if (dropped.length > 0 && !window.confirm(`Switching to ${formatEnumLabel(next)} removes: ${dropped.map(labelOfKey).join(", ")}. Continue?`)) return;
         onChange({ [field.discriminator]: next, ...Object.fromEntries(nextFields.map((f) => [f.key, obj?.[f.key] ?? initialFieldValue(f)])) });
       };
       return (

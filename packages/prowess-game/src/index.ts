@@ -851,6 +851,7 @@ export {
   ACTION_PROGRESSION_STATUSES,
   actionImprovementsFor,
   evaluateActionImprovement,
+  evaluatePrerequisiteList,
   type ActionImprovementEvaluation,
   type ActionImprovementModificationResult,
   type ActionImprovementPrerequisiteResult,
@@ -906,6 +907,8 @@ export {
   type RulesAuthoringPayloadKind,
   type SkillBenefitContribution,
   type SkillBenefitPayload,
+  type SkillBenefitPrerequisiteGroup,
+  SKILL_BENEFIT_GROUP_MODES,
   type ValueFormula,
   type ValueInputKind,
   type ValueInputSource,
@@ -922,7 +925,10 @@ export {
   type CalculatedValuesOutcome,
   type ValueContributionResult,
   type ValueFacts,
+  type BenefitEligibility,
+  type BenefitEligibilityStatus,
 } from "./character/calculated-values.js";
+export { skillBenefitsForCharacter, benefitEligibilityOf, type SkillBenefitGroupResult, type SkillBenefitStatus, type SkillBenefitSummary, type SkillGrantedAction } from "./character/skill-benefits.js";
 export { CONCENTRATION_PREVIEW_ISSUE_CODES, previewConcentration, type ConcentrationPreviewEffect, type ConcentrationPreviewResult } from "./ability/concentration-preview.js";
 // RULES-WO1 Phase C: reference rule families (authoring, validation, reference and preview — not executed).
 export {
@@ -938,10 +944,21 @@ export {
   STEALTH_EFFECTS,
   SUMMON_ENGINES,
   SUMMON_SUSTAIN_MODES,
+  CONDITION_TRIGGERS,
+  SUMMON_ACTION_MODELS,
+  SUMMON_ACTION_TIMINGS,
+  SUMMON_RESOURCE_OWNERS,
+  SUMMON_RESTRICTION_KINDS,
+  SUMMON_DISMISSALS,
+  MAGE_ART_BENEFIT_KINDS,
+  MAGE_ART_EXCEPTION_KINDS,
+  WEAPON_MODIFICATION_CHANGE_KINDS,
+  MAGE_ART_SCALING_INPUT_KINDS,
+  type MageArtScaling,
   isRulesReferencePayloadKind,
   type ArmorCategory,
   type RulesReferencePayloadKind,
   type SummonEngine,
 } from "./definition/rules-reference-payload.js";
 export { SUMMON_COST_INPUT_KINDS, SUMMON_LIMIT_INPUT_KINDS } from "./definition/rules-authoring-payload.js";
-export { previewArmor, previewMissionTable, previewSummonCosts, previewThreatClock } from "./reference/preview.js";
+export { previewArmor, previewMageArtScaling, previewMissionTable, previewReload, previewSummonCosts, previewSummonEconomy, previewThreatClock } from "./reference/preview.js";

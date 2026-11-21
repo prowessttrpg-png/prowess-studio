@@ -160,6 +160,8 @@ export interface GeneralActionSectionDto {
   costOverridableByExplicitRule: boolean;
   source: { locators: string[]; conflicts: string[] };
   improvements: CardImprovementEntryDto[];
+  /** RULES-WO1 (R08): the Skill benefits granting this Action and whether this Character has the grant (absent when none). */
+  grantedBySkills?: Array<{ benefit: DefinitionRefDto; benefitKey: string; skill: DefinitionRefDto; minimumRankKey: string; status: "GRANTED" | "RANK_NOT_REACHED" | "INELIGIBLE" | "UNRESOLVED" }>;
 }
 export interface MageArtSectionDto {
   kind: "MAGE_ART";

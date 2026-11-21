@@ -24,7 +24,7 @@ export class AuthoringApiError extends Error {
   }
 }
 
-type Method = "GET" | "POST" | "PUT" | "DELETE";
+type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 async function request<T>(method: Method, path: string, body?: unknown): Promise<{ data: T; pagination?: { page: number; pageSize: number; total: number; totalPages: number } }> {
   const sent = await fetchJsonBody(
@@ -50,6 +50,8 @@ export const getAuthoring = get;
 const post = async <T>(path: string, body?: unknown) => (await request<T>("POST", path, body)).data;
 /** PRE-M7-WO1: the same transport for the side-effect-free rule tools (admin/_lib/rules-client.ts). */
 export const postAuthoring = post;
+/** RULES-WO1 (R09): the Keyword presentation edit (PATCH). */
+export const patchAuthoring = async <T>(path: string, body?: unknown) => (await request<T>("PATCH", path, body)).data;
 const put = async <T>(path: string, body: unknown) => (await request<T>("PUT", path, body)).data;
 const del = async (path: string) => {
   await request<unknown>("DELETE", path);

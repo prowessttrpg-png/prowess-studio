@@ -106,7 +106,19 @@ export type VocabularyName =
   | "missionRuleShapes"
   | "referenceRuleShapes"
   | "clockVisibilities"
-  | "metamagicForms";
+  | "metamagicForms"
+  // RULES-WO1 Phase D
+  | "conditionTriggers"
+  | "summonActionModels"
+  | "summonActionTimings"
+  | "summonResourceOwners"
+  | "summonRestrictionKinds"
+  | "summonDismissals"
+  | "mageArtBenefitKinds"
+  | "mageArtExceptionKinds"
+  | "weaponModificationChangeKinds"
+  | "prerequisiteGroupModes"
+  | "mageArtScalingSourceKinds";
 
 /** PRE-M7-WO1: one column of a guided table of flat records (every row keeps any other stored key untouched). */
 export type RowColumn =
@@ -183,7 +195,13 @@ export type FieldDescriptor =
   | (FieldBase & { readonly input: "triState"; readonly yes: string; readonly no: string; readonly unknown: string })
   | (FieldBase & { readonly input: "missionRule"; readonly shapes?: VocabularyName; /** RULES-WO1: the rule-name part filled in from the Display Name. */ readonly nameKey?: string })
   // RULES-WO1: a token that names other content, chosen from what exists (a Skill rank, a calculated value).
-  | (FieldBase & { readonly input: "contentToken"; readonly options: "skillRanks" | "calculatedValues" });
+  | (FieldBase & { readonly input: "contentToken"; readonly options: ContentTokenOptions })
+  /** RULES-WO1 Phase D: several entries chosen by name (for example the Weapon families an ammunition fits). */
+  | (FieldBase & { readonly input: "contentTokenList"; readonly options: ContentTokenOptions })
+  /** RULES-WO1 Phase D: one Mage Art scaling — a level table OR a Formula over Stats and Level, with its written text. */
+  | (FieldBase & { readonly input: "mageArtScaling" });
+/** The named lists the authoring-options service offers (RULES-WO1). */
+export type ContentTokenOptions = "skillRanks" | "calculatedValues" | "rankLadders" | "allRanks" | "weaponFamilies" | "skills";
 
 export interface ContractDescriptor {
   /** Short explanation of what this kind of Definition is FOR (§59) — presentation only. */
@@ -192,7 +210,7 @@ export interface ContractDescriptor {
    *  sample inputs for a reference family (Armor, Summon engine, Mission rule). */
   readonly preview?: "AUTHORED_RULE" | "SAMPLE_INPUTS";
   /** RULES-WO1 Phase C: the sample a reference preview asks for. */
-  readonly previewSample?: "SHEET" | "TIERED_SHEET" | "ROLL_OR_CLOCK";
+  readonly previewSample?: "SHEET" | "TIERED_SHEET" | "ROLL_OR_CLOCK" | "AT_LEVEL" | "SAMPLE_WEAPON";
   readonly fields: readonly FieldDescriptor[];
 }
 
@@ -301,7 +319,7 @@ export const CHARACTER_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescrip
   },
   SKILL: {
     purpose: "A Skill's identity: what Characters are trained in. Skill Actions evolve separately; describe the Skill in Rules Text.",
-    fields: [{ key: "ladderKey", label: "Rank ladder", group: "Identity", input: "token", required: true, help: "The rank ladder this Skill is trained on (the Skill rank ladder: SKILL)." }, SOURCE],
+    fields: [{ key: "ladderKey", label: "Rank ladder", group: "Identity", input: "contentToken", options: "rankLadders", required: true, help: "The rank ladder this Skill is trained on (normally the Skill rank ladder), chosen by name." }, SOURCE],
   },
   CHARACTER_CREATION_RULE: {
     purpose: "The Level-1 creation values: starting Level, Stat point budget, free trained Skills, the starting Skill rank and required selections.",
@@ -309,7 +327,7 @@ export const CHARACTER_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescrip
       { key: "startingLevel", label: "Starting Level", group: "Creation", input: "integer", required: true },
       { key: "statPointBudget", label: "Stat point budget", group: "Creation", input: "integer", required: true, help: "Points a player distributes at creation. Stat minimum / maximum come from the STAT Definitions." },
       { key: "freeTrainedSkillCount", label: "Free trained Skills", group: "Creation", input: "integer", required: true },
-      { key: "startingSkillRankKey", label: "Starting Skill rank", group: "Creation", input: "token", required: true, help: "A rank of the Skill rank ladder (e.g. TRAINED)." },
+      { key: "startingSkillRankKey", label: "Starting Skill rank", group: "Creation", input: "contentToken", options: "skillRanks", required: true, help: "A rank of the Skill rank ladder (e.g. TRAINED)." },
       { key: "requiredAncestryCount", label: "Required Ancestries", group: "Required selections", input: "integer", required: true, help: "Version 1: exactly 1." },
       { key: "requiredPrimaryAffinityCount", label: "Required Primary Affinities", group: "Required selections", input: "integer", required: true, help: "Version 1: exactly 1." },
       SOURCE,
@@ -349,7 +367,7 @@ export const EQUIPMENT_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescrip
       { key: "familyKey", label: "Weapon family", group: "Identity", input: "token", required: true, help: "Stable family token (e.g. LONG_BLADE). Every Moveset Attack names the same family." },
       { key: "profileKind", label: "Profile kind", group: "Identity", input: "select", vocabulary: "weaponProfileKinds", required: true, help: "STANDARD (held), UNARMED (intrinsic, by Martial rank — never equipped) or IMPROVISED (generated profile)." },
       { key: "equipmentRole", label: "Equipment role", group: "Identity", input: "select", vocabulary: "equipmentRoles", required: true, help: "A Shield is explicit — never recognized by name. Shield + Weapon is not Dual Wielding." },
-      { key: "martialRankKey", label: "Martial rank (Unarmed only)", group: "Identity", input: "token", required: false, help: "Only an Unarmed profile names the exact Martial rank it belongs to." },
+      { key: "martialRankKey", label: "Martial rank (Unarmed only)", group: "Identity", input: "contentToken", options: "allRanks", required: false, help: "Only an Unarmed profile names the exact Martial rank it belongs to." },
       { key: "exampleForms", label: "Example forms", group: "Identity", input: "textList", required: false, help: "Descriptive forms (katana, saber …). A form never has its own mechanics." },
       { key: "category", label: "Category", group: "Profile", input: "nullableSelect", vocabulary: "weaponCategories", required: false, help: "General role only — never AP, damage, Power or handedness." },
       { key: "handedness", label: "Handedness", group: "Profile", input: "nullableSelect", vocabulary: "weaponHandedness", required: false, help: "Leave unset only where canon authors none (the profile is then shown but never equipped)." },
@@ -369,7 +387,7 @@ export const EQUIPMENT_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescrip
     purpose: "One exact Weapon Move: its own AP and MP, structured damage profiles, targeting and resolution. The Weapon names this exact revision in its Moveset; the Attack names only its Weapon family (no circular reference).",
     fields: [
       { key: "moveKey", label: "Move key", group: "Identity", input: "token", required: true, help: "e.g. SLASH. Display text, never identity — two Weapons may both have a Bash." },
-      { key: "weaponFamilyKey", label: "Weapon family", group: "Identity", input: "token", required: true },
+      { key: "weaponFamilyKey", label: "Weapon family", group: "Identity", input: "contentToken", options: "weaponFamilies", required: true, help: "The Weapon family this Attack belongs to, chosen by name." },
       { key: "apCost", label: "AP cost", group: "Cost", input: "integer", required: true, help: "The Move owns its AP — never inferred from the Weapon Category." },
       { key: "mpCost", label: "MP cost", group: "Cost", input: "integer", required: true },
       { key: "damageProfiles", label: "Damage profiles", group: "Damage", input: "damageProfiles", required: true, help: "Dice (count × sides) and damage type. Several profiles are explicit selectable options — never auto-selected." },
@@ -441,7 +459,7 @@ export const RUNTIME_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescripto
   SKILL_RANK: {
     purpose: "What each rank of a ladder means for Skill checks: its bonus and whether an attempt is allowed at that rank.",
     fields: [
-      { key: "ladderKey", label: "Ladder", group: "Identity", input: "token", required: true, help: "The rank ladder these entries give meaning to." },
+      { key: "ladderKey", label: "Ladder", group: "Identity", input: "contentToken", options: "rankLadders", required: true, help: "The rank ladder these entries give meaning to, chosen by name." },
       { key: "entries", label: "Rank bonuses", group: "Ranks", input: "rows", itemLabel: "rank", required: true, columns: [{ key: "rankKey", label: "Rank", type: "token" }, { key: "bonus", label: "Bonus", type: "integer" }, { key: "attemptAllowed", label: "Attempt allowed", type: "boolean" }] },
       CORE_SOURCE,
     ],
@@ -581,7 +599,7 @@ export const REMAINING_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescrip
         item: [{ key: "", label: "Prerequisite", group: "", input: "variant", discriminator: "kind", vocabulary: "actionImprovementPrerequisites", required: true, variants: {
           LEVEL_AT_LEAST: [tok("prerequisiteKey", "Key"), n("minimum", "Minimum Level")],
           STAT_AT_LEAST: [tok("prerequisiteKey", "Key"), sel("stat", "Stat", "prowessStats"), n("minimum", "Minimum")],
-          SKILL_RANK_AT_LEAST: [tok("prerequisiteKey", "Key"), ln("skillKey", "Skill (canonical key)"), tok("minimumRank", "Minimum rank")],
+          SKILL_RANK_AT_LEAST: [tok("prerequisiteKey", "Key"), { key: "skillKey", label: "Skill", group: "", input: "contentToken", options: "skills", required: true, help: "Chosen by name; the Skill's permanent key is stored." }, { key: "minimumRank", label: "Minimum rank", group: "", input: "contentToken", options: "skillRanks", required: true }],
           AFFINITY_RANK_AT_LEAST: [tok("prerequisiteKey", "Key"), { key: "affinity", label: "Affinity", group: "", input: "reference", refKind: "AFFINITY", required: true }, sel("minimumRank", "Minimum rank", "affinityRanks")],
         } }],
       },
@@ -676,7 +694,7 @@ export const REMAINING_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescrip
   ABILITY_CONSTRUCTION_RULE: {
     purpose: "How Spells and Maneuvers are built: slot formulas, the Arcane and Martial capacity tracks, Signature Ability slots and Trait exchanges. Engine policies stay available as advanced data.",
     fields: [
-      { ...tok("rankLadder", "Rank ladder", "The Skill rank ladder the capacity tracks read."), group: "General" },
+      { key: "rankLadder", label: "Rank ladder", group: "General", input: "contentToken", options: "rankLadders", required: true, help: "The Skill rank ladder the capacity tracks read, chosen by name." },
       {
         key: "formulas", label: "Construction formulas", group: "Formulas", input: "group", required: true,
         fields: ["remainingEffects", "effectiveTraits", "maximumTrades", "signatureProjected", "signatureAvailable"].map((slot) => ({
@@ -687,7 +705,7 @@ export const REMAINING_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescrip
       {
         key: "spell", label: "Spell construction", group: "Spells", input: "group", required: true,
         fields: [
-          { key: "arcaneAuthority", label: "Arcane Authority track", group: "", input: "group", required: true, fields: [ln("skillKey", "Skill (canonical key)"), tok("minimumRank", "Minimum rank"), { key: "ranks", label: "Capacity by rank", group: "", input: "rows", itemLabel: "rank", required: true, columns: [{ key: "rankKey", label: "Rank", type: "token" }, { key: "effectCapacity", label: "Effects", type: "integer" }, { key: "traitCapacity", label: "Traits", type: "integer" }] }] },
+          { key: "arcaneAuthority", label: "Arcane Authority track", group: "", input: "group", required: true, fields: [{ key: "skillKey", label: "Skill", group: "", input: "contentToken", options: "skills", required: true, help: "Chosen by name; the Skill's permanent key is stored." }, { key: "minimumRank", label: "Minimum rank", group: "", input: "contentToken", options: "skillRanks", required: true }, { key: "ranks", label: "Capacity by rank", group: "", input: "rows", itemLabel: "rank", required: true, columns: [{ key: "rankKey", label: "Rank", type: "token" }, { key: "effectCapacity", label: "Effects", type: "integer" }, { key: "traitCapacity", label: "Traits", type: "integer" }] }] },
           { key: "affinityAuthority", label: "Affinity Authority", group: "", input: "group", required: true, fields: [tok("capacitySource", "Capacity from")] },
           { key: "castingConditions", label: "Casting Conditions", group: "", input: "group", required: true, fields: [tok("capacitySource", "Capacity from"), { key: "ranks", label: "Capacity by rank", group: "", input: "rows", itemLabel: "rank", required: true, columns: [{ key: "rankKey", label: "Rank", type: "token" }, { key: "capacity", label: "Capacity", type: "integer" }] }] },
           n("minimumEffects", "Minimum Effects"),
@@ -697,7 +715,7 @@ export const REMAINING_KIND_DESCRIPTORS: Readonly<Record<string, ContractDescrip
       {
         key: "maneuver", label: "Maneuver construction", group: "Maneuvers", input: "group", required: true,
         fields: [
-          { key: "martial", label: "Martial track", group: "", input: "group", required: true, fields: [ln("skillKey", "Skill (canonical key)"), tok("minimumRank", "Minimum rank"), { key: "ranks", label: "By rank", group: "", input: "rows", itemLabel: "rank", required: true, columns: [{ key: "rankKey", label: "Rank", type: "token" }, { key: "martialRankValue", label: "Rank value", type: "integer" }, { key: "effectCapacity", label: "Effects", type: "integer" }, { key: "traitCapacity", label: "Traits", type: "integer" }, { key: "conditionCapacity", label: "Conditions", type: "integer" }] }] },
+          { key: "martial", label: "Martial track", group: "", input: "group", required: true, fields: [{ key: "skillKey", label: "Skill", group: "", input: "contentToken", options: "skills", required: true, help: "Chosen by name; the Skill's permanent key is stored." }, { key: "minimumRank", label: "Minimum rank", group: "", input: "contentToken", options: "skillRanks", required: true }, { key: "ranks", label: "By rank", group: "", input: "rows", itemLabel: "rank", required: true, columns: [{ key: "rankKey", label: "Rank", type: "token" }, { key: "martialRankValue", label: "Rank value", type: "integer" }, { key: "effectCapacity", label: "Effects", type: "integer" }, { key: "traitCapacity", label: "Traits", type: "integer" }, { key: "conditionCapacity", label: "Conditions", type: "integer" }] }] },
           n("minimumEffects", "Minimum Effects"),
           flag("foundationRequired", "A foundation is required"),
           { key: "traitExchange", label: "Trait exchange", group: "", input: "group", nullable: true, required: false, fields: [n("effectSlotsPerExchange", "Effect slots given up"), n("traitSlotsPerExchange", "Trait slots gained"), n("minimumEffectsRemaining", "Effects that must remain")] },
@@ -769,20 +787,29 @@ export const RULES_AUTHORING_DESCRIPTORS: Readonly<Record<string, ContractDescri
           { key: "contributionKey", label: "Addition name", group: "", input: "token", plainWords: true, required: true, placeholder: "PER_STR" },
           { key: "valueKey", label: "Adds to the value", group: "", input: "contentToken", options: "calculatedValues", required: true },
           { key: "amount", label: "Amount", group: "", input: "coreFormula", sources: "benefitAmountSourceKinds", required: true },
+          {
+            key: "condition", label: "Only in a situation (optional)", group: "", input: "group", nullable: true, required: false,
+            help: "A situational bonus is shown with its condition and never added to the total.",
+            fields: [{ ...tok("conditionKey", "Situation name"), plainWords: true } as FieldDescriptor, { key: "text", label: "When it applies", group: "", input: "text", required: true }],
+          },
         ],
       },
       { key: "grantedActions", label: "Grants Actions", group: "Benefit", input: "refList", refKind: "ACTION", itemLabel: "Action", required: false },
       {
-        // R08: further prerequisites, in the Action-improvement grammar. The sheet does not evaluate them yet, so a benefit
-        // with any is not applied there (its entry page says so).
-        key: "prerequisites", label: "Further prerequisites", group: "When it applies", input: "list", itemLabel: "Prerequisite", required: false,
-        help: "Beyond the rank above. Leave empty when the rank is the only requirement.",
-        item: [{ key: "", label: "Prerequisite", group: "", input: "variant", discriminator: "kind", vocabulary: "actionImprovementPrerequisites", required: true, variants: {
+        // R08: prerequisite GROUPS in the Action-improvement grammar — every group must hold; a group holds when ALL (or
+        // ANY) of its prerequisites are met. The sheet evaluates them for each Character.
+        key: "prerequisiteGroups", label: "Further prerequisites", group: "When it applies", input: "list", itemLabel: "Prerequisite group", required: false,
+        help: "Beyond the rank above. Leave empty when the rank is the only requirement. Every group must be met.",
+        item: [
+          { ...tok("groupKey", "Group name"), plainWords: true } as FieldDescriptor,
+          sel("mode", "The group is met when", "prerequisiteGroupModes"),
+          { key: "prerequisites", label: "Prerequisites", group: "", input: "list", itemLabel: "Prerequisite", required: true, item: [{ key: "", label: "Prerequisite", group: "", input: "variant", discriminator: "kind", vocabulary: "actionImprovementPrerequisites", required: true, variants: {
           LEVEL_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, n("minimum", "Minimum Level")],
           STAT_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, sel("stat", "Stat", "prowessStats"), n("minimum", "Minimum")],
-          SKILL_RANK_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, ln("skillKey", "Skill (its canonical key)"), { key: "minimumRank", label: "Minimum rank", group: "", input: "contentToken", options: "skillRanks", required: true }],
+          SKILL_RANK_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, { key: "skillKey", label: "Skill", group: "", input: "contentToken", options: "skills", required: true, help: "Chosen by name; the Skill's permanent key is stored." }, { key: "minimumRank", label: "Minimum rank", group: "", input: "contentToken", options: "skillRanks", required: true }],
           AFFINITY_RANK_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, { key: "affinity", label: "Affinity", group: "", input: "reference", refKind: "AFFINITY", required: true }, sel("minimumRank", "Minimum rank", "affinityRanks")],
-        } }],
+} }] },
+        ],
       },
       { key: "source", label: "Source", group: "Source", input: "source", required: true },
     ],
@@ -847,6 +874,36 @@ export const REFERENCE_FAMILY_DESCRIPTORS: Readonly<Record<string, ContractDescr
       { key: "source", label: "Source", group: "Source", input: "source", required: true },
     ],
   },
+  AMMUNITION: {
+    preview: "SAMPLE_INPUTS",
+    previewSample: "SAMPLE_WEAPON",
+    purpose: "A kind of ammunition for weapons with the Ammo property: which Weapon families use it and how much an attack (or a Burst) consumes. A weapon's Loading and Reload stay its own properties. Reference and reload preview — play does not count ammunition yet.",
+    fields: [
+      idTok("ammoKey", "Ammunition name used by other rules", "STANDARD_ROUNDS"),
+      { key: "weaponFamilies", label: "Weapon families it fits", group: "Use", input: "contentTokenList", options: "weaponFamilies", required: true },
+      { key: "perAttack", label: "Rounds used per attack", group: "Use", input: "integer", required: true },
+      optInt("burstPerAttack", "Rounds used per Burst (leave empty if not stated)", "Use"),
+      txt("effect", "What it does", "Use"),
+      txtList("notes", "Notes", "Use"),
+      { key: "source", label: "Source", group: "Source", input: "source", required: true },
+    ],
+  },
+  WEAPON_MODIFICATION: {
+    preview: "SAMPLE_INPUTS",
+    previewSample: "SAMPLE_WEAPON",
+    purpose: "A weapon attachment or crafted modification: the Weapon families it fits, the modification slots it uses and what it changes (Reload AP, Loading, to-hit, damage dice, Loud radius, range), each with its written text. Reference and preview on a sample weapon — nothing fits it to a Character's weapon yet.",
+    fields: [
+      idTok("modificationKey", "Modification name used by other rules", "EXTENDED_MAGAZINE"),
+      { key: "weaponFamilies", label: "Weapon families it fits (leave empty for any)", group: "Use", input: "contentTokenList", options: "weaponFamilies", required: false },
+      { key: "slotCost", label: "Modification slots it uses", group: "Use", input: "integer", required: true },
+      {
+        key: "changes", label: "What it changes", group: "Changes", input: "list", itemLabel: "Change", required: true,
+        item: [ptok("changeKey", "Change name"), sel("kind", "Changes", "weaponModificationChangeKinds"), { key: "amount", label: "By how much (negative reduces; empty for a written-only change)", group: "", input: "integer", required: false }, { key: "text", label: "As written", group: "", input: "text", required: true }],
+      },
+      txtList("requirements", "Requirements", "Use"),
+      { key: "source", label: "Source", group: "Source", input: "source", required: true },
+    ],
+  },
   STATUS_CONDITION: {
     purpose: "A Condition placed on a creature (Burning, Stunned …): what it does, how long it lasts, how it is removed, when it acts and whether it stacks. Reference — play does not apply Conditions yet.",
     fields: [
@@ -859,6 +916,11 @@ export const REFERENCE_FAMILY_DESCRIPTORS: Readonly<Record<string, ContractDescr
       { key: "removal", label: "How it is removed", group: "Duration", input: "textList", required: true, help: "At least one way to end it." },
       { key: "ongoingTiming", label: "When it acts", group: "Duration", input: "select", vocabulary: "conditionOngoingTimings", required: true },
       { key: "stacking", label: "Stacking", group: "Duration", input: "select", vocabulary: "conditionStacking", required: true },
+      {
+        key: "triggers", label: "Triggers", group: "Triggers", input: "list", itemLabel: "Trigger", required: false,
+        help: "When it acts or is applied: on a hit, on a failed Save, on entering an area, at the start or end of a turn, or at the end of the Round.",
+        item: [ptok("triggerKey", "Trigger name"), sel("when", "When", "conditionTriggers"), { key: "resistStat", label: "Save Stat (for a failed-Save trigger)", group: "", input: "nullableSelect", vocabulary: "prowessStats", required: false }, { key: "text", label: "What happens", group: "", input: "text", required: true }],
+      },
       { key: "source", label: "Source", group: "Source", input: "source", required: true },
     ],
   },
@@ -879,8 +941,25 @@ export const REFERENCE_FAMILY_DESCRIPTORS: Readonly<Record<string, ContractDescr
       optInt("sustainApPerRound", "Sustain AP each round (leave empty for none)", "Costs"),
       { key: "countsTowardConcentration", label: "Counts toward Concentration", group: "Costs", input: "triState", required: false, yes: "Yes", no: "No", unknown: "Not decided (open question)" },
       { key: "maxActive", label: "Most active at once", group: "Limits", input: "optionalFormula", sources: "summonLimitSourceKinds", required: false, presentLabel: "Calculated from the caster's Stats", absentLabel: "No stated limit" },
-      txt("actionEconomy", "How it acts", "Limits"),
-      txtList("restrictions", "Restrictions", "Limits"),
+      txt("actionEconomy", "How it acts (written)", "Limits"),
+      {
+        key: "ownership", label: "Who acts and who pays", group: "Actions and resources", input: "group", required: true,
+        help: "From the Summoning rules: no Summon gains actions unless its type or a Trait grants them.",
+        fields: [
+          sel("actionModel", "Action model", "summonActionModels"),
+          sel("actsWhen", "When it acts", "summonActionTimings"),
+          { key: "baseAp", label: "Its own AP each round (leave empty if it has none)", group: "", input: "integer", required: false },
+          sel("apOwner", "Whose AP it uses", "summonResourceOwners"),
+          sel("hpOwner", "Whose HP", "summonResourceOwners"),
+          sel("mpOwner", "Whose MP", "summonResourceOwners"),
+          { key: "counterActions", label: "Counter Actions", group: "", input: "triState", required: false, yes: "Can take Counter Actions", no: "Cannot take Counter Actions", unknown: "Not stated" },
+          sel("dismissal", "Dismissal", "summonDismissals"),
+        ],
+      },
+      {
+        key: "restrictions", label: "Restrictions", group: "Actions and resources", input: "list", itemLabel: "Restriction", required: false,
+        item: [ptok("restrictionKey", "Restriction name"), sel("kind", "Kind", "summonRestrictionKinds"), { key: "text", label: "As written", group: "", input: "text", required: true }],
+      },
       txtList("openQuestions", "Open questions", "Limits"),
       { key: "source", label: "Source", group: "Source", input: "source", required: true },
     ],
@@ -942,15 +1021,23 @@ const MAGE_ART_V2_DESCRIPTOR: ContractDescriptor | null =
   MAGE_ART_V1 === null
     ? null
     : {
-        purpose: `${MAGE_ART_V1.purpose} Version 2 also records how each mode scales and the benefits and maintenance exceptions of the Art.`,
+        preview: "SAMPLE_INPUTS",
+        previewSample: "AT_LEVEL",
+        purpose: `${MAGE_ART_V1.purpose} Version 2 also records how each mode scales (level tables or Stat formulas), the benefits the Art grants and its maintenance exceptions, each with its written text.`,
         fields: [
           ...MAGE_ART_V1.fields.map((f): FieldDescriptor =>
             f.key === "modes" && f.input === "list"
-              ? { ...f, item: [...f.item, { key: "scaling", label: "Scaling steps", group: "", input: "list", itemLabel: "Step", required: false, item: [ptok("stepKey", "Step name"), ln("label", "Label"), { key: "text", label: "What changes", group: "", input: "text", required: true }] }] }
+              ? { ...f, item: [...f.item, { key: "scaling", label: "How it scales", group: "", input: "list", itemLabel: "Scaling", required: false, item: [{ key: "", label: "Scaling", group: "", input: "mageArtScaling", required: true }] }] }
               : f,
           ).filter((f) => f.key !== "source"),
-          { key: "grantedBenefits", label: "Benefits it grants", group: "Benefits", input: "textList", required: false },
-          { key: "maintenanceExceptions", label: "Maintenance exceptions", group: "Benefits", input: "textList", required: false },
+          {
+            key: "grantedBenefits", label: "Benefits it grants", group: "Benefits", input: "list", itemLabel: "Benefit", required: false,
+            item: [ptok("benefitKey", "Benefit name"), sel("kind", "Kind", "mageArtBenefitKinds"), { key: "subject", label: "What it applies to (for example Suffocation, Awareness Checks)", group: "", input: "text", nullable: true, required: false }, { key: "text", label: "As written", group: "", input: "text", required: true }],
+          },
+          {
+            key: "maintenanceExceptions", label: "Maintenance exceptions", group: "Benefits", input: "list", itemLabel: "Exception", required: false,
+            item: [ptok("exceptionKey", "Exception name"), sel("kind", "Kind", "mageArtExceptionKinds"), { key: "text", label: "As written", group: "", input: "text", required: true }],
+          },
           ...MAGE_ART_V1.fields.filter((f) => f.key === "source"),
         ],
       };
@@ -1089,7 +1176,11 @@ export function initialFieldValue(field: FieldDescriptor): unknown {
     case "triState":
       return null;
     case "contentToken":
-      return "";
+      return field.required ? "" : null;
+    case "contentTokenList":
+      return [];
+    case "mageArtScaling":
+      return { scalingKey: "", label: "", unit: null, byLevel: [], formula: null, text: "" };
     case "missionRule":
       return { ruleKey: "", shape: "", rollTable: null, clock: null, intel: null, points: null, relatedRules: [], source: { locators: [], conflicts: [] } };
     case "coreFormula":

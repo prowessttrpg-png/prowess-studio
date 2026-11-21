@@ -16,6 +16,7 @@ import {
   type SkillBenefitPayload,
 } from "./index.js";
 import { advancementFixture, type AdvancementFixture } from "./testing/advancement-fixtures.js";
+import { buildActionDirectory } from "./card/action.js";
 import { characterFixture, type FixtureRow } from "./testing/character-fixtures.js";
 
 /**
@@ -57,9 +58,9 @@ const benefit = (over: Partial<SkillBenefitPayload> = {}): SkillBenefitPayload =
   benefitKey: "ATHLETICS_TRAINED_THROW",
   skill: ATHLETICS,
   minimumRankKey: "TRAINED",
-  contributions: [{ contributionKey: "PER_STR", valueKey: "THROW_DISTANCE", amount: { expression: "5 * str", rounding: "NONE", minimum: null, maximum: null, unit: null, variables: [{ variable: "str", source: { kind: "STAT", stat: "STR" } }] } }],
+  contributions: [{ contributionKey: "PER_STR", valueKey: "THROW_DISTANCE", amount: { expression: "5 * str", rounding: "NONE", minimum: null, maximum: null, unit: null, variables: [{ variable: "str", source: { kind: "STAT", stat: "STR" } }] }, condition: null }],
   grantedActions: [],
-  prerequisites: [],
+  prerequisiteGroups: [],
   writtenBenefit: "Increase Throw Distance by 5 ft per STR.",
   source: { locators: ["s52"], conflicts: [] },
   ...over,
@@ -67,7 +68,7 @@ const benefit = (over: Partial<SkillBenefitPayload> = {}): SkillBenefitPayload =
 const EXPERT_THROW = benefit({
   benefitKey: "ATHLETICS_EXPERT_THROW",
   minimumRankKey: "EXPERT",
-  contributions: [{ contributionKey: "BASE_PLUS_FIVE", valueKey: "THROW_DISTANCE", amount: { expression: "5", rounding: "NONE", minimum: null, maximum: null, unit: null, variables: [] } }],
+  contributions: [{ contributionKey: "BASE_PLUS_FIVE", valueKey: "THROW_DISTANCE", amount: { expression: "5", rounding: "NONE", minimum: null, maximum: null, unit: null, variables: [] }, condition: null }],
   writtenBenefit: "+5 to Base Throw Distance.",
 });
 export const CONCENTRATION: ConcentrationRulePayload = {
@@ -127,18 +128,29 @@ describe("RULES-WO1 SKILL_BENEFIT v1", () => {
     ["a benefit of a non-Skill", benefit({ skill: f0.ref("affinity.evocation") }), "/prowessDefinition/payload/skill/definitionKind"],
     ["a granted non-Action", benefit({ grantedActions: [ATHLETICS] }), "/prowessDefinition/payload/grantedActions/0/definitionKind"],
     ["an empty written benefit", benefit({ writtenBenefit: " " }), "/prowessDefinition/payload/writtenBenefit"],
-    ["a contribution reading another value", benefit({ contributions: [{ contributionKey: "X", valueKey: "THROW_DISTANCE", amount: { expression: "c", rounding: "NONE", minimum: null, maximum: null, unit: null, variables: [{ variable: "c", source: { kind: "CALCULATED_VALUE", valueKey: "CARRY_CAPACITY" } }] } }] }), "/prowessDefinition/payload/contributions/0/amount/variables/0/source/kind"],
+    ["a contribution reading another value", benefit({ contributions: [{ contributionKey: "X", valueKey: "THROW_DISTANCE", amount: { expression: "c", rounding: "NONE", minimum: null, maximum: null, unit: null, variables: [{ variable: "c", source: { kind: "CALCULATED_VALUE", valueKey: "CARRY_CAPACITY" } }] }, condition: null }] }), "/prowessDefinition/payload/contributions/0/amount/variables/0/source/kind"],
   ])("refuses %s", (_label, payload, path) => {
     const out = validateStoredProwessDefinition(stored("SKILL", "SKILL_BENEFIT", payload));
     expect(paths(out)).toContain(path);
   });
-  it("R08: carries structured prerequisites (the Action-improvement grammar) and refuses a malformed one", () => {
-    const withPrereqs = benefit({ prerequisites: [{ prerequisiteKey: "STR_3", kind: "STAT_AT_LEAST", stat: "STR", minimum: 3 }, { prerequisiteKey: "LEVEL_2", kind: "LEVEL_AT_LEAST", minimum: 2 }] });
-    expect(codes(validateStoredProwessDefinition(stored("SKILL", "SKILL_BENEFIT", withPrereqs)))).toEqual([]);
-    const bad = { ...benefit(), prerequisites: [{ prerequisiteKey: "X", kind: "STAT_AT_LEAST", stat: "LUCK", minimum: 3 }] };
-    expect(paths(validateStoredProwessDefinition(stored("SKILL", "SKILL_BENEFIT", bad)))).toContain("/prowessDefinition/payload/prerequisites/0/stat");
-    const twice = { ...benefit(), prerequisites: [{ prerequisiteKey: "X", kind: "LEVEL_AT_LEAST", minimum: 2 }, { prerequisiteKey: "X", kind: "LEVEL_AT_LEAST", minimum: 3 }] };
-    expect(paths(validateStoredProwessDefinition(stored("SKILL", "SKILL_BENEFIT", twice)))).toContain("/prowessDefinition/payload/prerequisites/1/prerequisiteKey");
+  it("R08: carries grouped prerequisites (the Action-improvement grammar, ALL / ANY) and refuses malformed ones", () => {
+    const groups = [
+      { groupKey: "STRONG", mode: "ALL", prerequisites: [{ prerequisiteKey: "STR_3", kind: "STAT_AT_LEAST", stat: "STR", minimum: 3 }, { prerequisiteKey: "LEVEL_2", kind: "LEVEL_AT_LEAST", minimum: 2 }] },
+      { groupKey: "TRAINED_ELSEWHERE", mode: "ANY", prerequisites: [{ prerequisiteKey: "SURVIVAL", kind: "SKILL_RANK_AT_LEAST", skillKey: "test.m6wo3.skill.survival", minimumRank: "TRAINED" }, { prerequisiteKey: "STEALTH", kind: "SKILL_RANK_AT_LEAST", skillKey: "test.m6wo3.skill.stealth", minimumRank: "TRAINED" }] },
+    ];
+    expect(codes(validateStoredProwessDefinition(stored("SKILL", "SKILL_BENEFIT", { ...benefit(), prerequisiteGroups: groups })))).toEqual([]);
+    const bad = (g: unknown) => paths(validateStoredProwessDefinition(stored("SKILL", "SKILL_BENEFIT", { ...benefit(), prerequisiteGroups: g })));
+    expect(bad([{ groupKey: "G", mode: "ALL", prerequisites: [{ prerequisiteKey: "X", kind: "STAT_AT_LEAST", stat: "LUCK", minimum: 3 }] }])).toContain("/prowessDefinition/payload/prerequisiteGroups/0/prerequisites/0/stat");
+    expect(bad([{ groupKey: "G", mode: "SOME", prerequisites: [{ prerequisiteKey: "X", kind: "LEVEL_AT_LEAST", minimum: 2 }] }])).toContain("/prowessDefinition/payload/prerequisiteGroups/0/mode");
+    expect(bad([{ groupKey: "G", mode: "ALL", prerequisites: [] }])).toContain("/prowessDefinition/payload/prerequisiteGroups/0/prerequisites");
+    // A prerequisite name is unique across the benefit's groups.
+    expect(bad([{ groupKey: "A", mode: "ALL", prerequisites: [{ prerequisiteKey: "X", kind: "LEVEL_AT_LEAST", minimum: 2 }] }, { groupKey: "B", mode: "ALL", prerequisites: [{ prerequisiteKey: "X", kind: "LEVEL_AT_LEAST", minimum: 3 }] }])).toContain("/prowessDefinition/payload/prerequisiteGroups/1/prerequisites/0/prerequisiteKey");
+  });
+  it("R08: a situational addition carries its condition", () => {
+    const situational = benefit({ contributions: [{ contributionKey: "THROWING", valueKey: "THROW_DISTANCE", amount: { expression: "5", rounding: "NONE", minimum: null, maximum: null, unit: null, variables: [] }, condition: { conditionKey: "WHEN_THROWING_UPHILL", text: "Only when throwing uphill (illustrative)." } }] });
+    expect(codes(validateStoredProwessDefinition(stored("SKILL", "SKILL_BENEFIT", situational)))).toEqual([]);
+    const blank = { ...situational, contributions: [{ ...situational.contributions[0]!, condition: { conditionKey: "X", text: " " } }] };
+    expect(paths(validateStoredProwessDefinition(stored("SKILL", "SKILL_BENEFIT", blank)))).toContain("/prowessDefinition/payload/contributions/0/condition/text");
   });
 });
 
@@ -207,13 +219,25 @@ describe("RULES-WO1 evaluation: values, Skill benefits and the Character sheet",
     ]);
   });
 
-  it("R08: a benefit with further prerequisites is never applied on the sheet yet, and says so", () => {
-    const gated = benefit({ prerequisites: [{ prerequisiteKey: "STR_3", kind: "STAT_AT_LEAST", stat: "STR", minimum: 3 }] });
-    const out = evaluateCalculatedValues({ values, benefits: [{ definition: null, payload: gated }], ladder, facts: facts("TRAINED") });
-    const throwDistance = out.values.find((v) => v.valueKey === "THROW_DISTANCE")!;
-    expect(throwDistance.contributions.map((c) => [c.benefitKey, c.applies, c.amount])).toEqual([["ATHLETICS_TRAINED_THROW", false, null]]);
-    expect(throwDistance.total).toBe(0);
-    expect(out.issues.map((i) => i.code)).toEqual([V.PREREQUISITES_NOT_EVALUATED]);
+  it("R08: a gated benefit applies only when the caller decided it is eligible; undecided never applies", () => {
+    const gated = benefit({ prerequisiteGroups: [{ groupKey: "G", mode: "ALL", prerequisites: [{ prerequisiteKey: "STR_3", kind: "STAT_AT_LEAST", stat: "STR", minimum: 3 }] }] });
+    const at = (eligibility?: Map<string, "ELIGIBLE" | "INELIGIBLE" | "UNRESOLVED">) => evaluateCalculatedValues({ values, benefits: [{ definition: null, payload: gated }], ladder, facts: facts("TRAINED"), eligibility });
+    expect(at(new Map([["ATHLETICS_TRAINED_THROW", "ELIGIBLE"]])).values.find((v) => v.valueKey === "THROW_DISTANCE")!.total).toBe(20);
+    expect(at(new Map([["ATHLETICS_TRAINED_THROW", "INELIGIBLE"]])).values.find((v) => v.valueKey === "THROW_DISTANCE")!.total).toBe(0);
+    const undecided = at();
+    expect(undecided.values.find((v) => v.valueKey === "THROW_DISTANCE")!.contributions[0]).toMatchObject({ applies: false, eligibility: "UNRESOLVED" });
+    expect(undecided.issues.map((i) => i.code)).toEqual([V.PREREQUISITES_NOT_EVALUATED]);
+  });
+
+  it("R08: a conditional bonus is computed and shown with its condition, never added to the total", () => {
+    const situational = benefit({ benefitKey: "ATHLETICS_UPHILL", contributions: [{ contributionKey: "UPHILL", valueKey: "THROW_DISTANCE", amount: { expression: "5", rounding: "NONE", minimum: null, maximum: null, unit: null, variables: [] }, condition: { conditionKey: "UPHILL", text: "Only uphill." } }] });
+    const out = evaluateCalculatedValues({ values, benefits: [{ definition: null, payload: benefit() }, { definition: null, payload: situational }], ladder, facts: facts("TRAINED") });
+    const t = out.values.find((v) => v.valueKey === "THROW_DISTANCE")!;
+    expect(t.total).toBe(20);
+    expect(t.contributions.map((c) => [c.benefitKey, c.applies, c.amount, c.condition?.conditionKey ?? null])).toEqual([
+      ["ATHLETICS_TRAINED_THROW", true, 20, null],
+      ["ATHLETICS_UPHILL", true, 5, "UPHILL"],
+    ]);
   });
 
   it("a value reading another value is evaluated after it; a cycle is refused, not broken", () => {
@@ -255,6 +279,30 @@ describe("RULES-WO1 evaluation: values, Skill benefits and the Character sheet",
       ["THROW_DISTANCE", "OWNER_PROVIDED", 5 * str],
     ]);
     expect(sheet.issues).toEqual([]);
+  });
+
+  it("R08: eligible and ineligible Characters — prerequisite groups decide each benefit; Action grants reach the sheet and the Action Directory", () => {
+    const sprint = f0.ref("action.sprint");
+    const grant = (key: string, rank: string, groups: unknown[]): FixtureRow => ({ canonicalKey: `test.rules_wo1.benefit.${key.toLowerCase()}`, definitionKind: "SKILL_BENEFIT", schemaVersion: 1, payload: { ...benefit({ benefitKey: key, minimumRankKey: rank, grantedActions: [sprint] }), contributions: [], prerequisiteGroups: groups } as unknown as Record<string, unknown> });
+    const strAtLeast = (n: number) => ({ prerequisiteKey: `STR_${n}`, kind: "STAT_AT_LEAST", stat: "STR", minimum: n });
+    const f = advancementFixture({ extra: [...rows(), grant("EASY", "TRAINED", [{ groupKey: "G", mode: "ALL", prerequisites: [strAtLeast(1)] }]), grant("HARD", "TRAINED", [{ groupKey: "G", mode: "ALL", prerequisites: [strAtLeast(99)] }]), grant("EITHER", "TRAINED", [{ groupKey: "G", mode: "ANY", prerequisites: [strAtLeast(99), { prerequisiteKey: "LEVEL_1", kind: "LEVEL_AT_LEAST", minimum: 1 }] }]), grant("EXPERT_ONLY", "EXPERT", [])] });
+    const profile = profileOf(f);
+    const sheet = buildCharacterSheetMechanics({ bundle: f.bundle, ruleset: f.ruleset, profile });
+    const byKey = Object.fromEntries((sheet.skillBenefits ?? []).map((b) => [b.benefitKey, b]));
+    expect(byKey.EASY).toMatchObject({ rankMet: true, eligibility: "ELIGIBLE", status: "GRANTED" });
+    expect(byKey.HARD).toMatchObject({ rankMet: true, eligibility: "INELIGIBLE", status: "INELIGIBLE" });
+    expect(byKey.HARD!.groups[0]!.prerequisites[0]).toMatchObject({ prerequisiteKey: "STR_99", satisfied: false });
+    expect(byKey.EITHER).toMatchObject({ eligibility: "ELIGIBLE", status: "GRANTED" });
+    expect(byKey.EXPERT_ONLY).toMatchObject({ rankMet: false, status: "RANK_NOT_REACHED" });
+    expect(byKey.EASY!.grantedActions).toEqual([{ action: sprint, state: "PINNED", actionKey: expect.any(String) }]);
+    const card = buildActionDirectory({ bundle: f.bundle, profile, context: { characterId: "00000000-0000-4000-8000-0000000000c1", characterReleaseId: "00000000-0000-4000-8000-0000000000a1", rulesetProvenance: f.bundle.rulesetProvenance, names: {} } }).cards.find((c) => c.section.action.entityId === sprint.entityId)!;
+    expect(card.section.grantedBySkills?.map((g) => [g.benefitKey, g.status])).toEqual([["EASY", "GRANTED"], ["EITHER", "GRANTED"], ["EXPERT_ONLY", "RANK_NOT_REACHED"], ["HARD", "INELIGIBLE"]]);
+    // The earlier Release (no Skill benefits): no skillBenefits key and the same card without grants.
+    const earlier = advancementFixture();
+    const earlierProfile = profileOf(earlier);
+    expect("skillBenefits" in buildCharacterSheetMechanics({ bundle: earlier.bundle, ruleset: earlier.ruleset, profile: earlierProfile })).toBe(false);
+    const earlierCard = buildActionDirectory({ bundle: earlier.bundle, profile: earlierProfile, context: { characterId: "00000000-0000-4000-8000-0000000000c1", characterReleaseId: "00000000-0000-4000-8000-0000000000a1", rulesetProvenance: earlier.bundle.rulesetProvenance, names: {} } }).cards.find((c) => c.section.actionKey === card.section.actionKey)!;
+    expect("grantedBySkills" in earlierCard.section).toBe(false);
   });
 
   it("without published values the sheet is exactly as before (no calculatedValues key; Carry unavailable)", () => {

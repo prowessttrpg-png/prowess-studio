@@ -227,6 +227,18 @@ function FieldValue({ field, payload, context, keywordName }: { field: FieldDesc
     case "optionalSource":
     case "refList":
       return value === null || value === undefined ? <span className="gov-muted">not authored</span> : <StructuredValue value={value} path={path} context={context} />;
+    case "mageArtScaling": {
+      const sc = (value ?? {}) as { label?: string; unit?: string | null; byLevel?: Array<{ fromLevel: number; toLevel: number; value: number }> | null; formula?: { expression?: string } | null; text?: string };
+      return (
+        <span data-testid="reference-mage-art-scaling">
+          <strong>{sc.label}</strong>
+          {sc.byLevel ? ` — ${sc.byLevel.map((r) => `Level ${r.fromLevel}${r.toLevel !== r.fromLevel ? `–${r.toLevel}` : ""}: ${r.value}${sc.unit ? ` ${sc.unit}` : ""}`).join("; ")}` : ""}
+          {sc.text ? <span className="gov-muted"> ({sc.text})</span> : null}
+        </span>
+      );
+    }
+    case "contentTokenList":
+      return Array.isArray(value) && value.length > 0 ? <span>{value.map((v) => String(v).charAt(0) + String(v).slice(1).toLowerCase().replace(/_/g, " ")).join(", ")}</span> : <span className="gov-muted">none</span>;
     case "contentToken":
       return typeof value === "string" && value !== "" ? <span>{value.charAt(0) + value.slice(1).toLowerCase().replace(/_/g, " ")}</span> : <span className="gov-muted">not authored</span>;
     case "triState":

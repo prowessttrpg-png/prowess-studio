@@ -10,6 +10,7 @@ import { deepFreeze } from "../internal/plain-data.js";
 import { PROWESS_STATS, type DerivedStatistic, type ProwessStat } from "../vocabulary/core.js";
 import type { CharacterMechanicalProfile } from "./advancement.js";
 import { calculatedValuesForCharacter, type CalculatedValueResult } from "./calculated-values.js";
+import { skillBenefitsForCharacter, type SkillBenefitSummary } from "./skill-benefits.js";
 import { characterAccessSummary } from "./eligibility.js";
 import { numericCompare, rankAtLeast } from "./requirements.js";
 
@@ -101,6 +102,11 @@ export interface CharacterSheetMechanics {
    * contribution). Present ONLY when the Release publishes at least one — otherwise the sheet is byte-identical.
    */
   readonly calculatedValues?: readonly CalculatedValueResult[];
+  /**
+   * RULES-WO1 (R08): every published SKILL_BENEFIT evaluated for this Character — rank, prerequisite groups and the
+   * Actions it grants. Present ONLY when the Release publishes at least one — otherwise the sheet is byte-identical.
+   */
+  readonly skillBenefits?: readonly SkillBenefitSummary[];
   readonly signatureCapacity: number | null;
   readonly issues: readonly { readonly code: string; readonly path: string; readonly message: string }[];
 }
@@ -251,6 +257,7 @@ export function buildCharacterSheetMechanics(request: { readonly bundle: Prowess
   // RULES-WO1: authored calculated values. The one placed as the Carry maximum fills that slot (labelled by its canon
   // status on the sheet); with none published, Carry stays unavailable exactly as before.
   const calculated = calculatedValuesForCharacter({ bundle, profile });
+  const skillBenefits = skillBenefitsForCharacter({ bundle, profile });
   for (const issue of calculated.issues) issues.push(issue);
   const carryValues = calculated.values.filter((v) => v.placement === "CARRY_MAXIMUM_LOAD");
   const carryMax: SheetValue =
@@ -281,6 +288,7 @@ export function buildCharacterSheetMechanics(request: { readonly bundle: Prowess
     attunement: { maximum: unavailable(`Attunement: ${none}`), used: unavailable(`Attunement: ${none}`) },
     carry: { currentWeight: unavailable(`Carry & Weight: ${none}`), maximumLoad: carryMax },
     ...(calculated.values.length > 0 ? { calculatedValues: calculated.values } : {}),
+    ...(skillBenefits.length > 0 ? { skillBenefits } : {}),
     signatureCapacity: profile.signatureCapacity,
     issues,
   });

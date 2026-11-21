@@ -163,7 +163,10 @@ describe("M6-WO9 permanent card system contracts", () => {
     expect(evaluate.getText()).toContain('if (state !== "PINNED") status = "UNRESOLVED";');
     expect(namedFunction(evaluator, "levelResult").getText()).toContain('numericCompare(LEVEL_FACT, profile.level, ">=", q.minimum)');
     expect(namedFunction(evaluator, "statResult").getText()).toContain('numericCompare(`stat.${q.stat}`, row.final, ">=", q.minimum)');
-    expect(callsNamed(evaluate, "evaluateRankPrerequisites").length).toBe(1);
+    // RULES-WO1 moved the per-prerequisite evaluation into evaluatePrerequisiteList (shared with Skill benefits): the
+    // evaluator calls it once, and it calls the one M6-WO4 rank evaluation once — the same single path as before.
+    expect(callsNamed(evaluate, "evaluatePrerequisiteList").length).toBe(1);
+    expect(callsNamed(namedFunction(evaluator, "evaluatePrerequisiteList"), "evaluateRankPrerequisites").length).toBe(1);
     // ACTION Definitions author no prerequisites: no eligibility rule is invented for them.
     expect(read(CARD + "action.ts")).toContain('eligibility: { status: "NO_REQUIREMENTS" as const },');
   });

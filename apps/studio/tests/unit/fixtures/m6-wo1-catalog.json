@@ -100,6 +100,20 @@
       "authorable": true
     },
     {
+      "definitionKind": "AMMUNITION",
+      "systemFamily": "EQUIPMENT",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
       "definitionKind": "ANCESTRY",
       "systemFamily": "ANCESTRY",
       "branch": null,
@@ -699,6 +713,20 @@
       ],
       "authoringSchemaVersion": 1,
       "authorable": true
+    },
+    {
+      "definitionKind": "WEAPON_MODIFICATION",
+      "systemFamily": "EQUIPMENT",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
     }
   ],
   "systemFamilies": [
@@ -1218,6 +1246,83 @@
     "metamagicForms": [
       "OPTION",
       "TRAIT"
+    ],
+    "conditionTriggers": [
+      "ON_HIT",
+      "ON_FAILED_SAVE",
+      "ON_ENTERING_AREA",
+      "START_OF_TURN",
+      "END_OF_TURN",
+      "END_OF_ROUND"
+    ],
+    "summonActionModels": [
+      "DEPENDENT",
+      "INDEPENDENT",
+      "PASSIVE",
+      "TEMPLATE_BASED",
+      "SELF_BOUND",
+      "SPLIT_RESOURCE"
+    ],
+    "summonActionTimings": [
+      "CASTER_TURN",
+      "END_OF_CASTER_TURN",
+      "AUTOMATIC_AT_TRIGGER",
+      "NONE"
+    ],
+    "summonResourceOwners": [
+      "SUMMON",
+      "CASTER",
+      "SPLIT",
+      "NONE"
+    ],
+    "summonRestrictionKinds": [
+      "NO_ACTIONS_WITHOUT_TRAIT",
+      "NO_EXTRA_ACTIONS",
+      "NO_COUNTER_ACTIONS",
+      "NO_IMPROVISATION",
+      "NO_MP_REFUND",
+      "MAX_ACTIVE",
+      "WRITTEN_ONLY"
+    ],
+    "summonDismissals": [
+      "FREE_ACTION",
+      "ACTION",
+      "CANNOT_DISMISS",
+      "SPECIAL"
+    ],
+    "mageArtBenefitKinds": [
+      "IMMUNITY",
+      "ADVANTAGE",
+      "SENSE",
+      "STAT_SUBSTITUTION",
+      "RANGE_MULTIPLIER",
+      "COUNTER_ACTION",
+      "RESOURCE",
+      "WRITTEN_ONLY"
+    ],
+    "mageArtExceptionKinds": [
+      "ACTIVE_EFFECT_ONLY_WHILE_CASTING",
+      "NO_MAINTENANCE",
+      "SPECIAL_COST",
+      "DOES_NOT_COUNT_TOWARD_LIMIT",
+      "WRITTEN_ONLY"
+    ],
+    "weaponModificationChangeKinds": [
+      "RELOAD_AP",
+      "LOADING",
+      "TO_HIT",
+      "DAMAGE_DICE",
+      "LOUD_RADIUS_FEET",
+      "RANGE_FEET",
+      "WRITTEN_ONLY"
+    ],
+    "prerequisiteGroupModes": [
+      "ALL",
+      "ANY"
+    ],
+    "mageArtScalingSourceKinds": [
+      "STAT",
+      "LEVEL"
     ]
   },
   "legacyTerms": [
@@ -1312,6 +1417,14 @@
       ],
       "preview": "CONTENT",
       "notYet": "A reference scale only."
+    },
+    "AMMUNITION": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "REFERENCE_PREVIEW",
+      "notYet": "Play does not count ammunition yet; the weapon's Loading and Reload properties are previewed with it."
     },
     "ANCESTRY": {
       "execution": "LIVE",
@@ -1427,8 +1540,8 @@
       "consumers": [
         "Rules Reference"
       ],
-      "preview": "CONTENT",
-      "notYet": "Nothing plays a Mage Art yet; its card shows as unavailable."
+      "preview": "REFERENCE_PREVIEW",
+      "notYet": "Nothing plays a Mage Art yet; its card shows as unavailable. Version 2 previews its scaling at a Level."
     },
     "MANEUVER_CONDITION": {
       "execution": "LIVE",
@@ -1555,10 +1668,11 @@
     "SKILL_BENEFIT": {
       "execution": "PARTIAL",
       "consumers": [
-        "Character sheet (value additions)"
+        "Character sheet (value additions, prerequisites, granted Actions)",
+        "Action Directory (granted Actions)"
       ],
       "preview": "AUTHORED_RULE",
-      "notYet": "Granted Actions are listed but not yet added to the Character's actions; a benefit with further prerequisites is not applied on the sheet yet."
+      "notYet": "Granted Actions are shown on the sheet and marked on their Action cards; taking the Action in play is unchanged. A situational bonus is shown with its condition, not added to the total."
     },
     "SKILL_RANK": {
       "execution": "LIVE",
@@ -1646,7 +1760,7 @@
         "Rules Reference"
       ],
       "preview": "CONTENT",
-      "notYet": "Reserved: the action economy is written on each Summon engine."
+      "notYet": "Reserved: the action model and resource ownership are structured on each Summon engine."
     },
     "SUMMON_TRAIT": {
       "execution": "REFERENCE_ONLY",
@@ -1681,6 +1795,14 @@
       ],
       "preview": "CONTENT",
       "notYet": ""
+    },
+    "WEAPON_MODIFICATION": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "REFERENCE_PREVIEW",
+      "notYet": "Nothing fits a modification to a Character's weapon yet; its changes are previewed on a sample weapon."
     }
   }
 }

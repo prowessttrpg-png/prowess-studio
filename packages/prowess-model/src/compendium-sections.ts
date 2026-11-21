@@ -150,7 +150,7 @@ export const COMPENDIUM_SECTIONS: readonly CompendiumSection[] = Object.freeze([
     title: "Equipment",
     summary: "Weapons, their Attacks (movesets) and Equipment Traits.",
     role: "MIXED", // RULES-WO1: worn Armor is reference content (not equipped on the sheet yet)
-    kinds: ["WEAPON", "ATTACK", "EQUIPMENT_TRAIT", "ARMOR"], // RULES-WO1: worn Armor (reference and preview)
+    kinds: ["WEAPON", "ATTACK", "EQUIPMENT_TRAIT", "ARMOR", "AMMUNITION", "WEAPON_MODIFICATION"], // RULES-WO1: worn Armor, ammunition and modifications (reference and preview)
     alsoShows: [],
     reservedKinds: [],
     genericEntityTypes: [],

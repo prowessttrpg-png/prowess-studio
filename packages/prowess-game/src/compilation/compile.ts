@@ -75,6 +75,8 @@ export const COMPONENT_COMPILERS: Readonly<Record<ProwessDefinitionKind, Compone
   METAMAGIC: null,
   JOB_TEMPLATE: null,
   REFERENCE_RULE: null,
+  AMMUNITION: null,
+  WEAPON_MODIFICATION: null,
 });
 
 const REQUEST_FIELDS = ["contractVersion", "subject", "definitions", "ruleset", "actor", "build", "runtime"];

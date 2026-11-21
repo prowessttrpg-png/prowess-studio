@@ -2,14 +2,95 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { AuthoringApiError, getAuthoring, postAuthoring } from "../_lib/authoring-client";
+import { AuthoringApiError, getAuthoring, patchAuthoring, postAuthoring } from "../_lib/authoring-client";
 
 /**
  * RULES-WO1 — the Keywords screen. Keywords are discovery and matching vocabulary (Affinity Strengths / Weaknesses match
  * them); they carry no mechanics of their own. Lists every Keyword by category and creates Keywords and categories
  * through the existing M1 services (POST /api/keywords, POST /api/keyword-categories). The machine key is derived from
- * the name; nobody types it. M1 has no edit or rename service for Keywords, so this screen does not offer one.
+ * the name; nobody types it.
+ *
+ * RULES-WO1 Phase D — safe editing: a Keyword's NAME, DESCRIPTION and "deprecated" mark can be changed. Its permanent key
+ * (what Definitions, Affinities, assignments and content packs refer to) and its category never change, so no Release,
+ * Definition or Character changes meaning — only the words shown. The editor shows where the Keyword is used first, and a
+ * Keyword changed by someone else since it was loaded is refused (nothing is overwritten).
  */
+interface KeywordUsage {
+  entityAssignments: number;
+  versionAssignments: number;
+  definitionRevisions: number;
+  releases: number;
+}
+
+function KeywordEditor({ keyword, onSaved, onCancel }: { keyword: Keyword; onSaved: (k: Keyword) => void; onCancel: () => void }) {
+  const [name, setName] = useState(keyword.name);
+  const [description, setDescription] = useState(keyword.description ?? "");
+  const [deprecated, setDeprecated] = useState(keyword.deprecated);
+  const [usage, setUsage] = useState<KeywordUsage | null>(null);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    let live = true;
+    getAuthoring<KeywordUsage>(`/api/keywords/${encodeURIComponent(keyword.id)}/usage`).then(
+      (u) => live && setUsage(u),
+      () => live && setUsage(null),
+    );
+    return () => {
+      live = false;
+    };
+  }, [keyword.id]);
+  async function save() {
+    setBusy(true);
+    setError("");
+    try {
+      const saved = await patchAuthoring<Keyword>(`/api/keywords/${encodeURIComponent(keyword.id)}/presentation`, {
+        expected: { name: keyword.name, description: keyword.description, deprecated: keyword.deprecated },
+        name,
+        description: description.trim() === "" ? null : description,
+        deprecated,
+      });
+      onSaved(saved);
+    } catch (e) {
+      setError(messageOf(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="prowess-authoring__nested" data-testid="keyword-editor">
+      <p className="gov-muted" data-testid="keyword-usage">
+        {usage === null
+          ? "Checking where this Keyword is used…"
+          : `Used by ${usage.definitionRevisions} Definition revision(s) in ${usage.releases} Release(s), and assigned to ${usage.entityAssignments + usage.versionAssignments} entr${usage.entityAssignments + usage.versionAssignments === 1 ? "y" : "ies"}.`}{" "}
+        A new name or description is shown everywhere, including older Releases. What the Keyword means does not change: its permanent key and category stay the same, so no Character or rule changes.
+      </p>
+      <label className="gov-field">
+        <span>Name (required)</span>
+        <input aria-label="Keyword name" value={name} onChange={(e) => setName(e.target.value)} />
+      </label>
+      <label className="gov-field">
+        <span>Description</span>
+        <input aria-label="Keyword description" value={description} onChange={(e) => setDescription(e.target.value)} />
+      </label>
+      <label className="prowess-authoring__inline">
+        <input type="checkbox" checked={deprecated} onChange={(e) => setDeprecated(e.target.checked)} /> Mark as deprecated (still usable; shown as deprecated)
+      </label>
+      {error ? (
+        <p className="gov-bad" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <p className="gov-actions">
+        <button type="button" className="gov-button gov-button--primary" disabled={busy || name.trim() === ""} onClick={() => void save()}>
+          {busy ? "Saving…" : "Save Keyword"}
+        </button>{" "}
+        <button type="button" className="gov-link-button" onClick={onCancel}>
+          Cancel
+        </button>
+      </p>
+    </div>
+  );
+}
 interface Keyword {
   id: string;
   canonicalKey: string;
@@ -28,6 +109,7 @@ const slug = (name: string) => name.trim().toLowerCase().replace(/[^a-z0-9]+/g, 
 const messageOf = (e: unknown) => (e instanceof AuthoringApiError ? e.message : "The request failed.");
 
 export function KeywordsScreen() {
+  const [editing, setEditing] = useState<string | null>(null);
   const [keywords, setKeywords] = useState<Keyword[] | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [error, setError] = useState("");
@@ -175,10 +257,25 @@ export function KeywordsScreen() {
               <h3>{g.name}</h3>
               <ul data-testid="keyword-list">
                 {items.map((k) => (
-                  <li key={k.id}>
+                  <li key={k.id} data-testid="keyword-row">
                     <strong>{k.name}</strong>
                     {k.deprecated ? <span className="gov-tag"> deprecated</span> : null}
-                    {k.description ? <span className="gov-muted"> — {k.description}</span> : null}
+                    {k.description ? <span className="gov-muted"> — {k.description}</span> : null}{" "}
+                    {editing === k.id ? (
+                      <KeywordEditor
+                        keyword={k}
+                        onCancel={() => setEditing(null)}
+                        onSaved={(saved) => {
+                          setEditing(null);
+                          setNotice(`Keyword "${saved.name}" saved.`);
+                          setKeywords((all) => (all ?? []).map((x) => (x.id === saved.id ? { ...x, ...saved } : x)));
+                        }}
+                      />
+                    ) : (
+                      <button type="button" className="gov-link-button" onClick={() => setEditing(k.id)} aria-label={`Edit ${k.name}`}>
+                        Edit
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>

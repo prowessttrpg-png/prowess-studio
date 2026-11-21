@@ -184,6 +184,10 @@ const DEFINITION_KIND_TABLE = {
   JOB_TEMPLATE: active("CHARACTER"),
   /** RULES-WO1 Phase C: a written gameplay rule — a die-range table or written points (reference). */
   REFERENCE_RULE: active("CORE"),
+  /** RULES-WO1 Phase D: a kind of ammunition for Ammo weapons (reference and reload preview; no ammunition count in play). */
+  AMMUNITION: active("EQUIPMENT"),
+  /** RULES-WO1 Phase D: a weapon attachment or crafted modification (reference and preview; nothing equips it yet). */
+  WEAPON_MODIFICATION: active("EQUIPMENT"),
 } as const satisfies Record<string, DefinitionKindSpec>;
 
 export type ProwessDefinitionKind = keyof typeof DEFINITION_KIND_TABLE;

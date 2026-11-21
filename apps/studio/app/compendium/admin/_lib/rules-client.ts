@@ -1,4 +1,5 @@
 import { getAuthoring, postAuthoring } from "./authoring-client";
+import type { ContentTokenOptions } from "./descriptors";
 
 /**
  * PRE-M7-WO1 — clients for the two side-effect-free rule tools used while authoring. Both are POST only because they
@@ -127,5 +128,5 @@ export interface AuthoringOptionDto {
   token: string;
   label: string;
 }
-export const listAuthoringOptions = (list: "skillRanks" | "calculatedValues") => getAuthoring<AuthoringOptionDto[]>(`/api/compendium-rules/authoring-options?list=${list}`);
+export const listAuthoringOptions = (list: ContentTokenOptions) => getAuthoring<AuthoringOptionDto[]>(`/api/compendium-rules/authoring-options?list=${list}`);
 export const previewReference = (body: { entityVersionId: string; sample: Record<string, unknown> }) => postAuthoring<ReferencePreviewDto>("/api/compendium-rules/reference-preview", body);

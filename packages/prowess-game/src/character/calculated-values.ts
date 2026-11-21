@@ -6,6 +6,7 @@ import type { CalculatedValuePayload, CalculatedValuePlacement, CanonStatus, Ski
 import { deepFreeze } from "../internal/plain-data.js";
 import type { DerivedStatistic, ProwessStat } from "../vocabulary/core.js";
 import type { CharacterMechanicalProfile } from "./advancement.js";
+import { benefitEligibilityOf, skillBenefitsForCharacter } from "./skill-benefits.js";
 
 /**
  * RULES-WO1 — evaluation of authored CALCULATED_VALUE Definitions and the SKILL_BENEFIT contributions to them.
@@ -50,10 +51,17 @@ export interface ValueContributionResult {
   readonly contributionKey: string;
   readonly skill: ProwessDefinitionRef;
   readonly minimumRankKey: string;
-  /** Whether the Character holds the Skill at the benefit's rank or higher. */
+  /** Whether the Character holds the Skill at the benefit's rank or higher AND meets its further prerequisites. */
   readonly applies: boolean;
   readonly amount: number | null;
+  /** The further prerequisites: RANK_ONLY (none), ELIGIBLE, INELIGIBLE or UNRESOLVED (could not be decided here). */
+  readonly eligibility: BenefitEligibilityStatus;
+  /** A situational bonus: computed when it applies, shown with its condition, never part of the total. */
+  readonly condition: { readonly conditionKey: string; readonly text: string } | null;
 }
+export type BenefitEligibilityStatus = "RANK_ONLY" | "ELIGIBLE" | "INELIGIBLE" | "UNRESOLVED";
+/** The decided further prerequisites of each Skill benefit, by benefitKey (absent = could not be decided). */
+export type BenefitEligibility = ReadonlyMap<string, "ELIGIBLE" | "INELIGIBLE" | "UNRESOLVED">;
 
 export interface CalculatedValueResult {
   readonly valueKey: string;
@@ -135,6 +143,8 @@ export function evaluateCalculatedValues(request: {
   readonly benefits: readonly AuthoredBenefit[];
   readonly ladder: readonly { readonly rankKey: string; readonly order: number }[];
   readonly facts: ValueFacts;
+  /** The further-prerequisite decisions for the Character (the sheet supplies them; a sample preview cannot). */
+  readonly eligibility?: BenefitEligibility;
 }): CalculatedValuesOutcome {
   const issues: Issue[] = [];
   const byKey = new Map<string, AuthoredValue>();
@@ -153,7 +163,8 @@ export function evaluateCalculatedValues(request: {
   const contributionsFor = new Map<string, { benefit: AuthoredBenefit; contribution: SkillBenefitPayload["contributions"][number] }[]>();
   for (const benefit of [...request.benefits].sort((a, b) => (a.payload.benefitKey < b.payload.benefitKey ? -1 : a.payload.benefitKey > b.payload.benefitKey ? 1 : 0))) {
     if (!ladder.some((r) => r.rankKey === benefit.payload.minimumRankKey)) issues.push({ code: E.UNKNOWN_RANK, path: benefit.payload.benefitKey, message: `${benefit.payload.benefitKey} names rank ${benefit.payload.minimumRankKey}, which is not on the Skill rank ladder` });
-    if (benefit.payload.prerequisites.length > 0) issues.push({ code: E.PREREQUISITES_NOT_EVALUATED, path: benefit.payload.benefitKey, message: `${benefit.payload.benefitKey} has prerequisites beyond its rank; the sheet does not evaluate them yet, so it is not applied` });
+    if (benefit.payload.prerequisiteGroups.length > 0 && (request.eligibility?.get(benefit.payload.benefitKey) ?? "UNRESOLVED") === "UNRESOLVED")
+      issues.push({ code: E.PREREQUISITES_NOT_EVALUATED, path: benefit.payload.benefitKey, message: `${benefit.payload.benefitKey}: its further prerequisites could not be decided for this Character, so it is not applied` });
     for (const contribution of benefit.payload.contributions) {
       if (!byKey.has(contribution.valueKey)) {
         issues.push({ code: E.UNKNOWN_VALUE, path: `${benefit.payload.benefitKey}.${contribution.contributionKey}`, message: `${benefit.payload.benefitKey} adds to ${contribution.valueKey}, which this Release does not define` });
@@ -206,20 +217,20 @@ export function evaluateCalculatedValues(request: {
     const contributions: ValueContributionResult[] = (contributionsFor.get(key) ?? []).map(({ benefit, contribution }) => {
       const held = rankOf(benefit.payload.skill.entityId);
       const required = ladder.find((r) => r.rankKey === benefit.payload.minimumRankKey);
-      // A benefit with further prerequisites is never applied here: the sheet does not evaluate them yet (R08).
-      const gated = benefit.payload.prerequisites.length > 0;
-      const applies = !gated && held !== null && required !== undefined && held.order >= required.order;
+      // Further prerequisites (R08) are decided by the caller against the Character; undecided ones never apply.
+      const eligibility: BenefitEligibilityStatus = benefit.payload.prerequisiteGroups.length === 0 ? "RANK_ONLY" : (request.eligibility?.get(benefit.payload.benefitKey) ?? "UNRESOLVED");
+      const applies = (eligibility === "RANK_ONLY" || eligibility === "ELIGIBLE") && held !== null && required !== undefined && held.order >= required.order;
       let amount: number | null = null;
       if (applies) {
         const bound = bindInputs(contribution.amount, request.facts, totals);
         amount = "missing" in bound ? null : run(contribution.amount, bound.bindings);
         if (amount === null) issues.push({ code: E.EVALUATION_FAILED, path: `${key}.${contribution.contributionKey}`, message: `${benefit.payload.benefitKey}: its contribution to ${key} could not be evaluated` });
       }
-      return { benefit: benefit.definition, benefitKey: benefit.payload.benefitKey, contributionKey: contribution.contributionKey, skill: benefit.payload.skill, minimumRankKey: benefit.payload.minimumRankKey, applies, amount };
+      return { benefit: benefit.definition, benefitKey: benefit.payload.benefitKey, contributionKey: contribution.contributionKey, skill: benefit.payload.skill, minimumRankKey: benefit.payload.minimumRankKey, applies, amount, eligibility, condition: contribution.condition };
     });
     if (unavailable === null && contributions.some((c) => c.applies && c.amount === null)) unavailable = "a Skill benefit could not be evaluated";
     // The total is an M4 sum of the stated base (if any) and every applying addition — no arithmetic outside M4.
-    const parts = [...(base === null ? [] : [base]), ...contributions.flatMap((c) => (c.applies && c.amount !== null ? [c.amount] : []))];
+    const parts = [...(base === null ? [] : [base]), ...contributions.flatMap((c) => (c.applies && c.amount !== null && c.condition === null ? [c.amount] : []))];
     const total = unavailable !== null ? null : sumOf(parts);
     totals.set(key, total);
     results.set(key, { valueKey: key, definition: v.definition, unit: p.unit, canonStatus: p.canonStatus, placement: p.placement, note: p.note, baseStated: p.base !== null, base, contributions, total, unavailable });
@@ -250,5 +261,6 @@ export function calculatedValuesForCharacter(request: { readonly bundle: Prowess
   if (values.length === 0) return deepFreeze({ values: [], issues: [] });
   const core = indexCoreDefinitions(request.bundle);
   const ladder = core.ok ? core.value.skillLadder.payload.ranks : [];
-  return evaluateCalculatedValues({ values, benefits, ladder, facts: valueFactsOf(request.profile) });
+  const eligibility = benefitEligibilityOf(skillBenefitsForCharacter(request));
+  return evaluateCalculatedValues({ values, benefits, ladder, facts: valueFactsOf(request.profile), eligibility });
 }

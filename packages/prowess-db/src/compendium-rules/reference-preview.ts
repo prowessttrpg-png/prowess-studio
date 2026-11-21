@@ -1,5 +1,5 @@
 import { CHARACTER_ERROR_CODES, DomainError } from "@prowess/model";
-import { PROWESS_STATS, previewArmor, previewMissionTable, previewSummonCosts, previewThreatClock } from "@prowess/game";
+import { PROWESS_STATS, previewArmor, previewMageArtScaling, previewMissionTable, previewReload, previewSummonCosts, previewSummonEconomy, previewThreatClock } from "@prowess/game";
 import { validateStoredRevision } from "../compendium-authoring/service.js";
 
 /**
@@ -43,8 +43,28 @@ export async function previewReferenceDefinition(input: { readonly entityVersion
     case "SUMMON_TYPE":
       return {
         definitionKind: "SUMMON_TYPE",
-        result: previewSummonCosts({ summon: p as never, tierKey: typeof sample.tierKey === "string" ? sample.tierKey : null, totalMp: int(sample.totalMp, "sample.totalMp"), stats }) as unknown as Record<string, unknown>,
+        // Phase D: costs plus who acts and who pays (the action model and AP / HP / MP ownership).
+        result: { ...(previewSummonCosts({ summon: p as never, tierKey: typeof sample.tierKey === "string" ? sample.tierKey : null, totalMp: int(sample.totalMp, "sample.totalMp"), stats }) as unknown as Record<string, unknown>), economy: previewSummonEconomy({ summon: p as never }) },
       };
+    case "MAGE_ART": {
+      // Phase D: version-2 scaling of one mode at a Level (version 1 has no structured scaling to preview).
+      const modes = (def.payload as { modes?: Array<{ modeKey: string; scaling?: unknown[] }> }).modes ?? [];
+      const mode = modes.find((m) => m.modeKey === sample.modeKey) ?? modes[0];
+      if (mode === undefined || mode.scaling === undefined) throw invalid("this Mage Art has no structured scaling to preview (version 2 records it)");
+      return { definitionKind: "MAGE_ART", result: { modeKey: mode.modeKey, ...(previewMageArtScaling({ scaling: mode.scaling as never, level: int(sample.level, "sample.level", 1, 100) ?? 1, stats }) as unknown as Record<string, unknown>) } };
+    }
+    case "AMMUNITION":
+    case "WEAPON_MODIFICATION": {
+      // Phase D: a sample weapon's Loading (X) and Reload AP with this ammunition or modification.
+      const loading = int(sample.loading, "sample.loading", 0, 1000) ?? 12;
+      const reloadAp = int(sample.reloadAp, "sample.reloadAp", 0, 100) ?? 3;
+      const apPerTurn = int(sample.apPerTurn, "sample.apPerTurn", 1, 100) ?? 3;
+      const payload = def.payload as { perAttack?: number; burstPerAttack?: number | null; changes?: Array<{ kind: string; amount: number | null }> };
+      return {
+        definitionKind: def.definitionKind,
+        result: previewReload({ loading, reloadAp, apPerTurn, ammunition: def.definitionKind === "AMMUNITION" ? { perAttack: payload.perAttack ?? 1, burstPerAttack: payload.burstPerAttack ?? null } : null, modifications: def.definitionKind === "WEAPON_MODIFICATION" ? [{ changes: payload.changes ?? [] }] : [] }) as unknown as Record<string, unknown>,
+      };
+    }
     case "REFERENCE_RULE":
     case "MISSION_RULE": {
       const payload = def.payload as { shape: string; rollTable: unknown; clock: unknown };

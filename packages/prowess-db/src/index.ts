@@ -47,6 +47,9 @@ export {
   getKeywordDefinition,
   findKeywordDefinitionByCanonicalKey,
   listKeywordDefinitions,
+  changeKeywordPresentation,
+  getKeywordUsage,
+  type KeywordPresentationEdit,
 } from "./keyword-definition/index.js";
 export {
   assignKeywordToEntity,

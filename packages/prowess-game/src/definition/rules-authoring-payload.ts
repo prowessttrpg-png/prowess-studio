@@ -80,6 +80,15 @@ export interface SkillBenefitContribution {
   readonly contributionKey: string;
   readonly valueKey: string;
   readonly amount: ValueFormula;
+  /** A situational bonus ("when throwing"): computed and shown with its condition, never added to the total. */
+  readonly condition: { readonly conditionKey: string; readonly text: string } | null;
+}
+/** Prerequisite groups (R08): every group must hold; a group holds when ALL (or ANY) of its prerequisites are met. */
+export const SKILL_BENEFIT_GROUP_MODES = deepFreeze(["ALL", "ANY"] as const);
+export interface SkillBenefitPrerequisiteGroup {
+  readonly groupKey: string;
+  readonly mode: (typeof SKILL_BENEFIT_GROUP_MODES)[number];
+  readonly prerequisites: readonly ActionImprovementPrerequisite[];
 }
 export interface SkillBenefitPayload {
   readonly benefitKey: string;
@@ -88,9 +97,9 @@ export interface SkillBenefitPayload {
   readonly minimumRankKey: string;
   readonly contributions: readonly SkillBenefitContribution[];
   readonly grantedActions: readonly ProwessDefinitionRef[];
-  /** Further prerequisites beyond the rank (Level, Stat, another Skill's rank, an Affinity rank) — the Action-improvement
-   *  grammar. The sheet does not evaluate them yet, so a benefit that has any is never applied there (and says why). */
-  readonly prerequisites: readonly ActionImprovementPrerequisite[];
+  /** Further prerequisites beyond the rank (Level, Stat, another Skill's rank, an Affinity rank) in the Action-improvement
+   *  grammar, grouped. Empty = the rank is the only requirement. */
+  readonly prerequisiteGroups: readonly SkillBenefitPrerequisiteGroup[];
   readonly writtenBenefit: string;
   readonly source: CoreDefinitionSource;
 }
@@ -236,7 +245,7 @@ function readCalculatedValue(value: unknown, at: readonly PathSegment[], p: Prob
 }
 
 function readSkillBenefit(value: unknown, at: readonly PathSegment[], p: Problems): SkillBenefitPayload | null {
-  const FIELDS = ["benefitKey", "skill", "minimumRankKey", "contributions", "grantedActions", "prerequisites", "writtenBenefit", "source"];
+  const FIELDS = ["benefitKey", "skill", "minimumRankKey", "contributions", "grantedActions", "prerequisiteGroups", "writtenBenefit", "source"];
   const r = readRecord(value, at, p, C.INVALID_PAYLOAD, FIELDS, FIELDS);
   if (r === null) return null;
   const before = p.count;
@@ -252,14 +261,23 @@ function readSkillBenefit(value: unknown, at: readonly PathSegment[], p: Problem
   else
     rawC.forEach((x: unknown, i: number) => {
       const cat = [...at, "contributions", i];
-      const c = readRecord(x, cat, p, C.INVALID_PAYLOAD, ["contributionKey", "valueKey", "amount"], ["contributionKey", "valueKey", "amount"]);
+      const c = readRecord(x, cat, p, C.INVALID_PAYLOAD, ["contributionKey", "valueKey", "amount", "condition"], ["contributionKey", "valueKey", "amount", "condition"]);
       if (c === null) return;
       const contributionKey = own(c, "contributionKey");
       const valueKey = own(c, "valueKey");
       if (!isToken(contributionKey) || contributions.some((y) => y.contributionKey === contributionKey)) p.add(C.INVALID_PAYLOAD, [...cat, "contributionKey"], "contributionKey is a unique SCREAMING_SNAKE token");
       if (!isToken(valueKey)) p.add(C.INVALID_PAYLOAD, [...cat, "valueKey"], "valueKey names the calculated value this adds to");
       const amount = readValueFormula(own(c, "amount"), [...cat, "amount"], p, BENEFIT_AMOUNT_INPUT_KINDS);
-      if (amount !== null && isToken(contributionKey) && isToken(valueKey)) contributions.push({ contributionKey, valueKey, amount });
+      let condition: SkillBenefitContribution["condition"] = null;
+      const rawCond = own(c, "condition");
+      if (rawCond !== null) {
+        const q = readRecord(rawCond, [...cat, "condition"], p, C.INVALID_PAYLOAD, ["conditionKey", "text"], ["conditionKey", "text"]);
+        const conditionKey = q === null ? null : own(q, "conditionKey");
+        const text = q === null ? null : readText(own(q, "text"), [...cat, "condition", "text"], p, "condition text", false);
+        if (q !== null && !isToken(conditionKey)) p.add(C.INVALID_PAYLOAD, [...cat, "condition", "conditionKey"], "conditionKey is a SCREAMING_SNAKE token");
+        if (q !== null && isToken(conditionKey) && text !== null) condition = { conditionKey, text };
+      }
+      if (amount !== null && isToken(contributionKey) && isToken(valueKey) && (rawCond === null || condition !== null)) contributions.push({ contributionKey, valueKey, amount, condition });
     });
   const grantedActions: ProwessDefinitionRef[] = [];
   const rawA = own(r, "grantedActions");
@@ -272,18 +290,35 @@ function readSkillBenefit(value: unknown, at: readonly PathSegment[], p: Problem
       else if (grantedActions.some((y) => y.entityId === ref.entityId)) p.add(C.INVALID_PAYLOAD, [...at, "grantedActions", i], "each Action is granted once");
       else grantedActions.push(ref);
     });
-  const prerequisites: ActionImprovementPrerequisite[] = [];
-  const rawP = own(r, "prerequisites");
-  if (!Array.isArray(rawP)) p.add(C.INVALID_PAYLOAD, [...at, "prerequisites"], "prerequisites is an array (empty = only the rank)");
+  const prerequisiteGroups: SkillBenefitPrerequisiteGroup[] = [];
+  const rawG = own(r, "prerequisiteGroups");
+  const taken: string[] = [];
+  if (!Array.isArray(rawG)) p.add(C.INVALID_PAYLOAD, [...at, "prerequisiteGroups"], "prerequisiteGroups is an array (empty = only the rank)");
   else
-    rawP.forEach((x: unknown, i: number) => {
-      const q = readPrerequisite(x, prerequisites.map((y) => y.prerequisiteKey), [...at, "prerequisites", i], p);
-      if (q !== null) prerequisites.push(q);
+    rawG.forEach((g: unknown, gi: number) => {
+      const gat = [...at, "prerequisiteGroups", gi];
+      const gr = readRecord(g, gat, p, C.INVALID_PAYLOAD, ["groupKey", "mode", "prerequisites"], ["groupKey", "mode", "prerequisites"]);
+      if (gr === null) return;
+      const groupKey = own(gr, "groupKey");
+      if (!isToken(groupKey) || prerequisiteGroups.some((y) => y.groupKey === groupKey)) p.add(C.INVALID_PAYLOAD, [...gat, "groupKey"], "groupKey is a unique SCREAMING_SNAKE token");
+      const mode = readEnum(own(gr, "mode"), SKILL_BENEFIT_GROUP_MODES, [...gat, "mode"], p, C.INVALID_PAYLOAD, "group mode");
+      const rawP = own(gr, "prerequisites");
+      const prerequisites: ActionImprovementPrerequisite[] = [];
+      if (!Array.isArray(rawP) || rawP.length === 0) p.add(C.INVALID_PAYLOAD, [...gat, "prerequisites"], "a prerequisite group lists at least one prerequisite");
+      else
+        rawP.forEach((x: unknown, i: number) => {
+          const q = readPrerequisite(x, taken, [...gat, "prerequisites", i], p);
+          if (q !== null) {
+            prerequisites.push(q);
+            taken.push(q.prerequisiteKey);
+          }
+        });
+      if (isToken(groupKey) && mode !== null) prerequisiteGroups.push({ groupKey, mode, prerequisites });
     });
   const writtenBenefit = readText(own(r, "writtenBenefit"), [...at, "writtenBenefit"], p, "writtenBenefit", false);
   const source = readSource(own(r, "source"), [...at, "source"], p);
   if (p.count > before || skill === null || writtenBenefit === null || source === null) return null;
-  return { benefitKey: benefitKey as string, skill, minimumRankKey: minimumRankKey as string, contributions, grantedActions, prerequisites, writtenBenefit, source };
+  return { benefitKey: benefitKey as string, skill, minimumRankKey: minimumRankKey as string, contributions, grantedActions, prerequisiteGroups, writtenBenefit, source };
 }
 
 function readConcentrationRule(value: unknown, at: readonly PathSegment[], p: Problems): ConcentrationRulePayload | null {

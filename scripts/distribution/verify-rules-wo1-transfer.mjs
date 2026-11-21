@@ -90,7 +90,7 @@ try {
   records.push({ stage: "backup", bytes: bytes.length, tables: spec.tables.length });
   stage("resume", urls.restored);
 
-  assert(records.some((r) => r.stage === "receiver" && r.r2Kinds === 12), "Missing receiver proof");
+  assert(records.some((r) => r.stage === "receiver" && r.r2Kinds === 14), "Missing receiver proof");
   assert.equal(records.filter((r) => r.stage === "resume" && r.unchanged).length, 2, "Missing restart and restore proofs");
   const commit = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
   await writeFile(path.join(output, "rules-wo1-transfer-evidence.json"), JSON.stringify({ gate: "RULES-WO1", commit, elapsedMilliseconds: Date.now() - start, databases, records }, null, 2) + "\n");

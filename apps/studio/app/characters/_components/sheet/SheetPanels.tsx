@@ -357,10 +357,51 @@ export function ActionsPanel({ sheet, mode, value, onChange }: { sheet: Characte
           </a>
         </p>
       ) : null}
+      <SkillGrantedActionRows sheet={sheet} />
       <WeaponAttackRows sheet={sheet} printRows={PRINT_ATTACK_ROWS} />
       <SignatureSpellRows sheet={sheet} />
       <SignatureManeuverRows sheet={sheet} />
       <NotesText label="Action Notes" value={value} mode={mode} onChange={onChange} max={sheet.notes.limits.actionNotes} testId="sheet-action-notes" empty="No action notes yet." printLines={actionNoteLines(sheet)} continuation="Action Notes continue on the supplemental page." />
+    </SheetSection>
+  );
+}
+
+/** RULES-WO1 (R08): Actions this Character gains from its Skill benefits (rank held and every prerequisite group met). */
+function SkillGrantedActionRows({ sheet }: { sheet: CharacterSheetDto }) {
+  const granted = (sheet.mechanics.skillBenefits ?? []).filter((b) => b.status === "GRANTED").flatMap((b) => b.grantedActions.filter((g) => g.state === "PINNED").map((g) => ({ g, b })));
+  if (granted.length === 0) return null;
+  return (
+    <ul className="sheet-list" aria-label="Actions from Skills" data-testid="sheet-skill-actions">
+      {granted.map(({ g, b }) => (
+        <li key={`${b.benefitKey}:${g.action.entityVersionId}`} data-testid="sheet-skill-action">
+          <strong>{titleOf(g.actionKey ?? g.action.canonicalKey.split(".").at(-1) ?? "")}</strong> <span className="sheet-muted">— from {titleOf(b.skill.canonicalKey.split(".").at(-1) ?? "")} ({titleOf(b.minimumRankKey)})</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** RULES-WO1 (R08): every published Skill benefit for this Character — whether it applies, and why not when it does not. */
+export function SkillBenefitsPanel({ sheet }: { sheet: CharacterSheetDto }) {
+  const benefits = sheet.mechanics.skillBenefits ?? [];
+  if (benefits.length === 0) return null;
+  const why = (b: (typeof benefits)[number]) =>
+    b.status === "GRANTED"
+      ? "applies"
+      : b.status === "RANK_NOT_REACHED"
+        ? `needs ${titleOf(b.minimumRankKey)} (now ${b.heldRankKey ? titleOf(b.heldRankKey) : "untrained"})`
+        : b.status === "INELIGIBLE"
+          ? `not met: ${b.groups.flatMap((g) => g.prerequisites.filter((p) => p.satisfied === false).map((p) => titleOf(p.prerequisiteKey))).join(", ")}`
+          : "cannot be decided yet";
+  return (
+    <SheetSection id="skill-benefits" title="Skill Benefits" icon={<WeightIcon />} collapsible>
+      <ul className="sheet-list" data-testid="sheet-skill-benefits">
+        {benefits.map((b) => (
+          <li key={b.benefitKey} data-testid={`sheet-skill-benefit-${b.benefitKey}`} data-status={b.status}>
+            <strong>{b.writtenBenefit}</strong> <span className="sheet-muted">— {why(b)}</span>
+          </li>
+        ))}
+      </ul>
     </SheetSection>
   );
 }
@@ -561,6 +602,15 @@ export function AdditionalValuesPanel({ sheet }: { sheet: CharacterSheetDto }) {
                 </span>
               )}
               <CanonMark status={v.canonStatus} />
+              {v.contributions
+                .filter((c) => c.applies && c.amount !== null && c.condition)
+                .map((c) => (
+                  <span key={c.contributionKey} className="sheet-muted" data-testid={`sheet-conditional-${c.contributionKey}`}>
+                    {" "}
+                    · +{c.amount}
+                    {v.unit ? ` ${v.unit}` : ""} {c.condition?.text}
+                  </span>
+                ))}
             </dd>
           </div>
         ))}

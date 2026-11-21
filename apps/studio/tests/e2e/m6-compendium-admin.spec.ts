@@ -46,14 +46,17 @@ test("a designer authors, validates, edits and revises a Definition entirely thr
   await expect(page.getByText("Definition created as Revision 1 (DRAFT).")).toBeVisible();
   await expect(page.getByTestId("version-status-badge").first()).toHaveText("Draft");
 
-  // Edit the Draft: unsaved state, validation feedback for a bad token, then a clean save.
+  // Edit the Draft: unsaved state, server validation feedback for a missing value, then a clean save.
+  // RULES-WO1 Phase D: names are typed in plain words — "movement" is stored (and shown) as MOVEMENT; the server still
+  // refuses a malformed or missing token (an empty name here), and the field is marked invalid.
   await page.getByLabel(/^Display Name/).fill(`${displayName} (edited)`);
   await expect(page.locator(".prowess-authoring__save-state")).toHaveText("Unsaved changes");
-  await page.getByLabel("Effect family (required)").fill("movement");
+  await page.getByLabel("Effect family (required)").fill("");
   await page.getByRole("button", { name: "Validate Definition" }).click();
   await expect(page.getByRole("region", { name: "Validation" }).getByRole("status")).toContainText("FAIL");
   await expect(page.getByLabel("Effect family (required)")).toHaveAttribute("aria-invalid", "true");
-  await page.getByLabel("Effect family (required)").fill("MOVEMENT");
+  await page.getByLabel("Effect family (required)").fill("movement");
+  await expect(page.getByLabel("Effect family (required)")).toHaveValue("MOVEMENT");
   await page.getByLabel(/^Change summary/).fill("Edited in Compendium Admin.");
   await page.getByRole("button", { name: "Save Draft" }).click();
   await expect(page.getByText("Draft saved — validation PASS.")).toBeVisible();

@@ -20,6 +20,13 @@ import {
   submitChangeSetForReview,
   transitionEntityVersionStatus,
   updateAuthoredDraftDefinition,
+  createChangeSet,
+  getCharacterActionDirectory,
+  materializeProwessDefinitionsFromRelease,
+  createKeywordDefinition,
+  changeKeywordPresentation,
+  getKeywordUsage,
+  getKeywordDefinition,
 } from "../../src/index";
 import { assertRunningAgainstTestDatabase } from "../../src/testDatabaseGuard";
 import { getTestDatabaseUrl } from "./env";
@@ -172,8 +179,8 @@ describe("RULES-WO1 authored rules end to end", () => {
     const rows = [{ from: 1, to: 2, result: "No public combat." }, { from: 3, to: 4, result: "Hidden clause." }];
     const cases: Array<[string, string, number, Record<string, unknown>]> = [
       ["EQUIPMENT", "ARMOR", 1, { armorKey: "RT_PLATE", category: "MEDIUM", armorValue: 3, strengthRequirement: null, maxAgiForDodge: null, movementPenaltyFeet: 0, stealth: "NORMAL", notes: ["Illustrative."], source: SRC }],
-      ["CONDITION", "STATUS_CONDITION", 1, { conditionKey: "RT_BURNING", effects: [{ effectKey: "DOT", text: "Takes damage over time." }], duration: { model: "ROUNDS", rounds: 2, text: null }, removal: ["Put out the flames."], ongoingTiming: "START_OF_TURN", stacking: "REFRESHES_DURATION", source: SRC }],
-      ["SUMMON", "SUMMON_TYPE", 1, { summonKey: "RT_FUSION", engine: "FUSION", tiers: [{ tierKey: "TIER_1", label: "Tier 1", baseMp: 10, dieFaces: null, staticValue: null, hp: null, armor: null, resolve: null, radiusFeet: null, size: null, traitSlots: 1 }], castingAp: null, sustainMode: "NONE", sustainMp: null, sustainApPerRound: null, countsTowardConcentration: null, maxActive: null, actionEconomy: "Merges with the caster.", restrictions: [], openQuestions: ["Does it count toward Concentration?"], source: SRC }],
+      ["CONDITION", "STATUS_CONDITION", 1, { conditionKey: "RT_BURNING", effects: [{ effectKey: "DOT", text: "Takes damage over time." }], duration: { model: "ROUNDS", rounds: 2, text: null }, removal: ["Put out the flames."], ongoingTiming: "START_OF_TURN", stacking: "REFRESHES_DURATION", triggers: [{ triggerKey: "BURN", when: "START_OF_TURN", resistStat: null, text: "Takes the ongoing damage." }, { triggerKey: "CATCH", when: "ON_FAILED_SAVE", resistStat: "AGI", text: "Catches fire on a failed AGI Save." }], source: SRC }],
+      ["SUMMON", "SUMMON_TYPE", 1, { summonKey: "RT_FUSION", engine: "FUSION", tiers: [{ tierKey: "TIER_1", label: "Tier 1", baseMp: 10, dieFaces: null, staticValue: null, hp: null, armor: null, resolve: null, radiusFeet: null, size: null, traitSlots: 1 }], castingAp: null, sustainMode: "NONE", sustainMp: null, sustainApPerRound: null, countsTowardConcentration: null, maxActive: null, actionEconomy: "Merges with the caster.", ownership: { actionModel: "SELF_BOUND", actsWhen: "CASTER_TURN", baseAp: null, apOwner: "CASTER", hpOwner: "CASTER", mpOwner: "CASTER", counterActions: null, dismissal: "FREE_ACTION" }, restrictions: [{ restrictionKey: "NO_EXTRA", kind: "NO_EXTRA_ACTIONS", text: "Gains no extra actions." }], openQuestions: ["Does it count toward Concentration?"], source: SRC }],
       ["SUMMON", "SUMMON_TRAIT", 1, { traitKey: "RT_PULSE", engines: ["TOTEM", "FUSION"], costs: [{ tierKey: "TIER_1", mp: 5 }], forbidden: false, effect: "Illustrative.", source: SRC }],
       ["MISSION", "MISSION_RULE", 1, { ruleKey: "RT_CLAUSES", shape: "ROLL_TABLE", rollTable: { dieCount: 1, dieFaces: 4, rows }, clock: null, intel: null, points: null, relatedRules: [], source: SRC }],
       ["CORE", "REFERENCE_RULE", 1, { ruleKey: "RT_GRAPPLE", shape: "POINTS", rollTable: null, clock: null, intel: null, points: ["Movement becomes 0."], relatedRules: [], source: SRC }],
@@ -210,5 +217,77 @@ describe("RULES-WO1 authored rules end to end", () => {
     expect((await prisma.entityVersion.findUniqueOrThrow({ where: { id: mission.version.id } })).status).toBe("DRAFT");
     expect(await prisma.changeSet.count()).toBe(changeSetsBefore);
   }, TIMEOUT);
-});
 
+  it("Phase D (R08): a published Skill benefit decides eligible and ineligible Characters, applies its bonuses and grants its Action; an R1 Character is unchanged", async () => {
+    const veteran = await character(r1, "Rw1 Skill Veteran");
+    const veteranSheet = JSON.stringify((await getCharacterSheet(veteran.id)).mechanics);
+    const veteranDirectory = JSON.stringify(await getCharacterActionDirectory(veteran.id));
+    const bundle = (await materializeProwessDefinitionsFromRelease(r1.release.id)).bundle;
+    const sprintPin = r1.pins.get("action.sprint")!;
+    const sprint = bundle.definitions.find((d) => d.entityId === sprintPin.entityId)!;
+    const sprintRef = { entityId: sprint.entityId, entityVersionId: sprint.entityVersionId, canonicalKey: sprint.canonicalKey, definitionKind: "ACTION", systemFamily: sprint.systemFamily };
+    const athletics = r1.pins.get("test.m6wo3.skill.athletics")!;
+    const skill = { entityId: athletics.entityId, entityVersionId: athletics.entityVersionId, canonicalKey: athletics.canonicalKey, definitionKind: "SKILL", systemFamily: "SKILL" };
+    const SRC = { locators: ["s52"], conflicts: [] };
+    const five = { expression: "5", rounding: "NONE", minimum: null, maximum: null, unit: null, variables: [] };
+    const stamp = Date.now();
+    const defs: Array<[string, string, Record<string, unknown>]> = [
+      ["CHARACTER", "CALCULATED_VALUE", { valueKey: "LEAP_DISTANCE", unit: "ft", canonStatus: "TEST_ONLY", placement: "ADDITIONAL_VALUES", base: null, note: "Test-only value for the R08 proof.", source: null }],
+      ["SKILL", "SKILL_BENEFIT", { benefitKey: "STRONG_LEAP", skill, minimumRankKey: "TRAINED", contributions: [{ contributionKey: "ALWAYS", valueKey: "LEAP_DISTANCE", amount: five, condition: null }, { contributionKey: "UPHILL", valueKey: "LEAP_DISTANCE", amount: five, condition: { conditionKey: "UPHILL", text: "only when leaping uphill (illustrative)" } }], grantedActions: [sprintRef], prerequisiteGroups: [{ groupKey: "STRONG", mode: "ALL", prerequisites: [{ prerequisiteKey: "STR_5", kind: "STAT_AT_LEAST", stat: "STR", minimum: 5 }] }], writtenBenefit: "Strong leapers add 5 ft and gain Sprint (illustrative).", source: SRC }],
+    ];
+    const operations = [];
+    for (const [family, kind, payload] of defs) {
+      const created = await createAuthoredDefinition({ definitionKind: kind, canonicalKey: `${PREFIX}.r08.${kind.toLowerCase()}_${stamp}`, displayName: `${kind} (R08 test)`, prowessDefinition: def(family, kind, payload) });
+      expect(created.validation?.status, kind).toBe("PASS");
+      await submitAuthoredRevisionForReview(created.version.id);
+      await transitionEntityVersionStatus(created.version.id, "APPROVED");
+      operations.push({ operationType: "PIN_ENTITY_VERSION" as const, targetEntityId: created.entity.id, toEntityVersionId: created.version.id, targetManifestId: null, description: `R08 ${kind}` });
+    }
+    const latest = await prisma.rulesetRelease.findFirstOrThrow({ where: { rulesetId: r1.rulesetId }, orderBy: { releaseNumber: "desc" } });
+    const cs = await createChangeSet(r1.rulesetId, { canonDecisionId: null, name: "R08 Skill benefit", description: null, operations });
+    await submitChangeSetForReview(cs.id);
+    await approveChangeSet(cs.id);
+    const rel = await publishRulesetRelease({ rulesetId: r1.rulesetId, baseManifestId: latest.manifestId, canonPolicyId: r1.policyId, changeSetId: cs.id, versionLabel: `R08-${stamp}` });
+    const rw: CharacterReleaseWorld = { ...r1, release: { id: rel.id, manifestId: rel.manifestId, releaseNumber: rel.releaseNumber } };
+
+    // Eligible: STR allocation 3 (+2 Orcani) = 5. Ineligible: STR allocation 1 (+2) = 3 — the same Skill rank.
+    const strong = await character(rw, "Rw1 Strong");
+    const c = await createCharacter({ name: "Rw1 Light", rulesetReleaseId: rw.release.id });
+    const choices = { ...workedChoices(rw.pins), statAllocations: { STR: 1, AGI: 5, CON: 3, PER: 2, RES: 2, PRO: 2 } };
+    const saved = await saveCharacterCreation(c.id, { expectedLockVersion: c.lockVersion, candidate: choices as never });
+    const light = await finalizeCharacterCoreCreation(c.id, { expectedLockVersion: saved.lockVersion });
+
+    const strongSheet = (await getCharacterSheet(strong.id)).mechanics;
+    const lightSheet = (await getCharacterSheet(light.id)).mechanics;
+    expect(strongSheet.stats.find((x) => x.stat === "STR")!.total).toBeGreaterThanOrEqual(5);
+    expect(lightSheet.stats.find((x) => x.stat === "STR")!.total).toBeLessThan(5);
+    expect(strongSheet.skillBenefits?.map((b) => [b.benefitKey, b.rankMet, b.eligibility, b.status])).toEqual([["STRONG_LEAP", true, "ELIGIBLE", "GRANTED"]]);
+    expect(lightSheet.skillBenefits?.map((b) => [b.benefitKey, b.rankMet, b.eligibility, b.status])).toEqual([["STRONG_LEAP", true, "INELIGIBLE", "INELIGIBLE"]]);
+    const leap = (m: typeof strongSheet) => m.calculatedValues!.find((v) => v.valueKey === "LEAP_DISTANCE")!;
+    expect(leap(strongSheet).total).toBe(5); // the situational +5 is shown with its condition, never added
+    expect(leap(strongSheet).contributions.map((x) => [x.contributionKey, x.applies, x.amount, x.condition?.conditionKey ?? null])).toEqual([["ALWAYS", true, 5, null], ["UPHILL", true, 5, "UPHILL"]]);
+    expect(leap(lightSheet).total).toBe(0);
+    const card = (id: string) => getCharacterActionDirectory(id).then((d) => (d as unknown as { directory: { cards: Array<{ section: { action: { entityId: string }; grantedBySkills?: Array<{ benefitKey: string; status: string }> } }> } }).directory.cards.find((x) => x.section.action.entityId === sprint.entityId)!);
+    expect((await card(strong.id)).section.grantedBySkills).toEqual([expect.objectContaining({ benefitKey: "STRONG_LEAP", status: "GRANTED" })]);
+    expect((await card(light.id)).section.grantedBySkills).toEqual([expect.objectContaining({ benefitKey: "STRONG_LEAP", status: "INELIGIBLE" })]);
+
+    // A Character pinned to the earlier Release is unchanged — sheet and Action Directory byte-identical.
+    expect(JSON.stringify((await getCharacterSheet(veteran.id)).mechanics)).toBe(veteranSheet);
+    expect(JSON.stringify(await getCharacterActionDirectory(veteran.id))).toBe(veteranDirectory);
+  }, TIMEOUT);
+
+  it("Phase D (R09): a Keyword's presentation is edited safely — key and category never change; a stale edit is refused and writes nothing", async () => {
+    const kw = await createKeywordDefinition({ canonicalKey: `${PREFIX}.keyword.rt_${Date.now()}` as never, name: "Ember (test)", categoryId: null, description: null });
+    const usage = await getKeywordUsage(kw.id);
+    expect(usage).toEqual({ entityAssignments: 0, versionAssignments: 0, definitionRevisions: 0, releases: 0 });
+    const changed = await changeKeywordPresentation(kw.id, { expected: { name: "Ember (test)", description: null, deprecated: false }, name: "Cinder (test)", description: "Renamed for readability.", deprecated: true });
+    expect(changed).toMatchObject({ id: kw.id, canonicalKey: kw.canonicalKey, categoryId: null, name: "Cinder (test)", description: "Renamed for readability.", deprecated: true });
+    const before = await getKeywordDefinition(kw.id);
+    // Stale: the editor still holds the original values — refused, nothing written.
+    await expect(changeKeywordPresentation(kw.id, { expected: { name: "Ember (test)", description: null, deprecated: false }, name: "Ash (test)", description: null, deprecated: false })).rejects.toThrow(/changed after it was loaded/);
+    expect(await getKeywordDefinition(kw.id)).toEqual(before);
+    // Only presentation fields exist in the edit: an attempt to pass a key or category is not part of the service input.
+    await expect(changeKeywordPresentation(kw.id, { expected: { name: "Cinder (test)", description: "Renamed for readability.", deprecated: true }, name: " ", description: null, deprecated: false })).rejects.toThrow(/name is required/);
+    expect(await getKeywordDefinition(kw.id)).toEqual(before);
+  }, TIMEOUT);
+});

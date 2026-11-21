@@ -93,3 +93,36 @@ export async function selectKeywordDefinitions(
   });
   return rows.map(toDomainKeywordDefinition);
 }
+
+/**
+ * RULES-WO1: updates ONLY the presentation fields of one Keyword (name, description, deprecated), and only when the row
+ * still holds the values the editor loaded (compare-and-set in one statement). The canonical key — the identity every
+ * Definition payload, assignment and content pack refers to — and the category (part of a content pack's protected
+ * identity) are never touched here. Returns null when nothing matched (missing or changed since it was loaded).
+ */
+export async function updateKeywordPresentation(
+  id: string,
+  expected: { name: string; description: string | null; deprecated: boolean },
+  next: { name: string; description: string | null; deprecated: boolean },
+): Promise<KeywordDefinition | null> {
+  const out = await prisma.keywordDefinition.updateMany({
+    where: { id, name: expected.name, description: expected.description, deprecated: expected.deprecated },
+    data: { name: next.name, description: next.description, deprecated: next.deprecated },
+  });
+  if (out.count !== 1) return null;
+  const row = await prisma.keywordDefinition.findUnique({ where: { id } });
+  return row === null ? null : toDomainKeywordDefinition(row);
+}
+
+/** RULES-WO1: where a Keyword is used — assignments, Definition revisions naming its key, and Releases pinning those. */
+export async function selectKeywordUsage(id: string, canonicalKey: string): Promise<{ entityAssignments: number; versionAssignments: number; definitionRevisions: number; releases: number }> {
+  const [entityAssignments, versionAssignments] = await Promise.all([prisma.entityKeyword.count({ where: { keywordId: id } }), prisma.entityVersionKeyword.count({ where: { keywordId: id } })]);
+  const rows = await prisma.$queryRaw<Array<{ revisions: bigint; releases: bigint }>>`
+    SELECT
+      (SELECT count(*) FROM entity_versions v WHERE (v.structured_data -> 'prowessDefinition' -> 'payload' -> 'keywords') ? ${canonicalKey}) AS revisions,
+      (SELECT count(DISTINCT r.id) FROM ruleset_releases r
+         JOIN ruleset_manifest_entries e ON e.manifest_id = r.manifest_id
+         JOIN entity_versions v ON v.id = e.entity_version_id
+        WHERE (v.structured_data -> 'prowessDefinition' -> 'payload' -> 'keywords') ? ${canonicalKey}) AS releases`;
+  return { entityAssignments, versionAssignments, definitionRevisions: Number(rows[0]?.revisions ?? 0), releases: Number(rows[0]?.releases ?? 0) };
+}

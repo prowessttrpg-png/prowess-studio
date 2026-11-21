@@ -32,6 +32,9 @@ describe("RULES-WO1 gate — the approved M5 change is additive and exact", () =
     expect(Object.keys(entry.changedFiles).sort()).toEqual(
       [
         "card-phase-b.test.ts", // MAGE_ART reads versions 1 and 2 (the card stays UNAVAILABLE)
+        "card/action.ts", // Phase D (R08): an Action card names the Skill benefits granting it (only when one does)
+        "card/contract.ts", // the optional grantedBySkills field of a General Action card
+        "character/action-improvement.ts", // evaluatePrerequisiteList shared with Skill benefits; the evaluator is unchanged
         "character/sheet.ts",
         "compilation/compile.ts",
         "definition-envelope.test.ts",
@@ -50,7 +53,7 @@ describe("RULES-WO1 gate — the approved M5 change is additive and exact", () =
       ].map((f) => G + f),
     );
     expect(Object.keys(entry.addedFiles).sort()).toEqual(
-      ["ability/concentration-preview.ts", "character/calculated-values.ts", "definition/rules-authoring-payload.ts", "definition/rules-reference-payload.ts", "reference/preview.ts", "rules-wo1-authoring.test.ts", "rules-wo1-reference.test.ts"].map((f) => G + f),
+      ["ability/concentration-preview.ts", "character/calculated-values.ts", "character/skill-benefits.ts", "definition/rules-authoring-payload.ts", "definition/rules-reference-payload.ts", "reference/preview.ts", "rules-wo1-authoring.test.ts", "rules-wo1-reference.test.ts"].map((f) => G + f),
     );
     for (const [f, h] of [...Object.entries(entry.changedFiles), ...Object.entries(entry.addedFiles)]) expect(sha(f), f).toBe(h);
   });
@@ -77,13 +80,19 @@ describe("RULES-WO1 gate — the approved M5 change is additive and exact", () =
     expect(read(G + "definition/payload.ts")).toContain("else if (isRulesAuthoringPayloadKind(kind)) payload = readRulesAuthoringPayload(kind, value, at, p);");
   });
 
-  it("registers four read-only / preview routes and no schema or migration change", () => {
+  it("registers four read-only / preview routes, the Keyword presentation edit and its usage read, and no schema or migration change", () => {
     expect((JSON.parse(read("docs/architecture/m6-api-routes.json")) as Record<string, unknown>)["RULES-WO1"]).toEqual([
       "apps/studio/app/api/compendium-rules/authored-preview/route.ts",
       "apps/studio/app/api/compendium-rules/authoring-options/route.ts",
       "apps/studio/app/api/compendium-rules/reference-preview/route.ts",
       "apps/studio/app/api/compendium-rules/source-sections/route.ts",
+      // Phase D (R09): the ONE write route — presentation only (name, description, deprecated); never the key or category.
+      "apps/studio/app/api/keywords/[keywordId]/presentation/route.ts",
+      "apps/studio/app/api/keywords/[keywordId]/usage/route.ts",
     ]);
+    const edit = read("apps/studio/app/api/keywords/[keywordId]/presentation/route.ts");
+    expect(edit).toContain('["expected", "name", "description", "deprecated"]');
+    expect(edit).not.toMatch(/canonicalKey|categoryId/);
     expect((JSON.parse(read("docs/architecture/m6-schema-changes.json")) as Record<string, unknown>)["RULES-WO1"]).toBeUndefined();
     expect(read("packages/prowess-db/prisma/schema.prisma")).not.toContain("RULES-WO1");
   });
@@ -100,7 +109,9 @@ describe("RULES-WO1 gate — authored rules are M4-evaluated and read only by th
 
   it("only the payload reader, the index, the evaluator, the preview and the sheet read the new contracts", () => {
     const readers = (needle: string) => GAME_CODE.filter((f) => strip(read(f)).includes(needle)).sort();
-    expect(readers("rules-authoring-payload")).toEqual([G + "ability/concentration-preview.ts", G + "character/calculated-values.ts", G + "definition/payload.ts", G + "definition/rules-reference-payload.ts", G + "index.ts", G + "reference/preview.ts"]);
+    expect(readers("rules-authoring-payload")).toEqual([G + "ability/concentration-preview.ts", G + "character/calculated-values.ts", G + "character/skill-benefits.ts", G + "definition/payload.ts", G + "definition/rules-reference-payload.ts", G + "index.ts", G + "reference/preview.ts"]);
+    // Phase D: Skill-benefit evaluation is read by the value evaluator, the sheet and the Action Directory card only.
+    expect(readers("skill-benefits")).toEqual([G + "card/action.ts", G + "character/calculated-values.ts", G + "character/sheet.ts", G + "index.ts"]);
     expect(readers("rules-reference-payload")).toEqual([G + "definition/mage-art-payload.ts", G + "definition/payload.ts", G + "index.ts"]);
     expect(readers("reference/preview")).toEqual([G + "index.ts"]);
     expect(readers("concentration-preview")).toEqual([G + "index.ts"]);
@@ -109,8 +120,8 @@ describe("RULES-WO1 gate — authored rules are M4-evaluated and read only by th
 
   it("no play, combat or Active Magic module reads the Concentration rule or a reference family; previews state they do not apply in play", () => {
     for (const f of GAME_CODE.filter((x) => /\/(play|ability|character|construction|equipment|card)\//.test(x) && !x.endsWith("concentration-preview.ts")))
-      expect(strip(read(f)), f).not.toMatch(/CONCENTRATION_RULE|previewConcentration|definitionKind === "ARMOR"|STATUS_CONDITION|SUMMON_TYPE|SUMMON_TRAIT|MISSION_RULE|METAMAGIC|JOB_TEMPLATE|REFERENCE_RULE|rules-reference-payload|reference\/preview/);
-    for (const fn of ["previewArmor", "previewSummonCosts", "previewMissionTable", "previewThreatClock"]) expect(read(G + "reference/preview.ts")).toMatch(new RegExp(`export function ${fn}[\\s\\S]*?appliesInPlay: false as const`));
+      expect(strip(read(f)), f).not.toMatch(/CONCENTRATION_RULE|previewConcentration|definitionKind === "ARMOR"|STATUS_CONDITION|SUMMON_TYPE|SUMMON_TRAIT|MISSION_RULE|METAMAGIC|JOB_TEMPLATE|REFERENCE_RULE|AMMUNITION|WEAPON_MODIFICATION|rules-reference-payload|reference\/preview/);
+    for (const fn of ["previewArmor", "previewSummonCosts", "previewMissionTable", "previewThreatClock", "previewReload", "previewMageArtScaling", "previewSummonEconomy"]) expect(read(G + "reference/preview.ts")).toMatch(new RegExp(`export function ${fn}[\\s\\S]*?appliesInPlay: false as const`));
     expect(read("apps/studio/app/compendium/admin/_components/ReferencePreviewPanel.tsx")).toContain("Preview only — play does not use this rule yet.");
     expect(read(G + "ability/concentration-preview.ts")).toContain("appliesInPlay: false as const,");
     expect(read("apps/studio/app/compendium/admin/_components/AuthoredRulePreviewPanel.tsx")).toContain("Preview only — combat does not use this rule yet.");

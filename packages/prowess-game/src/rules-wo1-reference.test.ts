@@ -4,8 +4,11 @@ import {
   PROWESS_DEFINITION_STORAGE_KEY,
   SUMMON_ENGINES,
   previewArmor,
+  previewMageArtScaling,
   previewMissionTable,
+  previewReload,
   previewSummonCosts,
+  previewSummonEconomy,
   previewThreatClock,
   validateStoredProwessDefinition,
   type ProwessOutcome,
@@ -35,9 +38,13 @@ export const BURNING = {
   removal: ["An action to put out the flames (illustrative)."],
   ongoingTiming: "START_OF_TURN",
   stacking: "DOES_NOT_STACK",
+  triggers: [{ triggerKey: "BURN", when: "START_OF_TURN", resistStat: null, text: "Takes the ongoing Fire damage." }],
   source: { locators: ["s501"], conflicts: [] },
 };
 const formula = (expression: string, variables: Array<{ variable: string; source: Record<string, unknown> }>, rounding = "FLOOR", minimum: number | null = 1) => ({ expression, rounding, minimum, maximum: null, unit: null, variables });
+// Mage Art scaling fixtures (illustrative values shaped like the source's level tables and Stat formulas).
+const ATTACK_BONUS: Parameters<typeof previewMageArtScaling>[0]["scaling"][number] & { text: string } = { scalingKey: "ATTACK_BONUS", label: "Attack bonus", unit: null, byLevel: [{ fromLevel: 1, toLevel: 3, value: 1 }, { fromLevel: 4, toLevel: 6, value: 2 }, { fromLevel: 7, toLevel: 9, value: 3 }, { fromLevel: 10, toLevel: 10, value: 4 }], formula: null, text: "Bonus to Attack Rolls by Level." };
+const RADIUS: Parameters<typeof previewMageArtScaling>[0]["scaling"][number] & { text: string } = { scalingKey: "RADIUS", label: "Radius", unit: "ft", byLevel: null, formula: { expression: "15 * res", rounding: "NONE", minimum: null, maximum: null, unit: null, variables: [{ variable: "res", source: { kind: "STAT", stat: "RES" } }] }, text: "15 ft × Resolve." };
 export const TOTEM = {
   summonKey: "TOTEM",
   engine: "TOTEM",
@@ -52,7 +59,8 @@ export const TOTEM = {
   countsTowardConcentration: null,
   maxActive: null,
   actionEconomy: "Resolves automatically on its timing.",
-  restrictions: [],
+  ownership: { actionModel: "PASSIVE", actsWhen: "AUTOMATIC_AT_TRIGGER", baseAp: null, apOwner: "NONE", hpOwner: "SUMMON", mpOwner: "NONE", counterActions: false, dismissal: "FREE_ACTION" },
+  restrictions: [{ restrictionKey: "NO_ACTIONS", kind: "NO_ACTIONS_WITHOUT_TRAIT", text: "A Totem with no emitted Effect does nothing except exist." }],
   openQuestions: ["How Totems use the Concentration override (Q-03)."],
   source: { locators: ["s1324"], conflicts: [] },
 };
@@ -214,9 +222,55 @@ describe("RULES-WO1 METAMAGIC, JOB_TEMPLATE, MAGE_ART v2", () => {
   it("MAGE_ART v2 adds scaling, benefits and exceptions; v1 is still accepted unchanged", () => {
     const v1 = { artKey: "BARRIER", activation: { ap: 1, mp: 2 }, maintenance: { ap: 0, mp: 1, special: null }, activeEffect: { counts: "WHILE_MAINTAINED" }, modes: [{ modeKey: "WARD", name: "Ward", activation: null, maintenance: null, rulesText: "Illustrative." }], source: { locators: ["s1905"], conflicts: [] } };
     expect(codes(validateStoredProwessDefinition(stored("MAGE_ART", "MAGE_ART", v1, 1)))).toEqual([]);
-    const v2 = { ...v1, modes: [{ ...v1.modes[0], scaling: [{ stepKey: "D1", label: "Domain 1", text: "Illustrative." }] }], grantedBenefits: ["Illustrative benefit."], maintenanceExceptions: [] };
+    const v2 = { ...v1, modes: [{ ...v1.modes[0], scaling: [ATTACK_BONUS, RADIUS] }], grantedBenefits: [{ benefitKey: "NO_SUFFOCATION", kind: "IMMUNITY", subject: "Suffocation", text: "Immune to Suffocation (illustrative)." }], maintenanceExceptions: [{ exceptionKey: "PACT", kind: "ACTIVE_EFFECT_ONLY_WHILE_CASTING", text: "Counts as an Active Effect only while casting (illustrative)." }] };
     const out = validateStoredProwessDefinition(stored("MAGE_ART", "MAGE_ART", v2, 2));
     expect(codes(out)).toEqual([]);
     expect(paths(validateStoredProwessDefinition(stored("MAGE_ART", "MAGE_ART", v1, 2)))).toContain("/prowessDefinition/payload/grantedBenefits");
+  });
+  it("Phase D: Mage Art scaling is a contiguous level table or a Formula, and previews at a Level through M4", () => {
+    expect(previewMageArtScaling({ scaling: [ATTACK_BONUS, RADIUS], level: 5, stats: { RES: 4 } }).values.map((v) => [v.scalingKey, v.value])).toEqual([["ATTACK_BONUS", 2], ["RADIUS", 60]]);
+    expect(previewMageArtScaling({ scaling: [RADIUS], level: 5, stats: {} }).values[0]).toMatchObject({ value: null, reason: "RES is needed" });
+    const v1 = { artKey: "FOCUS", activation: { ap: 1, mp: 6 }, maintenance: { ap: 1, mp: 4, special: null }, activeEffect: { counts: "WHILE_MAINTAINED" }, source: { locators: ["s1905"], conflicts: [] } };
+    const art = (scaling: unknown[], extra: Record<string, unknown> = {}) => ({ ...v1, modes: [{ modeKey: "FOCUS", name: "Focus", activation: null, maintenance: null, rulesText: "Illustrative.", scaling }], grantedBenefits: [], maintenanceExceptions: [], ...extra });
+    const gap = { ...ATTACK_BONUS, byLevel: [{ fromLevel: 1, toLevel: 3, value: 1 }, { fromLevel: 5, toLevel: 10, value: 2 }] };
+    expect(paths(validateStoredProwessDefinition(stored("MAGE_ART", "MAGE_ART", art([gap]), 2)))).toContain("/prowessDefinition/payload/modes/0/scaling/0/byLevel/1/fromLevel");
+    const both = { ...ATTACK_BONUS, formula: RADIUS.formula };
+    expect(paths(validateStoredProwessDefinition(stored("MAGE_ART", "MAGE_ART", art([both]), 2)))).toContain("/prowessDefinition/payload/modes/0/scaling/0/byLevel");
+    const unnamed = art([], { grantedBenefits: [{ benefitKey: "X", kind: "ADVANTAGE", subject: null, text: "Advantage." }] });
+    expect(paths(validateStoredProwessDefinition(stored("MAGE_ART", "MAGE_ART", unnamed, 2)))).toContain("/prowessDefinition/payload/grantedBenefits/0/subject");
+  });
+});
+
+describe("RULES-WO1 Phase D — Condition triggers, Summon ownership, ammunition and modifications", () => {
+  it("a Condition's triggers name when they act; a failed-Save trigger names its Save", () => {
+    const shocked = { ...BURNING, conditionKey: "SHOCKED", triggers: [{ triggerKey: "ON_HIT", when: "ON_HIT", resistStat: null, text: "Applied on a hit." }, { triggerKey: "RESIST", when: "ON_FAILED_SAVE", resistStat: "RES", text: "Applied on a failed RES Save." }] };
+    expect(codes(validateStoredProwessDefinition(stored("CONDITION", "STATUS_CONDITION", shocked)))).toEqual([]);
+    const noSave = { ...shocked, triggers: [{ triggerKey: "RESIST", when: "ON_FAILED_SAVE", resistStat: null, text: "x" }] };
+    expect(paths(validateStoredProwessDefinition(stored("CONDITION", "STATUS_CONDITION", noSave)))).toContain("/prowessDefinition/payload/triggers/0/resistStat");
+    expect(paths(validateStoredProwessDefinition(stored("CONDITION", "STATUS_CONDITION", { ...BURNING, triggers: [{ triggerKey: "X", when: "ON_SNEEZE", resistStat: null, text: "x" }] })))).toContain("/prowessDefinition/payload/triggers/0/when");
+  });
+  it.each([
+    ["a PASSIVE Summon with AP", { actionModel: "PASSIVE", actsWhen: "AUTOMATIC_AT_TRIGGER", baseAp: 2, apOwner: "NONE", hpOwner: "SUMMON", mpOwner: "NONE", counterActions: false, dismissal: "FREE_ACTION" }, "/prowessDefinition/payload/ownership/baseAp"],
+    ["a DEPENDENT Summon with its own AP", { actionModel: "DEPENDENT", actsWhen: "CASTER_TURN", baseAp: null, apOwner: "SUMMON", hpOwner: "SUMMON", mpOwner: "NONE", counterActions: false, dismissal: "FREE_ACTION" }, "/prowessDefinition/payload/ownership/apOwner"],
+    ["an INDEPENDENT Summon without AP", { actionModel: "INDEPENDENT", actsWhen: "CASTER_TURN", baseAp: null, apOwner: "SUMMON", hpOwner: "SUMMON", mpOwner: "NONE", counterActions: false, dismissal: "FREE_ACTION" }, "/prowessDefinition/payload/ownership/apOwner"],
+    ["a SPLIT_RESOURCE Summon that splits nothing", { actionModel: "SPLIT_RESOURCE", actsWhen: "CASTER_TURN", baseAp: 2, apOwner: "SUMMON", hpOwner: "SUMMON", mpOwner: "NONE", counterActions: false, dismissal: "FREE_ACTION" }, "/prowessDefinition/payload/ownership/actionModel"],
+  ])("Summon ownership refuses %s", (_l, ownership, path) => expect(paths(validateStoredProwessDefinition(stored("SUMMON", "SUMMON_TYPE", { ...TOTEM, ownership })))).toContain(path));
+  it("an Independent Summon Entity owns 2 AP and acts on the caster's turn; the preview says who pays", () => {
+    const entity = { ...TOTEM, summonKey: "ENTITY", engine: "SUMMON_ENTITY", sustainMode: "SUSTAINED", ownership: { actionModel: "INDEPENDENT", actsWhen: "CASTER_TURN", baseAp: 2, apOwner: "SUMMON", hpOwner: "SUMMON", mpOwner: "NONE", counterActions: false, dismissal: "FREE_ACTION" } };
+    expect(codes(validateStoredProwessDefinition(stored("SUMMON", "SUMMON_TYPE", entity)))).toEqual([]);
+    expect(previewSummonEconomy({ summon: entity })).toMatchObject({ summonApPerRound: 2, usesCasterAp: false, casterSustainApPerRound: 1, appliesInPlay: false });
+    const fusion = { ...TOTEM, ownership: { actionModel: "SELF_BOUND", actsWhen: "CASTER_TURN", baseAp: null, apOwner: "CASTER", hpOwner: "CASTER", mpOwner: "CASTER", counterActions: null, dismissal: "FREE_ACTION" } };
+    expect(previewSummonEconomy({ summon: fusion })).toMatchObject({ summonApPerRound: null, usesCasterAp: true });
+  });
+  it("ammunition and modifications validate; the reload preview splits Reload AP across turns and applies fitted modifications", () => {
+    const rounds = { ammoKey: "STANDARD_ROUNDS", weaponFamilies: ["RIFLE"], perAttack: 1, burstPerAttack: 3, effect: "Standard ammunition (illustrative).", notes: [], source: { locators: ["s3636"], conflicts: [] } };
+    expect(codes(validateStoredProwessDefinition(stored("EQUIPMENT", "AMMUNITION", rounds)))).toEqual([]);
+    expect(paths(validateStoredProwessDefinition(stored("EQUIPMENT", "AMMUNITION", { ...rounds, weaponFamilies: [] })))).toContain("/prowessDefinition/payload/weaponFamilies");
+    const mag = { modificationKey: "EXTENDED_MAGAZINE", weaponFamilies: ["RIFLE"], slotCost: 1, changes: [{ changeKey: "MORE", kind: "LOADING", amount: 4, text: "+4 Loading." }, { changeKey: "SLOWER", kind: "RELOAD_AP", amount: 1, text: "+1 Reload AP." }], requirements: [], source: { locators: ["s3639"], conflicts: [] } };
+    expect(codes(validateStoredProwessDefinition(stored("EQUIPMENT", "WEAPON_MODIFICATION", mag)))).toEqual([]);
+    expect(paths(validateStoredProwessDefinition(stored("EQUIPMENT", "WEAPON_MODIFICATION", { ...mag, changes: [{ changeKey: "X", kind: "TO_HIT", amount: null, text: "x" }] })))).toContain("/prowessDefinition/payload/changes/0/amount");
+    // Loading (12), Reload 3 AP; fitted: +4 Loading, +1 Reload AP → 16 shots, 5 Burst shots; 4 AP over 2 turns (3 + 1).
+    expect(previewReload({ loading: 12, reloadAp: 3, apPerTurn: 3, ammunition: rounds, modifications: [mag] })).toMatchObject({ loading: 16, reloadAp: 4, attacksBeforeReload: 16, burstAttacksBeforeReload: 5, turnsToReload: 2, apSplit: [3, 1], appliesInPlay: false });
+    expect(previewReload({ loading: 20, reloadAp: 5, apPerTurn: 3, ammunition: null, modifications: [] })).toMatchObject({ turnsToReload: 2, apSplit: [3, 2] });
   });
 });
