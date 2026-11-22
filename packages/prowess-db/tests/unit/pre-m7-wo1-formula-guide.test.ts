@@ -94,6 +94,13 @@ describe("PRE-M7-WO1 guided Formula model (server-side; the Studio never parses 
     expect(formulaGuide({ op: "compose", terms: [{ sign: 1, kind: "DIVIDED", variable: "str", divisor: 2, rounding: "floor" }, { sign: -1, kind: "OTHER", text: "a + b" }] })).toMatchObject({ ok: true, expression: "floor(str / 2) - (a + b)" });
     expect(formulaGuide({ op: "rename", expression: "floor(str / 3) + str", from: "str", to: "con" })).toMatchObject({ ok: true, expression: "floor(con / 3) + con" });
     expect(formulaGuide({ op: "name", source: { kind: "STAT", stat: "STR" }, taken: ["str"] })).toEqual({ variable: "str_2", label: "Stat STR" });
+    // RULES-WO1 Phase G: a Targeting distance may read one of the component's own size choices (the M5 Targeting grammar's
+    // PARAMETER source); its variable and label come from the choice's name, in plain words.
+    expect(formulaGuide({ op: "name", source: { kind: "PARAMETER", parameter: "sizeSteps" }, taken: [] })).toEqual({ variable: "size_steps", label: "the choice size steps" });
+    // An Effect formula names its inputs in lowerCamel (style "camel"); the Effect reader refuses snake_case names.
+    expect(formulaGuide({ op: "name", source: { kind: "MARTIAL_RANK_VALUE" }, taken: [], style: "camel" })).toEqual({ variable: "martialRankValue", label: "Martial Rank Value" });
+    expect(formulaGuide({ op: "name", source: { kind: "STAT", stat: "STR" }, taken: ["str"], style: "camel" })).toEqual({ variable: "str2", label: "Stat STR" });
+    expect(() => formulaGuide({ op: "name", source: { kind: "STAT", stat: "STR" }, taken: [], style: "kebab" })).toThrow(/style/);
     expect(() => formulaGuide({ op: "compose", terms: [{ sign: 2, kind: "INPUT", variable: "x" }] })).toThrow(/sign/);
     expect(formulaGuide({ op: "compose", terms: [{ sign: 1, kind: "OTHER", text: "x $ 1" }] })).toMatchObject({ ok: false, reason: expect.stringMatching(/does not parse/) });
     expect(() => formulaGuide({ op: "describe", expression: "x".repeat(2001) })).toThrow(/at most/);

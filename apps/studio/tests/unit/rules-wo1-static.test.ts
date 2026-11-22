@@ -31,6 +31,7 @@ describe("RULES-WO1 gate — the approved M5 change is additive and exact", () =
   it("registers exactly the kinds, readers, evaluator, preview, sheet extension and characterizing tests — at their exact hashes", () => {
     expect(Object.keys(entry.changedFiles).sort()).toEqual(
       [
+        "ability/duration-conditions.ts", // Phase G: reads its construction-fact keys from the exported CONDITION_MECHANIC_FACTS (values unchanged)
         "card-phase-b.test.ts", // MAGE_ART reads versions 1 and 2 (the card stays UNAVAILABLE)
         "card/action.ts", // Phase D (R08): an Action card names the Skill benefits granting it (only when one does)
         "card/contract.ts", // the optional grantedBySkills field of a General Action card
@@ -40,6 +41,9 @@ describe("RULES-WO1 gate — the approved M5 change is additive and exact", () =
         "compilation/compile.ts",
         "definition-envelope.test.ts",
         "definition/action-improvement-payload.ts", // readPrerequisite is shared with Skill benefits (R08); behaviour unchanged
+        "definition/authored-ability-payload.ts", // Phase G: exports FOUNDATION_ACTION_CATEGORIES (the same closed list)
+        "definition/duration-condition-payload.ts", // Phase G: exports its closed lists (availability, meanings, Concentration, construction facts)
+        "definition/effect-payload.ts", // Phase G: exports EFFECT_FORMULA_SOURCE_KINDS (the same closed list) for the guided Effect formulas
         "definition/mage-art-payload.ts",
         "definition/payload.ts",
         "index.ts",
@@ -54,7 +58,7 @@ describe("RULES-WO1 gate — the approved M5 change is additive and exact", () =
       ].map((f) => G + f),
     );
     expect(Object.keys(entry.addedFiles).sort()).toEqual(
-      ["ability/concentration-preview.ts", "character/calculated-values.ts", "character/skill-benefits.ts", "definition/rules-authoring-payload.ts", "definition/rules-reference-payload.ts", "reference/preview.ts", "rules-wo1-authoring.test.ts", "rules-wo1-reference.test.ts", "rules-wo1-skill-benefit-preview.test.ts"].map((f) => G + f),
+      ["ability/concentration-preview.ts", "character/calculated-values.ts", "character/skill-benefits.ts", "definition/rules-authoring-payload.ts", "definition/rules-reference-payload.ts", "reference/preview.ts", "rules-wo1-authoring.test.ts", "rules-wo1-cone-conversion.test.ts", "rules-wo1-reference.test.ts", "rules-wo1-skill-benefit-preview.test.ts"].map((f) => G + f),
     );
     for (const [f, h] of [...Object.entries(entry.changedFiles), ...Object.entries(entry.addedFiles)]) expect(sha(f), f).toBe(h);
   });

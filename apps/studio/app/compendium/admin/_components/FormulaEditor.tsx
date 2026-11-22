@@ -23,8 +23,10 @@ type Decl = { variable: string; source: FormulaSourceDto };
 const asDecls = (v: unknown): Decl[] => (Array.isArray(v) ? (v.filter((d) => d !== null && typeof d === "object") as Decl[]) : []);
 
 /** The one extra value some source kinds carry, and the catalog vocabulary it is chosen from (structure, not values). */
-const SOURCE_DETAIL: Readonly<Record<string, { readonly key: "stat" | "statistic" | "field"; readonly vocabulary: string; readonly prompt: string }>> = {
+const SOURCE_DETAIL: Readonly<Record<string, { readonly key: "stat" | "statistic" | "field" | "parameter"; readonly vocabulary: string; readonly prompt: string }>> = {
   STAT: { key: "stat", vocabulary: "prowessStats", prompt: "Stat" },
+  // RULES-WO1 Phase G: a Targeting distance may read one of the component's own size choices (offered by the caller).
+  PARAMETER: { key: "parameter", vocabulary: "formulaParameterChoices", prompt: "size choice" },
   DERIVED: { key: "statistic", vocabulary: "derivedStatistics", prompt: "derived statistic" },
   CHARACTER: { key: "field", vocabulary: "characterFields", prompt: "Character value" },
 };
@@ -38,10 +40,10 @@ export const sourceComplete = (s: FormulaSourceDto) => {
   const detail = SOURCE_DETAIL[s.kind];
   return s.kind !== "" && (detail === undefined || (typeof s[detail.key] === "string" && s[detail.key] !== ""));
 };
-const sameSource = (a: FormulaSourceDto, b: FormulaSourceDto) => a.kind === b.kind && a.stat === b.stat && a.statistic === b.statistic && a.field === b.field;
+const sameSource = (a: FormulaSourceDto, b: FormulaSourceDto) => a.kind === b.kind && a.stat === b.stat && a.statistic === b.statistic && a.field === b.field && a.parameter === b.parameter;
 const messageOf = (e: unknown) => (e instanceof Error && e.message ? e.message : "The Formula service could not be reached.");
 
-export function FormulaEditor({ value, onChange, catalog, sourceKinds, label, ownStatistic }: { value: unknown; onChange: (v: Formula) => void; catalog: AuthoringCatalogDto; sourceKinds: readonly string[]; label: string; ownStatistic?: string | null }) {
+export function FormulaEditor({ value, onChange, catalog, sourceKinds, label, ownStatistic, noMaximum = false, variableStyle }: { value: unknown; onChange: (v: Formula) => void; catalog: AuthoringCatalogDto; sourceKinds: readonly string[]; label: string; ownStatistic?: string | null; /** RULES-WO1 Phase G: a contract with no maximum (a Targeting distance). */ noMaximum?: boolean; /** RULES-WO1 Phase G: input names in lowerCamel (an Effect formula). */ variableStyle?: "camel" }) {
   const base = useId();
   const formula: Formula = value !== null && typeof value === "object" && !Array.isArray(value) ? (value as Formula) : {};
   const expression = typeof formula.expression === "string" ? formula.expression : "";
@@ -49,6 +51,8 @@ export function FormulaEditor({ value, onChange, catalog, sourceKinds, label, ow
   const sources = decls.map((d) => d.source);
   const sourcesKey = JSON.stringify(sources);
   const [desc, setDesc] = useState<FormulaDescriptionDto | null>(null);
+  /** RULES-WO1 Phase G: which expression + inputs `desc` describes — contributions are edited only from a current reading. */
+  const [described, setDescribed] = useState<string | null>(null);
   const [mode, setMode] = useState<"GUIDED" | "ADVANCED" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -62,6 +66,7 @@ export function FormulaEditor({ value, onChange, catalog, sourceKinds, label, ow
       const d = await describeFormula(expr, srcs);
       if (ticket !== latest.current) return;
       setDesc(d);
+      setDescribed(`${expr}\n${JSON.stringify(srcs)}`);
       setMode((m) => m ?? (d.guided.ok ? "GUIDED" : "ADVANCED"));
     } catch (e) {
       if (ticket === latest.current) setMessage(messageOf(e));
@@ -72,6 +77,8 @@ export function FormulaEditor({ value, onChange, catalog, sourceKinds, label, ow
     return () => clearTimeout(t);
   }, [expression, sourcesKey, refresh]);
 
+  // A contribution edit rebuilt from an out-of-date reading would silently drop the last change (e.g. two quick adds).
+  const stale = described !== `${expression}\n${sourcesKey}`;
   const guided = desc?.guided ?? null;
   const terms = guided !== null && guided.ok ? guided.terms : null;
   const labelOf = (variable: string) => {
@@ -97,13 +104,13 @@ export function FormulaEditor({ value, onChange, catalog, sourceKinds, label, ow
       setBusy(false);
     }
   };
-  const replaceTerm = (i: number, t: FormulaTermDto) => terms !== null && void commitTerms(terms.map((x, j) => (j === i ? t : x)));
-  const removeTerm = (i: number) => terms !== null && void commitTerms(terms.filter((_, j) => j !== i));
+  const replaceTerm = (i: number, t: FormulaTermDto) => terms !== null && !stale && void commitTerms(terms.map((x, j) => (j === i ? t : x)));
+  const removeTerm = (i: number) => terms !== null && !stale && void commitTerms(terms.filter((_, j) => j !== i));
 
   const replaceInput = async (variable: string, source: FormulaSourceDto) => {
     setBusy(true);
     try {
-      const { variable: next } = await nameFormulaInput(source, decls.filter((d) => d.variable !== variable).map((d) => d.variable));
+      const { variable: next } = await nameFormulaInput(source, decls.filter((d) => d.variable !== variable).map((d) => d.variable), variableStyle);
       const nextDecls = decls.map((d) => (d.variable === variable ? { variable: next, source } : d));
       const out = await renameFormulaInput(expression, variable, next, nextDecls.map((d) => d.source));
       if (!out.ok) {
@@ -120,14 +127,14 @@ export function FormulaEditor({ value, onChange, catalog, sourceKinds, label, ow
   };
 
   const addContribution = async (shape: "INPUT" | "DIVIDED" | "SCALED" | "CONSTANT", sign: 1 | -1, n: number, source: FormulaSourceDto) => {
-    if (terms === null) return;
+    if (terms === null || stale) return;
     const kept = terms.filter((t) => !(t.kind === "CONSTANT" && t.value === 0));
     if (shape === "CONSTANT") return commitTerms([...kept, { sign, kind: "CONSTANT", value: n }]);
     const existing = decls.find((d) => sameSource(d.source, source));
     let variable = existing?.variable;
     if (variable === undefined) {
       try {
-        variable = (await nameFormulaInput(source, decls.map((d) => d.variable))).variable;
+        variable = (await nameFormulaInput(source, decls.map((d) => d.variable), variableStyle)).variable;
       } catch (e) {
         setMessage(messageOf(e));
         return;
@@ -167,15 +174,15 @@ export function FormulaEditor({ value, onChange, catalog, sourceKinds, label, ow
           <ol className="prowess-formula__terms" aria-label={`${label}: contributions`}>
             {terms.map((t, i) => (
               <li key={i} className="prowess-formula__term" data-testid="formula-term" data-kind={t.kind}>
-                <TermControls index={i} term={t} decls={decls} labelOf={labelOf} onChange={(nt) => replaceTerm(i, nt)} idBase={`${base}-${i}`} disabled={busy} />
-                <button type="button" className="gov-link-button" disabled={busy} onClick={() => removeTerm(i)} aria-label={`Remove contribution ${i + 1} (${t.text ?? ""})`}>
+                <TermControls index={i} term={t} decls={decls} labelOf={labelOf} onChange={(nt) => replaceTerm(i, nt)} idBase={`${base}-${i}`} disabled={busy || stale} />
+                <button type="button" className="gov-link-button" disabled={busy || stale} onClick={() => removeTerm(i)} aria-label={`Remove contribution ${i + 1} (${t.text ?? ""})`}>
                   Remove
                 </button>
               </li>
             ))}
           </ol>
           {terms.length === 0 || expression.trim() === "0" ? <p className="gov-muted">No contributions: this rule&apos;s value is the constant 0 (a valid, neutral rule — the statistic still exists).</p> : null}
-          <AddContribution sourceKinds={sourceKinds} catalog={catalog} disabled={busy} onAdd={(shape, sign, n, source) => void addContribution(shape, sign, n, source)} />
+          <AddContribution sourceKinds={sourceKinds} catalog={catalog} disabled={busy || stale} onAdd={(shape, sign, n, source) => void addContribution(shape, sign, n, source)} />
         </div>
       ) : null}
 
@@ -227,7 +234,7 @@ export function FormulaEditor({ value, onChange, catalog, sourceKinds, label, ow
           </select>
         </label>
         <NullableNumber label="Minimum result (optional)" value={formula.minimum} onChange={(v) => set({ minimum: v })} />
-        <NullableNumber label="Maximum result (optional)" value={formula.maximum} onChange={(v) => set({ maximum: v })} />
+        {noMaximum ? null : <NullableNumber label="Maximum result (optional)" value={formula.maximum} onChange={(v) => set({ maximum: v })} />}
         <label className="gov-field">
           <span>Unit (optional, e.g. ft)</span>
           <input value={typeof formula.unit === "string" ? formula.unit : ""} onChange={(e) => set({ unit: e.target.value === "" ? null : e.target.value })} spellCheck={false} />
@@ -348,14 +355,14 @@ function SourcePicker({ catalog, sourceKinds, value, label, onChoose, disabled }
 
 
 function SourceFields({ catalog, sourceKinds, value, onChange, label }: { catalog: AuthoringCatalogDto; sourceKinds: readonly string[]; value: FormulaSourceDto; onChange: (s: FormulaSourceDto) => void; label: string }) {
-  const kinds = sourceKinds.filter((k) => [...(catalog.vocabularies.formulaSourceKinds ?? []), ...(catalog.vocabularies.valueInputKinds ?? [])].includes(k));
+  const kinds = sourceKinds.filter((k) => [...(catalog.vocabularies.formulaSourceKinds ?? []), ...(catalog.vocabularies.valueInputKinds ?? []), ...(catalog.vocabularies.formulaExtraSourceKinds ?? [])].includes(k));
   return (
     <>
       <select aria-label={`${label}: source`} value={value.kind} onChange={(e) => onChange({ kind: e.target.value })}>
         <option value="">Choose a source…</option>
         {kinds.map((k) => (
           <option key={k} value={k}>
-            {formatEnumLabel(k)}
+            {SOURCE_DETAIL[k]?.key === "parameter" ? "One of this component's size choices" : formatEnumLabel(k)}
           </option>
         ))}
       </select>
@@ -371,7 +378,7 @@ function SourceDetail({ catalog, value, onChange, label }: { catalog: AuthoringC
       <option value="">Choose a {detail.prompt}…</option>
       {(catalog.vocabularies[detail.vocabulary] ?? []).map((s) => (
         <option key={s} value={s}>
-          {formatEnumLabel(s)}
+          {detail.key === "parameter" ? s.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase() : formatEnumLabel(s)}
         </option>
       ))}
     </select>

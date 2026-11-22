@@ -502,16 +502,16 @@ export {
   type EffectCostKind, type EffectOutcomeKey, type EffectOutcomeOperation, type TargetingDeliveryCheck,
   type EffectDeliveryInteraction,
 } from "./vocabulary/effect.js";
-export { EFFECT_ERROR_CODES, isSpellEffectFamily, type EffectRules, type EffectParameterRule, type EffectFormula, type EffectSaveProfile, type EffectDurationPolicy, type EffectCostRule, type EffectOutcomeReading, type TargetingDeliveryRule } from "./definition/effect-payload.js";
+export { EFFECT_ERROR_CODES, EFFECT_FORMULA_SOURCE_KINDS, isSpellEffectFamily, type EffectRules, type EffectParameterRule, type EffectFormula, type EffectSaveProfile, type EffectDurationPolicy, type EffectCostRule, type EffectOutcomeReading, type TargetingDeliveryRule } from "./definition/effect-payload.js";
 export { compileEffectUse, validateEffectUse, readEffectRun, type EffectCharacterContext, type EffectUseRequest, type EffectUseResult, type EffectCompiledOutputs, type ProwessEffectCompiledPlan } from "./effect/compile.js";
 
 // M5-WO8: typed Traits and exact authored Spell/Maneuver Definition compilation.
 export { TRAIT_FAMILIES, TRAIT_MODIFICATIONS, TRAIT_ERROR_CODES, readTraitRules, readTraitCosts, type TraitRules, type TraitFamily, type TraitModification, type TraitSelectedModification } from "./definition/trait-payload.js";
-export { AUTHORED_ABILITY_ERROR_CODES, validateAuthoredAbilityDefinition, serializeAuthoredAbilityDefinition, deserializeAuthoredAbilityDefinition, type SpellDefinitionPayload, type ManeuverDefinitionPayload, type AuthoredAbilityPayload, type AttackFoundationProfile, type ActionFoundationProfile, type FoundationProfile, isAttackFoundation } from "./definition/authored-ability-payload.js";
+export { AUTHORED_ABILITY_ERROR_CODES, FOUNDATION_ACTION_CATEGORIES, validateAuthoredAbilityDefinition, serializeAuthoredAbilityDefinition, deserializeAuthoredAbilityDefinition, type SpellDefinitionPayload, type ManeuverDefinitionPayload, type AuthoredAbilityPayload, type AttackFoundationProfile, type ActionFoundationProfile, type FoundationProfile, isAttackFoundation } from "./definition/authored-ability-payload.js";
 export { compileAbilityDefinition, readAbilityDefinitionRun, evaluateAbilityDefinition, type AbilityDefinitionRequest, type ProwessAbilityDefinitionCompiledPlan, type AuthoredAbilityResult, type CompiledTrait } from "./ability/compile.js";
 
 // M5-WO9: typed Duration and construction Conditions, consumed through compileAbilityDefinition.
-export { DURATION_CONDITION_ERRORS, readDurationRules, readDurationCosts, readConditionRules, readConditionContributions, type DurationRules, type ConditionRules, type RuntimeRequirement, type ConditionModifier, type ConditionContribution } from "./definition/duration-condition-payload.js";
+export { DURATION_CONDITION_ERRORS, COMPONENT_AVAILABILITIES, CONDITION_COST_MEANINGS, DURATION_CONCENTRATION_MODES, CONDITION_MECHANIC_FACTS, CONDITION_NUMERIC_FACTS, CONDITION_SET_FACTS, readDurationRules, readDurationCosts, readConditionRules, readConditionContributions, type DurationRules, type ConditionRules, type RuntimeRequirement, type ConditionModifier, type ConditionContribution } from "./definition/duration-condition-payload.js";
 export { type ConditionPolicy, type ConditionFormula } from "./definition/condition-policy.js";
 export type { CompiledDurationConditions, DurationConditionResult } from "./ability/duration-conditions.js";
 

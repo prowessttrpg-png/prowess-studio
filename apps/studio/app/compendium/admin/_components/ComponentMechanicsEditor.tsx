@@ -51,6 +51,7 @@ import {
 } from "../_lib/component-mechanics";
 import { ContentTokenSelect } from "./ContentTokenSelect";
 import { DefinitionReferencePicker } from "./DefinitionReferencePicker";
+import { FormulaEditor } from "./FormulaEditor";
 
 /**
  * RULES-WO1 Phase F — guided, game-language editors for Spell / Maneuver components (Effects and Traits) and the
@@ -72,7 +73,7 @@ const vocab = (catalog: AuthoringCatalogDto, name: string): readonly string[] =>
 
 /** Server issues, placed next to the control whose stored path they name (§47). */
 export const MechanicsIssues = createContext<readonly ValidationIssueDto[]>([]);
-function useIssues(path: string | undefined): ValidationIssueDto[] {
+export function useIssues(path: string | undefined): ValidationIssueDto[] {
   const all = useContext(MechanicsIssues);
   if (path === undefined) return [];
   return all.filter(
@@ -82,7 +83,7 @@ function useIssues(path: string | undefined): ValidationIssueDto[] {
       i.path.startsWith(`${path}[`),
   );
 }
-function IssueList({
+export function IssueList({
   id,
   issues,
 }: {
@@ -109,7 +110,7 @@ const invalid = (issues: readonly ValidationIssueDto[], id: string) =>
       }
     : {};
 
-function Section({
+export function Section({
   title,
   help,
   children,
@@ -129,7 +130,7 @@ function Section({
   );
 }
 
-function NumberInput({
+export function NumberInput({
   label,
   value,
   onChange,
@@ -170,7 +171,7 @@ function NumberInput({
 }
 
 /** Words typed in plain language, stored as a token ("Roll quality" → ROLL_QUALITY). */
-function WordsInput({
+export function WordsInput({
   label,
   value,
   onChange,
@@ -207,7 +208,7 @@ function WordsInput({
   );
 }
 
-function Select({
+export function Select({
   label,
   value,
   options,
@@ -253,7 +254,7 @@ function Select({
   );
 }
 
-function Checks({
+export function Checks({
   label,
   values,
   chosen,
@@ -303,7 +304,7 @@ function Checks({
 }
 
 /** One option list typed in plain words (each option stored as a token). */
-function OptionList({
+export function OptionList({
   label,
   values,
   onChange,
@@ -369,7 +370,7 @@ function OptionList({
 }
 
 /** An exact Definition reference, chosen by search; shown by its name. */
-function RefChooser({
+export function RefChooser({
   label,
   kind,
   value,
@@ -700,18 +701,20 @@ function ChoiceName({
   onChange,
   testId,
   path,
+  label = "Name of the choice",
 }: {
   name: string;
   onChange: (v: string) => void;
   testId: string;
   path?: string;
+  label?: string;
 }) {
   const id = useId();
   const issues = useIssues(path);
   const [typed, setTyped] = useState<string | null>(null);
   return (
     <span className="gov-field">
-      <label htmlFor={id}>Name of the choice</label>
+      <label htmlFor={id}>{label}</label>
       <input
         id={id}
         {...invalid(issues, id)}
@@ -1065,7 +1068,7 @@ function CostIssues({ i }: { i: number }) {
   );
 }
 
-function RefList({
+export function RefList({
   label,
   kind,
   value,
@@ -1775,17 +1778,119 @@ export function EffectMechanicsEditor({
         />
       </Section>
 
-      {formulas.length > 0 || extraTop ? (
+      <EffectFormulas
+        formulas={formulas}
+        parameters={parameters}
+        catalog={catalog}
+        onChange={(v) => putEffect({ formulas: v })}
+      />
+
+      {extraTop ? (
         <p className="gov-muted" data-testid="effect-kept">
-          {formulas.length > 0
-            ? `This Effect also has ${formulas.length} authored formula${formulas.length === 1 ? "" : "s"}; ${formulas.length === 1 ? "it is" : "they are"} kept unchanged. `
-            : ""}
-          {extraTop
-            ? "It also stores older parameter data, kept unchanged."
-            : ""}
+          It also stores older parameter data, kept unchanged.
         </p>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * RULES-WO1 Phase G — an Effect's calculated values (for example a cone's length: 5 ft × Martial Rank), each named in
+ * plain words and composed from contributions by the server. Inputs are Stats, the Martial Rank Value and the Effect's
+ * own number choices; their names are lowerCamel, as the Effect reader requires.
+ */
+function EffectFormulas({
+  formulas,
+  parameters,
+  catalog,
+  onChange,
+}: {
+  formulas: Array<Record<string, unknown>>;
+  parameters: unknown;
+  catalog: AuthoringCatalogDto;
+  onChange: (v: Array<Record<string, unknown>>) => void;
+}) {
+  const sourceKinds = vocab(catalog, "effectFormulaSourceKinds");
+  const numbers = declaredParameters(parameters)
+    .filter((q) => q.shape === "number" && q.name !== "")
+    .map((q) => q.name);
+  const extended: AuthoringCatalogDto = {
+    ...catalog,
+    vocabularies: {
+      ...catalog.vocabularies,
+      formulaExtraSourceKinds: [...sourceKinds],
+      formulaParameterChoices: numbers,
+    },
+  };
+  const none =
+    vocab(catalog, "formulaRoundings").find(
+      (r) => shapeOf({ NONE: "none" }, r) === "none",
+    ) ?? tokenOf({ NONE: "none" }, "none");
+  const set = (i: number, next: Record<string, unknown>) =>
+    onChange(formulas.map((f, j) => (j === i ? next : f)));
+  return (
+    <Section
+      title="Calculated values"
+      help="A value the Effect calculates when it is used, for example a cone's length of 5 ft × Martial Rank."
+      testId="effect-formula"
+    >
+      {formulas.length === 0 ? <p className="gov-muted">None.</p> : null}
+      {formulas.map((f, i) => (
+        <div
+          key={i}
+          className="prowess-authoring__card"
+          data-testid={`effect-formula-${i}`}
+        >
+          <ChoiceName
+            name={typeof f.formulaKey === "string" ? f.formulaKey : ""}
+            label="Name of the value"
+            testId={`effect-formula-${i}-name`}
+            path={`payload.rules.effect.formulas[${i}]`}
+            onChange={(v) => set(i, { ...f, formulaKey: v })}
+          />
+          <FormulaEditor
+            value={f}
+            onChange={(v) => {
+              const next: Record<string, unknown> = { ...v };
+              delete next.maximum;
+              set(i, next);
+            }}
+            catalog={extended}
+            sourceKinds={sourceKinds}
+            label={`${parameterWords(typeof f.formulaKey === "string" && f.formulaKey !== "" ? f.formulaKey : "value")}`}
+            noMaximum
+            variableStyle="camel"
+          />
+          <button
+            type="button"
+            className="gov-link-button"
+            onClick={() => onChange(formulas.filter((_, j) => j !== i))}
+          >
+            Remove this value
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        className="gov-button"
+        data-testid="effect-formula-add"
+        onClick={() =>
+          onChange([
+            ...formulas,
+            {
+              formulaKey: "",
+              expression: "0",
+              rounding: none,
+              minimum: null,
+              unit: null,
+              variables: [],
+            },
+          ])
+        }
+      >
+        Add a calculated value
+      </button>
+    </Section>
   );
 }
 

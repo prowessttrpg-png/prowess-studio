@@ -187,7 +187,9 @@ describe("RULES-WO1 Phase F — a meaningful Spell Effect, authored in game lang
       },
     };
     render(<Editor kind="MANEUVER_EFFECT" initial={stored} onChange={(c) => changes.push(c)} />);
-    expect(screen.getByTestId("effect-kept")).toHaveTextContent("1 authored formula");
+    // Phase G: the authored formula is shown in the guided "Calculated values" section (named in plain words).
+    expect(screen.getByTestId("effect-formula-0-name")).toHaveValue("Length");
+    expect(screen.getByTestId("effect-kept")).toHaveTextContent("older parameter data");
     expect(screen.getByTestId("effect-outcome-SUCCESS-0")).toHaveTextContent("Also stored with this line (kept unchanged): Frequency");
     fireEvent.change(screen.getByTestId("effect-outcome-SUCCESS-0-fraction"), { target: { value: "0.5" } });
     const p = last(changes);

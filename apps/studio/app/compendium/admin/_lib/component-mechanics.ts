@@ -434,8 +434,11 @@ export function initialTraitRules(family: string): Record<string, unknown> {
   };
 }
 /** A new component payload of the guided editors (every M5 field present; nothing chosen). */
+/** RULES-WO1 Phase G: every Ability component contract with a guided mechanics editor. */
+export type MechanicsContract = "effect" | "trait" | "targeting" | "duration" | "condition" | "foundation";
+
 export function initialComponentPayload(
-  contract: "effect" | "trait",
+  contract: MechanicsContract,
   branch: string | null | undefined,
 ): Record<string, unknown> {
   const common = {
@@ -444,6 +447,10 @@ export function initialComponentPayload(
     costContributions: [],
     parameters: {},
   };
+  if (contract === "targeting") return { ...common, semanticShape: "", geometry: {}, rules: {} };
+  if (contract === "duration") return { ...common, durationConcept: "", rules: {} };
+  if (contract === "condition") return { ...common, restriction: { restrictionKey: "", data: {} }, tradeoff: {}, rules: {} };
+  if (contract === "foundation") return { ...common, foundationKind: "", rules: {} };
   return contract === "effect"
     ? {
         ...common,
@@ -463,8 +470,9 @@ export function initialComponentPayload(
 /** A game-language reading of a stored Effect or Trait, line by line (read-only views; nothing is computed). */
 export function mechanicsSummary(
   payload: Record<string, unknown>,
-  contract: "effect" | "trait",
+  contract: MechanicsContract,
 ): string[] {
+  if (contract !== "effect" && contract !== "trait") return componentRulesSummary(payload, contract);
   const rules = asObject(payload.rules);
   const lines: string[] = [];
   const choices = (list: unknown) =>
@@ -517,5 +525,99 @@ export function mechanicsSummary(
   }
   for (const c of asArray(payload.costContributions))
     lines.push(`Costs: ${costWords(c)}`);
+  return lines;
+}
+
+// ---- RULES-WO1 Phase G: Targeting, Duration, Ability Condition and Foundation components ------------------------------
+
+/** Which control a Targeting parameter kind is edited with (the Targeting grammar: COUNT / STEPS / FLAG / TOKEN). */
+export const TARGETING_PARAMETER_SHAPES = { COUNT: "number", STEPS: "steps", FLAG: "yesno", TOKEN: "list" } as const;
+export const TARGETING_PARAMETER_WORDS: Readonly<Record<string, string>> = { number: "A number (for example extra targets)", steps: "A size step (each step extends a distance)", yesno: "Yes or no", list: "One option from a list" };
+export const CARDINALITY_SHAPES = { ONE: "one", SELECTED: "selected", AREA: "area", CHAIN: "chain" } as const;
+export const CARDINALITY_WORDS: Readonly<Record<string, string>> = { ONE: "One target", SELECTED: "Several targets, chosen one by one", AREA: "Everything in an area", CHAIN: "A chain from target to target" };
+/** What a range model needs: nothing, a distance (an M4 Formula, composed by the server) or written text. */
+export const RANGE_SHAPES = { SELF: "none", TOUCH: "none", DEFAULT_SPELL_RANGE: "distance", FOUNDATION_RANGE: "none", FIXED: "distance", EFFECT_DEFINED: "none", SPECIAL: "text" } as const;
+export const RANGE_WORDS: Readonly<Record<string, string>> = { SELF: "Self only", TOUCH: "Touch", DEFAULT_SPELL_RANGE: "The caster's Spell range", FOUNDATION_RANGE: "The foundation's own range or reach", FIXED: "A stated distance", EFFECT_DEFINED: "Set by the Effect", SPECIAL: "A special rule (written)" };
+export const MEASURE_STATUS_SHAPES = { FORMULA: "distance", DEFERRED_PENDING_CANON: "deferred", EFFECT_DEFINED: "effect" } as const;
+export const MEASURE_STATUS_WORDS: Readonly<Record<string, string>> = { FORMULA: "A stated distance", DEFERRED_PENDING_CANON: "Not yet settled by the rules (open question)", EFFECT_DEFINED: "Set by the Effect" };
+export const TARGETING_COST_SHAPES = { BASE: "base", BASE_DEFERRED: "deferred", PER_STEP: "perStep", PER_ADDITIONAL_TARGET: "perTarget", PER_SELECTION: "perSelection" } as const;
+export const TARGETING_COST_WORDS: Readonly<Record<string, string>> = { BASE: "Its base MP cost", BASE_DEFERRED: "Base cost not yet settled (open question)", PER_STEP: "MP for each size step", PER_ADDITIONAL_TARGET: "MP for each additional target", PER_SELECTION: "MP when an option is chosen" };
+/** Which Formula input kinds a Targeting distance may read. */
+export const TARGETING_SOURCE_SHAPES = { STAT: "stat", DERIVED: "derived", PARAMETER: "steps", SKILL_RANK_TABLE: "table" } as const;
+/** A Duration's inert future-runtime markers follow from its concept (the reader checks they agree). */
+export const DURATION_RUNTIME_SHAPES = { SUSTAINED: "sustained", MANA_LOCK: "manaLock", INSTANT: "instant" } as const;
+export const DURATION_CONCENTRATION_SHAPES = { NONE: "none", WO13: "concentration" } as const;
+export const AVAILABILITY_SHAPES = { EXECUTABLE: "executable", DEFERRED: "deferred" } as const;
+export const DURATION_COST_STATUS_SHAPES = { UNLISTED: "unlisted", AUTHORED: "authored" } as const;
+/** The implicit choice a Duration concept carries (a ROUNDS Duration is priced per round). */
+export const DURATION_IMPLICIT_PARAMETERS: Readonly<Record<string, readonly Record<string, unknown>[]>> = { ROUNDS: [{ parameter: "rounds", kind: tokenOf(PARAMETER_SHAPES, "number"), minimum: 1, maximum: null, increment: 1, default: null }] };
+export const CONDITION_MEANING_WORDS: Readonly<Record<string, string>> = { MP_PERCENT_REDUCTION: "Reduces the MP cost by this percentage", AP_REDUCTION: "Reduces the AP cost", MP_REDUCTION: "Reduces the MP cost", AP_COMMITMENT: "Commits extra AP" };
+export const CHOICE_SHAPES = { ALL: "all", CHOOSE_ONE: "one" } as const;
+/** The construction facts an Ability Condition's applicability may read, by the fact's last word (e.g. mechanic.attack). */
+export const MECHANIC_FACT_WORDS: Readonly<Record<string, string>> = {
+  present: "Always (no further condition)",
+  attack: "The ability makes an attack roll",
+  save: "The ability calls for a Saving Throw",
+  area: "The ability affects an area",
+  sustained: "The ability is Sustained",
+  duration: "The ability lasts",
+  targets: "The ability can target",
+  effects: "The ability includes an Effect of the family",
+  foundations: "The ability uses a foundation of the category",
+};
+/** The catalog list a set fact's members come from (none = typed in plain words). */
+export const MECHANIC_SET_MEMBERS: Readonly<Record<string, string | null>> = { duration: "durationConcepts", targets: "targetCategories", effects: "spellEffectFamilies", foundations: null };
+export const factWord = (factKey: string): string => factKey.split(".").pop() ?? factKey;
+/** The M4 Requirement node shapes the guided component editors build (a compiled-fact check or an ALL / ANY group). */
+export const REQUIREMENT_SHAPES = { NUMERIC_COMPARE: "compare", SET_CONTAINS: "includes", ALL: "all", ANY: "any" } as const;
+/** Which resource each Ability Condition contribution meaning is paid in (the reader refuses a mismatch). */
+export const CONDITION_MEANING_CURRENCY: Readonly<Record<string, "ap" | "mp">> = { MP_PERCENT_REDUCTION: "mp", MP_REDUCTION: "mp", AP_REDUCTION: "ap", AP_COMMITMENT: "ap" };
+/** The meanings a Maneuver Condition may use (listed AP or MP reductions only). */
+export const MANEUVER_CONDITION_MEANINGS: Readonly<Record<string, true>> = { AP_REDUCTION: true, MP_REDUCTION: true };
+export const CURRENCY_SHAPES = { AP: "ap", MP: "mp" } as const;
+export const FOUNDATION_ACTION_WORDS: Readonly<Record<string, string>> = { MOVEMENT: "A movement", DEFENSE: "A defence (block or guard)", INTERACTION: "An interaction" };
+
+/** A game-language reading of a stored Targeting, Duration, Ability Condition or Foundation (read-only). */
+export function componentRulesSummary(payload: Record<string, unknown>, contract: "targeting" | "duration" | "condition" | "foundation"): string[] {
+  const rules = asObject(payload.rules);
+  const lines: string[] = [];
+  if (contract === "targeting") {
+    const t = asObject(rules.targeting);
+    const shape = payload.semanticShape;
+    if (typeof shape === "string") lines.push(`Shape: ${tokenWords(shape)}`);
+    if (typeof t.deliveryFamily === "string") lines.push(`Delivered by: ${tokenWords(t.deliveryFamily)}`);
+    const c = asObject(t.cardinality);
+    if (typeof c.kind === "string") lines.push(`Targets: ${CARDINALITY_WORDS[c.kind] ?? tokenWords(c.kind)}`);
+    const r = asObject(t.range);
+    if (typeof r.model === "string") lines.push(`Range: ${RANGE_WORDS[r.model] ?? tokenWords(r.model)}${r.formula ? ` (${String(asObject(r.formula).expression ?? "")} ft)` : ""}`);
+    for (const m of asArray(t.measures)) lines.push(`${tokenWords(String(m.measure))}: ${MEASURE_STATUS_WORDS[String(m.valueStatus)] ?? String(m.valueStatus)}${m.formula ? ` (${String(asObject(m.formula).expression ?? "")} ft)` : ""}`);
+    for (const p of asArray(t.parameters)) lines.push(`Choice — ${parameterWords(String(p.parameter ?? "?"))}: ${TARGETING_PARAMETER_WORDS[String(shapeOf(TARGETING_PARAMETER_SHAPES, p.kind))] ?? String(p.kind)}`);
+    for (const k of asArray(payload.costContributions)) {
+      const d = asObject(k.data);
+      lines.push(`Costs: ${TARGETING_COST_WORDS[String(d.kind)] ?? String(d.kind)}${typeof d.amount === "number" ? ` — ${d.amount} MP` : ""}`);
+    }
+  } else if (contract === "duration") {
+    const d = asObject(rules.duration);
+    if (typeof payload.durationConcept === "string") lines.push(`Lasts: ${tokenWords(payload.durationConcept)}`);
+    if (shapeOf(AVAILABILITY_SHAPES, d.availability) === "deferred") lines.push(`Waits on: ${String(d.deferralKey ?? "?")}`);
+    lines.push(shapeOf(DURATION_COST_STATUS_SHAPES, d.costStatus) === "authored" ? "Cost: listed" : "Cost: not listed");
+    for (const k of asArray(payload.costContributions)) lines.push(`Costs: ${costWords(k)}`);
+  } else if (contract === "condition") {
+    const c = asObject(rules.condition);
+    const restriction = asObject(payload.restriction);
+    if (typeof restriction.restrictionKey === "string") lines.push(`Restriction: ${tokenWords(restriction.restrictionKey)}`);
+    if (shapeOf(AVAILABILITY_SHAPES, c.availability) === "deferred") lines.push(`Waits on: ${String(c.deferralKey ?? "?")}`);
+    for (const r of asArray(c.runtimeRequirements)) lines.push(`Checked in play (not yet run): ${tokenWords(String(r.requirementKey ?? "?"))}`);
+    for (const k of asArray(payload.costContributions)) {
+      const d = asObject(k.data);
+      lines.push(`Benefit: ${CONDITION_MEANING_WORDS[String(d.modifier)] ?? String(d.modifier)} — ${costWords(k)}${typeof d.option === "string" ? ` (${tokenWords(d.option)})` : ""}`);
+    }
+  } else {
+    if (typeof payload.foundationKind === "string") lines.push(`Foundation: ${tokenWords(payload.foundationKind)}`);
+    const action = asObject(rules.action);
+    if (typeof action.category === "string") lines.push(`Action: ${FOUNDATION_ACTION_WORDS[action.category] ?? tokenWords(action.category)}`);
+    if (rules.attack !== undefined) lines.push("Bound to an exact Weapon Attack");
+    for (const k of asArray(payload.costContributions)) lines.push(`Costs: ${costWords(k)}`);
+  }
   return lines;
 }

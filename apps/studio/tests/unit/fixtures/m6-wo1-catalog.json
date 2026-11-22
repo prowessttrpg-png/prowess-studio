@@ -1466,6 +1466,134 @@
       "ACTIONS",
       "COUNTER_ACTIONS",
       "MOVEMENT"
+    ],
+    "deliveryFamilies": [
+      "SELF_DELIVERY",
+      "DIRECT_ATTACK_DELIVERY",
+      "TARGETED_DELIVERY",
+      "AREA_DELIVERY",
+      "EMANATION_DELIVERY",
+      "CHAIN_DELIVERY",
+      "FOUNDATION_DELIVERY"
+    ],
+    "targetCardinalityKinds": [
+      "ONE",
+      "SELECTED",
+      "AREA",
+      "CHAIN"
+    ],
+    "targetingRangeModels": [
+      "SELF",
+      "TOUCH",
+      "DEFAULT_SPELL_RANGE",
+      "FOUNDATION_RANGE",
+      "FIXED",
+      "EFFECT_DEFINED",
+      "SPECIAL"
+    ],
+    "targetingMeasureStatuses": [
+      "FORMULA",
+      "DEFERRED_PENDING_CANON",
+      "EFFECT_DEFINED"
+    ],
+    "targetingOriginModes": [
+      "CASTER",
+      "PERFORMER",
+      "POINT_IN_RANGE",
+      "TARGET",
+      "SOURCE",
+      "WEAPON_TIP",
+      "WEAPON_DIRECTION",
+      "PROJECTILE_PATH",
+      "EMITTED_POINT",
+      "THROWN_IMPACT",
+      "RANGED_IMPACT",
+      "PROJECTILE_IMPACT",
+      "FOUNDATION",
+      "EFFECT_DEFINED"
+    ],
+    "auraSources": [
+      "CASTER",
+      "CREATURE",
+      "OBJECT",
+      "SUMMON",
+      "ANCHOR"
+    ],
+    "targetingPlacementModels": [
+      "NONE",
+      "CHOOSE_TARGETS",
+      "CHOOSE_POINT",
+      "FROM_ORIGIN",
+      "FOLLOWS_SOURCE",
+      "FOUNDATION",
+      "EFFECT_DEFINED"
+    ],
+    "sightPolicies": [
+      "REQUIRED",
+      "NOT_REQUIRED",
+      "CONDITIONAL",
+      "INHERITED"
+    ],
+    "coverPolicies": [
+      "EXPOSED_TO_RESOLUTION",
+      "NOT_APPLICABLE",
+      "INHERITED"
+    ],
+    "targetingParameterKinds": [
+      "COUNT",
+      "STEPS",
+      "FLAG",
+      "TOKEN"
+    ],
+    "targetingCostKinds": [
+      "BASE",
+      "BASE_DEFERRED",
+      "PER_STEP",
+      "PER_ADDITIONAL_TARGET",
+      "PER_SELECTION"
+    ],
+    "conditionCostMeanings": [
+      "MP_PERCENT_REDUCTION",
+      "AP_REDUCTION",
+      "MP_REDUCTION",
+      "AP_COMMITMENT"
+    ],
+    "durationConcentrationModes": [
+      "NONE",
+      "WO13"
+    ],
+    "conditionNumericFacts": [
+      "mechanic.present",
+      "mechanic.attack",
+      "mechanic.save",
+      "mechanic.area",
+      "mechanic.sustained"
+    ],
+    "conditionSetFacts": [
+      "mechanic.duration",
+      "mechanic.targets",
+      "mechanic.effects",
+      "mechanic.foundations"
+    ],
+    "targetingVariableSources": [
+      "STAT",
+      "DERIVED",
+      "PARAMETER",
+      "SKILL_RANK_TABLE"
+    ],
+    "componentAvailability": [
+      "EXECUTABLE",
+      "DEFERRED"
+    ],
+    "foundationActionCategories": [
+      "MOVEMENT",
+      "DEFENSE",
+      "INTERACTION"
+    ],
+    "effectFormulaSourceKinds": [
+      "STAT",
+      "PARAMETER",
+      "MARTIAL_RANK_VALUE"
     ]
   },
   "legacyTerms": [

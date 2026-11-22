@@ -16,6 +16,8 @@ export interface FormulaSource {
   readonly field?: string;
   /** RULES-WO1: the authored calculated value a `{ kind: "CALCULATED_VALUE" }` input reads. */
   readonly valueKey?: string;
+  /** RULES-WO1 Phase G: the Targeting size choice a `{ kind: "PARAMETER" }` input reads. */
+  readonly parameter?: string;
 }
 
 const title = (t: string) => t.toLowerCase().split("_").map((w) => (w === "" ? w : w[0]!.toUpperCase() + w.slice(1))).join(" ");
@@ -28,13 +30,27 @@ export function formulaSourceLabel(s: FormulaSource): string {
   if (s.kind === "LEVEL") return "Character Level";
   if (s.kind === "CAST_AP") return "the Spell's casting AP";
   if (s.kind === "CALCULATED_VALUE") return `value ${title(s.valueKey ?? "?")}`;
+  if (s.kind === "PARAMETER") return `the choice ${(s.parameter ?? "?").replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase()}`;
   if (s.kind === "") return "no source";
   return title(s.kind);
 }
 
+/**
+ * RULES-WO1 Phase G: the same readable name in lowerCamel (`str`, `martialRankValue`, `sizeSteps` …) — the naming an
+ * Effect's formula variables must use (the M5 Effect reader refuses `martial_rank`).
+ */
+export function camelVariableNameFor(s: FormulaSource, taken: readonly string[]): string {
+  const snake = variableNameFor(s, []);
+  const base = snake.replace(/_+([a-z0-9])/g, (_, c: string) => c.toUpperCase()).replace(/_/g, "");
+  const stem = /^[a-z]/.test(base) ? base : `v${base}`;
+  let name = stem;
+  for (let i = 2; taken.includes(name); i += 1) name = `${stem}${i}`;
+  return name;
+}
+
 /** A readable, unused Formula variable name for a source (`str`, `con`, `accuracy`, `level`, `bonuses` …). */
 export function variableNameFor(s: FormulaSource, taken: readonly string[]): string {
-  const stem = (s.kind === "STAT" ? s.stat : s.kind === "DERIVED" ? s.statistic : s.kind === "CHARACTER" ? s.field : s.kind === "EXPLICIT_BONUSES" ? "bonuses" : s.kind === "CALCULATED_VALUE" ? s.valueKey : s.kind)?.toLowerCase().replace(/[^a-z0-9_]/g, "_") || "input";
+  const stem = (s.kind === "STAT" ? s.stat : s.kind === "DERIVED" ? s.statistic : s.kind === "CHARACTER" ? s.field : s.kind === "EXPLICIT_BONUSES" ? "bonuses" : s.kind === "CALCULATED_VALUE" ? s.valueKey : s.kind === "PARAMETER" ? s.parameter?.replace(/([a-z0-9])([A-Z])/g, "$1_$2") : s.kind)?.toLowerCase().replace(/[^a-z0-9_]/g, "_") || "input";
   const base = /^[a-z_]/.test(stem) ? stem : `v_${stem}`;
   let name = base;
   for (let i = 2; taken.includes(name); i += 1) name = `${base}_${i}`;
@@ -82,7 +98,7 @@ function readSources(v: unknown): FormulaSource[] {
     if (x === null || typeof x !== "object") throw invalid(`sources[${i}] must be an object`);
     const r = x as Record<string, unknown>;
     const str = (k: string) => (typeof r[k] === "string" && (r[k] as string).length <= 64 ? (r[k] as string) : undefined);
-    return { kind: str("kind") ?? "", ...(str("stat") ? { stat: str("stat") } : {}), ...(str("statistic") ? { statistic: str("statistic") } : {}), ...(str("field") ? { field: str("field") } : {}), ...(str("valueKey") ? { valueKey: str("valueKey") } : {}) };
+    return { kind: str("kind") ?? "", ...(str("stat") ? { stat: str("stat") } : {}), ...(str("statistic") ? { statistic: str("statistic") } : {}), ...(str("field") ? { field: str("field") } : {}), ...(str("valueKey") ? { valueKey: str("valueKey") } : {}), ...(str("parameter") ? { parameter: str("parameter") } : {}) };
   });
 }
 
@@ -117,7 +133,8 @@ export function formulaGuide(body: Record<string, unknown>): Record<string, unkn
     case "name": {
       const [source] = readSources([body.source]);
       if (!Array.isArray(body.taken) || !body.taken.every(isIdent)) throw invalid("taken is a list of variable names");
-      return { variable: variableNameFor(source!, body.taken as string[]), label: formulaSourceLabel(source!) };
+      if (body.style !== undefined && body.style !== "camel") throw invalid('style is "camel" when given');
+      return { variable: (body.style === "camel" ? camelVariableNameFor : variableNameFor)(source!, body.taken as string[]), label: formulaSourceLabel(source!) };
     }
     default:
       throw invalid("op is describe, compose, rename or name");

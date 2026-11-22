@@ -84,6 +84,8 @@ export function readEffectParameterRules(v: unknown, at: readonly PathSegment[],
     out.push({ parameter: name, kind, minimum: null, maximum: null, increment: null, default: typeof d === "string" && allowed.includes(d) ? d : null, allowed });
   }); return out;
 }
+/** RULES-WO1 Phase G: what an Effect formula variable may read (the closed list this reader accepts). */
+export const EFFECT_FORMULA_SOURCE_KINDS = Object.freeze(["STAT", "PARAMETER", "MARTIAL_RANK_VALUE"] as const);
 function formulas(v: unknown, declared: readonly EffectParameterRule[], at: readonly PathSegment[], p: Problems): EffectFormula[] {
   if (!Array.isArray(v)) { p.add(E.INVALID_EFFECT_RULES, at, "formulas is an array"); return []; }
   const out: EffectFormula[] = [];
@@ -96,7 +98,7 @@ function formulas(v: unknown, declared: readonly EffectParameterRule[], at: read
     if (!Array.isArray(vr)) p.add(E.INVALID_EFFECT_RULES, [...at, i, "variables"], "variables is an array"); else vr.forEach((raw, j) => {
       const d = readRecord(raw, [...at, i, "variables", j], p, E.INVALID_EFFECT_RULES, ["variable", "source"], ["variable", "source"]); if (!d) return; const variable = own(d, "variable"); const s = own(d, "source");
       if (typeof variable !== "string" || !PARAM.test(variable) || !isPlainObject(s)) { p.add(E.INVALID_EFFECT_RULES, [...at, i, "variables", j], "valid variable/source"); return; }
-      const k = readEnum(own(s, "kind"), ["STAT", "PARAMETER", "MARTIAL_RANK_VALUE"] as const, [...at, i, "variables", j, "source", "kind"], p, E.INVALID_EFFECT_RULES, "source kind");
+      const k = readEnum(own(s, "kind"), EFFECT_FORMULA_SOURCE_KINDS, [...at, i, "variables", j, "source", "kind"], p, E.INVALID_EFFECT_RULES, "source kind");
       if (k === "STAT") { const stat = readEnum(own(s, "stat"), PROWESS_STATS, [...at, i, "variables", j, "source", "stat"], p, E.INVALID_EFFECT_RULES, "Stat"); if (stat) vars.push({ variable, source: { kind: k, stat } }); }
       else if (k === "PARAMETER") { const parameter = own(s, "parameter"); if (typeof parameter !== "string" || !declared.some((e) => e.parameter === parameter && e.kind === "COUNT")) p.add(E.INVALID_EFFECT_RULES, [...at, i, "variables", j, "source", "parameter"], "declared COUNT parameter"); else vars.push({ variable, source: { kind: k, parameter } }); }
       else if (k) vars.push({ variable, source: { kind: k } });

@@ -179,10 +179,12 @@ function readAttackFoundationProfile(v: unknown, at: readonly PathSegment[], p: 
     : { kind: "WEAPON", weaponKey: damage.weaponKey as string, baseDice: damage.baseDice as string, power: damage.power as number, stat: damageStat as ProwessStat, enchantments };
   return { category, targeting, range: { kind: "WEAPON_RANGE", feet }, resolution: { mode: "ATTACK_ROLL", stat }, damage: retained };
 }
+/** RULES-WO1 Phase G: the non-attack action categories a Foundation may name (the closed list this reader accepts). */
+export const FOUNDATION_ACTION_CATEGORIES = deepFreeze(["MOVEMENT", "DEFENSE", "INTERACTION"] as const);
 function readActionFoundationProfile(v: unknown, at: readonly PathSegment[], p: Problems): ActionFoundationProfile | null {
   const before = p.count, C = AUTHORED_ABILITY_ERROR_CODES.FOUNDATION;
   const r = readRecord(v, at, p, C, ["category", "targeting"], ["category", "targeting"]); if (!r) return null;
-  const category = readEnum(own(r, "category"), ["MOVEMENT", "DEFENSE", "INTERACTION"] as const, [...at, "category"], p, C, "non-attack action category");
+  const category = readEnum(own(r, "category"), FOUNDATION_ACTION_CATEGORIES, [...at, "category"], p, C, "non-attack action category");
   const targeting = optionalUse(own(r, "targeting"), [...at, "targeting"], p);
   if (!targeting || targeting.definition.definitionKind !== "MANEUVER_TARGETING" || targeting.componentKey !== "targeting") p.add(C, at, "a non-attack action owns its exact Maneuver targeting");
   return p.count > before || !category || !targeting ? null : { category, targeting, range: null, resolution: { mode: "NONE" }, damage: null };

@@ -2,6 +2,8 @@
  * Response shapes of the M2 HTTP API (PAS-10 M2-WO9) as the UI consumes them: plain JSON (ISO date strings,
  * UUID strings, exact enum strings). These mirror the server's domain DTOs; they add no meaning.
  */
+import type { RulesetResolutionSource } from "@prowess/model";
+
 export interface RulesetDto {
   id: string;
   canonicalKey: string;
@@ -35,7 +37,7 @@ export interface ResolutionDto {
   requestedManifestId: string;
   resolvedFromManifestId: string;
   resolutionDepth: number;
-  source: "EXPLICIT" | "INHERITED";
+  source: RulesetResolutionSource;
 }
 export interface AuthorityRecordDto {
   id: string;

@@ -5,10 +5,10 @@ import { ApiError, apiSuccess, parseJsonBody, requireObjectBody, serializeForApi
  * POST /api/compendium-rules/formula — PRE-M7-WO1 guided Formula editing, computed on the server with the M4 parser (the
  * Studio never parses or rebuilds a Formula itself). Body `{ op, … }`:
  *   describe { expression, sources? } · compose { terms, sources? } · rename { expression, from, to, sources? } ·
- *   name { source, taken }.
+ *   name { source, taken, style? } (style "camel": a lowerCamel name, for Effect formulas).
  * Pure: no database access, nothing written. POST only because the request carries a body.
  */
-const FIELDS = ["op", "expression", "sources", "terms", "from", "to", "source", "taken"];
+const FIELDS = ["op", "expression", "sources", "terms", "from", "to", "source", "taken", "style"];
 
 export async function POST(request: Request): Promise<Response> {
   try {

@@ -13,6 +13,8 @@ export interface FormulaSourceDto {
   readonly stat?: string;
   readonly statistic?: string;
   readonly field?: string;
+  /** RULES-WO1 Phase G: a Targeting size choice. */
+  readonly parameter?: string;
 }
 export type FormulaTermDto =
   | { readonly sign: 1 | -1; readonly kind: "CONSTANT"; readonly value: number; readonly text?: string }
@@ -32,7 +34,7 @@ const FORMULA = "/api/compendium-rules/formula";
 export const describeFormula = async (expression: string, sources: readonly FormulaSourceDto[]) => (await postAuthoring<{ description: FormulaDescriptionDto }>(FORMULA, { op: "describe", expression, sources })).description;
 export const composeFormula = (terms: readonly FormulaTermDto[], sources: readonly FormulaSourceDto[]) => postAuthoring<Changed>(FORMULA, { op: "compose", terms, sources });
 export const renameFormulaInput = (expression: string, from: string, to: string, sources: readonly FormulaSourceDto[]) => postAuthoring<Changed>(FORMULA, { op: "rename", expression, from, to, sources });
-export const nameFormulaInput = (source: FormulaSourceDto, taken: readonly string[]) => postAuthoring<{ variable: string; label: string }>(FORMULA, { op: "name", source, taken });
+export const nameFormulaInput = (source: FormulaSourceDto, taken: readonly string[], style?: "camel") => postAuthoring<{ variable: string; label: string }>(FORMULA, { op: "name", source, taken, ...(style ? { style } : {}) });
 
 export interface PreviewExampleDto {
   label: string;

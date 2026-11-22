@@ -14,7 +14,7 @@
  * authored-data editor — never as a raw JSON text box — and their content is validated by M5 like everything else.
  */
 
-import { initialComponentPayload } from "./component-mechanics";
+import { initialComponentPayload, type MechanicsContract } from "./component-mechanics";
 
 /** Names a vocabulary in the catalog response (`catalog.vocabularies[name]`) — never the values themselves. */
 export type VocabularyName =
@@ -229,7 +229,7 @@ export type FieldDescriptor =
   /** RULES-WO1 Phase F: a whole Effect or Trait payload (key ""), edited in game language: what it does, how it
    *  resolves, the choices made when it is used, its costs, outcomes and construction rules. `branch` and
    *  `definitionKind` are filled in from the kind by descriptorFor. */
-  | (FieldBase & { readonly input: "componentMechanics"; readonly contract: "effect" | "trait"; readonly kinds?: { readonly affinity: string; readonly maneuverTargeting: string }; readonly branch?: string | null; readonly definitionKind?: string });
+  | (FieldBase & { readonly input: "componentMechanics"; readonly contract: MechanicsContract; readonly kinds?: { readonly affinity: string; readonly maneuverTargeting: string }; readonly branch?: string | null; readonly definitionKind?: string });
 /** The named lists the authoring-options service offers (RULES-WO1). */
 export type ContentTokenOptions = "skillRanks" | "calculatedValues" | "rankLadders" | "allRanks" | "weaponFamilies" | "skills";
 
@@ -277,14 +277,13 @@ const RULES: FieldDescriptor = {
   required: false,
   help: "Structured rule data owned by the M5 contract for this kind. Everything that matters to the engine must be here — never only in Rules Text.",
 };
-const COMMON: readonly FieldDescriptor[] = [KEYWORDS, COMPATIBILITY, COSTS, PARAMETERS, RULES];
 /** RULES-WO1 Phase F: the exact kinds the guided component editors' reference pickers search (sanctioned literals). */
 const MECHANICS_KINDS = { affinity: "AFFINITY", maneuverTargeting: "MANEUVER_TARGETING" } as const;
-const MECHANICS = (contract: "effect" | "trait"): FieldDescriptor => ({ key: "", label: "Mechanics", group: "Mechanics", input: "componentMechanics", contract, required: true });
+const MECHANICS = (contract: MechanicsContract): FieldDescriptor => ({ key: "", label: "Mechanics", group: "Mechanics", input: "componentMechanics", contract, required: true });
 
 /** RULES-WO1 Phase F: how a STORED Effect / Trait reads in the Rules Reference — the game-language summary first, then
  *  each stored field exactly as stored (costs, outcomes, rules data). The editor itself is the guided mechanics editor. */
-const STORED_COMPONENT_FIELDS: Readonly<Record<"effect" | "trait", readonly FieldDescriptor[]>> = {
+const STORED_COMPONENT_FIELDS: Readonly<Record<MechanicsContract, readonly FieldDescriptor[]>> = {
   effect: [
     { key: "effectFamily", label: "Effect family", group: "Stored data", input: "token", required: true },
     { key: "resolution", label: "Resolution", group: "Stored data", input: "resolution", required: false },
@@ -294,6 +293,21 @@ const STORED_COMPONENT_FIELDS: Readonly<Record<"effect" | "trait", readonly Fiel
     { ...RULES, group: "Stored data" },
   ],
   trait: [{ ...COSTS, group: "Stored data" }, { ...PARAMETERS, group: "Stored data" }, { ...RULES, group: "Stored data" }],
+  targeting: [
+    { key: "geometry", label: "Geometry notes", group: "Stored data", input: "authoredData", required: false },
+    { ...COSTS, group: "Stored data" },
+    { ...PARAMETERS, group: "Stored data" },
+    { ...RULES, group: "Stored data" },
+  ],
+  duration: [{ ...COSTS, group: "Stored data" }, { ...PARAMETERS, group: "Stored data" }, { ...RULES, group: "Stored data" }],
+  condition: [
+    { key: "restriction", label: "Restriction", group: "Stored data", input: "restriction", required: true },
+    { key: "tradeoff", label: "Tradeoff", group: "Stored data", input: "authoredData", required: false },
+    { ...COSTS, group: "Stored data" },
+    { ...PARAMETERS, group: "Stored data" },
+    { ...RULES, group: "Stored data" },
+  ],
+  foundation: [{ ...COSTS, group: "Stored data" }, { ...PARAMETERS, group: "Stored data" }, { ...RULES, group: "Stored data" }],
 };
 
 /** Descriptors per M5 SHARED CONTRACT (`sharedContract` in the catalog). */
@@ -302,8 +316,9 @@ export const CONTRACT_DESCRIPTORS: Readonly<Record<string, ContractDescriptor>> 
     purpose: "Targeting decides WHERE and HOW an ability is delivered — shape, geometry, range, count, placement. It never decides what happens: Damage, Healing, Saves and outcomes belong to Effects.",
     fields: [
       { key: "semanticShape", label: "Semantic shape", group: "Classification", input: "select", vocabulary: "targetingSemanticShapes", required: true, help: "A classifier of the geometry's meaning — never identity." },
-      { key: "geometry", label: "Geometry", group: "Geometry", input: "authoredData", required: false, help: "Origin, range, area, count, delivery and placement data." },
-      ...COMMON,
+      MECHANICS("targeting"),
+      KEYWORDS,
+      COMPATIBILITY,
     ],
   },
   EFFECT: {
@@ -322,19 +337,19 @@ export const CONTRACT_DESCRIPTORS: Readonly<Record<string, ContractDescriptor>> 
   },
   DURATION: {
     purpose: "A Duration describes how long an ability's result lasts, as exact structured Duration data.",
-    fields: [{ key: "durationConcept", label: "Duration concept", group: "Classification", input: "select", vocabulary: "durationConcepts", required: true }, ...COMMON],
+    fields: [MECHANICS("duration"), KEYWORDS, COMPATIBILITY],
   },
   ABILITY_CONDITION: {
     purpose: "An Ability Condition is a restriction on USING an ability, traded for an authored benefit. It never applies a status to a target.",
     fields: [
-      { key: "restriction", label: "Restriction", group: "Restriction & tradeoff", input: "restriction", required: true, help: "The restriction key (SCREAMING_SNAKE_CASE) and its structured data." },
-      { key: "tradeoff", label: "Tradeoff", group: "Restriction & tradeoff", input: "authoredData", required: false, help: "The exact authored modifier data the restriction buys." },
-      ...COMMON,
+      MECHANICS("condition"),
+      KEYWORDS,
+      COMPATIBILITY,
     ],
   },
   FOUNDATION: {
     purpose: "A Maneuver Foundation is the action a Maneuver starts from (the existing M5 Foundation contract).",
-    fields: [{ key: "foundationKind", label: "Foundation kind", group: "Classification", input: "token", required: true }, ...COMMON],
+    fields: [MECHANICS("foundation"), KEYWORDS, COMPATIBILITY],
   },
 };
 

@@ -6,7 +6,7 @@ import type { AbilityComposition } from "../construction/composition.js";
 import type { AbilityConstructionRulePayload } from "../definition/ability-construction-payload.js";
 import { readComponentConstructionRules } from "../definition/ability-construction-payload.js";
 import type { AbilityConditionDefinitionPayload, DurationDefinitionPayload, TraitDefinitionPayload, TargetingDefinitionPayload } from "../definition/payload.js";
-import { readDurationRules, readDurationCosts, readConditionRules, readConditionContributions, DURATION_CONDITION_ERRORS as E, type DurationRules, type RuntimeRequirement, type ConditionModifier } from "../definition/duration-condition-payload.js";
+import { readDurationRules, readDurationCosts, readConditionRules, readConditionContributions, DURATION_CONDITION_ERRORS as E, CONDITION_MECHANIC_FACTS, type DurationRules, type RuntimeRequirement, type ConditionModifier } from "../definition/duration-condition-payload.js";
 import type { ConditionPolicy } from "../definition/condition-policy.js";
 import type { EffectParameterRule, EffectCostRule } from "../definition/effect-payload.js";
 import type { ProwessAbilityDefinitionCompiledPlan, CompiledTrait } from "./compile.js";
@@ -31,6 +31,8 @@ export interface DurationConditionResult {
 interface ResolvedListedValue extends Omit<ListedValue, "listedStep"> { readonly listedValue: number; }
 interface CapResult { readonly maximum: number; readonly listed: number; readonly effective: number; readonly excess: number; }
 const json = (v: unknown) => v as JsonObject;
+/** The construction facts an Ability Condition may read — one list, shared with the authoring catalog. */
+const F = CONDITION_MECHANIC_FACTS;
 const compare = (factKey: string, operator: string, expected: number) => ({ kind: "NUMERIC_COMPARE", factKey, operator, expected });
 const facts = (key: string, value: number): JsonObject => ({ numeric: [{ key, value }], ranks: [], sets: [], ownedEntityIds: null, keywords: null });
 const binding = (stepKey: string, target: string): EvaluationBinding => ({ target, source: { kind: "STEP", stepKey, pointer: "/data/finalValue" } });
@@ -72,17 +74,17 @@ export function compileDurationConditions(input: {
   const convertedTargets = effects.flatMap(e => e.plan.outputs.targetingConversion ? [findBundleDefinition(bundle, e.plan.outputs.targetingConversion.destination)!] : []);
   const conversionArea = convertedTargets.some(d => ((d.payload as unknown as TargetingDefinitionPayload).rules.targeting as JsonObject)?.cardinality && (((d.payload as unknown as TargetingDefinitionPayload).rules.targeting as JsonObject).cardinality as JsonObject).kind === "AREA");
   const numeric = [
-    { key: "mechanic.present", value: 1 },
-    { key: "mechanic.attack", value: selectedResolutions.includes("ATTACK_ROLL") || effects.some(e => e.plan.outputs.deliveryCheck === "RANGED_ATTACK_ROLL") || actions.some(a => a.profile.resolution.mode === "ATTACK_ROLL") ? 1 : 0 },
-    { key: "mechanic.save", value: selectedResolutions.includes("SAVING_THROW") ? 1 : 0 },
-    { key: "mechanic.area", value: input.targeting.outputs.cardinality.kind === "AREA" || input.actionTargeting?.some(t => t.outputs.cardinality.kind === "AREA") || conversionArea ? 1 : 0 },
-    { key: "mechanic.sustained", value: dp.durationConcept === "SUSTAINED" ? 1 : 0 },
+    { key: F.present, value: 1 },
+    { key: F.attack, value: selectedResolutions.includes("ATTACK_ROLL") || effects.some(e => e.plan.outputs.deliveryCheck === "RANGED_ATTACK_ROLL") || actions.some(a => a.profile.resolution.mode === "ATTACK_ROLL") ? 1 : 0 },
+    { key: F.savingThrow, value: selectedResolutions.includes("SAVING_THROW") ? 1 : 0 },
+    { key: F.area, value: input.targeting.outputs.cardinality.kind === "AREA" || input.actionTargeting?.some(t => t.outputs.cardinality.kind === "AREA") || conversionArea ? 1 : 0 },
+    { key: F.sustained, value: dp.durationConcept === "SUSTAINED" ? 1 : 0 },
   ];
   const sets = [
-    { key: "mechanic.duration", members: [dp.durationConcept] },
-    { key: "mechanic.targets", members: [...new Set((input.actionTargeting ? input.actionTargeting.flatMap(t => t.outputs.validTargets) : input.targeting.outputs.validTargets))].filter(category => actions.length > 0 || effects.some(e => e.plan.outputs.targetCategories.includes(category))) },
-    { key: "mechanic.effects", members: effects.map(e => e.plan.outputs.effect.family) },
-    { key: "mechanic.foundations", members: actions.map(a => a.profile.category) },
+    { key: F.duration, members: [dp.durationConcept] },
+    { key: F.targets, members: [...new Set((input.actionTargeting ? input.actionTargeting.flatMap(t => t.outputs.validTargets) : input.targeting.outputs.validTargets))].filter(category => actions.length > 0 || effects.some(e => e.plan.outputs.targetCategories.includes(category))) },
+    { key: F.effects, members: effects.map(e => e.plan.outputs.effect.family) },
+    { key: F.foundations, members: actions.map(a => a.profile.category) },
   ];
   const mechanicFacts = json({ numeric, sets, ranks: [], ownedEntityIds: null, keywords: null });
   const checkReferences = (req: RequirementNode, owner: ProwessDefinitionRef, subjects: readonly ProwessDefinitionRef[] = []): void => {

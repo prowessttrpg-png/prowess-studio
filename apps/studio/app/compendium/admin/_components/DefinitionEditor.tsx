@@ -14,6 +14,7 @@ import { ContentTokenList, ContentTokenSelect } from "./ContentTokenSelect";
 import { IntegerListInput, OptionalFeetInput, RowsEditor } from "./GuidedInputs";
 import { AbilityDefinitionEditor } from "./AbilityDefinitionEditor";
 import { EffectMechanicsEditor, MechanicsIssues, TraitMechanicsEditor } from "./ComponentMechanicsEditor";
+import { ConditionMechanicsEditor, DurationMechanicsEditor, FoundationMechanicsEditor, TargetingMechanicsEditor } from "./ComponentRulesEditors";
 import { TRAIT_FAMILY_SHAPES, nextKey, shapeOf, traitFamilyFor } from "../_lib/component-mechanics";
 import { KeywordPicker } from "./KeywordPicker";
 import { asToken } from "../_lib/token-input";
@@ -733,13 +734,22 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
       );
     case "componentMechanics": {
       const maneuver = shapeOf(TRAIT_FAMILY_SHAPES, field.branch) === "maneuver";
+      const kinds = field.kinds ?? { affinity: "", maneuverTargeting: "" };
       return (
         <Shell field={field} issues={issues} composite>
           <MechanicsIssues.Provider value={issues}>
             {field.contract === "effect" ? (
-              <EffectMechanicsEditor branch={field.branch ?? ""} maneuver={maneuver} payload={payload ?? {}} onPayloadChange={onChange} catalog={catalog} kinds={field.kinds ?? { affinity: "", maneuverTargeting: "" }} />
+              <EffectMechanicsEditor branch={field.branch ?? ""} maneuver={maneuver} payload={payload ?? {}} onPayloadChange={onChange} catalog={catalog} kinds={kinds} />
+            ) : field.contract === "trait" ? (
+              <TraitMechanicsEditor family={traitFamilyFor(field.branch)} maneuver={maneuver} traitKind={field.definitionKind ?? ""} payload={payload ?? {}} onPayloadChange={onChange} catalog={catalog} kinds={kinds} />
+            ) : field.contract === "targeting" ? (
+              <TargetingMechanicsEditor maneuver={maneuver} payload={payload ?? {}} onPayloadChange={onChange} catalog={catalog} kinds={kinds} />
+            ) : field.contract === "duration" ? (
+              <DurationMechanicsEditor branch={field.branch ?? ""} payload={payload ?? {}} onPayloadChange={onChange} catalog={catalog} kinds={kinds} />
+            ) : field.contract === "condition" ? (
+              <ConditionMechanicsEditor branch={field.branch ?? ""} maneuver={maneuver} payload={payload ?? {}} onPayloadChange={onChange} catalog={catalog} kinds={kinds} />
             ) : (
-              <TraitMechanicsEditor family={traitFamilyFor(field.branch)} maneuver={maneuver} traitKind={field.definitionKind ?? ""} payload={payload ?? {}} onPayloadChange={onChange} catalog={catalog} kinds={field.kinds ?? { affinity: "", maneuverTargeting: "" }} />
+              <FoundationMechanicsEditor payload={payload ?? {}} onPayloadChange={onChange} catalog={catalog} kinds={kinds} />
             )}
           </MechanicsIssues.Provider>
         </Shell>

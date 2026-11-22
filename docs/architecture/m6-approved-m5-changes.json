@@ -192,6 +192,7 @@
   },
   "RULES-WO1": {
     "changedFiles": {
+      "packages/prowess-game/src/ability/duration-conditions.ts": "40ba0ce3801e25d864ff43314d3c3505558d73b720dc28fd6f7237063222de67",
       "packages/prowess-game/src/card-phase-b.test.ts": "5d2ef95d97664fad5afc482932d3f9d3c77363a3373ee57db487d9e5a2f5742a",
       "packages/prowess-game/src/card/action.ts": "dd816deb2b11c2f8f9fcc4f370f420b47fea7383a792540bb17f6337db75cd3f",
       "packages/prowess-game/src/card/contract.ts": "d24d797ecf446b2f5d696ab09c55d57fac3c670aac25b717f4267c02c557744d",
@@ -201,9 +202,12 @@
       "packages/prowess-game/src/compilation/compile.ts": "acc951dfe99c427f2cfa41aaef3a5a2049e7fa53f74dc96ff91f297c4abc4feb",
       "packages/prowess-game/src/definition-envelope.test.ts": "2a32d8081f5085e6397287043c38aaf25d1d32a9a1ffc1960ace1532cefc8e83",
       "packages/prowess-game/src/definition/action-improvement-payload.ts": "11aaf5be2ef2d510c41e15053638be33f44f13443dc9ff75318dccb08e7df06d",
+      "packages/prowess-game/src/definition/authored-ability-payload.ts": "bcdd6cd73eea8f80e3a48d402f1c44998816eeacdafe2a818b17eee4392f4f2d",
+      "packages/prowess-game/src/definition/duration-condition-payload.ts": "025f0cac0acc5b04b5d06a5ec6e5ac273236dfb52d2ed26844b29373ffee457c",
+      "packages/prowess-game/src/definition/effect-payload.ts": "f2c15e2a34dc5d9fdfdb5b82211310e10ecda2d83f373fbd222c072f80c1bf23",
       "packages/prowess-game/src/definition/mage-art-payload.ts": "8386c1fb7726260c2388001d3fb299ec43ef71f86bc51f2d5a32fdaac71d1f65",
       "packages/prowess-game/src/definition/payload.ts": "d725a6d2888b991e50567c745f7adb5cdc7c268252436a3b48eb7d9d64e7901b",
-      "packages/prowess-game/src/index.ts": "a61219b28f3f5137c76a6bd74a1bbfea8a083747e8b941493363bc23a12fb791",
+      "packages/prowess-game/src/index.ts": "5169f6838b52ed2786d0e62b6b2fb6027018dcdc76b5067a86e905932736cb8d",
       "packages/prowess-game/src/m6-wo3-registry.test.ts": "b22a9fae87c0b1a96e99566ed19414d74752b8369747126460e815a733c59892",
       "packages/prowess-game/src/m6-wo4-registry.test.ts": "1d372deb218d2c69acadf08f4071890fe61cf492ef1a010c39a908431401d7bd",
       "packages/prowess-game/src/m6-wo6-registry.test.ts": "5c21206d1f2e9cf1fa7d2a92ac7e26e260198719e6b1504eb89bfd2e3f210d1e",
@@ -221,6 +225,7 @@
       "packages/prowess-game/src/definition/rules-reference-payload.ts": "81ee570907a4ba93ed1b2cb17382b0ad8b938b1ac7c4e7d9f6ba176bd8b1e677",
       "packages/prowess-game/src/reference/preview.ts": "48dd017e87f390807615c017eff4989829a934384a8d1b0e0b729db6c01c239a",
       "packages/prowess-game/src/rules-wo1-authoring.test.ts": "1c16e82970274cdb59b03941dacb5fe2cf389ee15f93ce214c32fb8b852fbab7",
+      "packages/prowess-game/src/rules-wo1-cone-conversion.test.ts": "4773cdef04fbb58de145e4526c413059f892f0e512590a3250ce97bd0fda38a8",
       "packages/prowess-game/src/rules-wo1-reference.test.ts": "b27f87fa5746ca3c9e694bbf76af1d7ec30d6dfcecb8ff4dc4f762aefae95ea1",
       "packages/prowess-game/src/rules-wo1-skill-benefit-preview.test.ts": "a48d99e5e6899bd1ce4b0b3a52956aca5143c9cf9c19e69bfcb13ef09e091e6f"
     }
