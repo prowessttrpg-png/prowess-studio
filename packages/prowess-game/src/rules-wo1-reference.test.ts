@@ -33,12 +33,12 @@ const f0 = characterFixture();
 export const HEAVY = { armorKey: "HEAVY_PLATE", category: "HEAVY", armorValue: 5, strengthRequirement: 5, maxAgiForDodge: 5, movementPenaltyFeet: 5, stealth: "DISADVANTAGE", notes: ["Front-line survival."], source: SRC };
 export const BURNING = {
   conditionKey: "BURNING",
-  effects: [{ effectKey: "DAMAGE_OVER_TIME", text: "Takes damage over time." }],
+  effects: [{ effectKey: "DAMAGE_OVER_TIME", outcome: { kind: "WRITTEN_ONLY" }, text: "Takes damage over time." }],
   duration: { model: "UNTIL_REMOVED", rounds: null, text: null },
   removal: ["An action to put out the flames (illustrative)."],
   ongoingTiming: "START_OF_TURN",
   stacking: "DOES_NOT_STACK",
-  triggers: [{ triggerKey: "BURN", when: "START_OF_TURN", resistStat: null, text: "Takes the ongoing Fire damage." }],
+  triggers: [{ triggerKey: "BURN", when: "START_OF_TURN", resistStat: null, outcome: { kind: "DAMAGE", diceCount: 1, dieFaces: 4, damageType: "FIRE" }, text: "Takes the ongoing Fire damage (illustrative dice)." }],
   source: { locators: ["s501"], conflicts: [] },
 };
 const formula = (expression: string, variables: Array<{ variable: string; source: Record<string, unknown> }>, rounding = "FLOOR", minimum: number | null = 1) => ({ expression, rounding, minimum, maximum: null, unit: null, variables });
@@ -61,6 +61,9 @@ export const TOTEM = {
   actionEconomy: "Resolves automatically on its timing.",
   ownership: { actionModel: "PASSIVE", actsWhen: "AUTOMATIC_AT_TRIGGER", baseAp: null, apOwner: "NONE", hpOwner: "SUMMON", mpOwner: "NONE", counterActions: false, dismissal: "FREE_ACTION" },
   restrictions: [{ restrictionKey: "NO_ACTIONS", kind: "NO_ACTIONS_WITHOUT_TRAIT", text: "A Totem with no emitted Effect does nothing except exist." }],
+  hosts: ["POINT"],
+  hostText: "Placed at a point (illustrative).",
+  access: [],
   openQuestions: ["How Totems use the Concentration override (Q-03)."],
   source: { locators: ["s1324"], conflicts: [] },
 };
@@ -222,7 +225,7 @@ describe("RULES-WO1 METAMAGIC, JOB_TEMPLATE, MAGE_ART v2", () => {
   it("MAGE_ART v2 adds scaling, benefits and exceptions; v1 is still accepted unchanged", () => {
     const v1 = { artKey: "BARRIER", activation: { ap: 1, mp: 2 }, maintenance: { ap: 0, mp: 1, special: null }, activeEffect: { counts: "WHILE_MAINTAINED" }, modes: [{ modeKey: "WARD", name: "Ward", activation: null, maintenance: null, rulesText: "Illustrative." }], source: { locators: ["s1905"], conflicts: [] } };
     expect(codes(validateStoredProwessDefinition(stored("MAGE_ART", "MAGE_ART", v1, 1)))).toEqual([]);
-    const v2 = { ...v1, modes: [{ ...v1.modes[0], scaling: [ATTACK_BONUS, RADIUS] }], grantedBenefits: [{ benefitKey: "NO_SUFFOCATION", kind: "IMMUNITY", subject: "Suffocation", text: "Immune to Suffocation (illustrative)." }], maintenanceExceptions: [{ exceptionKey: "PACT", kind: "ACTIVE_EFFECT_ONLY_WHILE_CASTING", text: "Counts as an Active Effect only while casting (illustrative)." }] };
+    const v2 = { ...v1, modes: [{ ...v1.modes[0], scaling: [ATTACK_BONUS, RADIUS] }], grantedBenefits: [{ benefitKey: "NO_SUFFOCATION", kind: "IMMUNITY", subject: "Suffocation", mechanics: { against: "DAMAGE_TYPE", damageType: "FIRE" }, text: "Immune to Fire (illustrative)." }], maintenanceExceptions: [{ exceptionKey: "PACT", kind: "ACTIVE_EFFECT_ONLY_WHILE_CASTING", text: "Counts as an Active Effect only while casting (illustrative)." }] };
     const out = validateStoredProwessDefinition(stored("MAGE_ART", "MAGE_ART", v2, 2));
     expect(codes(out)).toEqual([]);
     expect(paths(validateStoredProwessDefinition(stored("MAGE_ART", "MAGE_ART", v1, 2)))).toContain("/prowessDefinition/payload/grantedBenefits");
@@ -236,18 +239,19 @@ describe("RULES-WO1 METAMAGIC, JOB_TEMPLATE, MAGE_ART v2", () => {
     expect(paths(validateStoredProwessDefinition(stored("MAGE_ART", "MAGE_ART", art([gap]), 2)))).toContain("/prowessDefinition/payload/modes/0/scaling/0/byLevel/1/fromLevel");
     const both = { ...ATTACK_BONUS, formula: RADIUS.formula };
     expect(paths(validateStoredProwessDefinition(stored("MAGE_ART", "MAGE_ART", art([both]), 2)))).toContain("/prowessDefinition/payload/modes/0/scaling/0/byLevel");
+    // Phase F: a structured benefit without its mechanics is refused (a label and prose are not enough).
     const unnamed = art([], { grantedBenefits: [{ benefitKey: "X", kind: "ADVANTAGE", subject: null, text: "Advantage." }] });
-    expect(paths(validateStoredProwessDefinition(stored("MAGE_ART", "MAGE_ART", unnamed, 2)))).toContain("/prowessDefinition/payload/grantedBenefits/0/subject");
+    expect(paths(validateStoredProwessDefinition(stored("MAGE_ART", "MAGE_ART", unnamed, 2)))).toContain("/prowessDefinition/payload/grantedBenefits/0/mechanics");
   });
 });
 
 describe("RULES-WO1 Phase D — Condition triggers, Summon ownership, ammunition and modifications", () => {
   it("a Condition's triggers name when they act; a failed-Save trigger names its Save", () => {
-    const shocked = { ...BURNING, conditionKey: "SHOCKED", triggers: [{ triggerKey: "ON_HIT", when: "ON_HIT", resistStat: null, text: "Applied on a hit." }, { triggerKey: "RESIST", when: "ON_FAILED_SAVE", resistStat: "RES", text: "Applied on a failed RES Save." }] };
+    const shocked = { ...BURNING, conditionKey: "SHOCKED", triggers: [{ triggerKey: "ON_HIT", when: "ON_HIT", resistStat: null, outcome: { kind: "WRITTEN_ONLY" }, text: "Applied on a hit." }, { triggerKey: "RESIST", when: "ON_FAILED_SAVE", resistStat: "RES", outcome: { kind: "WRITTEN_ONLY" }, text: "Applied on a failed RES Save." }] };
     expect(codes(validateStoredProwessDefinition(stored("CONDITION", "STATUS_CONDITION", shocked)))).toEqual([]);
-    const noSave = { ...shocked, triggers: [{ triggerKey: "RESIST", when: "ON_FAILED_SAVE", resistStat: null, text: "x" }] };
+    const noSave = { ...shocked, triggers: [{ triggerKey: "RESIST", when: "ON_FAILED_SAVE", resistStat: null, outcome: { kind: "WRITTEN_ONLY" }, text: "x" }] };
     expect(paths(validateStoredProwessDefinition(stored("CONDITION", "STATUS_CONDITION", noSave)))).toContain("/prowessDefinition/payload/triggers/0/resistStat");
-    expect(paths(validateStoredProwessDefinition(stored("CONDITION", "STATUS_CONDITION", { ...BURNING, triggers: [{ triggerKey: "X", when: "ON_SNEEZE", resistStat: null, text: "x" }] })))).toContain("/prowessDefinition/payload/triggers/0/when");
+    expect(paths(validateStoredProwessDefinition(stored("CONDITION", "STATUS_CONDITION", { ...BURNING, triggers: [{ triggerKey: "X", when: "ON_SNEEZE", resistStat: null, outcome: { kind: "WRITTEN_ONLY" }, text: "x" }] })))).toContain("/prowessDefinition/payload/triggers/0/when");
   });
   it.each([
     ["a PASSIVE Summon with AP", { actionModel: "PASSIVE", actsWhen: "AUTOMATIC_AT_TRIGGER", baseAp: 2, apOwner: "NONE", hpOwner: "SUMMON", mpOwner: "NONE", counterActions: false, dismissal: "FREE_ACTION" }, "/prowessDefinition/payload/ownership/baseAp"],
@@ -272,5 +276,70 @@ describe("RULES-WO1 Phase D — Condition triggers, Summon ownership, ammunition
     // Loading (12), Reload 3 AP; fitted: +4 Loading, +1 Reload AP → 16 shots, 5 Burst shots; 4 AP over 2 turns (3 + 1).
     expect(previewReload({ loading: 12, reloadAp: 3, apPerTurn: 3, ammunition: rounds, modifications: [mag] })).toMatchObject({ loading: 16, reloadAp: 4, attacksBeforeReload: 16, burstAttacksBeforeReload: 5, turnsToReload: 2, apSplit: [3, 1], appliesInPlay: false });
     expect(previewReload({ loading: 20, reloadAp: 5, apPerTurn: 3, ammunition: null, modifications: [] })).toMatchObject({ turnsToReload: 2, apSplit: [3, 2] });
+  });
+});
+
+describe("RULES-WO1 Phase F — mechanical relationships: Mage Art benefits, Condition outcomes, Summon hosts and access", () => {
+  const v1 = { artKey: "FOCUS", activation: { ap: 1, mp: 6 }, maintenance: { ap: 1, mp: 4, special: null }, activeEffect: { counts: "WHILE_MAINTAINED" }, source: { locators: ["s1905"], conflicts: [] } };
+  const art = (grantedBenefits: unknown[]) => ({ ...v1, modes: [{ modeKey: "FOCUS", name: "Focus", activation: null, maintenance: null, rulesText: "Illustrative.", scaling: [] }], grantedBenefits, maintenanceExceptions: [] });
+  const check = (benefit: Record<string, unknown>) => validateStoredProwessDefinition(stored("MAGE_ART", "MAGE_ART", art([{ benefitKey: "B", subject: null, text: "As written (illustrative).", ...benefit }]), 2));
+  const condition = f0.ref("affinity.evocation");
+
+  it("each structured Mage Art benefit kind carries validated mechanics; WRITTEN_ONLY is its text alone", () => {
+    const valid: Record<string, unknown>[] = [
+      { kind: "STAT_SUBSTITUTION", mechanics: { calculation: { kind: "DERIVED", statistic: "DODGE" }, replacedStat: "AGI", replacementStat: "RES" } },
+      { kind: "STAT_SUBSTITUTION", mechanics: { calculation: { kind: "PROCEDURE", procedure: "ATTACK_ROLL" }, replacedStat: null, replacementStat: "PRO" } },
+      { kind: "RANGE_MULTIPLIER", mechanics: { target: { kind: "DERIVED", statistic: "BASE_RANGE" }, multiplier: 2 } },
+      { kind: "RANGE_MULTIPLIER", mechanics: { target: { kind: "TARGETING_MEASURE", measure: "RADIUS" }, multiplier: 1.5 } },
+      { kind: "IMMUNITY", mechanics: { against: "DAMAGE_TYPE", damageType: "SHOCK" } },
+      { kind: "ADVANTAGE", mechanics: { roll: "SAVING_THROW", stat: "RES", skill: null } },
+      { kind: "ADVANTAGE", mechanics: { roll: "SKILL_CHECK", stat: null, skill: f0.ref("test.m6wo3.skill.athletics") } },
+      { kind: "SENSE", subject: "Mana Sight", mechanics: { rangeFeet: 30 } },
+      { kind: "SENSE", subject: "Mana Sight", mechanics: { rangeFeet: null } },
+      { kind: "COUNTER_ACTION", mechanics: { counterActions: 1, action: null } },
+      { kind: "RESOURCE", mechanics: { resource: "MP", amount: 2, timing: "START_OF_TURN" } },
+      { kind: "WRITTEN_ONLY" },
+    ];
+    for (const b of valid) expect(codes(check(b)), JSON.stringify(b)).toEqual([]);
+  });
+
+  it.each([
+    ["a Stat substitution without its calculation", { kind: "STAT_SUBSTITUTION", mechanics: { replacedStat: "AGI", replacementStat: "RES" } }, "/mechanics"],
+    ["a Stat substitution to the same Stat", { kind: "STAT_SUBSTITUTION", mechanics: { calculation: { kind: "DERIVED", statistic: "DODGE" }, replacedStat: "AGI", replacementStat: "AGI" } }, "/mechanics/replacementStat"],
+    ["a Stat substitution of an unknown calculation", { kind: "STAT_SUBSTITUTION", mechanics: { calculation: { kind: "DERIVED", statistic: "LUCK" }, replacedStat: null, replacementStat: "AGI" } }, "/mechanics/calculation/statistic"],
+    ["a range multiplier without a multiplier", { kind: "RANGE_MULTIPLIER", mechanics: { target: { kind: "DERIVED", statistic: "BASE_RANGE" }, multiplier: 0 } }, "/mechanics/multiplier"],
+    ["a range multiplier without its target", { kind: "RANGE_MULTIPLIER", mechanics: { target: null, multiplier: 2 } }, "/mechanics/target"],
+    ["an immunity to a non-Condition Definition", { kind: "IMMUNITY", mechanics: { against: "CONDITION", condition } }, "/mechanics/condition"],
+    ["an Advantage naming a Skill on a Saving Throw", { kind: "ADVANTAGE", mechanics: { roll: "SAVING_THROW", stat: null, skill: f0.ref("test.m6wo3.skill.athletics") } }, "/mechanics/skill"],
+    ["a resource of zero", { kind: "RESOURCE", mechanics: { resource: "MP", amount: 0, timing: null } }, "/mechanics/amount"],
+    ["a written-only benefit with mechanics", { kind: "WRITTEN_ONLY", mechanics: { rangeFeet: 1 } }, "/mechanics"],
+    ["a structured benefit with prose only", { kind: "COUNTER_ACTION" }, "/mechanics"],
+  ])("refuses %s", (_l, benefit, path) => expect(paths(check(benefit)).some((p) => p.startsWith(`/prowessDefinition/payload/grantedBenefits/0${path}`))).toBe(true));
+
+  it("a Condition's effects and triggers say what they do: Advantage / Disadvantage, a modifier, damage, a resource, a prevention", () => {
+    const shaken = {
+      ...BURNING,
+      conditionKey: "SHAKEN",
+      effects: [
+        { effectKey: "ROLLS", outcome: { kind: "ROLL_MODE", roll: "ATTACK_ROLL", mode: "DISADVANTAGE" }, text: "Disadvantage on Attack Rolls (illustrative)." },
+        { effectKey: "SLOW", outcome: { kind: "MODIFIER", target: "MOVEMENT", amount: -10 }, text: "Movement reduced (illustrative)." },
+        { effectKey: "DRAIN", outcome: { kind: "RESOURCE", resource: "AP", amount: -1 }, text: "Loses 1 AP (illustrative)." },
+        { effectKey: "HELD", outcome: { kind: "PREVENTS", prevents: ["COUNTER_ACTIONS"] }, text: "No Counter Actions (illustrative)." },
+      ],
+    };
+    expect(codes(validateStoredProwessDefinition(stored("CONDITION", "STATUS_CONDITION", shaken)))).toEqual([]);
+    const bad = (outcome: unknown) => paths(validateStoredProwessDefinition(stored("CONDITION", "STATUS_CONDITION", { ...BURNING, effects: [{ effectKey: "X", outcome, text: "x" }] })));
+    expect(bad({ kind: "MODIFIER", target: "MOVEMENT", amount: 0 })).toContain("/prowessDefinition/payload/effects/0/outcome/amount");
+    expect(bad({ kind: "DAMAGE", diceCount: 0, dieFaces: 6, damageType: null })).toContain("/prowessDefinition/payload/effects/0/outcome/diceCount");
+    expect(bad({ kind: "PREVENTS", prevents: [] })).toContain("/prowessDefinition/payload/effects/0/outcome/prevents");
+    expect(bad(undefined)).toContain("/prowessDefinition/payload/effects/0/outcome");
+  });
+
+  it("a Summon names what it may be bound to and who may create it (the Skill-benefit prerequisite grammar)", () => {
+    const bound = { ...TOTEM, summonKey: "BOUND", hosts: ["CREATURE", "OBJECT"], hostText: null, access: [{ groupKey: "TRAINING", mode: "ALL", prerequisites: [{ prerequisiteKey: "LEVEL_3", kind: "LEVEL_AT_LEAST", minimum: 3 }, { prerequisiteKey: "EVOCATION_TRAINED", kind: "AFFINITY_RANK_AT_LEAST", affinity: f0.ref("affinity.evocation"), minimumRank: "TRAINED" }] }] };
+    expect(codes(validateStoredProwessDefinition(stored("SUMMON", "SUMMON_TYPE", bound)))).toEqual([]);
+    expect(paths(validateStoredProwessDefinition(stored("SUMMON", "SUMMON_TYPE", { ...bound, hosts: ["CREATURE", "CREATURE"] })))).toContain("/prowessDefinition/payload/hosts");
+    expect(paths(validateStoredProwessDefinition(stored("SUMMON", "SUMMON_TYPE", { ...bound, hosts: ["MOON"] })))).toContain("/prowessDefinition/payload/hosts/0");
+    expect(paths(validateStoredProwessDefinition(stored("SUMMON", "SUMMON_TYPE", { ...bound, access: [{ groupKey: "G", mode: "ALL", prerequisites: [] }] })))).toContain("/prowessDefinition/payload/access/0/prerequisites");
   });
 });

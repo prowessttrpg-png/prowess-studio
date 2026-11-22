@@ -929,7 +929,7 @@ export {
   type BenefitEligibility,
   type BenefitEligibilityStatus,
 } from "./character/calculated-values.js";
-export { skillBenefitsForCharacter, benefitEligibilityOf, type SkillBenefitGroupResult, type SkillBenefitStatus, type SkillBenefitSummary, type SkillGrantedAction } from "./character/skill-benefits.js";
+export { skillBenefitsForCharacter, benefitEligibilityOf, skillBenefitsForSample, type SkillBenefitSample, type SkillBenefitSampleInput, type SkillBenefitSampleResult, type SkillBenefitGroupResult, type SkillBenefitStatus, type SkillBenefitSummary, type SkillGrantedAction } from "./character/skill-benefits.js";
 export { CONCENTRATION_PREVIEW_ISSUE_CODES, previewConcentration, type ConcentrationPreviewEffect, type ConcentrationPreviewResult } from "./ability/concentration-preview.js";
 // RULES-WO1 Phase C: reference rule families (authoring, validation, reference and preview — not executed).
 export {
@@ -953,6 +953,11 @@ export {
   SUMMON_DISMISSALS,
   MAGE_ART_BENEFIT_KINDS,
   MAGE_ART_EXCEPTION_KINDS,
+  MAGE_ART_IMMUNITY_KINDS,
+  MAGE_ART_CALCULATION_KINDS,
+  MAGE_ART_RANGE_TARGET_KINDS,
+  CONDITION_OUTCOME_KINDS,
+  CONDITION_PREVENTIONS,
   WEAPON_MODIFICATION_CHANGE_KINDS,
   MAGE_ART_SCALING_INPUT_KINDS,
   type MageArtScaling,

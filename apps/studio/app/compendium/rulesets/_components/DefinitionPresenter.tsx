@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { groupsOf, presentationDescriptorFor, type ContractDescriptor, type FieldDescriptor } from "../../admin/_lib/descriptors";
 import type { EntryDetailDto } from "../_lib/reference-client";
 import { StructuredValue, TokenText, type StructuredContext } from "./StructuredValue";
+import { mechanicsSummary } from "../../admin/_lib/component-mechanics";
 
 /**
  * Mechanical Data presenter (PAS-10 M6-WO2). Dedicated presentation reuses the WO1 authoring DESCRIPTORS (keyed by the
@@ -279,6 +280,15 @@ function FieldValue({ field, payload, context, keywordName }: { field: FieldDesc
         </div>
       );
     }
+    case "componentMechanics":
+      // RULES-WO1 Phase F: the Effect / Trait read in game language; the stored fields follow exactly as stored.
+      return (
+        <ul className="prowess-reference__list" data-testid="reference-mechanics">
+          {mechanicsSummary(payload, field.contract).map((line, i) => (
+            <li key={i}>{line}</li>
+          ))}
+        </ul>
+      );
     default: {
       const unhandled: never = field;
       return unhandled;

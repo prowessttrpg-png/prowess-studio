@@ -1,5 +1,5 @@
 {
-  "$comment": "Exact M5 (@prowess/game) file changes approved by later M6 Work Orders. Earlier frozen gates accept ONLY these exact hashes for these exact paths, and ONLY these exact added files; any other edit, addition or removal still fails them. Each Work Order's own gate pins its entry and characterizes the change (M6-WO3 \u00a710, \u00a784: ANCESTRY v1, SKILL v1, CHARACTER_CREATION_RULE v1; no M5 mechanical result changes). PRE-M7-WO1 (owner-decided Compendium scope): MAGE_ART reserved \u2192 payload version 1 for authoring and reference only \u2014 no compiler, card, pricing or play operation reads it; the Mage Art card stays UNAVAILABLE. RULES-WO1 (owner-decided Complete Game Authoring): three ADDITIVE kinds \u2014 CALCULATED_VALUE (CHARACTER), SKILL_BENEFIT (SKILL) and CONCENTRATION_RULE (ABILITY) at payload version 1 \u2014 their readers, the calculated-value evaluator and the Concentration preview; the Character sheet gains an optional calculatedValues list (absent when a Release publishes none) and fills the Carry maximum only from a published value placed there. No existing kind, payload contract or mechanical result changes; nothing in play reads a CONCENTRATION_RULE. RULES-WO1 Phase C (same entry): the reserved ARMOR, STATUS_CONDITION, SUMMON_TYPE, SUMMON_TRAIT and MISSION_RULE kinds change ONLY from [] to payload version 1, METAMAGIC (SPELL) and JOB_TEMPLATE (CHARACTER) are added, and MAGE_ART gains version 2 beside version 1 \u2014 authoring, validation, reference and preview only; no compiler, play, combat or sheet module reads them. SUMMON_ACTION_MODEL stays reserved.",
+  "$comment": "Exact M5 (@prowess/game) file changes approved by later M6 Work Orders. Earlier frozen gates accept ONLY these exact hashes for these exact paths, and ONLY these exact added files; any other edit, addition or removal still fails them. Each Work Order's own gate pins its entry and characterizes the change (M6-WO3 \u00a710, \u00a784: ANCESTRY v1, SKILL v1, CHARACTER_CREATION_RULE v1; no M5 mechanical result changes). PRE-M7-WO1 (owner-decided Compendium scope): MAGE_ART reserved \u2192 payload version 1 for authoring and reference only \u2014 no compiler, card, pricing or play operation reads it; the Mage Art card stays UNAVAILABLE. RULES-WO1 (owner-decided Complete Game Authoring): three ADDITIVE kinds \u2014 CALCULATED_VALUE (CHARACTER), SKILL_BENEFIT (SKILL) and CONCENTRATION_RULE (ABILITY) at payload version 1 \u2014 their readers, the calculated-value evaluator and the Concentration preview; the Character sheet gains an optional calculatedValues list (absent when a Release publishes none) and fills the Carry maximum only from a published value placed there. No existing kind, payload contract or mechanical result changes; nothing in play reads a CONCENTRATION_RULE. RULES-WO1 Phase C (same entry): the reserved ARMOR, STATUS_CONDITION, SUMMON_TYPE, SUMMON_TRAIT and MISSION_RULE kinds change ONLY from [] to payload version 1, METAMAGIC (SPELL) and JOB_TEMPLATE (CHARACTER) are added, and MAGE_ART gains version 2 beside version 1 \u2014 authoring, validation, reference and preview only; no compiler, play, combat or sheet module reads them. SUMMON_ACTION_MODEL stays reserved. RULES-WO1 Phase F: skillBenefitsForSample (the sheet's own Skill-benefit evaluation for an authoring-preview sample, reporting unsupplied inputs) and releaseMaximumLevel; MAGE_ART v2 benefits carry per-kind validated mechanics (immunity, Advantage, sense, Stat substitution, range multiplier, Counter Action, resource); STATUS_CONDITION effects and triggers carry a structured outcome; SUMMON_TYPE gains hosts, hostText and access prerequisite groups (readPrerequisiteGroups, shared with SKILL_BENEFIT). All three kinds are RULES-WO1 additions not yet in any published Release.",
   "M6-WO3": {
     "changedFiles": {
       "packages/prowess-game/src/compilation/compile.ts": "788d5268cdb9add7735d033ac1d7fa428d113097a6d6e8bd08ae38f243838b36",
@@ -196,13 +196,14 @@
       "packages/prowess-game/src/card/action.ts": "dd816deb2b11c2f8f9fcc4f370f420b47fea7383a792540bb17f6337db75cd3f",
       "packages/prowess-game/src/card/contract.ts": "d24d797ecf446b2f5d696ab09c55d57fac3c670aac25b717f4267c02c557744d",
       "packages/prowess-game/src/character/action-improvement.ts": "821f4e3bfefdd65e90d6baf6703a7d97ab7846a3079f0abbdcd0e2c3711e230e",
+      "packages/prowess-game/src/character/advancement.ts": "4f923ff3d022f7e2d8869b37a6c20ec1ff2a15fdab9cf9d0cc12bae30b2131b6",
       "packages/prowess-game/src/character/sheet.ts": "464ed6983d6b128aa50b4fc981bb4d150c92054e790c2586227037661827402f",
       "packages/prowess-game/src/compilation/compile.ts": "acc951dfe99c427f2cfa41aaef3a5a2049e7fa53f74dc96ff91f297c4abc4feb",
       "packages/prowess-game/src/definition-envelope.test.ts": "2a32d8081f5085e6397287043c38aaf25d1d32a9a1ffc1960ace1532cefc8e83",
       "packages/prowess-game/src/definition/action-improvement-payload.ts": "11aaf5be2ef2d510c41e15053638be33f44f13443dc9ff75318dccb08e7df06d",
       "packages/prowess-game/src/definition/mage-art-payload.ts": "8386c1fb7726260c2388001d3fb299ec43ef71f86bc51f2d5a32fdaac71d1f65",
       "packages/prowess-game/src/definition/payload.ts": "d725a6d2888b991e50567c745f7adb5cdc7c268252436a3b48eb7d9d64e7901b",
-      "packages/prowess-game/src/index.ts": "48b2305c53408d9b3ee06bad7301275f116041135c3a45cd5c801ede9272802d",
+      "packages/prowess-game/src/index.ts": "a61219b28f3f5137c76a6bd74a1bbfea8a083747e8b941493363bc23a12fb791",
       "packages/prowess-game/src/m6-wo3-registry.test.ts": "b22a9fae87c0b1a96e99566ed19414d74752b8369747126460e815a733c59892",
       "packages/prowess-game/src/m6-wo4-registry.test.ts": "1d372deb218d2c69acadf08f4071890fe61cf492ef1a010c39a908431401d7bd",
       "packages/prowess-game/src/m6-wo6-registry.test.ts": "5c21206d1f2e9cf1fa7d2a92ac7e26e260198719e6b1504eb89bfd2e3f210d1e",
@@ -215,12 +216,13 @@
     "addedFiles": {
       "packages/prowess-game/src/ability/concentration-preview.ts": "319acad333bcb06fa7c41652dc0e4e86020320d3590df72eb18f2fd1f7b0500c",
       "packages/prowess-game/src/character/calculated-values.ts": "1228c2e0cb714e016df72957cbe83e83e75d60abfe89ed6743f45eea5642c015",
-      "packages/prowess-game/src/character/skill-benefits.ts": "0e11b29bfcfe97d490b9608e97a8fd060decb3b8b117989df100855b464436f3",
-      "packages/prowess-game/src/definition/rules-authoring-payload.ts": "a6dbeb7cb7a17aea8a7aeb50c3255f3842ba9a6e5dae0507771efec03d774591",
-      "packages/prowess-game/src/definition/rules-reference-payload.ts": "283df4d6ab41a1fdb619abdda9740b02085cd5cccf4c3c3116902ee751d548fa",
+      "packages/prowess-game/src/character/skill-benefits.ts": "d87fde5b80cdcebc83cdfc5c7852c9322b79151ebd0c4c0b749ca8b975c24486",
+      "packages/prowess-game/src/definition/rules-authoring-payload.ts": "2aa717bf43bbce3b20e56c82b26597ac9ecd8217442abcc15d75e06a867f2211",
+      "packages/prowess-game/src/definition/rules-reference-payload.ts": "81ee570907a4ba93ed1b2cb17382b0ad8b938b1ac7c4e7d9f6ba176bd8b1e677",
       "packages/prowess-game/src/reference/preview.ts": "48dd017e87f390807615c017eff4989829a934384a8d1b0e0b729db6c01c239a",
       "packages/prowess-game/src/rules-wo1-authoring.test.ts": "1c16e82970274cdb59b03941dacb5fe2cf389ee15f93ce214c32fb8b852fbab7",
-      "packages/prowess-game/src/rules-wo1-reference.test.ts": "31bbd0d80204badb78ac9cc24c771785b04ae60667ab4f8b9dbbf967ce68a8df"
+      "packages/prowess-game/src/rules-wo1-reference.test.ts": "b27f87fa5746ca3c9e694bbf76af1d7ec30d6dfcecb8ff4dc4f762aefae95ea1",
+      "packages/prowess-game/src/rules-wo1-skill-benefit-preview.test.ts": "a48d99e5e6899bd1ce4b0b3a52956aca5143c9cf9c19e69bfcb13ef09e091e6f"
     }
   }
 }

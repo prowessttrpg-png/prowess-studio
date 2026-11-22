@@ -179,8 +179,8 @@ describe("RULES-WO1 authored rules end to end", () => {
     const rows = [{ from: 1, to: 2, result: "No public combat." }, { from: 3, to: 4, result: "Hidden clause." }];
     const cases: Array<[string, string, number, Record<string, unknown>]> = [
       ["EQUIPMENT", "ARMOR", 1, { armorKey: "RT_PLATE", category: "MEDIUM", armorValue: 3, strengthRequirement: null, maxAgiForDodge: null, movementPenaltyFeet: 0, stealth: "NORMAL", notes: ["Illustrative."], source: SRC }],
-      ["CONDITION", "STATUS_CONDITION", 1, { conditionKey: "RT_BURNING", effects: [{ effectKey: "DOT", text: "Takes damage over time." }], duration: { model: "ROUNDS", rounds: 2, text: null }, removal: ["Put out the flames."], ongoingTiming: "START_OF_TURN", stacking: "REFRESHES_DURATION", triggers: [{ triggerKey: "BURN", when: "START_OF_TURN", resistStat: null, text: "Takes the ongoing damage." }, { triggerKey: "CATCH", when: "ON_FAILED_SAVE", resistStat: "AGI", text: "Catches fire on a failed AGI Save." }], source: SRC }],
-      ["SUMMON", "SUMMON_TYPE", 1, { summonKey: "RT_FUSION", engine: "FUSION", tiers: [{ tierKey: "TIER_1", label: "Tier 1", baseMp: 10, dieFaces: null, staticValue: null, hp: null, armor: null, resolve: null, radiusFeet: null, size: null, traitSlots: 1 }], castingAp: null, sustainMode: "NONE", sustainMp: null, sustainApPerRound: null, countsTowardConcentration: null, maxActive: null, actionEconomy: "Merges with the caster.", ownership: { actionModel: "SELF_BOUND", actsWhen: "CASTER_TURN", baseAp: null, apOwner: "CASTER", hpOwner: "CASTER", mpOwner: "CASTER", counterActions: null, dismissal: "FREE_ACTION" }, restrictions: [{ restrictionKey: "NO_EXTRA", kind: "NO_EXTRA_ACTIONS", text: "Gains no extra actions." }], openQuestions: ["Does it count toward Concentration?"], source: SRC }],
+      ["CONDITION", "STATUS_CONDITION", 1, { conditionKey: "RT_BURNING", effects: [{ effectKey: "DOT", outcome: { kind: "WRITTEN_ONLY" }, text: "Takes damage over time." }], duration: { model: "ROUNDS", rounds: 2, text: null }, removal: ["Put out the flames."], ongoingTiming: "START_OF_TURN", stacking: "REFRESHES_DURATION", triggers: [{ triggerKey: "BURN", when: "START_OF_TURN", resistStat: null, outcome: { kind: "WRITTEN_ONLY" }, text: "Takes the ongoing damage." }, { triggerKey: "CATCH", when: "ON_FAILED_SAVE", resistStat: "AGI", outcome: { kind: "DAMAGE", diceCount: 1, dieFaces: 4, damageType: "FIRE" }, text: "Catches fire on a failed AGI Save (illustrative dice)." }], source: SRC }],
+      ["SUMMON", "SUMMON_TYPE", 1, { summonKey: "RT_FUSION", engine: "FUSION", tiers: [{ tierKey: "TIER_1", label: "Tier 1", baseMp: 10, dieFaces: null, staticValue: null, hp: null, armor: null, resolve: null, radiusFeet: null, size: null, traitSlots: 1 }], castingAp: null, sustainMode: "NONE", sustainMp: null, sustainApPerRound: null, countsTowardConcentration: null, maxActive: null, actionEconomy: "Merges with the caster.", ownership: { actionModel: "SELF_BOUND", actsWhen: "CASTER_TURN", baseAp: null, apOwner: "CASTER", hpOwner: "CASTER", mpOwner: "CASTER", counterActions: null, dismissal: "FREE_ACTION" }, restrictions: [{ restrictionKey: "NO_EXTRA", kind: "NO_EXTRA_ACTIONS", text: "Gains no extra actions." }], hosts: ["SELF"], hostText: "Merges with the caster.", access: [{ groupKey: "LEVEL", mode: "ALL", prerequisites: [{ prerequisiteKey: "LEVEL_3", kind: "LEVEL_AT_LEAST", minimum: 3 }] }], openQuestions: ["Does it count toward Concentration?"], source: SRC }],
       ["SUMMON", "SUMMON_TRAIT", 1, { traitKey: "RT_PULSE", engines: ["TOTEM", "FUSION"], costs: [{ tierKey: "TIER_1", mp: 5 }], forbidden: false, effect: "Illustrative.", source: SRC }],
       ["MISSION", "MISSION_RULE", 1, { ruleKey: "RT_CLAUSES", shape: "ROLL_TABLE", rollTable: { dieCount: 1, dieFaces: 4, rows }, clock: null, intel: null, points: null, relatedRules: [], source: SRC }],
       ["CORE", "REFERENCE_RULE", 1, { ruleKey: "RT_GRAPPLE", shape: "POINTS", rollTable: null, clock: null, intel: null, points: ["Movement becomes 0."], relatedRules: [], source: SRC }],
@@ -270,6 +270,26 @@ describe("RULES-WO1 authored rules end to end", () => {
     const card = (id: string) => getCharacterActionDirectory(id).then((d) => (d as unknown as { directory: { cards: Array<{ section: { action: { entityId: string }; grantedBySkills?: Array<{ benefitKey: string; status: string }> } }> } }).directory.cards.find((x) => x.section.action.entityId === sprint.entityId)!);
     expect((await card(strong.id)).section.grantedBySkills).toEqual([expect.objectContaining({ benefitKey: "STRONG_LEAP", status: "GRANTED" })]);
     expect((await card(light.id)).section.grantedBySkills).toEqual([expect.objectContaining({ benefitKey: "STRONG_LEAP", status: "INELIGIBLE" })]);
+
+    // Phase F: the authoring preview uses the sheet's own evaluation. A sample taken from each Character (Level, Stats,
+    // Skill ranks, Affinity ranks) gives the same benefit results and the same gated values as that Character's sheet.
+    for (const sheet of [strongSheet, lightSheet]) {
+      const sampleOf = {
+        level: 1, // both Characters are Level 1
+        stats: Object.fromEntries(sheet.stats.map((x) => [x.stat, x.total])),
+        skillRanks: sheet.skills.map((x) => ({ skillEntityId: x.skill.entityId, rankKey: x.rankKey })),
+        affinityRanks: sheet.affinities.map((x) => ({ affinityEntityId: x.affinity.entityId, rankKey: x.rank })),
+        effects: [],
+      };
+      const preview = await previewAuthoredRules({ releaseId: rel.id, drafts: [], sample: sampleOf });
+      expect(preview.published.problems).toEqual([]);
+      expect(preview.published.benefits.map(({ displayName: _d, skillName: _s, actionNames: _a, ...b }) => b)).toEqual(JSON.parse(JSON.stringify(sheet.skillBenefits)));
+      const fromPreview = preview.published.values.find((v) => v.valueKey === "LEAP_DISTANCE")!;
+      expect([fromPreview.total, fromPreview.contributions.map((x) => x.applies)]).toEqual([leap(sheet).total, leap(sheet).contributions.map((x) => x.applies)]);
+    }
+    // A sample that leaves an input out is told so, specifically.
+    const bare = await previewAuthoredRules({ releaseId: rel.id, drafts: [], sample: sample() });
+    expect(bare.published.inputs.filter((i) => !i.supplied).map((i) => [i.input, i.subject?.canonicalKey, i.readAs])).toEqual([["SKILL_RANK", athletics.canonicalKey, "UNTRAINED_FIRST_RANK"]]);
 
     // A Character pinned to the earlier Release is unchanged — sheet and Action Directory byte-identical.
     expect(JSON.stringify((await getCharacterSheet(veteran.id)).mechanics)).toBe(veteranSheet);

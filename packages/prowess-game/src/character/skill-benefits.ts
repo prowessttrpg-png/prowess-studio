@@ -5,7 +5,11 @@ import type { SkillBenefitPayload } from "../definition/rules-authoring-payload.
 import { definitionRefOf, type ProwessDefinitionRef } from "../definition/envelope.js";
 import { deepFreeze } from "../internal/plain-data.js";
 import { evaluatePrerequisiteList, type ActionImprovementPrerequisiteResult } from "./action-improvement.js";
-import type { CharacterMechanicalProfile } from "./advancement.js";
+import { releaseMaximumLevel, type CharacterMechanicalProfile, type ProfileSkill, type ProfileStat } from "./advancement.js";
+import { indexAffinityDefinitions } from "../affinity/definitions.js";
+import type { CharacterAffinityProfile, OwnedAffinity } from "../affinity/profile.js";
+import { PROWESS_STATS, type ProwessStat } from "../vocabulary/core.js";
+import { AFFINITY_RANKS, AFFINITY_ROLES, type AffinityRank } from "../vocabulary/affinity.js";
 
 /**
  * RULES-WO1 (R08) — what each published Skill benefit means for ONE Character, read-only and deterministic:
@@ -86,4 +90,117 @@ export function skillBenefitsForCharacter(request: { readonly bundle: ProwessDef
 /** The further-prerequisite decision of each benefit, for the calculated-value evaluator. */
 export function benefitEligibilityOf(summaries: readonly SkillBenefitSummary[]): ReadonlyMap<string, "ELIGIBLE" | "INELIGIBLE" | "UNRESOLVED"> {
   return new Map(summaries.filter((s) => s.eligibility !== "RANK_ONLY").map((s) => [s.benefitKey, s.eligibility as "ELIGIBLE" | "INELIGIBLE" | "UNRESOLVED"]));
+}
+
+// ---- RULES-WO1 Phase F: the SAME evaluation for a sample Character (the authoring preview) --------------------------
+
+/** The sample inputs a Skill-benefit preview supplies: Level, every Stat, Skill ranks and Affinity ranks by exact Entity. */
+export interface SkillBenefitSample {
+  readonly level: number;
+  readonly stats: Readonly<Partial<Record<ProwessStat, number>>>;
+  readonly skillRanks: ReadonlyArray<{ readonly skillEntityId: string; readonly rankKey: string }>;
+  readonly affinityRanks: ReadonlyArray<{ readonly affinityEntityId: string; readonly rankKey: string }>;
+}
+
+/** One input the benefits read, and whether the sample supplied it (and if not, what the evaluation used instead). */
+export interface SkillBenefitSampleInput {
+  readonly input: "LEVEL" | "STAT" | "SKILL_RANK" | "AFFINITY_RANK";
+  readonly subject: ProwessDefinitionRef | null;
+  readonly stat: ProwessStat | null;
+  readonly supplied: boolean;
+  /** What an unsupplied input is read as — exactly what a Character without it would have. */
+  readonly readAs: "UNTRAINED_FIRST_RANK" | "NOT_OWNED" | null;
+}
+
+export interface SkillBenefitSampleResult {
+  readonly benefits: readonly SkillBenefitSummary[];
+  readonly inputs: readonly SkillBenefitSampleInput[];
+  /** Sample entries that name nothing this Release pins (never silently dropped). */
+  readonly problems: readonly string[];
+  /** The profile the evaluation read (the sheet's own shape; nothing else is derived from it). */
+  readonly profile: CharacterMechanicalProfile;
+}
+
+/**
+ * Evaluates every Skill benefit for a SAMPLE Character with exactly the function the Character sheet uses
+ * (`skillBenefitsForCharacter`): the sample becomes the mechanical-profile facts that function reads (Level, final Stat
+ * scores, Skill ranks, owned Affinities and their ranks). A Skill the sample omits is read as the Release ladder's first
+ * rank, an Affinity it omits as not owned — exactly as for a Character — and each such input is reported. Pure.
+ */
+export function skillBenefitsForSample(request: { readonly bundle: ProwessDefinitionBundle; readonly sample: SkillBenefitSample }): SkillBenefitSampleResult {
+  const { bundle, sample } = request;
+  const problems: string[] = [];
+  const core = indexCoreDefinitions(bundle);
+  const affinityIndex = indexAffinityDefinitions(bundle);
+  const ladder = core.ok ? [...core.value.skillLadder.payload.ranks].sort((a, b) => (a.order < b.order ? -1 : a.order > b.order ? 1 : 0)) : [];
+  const skills = bundle.definitions.filter((d) => d.definitionKind === "SKILL");
+  const stats: ProfileStat[] = core.ok
+    ? PROWESS_STATS.map((stat) => {
+        const entry = core.value.stats[stat];
+        const final = sample.stats[stat] ?? 0;
+        return { stat, baseline: final, ancestry: 0, creation: 0, advancement: 0, final, minimum: entry.payload.minimum, maximum: entry.payload.maximum, mastery: null, definition: entry.ref };
+      })
+    : [];
+  const profileSkills: ProfileSkill[] = [];
+  for (const s of sample.skillRanks) {
+    const envelope = skills.find((d) => d.entityId === s.skillEntityId);
+    if (envelope === undefined) problems.push(`the sample names Skill ${s.skillEntityId}, which this Release does not pin`);
+    else if (!ladder.some((r) => r.rankKey === s.rankKey)) problems.push(`${s.rankKey} is not a rank of this Release's Skill rank ladder`);
+    else profileSkills.push({ skill: definitionRefOf(envelope), rankKey: s.rankKey, source: { kind: "FREE", grantKey: null, level: sample.level }, history: [] });
+  }
+  const owned: OwnedAffinity[] = [];
+  for (const a of sample.affinityRanks) {
+    const entry = affinityIndex.ok ? affinityIndex.value.affinities.find((e) => e.ref.entityId === a.affinityEntityId) : undefined;
+    if (entry === undefined) problems.push(`the sample names Affinity ${a.affinityEntityId}, which this Release does not pin as an executable Affinity`);
+    else if (!(AFFINITY_RANKS as readonly string[]).includes(a.rankKey)) problems.push(`${a.rankKey} is not an Affinity rank`);
+    // The role is not read by any benefit prerequisite; the first listed Affinity is recorded as the primary one.
+    else owned.push({ affinity: entry.ref, identity: entry.affinity, rank: a.rankKey as AffinityRank, role: owned.length === 0 ? AFFINITY_ROLES[0] : AFFINITY_ROLES[1], acquisition: null });
+  }
+  const affinityProfile = { primaryAffinity: owned[0]?.affinity ?? null, affinities: owned } as unknown as CharacterAffinityProfile;
+  const statScores = Object.fromEntries(stats.map((s) => [s.stat, s.final])) as Partial<Record<ProwessStat, number>>;
+  const profile = {
+    level: sample.level,
+    maximumLevel: releaseMaximumLevel(bundle) ?? sample.level,
+    characterDie: { dieKey: "", faces: 0 },
+    baseHp: 0,
+    baseMp: 0,
+    stats,
+    skills: profileSkills,
+    affinities: owned.map((o) => ({ affinity: o.affinity, identity: o.identity, role: o.role, rank: o.rank, acquisition: { level: sample.level, optionKey: "" }, history: [] })),
+    affinityProfile,
+    derivedStatistics: [],
+    signatureCapacity: null,
+    constructionContext: { stats: statScores, skillRanks: profileSkills.map((s) => ({ skillKey: s.skill.canonicalKey, rankKey: s.rankKey })), affinityProfile },
+    provenance: { rulesetId: bundle.rulesetProvenance.rulesetId, manifestId: bundle.rulesetProvenance.manifestId, advancementRule: null, characterDieProgression: core.ok ? core.value.progression.ref : null, skillLadder: core.ok ? core.value.skillLadder.ref : null, affinityProgression: null },
+  } as unknown as CharacterMechanicalProfile;
+  const benefits = skillBenefitsForCharacter({ bundle, profile });
+
+  // Which inputs the benefits read, and whether the sample supplied each one.
+  const inputs: SkillBenefitSampleInput[] = [];
+  const seen = new Set<string>();
+  const add = (key: string, input: SkillBenefitSampleInput) => {
+    if (!seen.has(key)) {
+      seen.add(key);
+      inputs.push(input);
+    }
+  };
+  for (const b of benefits) {
+    add(`skill:${b.skill.entityId}`, { input: "SKILL_RANK", subject: b.skill, stat: null, supplied: profileSkills.some((s) => s.skill.entityId === b.skill.entityId), readAs: profileSkills.some((s) => s.skill.entityId === b.skill.entityId) ? null : "UNTRAINED_FIRST_RANK" });
+    for (const g of b.groups)
+      for (const q of g.prerequisites) {
+        if (q.kind === "LEVEL_AT_LEAST") add("level", { input: "LEVEL", subject: null, stat: null, supplied: true, readAs: null });
+        else if (q.kind === "STAT_AT_LEAST" && q.required.stat !== null) add(`stat:${q.required.stat}`, { input: "STAT", subject: null, stat: q.required.stat as ProwessStat, supplied: sample.stats[q.required.stat as ProwessStat] !== undefined, readAs: null });
+        else if (q.kind === "AFFINITY_RANK_AT_LEAST" && q.required.affinity !== null) {
+          const a = q.required.affinity;
+          const has = owned.some((o) => o.affinity.entityId === a.entityId);
+          add(`affinity:${a.entityId}`, { input: "AFFINITY_RANK", subject: a, stat: null, supplied: has, readAs: has ? null : "NOT_OWNED" });
+        } else if (q.kind === "SKILL_RANK_AT_LEAST" && q.required.skillKey !== null) {
+          const envelope = skills.find((d) => d.canonicalKey === q.required.skillKey);
+          const ref = envelope === undefined ? null : definitionRefOf(envelope);
+          const has = profileSkills.some((s) => s.skill.canonicalKey === q.required.skillKey);
+          add(`skillkey:${q.required.skillKey}`, { input: "SKILL_RANK", subject: ref, stat: null, supplied: has, readAs: has ? null : "UNTRAINED_FIRST_RANK" });
+        }
+      }
+  }
+  return deepFreeze({ benefits, inputs, problems, profile });
 }

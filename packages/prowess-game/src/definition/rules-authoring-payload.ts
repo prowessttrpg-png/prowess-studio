@@ -244,6 +244,39 @@ function readCalculatedValue(value: unknown, at: readonly PathSegment[], p: Prob
   return { valueKey: valueKey as string, unit: rawUnit as string | null, canonStatus: canon.canonStatus, placement, base, note: canon.note, source: canon.source };
 }
 
+/**
+ * RULES-WO1: prerequisite GROUPS in the Action-improvement grammar (Level, Stat, Skill rank, Affinity rank). Every group
+ * must hold; a group holds when ALL (or ANY) of its prerequisites are met. Prerequisite keys are unique across groups.
+ * Shared by Skill benefits and Summon access, and evaluated by the one Action-improvement prerequisite evaluation.
+ */
+export function readPrerequisiteGroups(rawG: unknown, at: readonly PathSegment[], p: Problems, notArray: string): SkillBenefitPrerequisiteGroup[] {
+  const prerequisiteGroups: SkillBenefitPrerequisiteGroup[] = [];
+  const taken: string[] = [];
+  if (!Array.isArray(rawG)) p.add(C.INVALID_PAYLOAD, at, notArray);
+  else
+    rawG.forEach((g: unknown, gi: number) => {
+      const gat = [...at, gi];
+      const gr = readRecord(g, gat, p, C.INVALID_PAYLOAD, ["groupKey", "mode", "prerequisites"], ["groupKey", "mode", "prerequisites"]);
+      if (gr === null) return;
+      const groupKey = own(gr, "groupKey");
+      if (!isToken(groupKey) || prerequisiteGroups.some((y) => y.groupKey === groupKey)) p.add(C.INVALID_PAYLOAD, [...gat, "groupKey"], "groupKey is a unique SCREAMING_SNAKE token");
+      const mode = readEnum(own(gr, "mode"), SKILL_BENEFIT_GROUP_MODES, [...gat, "mode"], p, C.INVALID_PAYLOAD, "group mode");
+      const rawP = own(gr, "prerequisites");
+      const prerequisites: ActionImprovementPrerequisite[] = [];
+      if (!Array.isArray(rawP) || rawP.length === 0) p.add(C.INVALID_PAYLOAD, [...gat, "prerequisites"], "a prerequisite group lists at least one prerequisite");
+      else
+        rawP.forEach((x: unknown, i: number) => {
+          const q = readPrerequisite(x, taken, [...gat, "prerequisites", i], p);
+          if (q !== null) {
+            prerequisites.push(q);
+            taken.push(q.prerequisiteKey);
+          }
+        });
+      if (isToken(groupKey) && mode !== null) prerequisiteGroups.push({ groupKey, mode, prerequisites });
+    });
+  return prerequisiteGroups;
+}
+
 function readSkillBenefit(value: unknown, at: readonly PathSegment[], p: Problems): SkillBenefitPayload | null {
   const FIELDS = ["benefitKey", "skill", "minimumRankKey", "contributions", "grantedActions", "prerequisiteGroups", "writtenBenefit", "source"];
   const r = readRecord(value, at, p, C.INVALID_PAYLOAD, FIELDS, FIELDS);
@@ -290,31 +323,7 @@ function readSkillBenefit(value: unknown, at: readonly PathSegment[], p: Problem
       else if (grantedActions.some((y) => y.entityId === ref.entityId)) p.add(C.INVALID_PAYLOAD, [...at, "grantedActions", i], "each Action is granted once");
       else grantedActions.push(ref);
     });
-  const prerequisiteGroups: SkillBenefitPrerequisiteGroup[] = [];
-  const rawG = own(r, "prerequisiteGroups");
-  const taken: string[] = [];
-  if (!Array.isArray(rawG)) p.add(C.INVALID_PAYLOAD, [...at, "prerequisiteGroups"], "prerequisiteGroups is an array (empty = only the rank)");
-  else
-    rawG.forEach((g: unknown, gi: number) => {
-      const gat = [...at, "prerequisiteGroups", gi];
-      const gr = readRecord(g, gat, p, C.INVALID_PAYLOAD, ["groupKey", "mode", "prerequisites"], ["groupKey", "mode", "prerequisites"]);
-      if (gr === null) return;
-      const groupKey = own(gr, "groupKey");
-      if (!isToken(groupKey) || prerequisiteGroups.some((y) => y.groupKey === groupKey)) p.add(C.INVALID_PAYLOAD, [...gat, "groupKey"], "groupKey is a unique SCREAMING_SNAKE token");
-      const mode = readEnum(own(gr, "mode"), SKILL_BENEFIT_GROUP_MODES, [...gat, "mode"], p, C.INVALID_PAYLOAD, "group mode");
-      const rawP = own(gr, "prerequisites");
-      const prerequisites: ActionImprovementPrerequisite[] = [];
-      if (!Array.isArray(rawP) || rawP.length === 0) p.add(C.INVALID_PAYLOAD, [...gat, "prerequisites"], "a prerequisite group lists at least one prerequisite");
-      else
-        rawP.forEach((x: unknown, i: number) => {
-          const q = readPrerequisite(x, taken, [...gat, "prerequisites", i], p);
-          if (q !== null) {
-            prerequisites.push(q);
-            taken.push(q.prerequisiteKey);
-          }
-        });
-      if (isToken(groupKey) && mode !== null) prerequisiteGroups.push({ groupKey, mode, prerequisites });
-    });
+  const prerequisiteGroups = readPrerequisiteGroups(own(r, "prerequisiteGroups"), [...at, "prerequisiteGroups"], p, "prerequisiteGroups is an array (empty = only the rank)");
   const writtenBenefit = readText(own(r, "writtenBenefit"), [...at, "writtenBenefit"], p, "writtenBenefit", false);
   const source = readSource(own(r, "source"), [...at, "source"], p);
   if (p.count > before || skill === null || writtenBenefit === null || source === null) return null;

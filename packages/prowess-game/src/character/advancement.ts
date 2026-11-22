@@ -279,6 +279,11 @@ function orderedLadder(core: CoreDefinitionIndex): Ladder {
  * Reads and cross-checks the advancement content of one exact bundle (§8, §91–§92). Every incoherence is reported; the
  * content is returned only when the whole progression is coherent (fail closed).
  */
+/** RULES-WO1 Phase F: the last Character Level this Release's advancement content declares (null when unreadable). */
+export function releaseMaximumLevel(bundle: ProwessDefinitionBundle): number | null {
+  return readAdvancementContent(bundle).content?.levels.at(-1) ?? null;
+}
+
 function readAdvancementContent(bundle: ProwessDefinitionBundle): { content: AdvancementContent | null; capability: CharacterCapability } {
   const creation = getCharacterCreationCapability(bundle);
   const missing: { requirement: string; message: string }[] = [];

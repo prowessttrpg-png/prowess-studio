@@ -60,7 +60,33 @@ export interface AuthoredRuleSampleDto {
   level: number;
   stats: Record<string, number>;
   skillRanks: Array<{ skillEntityId: string; rankKey: string }>;
+  /** RULES-WO1 Phase F: an Affinity left out is read as not owned (as for a Character). */
+  affinityRanks: Array<{ affinityEntityId: string; rankKey: string }>;
   effects: Array<{ label: string; castAp: number; assignedPoints: number }>;
+}
+/** One Skill benefit evaluated for the sample by the Character sheet's own function (same fields as the sheet). */
+export interface SampleSkillBenefitDto {
+  benefitKey: string;
+  displayName: string | null;
+  skillName: string | null;
+  skill: { entityId: string; canonicalKey: string };
+  minimumRankKey: string;
+  heldRankKey: string | null;
+  rankMet: boolean;
+  eligibility: string;
+  status: string;
+  writtenBenefit: string;
+  groups: Array<{ groupKey: string; mode: string; satisfied: boolean | null; prerequisites: Array<{ prerequisiteKey: string; kind: string; satisfied: boolean | null; reason: string | null }> }>;
+  grantedActions: Array<{ action: { canonicalKey: string }; state: string; actionKey: string | null }>;
+  actionNames: Array<string | null>;
+}
+export interface SampleInputDto {
+  input: string;
+  subject: { entityId: string; canonicalKey: string } | null;
+  stat: string | null;
+  supplied: boolean;
+  readAs: string | null;
+  name: string | null;
 }
 export interface AuthoredValueDto {
   valueKey: string;
@@ -95,6 +121,10 @@ export interface AuthoredRulesSideDto {
   concentration: Array<{ canonicalKey: string; displayName: string | null; preview: ConcentrationPreviewDto }>;
   skills: Array<{ entityId: string; canonicalKey: string; displayName: string | null }>;
   ranks: string[];
+  benefits: SampleSkillBenefitDto[];
+  inputs: SampleInputDto[];
+  affinities: Array<{ entityId: string; canonicalKey: string; displayName: string | null }>;
+  affinityRanks: string[];
 }
 export interface AuthoredRulesPreviewDto {
   release: { id: string; rulesetId: string; releaseNumber: number; versionLabel: string };

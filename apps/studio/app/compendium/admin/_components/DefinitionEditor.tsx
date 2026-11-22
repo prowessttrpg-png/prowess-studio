@@ -13,6 +13,8 @@ import { MissionRuleEditor } from "./MissionRuleEditor";
 import { ContentTokenList, ContentTokenSelect } from "./ContentTokenSelect";
 import { IntegerListInput, OptionalFeetInput, RowsEditor } from "./GuidedInputs";
 import { AbilityDefinitionEditor } from "./AbilityDefinitionEditor";
+import { EffectMechanicsEditor, MechanicsIssues, TraitMechanicsEditor } from "./ComponentMechanicsEditor";
+import { TRAIT_FAMILY_SHAPES, shapeOf, traitFamilyFor } from "../_lib/component-mechanics";
 import { KeywordPicker } from "./KeywordPicker";
 import { asToken } from "../_lib/token-input";
 import {
@@ -731,6 +733,20 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
           <AbilityDefinitionEditor branch={field.branch} affinityKind={field.affinityKind} payload={payload ?? {}} onPayloadChange={onChange} catalog={catalog} onCreateChild={onCreateChild} />
         </Shell>
       );
+    case "componentMechanics": {
+      const maneuver = shapeOf(TRAIT_FAMILY_SHAPES, field.branch) === "maneuver";
+      return (
+        <Shell field={field} issues={issues} composite>
+          <MechanicsIssues.Provider value={issues}>
+            {field.contract === "effect" ? (
+              <EffectMechanicsEditor branch={field.branch ?? ""} maneuver={maneuver} payload={payload ?? {}} onPayloadChange={onChange} catalog={catalog} kinds={field.kinds ?? { affinity: "", maneuverTargeting: "" }} />
+            ) : (
+              <TraitMechanicsEditor family={traitFamilyFor(field.branch)} maneuver={maneuver} traitKind={field.definitionKind ?? ""} payload={payload ?? {}} onPayloadChange={onChange} catalog={catalog} kinds={field.kinds ?? { affinity: "", maneuverTargeting: "" }} />
+            )}
+          </MechanicsIssues.Provider>
+        </Shell>
+      );
+    }
     case "boolean":
       return <LabeledControl field={field} issues={issues}>{(p) => <input {...p} type="checkbox" checked={value === true} onChange={(e) => onChange(e.target.checked)} />}</LabeledControl>;
     case "equipmentSource":

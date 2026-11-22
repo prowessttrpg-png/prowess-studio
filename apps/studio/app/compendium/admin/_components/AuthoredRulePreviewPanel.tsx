@@ -3,7 +3,7 @@
 import { COMPENDIUM_STAT_TOKENS } from "@prowess/model";
 import { formatEnumLabel } from "@prowess/ui";
 import { useState } from "react";
-import { previewAuthoredRules, type AuthoredRulesPreviewDto, type AuthoredRulesSideDto, type AuthoredValueDto } from "../_lib/rules-client";
+import { previewAuthoredRules, type AuthoredRulesPreviewDto, type AuthoredRulesSideDto, type AuthoredValueDto, type SampleSkillBenefitDto } from "../_lib/rules-client";
 
 /**
  * RULES-WO1 — preview of authored rules for ONE sample Character: every calculated value (with each Skill benefit's
@@ -62,6 +62,67 @@ function ValuesTable({ side, caption }: { side: AuthoredRulesSideDto; caption: s
         ))}
       </tbody>
     </table>
+  );
+}
+
+/** The same words the Character sheet's Skill Benefits panel uses for each status (keys are the server's status tokens). */
+const BENEFIT_STATUS_WORDS: Readonly<Record<string, string>> = { GRANTED: "Applies", RANK_NOT_REACHED: "Rank not reached", INELIGIBLE: "Prerequisites not met", UNRESOLVED: "Cannot be decided yet" };
+const MODE_WORDS: Readonly<Record<string, string>> = { ALL: "all of", ANY: "any one of" };
+const READ_AS_WORDS: Readonly<Record<string, string>> = { UNTRAINED_FIRST_RANK: "not in the sample — read as untrained", NOT_OWNED: "not in the sample — read as not owned" };
+const INPUT_WORDS: Readonly<Record<string, string>> = { AFFINITY_RANK: "Affinity", SKILL_RANK: "Skill", STAT: "Stat", LEVEL: "Level" };
+const met = (v: boolean | null) => (v === true ? "met" : v === false ? "not met" : "cannot be decided");
+
+function BenefitsTable({ side, caption }: { side: AuthoredRulesSideDto; caption: string }) {
+  if ((side.benefits ?? []).length === 0) return null;
+  return (
+    <table className="gov-table" data-testid="authored-benefits">
+      <caption>{caption}</caption>
+      <thead>
+        <tr>
+          <th scope="col">Skill benefit</th>
+          <th scope="col">Needs</th>
+          <th scope="col">Prerequisites</th>
+          <th scope="col">Grants</th>
+          <th scope="col">Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        {side.benefits.map((b: SampleSkillBenefitDto) => (
+          <tr key={b.benefitKey} data-testid={`authored-benefit-${b.benefitKey}`} data-status={b.status}>
+            <th scope="row">{b.displayName ?? b.writtenBenefit}</th>
+            <td>
+              {b.skillName ?? b.skill.canonicalKey} {formatEnumLabel(b.minimumRankKey)} (sample: {b.heldRankKey ? formatEnumLabel(b.heldRankKey) : "untrained"})
+            </td>
+            <td>
+              {b.groups.length === 0
+                ? "None"
+                : b.groups.map((g) => (
+                    <span key={g.groupKey} className="prowess-contribution" data-testid={`authored-benefit-group-${g.groupKey}`} data-satisfied={String(g.satisfied)}>
+                      {MODE_WORDS[g.mode] ?? g.mode}: {g.prerequisites.map((p) => `${formatEnumLabel(p.prerequisiteKey)} (${met(p.satisfied)})`).join(", ")} — {met(g.satisfied)}
+                      <br />
+                    </span>
+                  ))}
+            </td>
+            <td data-testid="authored-benefit-actions">{b.grantedActions.length === 0 ? "—" : b.grantedActions.map((a, i) => `${b.actionNames[i] ?? a.action.canonicalKey}${a.actionKey === null ? " (not this Release's revision)" : ""}`).join(", ")}</td>
+            <td data-testid="authored-benefit-result">{BENEFIT_STATUS_WORDS[b.status] ?? formatEnumLabel(b.status)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function InputsList({ side }: { side: AuthoredRulesSideDto }) {
+  const missing = (side.inputs ?? []).filter((i) => !i.supplied);
+  if (missing.length === 0) return null;
+  return (
+    <ul className="gov-muted" data-testid="authored-preview-missing">
+      {missing.map((i) => (
+        <li key={`${i.input}:${i.subject?.entityId ?? i.stat ?? ""}`} data-testid="authored-preview-missing-input">
+          {INPUT_WORDS[i.input] ?? formatEnumLabel(i.input)} {i.name ?? i.subject?.canonicalKey ?? i.stat ?? ""}: {READ_AS_WORDS[i.readAs ?? ""] ?? "not supplied"}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -134,6 +195,7 @@ export function AuthoredRulePreviewPanel({ releaseId, drafts, unsavedChanges = f
   const [level, setLevel] = useState(1);
   const [stats, setStats] = useState<Record<string, number>>(() => Object.fromEntries(COMPENDIUM_STAT_TOKENS.map((s) => [s, s === focusStat ? 6 : 3])));
   const [skillRanks, setSkillRanks] = useState<Record<string, string>>({});
+  const [affinityRanks, setAffinityRanks] = useState<Record<string, string>>({});
   const [effects, setEffects] = useState([{ label: "Sustained Spell", castAp: 5, assignedPoints: 1 }]);
   const [result, setResult] = useState<AuthoredRulesPreviewDto | null>(null);
   const [error, setError] = useState("");
@@ -147,7 +209,13 @@ export function AuthoredRulePreviewPanel({ releaseId, drafts, unsavedChanges = f
         await previewAuthoredRules({
           releaseId,
           drafts: [...drafts],
-          sample: { level, stats, skillRanks: Object.entries(skillRanks).filter(([, r]) => r !== "").map(([skillEntityId, rankKey]) => ({ skillEntityId, rankKey })), effects },
+          sample: {
+            level,
+            stats,
+            skillRanks: Object.entries(skillRanks).filter(([, r]) => r !== "").map(([skillEntityId, rankKey]) => ({ skillEntityId, rankKey })),
+            affinityRanks: Object.entries(affinityRanks).filter(([, r]) => r !== "").map(([affinityEntityId, rankKey]) => ({ affinityEntityId, rankKey })),
+            effects,
+          },
         }),
       );
     } catch (e) {
@@ -160,6 +228,9 @@ export function AuthoredRulePreviewPanel({ releaseId, drafts, unsavedChanges = f
   const int = (v: string) => (Number.isFinite(Number(v)) ? Math.max(0, Math.trunc(Number(v))) : 0);
   const skills = result === null ? [] : [...result.candidate.skills, ...result.published.skills.filter((s) => !result.candidate.skills.some((c) => c.entityId === s.entityId))];
   const ranks = result?.candidate.ranks.length ? result.candidate.ranks : (result?.published.ranks ?? []);
+  const candidateAffinities = result?.candidate.affinities ?? [];
+  const affinities = result === null ? [] : [...candidateAffinities, ...(result.published.affinities ?? []).filter((s) => !candidateAffinities.some((c) => c.entityId === s.entityId))];
+  const affinityRankKeys = result?.candidate.affinityRanks?.length ? result.candidate.affinityRanks : (result?.published.affinityRanks ?? []);
   const hasConcentration = result !== null && (result.candidate.concentration.length > 0 || result.published.concentration.length > 0);
 
   return (
@@ -191,6 +262,19 @@ export function AuthoredRulePreviewPanel({ releaseId, drafts, unsavedChanges = f
             <select aria-label={`Sample ${sk.displayName ?? sk.canonicalKey} rank`} value={skillRanks[sk.entityId] ?? ""} onChange={(e) => setSkillRanks((x) => ({ ...x, [sk.entityId]: e.target.value }))}>
               <option value="">Untrained</option>
               {ranks.slice(1).map((r) => (
+                <option key={r} value={r}>
+                  {formatEnumLabel(r)}
+                </option>
+              ))}
+            </select>
+          </label>
+        ))}
+        {affinities.map((a) => (
+          <label key={a.entityId} className="gov-field">
+            <span>{a.displayName ?? a.canonicalKey} Affinity rank</span>
+            <select aria-label={`Sample ${a.displayName ?? a.canonicalKey} Affinity rank`} value={affinityRanks[a.entityId] ?? ""} onChange={(e) => setAffinityRanks((x) => ({ ...x, [a.entityId]: e.target.value }))}>
+              <option value="">Not owned</option>
+              {affinityRankKeys.map((r) => (
                 <option key={r} value={r}>
                   {formatEnumLabel(r)}
                 </option>
@@ -234,6 +318,9 @@ export function AuthoredRulePreviewPanel({ releaseId, drafts, unsavedChanges = f
         <div data-testid="authored-preview-result">
           <ValuesTable side={result.candidate} caption="With this Draft" />
           <ValuesTable side={result.published} caption="Published Release" />
+          <BenefitsTable side={result.candidate} caption="Skill benefits with this Draft (evaluated exactly as on a Character sheet)" />
+          <BenefitsTable side={result.published} caption="Skill benefits in the published Release" />
+          <InputsList side={result.candidate} />
           <ConcentrationTable side={result.candidate} />
           {result.candidate.problems.length > 0 ? (
             <ul className="gov-bad" data-testid="authored-preview-problems">

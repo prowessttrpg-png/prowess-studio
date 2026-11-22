@@ -1334,6 +1334,138 @@
     "mageArtScalingSourceKinds": [
       "STAT",
       "LEVEL"
+    ],
+    "spellEffectFamilies": [
+      "DAMAGE",
+      "HEALING",
+      "BUFF",
+      "DEBUFF",
+      "CONTROL",
+      "UTILITY",
+      "SUMMONING"
+    ],
+    "effectSubfamilies": [
+      "DIRECT",
+      "RESTORATION",
+      "CLEANSE",
+      "MODIFICATION",
+      "FORCED_MOVEMENT",
+      "MOVEMENT",
+      "COUNTERSPELL",
+      "DETECTION",
+      "MANIFESTATION",
+      "TARGETING_CONVERSION",
+      "DAMAGE_CONVERSION"
+    ],
+    "effectResolutionPolicies": [
+      "OWN",
+      "INHERIT_ABILITY"
+    ],
+    "effectAttackTypes": [
+      "ABILITY_ATTACK",
+      "MELEE_ATTACK",
+      "RANGED_ATTACK",
+      "FOUNDATION_ATTACK"
+    ],
+    "effectSaveSelectionPolicies": [
+      "FIXED",
+      "CONSTRUCTION_CHOICE",
+      "TARGET_CHOICE",
+      "MARTIAL_CONTROL"
+    ],
+    "effectParameterKinds": [
+      "COUNT",
+      "TOKEN",
+      "FLAG"
+    ],
+    "effectLimitKinds": [
+      "FIXED",
+      "STAT"
+    ],
+    "effectCostKinds": [
+      "FIXED",
+      "PER_UNIT",
+      "PER_SELECTION"
+    ],
+    "effectOutcomeKeys": [
+      "SUCCESS",
+      "FAILURE"
+    ],
+    "effectOutcomeOperations": [
+      "NO_EFFECT",
+      "DAMAGE",
+      "HEAL",
+      "CLEANSE",
+      "MODIFY_VALUE",
+      "CONTROL",
+      "UTILITY",
+      "SUMMON",
+      "FOUNDATION_DAMAGE",
+      "CONVERT_TARGETING",
+      "CONVERT_DAMAGE_TYPE"
+    ],
+    "targetCategories": [
+      "SELF",
+      "CREATURE",
+      "OBJECT",
+      "POINT",
+      "SPACE",
+      "AREA",
+      "SOURCE"
+    ],
+    "traitFamilies": [
+      "SHARED",
+      "SPELL",
+      "MANEUVER"
+    ],
+    "traitModifications": [
+      "DAMAGE_TYPE",
+      "TARGETING_MEASURE",
+      "RESOLUTION",
+      "TRIGGER",
+      "COST"
+    ],
+    "constructionPrerequisiteKinds": [
+      "SKILL_RANK_AT_LEAST",
+      "AFFINITY_RANK_AT_LEAST"
+    ],
+    "stackLimitKinds": [
+      "FIXED",
+      "TRACK_RANK_VALUE"
+    ],
+    "constructionSkillTracks": [
+      "ARCANE",
+      "MARTIAL"
+    ],
+    "mageArtImmunityKinds": [
+      "CONDITION",
+      "DAMAGE_TYPE"
+    ],
+    "mageArtCalculationKinds": [
+      "DERIVED",
+      "PROCEDURE"
+    ],
+    "mageArtRangeTargetKinds": [
+      "DERIVED",
+      "TARGETING_MEASURE"
+    ],
+    "targetingMeasures": [
+      "LENGTH",
+      "WIDTH",
+      "RADIUS"
+    ],
+    "conditionOutcomeKinds": [
+      "ROLL_MODE",
+      "MODIFIER",
+      "DAMAGE",
+      "RESOURCE",
+      "PREVENTS",
+      "WRITTEN_ONLY"
+    ],
+    "conditionPreventions": [
+      "ACTIONS",
+      "COUNTER_ACTIONS",
+      "MOVEMENT"
     ]
   },
   "legacyTerms": [

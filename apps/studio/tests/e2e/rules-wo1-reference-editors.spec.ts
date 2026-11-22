@@ -161,6 +161,20 @@ test("RULES-WO1 P04 every Summon engine is authored through the guided form (R15
     await page.getByLabel("Whose HP (required)", { exact: true }).selectOption(hpOwner);
     await page.getByLabel("Whose MP (required)", { exact: true }).selectOption("NONE");
     await page.getByLabel("Dismissal (required)", { exact: true }).selectOption("FREE_ACTION");
+    // Phase F: what it is bound to (a Bound Summon binds to a creature or an object — illustrative) and who may create it.
+    if (engine === "BOUND_SUMMON") {
+      const hosts = page.getByRole("group", { name: /What it can be placed on or bound to/ });
+      await hosts.getByLabel("Creature").check();
+      await hosts.getByLabel("Object").check();
+      await page.getByRole("button", { name: "Add requirement group" }).click();
+      const group = page.getByRole("group", { name: /Who can create it/ });
+      await group.getByLabel(/^Group name/).fill("Training");
+      await group.getByLabel(/^The group is met when/).selectOption("ALL");
+      await group.getByRole("button", { name: "Add prerequisite" }).click();
+      await group.getByLabel("Kind", { exact: true }).selectOption("LEVEL_AT_LEAST");
+      await group.getByLabel(/^Short name/).fill("Level 3");
+      await group.getByLabel(/^Minimum Level/).fill("3");
+    }
     await chooseSource(page, "summon");
     await validateAndCreate(page, name);
     await expect(page.getByTestId("status-live")).toHaveAttribute("data-state", "REFERENCE_ONLY");
@@ -295,18 +309,53 @@ test("RULES-WO1 P08 Mage Art v2: a Level table scales a mode, a structured benef
     await table.getByLabel(`Level row ${i} value`).fill(String(value));
   }
   await mode.getByLabel(/^As written/).fill("Bonus to Attack Rolls by Level (illustrative).");
+  // Phase F: a Stat substitution names the calculation it changes and the replacement Stat (chosen from lists).
   await page.getByRole("button", { name: "Add benefit" }).click();
-  const benefit = page.getByTestId("guided-list-item").filter({ hasText: "Benefit name" }).first();
-  await benefit.getByLabel(/^Benefit name/).fill("Steady aim");
-  await benefit.getByLabel(/^Kind/).selectOption("ADVANTAGE");
-  await benefit.getByLabel(/^What it applies to/).fill("Checks with the chosen Skill");
-  await benefit.getByLabel(/^As written/).fill("Advantage on checks with the chosen Skill (illustrative).");
+  const benefit = page.getByRole("group", { name: /^Benefit/ }).last();
+  await benefit.getByLabel("Kind", { exact: true }).first().selectOption("STAT_SUBSTITUTION");
+  await benefit.getByLabel(/^Benefit name/).fill("Warding sight");
+  const calculation = benefit.getByRole("group", { name: /The calculation it changes/ });
+  await calculation.getByLabel("Kind", { exact: true }).selectOption("DERIVED");
+  await calculation.getByLabel(/^Derived value/).selectOption("DODGE");
+  await benefit.getByLabel(/^Instead of/).selectOption("AGI");
+  await benefit.getByLabel(/^Uses this Stat/).selectOption("RES");
+  await benefit.getByLabel(/^As written/).fill("Use Resolve instead of Agility for Dodge (illustrative).");
   await chooseSource(page, "mage art");
   await validateAndCreate(page, name);
   const preview = page.getByTestId("reference-preview");
   await preview.getByLabel("Sample Level").fill("5");
   await preview.getByTestId("reference-preview-run").click();
   await expect(preview.getByTestId("preview-scaling-ATTACK_BONUS")).toHaveText("2");
+});
+
+test("RULES-WO1 P10 a Condition says what it does: Disadvantage on Attack Rolls, and damage on a failed Save (R14)", async ({ page }) => {
+  const name = `Shaken E2E ${tag}`;
+  await startNew(page, "CONDITION", "STATUS_CONDITION", name);
+  await page.getByRole("button", { name: "Add effect" }).click();
+  const effect = page.getByTestId("guided-list-item").filter({ hasText: "Short name" }).first();
+  await effect.getByLabel(/^Short name/).fill("Rattled");
+  const what = effect.getByRole("group", { name: /What it does, exactly/ });
+  await what.getByLabel("Kind", { exact: true }).selectOption("ROLL_MODE");
+  await what.getByLabel(/^On/).selectOption("ATTACK_ROLL");
+  await what.getByLabel(/^Rolls with/).selectOption("DISADVANTAGE");
+  await effect.getByLabel(/^Effect/).last().fill("Disadvantage on Attack Rolls (illustrative).");
+  await page.getByRole("group", { name: /How long it lasts/ }).getByLabel(/^Lasts/).selectOption("UNTIL_SAVE");
+  await page.getByLabel(/^How it is removed/).fill("A successful Resolve Save (illustrative).");
+  await page.getByLabel("When it acts (required)", { exact: true }).selectOption("START_OF_TURN");
+  await page.getByLabel("Stacking (required)", { exact: true }).selectOption("DOES_NOT_STACK");
+  await page.getByRole("button", { name: "Add trigger" }).click();
+  const trigger = page.getByTestId("guided-list-item").filter({ hasText: "Trigger name" }).first();
+  await trigger.getByLabel(/^Trigger name/).fill("Panic");
+  await trigger.getByLabel(/^When/).first().selectOption("ON_FAILED_SAVE");
+  await trigger.getByLabel(/^Save Stat/).selectOption("RES");
+  const outcome = trigger.getByRole("group", { name: /What it does, exactly/ });
+  await outcome.getByLabel("Kind", { exact: true }).selectOption("DAMAGE");
+  await outcome.getByLabel(/^Number of dice/).fill("1");
+  await outcome.getByLabel(/^Die \(faces\)/).fill("4");
+  await trigger.getByLabel(/^What happens/).fill("Takes 1d4 damage on a failed Resolve Save (illustrative).");
+  await chooseSource(page, "condition");
+  await validateAndCreate(page, name);
+  await expect(page.getByTestId("status-live")).toHaveAttribute("data-state", "REFERENCE_ONLY");
 });
 
 test("RULES-WO1 P09 ammunition fitted to Weapon families by name, and its reload preview (R13)", async ({ page }) => {

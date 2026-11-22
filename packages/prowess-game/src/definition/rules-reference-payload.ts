@@ -2,11 +2,14 @@ import { evaluateFormula } from "@prowess/rules";
 import type { JsonObject } from "@prowess/model";
 import { deepFreeze, isPlainObject, type PathSegment } from "../internal/plain-data.js";
 import { Problems, isToken, own, readEnum, readRecord, readSafeInteger } from "../internal/problems.js";
-import { PROWESS_STATS, type ProwessStat } from "../vocabulary/core.js";
+import { BONUS_TARGETS, CORE_PROCEDURES, DERIVED_STATISTICS, PROWESS_STATS, ROLL_MODES, ROLL_PROCEDURES, type ProwessStat } from "../vocabulary/core.js";
 import { DEFINITION_ERROR_CODES as C } from "./codes.js";
 import { readSource, type CoreDefinitionSource } from "./core-payload.js";
 import { readDefinitionRef, type ProwessDefinitionRef } from "./envelope.js";
-import { SUMMON_COST_INPUT_KINDS, SUMMON_LIMIT_INPUT_KINDS, readValueFormula, type ValueFormula } from "./rules-authoring-payload.js";
+import { SUMMON_COST_INPUT_KINDS, SUMMON_LIMIT_INPUT_KINDS, readPrerequisiteGroups, readValueFormula, type ValueFormula } from "./rules-authoring-payload.js";
+import { DAMAGE_TYPES } from "../vocabulary/equipment.js";
+import { COMBAT_TIMING_EVENTS, RUNTIME_RESOURCE_KEYS } from "../vocabulary/runtime.js";
+import { TARGET_CATEGORIES, TARGETING_MEASURES } from "../vocabulary/targeting.js";
 
 /**
  * RULES-WO1 Phase C — version-1 contracts for the remaining rule families, for AUTHORING, VALIDATION, REFERENCE and
@@ -52,6 +55,13 @@ export const SUMMON_RESTRICTION_KINDS = deepFreeze(["NO_ACTIONS_WITHOUT_TRAIT", 
 export const SUMMON_DISMISSALS = deepFreeze(["FREE_ACTION", "ACTION", "CANNOT_DISMISS", "SPECIAL"] as const);
 /** Phase D: Mage Art v2 structured benefits and maintenance exceptions (the written text stays with each). */
 export const MAGE_ART_BENEFIT_KINDS = deepFreeze(["IMMUNITY", "ADVANTAGE", "SENSE", "STAT_SUBSTITUTION", "RANGE_MULTIPLIER", "COUNTER_ACTION", "RESOURCE", "WRITTEN_ONLY"] as const);
+/** RULES-WO1 Phase F: what a Mage Art immunity is against, what a Stat substitution changes, what a range multiplier multiplies. */
+export const MAGE_ART_IMMUNITY_KINDS = deepFreeze(["CONDITION", "DAMAGE_TYPE"] as const);
+export const MAGE_ART_CALCULATION_KINDS = deepFreeze(["DERIVED", "PROCEDURE"] as const);
+export const MAGE_ART_RANGE_TARGET_KINDS = deepFreeze(["DERIVED", "TARGETING_MEASURE"] as const);
+/** RULES-WO1 Phase F: what a Condition's effect or trigger does (WRITTEN_ONLY = described for the GM, nothing structured). */
+export const CONDITION_OUTCOME_KINDS = deepFreeze(["ROLL_MODE", "MODIFIER", "DAMAGE", "RESOURCE", "PREVENTS", "WRITTEN_ONLY"] as const);
+export const CONDITION_PREVENTIONS = deepFreeze(["ACTIONS", "COUNTER_ACTIONS", "MOVEMENT"] as const);
 export const MAGE_ART_EXCEPTION_KINDS = deepFreeze(["ACTIVE_EFFECT_ONLY_WHILE_CASTING", "NO_MAINTENANCE", "SPECIAL_COST", "DOES_NOT_COUNT_TOWARD_LIMIT", "WRITTEN_ONLY"] as const);
 /** Phase D: ammunition and weapon modifications (Ammo, Loading (X), Reload X AP; attachments and crafting slots). */
 export const WEAPON_MODIFICATION_CHANGE_KINDS = deepFreeze(["RELOAD_AP", "LOADING", "TO_HIT", "DAMAGE_DICE", "LOUD_RADIUS_FEET", "RANGE_FEET", "WRITTEN_ONLY"] as const);
@@ -104,14 +114,14 @@ function bool(value: unknown, at: readonly PathSegment[], p: Problems, what: str
   return value;
 }
 /** Rows keyed by a unique token. */
-function keyedRows<T>(value: unknown, at: readonly PathSegment[], p: Problems, what: string, keyField: string, fields: readonly string[], read: (r: Record<string, unknown>, at: readonly PathSegment[]) => T | null, atLeastOne = false): T[] {
+function keyedRows<T>(value: unknown, at: readonly PathSegment[], p: Problems, what: string, keyField: string, fields: readonly string[], read: (r: Record<string, unknown>, at: readonly PathSegment[]) => T | null, atLeastOne = false, required: readonly string[] = fields): T[] {
   if (!Array.isArray(value) || (atLeastOne && value.length === 0)) {
     p.add(C.INVALID_PAYLOAD, at, `${what} is a list${atLeastOne ? " with at least one entry" : ""}`);
     return [];
   }
   const keys: string[] = [];
   return value.flatMap((v: unknown, i: number) => {
-    const r = readRecord(v, [...at, i], p, C.INVALID_PAYLOAD, fields, fields);
+    const r = readRecord(v, [...at, i], p, C.INVALID_PAYLOAD, fields, required);
     if (r === null) return [];
     const k = own(r, keyField);
     if (!isToken(k) || keys.includes(k)) {
@@ -122,6 +132,123 @@ function keyedRows<T>(value: unknown, at: readonly PathSegment[], p: Problems, w
     const out = read(r, [...at, i]);
     return out === null ? [] : [out];
   });
+}
+
+/** An exact Definition reference of one kind (or null when `nullable`). */
+function refOf(value: unknown, kind: string, at: readonly PathSegment[], p: Problems, nullable = false): ProwessDefinitionRef | null {
+  if (value === null && nullable) return null;
+  const ref = readDefinitionRef(value, at, p, C.INVALID_PAYLOAD);
+  if (ref !== null && ref.definitionKind !== kind) {
+    p.add(C.INVALID_PAYLOAD, at, `names an exact ${kind} Definition`);
+    return null;
+  }
+  return ref;
+}
+const nonZero = (value: unknown, at: readonly PathSegment[], p: Problems, what: string): number | null => {
+  const n = readSafeInteger(value, at, p, C.INVALID_PAYLOAD, what);
+  if (n === 0) p.add(C.INVALID_PAYLOAD, at, `${what} is not zero (negative reduces)`);
+  return n === 0 ? null : n;
+};
+
+/** RULES-WO1 Phase F: what a Condition effect or trigger does, as structure (reference only — play applies nothing). */
+function readConditionOutcome(value: unknown, at: readonly PathSegment[], p: Problems): Out | null {
+  if (!isPlainObject(value)) {
+    p.add(C.INVALID_PAYLOAD, at, "an outcome is { kind, … } (WRITTEN_ONLY when only the text applies)");
+    return null;
+  }
+  const kind = readEnum(own(value, "kind"), CONDITION_OUTCOME_KINDS, [...at, "kind"], p, C.INVALID_PAYLOAD, "outcome kind");
+  if (kind === null) return null;
+  const FIELDS_BY_KIND = { ROLL_MODE: ["kind", "roll", "mode"], MODIFIER: ["kind", "target", "amount"], DAMAGE: ["kind", "diceCount", "dieFaces", "damageType"], RESOURCE: ["kind", "resource", "amount"], PREVENTS: ["kind", "prevents"], WRITTEN_ONLY: ["kind"] } as const;
+  const r = readRecord(value, at, p, C.INVALID_PAYLOAD, FIELDS_BY_KIND[kind], FIELDS_BY_KIND[kind]);
+  if (r === null) return null;
+  const before = p.count;
+  let out: Out = { kind };
+  if (kind === "ROLL_MODE") out = { kind, roll: readEnum(own(r, "roll"), ROLL_PROCEDURES, [...at, "roll"], p, C.INVALID_PAYLOAD, "roll"), mode: readEnum(own(r, "mode"), ROLL_MODES, [...at, "mode"], p, C.INVALID_PAYLOAD, "roll mode") };
+  else if (kind === "MODIFIER") out = { kind, target: readEnum(own(r, "target"), BONUS_TARGETS, [...at, "target"], p, C.INVALID_PAYLOAD, "modified value"), amount: nonZero(own(r, "amount"), [...at, "amount"], p, "amount") };
+  else if (kind === "DAMAGE") out = { kind, diceCount: whole(own(r, "diceCount"), [...at, "diceCount"], p, "diceCount", { min: 1 }), dieFaces: whole(own(r, "dieFaces"), [...at, "dieFaces"], p, "dieFaces", { min: 2 }), damageType: own(r, "damageType") === null ? null : readEnum(own(r, "damageType"), DAMAGE_TYPES, [...at, "damageType"], p, C.INVALID_PAYLOAD, "damage type") };
+  else if (kind === "RESOURCE") out = { kind, resource: readEnum(own(r, "resource"), RUNTIME_RESOURCE_KEYS, [...at, "resource"], p, C.INVALID_PAYLOAD, "resource"), amount: nonZero(own(r, "amount"), [...at, "amount"], p, "amount") };
+  else if (kind === "PREVENTS") {
+    const raw = own(r, "prevents");
+    const prevents = Array.isArray(raw) ? raw.map((x: unknown, i: number) => readEnum(x, CONDITION_PREVENTIONS, [...at, "prevents", i], p, C.INVALID_PAYLOAD, "prevention")) : [];
+    if (!Array.isArray(raw) || raw.length === 0 || new Set(raw).size !== raw.length) p.add(C.INVALID_PAYLOAD, [...at, "prevents"], "prevents lists what it prevents, each once");
+    out = { kind, prevents };
+  }
+  return p.count > before ? null : out;
+}
+
+/** RULES-WO1 Phase F: the exact mechanics of one Mage Art benefit kind — the fields that make it more than a label. */
+function readMageArtBenefitMechanics(kind: (typeof MAGE_ART_BENEFIT_KINDS)[number], value: unknown, at: readonly PathSegment[], p: Problems): Out | null {
+  const before = p.count;
+  const rec = (fields: readonly string[], required: readonly string[] = fields) => readRecord(value, at, p, C.INVALID_PAYLOAD, fields, required);
+  const stat = (v: unknown, a: readonly PathSegment[], nullable: boolean) => (v === null && nullable ? null : readEnum(v, PROWESS_STATS, a, p, C.INVALID_PAYLOAD, "Stat"));
+  let out: Out | null = null;
+  if (kind === "IMMUNITY") {
+    const against = isPlainObject(value) ? readEnum(own(value, "against"), MAGE_ART_IMMUNITY_KINDS, [...at, "against"], p, C.INVALID_PAYLOAD, "immune to") : (p.add(C.INVALID_PAYLOAD, at, "an immunity names what it is against"), null);
+    if (against === "CONDITION") {
+      const r = rec(["against", "condition"]);
+      out = r === null ? null : { against, condition: refOf(own(r, "condition"), "STATUS_CONDITION", [...at, "condition"], p) };
+    } else if (against === "DAMAGE_TYPE") {
+      const r = rec(["against", "damageType"]);
+      out = r === null ? null : { against, damageType: readEnum(own(r, "damageType"), DAMAGE_TYPES, [...at, "damageType"], p, C.INVALID_PAYLOAD, "damage type") };
+    }
+  } else if (kind === "ADVANTAGE") {
+    const r = rec(["roll", "stat", "skill"]);
+    if (r !== null) {
+      const roll = readEnum(own(r, "roll"), ROLL_PROCEDURES, [...at, "roll"], p, C.INVALID_PAYLOAD, "roll");
+      const s = stat(own(r, "stat"), [...at, "stat"], true);
+      const skill = refOf(own(r, "skill"), "SKILL", [...at, "skill"], p, true);
+      if (skill !== null && roll !== "SKILL_CHECK" && roll !== "SKILL_AUTOMATIC_SUCCESS") p.add(C.INVALID_PAYLOAD, [...at, "skill"], "only a Skill Check names a Skill");
+      out = { roll, stat: s, skill };
+    }
+  } else if (kind === "SENSE") {
+    const r = rec(["rangeFeet"]);
+    if (r !== null) out = { rangeFeet: whole(own(r, "rangeFeet"), [...at, "rangeFeet"], p, "rangeFeet", { nullable: true, min: 1 }) };
+  } else if (kind === "STAT_SUBSTITUTION") {
+    const r = rec(["calculation", "replacedStat", "replacementStat"]);
+    if (r !== null) {
+      const c = own(r, "calculation");
+      const cAt = [...at, "calculation"];
+      const ck = isPlainObject(c) ? readEnum(own(c, "kind"), MAGE_ART_CALCULATION_KINDS, [...cAt, "kind"], p, C.INVALID_PAYLOAD, "calculation kind") : (p.add(C.INVALID_PAYLOAD, cAt, "a Stat substitution names the calculation it changes"), null);
+      let calculation: Out | null = null;
+      if (ck === "DERIVED") {
+        const q = readRecord(c, cAt, p, C.INVALID_PAYLOAD, ["kind", "statistic"], ["kind", "statistic"]);
+        if (q !== null) calculation = { kind: ck, statistic: readEnum(own(q, "statistic"), DERIVED_STATISTICS, [...cAt, "statistic"], p, C.INVALID_PAYLOAD, "derived statistic") };
+      } else if (ck === "PROCEDURE") {
+        const q = readRecord(c, cAt, p, C.INVALID_PAYLOAD, ["kind", "procedure"], ["kind", "procedure"]);
+        if (q !== null) calculation = { kind: ck, procedure: readEnum(own(q, "procedure"), CORE_PROCEDURES, [...cAt, "procedure"], p, C.INVALID_PAYLOAD, "roll") };
+      }
+      const replacedStat = stat(own(r, "replacedStat"), [...at, "replacedStat"], true);
+      const replacementStat = stat(own(r, "replacementStat"), [...at, "replacementStat"], false);
+      if (replacedStat !== null && replacedStat === replacementStat) p.add(C.INVALID_PAYLOAD, [...at, "replacementStat"], "the replacement Stat differs from the Stat it replaces");
+      out = { calculation, replacedStat, replacementStat };
+    }
+  } else if (kind === "RANGE_MULTIPLIER") {
+    const r = rec(["target", "multiplier"]);
+    if (r !== null) {
+      const t = own(r, "target");
+      const tAt = [...at, "target"];
+      const tk = isPlainObject(t) ? readEnum(own(t, "kind"), MAGE_ART_RANGE_TARGET_KINDS, [...tAt, "kind"], p, C.INVALID_PAYLOAD, "what it multiplies") : (p.add(C.INVALID_PAYLOAD, tAt, "a range multiplier names what it multiplies"), null);
+      let target: Out | null = null;
+      if (tk === "DERIVED") {
+        const q = readRecord(t, tAt, p, C.INVALID_PAYLOAD, ["kind", "statistic"], ["kind", "statistic"]);
+        if (q !== null) target = { kind: tk, statistic: readEnum(own(q, "statistic"), DERIVED_STATISTICS, [...tAt, "statistic"], p, C.INVALID_PAYLOAD, "derived statistic") };
+      } else if (tk === "TARGETING_MEASURE") {
+        const q = readRecord(t, tAt, p, C.INVALID_PAYLOAD, ["kind", "measure"], ["kind", "measure"]);
+        if (q !== null) target = { kind: tk, measure: readEnum(own(q, "measure"), TARGETING_MEASURES, [...tAt, "measure"], p, C.INVALID_PAYLOAD, "measure") };
+      }
+      const m = own(r, "multiplier");
+      if (typeof m !== "number" || !Number.isFinite(m) || m <= 0 || m > 100) p.add(C.INVALID_PAYLOAD, [...at, "multiplier"], "multiplier is a positive number (2 = doubled)");
+      out = { target, multiplier: m };
+    }
+  } else if (kind === "RESOURCE") {
+    const r = rec(["resource", "amount", "timing"]);
+    if (r !== null) out = { resource: readEnum(own(r, "resource"), RUNTIME_RESOURCE_KEYS, [...at, "resource"], p, C.INVALID_PAYLOAD, "resource"), amount: nonZero(own(r, "amount"), [...at, "amount"], p, "amount"), timing: own(r, "timing") === null ? null : readEnum(own(r, "timing"), COMBAT_TIMING_EVENTS, [...at, "timing"], p, C.INVALID_PAYLOAD, "timing") };
+  } else if (kind !== "WRITTEN_ONLY") {
+    // The one remaining kind: extra Counter Actions (optionally only for one exact Action).
+    const r = rec(["counterActions", "action"]);
+    if (r !== null) out = { counterActions: whole(own(r, "counterActions"), [...at, "counterActions"], p, "counterActions", { min: 1 }), action: refOf(own(r, "action"), "ACTION", [...at, "action"], p, true) };
+  }
+  return p.count > before ? null : out;
 }
 
 /** Whole-number arithmetic for coverage checks goes through M4 like every other number in @prowess/game. */
@@ -151,9 +278,10 @@ function readArmor(r: Record<string, unknown>, at: readonly PathSegment[], p: Pr
 function readCondition(r: Record<string, unknown>, at: readonly PathSegment[], p: Problems): JsonObject | null {
   const before = p.count;
   const conditionKey = token(own(r, "conditionKey"), [...at, "conditionKey"], p, "conditionKey");
-  const effects = keyedRows(own(r, "effects"), [...at, "effects"], p, "effects", "effectKey", ["effectKey", "text"], (e, eat) => {
+  const effects = keyedRows(own(r, "effects"), [...at, "effects"], p, "effects", "effectKey", ["effectKey", "outcome", "text"], (e, eat) => {
     const t = text(own(e, "text"), [...eat, "text"], p, "effect text");
-    return t === null ? null : { effectKey: own(e, "effectKey") as string, text: t };
+    const outcome = readConditionOutcome(own(e, "outcome"), [...eat, "outcome"], p);
+    return t === null || outcome === null ? null : { effectKey: own(e, "effectKey") as string, outcome, text: t };
   }, true);
   const d = readRecord(own(r, "duration"), [...at, "duration"], p, C.INVALID_PAYLOAD, ["model", "rounds", "text"], ["model", "rounds", "text"]);
   let duration: Out | null = null;
@@ -170,12 +298,13 @@ function readCondition(r: Record<string, unknown>, at: readonly PathSegment[], p
   const ongoingTiming = readEnum(own(r, "ongoingTiming"), CONDITION_ONGOING_TIMINGS, [...at, "ongoingTiming"], p, C.INVALID_PAYLOAD, "ongoing timing");
   const stacking = readEnum(own(r, "stacking"), CONDITION_STACKING, [...at, "stacking"], p, C.INVALID_PAYLOAD, "stacking");
   // Triggers: when the Condition acts or is applied, what happens, and how it is resisted (a Save names its Stat).
-  const triggers = keyedRows(own(r, "triggers"), [...at, "triggers"], p, "triggers", "triggerKey", ["triggerKey", "when", "resistStat", "text"], (t, tat) => {
+  const triggers = keyedRows(own(r, "triggers"), [...at, "triggers"], p, "triggers", "triggerKey", ["triggerKey", "when", "resistStat", "outcome", "text"], (t, tat) => {
     const when = readEnum(own(t, "when"), CONDITION_TRIGGERS, [...tat, "when"], p, C.INVALID_PAYLOAD, "trigger");
     const resistStat = own(t, "resistStat") === null ? null : readEnum(own(t, "resistStat"), PROWESS_STATS, [...tat, "resistStat"], p, C.INVALID_PAYLOAD, "save Stat");
     const tt = text(own(t, "text"), [...tat, "text"], p, "trigger text");
     if (when === "ON_FAILED_SAVE" && own(t, "resistStat") === null) p.add(C.INVALID_PAYLOAD, [...tat, "resistStat"], "an ON_FAILED_SAVE trigger names the Stat of the Save");
-    return when === null || tt === null ? null : { triggerKey: own(t, "triggerKey") as string, when, resistStat, text: tt };
+    const outcome = readConditionOutcome(own(t, "outcome"), [...tat, "outcome"], p);
+    return when === null || tt === null || outcome === null ? null : { triggerKey: own(t, "triggerKey") as string, when, resistStat, outcome, text: tt };
   });
   const source = readSource(own(r, "source"), [...at, "source"], p);
   return done(p, before, { conditionKey, effects, duration, removal, ongoingTiming, stacking, triggers, source }, conditionKey, duration, ongoingTiming, stacking, source);
@@ -226,9 +355,16 @@ function readSummonType(r: Record<string, unknown>, at: readonly PathSegment[], 
     const t = text(own(x, "text"), [...xat, "text"], p, "restriction text");
     return kind === null || t === null ? null : { restrictionKey: own(x, "restrictionKey") as string, kind, text: t };
   });
+  // RULES-WO1 Phase F: what the Summon may be placed on or bound to (empty = no host), and who may create it (prerequisite
+  // groups in the Action-improvement grammar, evaluated like Skill-benefit prerequisites).
+  const rawHosts = own(r, "hosts");
+  const hosts = Array.isArray(rawHosts) ? rawHosts.flatMap((x: unknown, i: number) => { const h = readEnum(x, TARGET_CATEGORIES, [...at, "hosts", i], p, C.INVALID_PAYLOAD, "host"); return h === null ? [] : [h]; }) : [];
+  if (!Array.isArray(rawHosts) || new Set(rawHosts).size !== rawHosts.length) p.add(C.INVALID_PAYLOAD, [...at, "hosts"], "hosts lists each host category once (empty = no host)");
+  const hostText = text(own(r, "hostText"), [...at, "hostText"], p, "hostText", true);
+  const access = readPrerequisiteGroups(own(r, "access"), [...at, "access"], p, "access is a list of prerequisite groups (empty = none stated)");
   const openQuestions = texts(own(r, "openQuestions"), [...at, "openQuestions"], p, "openQuestions");
   const source = readSource(own(r, "source"), [...at, "source"], p);
-  return done(p, before, { summonKey, engine, tiers, castingAp, sustainMode, sustainMp, sustainApPerRound, countsTowardConcentration, maxActive, actionEconomy, ownership, restrictions, openQuestions, source }, summonKey, engine, sustainMode, actionEconomy, ownership, source);
+  return done(p, before, { summonKey, engine, tiers, castingAp, sustainMode, sustainMp, sustainApPerRound, countsTowardConcentration, maxActive, actionEconomy, ownership, restrictions, hosts, hostText, access, openQuestions, source }, summonKey, engine, sustainMode, actionEconomy, ownership, source);
 }
 
 function readSummonTrait(r: Record<string, unknown>, at: readonly PathSegment[], p: Problems): JsonObject | null {
@@ -437,7 +573,7 @@ const FIELDS: Readonly<Record<RulesReferencePayloadKind, readonly string[]>> = {
   WEAPON_MODIFICATION: ["modificationKey", "weaponFamilies", "slotCost", "changes", "requirements", "source"],
   ARMOR: ["armorKey", "category", "armorValue", "strengthRequirement", "maxAgiForDodge", "movementPenaltyFeet", "stealth", "notes", "source"],
   STATUS_CONDITION: ["conditionKey", "effects", "duration", "removal", "ongoingTiming", "stacking", "triggers", "source"],
-  SUMMON_TYPE: ["summonKey", "engine", "tiers", "castingAp", "sustainMode", "sustainMp", "sustainApPerRound", "countsTowardConcentration", "maxActive", "actionEconomy", "ownership", "restrictions", "openQuestions", "source"],
+  SUMMON_TYPE: ["summonKey", "engine", "tiers", "castingAp", "sustainMode", "sustainMp", "sustainApPerRound", "countsTowardConcentration", "maxActive", "actionEconomy", "ownership", "restrictions", "hosts", "hostText", "access", "openQuestions", "source"],
   SUMMON_TRAIT: ["traitKey", "engines", "costs", "forbidden", "effect", "source"],
   MISSION_RULE: ["ruleKey", "shape", "rollTable", "clock", "intel", "points", "relatedRules", "source"],
   METAMAGIC: ["metamagicKey", "form", "mp", "ap", "otherCost", "effect", "restrictions", "source"],
@@ -468,13 +604,20 @@ export interface MageArtScaling {
 /** The inputs a Mage Art scaling Formula may read (Stats and Level). */
 export const MAGE_ART_SCALING_INPUT_KINDS = deepFreeze(["STAT", "LEVEL"] as const);
 export function readMageArtV2Extras(r: Record<string, unknown>, at: readonly PathSegment[], p: Problems): { grantedBenefits: Out[]; maintenanceExceptions: Out[]; scaling: Record<string, MageArtScaling[]> } {
-  const grantedBenefits = keyedRows(own(r, "grantedBenefits"), [...at, "grantedBenefits"], p, "grantedBenefits", "benefitKey", ["benefitKey", "kind", "subject", "text"], (b, bat) => {
+  // RULES-WO1 Phase F: a structured benefit carries its exact mechanics (what is substituted in which calculation, what is
+  // multiplied and by how much, what it is immune to …); a WRITTEN_ONLY benefit is its text alone.
+  const grantedBenefits = keyedRows(own(r, "grantedBenefits"), [...at, "grantedBenefits"], p, "grantedBenefits", "benefitKey", ["benefitKey", "kind", "subject", "mechanics", "text"], (b, bat) => {
     const kind = readEnum(own(b, "kind"), MAGE_ART_BENEFIT_KINDS, [...bat, "kind"], p, C.INVALID_PAYLOAD, "benefit kind");
-    const subject = text(own(b, "subject"), [...bat, "subject"], p, "subject", true);
+    const subject = own(b, "subject") === undefined ? null : text(own(b, "subject"), [...bat, "subject"], p, "subject", true);
     const t = text(own(b, "text"), [...bat, "text"], p, "benefit text");
-    if (kind !== null && kind !== "WRITTEN_ONLY" && subject === null) p.add(C.INVALID_PAYLOAD, [...bat, "subject"], `a ${kind} benefit names what it applies to`);
-    return kind === null || t === null ? null : { benefitKey: own(b, "benefitKey") as string, kind, subject, text: t };
-  });
+    if (kind === null || t === null) return null;
+    if (kind === "WRITTEN_ONLY") {
+      if (own(b, "mechanics") !== undefined && own(b, "mechanics") !== null) p.add(C.INVALID_PAYLOAD, [...bat, "mechanics"], "a WRITTEN_ONLY benefit is its written text only");
+      return { benefitKey: own(b, "benefitKey") as string, kind, subject, mechanics: null, text: t };
+    }
+    const mechanics = readMageArtBenefitMechanics(kind, own(b, "mechanics"), [...bat, "mechanics"], p);
+    return mechanics === null ? null : { benefitKey: own(b, "benefitKey") as string, kind, subject, mechanics, text: t };
+  }, false, ["benefitKey", "kind", "text"]);
   const maintenanceExceptions = keyedRows(own(r, "maintenanceExceptions"), [...at, "maintenanceExceptions"], p, "maintenanceExceptions", "exceptionKey", ["exceptionKey", "kind", "text"], (x, xat) => {
     const kind = readEnum(own(x, "kind"), MAGE_ART_EXCEPTION_KINDS, [...xat, "kind"], p, C.INVALID_PAYLOAD, "exception kind");
     const t = text(own(x, "text"), [...xat, "text"], p, "exception text");

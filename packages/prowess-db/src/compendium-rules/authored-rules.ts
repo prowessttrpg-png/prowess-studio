@@ -1,11 +1,16 @@
 import { CHARACTER_ERROR_CODES, DomainError } from "@prowess/model";
 import {
   PROWESS_STATS,
+  AFFINITY_RANKS,
   authoredValuesOf,
   evaluateCalculatedValues,
   indexCoreDefinitions,
   previewConcentration,
+  benefitEligibilityOf,
+  skillBenefitsForSample,
   type CalculatedValueResult,
+  type SkillBenefitSampleInput,
+  type SkillBenefitSummary,
   type ConcentrationPreviewResult,
   type ConcentrationRulePayload,
   type ProwessDefinitionBundle,
@@ -32,6 +37,8 @@ export interface AuthoredRuleSample {
   readonly level: number;
   readonly stats: Readonly<Record<string, number>>;
   readonly skillRanks: ReadonlyArray<{ readonly skillEntityId: string; readonly rankKey: string }>;
+  /** RULES-WO1 Phase F: the sample's Affinity ranks (an Affinity left out is read as not owned, as for a Character). */
+  readonly affinityRanks: ReadonlyArray<{ readonly affinityEntityId: string; readonly rankKey: string }>;
   readonly effects: ReadonlyArray<{ readonly label: string; readonly castAp: number; readonly assignedPoints: number }>;
 }
 
@@ -43,6 +50,13 @@ export interface AuthoredRulesSide {
   /** The Skills that benefits in this bundle belong to (for choosing a sample rank) and the Skill rank ladder in order. */
   readonly skills: ReadonlyArray<{ readonly entityId: string; readonly canonicalKey: string; readonly displayName: string | null }>;
   readonly ranks: readonly string[];
+  /** RULES-WO1 Phase F: every Skill benefit, evaluated for the sample by the Character sheet's own function. */
+  readonly benefits: ReadonlyArray<SkillBenefitSummary & { readonly displayName: string | null; readonly skillName: string | null; readonly actionNames: readonly (string | null)[] }>;
+  /** The inputs those benefits read, and whether the sample supplied each one (a missing one is said, never guessed). */
+  readonly inputs: ReadonlyArray<SkillBenefitSampleInput & { readonly name: string | null }>;
+  /** The Affinities the benefits' prerequisites name (for choosing a sample rank) and the Affinity ranks in order. */
+  readonly affinities: ReadonlyArray<{ readonly entityId: string; readonly canonicalKey: string; readonly displayName: string | null }>;
+  readonly affinityRanks: readonly string[];
 }
 
 export interface AuthoredRulesPreview {
@@ -55,7 +69,7 @@ export interface AuthoredRulesPreview {
 function readSample(value: unknown): AuthoredRuleSample {
   if (value === null || typeof value !== "object" || Array.isArray(value)) throw invalid("sample is an object { level, stats, skillRanks, effects }");
   const r = value as Record<string, unknown>;
-  for (const k of Object.keys(r)) if (!["level", "stats", "skillRanks", "effects"].includes(k)) throw invalid(`sample has an unknown field ${JSON.stringify(k)}`);
+  for (const k of Object.keys(r)) if (!["level", "stats", "skillRanks", "affinityRanks", "effects"].includes(k)) throw invalid(`sample has an unknown field ${JSON.stringify(k)}`);
   const int = (v: unknown, what: string, min: number, max: number) => {
     if (typeof v !== "number" || !Number.isSafeInteger(v) || v < min || v > max) throw invalid(`${what} is a whole number from ${min} to ${max}`);
     return v;
@@ -78,12 +92,16 @@ function readSample(value: unknown): AuthoredRuleSample {
     if (!isUuid(x.skillEntityId) || typeof x.rankKey !== "string" || !/^[A-Z][A-Z0-9_]{0,63}$/.test(x.rankKey)) throw invalid(`sample.skillRanks[${i}] is { skillEntityId, rankKey }`);
     return { skillEntityId: x.skillEntityId, rankKey: x.rankKey };
   });
+  const affinityRanks = list(r.affinityRanks, "sample.affinityRanks").map((x, i) => {
+    if (!isUuid(x.affinityEntityId) || typeof x.rankKey !== "string" || !(AFFINITY_RANKS as readonly string[]).includes(x.rankKey)) throw invalid(`sample.affinityRanks[${i}] is { affinityEntityId, rankKey } with an Affinity rank`);
+    return { affinityEntityId: x.affinityEntityId, rankKey: x.rankKey };
+  });
   const effects = list(r.effects, "sample.effects").map((x, i) => ({
     label: typeof x.label === "string" && x.label.trim() !== "" ? x.label.slice(0, 80) : `Effect ${i + 1}`,
     castAp: int(x.castAp, `sample.effects[${i}].castAp`, 0, 100),
     assignedPoints: int(x.assignedPoints, `sample.effects[${i}].assignedPoints`, 0, 100),
   }));
-  return { level, stats, skillRanks, effects };
+  return { level, stats, skillRanks, affinityRanks, effects };
 }
 
 async function displayNames(versionIds: readonly string[]): Promise<Map<string, string>> {
@@ -100,12 +118,27 @@ async function evaluateSide(bundle: ProwessDefinitionBundle, ruleset: RulesetCon
   const { values, benefits } = authoredValuesOf(bundle);
   const core = indexCoreDefinitions(bundle);
   const ladder = core.ok ? core.value.skillLadder.payload.ranks : [];
-  const outcome = evaluateCalculatedValues({ values, benefits, ladder, facts: { stats: sample.stats, level: sample.level, derived, skillRanks: sample.skillRanks } });
+  // RULES-WO1 Phase F: the Skill benefits are evaluated by the Character sheet's own function (rank, ALL / ANY prerequisite
+  // groups including Affinity ranks, granted Actions), and their eligibility gates the calculated values exactly as on
+  // the sheet (calculatedValuesForCharacter passes the same eligibility).
+  const sampled = skillBenefitsForSample({ bundle, sample: { level: sample.level, stats: sample.stats, skillRanks: sample.skillRanks, affinityRanks: sample.affinityRanks } });
+  problems.push(...sampled.problems);
+  const outcome = evaluateCalculatedValues({ values, benefits, ladder, facts: { stats: sample.stats, level: sample.level, derived, skillRanks: sample.skillRanks }, eligibility: benefitEligibilityOf(sampled.benefits) });
   for (const i of outcome.issues) problems.push(i.message);
   const rules = bundle.definitions.filter((d) => d.definitionKind === "CONCENTRATION_RULE");
-  const skillIds = new Set(benefits.map((b) => b.payload.skill.entityId));
+  const skillIds = new Set([...benefits.map((b) => b.payload.skill.entityId), ...sampled.inputs.flatMap((i) => (i.input === "SKILL_RANK" && i.subject !== null ? [i.subject.entityId] : []))]);
   const skills = bundle.definitions.filter((d) => d.definitionKind === "SKILL" && skillIds.has(d.entityId));
-  const names = await displayNames([...outcome.values.flatMap((v) => (v.definition ? [v.definition.entityVersionId] : [])), ...rules.map((r) => r.entityVersionId), ...skills.map((d) => d.entityVersionId)]);
+  const affinityIds = new Set(sampled.inputs.flatMap((i) => (i.input === "AFFINITY_RANK" && i.subject !== null ? [i.subject.entityId] : [])));
+  const affinities = bundle.definitions.filter((d) => d.definitionKind === "AFFINITY" && affinityIds.has(d.entityId));
+  const actionVersions = sampled.benefits.flatMap((b) => b.grantedActions.map((a) => a.action.entityVersionId));
+  const names = await displayNames([
+    ...outcome.values.flatMap((v) => (v.definition ? [v.definition.entityVersionId] : [])),
+    ...rules.map((r) => r.entityVersionId),
+    ...skills.map((d) => d.entityVersionId),
+    ...affinities.map((d) => d.entityVersionId),
+    ...sampled.benefits.flatMap((b) => [b.benefit.entityVersionId, b.skill.entityVersionId]),
+    ...actionVersions,
+  ]);
   return {
     ok: problems.length === 0,
     problems,
@@ -117,6 +150,10 @@ async function evaluateSide(bundle: ProwessDefinitionBundle, ruleset: RulesetCon
     })),
     skills: skills.map((d) => ({ entityId: d.entityId, canonicalKey: d.canonicalKey, displayName: names.get(d.entityVersionId) ?? null })),
     ranks: [...ladder].sort((a, b) => a.order - b.order).map((r) => r.rankKey),
+    benefits: sampled.benefits.map((b) => ({ ...b, displayName: names.get(b.benefit.entityVersionId) ?? null, skillName: names.get(b.skill.entityVersionId) ?? null, actionNames: b.grantedActions.map((a) => names.get(a.action.entityVersionId) ?? null) })),
+    inputs: sampled.inputs.map((i) => ({ ...i, name: i.subject === null ? null : (names.get(i.subject.entityVersionId) ?? skills.find((d) => d.entityId === i.subject?.entityId)?.canonicalKey ?? null) })),
+    affinities: affinities.map((d) => ({ entityId: d.entityId, canonicalKey: d.canonicalKey, displayName: names.get(d.entityVersionId) ?? null })),
+    affinityRanks: [...AFFINITY_RANKS],
   };
 }
 
@@ -156,7 +193,7 @@ export async function previewAuthoredRules(input: { readonly releaseId: unknown;
     const candidate = await materializeProwessDefinitionBundle(candidateContext);
     candidateSide = await evaluateSide(candidate, candidateContext, sample);
   } catch (e) {
-    candidateSide = { ok: false, problems: [e instanceof Error ? e.message : String(e)], values: [], concentration: [], skills: [], ranks: [] };
+    candidateSide = { ok: false, problems: [e instanceof Error ? e.message : String(e)], values: [], concentration: [], skills: [], ranks: [], benefits: [], inputs: [], affinities: [], affinityRanks: [] };
   }
   return { release, overlay, published: await evaluateSide(published, base, sample), candidate: candidateSide };
 }

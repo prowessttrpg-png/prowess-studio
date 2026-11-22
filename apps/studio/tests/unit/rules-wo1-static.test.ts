@@ -35,6 +35,7 @@ describe("RULES-WO1 gate — the approved M5 change is additive and exact", () =
         "card/action.ts", // Phase D (R08): an Action card names the Skill benefits granting it (only when one does)
         "card/contract.ts", // the optional grantedBySkills field of a General Action card
         "character/action-improvement.ts", // evaluatePrerequisiteList shared with Skill benefits; the evaluator is unchanged
+        "character/advancement.ts", // Phase F: releaseMaximumLevel (read-only) for the Skill-benefit preview sample
         "character/sheet.ts",
         "compilation/compile.ts",
         "definition-envelope.test.ts",
@@ -53,7 +54,7 @@ describe("RULES-WO1 gate — the approved M5 change is additive and exact", () =
       ].map((f) => G + f),
     );
     expect(Object.keys(entry.addedFiles).sort()).toEqual(
-      ["ability/concentration-preview.ts", "character/calculated-values.ts", "character/skill-benefits.ts", "definition/rules-authoring-payload.ts", "definition/rules-reference-payload.ts", "reference/preview.ts", "rules-wo1-authoring.test.ts", "rules-wo1-reference.test.ts"].map((f) => G + f),
+      ["ability/concentration-preview.ts", "character/calculated-values.ts", "character/skill-benefits.ts", "definition/rules-authoring-payload.ts", "definition/rules-reference-payload.ts", "reference/preview.ts", "rules-wo1-authoring.test.ts", "rules-wo1-reference.test.ts", "rules-wo1-skill-benefit-preview.test.ts"].map((f) => G + f),
     );
     for (const [f, h] of [...Object.entries(entry.changedFiles), ...Object.entries(entry.addedFiles)]) expect(sha(f), f).toBe(h);
   });

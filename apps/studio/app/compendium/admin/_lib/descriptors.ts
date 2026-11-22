@@ -14,6 +14,8 @@
  * authored-data editor — never as a raw JSON text box — and their content is validated by M5 like everything else.
  */
 
+import { initialComponentPayload } from "./component-mechanics";
+
 /** Names a vocabulary in the catalog response (`catalog.vocabularies[name]`) — never the values themselves. */
 export type VocabularyName =
   | "targetingSemanticShapes"
@@ -118,7 +120,31 @@ export type VocabularyName =
   | "mageArtExceptionKinds"
   | "weaponModificationChangeKinds"
   | "prerequisiteGroupModes"
-  | "mageArtScalingSourceKinds";
+  | "mageArtScalingSourceKinds"
+  // RULES-WO1 Phase F: guided Spell / Maneuver components.
+  | "spellEffectFamilies"
+  | "effectSubfamilies"
+  | "effectResolutionPolicies"
+  | "effectAttackTypes"
+  | "effectSaveSelectionPolicies"
+  | "effectParameterKinds"
+  | "effectLimitKinds"
+  | "effectCostKinds"
+  | "effectOutcomeKeys"
+  | "effectOutcomeOperations"
+  | "targetCategories"
+  | "traitFamilies"
+  | "traitModifications"
+  | "constructionPrerequisiteKinds"
+  | "stackLimitKinds"
+  | "constructionSkillTracks"
+  // RULES-WO1 Phase F: mechanical relationships of Mage Art benefits, Condition outcomes and Summon hosts.
+  | "mageArtImmunityKinds"
+  | "mageArtCalculationKinds"
+  | "mageArtRangeTargetKinds"
+  | "targetingMeasures"
+  | "conditionOutcomeKinds"
+  | "conditionPreventions";
 
 /** PRE-M7-WO1: one column of a guided table of flat records (every row keeps any other stored key untouched). */
 export type RowColumn =
@@ -199,7 +225,11 @@ export type FieldDescriptor =
   /** RULES-WO1 Phase D: several entries chosen by name (for example the Weapon families an ammunition fits). */
   | (FieldBase & { readonly input: "contentTokenList"; readonly options: ContentTokenOptions })
   /** RULES-WO1 Phase D: one Mage Art scaling — a level table OR a Formula over Stats and Level, with its written text. */
-  | (FieldBase & { readonly input: "mageArtScaling" });
+  | (FieldBase & { readonly input: "mageArtScaling" })
+  /** RULES-WO1 Phase F: a whole Effect or Trait payload (key ""), edited in game language: what it does, how it
+   *  resolves, the choices made when it is used, its costs, outcomes and construction rules. `branch` and
+   *  `definitionKind` are filled in from the kind by descriptorFor. */
+  | (FieldBase & { readonly input: "componentMechanics"; readonly contract: "effect" | "trait"; readonly kinds?: { readonly affinity: string; readonly maneuverTargeting: string }; readonly branch?: string | null; readonly definitionKind?: string });
 /** The named lists the authoring-options service offers (RULES-WO1). */
 export type ContentTokenOptions = "skillRanks" | "calculatedValues" | "rankLadders" | "allRanks" | "weaponFamilies" | "skills";
 
@@ -248,6 +278,23 @@ const RULES: FieldDescriptor = {
   help: "Structured rule data owned by the M5 contract for this kind. Everything that matters to the engine must be here — never only in Rules Text.",
 };
 const COMMON: readonly FieldDescriptor[] = [KEYWORDS, COMPATIBILITY, COSTS, PARAMETERS, RULES];
+/** RULES-WO1 Phase F: the exact kinds the guided component editors' reference pickers search (sanctioned literals). */
+const MECHANICS_KINDS = { affinity: "AFFINITY", maneuverTargeting: "MANEUVER_TARGETING" } as const;
+const MECHANICS = (contract: "effect" | "trait"): FieldDescriptor => ({ key: "", label: "Mechanics", group: "Mechanics", input: "componentMechanics", contract, required: true });
+
+/** RULES-WO1 Phase F: how a STORED Effect / Trait reads in the Rules Reference — the game-language summary first, then
+ *  each stored field exactly as stored (costs, outcomes, rules data). The editor itself is the guided mechanics editor. */
+const STORED_COMPONENT_FIELDS: Readonly<Record<"effect" | "trait", readonly FieldDescriptor[]>> = {
+  effect: [
+    { key: "effectFamily", label: "Effect family", group: "Stored data", input: "token", required: true },
+    { key: "resolution", label: "Resolution", group: "Stored data", input: "resolution", required: false },
+    { key: "outcomes", label: "Outcomes", group: "Stored data", input: "outcomes", required: false },
+    { ...COSTS, group: "Stored data" },
+    { ...PARAMETERS, group: "Stored data" },
+    { ...RULES, group: "Stored data" },
+  ],
+  trait: [{ ...COSTS, group: "Stored data" }, { ...PARAMETERS, group: "Stored data" }, { ...RULES, group: "Stored data" }],
+};
 
 /** Descriptors per M5 SHARED CONTRACT (`sharedContract` in the catalog). */
 export const CONTRACT_DESCRIPTORS: Readonly<Record<string, ContractDescriptor>> = {
@@ -260,20 +307,17 @@ export const CONTRACT_DESCRIPTORS: Readonly<Record<string, ContractDescriptor>> 
     ],
   },
   EFFECT: {
-    purpose: "An Effect decides WHAT HAPPENS — its family, how it resolves and its outcomes. Effects carry the fullest mechanical data.",
-    fields: [
-      { key: "effectFamily", label: "Effect family", group: "Classification", input: "token", required: true, help: "The source-defined family token (SCREAMING_SNAKE_CASE)." },
-      { key: "resolution", label: "Resolution", group: "Resolution & outcomes", input: "resolution", required: false, help: "How this Effect resolves (its own resolution) and the structured resolution data." },
-      { key: "outcomes", label: "Outcomes", group: "Resolution & outcomes", input: "outcomes", required: false, help: "Named outcomes with their structured data." },
-      ...COMMON,
-    ],
+    purpose: "An Effect decides WHAT HAPPENS — what it does, how it resolves, the choices made when it is used, what it costs and what happens on a success or a failure.",
+    fields: [MECHANICS("effect"), KEYWORDS, COMPATIBILITY],
   },
   TRAIT: {
     purpose: "A Trait MODIFIES an explicitly scoped part of an ability. It never becomes an independent Effect.",
     fields: [
-      { key: "traitFamily", label: "Trait family", group: "Classification", input: "token", required: true },
-      { key: "scope", label: "Scope", group: "Classification", input: "select", vocabulary: "traitScopes", required: true, help: "What the Trait applies to — never assumed ability-wide." },
-      ...COMMON,
+      { key: "traitFamily", label: "Trait family", group: "Classification", input: "token", plainWords: true, required: true, help: "A short family name in plain words (for example Elemental)." },
+      { key: "scope", label: "What it applies to", group: "Classification", input: "select", vocabulary: "traitScopes", required: true, help: "What the Trait applies to — never assumed ability-wide." },
+      MECHANICS("trait"),
+      KEYWORDS,
+      COMPATIBILITY,
     ],
   },
   DURATION: {
@@ -754,6 +798,93 @@ const RULE_SOURCE: FieldDescriptor = { key: "source", label: "Source", group: "S
 const CANON: FieldDescriptor = { key: "canonStatus", label: "Where this rule comes from", group: "Status", input: "select", vocabulary: "canonStatuses", required: true, help: "Canonical = stated in the rulebook. Owner provided = a designer ruling. Test only = a labelled placeholder that is never presented as canon." };
 const NOTE: FieldDescriptor = { key: "note", label: "Why it is not canonical", group: "Status", input: "text", nullable: true, required: false, help: "Required for owner-provided and test-only rules: the ruling, or what is missing from the source." };
 const formulaField = (key: string, label: string, sources: VocabularyName, help: string): FieldDescriptor => ({ key, label, group: "Calculation", input: "coreFormula", sources, required: true, help });
+/** RULES-WO1 Phase F: the mechanical fields of each Mage Art benefit kind (keys are the M5 tokens; values are the author's). */
+const benefitName = (): FieldDescriptor => ({ key: "benefitKey", label: "Benefit name", group: "", input: "token", plainWords: true, required: true });
+const benefitSubject = (label: string): FieldDescriptor => ({ key: "subject", label, group: "", input: "text", nullable: true, required: false });
+const asWritten = (): FieldDescriptor => ({ key: "text", label: "As written", group: "", input: "text", required: true });
+const mech = (fields: readonly FieldDescriptor[]): FieldDescriptor => ({ key: "mechanics", label: "What it does, exactly", group: "", input: "group", required: true, fields });
+const statOnly = (key: string, label: string): FieldDescriptor => ({ key, label, group: "", input: "nullableSelect", vocabulary: "prowessStats", required: false });
+const MAGE_ART_BENEFIT_VARIANTS: Readonly<Record<string, readonly FieldDescriptor[]>> = {
+  IMMUNITY: [
+    benefitName(),
+    benefitSubject("Shown as (for example Suffocation)"),
+    { key: "mechanics", label: "Immune to", group: "", input: "variant", discriminator: "against", vocabulary: "mageArtImmunityKinds", required: true, variants: { CONDITION: [{ key: "condition", label: "Condition", group: "", input: "reference", refKind: "STATUS_CONDITION", required: true }], DAMAGE_TYPE: [{ key: "damageType", label: "Damage type", group: "", input: "select", vocabulary: "damageTypes", required: true }] } },
+    asWritten(),
+  ],
+  ADVANTAGE: [
+    benefitName(),
+    benefitSubject("Shown as (for example Awareness Checks)"),
+    mech([
+      { key: "roll", label: "Advantage on", group: "", input: "select", vocabulary: "rollProcedures", required: true },
+      statOnly("stat", "Only this Save or Stat (optional)"),
+      { key: "skill", label: "Only this Skill (for a Skill Check; optional)", group: "", input: "reference", refKind: "SKILL", required: false },
+    ]),
+    asWritten(),
+  ],
+  SENSE: [benefitName(), benefitSubject("Sense (for example Mana Sight)"), mech([{ key: "rangeFeet", label: "Range in feet (leave empty if the rulebook states none)", group: "", input: "integer", required: false }]), asWritten()],
+  STAT_SUBSTITUTION: [
+    benefitName(),
+    benefitSubject("Shown as (optional)"),
+    mech([
+      { key: "calculation", label: "The calculation it changes", group: "", input: "variant", discriminator: "kind", vocabulary: "mageArtCalculationKinds", required: true, variants: { DERIVED: [sel("statistic", "Derived value", "derivedStatistics")], PROCEDURE: [sel("procedure", "Roll", "coreProcedures")] } },
+      statOnly("replacedStat", "Instead of (leave empty for the Stat it normally uses)"),
+      sel("replacementStat", "Uses this Stat", "prowessStats"),
+    ]),
+    asWritten(),
+  ],
+  RANGE_MULTIPLIER: [
+    benefitName(),
+    benefitSubject("Shown as (optional)"),
+    mech([
+      { key: "target", label: "What it multiplies", group: "", input: "variant", discriminator: "kind", vocabulary: "mageArtRangeTargetKinds", required: true, variants: { DERIVED: [sel("statistic", "Derived value (for example Base Range)", "derivedStatistics")], TARGETING_MEASURE: [sel("measure", "Targeting measure", "targetingMeasures")] } },
+      { key: "multiplier", label: "Multiplied by (for example 2 = doubled)", group: "", input: "integer", required: true },
+    ]),
+    asWritten(),
+  ],
+  COUNTER_ACTION: [
+    benefitName(),
+    benefitSubject("Shown as (optional)"),
+    mech([
+      { key: "counterActions", label: "Extra Counter Actions", group: "", input: "integer", required: true },
+      { key: "action", label: "Only for this Action (optional)", group: "", input: "reference", refKind: "ACTION", required: false },
+    ]),
+    asWritten(),
+  ],
+  RESOURCE: [
+    benefitName(),
+    benefitSubject("Shown as (optional)"),
+    mech([sel("resource", "Resource", "runtimeResourceKeys"), { key: "amount", label: "Amount (negative reduces)", group: "", input: "integer", required: true }, { key: "timing", label: "When (optional)", group: "", input: "nullableSelect", vocabulary: "combatTimingEvents", required: false }]),
+    asWritten(),
+  ],
+  WRITTEN_ONLY: [benefitName(), asWritten()],
+};
+
+/** RULES-WO1 Phase F: what a Condition's effect or trigger does, by kind (Advantage, a modifier, damage, a resource, a prevention). */
+const CONDITION_OUTCOME: FieldDescriptor = {
+  key: "outcome", label: "What it does, exactly", group: "", input: "variant", discriminator: "kind", vocabulary: "conditionOutcomeKinds", required: true,
+  help: "Choose Written only for an effect that needs the GM's judgment.",
+  variants: {
+    ROLL_MODE: [sel("roll", "On", "rollProcedures"), sel("mode", "Rolls with", "rollModes")],
+    MODIFIER: [sel("target", "Changes", "bonusTargets"), { key: "amount", label: "By (negative reduces)", group: "", input: "integer", required: true }],
+    DAMAGE: [{ key: "diceCount", label: "Number of dice", group: "", input: "integer", required: true }, { key: "dieFaces", label: "Die (faces)", group: "", input: "integer", required: true }, { key: "damageType", label: "Damage type (optional)", group: "", input: "nullableSelect", vocabulary: "damageTypes", required: false }],
+    RESOURCE: [sel("resource", "Resource", "runtimeResourceKeys"), { key: "amount", label: "Amount (negative reduces)", group: "", input: "integer", required: true }],
+    PREVENTS: [{ key: "prevents", label: "It prevents", group: "", input: "multiSelect", vocabulary: "conditionPreventions", required: true }],
+    WRITTEN_ONLY: [],
+  },
+};
+
+/** RULES-WO1: one prerequisite group in the Action-improvement grammar (ALL / ANY of Level, Stat, Skill rank, Affinity rank). */
+const PREREQUISITE_GROUP_ITEM: readonly FieldDescriptor[] = [
+          { ...tok("groupKey", "Group name"), plainWords: true } as FieldDescriptor,
+          sel("mode", "The group is met when", "prerequisiteGroupModes"),
+          { key: "prerequisites", label: "Prerequisites", group: "", input: "list", itemLabel: "Prerequisite", required: true, item: [{ key: "", label: "Prerequisite", group: "", input: "variant", discriminator: "kind", vocabulary: "actionImprovementPrerequisites", required: true, variants: {
+          LEVEL_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, n("minimum", "Minimum Level")],
+          STAT_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, sel("stat", "Stat", "prowessStats"), n("minimum", "Minimum")],
+          SKILL_RANK_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, { key: "skillKey", label: "Skill", group: "", input: "contentToken", options: "skills", required: true, help: "Chosen by name; the Skill's permanent key is stored." }, { key: "minimumRank", label: "Minimum rank", group: "", input: "contentToken", options: "skillRanks", required: true }],
+          AFFINITY_RANK_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, { key: "affinity", label: "Affinity", group: "", input: "reference", refKind: "AFFINITY", required: true }, sel("minimumRank", "Minimum rank", "affinityRanks")],
+} }] },
+        ];
+
 export const RULES_AUTHORING_DESCRIPTORS: Readonly<Record<string, ContractDescriptor>> = {
   CALCULATED_VALUE: {
     preview: "AUTHORED_RULE",
@@ -800,16 +931,7 @@ export const RULES_AUTHORING_DESCRIPTORS: Readonly<Record<string, ContractDescri
         // ANY) of its prerequisites are met. The sheet evaluates them for each Character.
         key: "prerequisiteGroups", label: "Further prerequisites", group: "When it applies", input: "list", itemLabel: "Prerequisite group", required: false,
         help: "Beyond the rank above. Leave empty when the rank is the only requirement. Every group must be met.",
-        item: [
-          { ...tok("groupKey", "Group name"), plainWords: true } as FieldDescriptor,
-          sel("mode", "The group is met when", "prerequisiteGroupModes"),
-          { key: "prerequisites", label: "Prerequisites", group: "", input: "list", itemLabel: "Prerequisite", required: true, item: [{ key: "", label: "Prerequisite", group: "", input: "variant", discriminator: "kind", vocabulary: "actionImprovementPrerequisites", required: true, variants: {
-          LEVEL_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, n("minimum", "Minimum Level")],
-          STAT_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, sel("stat", "Stat", "prowessStats"), n("minimum", "Minimum")],
-          SKILL_RANK_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, { key: "skillKey", label: "Skill", group: "", input: "contentToken", options: "skills", required: true, help: "Chosen by name; the Skill's permanent key is stored." }, { key: "minimumRank", label: "Minimum rank", group: "", input: "contentToken", options: "skillRanks", required: true }],
-          AFFINITY_RANK_AT_LEAST: [{ ...tok("prerequisiteKey", "Short name"), plainWords: true } as FieldDescriptor, { key: "affinity", label: "Affinity", group: "", input: "reference", refKind: "AFFINITY", required: true }, sel("minimumRank", "Minimum rank", "affinityRanks")],
-} }] },
-        ],
+        item: PREREQUISITE_GROUP_ITEM,
       },
       { key: "source", label: "Source", group: "Source", input: "source", required: true },
     ],
@@ -908,7 +1030,7 @@ export const REFERENCE_FAMILY_DESCRIPTORS: Readonly<Record<string, ContractDescr
     purpose: "A Condition placed on a creature (Burning, Stunned …): what it does, how long it lasts, how it is removed, when it acts and whether it stacks. Reference — play does not apply Conditions yet.",
     fields: [
       idTok("conditionKey", "Condition name used by other rules", "BURNING"),
-      { key: "effects", label: "What it does", group: "Effect", input: "list", itemLabel: "Effect", required: true, item: [ptok("effectKey", "Short name"), { key: "text", label: "Effect", group: "", input: "text", required: true }] },
+      { key: "effects", label: "What it does", group: "Effect", input: "list", itemLabel: "Effect", required: true, item: [ptok("effectKey", "Short name"), CONDITION_OUTCOME, { key: "text", label: "Effect", group: "", input: "text", required: true }] },
       {
         key: "duration", label: "How long it lasts", group: "Duration", input: "group", required: true,
         fields: [sel("model", "Lasts", "conditionDurationModels"), { key: "rounds", label: "Number of rounds (only for a number of rounds)", group: "", input: "integer", required: false }, { key: "text", label: "Description (needed for a special duration)", group: "", input: "text", nullable: true, required: false }],
@@ -919,7 +1041,7 @@ export const REFERENCE_FAMILY_DESCRIPTORS: Readonly<Record<string, ContractDescr
       {
         key: "triggers", label: "Triggers", group: "Triggers", input: "list", itemLabel: "Trigger", required: false,
         help: "When it acts or is applied: on a hit, on a failed Save, on entering an area, at the start or end of a turn, or at the end of the Round.",
-        item: [ptok("triggerKey", "Trigger name"), sel("when", "When", "conditionTriggers"), { key: "resistStat", label: "Save Stat (for a failed-Save trigger)", group: "", input: "nullableSelect", vocabulary: "prowessStats", required: false }, { key: "text", label: "What happens", group: "", input: "text", required: true }],
+        item: [ptok("triggerKey", "Trigger name"), sel("when", "When", "conditionTriggers"), { key: "resistStat", label: "Save Stat (for a failed-Save trigger)", group: "", input: "nullableSelect", vocabulary: "prowessStats", required: false }, CONDITION_OUTCOME, { key: "text", label: "What happens", group: "", input: "text", required: true }],
       },
       { key: "source", label: "Source", group: "Source", input: "source", required: true },
     ],
@@ -960,6 +1082,9 @@ export const REFERENCE_FAMILY_DESCRIPTORS: Readonly<Record<string, ContractDescr
         key: "restrictions", label: "Restrictions", group: "Actions and resources", input: "list", itemLabel: "Restriction", required: false,
         item: [ptok("restrictionKey", "Restriction name"), sel("kind", "Kind", "summonRestrictionKinds"), { key: "text", label: "As written", group: "", input: "text", required: true }],
       },
+      { key: "hosts", label: "What it can be placed on or bound to", group: "Hosts and access", input: "multiSelect", vocabulary: "targetCategories", required: false, help: "Leave all unticked when the engine has no host (for example a free-standing Summon)." },
+      { key: "hostText", label: "Host rule as written (optional)", group: "Hosts and access", input: "text", nullable: true, required: false },
+      { key: "access", label: "Who can create it", group: "Hosts and access", input: "list", itemLabel: "Requirement group", required: false, help: "Prerequisites to create this Summon (every group must be met). Leave empty when the rulebook states none.", item: PREREQUISITE_GROUP_ITEM },
       txtList("openQuestions", "Open questions", "Limits"),
       { key: "source", label: "Source", group: "Source", input: "source", required: true },
     ],
@@ -1031,8 +1156,10 @@ const MAGE_ART_V2_DESCRIPTOR: ContractDescriptor | null =
               : f,
           ).filter((f) => f.key !== "source"),
           {
+            // RULES-WO1 Phase F: each benefit kind carries its own validated mechanical fields (what is substituted, what is
+            // multiplied, what it is immune to …), chosen from lists and pickers; the written text stays alongside.
             key: "grantedBenefits", label: "Benefits it grants", group: "Benefits", input: "list", itemLabel: "Benefit", required: false,
-            item: [ptok("benefitKey", "Benefit name"), sel("kind", "Kind", "mageArtBenefitKinds"), { key: "subject", label: "What it applies to (for example Suffocation, Awareness Checks)", group: "", input: "text", nullable: true, required: false }, { key: "text", label: "As written", group: "", input: "text", required: true }],
+            item: [{ key: "", label: "Benefit", group: "", input: "variant", discriminator: "kind", vocabulary: "mageArtBenefitKinds", required: true, variants: MAGE_ART_BENEFIT_VARIANTS }],
           },
           {
             key: "maintenanceExceptions", label: "Maintenance exceptions", group: "Benefits", input: "list", itemLabel: "Exception", required: false,
@@ -1047,8 +1174,12 @@ export const GENERIC_DESCRIPTOR: ContractDescriptor = {
   fields: [{ key: "", label: "Payload", group: "Payload", input: "authoredData", required: true, help: "The complete payload for this Definition kind." }],
 };
 
-export function descriptorFor(kind: { definitionKind: string; sharedContract: string | null }, schemaVersion: number | null): ContractDescriptor {
-  if (kind.sharedContract !== null && CONTRACT_DESCRIPTORS[kind.sharedContract] !== undefined) return CONTRACT_DESCRIPTORS[kind.sharedContract] as ContractDescriptor;
+export function descriptorFor(kind: { definitionKind: string; sharedContract: string | null; branch?: string | null }, schemaVersion: number | null): ContractDescriptor {
+  if (kind.sharedContract !== null && CONTRACT_DESCRIPTORS[kind.sharedContract] !== undefined) {
+    const d = CONTRACT_DESCRIPTORS[kind.sharedContract] as ContractDescriptor;
+    // The guided component editor needs the kind's own branch and kind (Spell / Maneuver / shared) — never inferred.
+    return d.fields.some((f) => f.input === "componentMechanics") ? { ...d, fields: d.fields.map((f) => (f.input === "componentMechanics" ? { ...f, branch: kind.branch ?? null, definitionKind: kind.definitionKind, kinds: MECHANICS_KINDS } : f)) } : d;
+  }
   if (schemaVersion === 1 && CHARACTER_KIND_DESCRIPTORS[kind.definitionKind] !== undefined) return CHARACTER_KIND_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
   if (schemaVersion === 1 && CORE_KIND_DESCRIPTORS[kind.definitionKind] !== undefined) return CORE_KIND_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
   if (schemaVersion === 1 && EQUIPMENT_KIND_DESCRIPTORS[kind.definitionKind] !== undefined) return EQUIPMENT_KIND_DESCRIPTORS[kind.definitionKind] as ContractDescriptor;
@@ -1089,7 +1220,11 @@ export function presentationDescriptorFor(kind: { definitionKind: string; shared
   if (schemaVersion === null || !kind.supportedSchemaVersions.includes(schemaVersion)) return null;
   if (kind.definitionKind === "AFFINITY" && schemaVersion === 2) return AFFINITY_V2_PRESENTATION;
   const descriptor = descriptorFor(kind, schemaVersion);
-  return descriptor === GENERIC_DESCRIPTOR ? null : descriptor;
+  if (descriptor === GENERIC_DESCRIPTOR) return null;
+  const mechanics = descriptor.fields.find((f) => f.input === "componentMechanics");
+  if (mechanics === undefined || mechanics.input !== "componentMechanics") return descriptor;
+  // The same descriptor the editor uses, with the stored fields listed after the game-language reading.
+  return { ...descriptor, fields: [...descriptor.fields, ...STORED_COMPONENT_FIELDS[mechanics.contract]] };
 }
 
 /** Field groups in first-appearance order. */
@@ -1179,6 +1314,8 @@ export function initialFieldValue(field: FieldDescriptor): unknown {
       return field.required ? "" : null;
     case "contentTokenList":
       return [];
+    case "componentMechanics":
+      return initialComponentPayload(field.contract, field.branch);
     case "mageArtScaling":
       return { scalingKey: "", label: "", unit: null, byLevel: [], formula: null, text: "" };
     case "missionRule":

@@ -146,6 +146,39 @@ describe("RULES-WO1 authored-rule preview", () => {
   });
 });
 
+describe("RULES-WO1 Phase F: the Skill-benefit preview shows the sheet's own evaluation and asks for Affinity ranks", () => {
+  it("lists each benefit's result with its ALL / ANY groups and grants, says which inputs the sample left out, and sends Affinity ranks", async () => {
+    const affinity = { entityId: "44444444-4444-4444-8444-444444444444", entityVersionId: "v", canonicalKey: "affinity.conjuration" };
+    const benefit = (key: string, status: string, groups: unknown[]) => ({ benefitKey: key, displayName: `${key} benefit`, skillName: "Athletics", skill: { entityId: "11111111-1111-4111-8111-111111111111", canonicalKey: "skill.athletics" }, minimumRankKey: "TRAINED", heldRankKey: "TRAINED", rankMet: true, eligibility: status === "GRANTED" ? "ELIGIBLE" : "INELIGIBLE", status, writtenBenefit: "x", groups, grantedActions: [{ action: { canonicalKey: "action.sprint" }, state: "PINNED", actionKey: "SPRINT" }], actionNames: ["Sprint"] });
+    const withBenefits = {
+      ...side([]),
+      benefits: [
+        benefit("ANY_OF", "GRANTED", [{ groupKey: "EITHER", mode: "ANY", satisfied: true, prerequisites: [{ prerequisiteKey: "STR_99", kind: "STAT_AT_LEAST", satisfied: false, reason: null }, { prerequisiteKey: "LEVEL_1", kind: "LEVEL_AT_LEAST", satisfied: true, reason: null }] }]),
+        benefit("CONJURATION_GATED", "INELIGIBLE", [{ groupKey: "AFFINITY", mode: "ALL", satisfied: false, prerequisites: [{ prerequisiteKey: "CONJURATION_TRAINED", kind: "AFFINITY_RANK_AT_LEAST", satisfied: false, reason: null }] }]),
+      ],
+      inputs: [{ input: "AFFINITY_RANK", subject: affinity, stat: null, supplied: false, readAs: "NOT_OWNED", name: "Conjuration" }],
+      affinities: [{ entityId: affinity.entityId, canonicalKey: affinity.canonicalKey, displayName: "Conjuration" }],
+      affinityRanks: ["NONE", "TRAINED", "EXPERT", "MASTER"],
+    };
+    rules.previewAuthoredRules.mockResolvedValue({ release: { id: "r", rulesetId: "rs", releaseNumber: 1, versionLabel: "0.1" }, overlay: [], candidate: withBenefits, published: withBenefits });
+    render(<AuthoredRulePreviewPanel releaseId="22222222-2222-4222-8222-222222222222" drafts={["33333333-3333-4333-8333-333333333333"]} />);
+    fireEvent.click(screen.getByTestId("authored-preview-run"));
+    await screen.findByTestId("authored-preview-result");
+    const any = screen.getAllByTestId("authored-benefit-ANY_OF")[0]!;
+    expect(within(any).getByTestId("authored-benefit-result").textContent).toBe("Applies");
+    expect(within(any).getByTestId("authored-benefit-group-EITHER").textContent).toContain("any one of: Str 99 (not met), Level 1 (met) — met");
+    expect(within(any).getByTestId("authored-benefit-actions").textContent).toBe("Sprint");
+    expect(within(screen.getAllByTestId("authored-benefit-CONJURATION_GATED")[0]!).getByTestId("authored-benefit-result").textContent).toBe("Prerequisites not met");
+    expect(screen.getByTestId("authored-preview-missing-input").textContent).toBe("Affinity Conjuration: not in the sample — read as not owned");
+    // The Affinity the benefits read can now be given a sample rank, and it is sent with the next calculation.
+    fireEvent.change(screen.getByLabelText("Sample Conjuration Affinity rank"), { target: { value: "TRAINED" } });
+    fireEvent.click(screen.getByTestId("authored-preview-run"));
+    await waitFor(() => expect(rules.previewAuthoredRules).toHaveBeenCalledTimes(2));
+    const body = rules.previewAuthoredRules.mock.calls[1]![0] as { sample: { affinityRanks: unknown[] } };
+    expect(body.sample.affinityRanks).toEqual([{ affinityEntityId: affinity.entityId, rankKey: "TRAINED" }]);
+  });
+});
+
 describe("RULES-WO1 Character sheet: calculated values are labelled by where they come from", () => {
   it("the Carry maximum shows the published value and says when it is a test value", () => {
     const base = sheetFixture();
