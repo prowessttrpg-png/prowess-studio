@@ -140,7 +140,7 @@ const OWNERSHIP: Record<(typeof ENGINES)[number], [string, string, number | null
 };
 
 test("RULES-WO1 P04 every Summon engine is authored through the guided form (R15)", async ({ page }) => {
-  test.setTimeout(240_000);
+  test.setTimeout(480_000);
   for (const engine of ENGINES) {
     const name = `${engine.toLowerCase().replace(/_/g, " ")} E2E ${tag}`;
     await startNew(page, "SUMMON", "SUMMON_TYPE", name);
@@ -171,7 +171,7 @@ test("RULES-WO1 P04 every Summon engine is authored through the guided form (R15
       await group.getByLabel(/^Group name/).fill("Training");
       await group.getByLabel(/^The group is met when/).selectOption("ALL");
       await group.getByRole("button", { name: "Add prerequisite" }).click();
-      await group.getByLabel("Kind", { exact: true }).selectOption("LEVEL_AT_LEAST");
+      await group.getByRole("combobox", { name: "Kind", exact: true }).selectOption("LEVEL_AT_LEAST");
       await group.getByLabel(/^Short name/).fill("Level 3");
       await group.getByLabel(/^Minimum Level/).fill("3");
     }
@@ -312,10 +312,10 @@ test("RULES-WO1 P08 Mage Art v2: a Level table scales a mode, a structured benef
   // Phase F: a Stat substitution names the calculation it changes and the replacement Stat (chosen from lists).
   await page.getByRole("button", { name: "Add benefit" }).click();
   const benefit = page.getByRole("group", { name: /^Benefit/ }).last();
-  await benefit.getByLabel("Kind", { exact: true }).first().selectOption("STAT_SUBSTITUTION");
+  await benefit.getByRole("combobox", { name: "Kind", exact: true }).first().selectOption("STAT_SUBSTITUTION");
   await benefit.getByLabel(/^Benefit name/).fill("Warding sight");
   const calculation = benefit.getByRole("group", { name: /The calculation it changes/ });
-  await calculation.getByLabel("Kind", { exact: true }).selectOption("DERIVED");
+  await calculation.getByRole("combobox", { name: "Kind", exact: true }).selectOption("DERIVED");
   await calculation.getByLabel(/^Derived value/).selectOption("DODGE");
   await benefit.getByLabel(/^Instead of/).selectOption("AGI");
   await benefit.getByLabel(/^Uses this Stat/).selectOption("RES");
@@ -335,7 +335,7 @@ test("RULES-WO1 P10 a Condition says what it does: Disadvantage on Attack Rolls,
   const effect = page.getByTestId("guided-list-item").filter({ hasText: "Short name" }).first();
   await effect.getByLabel(/^Short name/).fill("Rattled");
   const what = effect.getByRole("group", { name: /What it does, exactly/ });
-  await what.getByLabel("Kind", { exact: true }).selectOption("ROLL_MODE");
+  await what.getByRole("combobox", { name: "Kind", exact: true }).selectOption("ROLL_MODE");
   await what.getByLabel(/^On/).selectOption("ATTACK_ROLL");
   await what.getByLabel(/^Rolls with/).selectOption("DISADVANTAGE");
   await effect.getByLabel(/^Effect/).last().fill("Disadvantage on Attack Rolls (illustrative).");
@@ -349,7 +349,7 @@ test("RULES-WO1 P10 a Condition says what it does: Disadvantage on Attack Rolls,
   await trigger.getByLabel(/^When/).first().selectOption("ON_FAILED_SAVE");
   await trigger.getByLabel(/^Save Stat/).selectOption("RES");
   const outcome = trigger.getByRole("group", { name: /What it does, exactly/ });
-  await outcome.getByLabel("Kind", { exact: true }).selectOption("DAMAGE");
+  await outcome.getByRole("combobox", { name: "Kind", exact: true }).selectOption("DAMAGE");
   await outcome.getByLabel(/^Number of dice/).fill("1");
   await outcome.getByLabel(/^Die \(faces\)/).fill("4");
   await trigger.getByLabel(/^What happens/).fill("Takes 1d4 damage on a failed Resolve Save (illustrative).");

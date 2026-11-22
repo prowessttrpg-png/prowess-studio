@@ -14,7 +14,7 @@ import { ContentTokenList, ContentTokenSelect } from "./ContentTokenSelect";
 import { IntegerListInput, OptionalFeetInput, RowsEditor } from "./GuidedInputs";
 import { AbilityDefinitionEditor } from "./AbilityDefinitionEditor";
 import { EffectMechanicsEditor, MechanicsIssues, TraitMechanicsEditor } from "./ComponentMechanicsEditor";
-import { TRAIT_FAMILY_SHAPES, shapeOf, traitFamilyFor } from "../_lib/component-mechanics";
+import { TRAIT_FAMILY_SHAPES, nextKey, shapeOf, traitFamilyFor } from "../_lib/component-mechanics";
 import { KeywordPicker } from "./KeywordPicker";
 import { asToken } from "../_lib/token-input";
 import {
@@ -182,12 +182,9 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
           <ol className="prowess-authoring__rows">
             {rows.map((r, i) => (
               <li key={i} className="prowess-authoring__row">
+                {/* RULES-WO1 Phase F: the contribution's key is generated and kept — never typed by the author. */}
                 <label className="gov-field">
-                  <span>Contribution key</span>
-                  <input value={typeof r.contributionKey === "string" ? r.contributionKey : ""} onChange={(e) => set(i, { contributionKey: e.target.value })} spellCheck={false} />
-                </label>
-                <label className="gov-field">
-                  <span>Currency</span>
+                  <span>Paid in</span>
                   <select value={typeof r.currency === "string" ? r.currency : ""} onChange={(e) => set(i, { currency: e.target.value })}>
                     <option value="">Choose…</option>
                     {(catalog.vocabularies.costCurrencies ?? []).map((c) => (
@@ -207,7 +204,7 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
               </li>
             ))}
           </ol>
-          <button type="button" className="gov-button" onClick={() => onChange([...rows, { contributionKey: "", currency: "", data: {} }])}>
+          <button type="button" className="gov-button" onClick={() => onChange([...rows, { contributionKey: nextKey(rows.map((r) => String(r.contributionKey ?? "")), "cost"), currency: "", data: {} }])}>
             Add cost contribution
           </button>
         </Shell>
@@ -628,8 +625,9 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
             type="button"
             className="gov-button"
             onClick={() =>
-              // A whole-item field (key "", e.g. a Mage Art scaling) starts as that field's own initial value.
-              onChange([...items, field.item.length === 1 && field.item[0]!.key === "" && field.item[0]!.input !== "variant" ? initialFieldValue(field.item[0]!) : Object.fromEntries(field.item.map((f) => [f.key, initialFieldValue(f)]))])
+              // A whole-item field (key "", e.g. a Mage Art scaling or a prerequisite chosen by kind) starts as that field's
+              // own initial value — never as a record under an empty key (which a later kind switch would refuse to drop).
+              onChange([...items, field.item.length === 1 && field.item[0]!.key === "" ? (initialFieldValue(field.item[0]!) ?? {}) : Object.fromEntries(field.item.map((f) => [f.key, initialFieldValue(f)]))])
             }
           >
             Add {field.itemLabel.toLowerCase()}
@@ -654,7 +652,7 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
       return (
         <Shell field={field} issues={issues} composite>
           <label className="gov-field">
-            <span>{formatEnumLabel(field.discriminator)}</span>
+            <span>{formatEnumLabel(field.discriminator).replace(/^./, (c) => c.toUpperCase())}</span>
             <select value={current} onChange={(e) => choose(e.target.value)}>
               <option value="">{field.nullable ? "None" : "Choose…"}</option>
               {(catalog.vocabularies[field.vocabulary] ?? []).map((o) => (

@@ -964,7 +964,7 @@ export function CostsEditor({
                       )
                     }
                   />{" "}
-                  Reduced by the user's rank in a relevant Affinity
+                  Reduced by the user&rsquo;s rank in a relevant Affinity
                 </label>
                 {reduction !== null ? (
                   <div>
@@ -1504,7 +1504,7 @@ export function EffectMechanicsEditor({
                 checked={inherits}
                 onChange={() => setResolution("inherit")}
               />{" "}
-              It uses the Maneuver's own roll
+              It uses the Maneuver&rsquo;s own roll
             </label>
           ) : null}
         </div>

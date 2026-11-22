@@ -259,3 +259,20 @@ describe("RULES-WO1 Phase F — game-language helpers", () => {
     ]);
   });
 });
+
+describe("RULES-WO1 Phase F — a prerequisite chosen by kind in a list (regression)", () => {
+  it("a new prerequisite starts as its own record, so choosing its kind is kept (no confirmation, nothing hidden under an empty key)", () => {
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+    const changes: DefinitionCandidate[] = [];
+    render(<Editor kind="SUMMON_TYPE" onChange={(c) => changes.push(c)} />);
+    fireEvent.click(screen.getByRole("button", { name: "Add requirement group" }));
+    const group = screen.getByRole("group", { name: /Who can create it/ });
+    fireEvent.click(within(group).getByRole("button", { name: "Add prerequisite" }));
+    fireEvent.change(within(group).getByRole("combobox", { name: "Kind" }), { target: { value: "LEVEL_AT_LEAST" } });
+    expect(confirm).not.toHaveBeenCalled();
+    expect(within(group).getByLabelText(/^Minimum Level/)).toBeInTheDocument();
+    const access = last(changes).access as Array<{ prerequisites: Array<Record<string, unknown>> }>;
+    expect(access[0]!.prerequisites[0]).toEqual({ kind: "LEVEL_AT_LEAST", prerequisiteKey: "", minimum: null });
+    confirm.mockRestore();
+  });
+});

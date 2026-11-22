@@ -283,7 +283,8 @@ describe("RULES-WO1 authored rules end to end", () => {
       };
       const preview = await previewAuthoredRules({ releaseId: rel.id, drafts: [], sample: sampleOf });
       expect(preview.published.problems).toEqual([]);
-      expect(preview.published.benefits.map(({ displayName: _d, skillName: _s, actionNames: _a, ...b }) => b)).toEqual(JSON.parse(JSON.stringify(sheet.skillBenefits)));
+      const evaluated = (b: Record<string, unknown>) => Object.fromEntries(Object.entries(b).filter(([k]) => !["displayName", "skillName", "actionNames"].includes(k)));
+      expect(preview.published.benefits.map((b) => evaluated(b as unknown as Record<string, unknown>))).toEqual(JSON.parse(JSON.stringify(sheet.skillBenefits)));
       const fromPreview = preview.published.values.find((v) => v.valueKey === "LEAP_DISTANCE")!;
       expect([fromPreview.total, fromPreview.contributions.map((x) => x.applies)]).toEqual([leap(sheet).total, leap(sheet).contributions.map((x) => x.applies)]);
     }
