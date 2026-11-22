@@ -35,7 +35,8 @@ const controls = [
   ["remove server-side refusal on Save", `${DB}/service.ts`, replace("    validation = await validateDefinitionCandidate(entity.entityType, input.prowessDefinition);\n    if (validation.refused) throw refusal(validation);", "    validation = await validateDefinitionCandidate(entity.entityType, input.prowessDefinition);")],
   ["create the Entity before validating", `${DB}/service.ts`, replace("  const validation = await validateDefinitionCandidate(entityType, input.prowessDefinition);\n  if (validation.refused) throw refusal(validation);", "  const validation = await validateDefinitionCandidate(entityType, input.prowessDefinition);")],
   // §78 allow Targeting Effect fields.
-  ["allow an Effect resolution field on Targeting", `${UI}/_lib/descriptors.ts`, replace('      { key: "geometry", label: "Geometry",', '      { key: "resolution", label: "Resolution", group: "Geometry", input: "resolution", required: false },\n      { key: "geometry", label: "Geometry",')],
+  // RULES-WO1 Phase G: the Targeting descriptor's rules are the guided mechanics editor (geometry is a stored field).
+  ["allow an Effect resolution field on Targeting", `${UI}/_lib/descriptors.ts`, replace('      MECHANICS("targeting"),', '      { key: "resolution", label: "Resolution", group: "Geometry", input: "resolution", required: false },\n      MECHANICS("targeting"),')],
   // §76 no second Definition catalog.
   ["hand-written second Definition catalog in the UI", `${UI}/_lib/descriptors.ts`, append('export const KINDS = ["SPELL_EFFECT", "SPELL_TARGETING", "SPELL_TRAIT"];')],
   ["catalog copied instead of derived from the M5 registry", `${DB}/catalog.ts`, replace("    kinds: PROWESS_DEFINITION_KIND_NAMES.map(kindRow),", '    kinds: (["SPELL_EFFECT", "SPELL_TARGETING"] as ProwessDefinitionKind[]).map(kindRow),')],
