@@ -1,6 +1,6 @@
 # RULES-WO1 — Complete Game Authoring: plan, source register and coverage inventory
 
-Status: **Partially complete.** Phases A–E are built and verified locally on `ef18499`. Still outstanding: publication, hosted CI (with Tier 2 and the Windows installers) and the owner walkthrough. The reconciled R01–R28 status is in `rules-wo1-acceptance.md`. Branch `rules-wo1-complete-game-authoring` from `main`
+Status: **Partially complete.** Phases A–G are built and verified locally on `0729b70`. Still outstanding: publication, hosted CI (with Tier 2 and the Windows installers) and the owner walkthrough. The reconciled R01–R28 status is in `rules-wo1-acceptance.md`. Branch `rules-wo1-complete-game-authoring` from `main`
 `23f3c03e95da4c7a4c1db51449d79754895adecb`. This document is the Phase A deliverable: verified baseline, source and
 override register, build-identity finding, whole-game coverage inventory, architecture plan and decision ledger. It is
 updated at each phase checkpoint.
@@ -141,12 +141,12 @@ page states the same in its "Live in play" line. **A guided editor never implies
 | 4 | Skills | SKILL, SKILL_RANK, SKILL_BENEFIT (rank; additions, optionally situational; granted Actions; prerequisite groups) | yes | yes | sample Character | ranks **live**. Benefits **partial**: the sheet evaluates rank and prerequisites, adds unconditional bonuses, and lists granted Actions; the Action card marks them. Using an Action in play is unchanged. |
 | 5 | Combat and resources | ACTION, ACTION_IMPROVEMENT, RESOURCE, TERRAIN, CREATURE_SIZE | yes | yes | play | **live** (terrain hazards and Massive size partial) |
 | 6 | Affinities and Keywords | AFFINITY v1 / v2, AFFINITY_RANK_RULE, AFFINITY_WEAKNESS_SEVERITY; Keywords | yes; Keyword create **and edit** (presentation only; imported ones read-only) | yes | builders; Keyword usage | **live** |
-| 7 | Spell construction | SPELL_*, ABILITY_CONSTRUCTION_RULE, METAMAGIC, CONCENTRATION_RULE | yes (compatibility rules from lists and pickers) | yes | builder; Concentration preview | Spells **live**; Metamagic and the Concentration override reference only |
-| 8 | Maneuver construction | MANEUVER_* | yes | yes | builder | **live** |
-| 9 | Mage Arts | MAGE_ART v1 / v2 (Level-table or Formula scaling, structured benefits and exceptions) | yes | yes | scaling at a Level | reference only (card unavailable) |
+| 7 | Spell construction | SPELL_*, ABILITY_CONSTRUCTION_RULE, METAMAGIC, CONCENTRATION_RULE | yes; **every component in game language** — Effects and Traits (Phase F); Targeting, Durations, Casting Conditions and calculated values (Phase G) | yes | builder; Concentration preview | Spells **live**; Metamagic and the Concentration override reference only |
+| 8 | Maneuver construction | MANEUVER_* | yes; Maneuver Effects and Traits (Phase F); Maneuver Targeting, Durations, Conditions and non-attack Foundations (Phase G), in game language | yes | builder | **live** |
+| 9 | Mage Arts | MAGE_ART v1 / v2 (Level-table or Formula scaling, benefits with validated mechanics per kind, exceptions) | yes | yes | scaling at a Level | reference only (card unavailable) |
 | 10 | Equipment | WEAPON (including shield profiles), ATTACK, EQUIPMENT_TRAIT, ARMOR, **AMMUNITION**, **WEAPON_MODIFICATION** | yes | yes | library; Armor; reload split; modified sample weapon | weapons **live**; Armor, ammunition and modifications reference only |
-| 11 | Conditions | STATUS_CONDITION (structured triggers) | yes | yes | written | reference only |
-| 12 | Summoning | SUMMON_TYPE (7 engines, action model, AP / MP ownership, restrictions, dismissal), SUMMON_TRAIT; SUMMON_ACTION_MODEL reserved | yes | yes | costs | reference only |
+| 11 | Conditions | STATUS_CONDITION (structured triggers; effects and triggers state their outcome) | yes | yes | written | reference only |
+| 12 | Summoning | SUMMON_TYPE (7 engines, action model, AP / MP ownership, restrictions, dismissal, hosts, access), SUMMON_TRAIT; SUMMON_ACTION_MODEL reserved | yes | yes | costs | reference only |
 | 13 | GM and Missions | MISSION_RULE (roll tables, clocks, Intel, rule points, linked rules) | yes | yes; tables must cover every roll | roll / clock | reference only |
 | 14 | Written reference | names, descriptions and rules text; entry pages; title source picker; Rules Reference Status | yes | n/a | Rules Reference | n/a |
 
