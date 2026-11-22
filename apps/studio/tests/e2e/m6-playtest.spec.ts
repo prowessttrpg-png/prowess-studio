@@ -169,7 +169,8 @@ async function journey(browser: Browser, run: number): Promise<{ world: World; r
   const revisionUrl = page.url();
   const revisionId = revisionUrl.split("/").at(-1)!;
   await page.getByLabel(/^Display Name/).fill(revisedName);
-  const amount = page.getByRole("spinbutton", { name: "Cost contribution 1 data.amount" });
+  // RULES-WO1 Phase F: the Effect's first listed cost is edited in the guided Costs section ("Amount").
+  const amount = page.getByTestId("effect-cost-0-amount");
   await expect(amount).toHaveValue("4"); // the authored Release 1 price
   await amount.fill("3");
   await page.getByLabel("Change type").selectOption({ label: "Mechanical Change" });

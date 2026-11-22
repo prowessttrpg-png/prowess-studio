@@ -82,7 +82,7 @@ test("G02 a reusable Spell creates a missing Effect as its own Draft and returns
 
   await page.getByLabel("Display Name (required)").fill(`Gust Push E2E ${tag}`);
   await page.getByLabel("Canonical Key (required)").fill(`test.e2e_pm7.gust_push_${tag}`);
-  await page.getByLabel("Effect family (required)").fill("MOVEMENT");
+  await page.getByTestId("effect-family").selectOption({ label: "Utility" }); // RULES-WO1 Phase F guided Effect editor
   await page.getByRole("button", { name: "Create Definition as Draft" }).click();
 
   // Back on the parent: the unsaved description is restored and the new Effect fills the slot by exact revision.

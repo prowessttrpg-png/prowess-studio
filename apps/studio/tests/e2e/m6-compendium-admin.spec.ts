@@ -32,11 +32,10 @@ test("a designer authors, validates, edits and revises a Definition entirely thr
   await expect(validation.getByRole("status")).toContainText("FAIL");
   await expect(validation).toContainText("payload.effectFamily");
 
-  await page.getByLabel("Effect family (required)").fill("MOVEMENT");
-  await page.getByLabel("This Effect has its own resolution").check();
-  await page.getByLabel("Resolution mode").selectOption("SAVING_THROW");
-  await page.getByRole("button", { name: "Add outcome" }).click();
-  await page.getByLabel("Outcome key").fill("push");
+  // RULES-WO1 Phase F: the Effect is described in game language — its family, how it resolves and what happens.
+  await page.getByTestId("effect-family").selectOption({ label: "Utility" });
+  await page.getByLabel("A Saving Throw by the target").check();
+  await page.getByTestId("effect-outcome-SUCCESS-add").selectOption({ label: "Nothing happens" });
   await page.getByRole("button", { name: "Validate Definition" }).click();
   await expect(validation.getByRole("status")).toContainText("PASS — SPELL_EFFECT satisfies its M5 structural contract.");
 
@@ -47,16 +46,15 @@ test("a designer authors, validates, edits and revises a Definition entirely thr
   await expect(page.getByTestId("version-status-badge").first()).toHaveText("Draft");
 
   // Edit the Draft: unsaved state, server validation feedback for a missing value, then a clean save.
-  // RULES-WO1 Phase D: names are typed in plain words — "movement" is stored (and shown) as MOVEMENT; the server still
-  // refuses a malformed or missing token (an empty name here), and the field is marked invalid.
+  // The server still refuses a missing family, and the control that names it is marked invalid (RULES-WO1 Phase F).
   await page.getByLabel(/^Display Name/).fill(`${displayName} (edited)`);
   await expect(page.locator(".prowess-authoring__save-state")).toHaveText("Unsaved changes");
-  await page.getByLabel("Effect family (required)").fill("");
+  await page.getByTestId("effect-family").selectOption("");
   await page.getByRole("button", { name: "Validate Definition" }).click();
   await expect(page.getByRole("region", { name: "Validation" }).getByRole("status")).toContainText("FAIL");
-  await expect(page.getByLabel("Effect family (required)")).toHaveAttribute("aria-invalid", "true");
-  await page.getByLabel("Effect family (required)").fill("movement");
-  await expect(page.getByLabel("Effect family (required)")).toHaveValue("MOVEMENT");
+  await expect(page.getByTestId("effect-family")).toHaveAttribute("aria-invalid", "true");
+  await page.getByTestId("effect-family").selectOption({ label: "Utility" });
+  await expect(page.getByTestId("effect-family")).toHaveValue("UTILITY");
   await page.getByLabel(/^Change summary/).fill("Edited in Compendium Admin.");
   await page.getByRole("button", { name: "Save Draft" }).click();
   await expect(page.getByText("Draft saved — validation PASS.")).toBeVisible();
