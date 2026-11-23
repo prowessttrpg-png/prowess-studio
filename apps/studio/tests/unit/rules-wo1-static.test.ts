@@ -40,9 +40,14 @@ describe("RULES-WO1 gate — the approved M5 change is additive and exact", () =
         "character/sheet.ts",
         "compilation/compile.ts",
         "definition-envelope.test.ts",
+        "definition/ability-construction-payload.ts", // Phase H: exports CONSTRUCTION_FORMULA_INPUTS (unchanged lists) for the guided slot Formulas
         "definition/action-improvement-payload.ts", // readPrerequisite is shared with Skill benefits (R08); behaviour unchanged
+        "definition/active-magic-policy.ts", // Phase H: exports its fixed Formula inputs and Mana Lock amount kinds (same lists)
         "definition/authored-ability-payload.ts", // Phase G: exports FOUNDATION_ACTION_CATEGORIES (the same closed list)
+        "definition/condition-policy.ts", // Phase H: exports CONDITION_POLICY_FORMULA_INPUTS (derived from the same content)
+        "definition/core-payload.ts", // Phase H: the Stat Mastery signal list is the exported STAT_MASTERY_SIGNALS (unchanged)
         "definition/duration-condition-payload.ts", // Phase G: exports its closed lists (availability, meanings, Concentration, construction facts)
+        "definition/effect-execution-policy.ts", // Phase H: exports CHAIN_BEHAVIORS (unchanged list)
         "definition/effect-payload.ts", // Phase G: exports EFFECT_FORMULA_SOURCE_KINDS (the same closed list) for the guided Effect formulas
         "definition/mage-art-payload.ts",
         "definition/payload.ts",
@@ -54,11 +59,12 @@ describe("RULES-WO1 gate — the approved M5 change is additive and exact", () =
         "pre-m7-wo1-mage-art.test.ts",
         "stored-definition-validation.test.ts",
         "vocabulary.test.ts",
+        "vocabulary/core.ts", // Phase H: adds STAT_MASTERY_SIGNALS
         "vocabulary/families.ts",
       ].map((f) => G + f),
     );
     expect(Object.keys(entry.addedFiles).sort()).toEqual(
-      ["ability/concentration-preview.ts", "character/calculated-values.ts", "character/skill-benefits.ts", "definition/rules-authoring-payload.ts", "definition/rules-reference-payload.ts", "reference/preview.ts", "rules-wo1-authoring.test.ts", "rules-wo1-cone-conversion.test.ts", "rules-wo1-reference.test.ts", "rules-wo1-skill-benefit-preview.test.ts"].map((f) => G + f),
+      ["ability/concentration-preview.ts", "character/calculated-values.ts", "character/skill-benefits.ts", "definition/rules-authoring-payload.ts", "definition/rules-reference-payload.ts", "reference/preview.ts", "rules-wo1-authoring.test.ts", "rules-wo1-cone-conversion.test.ts", "rules-wo1-reference.test.ts", "rules-wo1-skill-benefit-preview.test.ts", "rules-wo1-targeting-preview.test.ts"].map((f) => G + f),
     );
     for (const [f, h] of [...Object.entries(entry.changedFiles), ...Object.entries(entry.addedFiles)]) expect(sha(f), f).toBe(h);
   });

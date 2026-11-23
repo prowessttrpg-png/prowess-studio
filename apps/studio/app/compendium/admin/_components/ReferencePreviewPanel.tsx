@@ -10,9 +10,11 @@ import { asToken } from "../_lib/token-input";
  * the server (the M5 / M4 code of the contract). The panel always says that the rule is not used in play yet.
  */
 const words = (v: unknown) => (typeof v === "string" ? v.charAt(0) + v.slice(1).toLowerCase().replace(/_/g, " ") : "—");
+const asRecord = (v: unknown): Record<string, unknown> => (v !== null && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {});
+const asList = (v: unknown): Array<Record<string, unknown>> => (Array.isArray(v) ? v.map(asRecord) : []);
 const messageOf = (e: unknown) => (e instanceof Error ? e.message : "The preview could not be calculated.");
 
-export function ReferencePreviewPanel({ entityVersionId, sample, unsavedChanges }: { entityVersionId: string; sample: "SHEET" | "TIERED_SHEET" | "ROLL_OR_CLOCK" | "AT_LEVEL" | "SAMPLE_WEAPON"; unsavedChanges: boolean }) {
+export function ReferencePreviewPanel({ entityVersionId, sample, unsavedChanges, payload }: { entityVersionId: string; sample: "SHEET" | "TIERED_SHEET" | "ROLL_OR_CLOCK" | "AT_LEVEL" | "SAMPLE_WEAPON" | "DISTANCES"; unsavedChanges: boolean; /** The form's payload (Phase H: a Targeting's rank tables and size choices name the sample inputs). */ payload?: Record<string, unknown> }) {
   const [stats, setStats] = useState<Record<string, number>>(() => Object.fromEntries(COMPENDIUM_STAT_TOKENS.map((s) => [s, 4])));
   const [tierKey, setTierKey] = useState("");
   const [roll, setRoll] = useState(1);
@@ -21,7 +23,16 @@ export function ReferencePreviewPanel({ entityVersionId, sample, unsavedChanges 
   const [loading, setLoading] = useState(12);
   const [reloadAp, setReloadAp] = useState(3);
   const [apPerTurn, setApPerTurn] = useState(3);
+  const [ranks, setRanks] = useState<Record<string, string>>({});
+  const [steps, setSteps] = useState<Record<string, number>>({});
+  const [derived, setDerived] = useState<Record<string, number>>({});
   const [result, setResult] = useState<ReferencePreviewDto | null>(null);
+  // RULES-WO1 Phase H: what a Targeting's distances read — its Skill-rank tables, size choices and derived values.
+  const targeting = asRecord(asRecord(payload?.rules).targeting);
+  const tables = asList(targeting.rankTables).map((t) => ({ tableKey: String(t.tableKey ?? ""), skillKey: String(t.skillKey ?? ""), ranks: asList(t.entries).map((e) => String(e.rankKey ?? "")) }));
+  const sizeChoices = asList(targeting.parameters).filter((p) => "default" in p && typeof p.default === "number").map((p) => String(p.parameter ?? ""));
+  const formulas = [asRecord(asRecord(targeting.range).formula), ...asList(targeting.measures).map((m) => asRecord(m.formula))];
+  const derivedNames = [...new Set(formulas.flatMap((f) => asList(f.variables)).map((v) => asRecord(v.source)).filter((s) => typeof s.statistic === "string").map((s) => String(s.statistic)))];
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const int = (v: string) => (Number.isFinite(Number(v)) ? Math.max(0, Math.trunc(Number(v))) : 0);
@@ -30,7 +41,7 @@ export function ReferencePreviewPanel({ entityVersionId, sample, unsavedChanges 
     setBusy(true);
     setError("");
     try {
-      setResult(await previewReference({ entityVersionId, sample: { stats, ...(tierKey !== "" ? { tierKey } : {}), roll, filled, level, loading, reloadAp, apPerTurn } }));
+      setResult(await previewReference({ entityVersionId, sample: sample === "DISTANCES" ? { stats, ranks, parameters: steps, derived } : { stats, ...(tierKey !== "" ? { tierKey } : {}), roll, filled, level, loading, reloadAp, apPerTurn } }));
     } catch (e) {
       setResult(null);
       setError(messageOf(e));
@@ -44,9 +55,45 @@ export function ReferencePreviewPanel({ entityVersionId, sample, unsavedChanges 
   return (
     <section className="gov-card prowess-rule-preview" aria-label="Preview with sample inputs" data-testid="reference-preview">
       <h2>Preview with sample inputs</h2>
-      <p className="gov-bad" role="note" data-testid="reference-not-in-play">
-        Preview only — play does not use this rule yet.
-      </p>
+      {sample === "DISTANCES" ? (
+        <p className="gov-muted" role="note" data-testid="reference-same-as-builders">
+          The Spell and Maneuver builders evaluate the same Formula, rank table and default choices for a Character.
+        </p>
+      ) : (
+        <p className="gov-bad" role="note" data-testid="reference-not-in-play">
+          Preview only — play does not use this rule yet.
+        </p>
+      )}
+      {sample === "DISTANCES" && (tables.length > 0 || sizeChoices.length > 0 || derivedNames.length > 0) ? (
+        <fieldset className="prowess-authoring__nested">
+          <legend>Sample ranks and choices</legend>
+          {tables.map((t) => (
+            <label key={t.tableKey} className="gov-field">
+              <span>Rank in {words(t.skillKey.split(".").pop()?.toUpperCase())}</span>
+              <select aria-label={`Sample rank for ${t.tableKey}`} data-testid={`preview-rank-${t.tableKey}`} value={ranks[t.skillKey] ?? ""} onChange={(e) => setRanks((x) => { const next = { ...x }; if (e.target.value === "") delete next[t.skillKey]; else next[t.skillKey] = e.target.value; return next; })}>
+                <option value="">No rank</option>
+                {t.ranks.map((k) => (
+                  <option key={k} value={k}>
+                    {words(k)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
+          {sizeChoices.map((p) => (
+            <label key={p} className="gov-field">
+              <span>{p.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase()} (leave empty for its starting value)</span>
+              <input aria-label={`Sample ${p}`} type="number" min={0} value={steps[p] ?? ""} onChange={(e) => setSteps((x) => { const next = { ...x }; if (e.target.value === "") delete next[p]; else next[p] = int(e.target.value); return next; })} />
+            </label>
+          ))}
+          {derivedNames.map((d) => (
+            <label key={d} className="gov-field">
+              <span>{words(d)} (ft)</span>
+              <input aria-label={`Sample ${d}`} type="number" min={0} value={derived[d] ?? ""} onChange={(e) => setDerived((x) => ({ ...x, [d]: int(e.target.value) }))} />
+            </label>
+          ))}
+        </fieldset>
+      ) : null}
       {unsavedChanges ? <p className="gov-bad">You have unsaved edits. The preview uses the last saved Draft.</p> : null}
       {sample === "SAMPLE_WEAPON" ? (
         <fieldset className="prowess-authoring__nested">
@@ -170,6 +217,15 @@ export function ReferencePreviewPanel({ entityVersionId, sample, unsavedChanges 
                   </dd>
                 </>
               ) : null}
+            </>
+          ) : "measures" in r && Array.isArray(r.measures) ? (
+            <>
+              {[...(r.range !== null && typeof r.range === "object" ? [{ ...(r.range as Record<string, unknown>), measure: "range" }] : []), ...(r.measures as Array<Record<string, unknown>>)].map((m) => (
+                <div key={String(m.measure)} style={{ display: "contents" }}>
+                  <dt>{words(m.measure)}</dt>
+                  <dd data-testid={`preview-measure-${String(m.measure)}`}>{m.value === null || m.value === undefined ? `— (${String(m.reason ?? "not stated")})` : `${String(m.value)}${m.unit ? ` ${String(m.unit)}` : ""}`}</dd>
+                </div>
+              ))}
             </>
           ) : "result" in r ? (
             <>

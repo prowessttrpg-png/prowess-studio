@@ -227,6 +227,15 @@ function FieldValue({ field, payload, context, keywordName }: { field: FieldDesc
     // RULES-WO1 inputs: shown exactly as stored; an unstated base is said in words, never shown as 0.
     case "optionalSource":
     case "refList":
+    // RULES-WO1 Phase H inputs: shown exactly as stored.
+    case "fixedFormula":
+    case "naturalSelection":
+    case "writtenNotes":
+    case "playCheck":
+    case "openQuestion":
+    case "selectMap":
+    case "wordList":
+    case "fixedChoice":
       return value === null || value === undefined ? <span className="gov-muted">not authored</span> : <StructuredValue value={value} path={path} context={context} />;
     case "mageArtScaling": {
       const sc = (value ?? {}) as { label?: string; unit?: string | null; byLevel?: Array<{ fromLevel: number; toLevel: number; value: number }> | null; formula?: { expression?: string } | null; text?: string };

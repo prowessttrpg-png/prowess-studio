@@ -131,6 +131,28 @@ import {
   COMPONENT_AVAILABILITIES,
   FOUNDATION_ACTION_CATEGORIES,
   EFFECT_FORMULA_SOURCE_KINDS,
+  COMPARISON_TARGETS,
+  CRITICAL_THREAT_RULES,
+  CRITICAL_HIT_RULES,
+  CRITICAL_DAMAGE_RULES,
+  STAT_MASTERY_SIGNALS,
+  AFFINITY_AUTHORITY_CAPACITY_SOURCES,
+  CASTING_CONDITION_CAPACITY_SOURCES,
+  CHAIN_BEHAVIORS,
+  MARTIAL_SAVE_CONTROLS,
+  ACTIVE_MAGIC_DISMISSAL,
+  ACTIVE_MAGIC_DURATIONS,
+  MANA_LOCK_AMOUNT_KINDS,
+  IMPROVED_AP_COST_MODELS,
+  ROLL_COMPARISON_OPERATORS,
+  ROLL_MODE_VARIABLES,
+  CONSTRUCTION_FORMULA_INPUTS,
+  CONDITION_POLICY_FORMULA_INPUTS,
+  CONDITION_POLICY,
+  MANEUVER_COST_POLICY,
+  ACTIVE_MAGIC_FORMULA_INPUTS,
+  EFFECT_EXECUTION_POLICY,
+  ACTIVE_MAGIC_POLICY,
 } from "@prowess/game";
 import { FORMULA_ROUNDING_MODES, RESOURCE_CEILINGS, RESOURCE_KINDS, RESOURCE_OVERFLOW_POLICIES, RESOURCE_REFRESH_TARGETS } from "@prowess/rules";
 import { CHARACTER_FIELD_TOKENS, DERIVED_FORMULA_SOURCE_KINDS, FORMULA_SOURCE_KINDS, INITIATIVE_FORMULA_SOURCE_KINDS, MOVEMENT_GRANT_SOURCE_KINDS, ROLL_FORMULA_SOURCE_KINDS } from "../compendium-rules/formula-vocabulary.js";
@@ -169,6 +191,13 @@ export interface AuthoringCatalog {
   readonly legacyTerms: readonly { readonly legacyTerm: string; readonly canonicalTerm: string }[];
   /** RULES-WO1: what the application does with each kind (live / partial / reference only), for truthful status. */
   readonly capabilities: Readonly<Record<string, KindCapability>>;
+  /**
+   * RULES-WO1 Phase H: fixed lists that are not option vocabularies — the natural rolls of each roll mode, the inputs each
+   * construction / policy Formula slot reads, and the roll comparison operators. Values verbatim from @prowess/game.
+   */
+  readonly fixedLists: Readonly<Record<string, readonly string[]>>;
+  /** RULES-WO1 Phase H: the Core Playtest rulings an author may start an optional engine policy from (then adjust). */
+  readonly rulingDefaults: Readonly<Record<string, unknown>>;
 }
 
 function kindRow(kind: ProwessDefinitionKind): AuthoringDefinitionKind {
@@ -345,7 +374,30 @@ export function getAuthoringCatalog(): AuthoringCatalog {
       componentAvailability: [...COMPONENT_AVAILABILITIES],
       foundationActionCategories: [...FOUNDATION_ACTION_CATEGORIES],
       effectFormulaSourceKinds: [...EFFECT_FORMULA_SOURCE_KINDS],
+      comparisonTargets: [...COMPARISON_TARGETS],
+      criticalThreatRules: [...CRITICAL_THREAT_RULES],
+      criticalHitRules: [...CRITICAL_HIT_RULES],
+      criticalDamageRules: [...CRITICAL_DAMAGE_RULES],
+      statMasterySignals: [...STAT_MASTERY_SIGNALS],
+      affinityAuthorityCapacitySources: [...AFFINITY_AUTHORITY_CAPACITY_SOURCES],
+      castingConditionCapacitySources: [...CASTING_CONDITION_CAPACITY_SOURCES],
+      chainBehaviors: [...CHAIN_BEHAVIORS],
+      martialSaveControls: [...MARTIAL_SAVE_CONTROLS],
+      activeMagicDismissals: [...ACTIVE_MAGIC_DISMISSAL],
+      activeMagicDurations: [...ACTIVE_MAGIC_DURATIONS],
+      manaLockAmountKinds: [...MANA_LOCK_AMOUNT_KINDS],
+      improvedApCostModels: [...IMPROVED_AP_COST_MODELS],
     },
+    fixedLists: Object.fromEntries([
+      ["rollComparisonOperators", [...ROLL_COMPARISON_OPERATORS]],
+      ["martialSaveRanks", Object.keys(EFFECT_EXECUTION_POLICY.martialSaveControl)],
+      ...Object.entries(ROLL_MODE_VARIABLES).map(([mode, vars]) => [`naturalRolls:${mode}`, [...vars]]),
+      ...Object.entries(CONSTRUCTION_FORMULA_INPUTS).map(([slot, vars]) => [`constructionInputs:${slot}`, [...vars]]),
+      ...Object.entries(CONDITION_POLICY_FORMULA_INPUTS).map(([slot, vars]) => [`conditionPolicyInputs:${slot}`, [...vars]]),
+      ...Object.entries(MANEUVER_COST_POLICY.formulas).map(([slot, f]) => [`maneuverCostInputs:${slot}`, [...f.variables]]),
+      ...Object.entries(ACTIVE_MAGIC_FORMULA_INPUTS).map(([slot, vars]) => [`activeMagicInputs:${slot}`, [...vars]]),
+    ]),
+    rulingDefaults: JSON.parse(JSON.stringify({ conditionPolicy: CONDITION_POLICY, maneuverCostPolicy: MANEUVER_COST_POLICY, effectExecutionPolicy: EFFECT_EXECUTION_POLICY, activeMagicPolicy: ACTIVE_MAGIC_POLICY })) as Record<string, unknown>,
     legacyTerms: TERMINOLOGY_INVENTORY.filter((t) => t.status === "LEGACY" && t.canonicalTerm !== null)
       .map((t) => ({ legacyTerm: t.term, canonicalTerm: t.canonicalTerm as string }))
       .sort((a, b) => (a.legacyTerm < b.legacyTerm ? -1 : a.legacyTerm > b.legacyTerm ? 1 : 0)),

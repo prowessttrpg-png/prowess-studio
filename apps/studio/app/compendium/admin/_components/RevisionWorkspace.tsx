@@ -329,7 +329,7 @@ export function RevisionWorkspace({ entityId, versionId }: { entityId: string; v
         purpose={descriptor?.purpose ?? null}
       />
 
-      {form.candidate !== null && descriptor?.preview === "SAMPLE_INPUTS" ? <ReferencePreviewPanel entityVersionId={version.id} sample={descriptor.previewSample ?? "SHEET"} unsavedChanges={Boolean(dirty)} /> : null}
+      {form.candidate !== null && descriptor?.preview === "SAMPLE_INPUTS" ? <ReferencePreviewPanel entityVersionId={version.id} sample={descriptor.previewSample ?? "SHEET"} unsavedChanges={Boolean(dirty)} payload={form.candidate.payload as Record<string, unknown>} /> : null}
 
       {previewRelease !== null && form.candidate !== null && descriptor?.preview === "AUTHORED_RULE" ? (
         <AuthoredRulePreviewPanel releaseId={previewRelease} drafts={editable ? [version.id] : []} unsavedChanges={Boolean(dirty)} focusStat={previewStat} />

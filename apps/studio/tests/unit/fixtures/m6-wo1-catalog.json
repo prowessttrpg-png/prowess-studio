@@ -1594,7 +1594,321 @@
       "STAT",
       "PARAMETER",
       "MARTIAL_RANK_VALUE"
+    ],
+    "comparisonTargets": [
+      "DIFFICULTY_CLASS",
+      "TARGET_DODGE"
+    ],
+    "criticalThreatRules": [
+      "NATURAL_EQUALS_DIE_FACES"
+    ],
+    "criticalHitRules": [
+      "THREAT_AND_SUCCESS"
+    ],
+    "criticalDamageRules": [
+      "DEFERRED"
+    ],
+    "statMasterySignals": [
+      "ADVANTAGE"
+    ],
+    "affinityAuthorityCapacitySources": [
+      "AFFINITY_RANK_RULE"
+    ],
+    "castingConditionCapacitySources": [
+      "ARCANE_RANK"
+    ],
+    "chainBehaviors": [
+      "SUCCESS_ONLY",
+      "CONTINUE"
+    ],
+    "martialSaveControls": [
+      "DEFENDER_CHOOSES",
+      "ATTACKER_REMOVES_ONE",
+      "ATTACKER_CHOOSES"
+    ],
+    "activeMagicDismissals": [
+      "FREE_ACTION",
+      "NOT_DISMISSIBLE"
+    ],
+    "activeMagicDurations": [
+      "INSTANT",
+      "ROUNDS",
+      "COMBAT",
+      "SCENE",
+      "MISSION",
+      "SUSTAINED",
+      "MANA_LOCK",
+      "PERMANENT_BY_SPECIAL_RULE"
+    ],
+    "manaLockAmountKinds": [
+      "FINAL_SPELL_MP",
+      "FIXED"
+    ],
+    "improvedApCostModels": [
+      "FIXED"
     ]
+  },
+  "fixedLists": {
+    "rollComparisonOperators": [
+      ">="
+    ],
+    "martialSaveRanks": [
+      "TRAINED",
+      "EXPERT",
+      "MASTER"
+    ],
+    "naturalRolls:NORMAL": [
+      "r1"
+    ],
+    "naturalRolls:ADVANTAGE": [
+      "r1",
+      "r2"
+    ],
+    "naturalRolls:DISADVANTAGE": [
+      "r1",
+      "r2"
+    ],
+    "constructionInputs:remainingEffects": [
+      "base_effects",
+      "trades",
+      "effect_slots_per_exchange"
+    ],
+    "constructionInputs:effectiveTraits": [
+      "base_traits",
+      "trades",
+      "trait_slots_per_exchange"
+    ],
+    "constructionInputs:maximumTrades": [
+      "base_effects",
+      "minimum_effects_remaining",
+      "effect_slots_per_exchange"
+    ],
+    "constructionInputs:signatureProjected": [
+      "used_slots",
+      "candidate_slots"
+    ],
+    "constructionInputs:signatureAvailable": [
+      "capacity",
+      "projected"
+    ],
+    "conditionPolicyInputs:scale": [
+      "units",
+      "rate"
+    ],
+    "conditionPolicyInputs:sum": [
+      "left",
+      "right"
+    ],
+    "conditionPolicyInputs:cap": [
+      "listed",
+      "maximum"
+    ],
+    "conditionPolicyInputs:excess": [
+      "listed",
+      "effective"
+    ],
+    "conditionPolicyInputs:increment": [
+      "value",
+      "minimum",
+      "increment"
+    ],
+    "maneuverCostInputs:contribution": [
+      "units",
+      "included",
+      "rate"
+    ],
+    "maneuverCostInputs:affinityAdjusted": [
+      "minimum",
+      "amount",
+      "reduction"
+    ],
+    "maneuverCostInputs:conditionReduced": [
+      "base",
+      "reduction"
+    ],
+    "maneuverCostInputs:attackFloor": [
+      "minimum",
+      "attacks"
+    ],
+    "activeMagicInputs:sustainMp": [
+      "final_mp",
+      "pro"
+    ],
+    "activeMagicInputs:concentrationSlots": [
+      "res"
+    ],
+    "activeMagicInputs:concentrationDc": [
+      "consumers"
+    ]
+  },
+  "rulingDefaults": {
+    "conditionPolicy": {
+      "spellMpPercentMaximum": 30,
+      "maneuverApMaximum": 3,
+      "formulas": {
+        "scale": {
+          "expression": "units * rate",
+          "variables": [
+            "units",
+            "rate"
+          ]
+        },
+        "sum": {
+          "expression": "left + right",
+          "variables": [
+            "left",
+            "right"
+          ]
+        },
+        "cap": {
+          "expression": "min(listed, maximum)",
+          "variables": [
+            "listed",
+            "maximum"
+          ]
+        },
+        "excess": {
+          "expression": "listed - effective",
+          "variables": [
+            "listed",
+            "effective"
+          ]
+        },
+        "increment": {
+          "expression": "value - minimum - floor((value - minimum) / increment) * increment",
+          "variables": [
+            "value",
+            "minimum",
+            "increment"
+          ]
+        }
+      }
+    },
+    "maneuverCostPolicy": {
+      "signatureApReduction": 1,
+      "minimumAp": 1,
+      "minimumMp": 0,
+      "unresolvedComponentCosts": [
+        {
+          "canonicalKey": "maneuver.effect.elemental_damage_conversion",
+          "conflictKey": "M5-SC-048"
+        }
+      ],
+      "inherentRestrictionKeys": [
+        "WEAPON_LOCK"
+      ],
+      "formulas": {
+        "contribution": {
+          "expression": "max(0, units - included) * rate",
+          "variables": [
+            "units",
+            "included",
+            "rate"
+          ]
+        },
+        "affinityAdjusted": {
+          "expression": "max(minimum, amount - reduction)",
+          "variables": [
+            "minimum",
+            "amount",
+            "reduction"
+          ]
+        },
+        "conditionReduced": {
+          "expression": "base - reduction",
+          "variables": [
+            "base",
+            "reduction"
+          ]
+        },
+        "attackFloor": {
+          "expression": "max(minimum, attacks)",
+          "variables": [
+            "minimum",
+            "attacks"
+          ]
+        }
+      },
+      "authority": [
+        "M5-SC-025",
+        "s2020",
+        "s2094",
+        "s21729",
+        "s22270"
+      ]
+    },
+    "effectExecutionPolicy": {
+      "defaultChainBehavior": "SUCCESS_ONLY",
+      "martialSkillKey": "skill.martial",
+      "martialSaveControl": {
+        "TRAINED": "DEFENDER_CHOOSES",
+        "EXPERT": "ATTACKER_REMOVES_ONE",
+        "MASTER": "ATTACKER_CHOOSES"
+      },
+      "authority": [
+        "M5-SC-014",
+        "s639",
+        "s640",
+        "s642",
+        "Maneuvers §5 Save Restriction by Martial Rank"
+      ]
+    },
+    "activeMagicPolicy": {
+      "formulas": {
+        "sustainMp": {
+          "expression": "max(1, floor(final_mp / pro))",
+          "variables": [
+            "final_mp",
+            "pro"
+          ]
+        },
+        "concentrationSlots": {
+          "expression": "1 + floor(res / 2)",
+          "variables": [
+            "res"
+          ]
+        },
+        "concentrationDc": {
+          "expression": "8 + 2 * max(0, consumers - 1)",
+          "variables": [
+            "consumers"
+          ]
+        }
+      },
+      "sustainApPerRound": 1,
+      "sustainMeEligible": true,
+      "concentrationSaveStat": "PRO",
+      "dismissal": {
+        "INSTANT": "NOT_DISMISSIBLE",
+        "ROUNDS": "NOT_DISMISSIBLE",
+        "COMBAT": "NOT_DISMISSIBLE",
+        "SCENE": "NOT_DISMISSIBLE",
+        "MISSION": "NOT_DISMISSIBLE",
+        "SUSTAINED": "FREE_ACTION",
+        "MANA_LOCK": "NOT_DISMISSIBLE",
+        "PERMANENT_BY_SPECIAL_RULE": "NOT_DISMISSIBLE"
+      },
+      "channel": {
+        "requiresConcentration": true,
+        "maximumSimultaneous": 1,
+        "minimumApPerRound": 1,
+        "mpPaymentTiming": null,
+        "mpPaymentConflictKey": "M5-SC-053"
+      },
+      "manaLock": {
+        "amount": null,
+        "conflictKey": "M5-SC-052"
+      },
+      "authority": [
+        "M5-WO13",
+        "MANA EFFICIENCY",
+        "MANA LOCK",
+        "CHANNELING SPELLS",
+        "SUSTAINED SPELLS",
+        "CONCENTRATION",
+        "M5-SC-004"
+      ]
+    }
   },
   "legacyTerms": [
     {

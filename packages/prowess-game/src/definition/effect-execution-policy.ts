@@ -3,6 +3,8 @@ import { Problems, isExactCanonicalKey, own, readEnum, readRecord } from "../int
 import { DEFINITION_ERROR_CODES as C } from "./codes.js";
 
 export const MARTIAL_SAVE_CONTROLS = ["DEFENDER_CHOOSES", "ATTACKER_REMOVES_ONE", "ATTACKER_CHOOSES"] as const;
+/** RULES-WO1 Phase H: the ruled default Effect Chain behaviors. */
+export const CHAIN_BEHAVIORS = ["SUCCESS_ONLY", "CONTINUE"] as const;
 export type MartialSaveControl = (typeof MARTIAL_SAVE_CONTROLS)[number];
 export interface EffectExecutionPolicy {
   readonly defaultChainBehavior: "SUCCESS_ONLY" | "CONTINUE";
@@ -15,7 +17,7 @@ export function readEffectExecutionPolicy(value: unknown, at: readonly PathSegme
   const before = p.count, e = C.INVALID_PAYLOAD;
   const fields = ["defaultChainBehavior", "martialSkillKey", "martialSaveControl", "authority"];
   const r = readRecord(value, at, p, e, fields, fields); if (!r) return null;
-  const defaultChainBehavior = readEnum(own(r, "defaultChainBehavior"), ["SUCCESS_ONLY", "CONTINUE"] as const, [...at, "defaultChainBehavior"], p, e, "default Chain Behavior");
+  const defaultChainBehavior = readEnum(own(r, "defaultChainBehavior"), CHAIN_BEHAVIORS, [...at, "defaultChainBehavior"], p, e, "default Chain Behavior");
   const martialSkillKey = own(r, "martialSkillKey");
   if (!isExactCanonicalKey(martialSkillKey)) p.add(e, [...at, "martialSkillKey"], "exact Martial Skill canonical key");
   const control = readRecord(own(r, "martialSaveControl"), [...at, "martialSaveControl"], p, e, ["TRAINED", "EXPERT", "MASTER"], ["TRAINED", "EXPERT", "MASTER"]);

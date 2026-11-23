@@ -23,11 +23,14 @@ type Decl = { variable: string; source: FormulaSourceDto };
 const asDecls = (v: unknown): Decl[] => (Array.isArray(v) ? (v.filter((d) => d !== null && typeof d === "object") as Decl[]) : []);
 
 /** The one extra value some source kinds carry, and the catalog vocabulary it is chosen from (structure, not values). */
-const SOURCE_DETAIL: Readonly<Record<string, { readonly key: "stat" | "statistic" | "field" | "parameter"; readonly vocabulary: string; readonly prompt: string }>> = {
+const SOURCE_DETAIL: Readonly<Record<string, { readonly key: "stat" | "statistic" | "field" | "parameter" | "table"; readonly vocabulary: string; readonly prompt: string }>> = {
   STAT: { key: "stat", vocabulary: "prowessStats", prompt: "Stat" },
   // RULES-WO1 Phase G: a Targeting distance may read one of the component's own size choices (offered by the caller).
   PARAMETER: { key: "parameter", vocabulary: "formulaParameterChoices", prompt: "size choice" },
   DERIVED: { key: "statistic", vocabulary: "derivedStatistics", prompt: "derived statistic" },
+  // RULES-WO1 Phase H: a Targeting Skill-rank table, and a construction / policy Formula's fixed input (offered by the caller).
+  SKILL_RANK_TABLE: { key: "table", vocabulary: "formulaTableChoices", prompt: "rank table" },
+  CONSTRUCTION_INPUT: { key: "field", vocabulary: "formulaInputChoices", prompt: "input" },
   CHARACTER: { key: "field", vocabulary: "characterFields", prompt: "Character value" },
 };
 /** RULES-WO1: a one-input Formula that reads one Stat as it is (used to start a new value from a Stat page). */
@@ -40,10 +43,10 @@ export const sourceComplete = (s: FormulaSourceDto) => {
   const detail = SOURCE_DETAIL[s.kind];
   return s.kind !== "" && (detail === undefined || (typeof s[detail.key] === "string" && s[detail.key] !== ""));
 };
-const sameSource = (a: FormulaSourceDto, b: FormulaSourceDto) => a.kind === b.kind && a.stat === b.stat && a.statistic === b.statistic && a.field === b.field && a.parameter === b.parameter;
+const sameSource = (a: FormulaSourceDto, b: FormulaSourceDto) => a.kind === b.kind && a.stat === b.stat && a.statistic === b.statistic && a.field === b.field && a.parameter === b.parameter && a.table === b.table;
 const messageOf = (e: unknown) => (e instanceof Error && e.message ? e.message : "The Formula service could not be reached.");
 
-export function FormulaEditor({ value, onChange, catalog, sourceKinds, label, ownStatistic, noMaximum = false, variableStyle }: { value: unknown; onChange: (v: Formula) => void; catalog: AuthoringCatalogDto; sourceKinds: readonly string[]; label: string; ownStatistic?: string | null; /** RULES-WO1 Phase G: a contract with no maximum (a Targeting distance). */ noMaximum?: boolean; /** RULES-WO1 Phase G: input names in lowerCamel (an Effect formula). */ variableStyle?: "camel" }) {
+export function FormulaEditor({ value, onChange, catalog, sourceKinds, label, ownStatistic, noMaximum = false, variableStyle, noUnit = false, expressionOnly = false }: { value: unknown; onChange: (v: Formula) => void; catalog: AuthoringCatalogDto; sourceKinds: readonly string[]; label: string; ownStatistic?: string | null; /** RULES-WO1 Phase G: a contract with no maximum (a Targeting distance). */ noMaximum?: boolean; /** RULES-WO1 Phase G: input names in lowerCamel (an Effect formula). */ variableStyle?: "camel"; /** RULES-WO1 Phase H: a contract with no unit (construction / policy Formulas). */ noUnit?: boolean; /** RULES-WO1 Phase H: only the expression and its inputs (an engine policy Formula: no rounding, bounds or unit). */ expressionOnly?: boolean }) {
   const base = useId();
   const formula: Formula = value !== null && typeof value === "object" && !Array.isArray(value) ? (value as Formula) : {};
   const expression = typeof formula.expression === "string" ? formula.expression : "";
@@ -126,23 +129,33 @@ export function FormulaEditor({ value, onChange, catalog, sourceKinds, label, ow
     }
   };
 
-  const addContribution = async (shape: "INPUT" | "DIVIDED" | "SCALED" | "CONSTANT", sign: 1 | -1, n: number, source: FormulaSourceDto) => {
+  const addContribution = async (shape: Shape, sign: 1 | -1, n: number, source: FormulaSourceDto, second: FormulaSourceDto) => {
     if (terms === null || stale) return;
     const kept = terms.filter((t) => !(t.kind === "CONSTANT" && t.value === 0));
     if (shape === "CONSTANT") return commitTerms([...kept, { sign, kind: "CONSTANT", value: n }]);
-    const existing = decls.find((d) => sameSource(d.source, source));
-    let variable = existing?.variable;
-    if (variable === undefined) {
+    const added: Decl[] = [];
+    // The input a source is read through: an existing declaration, else a new readable name from the server.
+    const variableOf = async (s: FormulaSourceDto): Promise<string | null> => {
+      const existing = [...decls, ...added].find((d) => sameSource(d.source, s));
+      if (existing !== undefined) return existing.variable;
       try {
-        variable = (await nameFormulaInput(source, decls.map((d) => d.variable), variableStyle)).variable;
+        const v = (await nameFormulaInput(s, [...decls, ...added].map((d) => d.variable), variableStyle)).variable;
+        added.push({ variable: v, source: s });
+        return v;
       } catch (e) {
         setMessage(messageOf(e));
-        return;
+        return null;
       }
+    };
+    const variable = await variableOf(source);
+    if (variable === null) return;
+    if (shape === "PRODUCT") {
+      const other = await variableOf(second);
+      if (other === null) return;
+      return commitTerms([...kept, { sign, kind: "PRODUCT", variable, other }], added);
     }
-    const decl = existing === undefined ? [{ variable, source }] : [];
     const term: FormulaTermDto = shape === "INPUT" ? { sign, kind: "INPUT", variable } : shape === "SCALED" ? { sign, kind: "SCALED", variable, factor: n } : { sign, kind: "DIVIDED", variable, divisor: n, rounding: "floor" };
-    return commitTerms([...kept, term], decl);
+    return commitTerms([...kept, term], added);
   };
 
   const ownRef = ownStatistic ? decls.some((d) => d.source.statistic === ownStatistic) : false;
@@ -182,7 +195,7 @@ export function FormulaEditor({ value, onChange, catalog, sourceKinds, label, ow
             ))}
           </ol>
           {terms.length === 0 || expression.trim() === "0" ? <p className="gov-muted">No contributions: this rule&apos;s value is the constant 0 (a valid, neutral rule — the statistic still exists).</p> : null}
-          <AddContribution sourceKinds={sourceKinds} catalog={catalog} disabled={busy || stale} onAdd={(shape, sign, n, source) => void addContribution(shape, sign, n, source)} />
+          <AddContribution sourceKinds={sourceKinds} catalog={catalog} disabled={busy || stale} onAdd={(shape, sign, n, source, second) => void addContribution(shape, sign, n, source, second)} />
         </div>
       ) : null}
 
@@ -221,7 +234,7 @@ export function FormulaEditor({ value, onChange, catalog, sourceKinds, label, ow
           : null}
       </fieldset>
 
-      <div className="prowess-formula__settings">
+      {expressionOnly ? null : <div className="prowess-formula__settings">
         <label className="gov-field">
           <span>Rounding of the result</span>
           <select value={typeof formula.rounding === "string" ? formula.rounding : ""} onChange={(e) => set({ rounding: e.target.value })}>
@@ -235,11 +248,11 @@ export function FormulaEditor({ value, onChange, catalog, sourceKinds, label, ow
         </label>
         <NullableNumber label="Minimum result (optional)" value={formula.minimum} onChange={(v) => set({ minimum: v })} />
         {noMaximum ? null : <NullableNumber label="Maximum result (optional)" value={formula.maximum} onChange={(v) => set({ maximum: v })} />}
-        <label className="gov-field">
+        {noUnit ? null : <label className="gov-field">
           <span>Unit (optional, e.g. ft)</span>
           <input value={typeof formula.unit === "string" ? formula.unit : ""} onChange={(e) => set({ unit: e.target.value === "" ? null : e.target.value })} spellCheck={false} />
-        </label>
-      </div>
+        </label>}
+      </div>}
       {(desc?.hazards ?? []).map((h) => (
         <p key={h} className="gov-error" role="status">
           {h}
@@ -272,8 +285,8 @@ function TermControls({ index, term, decls, labelOf, onChange, idBase, disabled 
       <option value={-1}>− subtract</option>
     </select>
   );
-  const varSelect = (v: string, set: (x: string) => void) => (
-    <select aria-label={`Contribution ${n} input`} disabled={disabled} value={v} onChange={(e) => set(e.target.value)}>
+  const varSelect = (v: string, set: (x: string) => void, which = "input") => (
+    <select aria-label={`Contribution ${n} ${which}`} disabled={disabled} value={v} onChange={(e) => set(e.target.value)}>
       {decls.map((d) => (
         <option key={d.variable} value={d.variable}>
           {d.variable} ({labelOf(d.variable)})
@@ -300,6 +313,12 @@ function TermControls({ index, term, decls, labelOf, onChange, idBase, disabled 
       return (
         <span className="prowess-formula__term-body">
           {sign} {number("multiplier", term.factor, (factor) => onChange({ ...term, factor }))} × {varSelect(term.variable, (variable) => onChange({ ...term, variable }))}
+        </span>
+      );
+    case "PRODUCT":
+      return (
+        <span className="prowess-formula__term-body">
+          {sign} {varSelect(term.variable, (variable) => onChange({ ...term, variable }))} × {varSelect(term.other, (other) => onChange({ ...term, other }), "second input")}
         </span>
       );
     case "DIVIDED":
@@ -385,13 +404,15 @@ function SourceDetail({ catalog, value, onChange, label }: { catalog: AuthoringC
   );
 }
 
-function AddContribution({ sourceKinds, catalog, onAdd, disabled }: { sourceKinds: readonly string[]; catalog: AuthoringCatalogDto; onAdd: (shape: "INPUT" | "DIVIDED" | "SCALED" | "CONSTANT", sign: 1 | -1, n: number, source: FormulaSourceDto) => void; disabled: boolean }) {
-  const [shape, setShape] = useState<"INPUT" | "DIVIDED" | "SCALED" | "CONSTANT">("DIVIDED");
+type Shape = "INPUT" | "DIVIDED" | "SCALED" | "PRODUCT" | "CONSTANT";
+function AddContribution({ sourceKinds, catalog, onAdd, disabled }: { sourceKinds: readonly string[]; catalog: AuthoringCatalogDto; onAdd: (shape: Shape, sign: 1 | -1, n: number, source: FormulaSourceDto, second: FormulaSourceDto) => void; disabled: boolean }) {
+  const [shape, setShape] = useState<Shape>("DIVIDED");
   const [source, setSource] = useState<FormulaSourceDto>({ kind: "" });
+  const [second, setSecond] = useState<FormulaSourceDto>({ kind: "" });
   const [number, setNumber] = useState("3");
   const [sign, setSign] = useState<1 | -1>(1);
-  const add = () => onAdd(shape, sign, Number(number), source);
-  const ready = shape === "CONSTANT" ? number !== "" && Number.isFinite(Number(number)) : sourceComplete(source) && (shape === "INPUT" || (number !== "" && Number.isFinite(Number(number))));
+  const add = () => onAdd(shape, sign, Number(number), source, second);
+  const ready = shape === "CONSTANT" ? number !== "" && Number.isFinite(Number(number)) : shape === "PRODUCT" ? sourceComplete(source) && sourceComplete(second) : sourceComplete(source) && (shape === "INPUT" || (number !== "" && Number.isFinite(Number(number))));
   return (
     <fieldset className="prowess-authoring__nested" data-testid="formula-add">
       <legend>Add a contribution</legend>
@@ -402,11 +423,13 @@ function AddContribution({ sourceKinds, catalog, onAdd, disabled }: { sourceKind
       <select aria-label="New contribution shape" value={shape} onChange={(e) => setShape(e.target.value as typeof shape)}>
         <option value="DIVIDED">an input ÷ a number, rounded down</option>
         <option value="SCALED">a number × an input</option>
+        <option value="PRODUCT">an input × another input</option>
         <option value="INPUT">an input as it is</option>
         <option value="CONSTANT">a constant number</option>
       </select>
       {shape !== "CONSTANT" ? <SourceFields catalog={catalog} sourceKinds={sourceKinds} value={source} onChange={setSource} label="New contribution" /> : null}
-      {shape !== "INPUT" ? <input aria-label={shape === "DIVIDED" ? "New contribution divisor" : shape === "SCALED" ? "New contribution multiplier" : "New contribution value"} type="number" step="any" value={number} onChange={(e) => setNumber(e.target.value)} /> : null}
+      {shape === "PRODUCT" ? <SourceFields catalog={catalog} sourceKinds={sourceKinds} value={second} onChange={setSecond} label="Multiplied by" /> : null}
+      {shape !== "INPUT" && shape !== "PRODUCT" ? <input aria-label={shape === "DIVIDED" ? "New contribution divisor" : shape === "SCALED" ? "New contribution multiplier" : "New contribution value"} type="number" step="any" value={number} onChange={(e) => setNumber(e.target.value)} /> : null}
       <button type="button" className="gov-button" onClick={add} disabled={!ready || disabled}>
         Add contribution
       </button>

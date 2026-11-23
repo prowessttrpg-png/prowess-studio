@@ -9,6 +9,8 @@ export interface ConditionPolicy {
   readonly maneuverApMaximum: number;
   readonly formulas: Readonly<Record<keyof typeof CONDITION_POLICY.formulas, ConditionFormula>>;
 }
+/** RULES-WO1 Phase H: the inputs each Condition-policy Formula slot reads (exactly, in order). */
+export const CONDITION_POLICY_FORMULA_INPUTS = Object.freeze(Object.fromEntries(Object.entries(CONDITION_POLICY.formulas).map(([k, f]) => [k, [...f.variables]])) as unknown as Readonly<Record<keyof typeof CONDITION_POLICY.formulas, readonly string[]>>);
 export function readConditionPolicy(value: unknown, at: readonly PathSegment[], p: Problems): ConditionPolicy | null {
   const before = p.count, e = DURATION_CONDITION_ERRORS.INVALID;
   const r = readRecord(value, at, p, e, ["spellMpPercentMaximum", "maneuverApMaximum", "formulas"], ["spellMpPercentMaximum", "maneuverApMaximum", "formulas"]); if (!r) return null;

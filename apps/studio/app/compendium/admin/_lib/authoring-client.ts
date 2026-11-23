@@ -78,6 +78,10 @@ export interface AuthoringCatalogDto {
   legacyTerms: Array<{ legacyTerm: string; canonicalTerm: string }>;
   /** RULES-WO1: what the application does with each kind (truthful status indicators). Absent in older fixtures. */
   capabilities?: Record<string, KindCapabilityDto>;
+  /** RULES-WO1 Phase H: fixed lists that are not option vocabularies (natural rolls, Formula slot inputs, comparison). */
+  fixedLists?: Record<string, string[]>;
+  /** RULES-WO1 Phase H: Core Playtest rulings an optional engine policy may start from. */
+  rulingDefaults?: Record<string, unknown>;
 }
 export interface KindCapabilityDto {
   /** LIVE, PARTIAL or REFERENCE_ONLY — the server's capability registry is the source of the values (kept a string here, as the

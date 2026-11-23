@@ -101,9 +101,20 @@ describe("PRE-M7-WO1 guided Formula model (server-side; the Studio never parses 
     expect(formulaGuide({ op: "name", source: { kind: "MARTIAL_RANK_VALUE" }, taken: [], style: "camel" })).toEqual({ variable: "martialRankValue", label: "Martial Rank Value" });
     expect(formulaGuide({ op: "name", source: { kind: "STAT", stat: "STR" }, taken: ["str"], style: "camel" })).toEqual({ variable: "str2", label: "Stat STR" });
     expect(() => formulaGuide({ op: "name", source: { kind: "STAT", stat: "STR" }, taken: [], style: "kebab" })).toThrow(/style/);
+    // RULES-WO1 Phase H: a construction / policy Formula's fixed input is its own variable; a Targeting rank table is named.
+    expect(formulaGuide({ op: "name", source: { kind: "CONSTRUCTION_INPUT", field: "base_effects" }, taken: [] })).toEqual({ variable: "base_effects", label: "the input base effects" });
+    expect(formulaGuide({ op: "name", source: { kind: "SKILL_RANK_TABLE", table: "MARTIAL_RANK_BASE" }, taken: [] })).toEqual({ variable: "martial_rank_base", label: "the rank table martial rank base" });
     expect(() => formulaGuide({ op: "compose", terms: [{ sign: 2, kind: "INPUT", variable: "x" }] })).toThrow(/sign/);
     expect(formulaGuide({ op: "compose", terms: [{ sign: 1, kind: "OTHER", text: "x $ 1" }] })).toMatchObject({ ok: false, reason: expect.stringMatching(/does not parse/) });
     expect(() => formulaGuide({ op: "describe", expression: "x".repeat(2001) })).toThrow(/at most/);
     expect(() => formulaGuide({ op: "eval" })).toThrow(/op is/);
+  });
+
+  it("RULES-WO1 Phase H: one input multiplied by another is a contribution (Maneuver Radius: rank base × STR), round-tripped exactly", () => {
+    const d = formulaGuide({ op: "describe", expression: "rank_base * str", sources: [{ kind: "SKILL_RANK_TABLE", table: "MARTIAL_RANK_BASE" }, { kind: "STAT", stat: "STR" }] }) as { description: { guided: { ok: boolean; terms: unknown[] }; sourceLabels: string[] } };
+    expect(d.description.guided).toEqual({ ok: true, terms: [{ sign: 1, kind: "PRODUCT", variable: "rank_base", other: "str", text: "rank_base * str" }] });
+    expect(d.description.sourceLabels).toEqual(["the rank table martial rank base", "Stat STR"]);
+    expect(formulaGuide({ op: "compose", terms: [{ sign: 1, kind: "CONSTANT", value: 5 }, { sign: 1, kind: "PRODUCT", variable: "rank_base", other: "str" }] })).toMatchObject({ ok: true, expression: "5 + rank_base * str", variables: ["rank_base", "str"] });
+    expect(() => formulaGuide({ op: "compose", terms: [{ sign: 1, kind: "PRODUCT", variable: "rank_base" }] })).toThrow(/two inputs/);
   });
 });

@@ -9,6 +9,7 @@ import {
   CRITICAL_DAMAGE_RULES,
   CRITICAL_HIT_RULES,
   CRITICAL_THREAT_RULES,
+  STAT_MASTERY_SIGNALS,
   BONUS_TARGETS,
   DEFERRED_STATISTICS,
   DERIVED_STATISTICS,
@@ -437,7 +438,7 @@ function readCoreResolution(value: unknown, at: readonly PathSegment[], p: Probl
     const levelAtLeast = m === null ? null : readBoundedInteger(own(m, "levelAtLeast"), [...at, "mastery", "levelAtLeast"], p, "levelAtLeast", 1);
     const statAtLeast = m === null ? null : readBoundedInteger(own(m, "statAtLeast"), [...at, "mastery", "statAtLeast"], p, "statAtLeast", 1);
     // Stat Mastery grants Advantage (s162) — a signal. A numeric bonus is not representable here by construction.
-    const signal = m === null ? null : readEnum(own(m, "signal"), ["ADVANTAGE"] as const, [...at, "mastery", "signal"], p, C.INVALID_PAYLOAD, "Stat Mastery signal");
+    const signal = m === null ? null : readEnum(own(m, "signal"), STAT_MASTERY_SIGNALS, [...at, "mastery", "signal"], p, C.INVALID_PAYLOAD, "Stat Mastery signal");
     const rawApplies = own(r, "appliesTo");
     const appliesTo: Exclude<CoreProcedure, "STAT_MASTERY">[] = [];
     if (!Array.isArray(rawApplies) || rawApplies.length === 0) p.add(C.INVALID_PAYLOAD, [...at, "appliesTo"], "appliesTo lists the roll procedures Stat Mastery signals");

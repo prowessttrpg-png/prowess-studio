@@ -150,6 +150,12 @@ export {
   ROLL_MODES,
   ROLL_MODE_VARIABLES,
   ROLL_PROCEDURES,
+  CRITICAL_THREAT_RULES,
+  CRITICAL_HIT_RULES,
+  CRITICAL_DAMAGE_RULES,
+  COMPARISON_TARGETS,
+  ROLL_COMPARISON_OPERATORS,
+  STAT_MASTERY_SIGNALS,
   ROLL_STATE_KEYS,
   SKILL_RANK_LADDER_KEY,
   STAT_CONTEXT_KEYS,
@@ -399,6 +405,7 @@ export {
   type StackLimitKind,
 } from "./vocabulary/ability-construction.js";
 export {
+  CONSTRUCTION_FORMULA_INPUTS,
   NO_COMPONENT_CONSTRUCTION_RULES,
   readComponentConstructionRules,
   type AbilityConstructionRulePayload,
@@ -512,7 +519,8 @@ export { compileAbilityDefinition, readAbilityDefinitionRun, evaluateAbilityDefi
 
 // M5-WO9: typed Duration and construction Conditions, consumed through compileAbilityDefinition.
 export { DURATION_CONDITION_ERRORS, COMPONENT_AVAILABILITIES, CONDITION_COST_MEANINGS, DURATION_CONCENTRATION_MODES, CONDITION_MECHANIC_FACTS, CONDITION_NUMERIC_FACTS, CONDITION_SET_FACTS, readDurationRules, readDurationCosts, readConditionRules, readConditionContributions, type DurationRules, type ConditionRules, type RuntimeRequirement, type ConditionModifier, type ConditionContribution } from "./definition/duration-condition-payload.js";
-export { type ConditionPolicy, type ConditionFormula } from "./definition/condition-policy.js";
+export { CONDITION_POLICY_FORMULA_INPUTS, type ConditionPolicy, type ConditionFormula } from "./definition/condition-policy.js";
+export { CONDITION_POLICY } from "./content/core-playtest-v0.1/duration-conditions.js";
 export type { CompiledDurationConditions, DurationConditionResult } from "./ability/duration-conditions.js";
 
 // M5-WO10: final Spell cost, percentage netting and AP derivation — composes with compileAbilityDefinition.
@@ -528,13 +536,13 @@ export { type EffectAffinityReduction } from "./definition/effect-payload.js";
 // M5-WO12: Effect Chain execution and runtime resolution routing — composes with compileAbilityDefinition and WO2 cores.
 export { EFFECT_EXECUTION_ERROR_CODES, compileAbilityExecution, executeAbilityResolution, type ProwessAbilityExecutionPlan, type AbilityExecutionResult, type ExecutionChainNode, type ExecutionGroup, type ExecutionEffect, type ExecutionInputRequest, type ExecutionInputKind, type ExecutionRequestKind, type ExecutionNodeStatus, type ExecutionTermination, type ExecutionResolution, type ResolvedOutcome, type SpellTargetTrace, type GroupTargetTrace, type CoreEvaluationRecord, type TriggerEvaluationRecord, type SaveFlow } from "./ability/effect-execution.js";
 export { EFFECT_CHAIN_BEHAVIORS, EFFECT_CHAIN_FAILURE_POLICIES, readEffectChain, type EffectChainBehavior, type EffectChainNode, type EffectChainPayload } from "./definition/effect-chain-payload.js";
-export { MARTIAL_SAVE_CONTROLS, type EffectExecutionPolicy, type MartialSaveControl } from "./definition/effect-execution-policy.js";
+export { MARTIAL_SAVE_CONTROLS, CHAIN_BEHAVIORS, type EffectExecutionPolicy, type MartialSaveControl } from "./definition/effect-execution-policy.js";
 export { EFFECT_EXECUTION_POLICY, EFFECT_EXECUTION_CONTENT } from "./content/core-playtest-v0.1/effect-execution.js";
 
 // M5-WO13 — Active Magic Runtime (Sustain, Mana Lock, Concentration, Channeling, Active Effect lifecycle).
 export { ACTIVE_MAGIC_ERROR_CODES, ACTIVE_EFFECT_STATUSES, ACTIVE_EFFECT_END_REASONS, ACTIVE_MAGIC_BOUNDARIES, ACTIVE_MAGIC_EXTERNAL_ENDS, CONCENTRATION_TRIGGERS, ACTIVE_EFFECT_TICK_TIMINGS, ACTIVE_MAGIC_EVENT_KINDS, transitionActiveMagic } from "./ability/active-magic.js";
 export type { ActiveEffectStatus, ActiveEffectEndReason, ActiveMagicEventKind, ActiveEffectOutcomeBinding, FormulaEvaluation, ActiveEffectState, ChannelState, ActiveMagicState, ResourceChange, RuntimeEvaluation, ConcentrationTestTrace, ActiveMagicTransition, ActiveMagicInspector } from "./ability/active-magic.js";
-export { ACTIVE_MAGIC_DISMISSAL, ACTIVE_MAGIC_DURATIONS, readActiveMagicPolicy } from "./definition/active-magic-policy.js";
+export { ACTIVE_MAGIC_DISMISSAL, ACTIVE_MAGIC_DURATIONS, ACTIVE_MAGIC_FORMULA_INPUTS, MANA_LOCK_AMOUNT_KINDS, readActiveMagicPolicy } from "./definition/active-magic-policy.js";
 export type { ActiveMagicDismissal, ActiveMagicDuration, ActiveMagicPolicy, ManaLockAmountRule } from "./definition/active-magic-policy.js";
 export { ACTIVE_MAGIC_POLICY, ACTIVE_MAGIC_CONTENT } from "./content/core-playtest-v0.1/active-magic.js";
 // PAS-10 M6-WO3 — character-facing Definition contracts (ANCESTRY v1, SKILL v1, CHARACTER_CREATION_RULE v1) and the
@@ -839,6 +847,7 @@ export { MAGE_ART_ACTIVE_EFFECT_WINDOWS } from "./definition/mage-art-payload.js
 export type { MageArtActiveEffectWindow, MageArtCost, MageArtMaintenance, MageArtMode, MageArtPayload } from "./definition/mage-art-payload.js";
 export {
   ACTION_IMPROVEMENT_MODIFICATION_KINDS,
+  IMPROVED_AP_COST_MODELS,
   ACTION_IMPROVEMENT_PAYLOAD_KINDS,
   ACTION_IMPROVEMENT_PREREQUISITE_KINDS,
   type ActionImprovementModification,
@@ -967,4 +976,4 @@ export {
   type SummonEngine,
 } from "./definition/rules-reference-payload.js";
 export { SUMMON_COST_INPUT_KINDS, SUMMON_LIMIT_INPUT_KINDS } from "./definition/rules-authoring-payload.js";
-export { previewArmor, previewMageArtScaling, previewMissionTable, previewReload, previewSummonCosts, previewSummonEconomy, previewThreatClock } from "./reference/preview.js";
+export { previewArmor, previewMageArtScaling, previewMissionTable, previewReload, previewSummonCosts, previewSummonEconomy, previewTargetingMeasures, previewThreatClock } from "./reference/preview.js";

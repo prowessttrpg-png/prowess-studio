@@ -13,8 +13,9 @@ import { MissionRuleEditor } from "./MissionRuleEditor";
 import { ContentTokenList, ContentTokenSelect } from "./ContentTokenSelect";
 import { IntegerListInput, OptionalFeetInput, RowsEditor } from "./GuidedInputs";
 import { AbilityDefinitionEditor } from "./AbilityDefinitionEditor";
-import { EffectMechanicsEditor, MechanicsIssues, TraitMechanicsEditor } from "./ComponentMechanicsEditor";
+import { EffectMechanicsEditor, MechanicsIssues, OptionList, TraitMechanicsEditor } from "./ComponentMechanicsEditor";
 import { ConditionMechanicsEditor, DurationMechanicsEditor, FoundationMechanicsEditor, TargetingMechanicsEditor } from "./ComponentRulesEditors";
+import { FixedInputFormula, NaturalSelectionEditor, OpenQuestionInput, PlayCheckEditor, WrittenNotesEditor } from "./RuleControls";
 import { TRAIT_FAMILY_SHAPES, nextKey, shapeOf, traitFamilyFor } from "../_lib/component-mechanics";
 import { KeywordPicker } from "./KeywordPicker";
 import { asToken } from "../_lib/token-input";
@@ -113,7 +114,7 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
   const listId = useId();
   switch (field.input) {
     case "select": {
-      const options = catalog.vocabularies[field.vocabulary] ?? [];
+      const options = catalog.vocabularies[field.vocabulary] ?? catalog.fixedLists?.[field.vocabulary] ?? [];
       return (
         <LabeledControl field={field} issues={issues}>
           {(p) => (
@@ -562,9 +563,15 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
     // ---- PRE-M7-WO1 recursive structure (every key the form does not show is kept) -----------------------------------
     case "group": {
       if (value === null || value === undefined) {
+        const ruling = field.defaultFrom === undefined ? undefined : catalog.rulingDefaults?.[field.defaultFrom];
         return (
           <Shell field={field} issues={issues} composite>
             <p className="gov-muted">Not set.</p>
+            {ruling !== undefined ? (
+              <button type="button" className="gov-link-button" data-testid={`${field.key}-add-ruling`} onClick={() => onChange(JSON.parse(JSON.stringify(ruling)))}>
+                Add {field.label.toLowerCase()} — start from the Core Playtest ruling
+              </button>
+            ) : null}
             <button type="button" className="gov-link-button" onClick={() => onChange(Object.fromEntries(field.fields.map((f) => [f.key, initialFieldValue(f)])))}>
               Set {field.label.toLowerCase()}
             </button>
@@ -577,9 +584,9 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
           {field.fields.map((sf) => (
             <FieldControl key={sf.key} field={{ ...sf, key: `${field.key}.${sf.key}` }} value={sub(obj, sf.key)} onChange={(v) => onChange(put(obj, sf.key, v))} catalog={catalog} issues={[]} payload={payload} />
           ))}
-          {field.nullable ? (
-            <button type="button" className="gov-link-button" onClick={() => onChange(null)}>
-              Clear {field.label.toLowerCase()}
+          {field.nullable || field.absent ? (
+            <button type="button" className="gov-link-button" onClick={() => onChange(field.absent ? undefined : null)}>
+              {field.absent ? "Remove" : "Clear"} {field.label.toLowerCase()}
             </button>
           ) : null}
         </Shell>
@@ -697,6 +704,84 @@ function FieldControl({ field, value, onChange, catalog, issues, payload, onCrea
         </Shell>
       );
     }
+    // ---- RULES-WO1 Phase H: guided controls for formerly technical fields ------------------------------------------
+    case "fixedFormula":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <FixedInputFormula value={value} onChange={onChange} catalog={catalog} inputs={catalog.fixedLists?.[field.inputs] ?? []} allInputs={field.allInputs} expressionOnly={field.expressionOnly} label={field.label} />
+        </Shell>
+      );
+    case "naturalSelection":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <NaturalSelectionEditor value={value} onChange={onChange} catalog={catalog} allowNone={field.allowNone ?? false} testId={`natural-${field.key.replace(/^\W+/, "").replace(/\W+/g, "-")}`} />
+        </Shell>
+      );
+    case "writtenNotes":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <WrittenNotesEditor value={value} onChange={onChange} label={field.label} testId={`notes-${field.key.replace(/^\W+/, "").replace(/\W+/g, "-")}`} />
+        </Shell>
+      );
+    case "playCheck":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <PlayCheckEditor value={value} onChange={onChange} testId={`play-check-${field.key.replace(/^\W+/, "").replace(/\W+/g, "-")}`} />
+        </Shell>
+      );
+    case "openQuestion":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <OpenQuestionInput value={value} onChange={onChange} label={field.label} testId={`open-question-${field.key.replace(/^\W+/, "").replace(/\W+/g, "-")}`} />
+        </Shell>
+      );
+    case "selectMap": {
+      const obj = asObject(value);
+      const keys = catalog.vocabularies[field.keys] ?? catalog.fixedLists?.[field.keys] ?? [];
+      const options = catalog.vocabularies[field.vocabulary] ?? [];
+      return (
+        <Shell field={field} issues={issues} composite>
+          {keys.map((k) => (
+            <label key={k} className="gov-field">
+              <span>{formatEnumLabel(k)}</span>
+              <select data-testid={`select-map-${field.key.replace(/^\W+/, "").replace(/\W+/g, "-")}-${k}`} value={typeof obj[k] === "string" ? (obj[k] as string) : ""} onChange={(e) => onChange({ ...obj, [k]: e.target.value })}>
+                <option value="">Choose…</option>
+                {options.map((o) => (
+                  <option key={o} value={o}>
+                    {formatEnumLabel(o)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
+        </Shell>
+      );
+    }
+    case "fixedChoice": {
+      const options = catalog.fixedLists?.[field.list] ?? [];
+      // Words for the comparison a roll uses (the stored value stays the exact operator the reader requires).
+      const words = (o: string) => (options.length === 1 && field.list === "rollComparisonOperators" ? "meets or exceeds the difficulty" : o);
+      return (
+        <LabeledControl field={field} issues={issues}>
+          {(p) => (
+            <select {...p} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(e.target.value)}>
+              <option value="">Choose…</option>
+              {options.map((o) => (
+                <option key={o} value={o}>
+                  {words(o)}
+                </option>
+              ))}
+            </select>
+          )}
+        </LabeledControl>
+      );
+    }
+    case "wordList":
+      return (
+        <Shell field={field} issues={issues} composite>
+          <OptionList label={field.label} values={Array.isArray(value) ? (value as string[]) : []} testId={`words-${field.key.replace(/^\W+/, "").replace(/\W+/g, "-")}`} onChange={onChange} />
+        </Shell>
+      );
     case "optionalData":
       // Optional advanced data: absent stays absent (never written as an empty object).
       return (

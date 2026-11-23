@@ -1,9 +1,10 @@
 import { CHARACTER_ERROR_CODES, DomainError } from "@prowess/model";
-import { PROWESS_STATS, previewArmor, previewMageArtScaling, previewMissionTable, previewReload, previewSummonCosts, previewSummonEconomy, previewThreatClock } from "@prowess/game";
+import { PROWESS_STATS, previewArmor, previewMageArtScaling, previewMissionTable, previewReload, previewSummonCosts, previewSummonEconomy, previewTargetingMeasures, previewThreatClock } from "@prowess/game";
 import { validateStoredRevision } from "../compendium-authoring/service.js";
 
 /**
- * RULES-WO1 Phase C — preview of a SAVED reference Definition (Armor, a Summon engine, a Mission table or Threat Clock)
+ * RULES-WO1 Phase C — preview of a SAVED reference Definition (Armor, a Summon engine, a Mission table or Threat Clock;
+ * Phase H: a Targeting's distances)
  * for sample inputs, with the same M5 / M4 code the contracts use. Reads one exact EntityVersion; writes nothing. Every
  * result says `appliesInPlay: false` — none of these families is executed yet.
  */
@@ -71,6 +72,30 @@ export async function previewReferenceDefinition(input: { readonly entityVersion
       if (payload.shape === "ROLL_TABLE") return { definitionKind: def.definitionKind, result: previewMissionTable({ table: payload.rollTable as never, roll: int(sample.roll, "sample.roll", 1, 1000) ?? 1 }) as unknown as Record<string, unknown> };
       if (payload.shape === "CLOCK") return { definitionKind: def.definitionKind, result: previewThreatClock({ clock: payload.clock as never, filled: int(sample.filled, "sample.filled", 0, 1000) ?? 0 }) as unknown as Record<string, unknown> };
       return { definitionKind: def.definitionKind, result: { appliesInPlay: false } };
+    }
+    case "SPELL_TARGETING":
+    case "MANEUVER_TARGETING": {
+      // RULES-WO1 Phase H: the distances a Targeting states for a sample (the same Formula, rank-table row and default
+      // choices the builders bind; the result says so and is not marked "reference only").
+      const record = (v: unknown, what: string): Record<string, unknown> => {
+        if (v === undefined) return {};
+        if (v === null || typeof v !== "object" || Array.isArray(v)) throw invalid(`${what} is an object`);
+        return v as Record<string, unknown>;
+      };
+      const ranks: Record<string, string> = {};
+      for (const [k, v] of Object.entries(record(sample.ranks, "sample.ranks"))) {
+        if (typeof v !== "string" || !/^[A-Z][A-Z0-9_]{0,63}$/.test(v)) throw invalid(`sample.ranks.${k} is a rank`);
+        ranks[k] = v;
+      }
+      const parameters: Record<string, number> = {};
+      for (const [k, v] of Object.entries(record(sample.parameters, "sample.parameters"))) parameters[k] = int(v, `sample.parameters.${k}`, 0, 1000) as number;
+      const derived: Record<string, number> = {};
+      for (const [k, v] of Object.entries(record(sample.derived, "sample.derived"))) derived[k] = int(v, `sample.derived.${k}`, 0, 100000) as number;
+      const payload = def.payload as { semanticShape?: string; rules?: { targeting?: unknown } };
+      if (payload.rules?.targeting === undefined) throw invalid("this Targeting has no structured distances to preview");
+      const result = previewTargetingMeasures({ targeting: payload.rules.targeting, shape: payload.semanticShape ?? "", branch: def.definitionKind === "SPELL_TARGETING" ? "SPELL" : "MANEUVER", stats, ranks, parameters, derived });
+      if (!result.ok) throw invalid(`this Targeting cannot be previewed: ${result.problems.join("; ")}`);
+      return { definitionKind: def.definitionKind, result: result as unknown as Record<string, unknown> };
     }
     default:
       throw invalid(`${def.definitionKind} has no reference preview`);

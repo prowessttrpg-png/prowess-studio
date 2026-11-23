@@ -10,6 +10,8 @@ import type { ContentTokenOptions } from "./descriptors";
 
 export interface FormulaSourceDto {
   readonly kind: string;
+  /** RULES-WO1 Phase H: a Targeting Skill-rank table. */
+  readonly table?: string;
   readonly stat?: string;
   readonly statistic?: string;
   readonly field?: string;
@@ -20,6 +22,7 @@ export type FormulaTermDto =
   | { readonly sign: 1 | -1; readonly kind: "CONSTANT"; readonly value: number; readonly text?: string }
   | { readonly sign: 1 | -1; readonly kind: "INPUT"; readonly variable: string; readonly text?: string }
   | { readonly sign: 1 | -1; readonly kind: "SCALED"; readonly variable: string; readonly factor: number; readonly text?: string }
+  | { readonly sign: 1 | -1; readonly kind: "PRODUCT"; readonly variable: string; readonly other: string; readonly text?: string }
   | { readonly sign: 1 | -1; readonly kind: "DIVIDED"; readonly variable: string; readonly divisor: number; readonly rounding: "floor" | "ceil" | null; readonly text?: string }
   | { readonly sign: 1 | -1; readonly kind: "OTHER"; readonly text: string };
 export interface FormulaDescriptionDto {

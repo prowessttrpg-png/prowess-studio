@@ -55,6 +55,19 @@ export async function listAuthoringOptions(list: unknown): Promise<readonly Auth
       take: 500,
     });
     for (const r of rows) if (!seen.has(r.entity.canonicalKey)) seen.set(r.entity.canonicalKey, r.displayName);
-  } else throw invalid('list is "skillRanks", "calculatedValues", "rankLadders", "allRanks", "weaponFamilies" or "skills"');
+  } else if (list === "maneuverComponents") {
+    // RULES-WO1 Phase H: a Maneuver component by name, for policy fields that store its canonical key.
+    const rows = await prisma.entityVersion.findMany({
+      where: { status: { in: ["DRAFT", "IN_REVIEW", "APPROVED"] }, structuredData: { path: ["prowessDefinition", "definitionKind"], string_starts_with: "MANEUVER_" } },
+      select: { displayName: true, structuredData: true, entity: { select: { canonicalKey: true } } },
+      orderBy: [{ revisionNumber: "desc" }],
+      take: 500,
+    });
+    for (const r of rows) {
+      const kind = (r.structuredData as { prowessDefinition?: { definitionKind?: string } } | null)?.prowessDefinition?.definitionKind;
+      if (kind === "MANEUVER_DEFINITION" || seen.has(r.entity.canonicalKey)) continue;
+      seen.set(r.entity.canonicalKey, r.displayName);
+    }
+  } else throw invalid('list is "skillRanks", "calculatedValues", "rankLadders", "allRanks", "weaponFamilies", "skills" or "maneuverComponents"');
   return [...seen.entries()].map(([token, label]) => ({ token, label })).sort((a, b) => (a.label < b.label ? -1 : a.label > b.label ? 1 : 0));
 }

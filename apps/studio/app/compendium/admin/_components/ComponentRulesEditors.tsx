@@ -40,6 +40,8 @@ import {
   tokenWords,
 } from "../_lib/component-mechanics";
 import { Checks, ConstructionEditor, CostsEditor, NumberInput, OptionList, ParametersEditor, RefChooser, RefList, Section, Select, WordsInput, type MechanicsKinds } from "./ComponentMechanicsEditor";
+import { asToken } from "../_lib/token-input";
+import { ContentTokenSelect } from "./ContentTokenSelect";
 import { FormulaEditor } from "./FormulaEditor";
 
 /**
@@ -183,14 +185,14 @@ function initialTargetingRules(): Record<string, unknown> {
 }
 
 /** A distance in feet (an M4 Formula over Stats, derived values and this component's size steps), edited by contributions. */
-function Distance({ value, onChange, catalog, steps, label, testId }: { value: unknown; onChange: (v: Record<string, unknown>) => void; catalog: AuthoringCatalogDto; steps: readonly string[]; label: string; testId: string }) {
+function Distance({ value, onChange, catalog, steps, tables = [], label, testId }: { value: unknown; onChange: (v: Record<string, unknown>) => void; catalog: AuthoringCatalogDto; steps: readonly string[]; tables?: readonly string[]; label: string; testId: string }) {
   const sources = vocab(catalog, "targetingVariableSources");
-  const stepsKind = sources.find((k) => shapeOf(TARGETING_SOURCE_SHAPES, k) === "steps");
+  const extra = sources.filter((k) => (shapeOf(TARGETING_SOURCE_SHAPES, k) === "steps" && steps.length > 0) || (shapeOf(TARGETING_SOURCE_SHAPES, k) === "table" && tables.length > 0));
   const sourceKinds = sources.filter((k) => {
     const s = shapeOf(TARGETING_SOURCE_SHAPES, k);
-    return s === "stat" || s === "derived" || (s === "steps" && steps.length > 0);
+    return s === "stat" || s === "derived" || (s === "steps" && steps.length > 0) || (s === "table" && tables.length > 0);
   });
-  const extended: AuthoringCatalogDto = { ...catalog, vocabularies: { ...catalog.vocabularies, formulaExtraSourceKinds: stepsKind ? [stepsKind] : [], formulaParameterChoices: [...steps] } };
+  const extended: AuthoringCatalogDto = { ...catalog, vocabularies: { ...catalog.vocabularies, formulaExtraSourceKinds: extra, formulaParameterChoices: [...steps], formulaTableChoices: [...tables] } };
   const none = vocab(catalog, "formulaRoundings").find((r) => shapeOf({ NONE: "none" }, r) === "none") ?? tokenOf({ NONE: "none" }, "none");
   const formula = value !== null && typeof value === "object" ? (value as Record<string, unknown>) : { expression: "0", rounding: none, minimum: null, unit: "ft", variables: [] };
   return (
@@ -201,12 +203,12 @@ function Distance({ value, onChange, catalog, steps, label, testId }: { value: u
 }
 
 /** Renames a Targeting choice in everything that reads it (the cardinality, listed costs and distance inputs). */
-function renameTargetingChoice(payload: Payload, t: Record<string, unknown>, from: string, to: string): Payload {
+function renameTargetingChoice(payload: Payload, t: Record<string, unknown>, from: string, to: string, field: "parameter" | "table" = "parameter"): Payload {
   const rename = (v: unknown): unknown => {
     if (Array.isArray(v)) return v.map(rename);
     if (v === null || typeof v !== "object") return v;
     const out: Record<string, unknown> = {};
-    for (const [k, x] of Object.entries(v as Record<string, unknown>)) out[k] = k === "parameter" && x === from ? to : rename(x);
+    for (const [k, x] of Object.entries(v as Record<string, unknown>)) out[k] = k === field && x === from ? to : rename(x);
     return out;
   };
   const rules = asObject(payload.rules);
@@ -266,6 +268,63 @@ function TargetingParameters({ parameters, onChange, onRename, catalog, testId }
   );
 }
 
+/**
+ * A value that depends on a Skill rank (for example the Martial Rank Base: Trained 5, Expert 10, Master 15). A distance
+ * reads it through a "rank table" input; a rank with no row is "not authored at this rank" (never 0).
+ */
+function RankTables({ tables, onChange, onRename }: { tables: Node[]; onChange: (v: Node[]) => void; onRename: (from: string, to: string, next: Node[]) => void }) {
+  const set = (i: number, next: Node) => onChange(tables.map((x, j) => (j === i ? next : x)));
+  return (
+    <Section title="Values by Skill rank" help="A value that depends on the user's rank in one Skill, read by a distance below (for example 5 / 10 / 15 by Martial rank)." testId="targeting-rank-table">
+      {tables.length === 0 ? <p className="gov-muted">None.</p> : null}
+      {tables.map((tb, i) => {
+        const name = typeof tb.tableKey === "string" ? tb.tableKey : "";
+        const entries = asArray(tb.entries);
+        return (
+          <div key={i} className="prowess-authoring__card" data-testid={`targeting-rank-table-${i}`}>
+            <TableName value={name} testId={`targeting-rank-table-${i}-name`} onChange={(v) => onRename(name, v, tables.map((x, j) => (j === i ? { ...x, tableKey: v } : x)))} />
+            <span className="gov-field">
+              <label htmlFor={`targeting-rank-table-${i}-skill`}>By the rank in</label>
+              <ContentTokenSelect id={`targeting-rank-table-${i}-skill`} value={tb.skillKey} options="skills" onChange={(v) => set(i, { ...tb, skillKey: v })} />
+            </span>
+            {entries.map((e, j) => (
+              <div key={j} className="prowess-authoring__inline" data-testid={`targeting-rank-table-${i}-row-${j}`}>
+                <span className="gov-field">
+                  <label htmlFor={`targeting-rank-table-${i}-row-${j}-rank`}>Rank</label>
+                  <ContentTokenSelect id={`targeting-rank-table-${i}-row-${j}-rank`} value={e.rankKey} options="skillRanks" onChange={(v) => set(i, { ...tb, entries: entries.map((x, k) => (k === j ? { ...x, rankKey: v } : x)) })} />
+                </span>
+                <NumberInput label="Value" value={e.value} testId={`targeting-rank-table-${i}-row-${j}-value`} onChange={(v) => set(i, { ...tb, entries: entries.map((x, k) => (k === j ? { ...x, value: v ?? 0 } : x)) })} allowBlank={false} />
+                <button type="button" className="gov-link-button" onClick={() => set(i, { ...tb, entries: entries.filter((_, k) => k !== j) })}>
+                  Remove this rank
+                </button>
+              </div>
+            ))}
+            <button type="button" className="gov-link-button" data-testid={`targeting-rank-table-${i}-add-row`} onClick={() => set(i, { ...tb, entries: [...entries, { rankKey: "", value: 0 }] })}>
+              Add a rank
+            </button>
+            <button type="button" className="gov-link-button" onClick={() => onChange(tables.filter((_, j) => j !== i))}>
+              Remove this table
+            </button>
+          </div>
+        );
+      })}
+      <button type="button" className="gov-button" data-testid="targeting-rank-table-add" onClick={() => onChange([...tables, { tableKey: "", skillKey: "", entries: [] }])}>
+        Add values by Skill rank
+      </button>
+    </Section>
+  );
+}
+
+function TableName({ value, onChange, testId }: { value: string; onChange: (v: string) => void; testId: string }) {
+  const [typed, setTyped] = useState<string | null>(null);
+  return (
+    <span className="gov-field">
+      <label htmlFor={testId}>Name</label>
+      <input id={testId} data-testid={testId} value={typed ?? tokenWords(value)} onChange={(e) => { setTyped(e.target.value); onChange(asToken(e.target.value, true)); }} onBlur={() => setTyped(null)} autoComplete="off" />
+    </span>
+  );
+}
+
 export function TargetingMechanicsEditor({ maneuver, payload, onPayloadChange, catalog, kinds }: { maneuver: boolean; payload: Payload; onPayloadChange: (p: Payload) => void; catalog: AuthoringCatalogDto; kinds: MechanicsKinds }) {
   const rules = asObject(payload.rules);
   const t = rules.targeting === undefined ? initialTargetingRules() : asObject(rules.targeting);
@@ -283,6 +342,8 @@ export function TargetingMechanicsEditor({ maneuver, payload, onPayloadChange, c
   const steps = named("steps");
   const counts = named("number");
   const choosable = [...named("yesno"), ...named("list")];
+  const rankTables = asArray(t.rankTables);
+  const tables = rankTables.map((r) => String(r.tableKey ?? "")).filter(Boolean);
   const radiusOf = (m: unknown) => shapeOf({ RADIUS: "radius" }, m) === "radius";
   const setMeasures = (next: Node[]) => put({ measures: next, radiusCapable: next.some((m) => radiusOf(m.measure)) });
   const costs = asArray(payload.costContributions);
@@ -317,6 +378,12 @@ export function TargetingMechanicsEditor({ maneuver, payload, onPayloadChange, c
         onRename={(from, to, next) => onPayloadChange(from === "" ? withT({ ...t, parameters: next }) : renameTargetingChoice(payload, { ...t, parameters: next }, from, to))}
       />
 
+      <RankTables
+        tables={rankTables}
+        onChange={(v) => put({ rankTables: v })}
+        onRename={(from, to, next) => onPayloadChange(from === "" ? withT({ ...t, rankTables: next }) : renameTargetingChoice(payload, { ...t, rankTables: next }, from, to, "table"))}
+      />
+
       <Section title="Range" testId="targeting-range">
         <Select
           label="Range"
@@ -329,7 +396,7 @@ export function TargetingMechanicsEditor({ maneuver, payload, onPayloadChange, c
             put({ range: s === "distance" ? { model: v, formula: range.formula ?? null } : s === "text" ? { model: v, ruleText: range.ruleText ?? "" } : { model: v } });
           }}
         />
-        {rShape === "distance" ? <Distance value={range.formula} catalog={catalog} steps={steps} label="Range in feet" testId="targeting-range-distance" onChange={(f) => put({ range: { ...range, formula: f } })} /> : null}
+        {rShape === "distance" ? <Distance value={range.formula} catalog={catalog} steps={steps} tables={tables} label="Range in feet" testId="targeting-range-distance" onChange={(f) => put({ range: { ...range, formula: f } })} /> : null}
         {rShape === "text" ? <RuleText value={range.ruleText} label="The special range rule, as written" testId="targeting-range-text" onChange={(v) => put({ range: { ...range, ruleText: v } })} /> : null}
       </Section>
 
@@ -352,7 +419,7 @@ export function TargetingMechanicsEditor({ maneuver, payload, onPayloadChange, c
                   setRow(shape === "distance" ? { measure: m, valueStatus: v, formula: row?.formula ?? null } : shape === "deferred" ? { measure: m, valueStatus: v, conflictKey: row?.conflictKey ?? "", ruleText: row?.ruleText ?? "" } : { measure: m, valueStatus: v });
                 }}
               />
-              {s === "distance" ? <Distance value={row?.formula} catalog={catalog} steps={steps} label={`${tokenWords(m)} in feet`} testId={`targeting-measure-${m}-distance`} onChange={(f) => setRow({ ...row, formula: f })} /> : null}
+              {s === "distance" ? <Distance value={row?.formula} catalog={catalog} steps={steps} tables={tables} label={`${tokenWords(m)} in feet`} testId={`targeting-measure-${m}-distance`} onChange={(f) => setRow({ ...row, formula: f })} /> : null}
               {s === "deferred" ? (
                 <>
                   <WordsInput label="Open question it waits on (for example M5 SC 030)" value={conflictWords(row?.conflictKey)} testId={`targeting-measure-${m}-conflict`} onChange={(v) => setRow({ ...row, conflictKey: conflictKey(v) })} />
@@ -449,7 +516,6 @@ export function TargetingMechanicsEditor({ maneuver, payload, onPayloadChange, c
       )}
 
       <ConstructionEditor construction={rules.construction} catalog={catalog} kinds={kinds} testId="targeting-construction" onChange={(v) => onPayloadChange({ ...payload, rules: { ...rules, targeting: t, construction: v } })} />
-      {asArray(t.rankTables).length > 0 ? <p className="gov-muted">This Targeting also has Skill-rank tables; they are kept unchanged.</p> : null}
     </div>
   );
 }

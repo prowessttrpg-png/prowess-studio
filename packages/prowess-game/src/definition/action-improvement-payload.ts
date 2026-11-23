@@ -20,6 +20,8 @@ import { readDefinitionRef, type ProwessDefinitionRef } from "./envelope.js";
  * ACTION contract — an operation no existing rule evaluates is reported UNSUPPORTED, never executed.
  */
 
+/** RULES-WO1 Phase H: how an improved Action's AP cost is stated (only a fixed new cost is established). */
+export const IMPROVED_AP_COST_MODELS = Object.freeze(["FIXED"] as const);
 export const ACTION_IMPROVEMENT_PAYLOAD_KINDS = Object.freeze(["ACTION_IMPROVEMENT"] as const);
 export type ActionImprovementPayloadKind = (typeof ACTION_IMPROVEMENT_PAYLOAD_KINDS)[number];
 export const isActionImprovementPayloadKind = (kind: string): kind is ActionImprovementPayloadKind => (ACTION_IMPROVEMENT_PAYLOAD_KINDS as readonly string[]).includes(kind);
@@ -165,7 +167,7 @@ function readModification(x: unknown, taken: readonly string[], at: readonly Pat
   if (kind === "ACTION_POINT_COST") {
     const cat = [...at, "actionPointCost"];
     const c = readRecord(own(m, "actionPointCost"), cat, p, C.INVALID_PAYLOAD, ["model", "amount"], ["model", "amount"]);
-    const model = c === null ? null : readEnum(own(c, "model"), ["FIXED"] as const, [...cat, "model"], p, C.INVALID_PAYLOAD, "improved AP cost model");
+    const model = c === null ? null : readEnum(own(c, "model"), IMPROVED_AP_COST_MODELS, [...cat, "model"], p, C.INVALID_PAYLOAD, "improved AP cost model");
     const amount = c === null ? null : readAtLeast(own(c, "amount"), [...cat, "amount"], p, "AP amount", NO_AMOUNT);
     if (p.count > before || modificationKey === null || rulesText === null || condition === undefined || model === null || amount === null) return null;
     return { modificationKey, kind, rulesText, condition, actionPointCost: { model, amount } };

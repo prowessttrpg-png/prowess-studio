@@ -2,6 +2,9 @@ import { evaluateFormula } from "@prowess/rules";
 import type { ValueFormula } from "../definition/rules-authoring-payload.js";
 import { deepFreeze } from "../internal/plain-data.js";
 import type { ProwessStat } from "../vocabulary/core.js";
+import { readTargetingRules, type TargetingFormula } from "../definition/targeting-payload.js";
+import { Problems } from "../internal/problems.js";
+import type { TargetingSemanticShape } from "../vocabulary/construction.js";
 
 /**
  * RULES-WO1 Phase C — PREVIEWS of reference rule families for sample inputs. Pure; every number goes through M4. None of
@@ -166,4 +169,71 @@ export function previewSummonEconomy(input: SummonEconomyPreviewInput) {
     dismissal: o.dismissal,
     appliesInPlay: false as const,
   });
+}
+
+// ---- RULES-WO1 Phase H: Targeting distances ------------------------------------------------------------------------
+
+export interface TargetingPreviewInput {
+  /** A stored `rules.targeting`; it is read by the M5 Targeting reader first (an invalid one is refused). */
+  readonly targeting: unknown;
+  /** The Targeting's stored shape label (the reader refuses an add-on used as a base Targeting). */
+  readonly shape: string;
+  readonly branch: "SPELL" | "MANEUVER";
+  readonly stats: Readonly<Partial<Record<ProwessStat, number>>>;
+  /** The sample Character's rank in each Skill a rank table reads, by the Skill's canonical key (absent = no rank). */
+  readonly ranks: Readonly<Record<string, string>>;
+  /** Size-step choices (STEPS parameters); a missing one uses its authored default, exactly as the builders do. */
+  readonly parameters: Readonly<Record<string, number>>;
+  /** Derived values the distance reads (for example Base Range), stated by the sample — never computed here. */
+  readonly derived: Readonly<Record<string, number>>;
+}
+
+/**
+ * The distances a Targeting states for a sample Character: the same Formula, rank-table row and default choices the
+ * Spell / Maneuver builders bind (targeting/compile.ts), evaluated by M4. A missing input is reported, never guessed.
+ */
+export function previewTargetingMeasures(input: TargetingPreviewInput) {
+  const p = new Problems();
+  const t = readTargetingRules(input.targeting, input.shape as TargetingSemanticShape, input.branch, ["rules", "targeting"], p);
+  if (t === null) return deepFreeze({ ok: false as const, problems: p.list.map((x) => x.message) });
+  const evaluate = (f: TargetingFormula) => {
+    const bindings: Record<string, number> = {};
+    const inputs: { variable: string; reads: string; value: number | null }[] = [];
+    let reason: string | null = null;
+    for (const { variable, source: s } of f.variables) {
+      let v: number | undefined;
+      let reads: string;
+      if (s.kind === "STAT") {
+        reads = s.stat;
+        v = input.stats[s.stat];
+        if (v === undefined) reason ??= `${s.stat} is needed`;
+      } else if (s.kind === "PARAMETER") {
+        reads = s.parameter;
+        const rule = t.parameters.find((q) => q.parameter === s.parameter);
+        v = input.parameters[s.parameter] ?? (typeof rule?.default === "number" ? rule.default : undefined);
+        if (v === undefined) reason ??= `${s.parameter} is needed`;
+      } else if (s.kind === "SKILL_RANK_TABLE") {
+        reads = s.table;
+        const table = t.rankTables.find((x) => x.tableKey === s.table);
+        const rank = table === undefined ? undefined : input.ranks[table.skillKey];
+        const row = table?.entries.find((e) => e.rankKey === rank);
+        v = row?.value;
+        if (v === undefined) reason ??= rank === undefined ? `a rank in ${table?.skillKey ?? s.table} is needed` : `${s.table} has no row for ${rank} (not authored at this rank)`;
+      } else {
+        reads = s.statistic;
+        v = input.derived[s.statistic];
+        if (v === undefined) reason ??= `${s.statistic} is needed`;
+      }
+      inputs.push({ variable, reads, value: v ?? null });
+      if (v !== undefined) bindings[variable] = v;
+    }
+    if (reason !== null) return { value: null, unit: f.unit, inputs, reason };
+    const out = evaluateFormula({ expression: f.expression, rounding: f.rounding, minimum: f.minimum, maximum: null, unit: f.unit }, bindings);
+    return out.success && out.data !== null ? { value: out.data.finalValue, unit: f.unit, inputs, reason: null } : { value: null, unit: f.unit, inputs, reason: "the Formula could not be evaluated" };
+  };
+  const range = t.range.formula === null ? { model: t.range.model, value: null, unit: null, inputs: [], reason: t.range.ruleText ?? "no stated distance" } : { model: t.range.model, ...evaluate(t.range.formula) };
+  const measures = t.measures.map((m) =>
+    m.valueStatus === "FORMULA" ? { measure: m.measure, status: m.valueStatus, ...evaluate(m.formula) } : { measure: m.measure, status: m.valueStatus, value: null, unit: null, inputs: [], reason: m.valueStatus === "EFFECT_DEFINED" ? "set by the Effect" : `waits on ${m.conflictKey}` },
+  );
+  return deepFreeze({ ok: true as const, range, measures, rankTables: t.rankTables.map((r) => ({ tableKey: r.tableKey, skillKey: r.skillKey, rank: input.ranks[r.skillKey] ?? null, entries: r.entries })), sameAsBuilders: true as const });
 }

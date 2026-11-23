@@ -113,8 +113,9 @@ describe("PRE-M7-WO1 guided editors on shipped content", () => {
     const changes: DefinitionCandidate[] = [];
     render(<Editor initial={candidateOf("ABILITY_CONSTRUCTION_RULE", 1, without)} onChange={(c) => changes.push(c)} />);
     const group = screen.getByRole("group", { name: /Active Magic policy/ });
-    fireEvent.click(within(group).getByRole("button", { name: /Add active magic policy/i }));
-    expect((changes.at(-1)!.payload as Record<string, unknown>).activeMagicPolicy).toEqual({});
+    // RULES-WO1 Phase H: the policy is now guided and starts from the Core Playtest ruling (then adjusted) — never {}.
+    fireEvent.click(within(group).getByRole("button", { name: /Add active magic policy — start from the Core Playtest ruling/i }));
+    expect((changes.at(-1)!.payload as Record<string, unknown>).activeMagicPolicy).toEqual(CATALOG.rulingDefaults!.activeMagicPolicy);
     fireEvent.click(within(screen.getByRole("group", { name: /Active Magic policy/ })).getByRole("button", { name: /Remove active magic policy/i }));
     expect(JSON.parse(JSON.stringify(changes.at(-1)!.payload))).not.toHaveProperty("activeMagicPolicy");
   });

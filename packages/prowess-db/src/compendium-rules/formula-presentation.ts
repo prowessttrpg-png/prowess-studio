@@ -16,7 +16,8 @@ function engineReading(expression: string): EngineReading {
  *
  * The expression is parsed with the SAME M4 parser the engine uses. Its top-level sum is shown as a list of
  * CONTRIBUTIONS (terms joined by + / −); each term is classified only so ordinary controls can edit it:
- *   CONSTANT n · INPUT x · SCALED n × x · DIVIDED x ÷ n (optionally floor / ceil) · OTHER (any other sub-expression).
+ *   CONSTANT n · INPUT x · SCALED n × x · PRODUCT x × y (RULES-WO1 Phase H) · DIVIDED x ÷ n (optionally floor / ceil) · OTHER
+ *   (any other sub-expression).
  * Editing rebuilds the expression with a precedence-aware printer and is accepted ONLY when the result parses back to
  * exactly the intended AST — so a guided edit can never change precedence or evaluation semantics. An expression that
  * the guided view cannot represent losslessly is never flattened or rewritten: the editor offers the advanced (raw,
@@ -30,6 +31,7 @@ export type FormulaTerm =
   | { readonly sign: 1 | -1; readonly kind: "INPUT"; readonly variable: string }
   | { readonly sign: 1 | -1; readonly kind: "SCALED"; readonly variable: string; readonly factor: number }
   | { readonly sign: 1 | -1; readonly kind: "DIVIDED"; readonly variable: string; readonly divisor: number; readonly rounding: "floor" | "ceil" | null }
+  | { readonly sign: 1 | -1; readonly kind: "PRODUCT"; readonly variable: string; readonly other: string }
   | { readonly sign: 1 | -1; readonly kind: "OTHER"; readonly node: FormulaNode };
 
 export type GuidedFormula = { readonly ok: true; readonly terms: readonly FormulaTerm[] } | { readonly ok: false; readonly reason: string };
@@ -88,6 +90,7 @@ function classify(node: FormulaNode, sign: 1 | -1): FormulaTerm {
   if (node.type === "BINARY" && node.operator === "*") {
     if (node.left.type === "NUMBER" && node.right.type === "VARIABLE") return { sign, kind: "SCALED", variable: node.right.key, factor: node.left.value };
     if (node.right.type === "NUMBER" && node.left.type === "VARIABLE") return { sign, kind: "SCALED", variable: node.left.key, factor: node.right.value };
+    if (node.left.type === "VARIABLE" && node.right.type === "VARIABLE") return { sign, kind: "PRODUCT", variable: node.left.key, other: node.right.key };
   }
   if (node.type === "BINARY" && node.operator === "/" && node.left.type === "VARIABLE" && node.right.type === "NUMBER") return { sign, kind: "DIVIDED", variable: node.left.key, divisor: node.right.value, rounding: null };
   if (node.type === "CALL" && (node.name === "floor" || node.name === "ceil") && node.arguments.length === 1) {
@@ -118,6 +121,8 @@ export function termExpression(t: FormulaTerm): string {
       return t.variable;
     case "SCALED":
       return `${num(t.factor)} * ${t.variable}`;
+    case "PRODUCT":
+      return `${t.variable} * ${t.other}`;
     case "DIVIDED":
       return t.rounding === null ? `${t.variable} / ${num(t.divisor)}` : `${t.rounding}(${t.variable} / ${num(t.divisor)})`;
     case "OTHER": {

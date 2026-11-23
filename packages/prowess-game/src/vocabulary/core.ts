@@ -145,6 +145,9 @@ export const CRITICAL_THREAT_RULES = deepFreeze(["NATURAL_EQUALS_DIE_FACES"] as 
 export const CRITICAL_HIT_RULES = deepFreeze(["THREAT_AND_SUCCESS"] as const);
 export const CRITICAL_DAMAGE_RULES = deepFreeze(["DEFERRED"] as const);
 
+/** RULES-WO1 Phase H: what Stat Mastery grants (s162: Advantage — a signal, never a number). */
+export const STAT_MASTERY_SIGNALS = deepFreeze(["ADVANTAGE"] as const);
+
 /** The only comparison a WO2 roll uses: meet or exceed (s13, s15, s56). */
 export const ROLL_COMPARISON_OPERATORS = deepFreeze([">="] as const);
 
