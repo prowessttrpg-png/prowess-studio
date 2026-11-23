@@ -89,7 +89,7 @@ jobs:
         run: node scripts/lib/control-harness.selftest.mjs
       - name: DIST-WO1 desktop boundary and mutation controls
         run: |
-          node --test scripts/distribution/prototype-evidence.test.mjs scripts/distribution/desktop/desktop-boundary.test.mjs
+          node --test scripts/distribution/prototype-evidence.test.mjs scripts/distribution/desktop/desktop-boundary.test.mjs scripts/distribution/desktop/installed-upgrade.test.mjs
           PROWESS_EXPECT_CONTROLS=6 node scripts/distribution/desktop/negative-controls.mjs
 
   unit-packages:
@@ -1015,6 +1015,82 @@ jobs:
           path: ${{ runner.temp }}/prowess-installed-evidence
           if-no-files-found: error
 
+  # RULES-WO1: the installed UPGRADE proof, separate from the installed smoke's backup / restore. The identified earlier
+  # build (scripts/distribution/upgrade-baseline.json) is installed, prepares a representative workspace (Releases,
+  # Characters, an encounter, a Character mid-turn), and this build's installer is run over it; the upgraded application
+  # must keep that state, continue play, and keep it after a restart.
+  windows-upgrade:
+    name: Installed upgrade — previous build to this build
+    needs: windows-package
+    runs-on: windows-2025
+    timeout-minutes: 75
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Read the upgrade baseline record
+        uses: actions/checkout@v4
+        with:
+          path: candidate-src
+          sparse-checkout: scripts/distribution/upgrade-baseline.json
+          sparse-checkout-cone-mode: false
+      - name: Baseline identity
+        id: base
+        shell: pwsh
+        run: |
+          $b = Get-Content -LiteralPath 'candidate-src/scripts/distribution/upgrade-baseline.json' -Raw | ConvertFrom-Json
+          if ($b.commit -cnotmatch '^[a-f0-9]{40}$' -or "$($b.artifact.runId)" -cnotmatch '^\d+$' -or $b.artifact.name -cne ('prowess-windows-x64-' + $b.commit)) { throw 'Invalid upgrade baseline record.' }
+          "commit=$($b.commit)" >> $env:GITHUB_OUTPUT
+          "artifact=$($b.artifact.name)" >> $env:GITHUB_OUTPUT
+          "run=$($b.artifact.runId)" >> $env:GITHUB_OUTPUT
+      - name: Download the baseline installer from its own CI run
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.base.outputs.artifact }}
+          path: ${{ runner.temp }}/prowess-baseline
+          run-id: ${{ steps.base.outputs.run }}
+          github-token: ${{ github.token }}
+      - name: Check out the baseline source (its artifact is unavailable)
+        if: steps.download.outcome != 'success'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.base.outputs.commit }}
+          path: baseline-src
+      - name: Set up pinned NSIS (baseline build)
+        if: steps.download.outcome != 'success'
+        shell: pwsh
+        run: choco install nsis.install --version=3.12.0 --yes --no-progress
+      - name: Build the baseline installer from its recorded source with its own build script
+        if: steps.download.outcome != 'success'
+        shell: pwsh
+        run: |
+          Remove-Item -LiteralPath "$env:RUNNER_TEMP\prowess-baseline" -Recurse -Force -ErrorAction SilentlyContinue
+          ./baseline-src/scripts/distribution/build-windows-installer.ps1 -OutputDirectory "$env:RUNNER_TEMP\prowess-baseline" -MakeNsis "${env:ProgramFiles(x86)}\NSIS\makensis.exe"
+      - name: Download this build's installer
+        uses: actions/download-artifact@v4
+        with:
+          name: prowess-windows-x64-${{ github.sha }}
+          path: ${{ runner.temp }}/prowess-installer
+      - name: Installed upgrade proof
+        shell: pwsh
+        run: >-
+          & (Join-Path $env:RUNNER_TEMP 'prowess-installer\verify-windows-upgrade.ps1')
+          -CandidateArtifact (Join-Path $env:RUNNER_TEMP 'prowess-installer')
+          -BaselineArtifact (Join-Path $env:RUNNER_TEMP 'prowess-baseline')
+          -BaselineCommit '${{ steps.base.outputs.commit }}'
+          -BaselineOrigin '${{ steps.download.outcome == 'success' && 'CI artifact' || 'built from source' }}'
+          -EvidenceDirectory (Join-Path $env:RUNNER_TEMP 'prowess-upgrade-evidence')
+          -ExpectedCommit $env:GITHUB_SHA -BuildRunner
+      - name: Upload installed upgrade evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: prowess-windows-upgrade-evidence-${{ github.sha }}
+          path: ${{ runner.temp }}/prowess-upgrade-evidence
+          if-no-files-found: error
+
   # ---- Tier summaries ---------------------------------------------------------------------------------------------------
   tier-1:
     name: Tier 1 — fast feedback
@@ -1035,7 +1111,7 @@ jobs:
   tier-2:
     name: ${{ github.event_name == 'workflow_dispatch' && inputs.certification && 'Tier 3 — clean certification' || 'Tier 2 — merge readiness' }}
     if: always()
-    needs: [static, unit-packages, unit-game, unit-studio, db-api, db-integration, controls-1, controls-2, controls-3, controls-4, controls-5, controls-6, e2e, windows-package, windows-installed]
+    needs: [static, unit-packages, unit-game, unit-studio, db-api, db-integration, controls-1, controls-2, controls-3, controls-4, controls-5, controls-6, e2e, windows-package, windows-installed, windows-upgrade]
     runs-on: ubuntu-latest
     steps:
       # The summary script lives in the repository: a summary job checks out just scripts/ci (no install, no build).
