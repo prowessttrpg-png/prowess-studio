@@ -31,6 +31,12 @@ candidate installer yet.
 
 If the version or commit differ, you are not running the candidate. Stop there and send the About page.
 
+Installing over your existing app is the same upgrade that CI's `windows-upgrade` job checks on a clean Windows account:
+it installs the earlier build (`23f3c03`, 0.1.2), makes Releases, Characters, an encounter and a Character mid-turn,
+installs the candidate over it and confirms they are all kept and play continues. Check its evidence
+(`prowess-windows-upgrade-evidence-<commit>`) on the same CI run, and after installing, open a Character and an encounter
+you already had to confirm they are unchanged in your own workspace.
+
 ## 3. Representative tasks
 
 Do these in a Ruleset you use for testing. Nothing is published unless you choose to publish.

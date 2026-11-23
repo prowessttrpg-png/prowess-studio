@@ -5,7 +5,8 @@
 Outstanding:
 
 - publication and the draft PR;
-- hosted CI, including Tier 2 and both Windows installer jobs;
+- hosted CI, including Tier 2 and the three Windows jobs (`windows-package`, `windows-installed` and the new
+  `windows-upgrade` installed-upgrade proof) — none has run yet;
 - the owner's walkthrough acceptance;
 - the open gameplay questions in §3, including the Ability Condition and Permanent Duration decisions;
 - creating the Cone Attack Conversion Draft in the owner's own workspace (not reachable from this session; the procedure is
@@ -13,7 +14,7 @@ Outstanding:
 
 Only optional technical inspection remains outside game language (R18).
 
-**Candidate:** `384d1b4be8aef2ffbd5477c32ce0c8334504b718` (tree `8470554e7ecfa49a4e7afef3f1d8d953a16e0e90`). Every local result in §4 comes from that one commit.
+**Candidate:** `cc06af1933b3921f71e4c4d8fe57886045072da9` (tree `f5834b72b7b321c9b5a14350a1b2d6aab8916472`). Every local result in §4 comes from that one commit.
 
 **How this was reconciled.** The R01–R28 text below is the owner's, restored on 20 Nov 2026. In Phase F the owner's full
 work order, including the narrative sections §4–§8, was attached; it is kept in the private project (never in the
@@ -22,6 +23,11 @@ data types, IDs, locators or formulas; "a recursive object editor with friendly 
 (Spells, Maneuvers, Mage Arts and Summons), §7 (one record per rule, lossless round trip) and §8 (a new component is
 selectable and evaluated in the existing builder or preview) — and against the Core Playtest packet, read on the owner's
 machine.
+
+**Installed upgrade (after Phase H).** R24 and R26 were re-decided after the installed-upgrade check was added: CI now
+installs the identified previous build (`23f3c03`, app 0.1.2), prepares Releases, Characters, an encounter and a
+mid-turn play state with it, installs the candidate over it and verifies preservation, continued play and a restart
+(`windows-upgrade`, required by Tier 2). Its logic passed locally at the HTTP level; the Windows run is pending.
 
 **Phase H.** R11 and R18 were re-decided after an inventory of every authorable kind's editing descriptor (nested groups,
 list items and variants), not only the R18 list: core roll configuration, construction Formulas and policies, Action
@@ -79,7 +85,7 @@ Each of these is now implemented and tested as structure, or marked plainly belo
 | --- | --- | --- | --- |
 | R01 | Source identity, governing overrides, verified GitHub baseline and exact CI recorded. | **Verified locally**; candidate CI pending | **Recorded:** source identity, overrides OV-01–OV-04, and the baseline `23f3c03`.<br>**Baseline CI:** run #285, all 18 jobs, verified by the owner.<br>**Candidate CI:** not run (R26). |
 | R02 | Full source/system inventory covers every established family, including those absent/reserved in today's catalog. | **Verified locally** | The coverage inventory and §1. The capability registry has an entry for every kind, pinned by `rules-wo1-capabilities.test.ts`. Ammunition and modifications were added in this phase. SUMMON_ACTION_MODEL stays reserved, because its content is structured on each engine. |
-| R03 | Installed generic-editor discrepancy reproduced or explained with build/route evidence; packaged build displays the intended UI. | **Explained; installed check hosted verification pending** | **Explanation:** loading each commit's own descriptors shows DIST-WO1/WO2 used the generic STAT editor.<br>**Installed check:** the installed smoke test (About page identity and guided kinds) runs only in the CI `windows-package` job. |
+| R03 | Installed generic-editor discrepancy reproduced or explained with build/route evidence; packaged build displays the intended UI. | **Explained; installed check hosted verification pending** | **Explanation:** loading each commit's own descriptors shows DIST-WO1/WO2 used the generic STAT editor.<br>**Installed check:** the installed smoke test (About page identity and guided kinds) runs only in the CI `windows-installed` job, on the installer built by `windows-package`. |
 | R04 | All six Stat pages support readable descriptions, existing impacts, and adding a new relationship without technical fields. | **Verified locally** | **Browser "R04":** all six Stat pages, no writes, and a new value from AGI that already reads AGI. |
 | R05 | Create Carry Capacity from Strength, configure a labelled test calculation, preview, publish and display it on a new test Character; no canonical formula invented. | **Verified locally** | **Browser V01–V05** and DB integration. The value is labelled TEST_ONLY. |
 | R06 | Edit Throw Distance with its actual Skill/Stat dependencies and conditional applicability preserved. | **Verified locally** (game, DB, UI); no browser edit journey | **Calculation:** unstated base; Trained +5 ft per STR, Expert +5.<br>**Situations:** a bonus that applies only in a situation is stored with its condition and shown, never silently added. |
@@ -100,9 +106,9 @@ Each of these is now implemented and tested as structure, or marked plainly belo
 | R21 | Previews are read-only, use shared evaluators and exact candidate refs, and agree with supported published consumers. | **Verified locally** | **Read-only:** DB row-count checks.<br>**Shared evaluators:** all arithmetic goes through M4, including the reload split and Mage Art scaling.<br>**Agreement:** the Carry preview equals the published sheet; **Phase F:** the Skill-benefit preview equals the sheet for eligible and ineligible samples, ALL / ANY groups, Affinity ranks and granted Actions (game and DB tests). |
 | R22 | R2 publication leaves R1 Characters, encounters, play state, Active Magic and history unchanged. | **Verified locally** | Browser V05, DB R08, and the transfer proof (R1 Character rows, play runtime and events, and the encounter are identical). |
 | R23 | New records and links survive pack transfer into an independent workspace; preview remains read-only and replay remains idempotent. | **Verified locally** | **Transfer proof:** 14 new or activated kinds, the Mission → reference link, and idempotent replay. An imported Keyword stays read-only while a later pack installs. |
-| R24 | Restart, upgrade and independent backup/restore preserve the new authoring data and old workspace data. | **Previous-build restore verified locally; installed Windows upgrade hosted verification pending** | **New proof** `verify-rules-wo1-previous-build-restore.mjs`: a backup written by **main `23f3c03` (app 0.1.2)'s own code**, from its own workspace, is accepted and restored by the candidate. Every table is identical, the encounters and Character rows match, and the Character sheets match the previous build's.<br>**Relabelled:** the transfer proof's backup step is now described as a *version-tag* check (this build's code, an older tag). |
+| R24 | Restart, upgrade and independent backup/restore preserve the new authoring data and old workspace data. | **Previous-build restore and HTTP-level upgrade verified locally; installed Windows upgrade wired into CI, hosted run pending** | **Restore:** `verify-rules-wo1-previous-build-restore.mjs` — a backup written by **main `23f3c03` (app 0.1.2)'s own code** is accepted and restored by the candidate; every table, the encounters, Character rows and sheets are identical.<br>**Installed upgrade (new):** CI job `windows-upgrade` (`verify-windows-upgrade.ps1`, `installed-upgrade.mjs`; baseline in `upgrade-baseline.json`, its CI artifact or built from its own source). The previous application prepares an authored and the sample Release, two completed and one draft Character, a prepared encounter with both, and a Character mid-turn (AP spent); the candidate installer runs over it; the candidate keeps every recorded Release pin and manifest hash, Character, sheet, resource, the active turn and every play event and encounter row, commits another Move and an encounter command, and keeps them after a restart.<br>**Locally:** the same proof code passed between a `23f3c03` server and the candidate on one disposable database (two tamper runs fail as intended). The Windows installer, launcher upgrade and gateway are not exercised locally.<br>**Separate:** the installed backup / restore smoke (`windows-installed`) is unchanged; the DIST-WO1 standard-user Windows 11 lifecycle check stays deferred. |
 | R25 | Desktop and 390 px layouts, keyboard use, labels/focus, empty/error states and representative performance measurements are verified. | **Verified locally for the RULES-WO1 editors** | Browser P06 (timings in §4). Older screens are covered by their own milestones' tests. |
-| R26 | Existing gates plus new behavior tests pass; exact candidate CI includes Tier 2 and both Windows installer jobs. | **Local gates verified; hosted CI blocked** | Publication is refused by the session's git proxy. |
+| R26 | Existing gates plus new behavior tests pass; exact candidate CI includes Tier 2 and both Windows installer jobs. | **Local gates verified; hosted CI blocked** | Publication is refused by this session's repository access. Tier 2 now also requires `windows-upgrade`; none of `windows-package`, `windows-installed` or `windows-upgrade` has run. |
 | R27 | Owner walkthrough can complete representative tasks without developer instructions; owner acceptance is recorded separately and never fabricated. | **Owner acceptance pending** | The walkthrough has tasks T1–T32 (T19–T22 Phase F, T23–T27 Phase G, T28–T32 Phase H). |
 | R28 | Implementation report, coverage matrix, decisions, invariants, API/schema registries, evidence and PR are complete; no merge or M7-WO2 start. | **Complete locally; PR blocked** | **API routes:** 6 RULES-WO1 routes (two new Keyword routes).<br>**Migrations:** none.<br>**Approved-M5-change registry:** updated.<br>Not merged. RULES-WO2, RULES-WO3 and M7-WO2 were not started. |
 
@@ -125,37 +131,41 @@ Each of these is now implemented and tested as structure, or marked plainly belo
 
 ## 4. Evidence (one commit)
 
-All results below are from **one commit**: `384d1b4be8aef2ffbd5477c32ce0c8334504b718` (tree
-`8470554e7ecfa49a4e7afef3f1d8d953a16e0e90`), checked out clean, run locally on 22 Nov 2026 in one uninterrupted run.
-The working tree was clean before and after.
+All results below are from **one commit**: `cc06af1933b3921f71e4c4d8fe57886045072da9` (tree
+`f5834b72b7b321c9b5a14350a1b2d6aab8916472`), checked out clean, run locally on 23 Nov 2026 in one uninterrupted run
+(working tree clean before and after), plus the reruns marked below on the same commit.
 
 | Check | Result |
 | --- | --- |
 | Lint / architecture (14 rules, 7 packages) / typecheck / production build | pass |
-| Studio unit | **3981 / 3981** |
+| Studio unit | **3980 / 3981 in the run**: one 5 s timeout in `m3-final-static` ("no .docx … in reachable history"), which reads the whole git history; it was the first suite after a container restart (cold disk cache). Alone it passes in 1.9 s; the **whole Studio unit suite rerun on the same commit: 3981 / 3981**. No code was changed between the two. |
 | Game (`@prowess/game`) | **1939 / 1939** |
 | DB unit | **193 / 193** |
 | Model / rules (M4) / import / ui | 513 / 659 / 128 / 21 — all passed |
-| Desktop boundary (`node --test`) | 2 / 2 |
+| Desktop and distribution (`node --test`) | **5 / 5** (2 boundary + 3 new installed-upgrade tests) |
 | DB integration (2 shards, fresh migrated databases) | **309 + 352 = 661 / 661** |
 | Studio integration | **247 / 247** |
-| **Playwright — complete suite, one run, fresh test database** | **118 / 118 passed** (21.8 min), including P11–P13 and the new **P14** (Maneuver Radius), **P15** (Maneuver proof) and **P16** (Cone Draft) |
+| **Playwright — complete suite, one run, fresh test database** | **118 / 118 passed** (18.6 min) |
 | Negative controls | RULES-WO1 **13/13**, M6-WO1 **18/18**, PRE-M7-WO1 **13/13**, M7-WO1 **10/10** — every mutation caught and restored byte for byte |
-| New-kinds transfer proof | pass (R1 / R2 packs, idempotent replay, unchanged after restart) |
-| Previous-build restore proof | pass — backup written by main `23f3c03` (app 0.1.2), 1,192,179 bytes, SHA-256 `a2a0922bdeb36f483b6e296d22be04cb57ab65f2c2797c3f862eedfe8b0b3b66`; 31 migrations identical; all 69 tables; 2 encounters, 3 participants, 8 events re-read; both Character sheets equal |
+| New-kinds transfer proof | pass |
+| Previous-build restore proof | pass — backup written by main `23f3c03` (app 0.1.2), 1,192,157 bytes, SHA-256 `dede0125e09a23254936304c80e0d98edb11fc2f3f60fb87256a2d372b97043a`; all 69 tables identical; both Character sheets equal |
 | Migrations | Fresh: 31 applied, no Prisma drift. Upgrade from the populated earlier chain: no drift; no pre-existing table changed. |
-| 390 px timing (P06) | editor ready 317 ms; preview round trip 60 ms |
+| 390 px timing (P06) | editor ready 373 ms; preview round trip 90 ms |
+| **Installed-upgrade proof logic (HTTP level, separate run)** | pass — a `23f3c03` Studio server prepared 2 Releases, 3 Characters, an encounter with 2 participants and a Character mid-turn (AP 3 after a Move); the candidate server preserved every recorded field and all rows in 13 tables (808 manifest entries, 4 play events, 5 encounter events, …), committed a Move (AP 2) and an encounter command (version 6), and kept them after a restart. Two tamper runs (AP raised; a participant deleted) failed as intended. Not the Windows installer, launcher or gateway. |
+| Workflow / PowerShell static checks | `actionlint` clean; both scripts parse with PowerShell 7.4 (0 errors) |
 
 Local substitutions are unchanged from earlier checkpoints (migrations applied with `psql` from the committed files; drift
 checked with the official WebAssembly schema engine; the transfer and previous-build proofs run copies of their scripts,
-changed only in the migrate step). A first attempt at this run was stopped before any test result because the container
-restarted and the database was down; it was restarted from the beginning on the same commit.
+changed only in the migrate step). An earlier attempt at this run was cut off by a container restart before any
+result and was restarted from the beginning.
 
-**Not run here:** hosted CI; Tier 2; both Windows installer jobs (including the installed upgrade from an installed earlier
-build); the installed smoke test. All four are blocked by publication.
+**Not run here (pending hosted CI, blocked by publication):** hosted CI; Tier 2; `windows-package`; `windows-installed`
+(installed smoke, including backup / restore); **`windows-upgrade` (the actual Windows installed upgrade)**; the
+installed About check. The DIST-WO1 standard-user Windows 11 lifecycle check remains separately deferred.
 
 **Superseded runs, not combined with the above:**
 
+- `384d1b4` (`384d1b4be8aef2ffbd5477c32ce0c8334504b718`, Phase H): fully verified — Studio unit 3981, game 1939, DB unit 193, DB integration 661, Studio integration 247, Playwright 118 / 118, all controls, transfer, previous-build and migration proofs passed (Phase H report §6). These results remain evidence for that candidate, whose application code is unchanged.
 - `0729b70` (`0729b70775527237148ba85d6d332ab42162199f`, Phase G): fully verified — Studio unit 3970, game 1932, DB unit 191, DB integration 661, Studio integration 247, Playwright 115 / 115, all controls, transfer, previous-build and migration proofs passed (Phases F and G report). These results remain evidence for that candidate.
 - `2f62e05` (`2f62e05b435cdb20ae04f28f02e511a2a6c5c3ec`): Everything passed except two items: (1) the M6-WO1 control "allow an Effect resolution field on Targeting" could not apply its mutation, because its anchor (the Targeting descriptor's Geometry field) moved when the guided Targeting editor replaced it — the control was re-anchored in `0729b70` with the same mutation and guard; (2) one Playwright journey (M6-WO10 "a full turn …") timed out after 5 s waiting for the Play Workspace on its first page load (114 / 115); re-run alone on the same build it passed (4 / 4), and it is unaffected by Phase G. Logs are kept with the run.
 - `df76bb6` (Phase F): fully verified — Studio unit 3952, game 1927, DB unit 191, DB integration 661, Studio integration 247,
