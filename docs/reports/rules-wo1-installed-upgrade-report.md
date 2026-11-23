@@ -63,7 +63,8 @@ lifecycle check (`verify-windows-lifecycle.ps1`) is unchanged and stays separate
   - The previous server was then stopped and the candidate's migrations were applied. They are the same chain
     (31 migrations), so nothing new was applied.
   - The candidate server ran `verifyUpgradedState`; it was then restarted and ran `verifyAfterRestart`. All passed (§4).
-  - Two tamper runs fail as intended. Raising a Character's AP between the two builds fails at the sheet resources.
+  - Two tamper runs, run on `cc06af1` itself (a clean detached checkout), fail as intended. (A first pair was run
+    before that commit existed, at HEAD `2df9e87` with the same proof module uncommitted; it is superseded.) Raising a Character's AP between the two builds fails at the sheet resources.
     Deleting one encounter participant fails at the encounter's side membership.
   - This stands in for the launcher's desktop upgrade. It does not exercise the installer, the desktop gateway or
     the launcher's staged-copy migration.
@@ -114,7 +115,7 @@ All results below are from **one commit**: `cc06af1933b3921f71e4c4d8fe5788604507
 | Previous-build restore proof | pass — backup written by main `23f3c03` (app 0.1.2), 1,192,157 bytes, SHA-256 `dede0125e09a23254936304c80e0d98edb11fc2f3f60fb87256a2d372b97043a`; all 69 tables identical; both Character sheets equal |
 | Migrations | Fresh: 31 applied, no Prisma drift. Upgrade from the populated earlier chain: no drift; no pre-existing table changed. |
 | 390 px timing (P06) | editor ready 373 ms; preview round trip 90 ms |
-| **Installed-upgrade proof logic (HTTP level, separate run)** | pass — a `23f3c03` Studio server prepared 2 Releases, 3 Characters, an encounter with 2 participants and a Character mid-turn (AP 3 after a Move); the candidate server preserved every recorded field and all rows in 13 tables (808 manifest entries, 4 play events, 5 encounter events, …), committed a Move (AP 2) and an encounter command (version 6), and kept them after a restart. Two tamper runs (AP raised; a participant deleted) failed as intended. Not the Windows installer, launcher or gateway. |
+| **Installed-upgrade proof logic (HTTP level, separate run)** | pass — a `23f3c03` Studio server prepared 2 Releases, 3 Characters, an encounter with 2 participants and a Character mid-turn (AP 3 after a Move); the candidate server preserved every recorded field and all rows in 13 tables (808 manifest entries, 4 play events, 5 encounter events, …), committed a Move (AP 2) and an encounter command (version 6), and kept them after a restart. Two tamper runs (AP raised; a participant deleted) failed as intended — **run on `cc06af1` itself** (clean detached checkout; each log names the candidate commit). An earlier pair, made before `cc06af1` was committed (HEAD `2df9e87` with the then-uncommitted proof module, the same content as committed: blob `463a2b5`), is superseded and kept only as history. Not the Windows installer, launcher or gateway. |
 | Workflow / PowerShell static checks | `actionlint` clean; both scripts parse with PowerShell 7.4 (0 errors) |
 
 Local substitutions are unchanged from earlier checkpoints (migrations applied with `psql` from the committed files; drift
