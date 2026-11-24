@@ -49,6 +49,10 @@ function Get-Package([string] $Directory, [string] $Commit) {
     [pscustomobject]@{ Folder = $folder; Identity = $identity; Manifest = $manifest; Installer = $installer }
 }
 
+# windows-proof-environment.ps1 reports the token and architecture of the process named by $targetProcessId (this one).
+$targetProcessId = $PID
+$status = [ordered]@{ format = 1; proof = 'installed upgrade'; result = 'failed'; tests = @() }
+try {
 $candidate = Get-Package $CandidateArtifact $ExpectedCommit
 $baseline = Get-Package $BaselineArtifact $BaselineCommit
 if ($baseline.Identity.source.commit -ceq $candidate.Identity.source.commit) { throw 'The baseline and the candidate are the same build.' }
@@ -103,6 +107,13 @@ function Invoke-Phase($Installed, [string[]] $Arguments, [string] $Failure) {
     & $Installed.Node $proof @Arguments
     if ($LASTEXITCODE -ne 0) { throw $Failure }
     if (-not $script:launch.WaitForExit(35000) -or $script:launch.ExitCode -ne 0) { throw "$Failure (the launcher did not exit cleanly)" }
+}
+
+} catch {
+    $status.error = $_.Exception.Message
+    $status | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $summary -Encoding UTF8
+    Write-Host "Evidence: $summary"
+    throw
 }
 
 try {
