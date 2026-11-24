@@ -126,3 +126,32 @@ result and was restarted from the beginning.
 **Not run here (pending hosted CI, blocked by publication):** hosted CI; Tier 2; `windows-package`; `windows-installed`
 (installed smoke, including backup / restore); **`windows-upgrade` (the actual Windows installed upgrade)**; the
 installed About check. The DIST-WO1 standard-user Windows 11 lifecycle check remains separately deferred.
+
+## 5. Hosted CI run #286 (draft PR #79) and the two fixes
+
+You published the branch at `342db23` and opened draft PR #79. CI run #286 passed every job except three.
+
+| Job | Result | Cause | Fix (`33f21a56304569d7533fc4882ff584e39324bd4c`) |
+| --- | --- | --- | --- |
+| Gates — M5-WO4 … M6-WO12 | failed at M6-WO6 (WO7…WO12 skipped) | Control 44 anchored on `ARMOR: reserved("EQUIPMENT")`. RULES-WO1 Phase C activated ARMOR as an approved change and updated the M6-WO6 guards, but not this control. | The control now reverts that approved activation; the same M6-WO6 static guard catches it. 53 controls, as before. |
+| `windows-upgrade` | failed in 7 s, before any install | `windows-proof-environment.ps1` inspects the process named by the caller's `$targetProcessId`; the upgrade script never set it, so it asked for process 0 ("The parameter is incorrect"). The evidence upload then found no file. | The script sets `$targetProcessId = $PID` first, and identity / environment failures now write the evidence file. |
+| Tier 2 | failed | the two above | — |
+
+`windows-package` and `windows-installed` passed in #286. In `windows-upgrade`, the baseline installer downloaded from
+its own CI run (no rebuild was needed) before the probe failed.
+
+**Local checks on `33f21a5`:**
+
+- the seven control suites #286 did not finish — M6-WO6 53/53, WO7 68/68, WO8 36/36, WO9 46/46, WO10 52/52, WO11 25/25
+  and WO12 25/25 — every mutation caught and restored;
+- desktop and distribution tests 5/5; `actionlint` clean; the script parses;
+- with stand-in artifacts on Linux PowerShell, the `cc06af1` script reproduces the #286 error, while the fixed one gets
+  past the probe and records evidence when an identity check fails.
+
+The application, game and database code are unchanged since `cc06af1`. Its full local verification (§4) still applies.
+
+**Why the local runs missed it:** they ran four control suites (RULES-WO1, M6-WO1, PRE-M7-WO1, M7-WO1); CI runs all of
+them. The seven above are now part of the local check.
+
+**Pending:** push the new commits to PR #79, then a full CI run — the first time `windows-upgrade` can complete on
+Windows — and Tier 2.
