@@ -22,6 +22,7 @@ import {
 import type { CharacterCardContext } from "./equipment.js";
 import { renderGeneralActionRules, type LanguageContext } from "./language.js";
 import { conditionOf, type GeneralActionRules } from "./semantics.js";
+import { skillBenefitsForCharacter } from "../character/skill-benefits.js";
 
 /**
  * PAS-10 M6-WO9 Phase B — General Action Cards and the Action Directory: Release-driven projections of the EXISTING
@@ -149,10 +150,19 @@ export function projectGeneralActionCard(input: { readonly entry: CoreEntry<Acti
         costOverridableByExplicitRule: entry.payload.costOverridableByExplicitRule,
         source: entry.payload.source,
         improvements: improvements.map(improvementEntry),
+        ...grantsFor(input.bundle, input.profile, entry.ref),
       },
       snapshot: { contractVersion: CARD_CONTRACT_VERSION, cardKey, rulesetProvenance: ctx.rulesetProvenance, characterReleaseId: ctx.characterReleaseId, ability: null, sources: sources.map((s) => s.entityVersionId) },
     }),
   ) as GeneralActionCard;
+}
+
+/** RULES-WO1: the Skill benefits granting this exact Action (omitted entirely when none does — cards stay unchanged). */
+function grantsFor(bundle: ProwessDefinitionBundle, profile: CharacterMechanicalProfile, action: ProwessDefinitionRef): { grantedBySkills?: GeneralActionCardSection["grantedBySkills"] } {
+  const grants = skillBenefitsForCharacter({ bundle, profile })
+    .filter((b) => b.grantedActions.some((g) => g.action.entityId === action.entityId && g.state === "PINNED"))
+    .map((b) => ({ benefit: b.benefit, benefitKey: b.benefitKey, skill: b.skill, minimumRankKey: b.minimumRankKey, status: b.status }));
+  return grants.length === 0 ? {} : { grantedBySkills: grants };
 }
 
 export interface ActionDirectory {

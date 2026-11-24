@@ -93,6 +93,7 @@ export {
 } from "./definition/envelope.js";
 export {
   ABILITY_CONDITION_FORBIDDEN_KEYS,
+  COMPATIBILITY_RELATIONS,
   TARGETING_FORBIDDEN_KEYS,
   type AbilityConditionDefinitionPayload,
   type AffinityDefinitionPayload,
@@ -149,6 +150,12 @@ export {
   ROLL_MODES,
   ROLL_MODE_VARIABLES,
   ROLL_PROCEDURES,
+  CRITICAL_THREAT_RULES,
+  CRITICAL_HIT_RULES,
+  CRITICAL_DAMAGE_RULES,
+  COMPARISON_TARGETS,
+  ROLL_COMPARISON_OPERATORS,
+  STAT_MASTERY_SIGNALS,
   ROLL_STATE_KEYS,
   SKILL_RANK_LADDER_KEY,
   STAT_CONTEXT_KEYS,
@@ -398,6 +405,7 @@ export {
   type StackLimitKind,
 } from "./vocabulary/ability-construction.js";
 export {
+  CONSTRUCTION_FORMULA_INPUTS,
   NO_COMPONENT_CONSTRUCTION_RULES,
   readComponentConstructionRules,
   type AbilityConstructionRulePayload,
@@ -501,17 +509,18 @@ export {
   type EffectCostKind, type EffectOutcomeKey, type EffectOutcomeOperation, type TargetingDeliveryCheck,
   type EffectDeliveryInteraction,
 } from "./vocabulary/effect.js";
-export { EFFECT_ERROR_CODES, isSpellEffectFamily, type EffectRules, type EffectParameterRule, type EffectFormula, type EffectSaveProfile, type EffectDurationPolicy, type EffectCostRule, type EffectOutcomeReading, type TargetingDeliveryRule } from "./definition/effect-payload.js";
+export { EFFECT_ERROR_CODES, EFFECT_FORMULA_SOURCE_KINDS, isSpellEffectFamily, type EffectRules, type EffectParameterRule, type EffectFormula, type EffectSaveProfile, type EffectDurationPolicy, type EffectCostRule, type EffectOutcomeReading, type TargetingDeliveryRule } from "./definition/effect-payload.js";
 export { compileEffectUse, validateEffectUse, readEffectRun, type EffectCharacterContext, type EffectUseRequest, type EffectUseResult, type EffectCompiledOutputs, type ProwessEffectCompiledPlan } from "./effect/compile.js";
 
 // M5-WO8: typed Traits and exact authored Spell/Maneuver Definition compilation.
 export { TRAIT_FAMILIES, TRAIT_MODIFICATIONS, TRAIT_ERROR_CODES, readTraitRules, readTraitCosts, type TraitRules, type TraitFamily, type TraitModification, type TraitSelectedModification } from "./definition/trait-payload.js";
-export { AUTHORED_ABILITY_ERROR_CODES, validateAuthoredAbilityDefinition, serializeAuthoredAbilityDefinition, deserializeAuthoredAbilityDefinition, type SpellDefinitionPayload, type ManeuverDefinitionPayload, type AuthoredAbilityPayload, type AttackFoundationProfile, type ActionFoundationProfile, type FoundationProfile, isAttackFoundation } from "./definition/authored-ability-payload.js";
+export { AUTHORED_ABILITY_ERROR_CODES, FOUNDATION_ACTION_CATEGORIES, validateAuthoredAbilityDefinition, serializeAuthoredAbilityDefinition, deserializeAuthoredAbilityDefinition, type SpellDefinitionPayload, type ManeuverDefinitionPayload, type AuthoredAbilityPayload, type AttackFoundationProfile, type ActionFoundationProfile, type FoundationProfile, isAttackFoundation } from "./definition/authored-ability-payload.js";
 export { compileAbilityDefinition, readAbilityDefinitionRun, evaluateAbilityDefinition, type AbilityDefinitionRequest, type ProwessAbilityDefinitionCompiledPlan, type AuthoredAbilityResult, type CompiledTrait } from "./ability/compile.js";
 
 // M5-WO9: typed Duration and construction Conditions, consumed through compileAbilityDefinition.
-export { DURATION_CONDITION_ERRORS, readDurationRules, readDurationCosts, readConditionRules, readConditionContributions, type DurationRules, type ConditionRules, type RuntimeRequirement, type ConditionModifier, type ConditionContribution } from "./definition/duration-condition-payload.js";
-export { type ConditionPolicy, type ConditionFormula } from "./definition/condition-policy.js";
+export { DURATION_CONDITION_ERRORS, COMPONENT_AVAILABILITIES, CONDITION_COST_MEANINGS, DURATION_CONCENTRATION_MODES, CONDITION_MECHANIC_FACTS, CONDITION_NUMERIC_FACTS, CONDITION_SET_FACTS, readDurationRules, readDurationCosts, readConditionRules, readConditionContributions, type DurationRules, type ConditionRules, type RuntimeRequirement, type ConditionModifier, type ConditionContribution } from "./definition/duration-condition-payload.js";
+export { CONDITION_POLICY_FORMULA_INPUTS, type ConditionPolicy, type ConditionFormula } from "./definition/condition-policy.js";
+export { CONDITION_POLICY } from "./content/core-playtest-v0.1/duration-conditions.js";
 export type { CompiledDurationConditions, DurationConditionResult } from "./ability/duration-conditions.js";
 
 // M5-WO10: final Spell cost, percentage netting and AP derivation — composes with compileAbilityDefinition.
@@ -527,13 +536,13 @@ export { type EffectAffinityReduction } from "./definition/effect-payload.js";
 // M5-WO12: Effect Chain execution and runtime resolution routing — composes with compileAbilityDefinition and WO2 cores.
 export { EFFECT_EXECUTION_ERROR_CODES, compileAbilityExecution, executeAbilityResolution, type ProwessAbilityExecutionPlan, type AbilityExecutionResult, type ExecutionChainNode, type ExecutionGroup, type ExecutionEffect, type ExecutionInputRequest, type ExecutionInputKind, type ExecutionRequestKind, type ExecutionNodeStatus, type ExecutionTermination, type ExecutionResolution, type ResolvedOutcome, type SpellTargetTrace, type GroupTargetTrace, type CoreEvaluationRecord, type TriggerEvaluationRecord, type SaveFlow } from "./ability/effect-execution.js";
 export { EFFECT_CHAIN_BEHAVIORS, EFFECT_CHAIN_FAILURE_POLICIES, readEffectChain, type EffectChainBehavior, type EffectChainNode, type EffectChainPayload } from "./definition/effect-chain-payload.js";
-export { MARTIAL_SAVE_CONTROLS, type EffectExecutionPolicy, type MartialSaveControl } from "./definition/effect-execution-policy.js";
+export { MARTIAL_SAVE_CONTROLS, CHAIN_BEHAVIORS, type EffectExecutionPolicy, type MartialSaveControl } from "./definition/effect-execution-policy.js";
 export { EFFECT_EXECUTION_POLICY, EFFECT_EXECUTION_CONTENT } from "./content/core-playtest-v0.1/effect-execution.js";
 
 // M5-WO13 — Active Magic Runtime (Sustain, Mana Lock, Concentration, Channeling, Active Effect lifecycle).
 export { ACTIVE_MAGIC_ERROR_CODES, ACTIVE_EFFECT_STATUSES, ACTIVE_EFFECT_END_REASONS, ACTIVE_MAGIC_BOUNDARIES, ACTIVE_MAGIC_EXTERNAL_ENDS, CONCENTRATION_TRIGGERS, ACTIVE_EFFECT_TICK_TIMINGS, ACTIVE_MAGIC_EVENT_KINDS, transitionActiveMagic } from "./ability/active-magic.js";
 export type { ActiveEffectStatus, ActiveEffectEndReason, ActiveMagicEventKind, ActiveEffectOutcomeBinding, FormulaEvaluation, ActiveEffectState, ChannelState, ActiveMagicState, ResourceChange, RuntimeEvaluation, ConcentrationTestTrace, ActiveMagicTransition, ActiveMagicInspector } from "./ability/active-magic.js";
-export { ACTIVE_MAGIC_DISMISSAL, ACTIVE_MAGIC_DURATIONS, readActiveMagicPolicy } from "./definition/active-magic-policy.js";
+export { ACTIVE_MAGIC_DISMISSAL, ACTIVE_MAGIC_DURATIONS, ACTIVE_MAGIC_FORMULA_INPUTS, MANA_LOCK_AMOUNT_KINDS, readActiveMagicPolicy } from "./definition/active-magic-policy.js";
 export type { ActiveMagicDismissal, ActiveMagicDuration, ActiveMagicPolicy, ManaLockAmountRule } from "./definition/active-magic-policy.js";
 export { ACTIVE_MAGIC_POLICY, ACTIVE_MAGIC_CONTENT } from "./content/core-playtest-v0.1/active-magic.js";
 // PAS-10 M6-WO3 — character-facing Definition contracts (ANCESTRY v1, SKILL v1, CHARACTER_CREATION_RULE v1) and the
@@ -838,6 +847,7 @@ export { MAGE_ART_ACTIVE_EFFECT_WINDOWS } from "./definition/mage-art-payload.js
 export type { MageArtActiveEffectWindow, MageArtCost, MageArtMaintenance, MageArtMode, MageArtPayload } from "./definition/mage-art-payload.js";
 export {
   ACTION_IMPROVEMENT_MODIFICATION_KINDS,
+  IMPROVED_AP_COST_MODELS,
   ACTION_IMPROVEMENT_PAYLOAD_KINDS,
   ACTION_IMPROVEMENT_PREREQUISITE_KINDS,
   type ActionImprovementModification,
@@ -851,6 +861,7 @@ export {
   ACTION_PROGRESSION_STATUSES,
   actionImprovementsFor,
   evaluateActionImprovement,
+  evaluatePrerequisiteList,
   type ActionImprovementEvaluation,
   type ActionImprovementModificationResult,
   type ActionImprovementPrerequisiteResult,
@@ -887,3 +898,82 @@ export { createPlayEvaluationCache, signatureSourceKey, type PlayAbilitySource, 
 export { evaluatePlayOperation, initialPlayRuntime, legalTimingEvents, readPlayOperation, SPELL_CASTING_ME_ELIGIBLE, type PlayContext, type PlayStored } from "./play/operations.js";
 export { readPlayRuntimeState } from "./play/state.js";
 export { buildPlayWorkspace, type PlayWorkspaceView } from "./play/workspace.js";
+// RULES-WO1: authored calculated values, Skill rank benefits and the Concentration rule (reference + preview).
+export {
+  CALCULATED_VALUE_PLACEMENTS,
+  CANON_STATUSES,
+  RULES_AUTHORING_PAYLOAD_KINDS,
+  VALUE_INPUT_KINDS,
+  VALUE_BASE_INPUT_KINDS,
+  BENEFIT_AMOUNT_INPUT_KINDS,
+  CONCENTRATION_CAPACITY_INPUT_KINDS,
+  CONCENTRATION_UPKEEP_INPUT_KINDS,
+  isRulesAuthoringPayloadKind,
+  type CalculatedValuePayload,
+  type CalculatedValuePlacement,
+  type CanonStatus,
+  type ConcentrationAllocation,
+  type ConcentrationRulePayload,
+  type RulesAuthoringPayloadKind,
+  type SkillBenefitContribution,
+  type SkillBenefitPayload,
+  type SkillBenefitPrerequisiteGroup,
+  SKILL_BENEFIT_GROUP_MODES,
+  type ValueFormula,
+  type ValueInputKind,
+  type ValueInputSource,
+} from "./definition/rules-authoring-payload.js";
+export {
+  CALCULATED_VALUE_ISSUE_CODES,
+  authoredValuesOf,
+  calculatedValuesForCharacter,
+  evaluateCalculatedValues,
+  valueFactsOf,
+  type AuthoredBenefit,
+  type AuthoredValue,
+  type CalculatedValueResult,
+  type CalculatedValuesOutcome,
+  type ValueContributionResult,
+  type ValueFacts,
+  type BenefitEligibility,
+  type BenefitEligibilityStatus,
+} from "./character/calculated-values.js";
+export { skillBenefitsForCharacter, benefitEligibilityOf, skillBenefitsForSample, type SkillBenefitSample, type SkillBenefitSampleInput, type SkillBenefitSampleResult, type SkillBenefitGroupResult, type SkillBenefitStatus, type SkillBenefitSummary, type SkillGrantedAction } from "./character/skill-benefits.js";
+export { CONCENTRATION_PREVIEW_ISSUE_CODES, previewConcentration, type ConcentrationPreviewEffect, type ConcentrationPreviewResult } from "./ability/concentration-preview.js";
+// RULES-WO1 Phase C: reference rule families (authoring, validation, reference and preview — not executed).
+export {
+  ARMOR_CATEGORIES,
+  CLOCK_VISIBILITIES,
+  CONDITION_DURATION_MODELS,
+  CONDITION_ONGOING_TIMINGS,
+  CONDITION_STACKING,
+  METAMAGIC_FORMS,
+  MISSION_RULE_SHAPES,
+  REFERENCE_RULE_SHAPES,
+  RULES_REFERENCE_PAYLOAD_KINDS,
+  STEALTH_EFFECTS,
+  SUMMON_ENGINES,
+  SUMMON_SUSTAIN_MODES,
+  CONDITION_TRIGGERS,
+  SUMMON_ACTION_MODELS,
+  SUMMON_ACTION_TIMINGS,
+  SUMMON_RESOURCE_OWNERS,
+  SUMMON_RESTRICTION_KINDS,
+  SUMMON_DISMISSALS,
+  MAGE_ART_BENEFIT_KINDS,
+  MAGE_ART_EXCEPTION_KINDS,
+  MAGE_ART_IMMUNITY_KINDS,
+  MAGE_ART_CALCULATION_KINDS,
+  MAGE_ART_RANGE_TARGET_KINDS,
+  CONDITION_OUTCOME_KINDS,
+  CONDITION_PREVENTIONS,
+  WEAPON_MODIFICATION_CHANGE_KINDS,
+  MAGE_ART_SCALING_INPUT_KINDS,
+  type MageArtScaling,
+  isRulesReferencePayloadKind,
+  type ArmorCategory,
+  type RulesReferencePayloadKind,
+  type SummonEngine,
+} from "./definition/rules-reference-payload.js";
+export { SUMMON_COST_INPUT_KINDS, SUMMON_LIMIT_INPUT_KINDS } from "./definition/rules-authoring-payload.js";
+export { previewArmor, previewMageArtScaling, previewMissionTable, previewReload, previewSummonCosts, previewSummonEconomy, previewTargetingMeasures, previewThreatClock } from "./reference/preview.js";

@@ -1,6 +1,6 @@
 {
   "name": "@prowess/studio",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "description": "Prowess Studio — the internal development application (routes, pages, server/API integration, application state). Owns no Prowess mechanical rules.",
   "type": "module",

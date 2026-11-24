@@ -101,6 +101,9 @@ export function AuthoringDashboard() {
           <Link className="gov-button" href="/compendium">
             Browse the Compendium
           </Link>
+          <Link className="gov-button" href="/compendium/admin/keywords">
+            Keywords
+          </Link>
         </div>
       </header>
 

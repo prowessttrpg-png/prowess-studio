@@ -357,10 +357,51 @@ export function ActionsPanel({ sheet, mode, value, onChange }: { sheet: Characte
           </a>
         </p>
       ) : null}
+      <SkillGrantedActionRows sheet={sheet} />
       <WeaponAttackRows sheet={sheet} printRows={PRINT_ATTACK_ROWS} />
       <SignatureSpellRows sheet={sheet} />
       <SignatureManeuverRows sheet={sheet} />
       <NotesText label="Action Notes" value={value} mode={mode} onChange={onChange} max={sheet.notes.limits.actionNotes} testId="sheet-action-notes" empty="No action notes yet." printLines={actionNoteLines(sheet)} continuation="Action Notes continue on the supplemental page." />
+    </SheetSection>
+  );
+}
+
+/** RULES-WO1 (R08): Actions this Character gains from its Skill benefits (rank held and every prerequisite group met). */
+export function SkillGrantedActionRows({ sheet }: { sheet: CharacterSheetDto }) {
+  const granted = (sheet.mechanics.skillBenefits ?? []).filter((b) => b.status === "GRANTED").flatMap((b) => b.grantedActions.filter((g) => g.state === "PINNED").map((g) => ({ g, b })));
+  if (granted.length === 0) return null;
+  return (
+    <ul className="sheet-list" aria-label="Actions from Skills" data-testid="sheet-skill-actions">
+      {granted.map(({ g, b }) => (
+        <li key={`${b.benefitKey}:${g.action.entityVersionId}`} data-testid="sheet-skill-action">
+          <strong>{titleOf(g.actionKey ?? g.action.canonicalKey.split(".").at(-1) ?? "")}</strong> <span className="sheet-muted">— from {titleOf(b.skill.canonicalKey.split(".").at(-1) ?? "")} ({titleOf(b.minimumRankKey)})</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** RULES-WO1 (R08): every published Skill benefit for this Character — whether it applies, and why not when it does not. */
+export function SkillBenefitsPanel({ sheet }: { sheet: CharacterSheetDto }) {
+  const benefits = sheet.mechanics.skillBenefits ?? [];
+  if (benefits.length === 0) return null;
+  const why = (b: (typeof benefits)[number]) =>
+    b.status === "GRANTED"
+      ? "applies"
+      : b.status === "RANK_NOT_REACHED"
+        ? `needs ${titleOf(b.minimumRankKey)} (now ${b.heldRankKey ? titleOf(b.heldRankKey) : "untrained"})`
+        : b.status === "INELIGIBLE"
+          ? `not met: ${b.groups.flatMap((g) => g.prerequisites.filter((p) => p.satisfied === false).map((p) => titleOf(p.prerequisiteKey))).join(", ")}`
+          : "cannot be decided yet";
+  return (
+    <SheetSection id="skill-benefits" title="Skill Benefits" icon={<WeightIcon />} collapsible>
+      <ul className="sheet-list" data-testid="sheet-skill-benefits">
+        {benefits.map((b) => (
+          <li key={b.benefitKey} data-testid={`sheet-skill-benefit-${b.benefitKey}`} data-status={b.status}>
+            <strong>{b.writtenBenefit}</strong> <span className="sheet-muted">— {why(b)}</span>
+          </li>
+        ))}
+      </ul>
     </SheetSection>
   );
 }
@@ -497,8 +538,23 @@ export function AttunementPanel({ sheet }: { sheet: CharacterSheetDto }) {
   );
 }
 
+const CANON_NOTE: Record<string, string> = { OWNER_PROVIDED: "Owner ruling", TEST_ONLY: "Test value — not canon" };
+const titleOf = (key: string) => key.toLowerCase().split("_").map((w) => (w === "" ? w : w[0]!.toUpperCase() + w.slice(1))).join(" ");
+
+/** RULES-WO1: a non-canonical value is always labelled where it is shown. */
+function CanonMark({ status, testId }: { status: string | undefined; testId?: string }) {
+  if (status === undefined || CANON_NOTE[status] === undefined) return null;
+  return (
+    <span className="sheet-canon" data-canon={status} data-testid={testId}>
+      {" "}
+      ({CANON_NOTE[status]})
+    </span>
+  );
+}
+
 export function CarryPanel({ sheet }: { sheet: CharacterSheetDto }) {
   const c = sheet.mechanics.carry;
+  const carryValue = sheet.mechanics.calculatedValues?.find((v) => v.placement === "CARRY_MAXIMUM_LOAD");
   return (
     <SheetSection id="carry" title="Carry & Weight" icon={<WeightIcon />} collapsible>
       <dl className="sheet-pair">
@@ -511,9 +567,53 @@ export function CarryPanel({ sheet }: { sheet: CharacterSheetDto }) {
         <div>
           <dt>Max Load</dt>
           <dd>
-            <Value v={c.maximumLoad} />
+            <Value v={c.maximumLoad} testId="sheet-carry-max" />
+            <CanonMark status={carryValue?.canonStatus} testId="sheet-carry-canon" />
           </dd>
         </div>
+      </dl>
+    </SheetSection>
+  );
+}
+
+/** RULES-WO1: the Release's other published calculated values (e.g. Throw Distance), each with its source of truth. */
+export function AdditionalValuesPanel({ sheet }: { sheet: CharacterSheetDto }) {
+  const values = (sheet.mechanics.calculatedValues ?? []).filter((v) => v.placement === "ADDITIONAL_VALUES");
+  if (values.length === 0) return null;
+  return (
+    <SheetSection id="additional-values" title="Additional Values" icon={<WeightIcon />} collapsible>
+      <dl className="sheet-pair" data-testid="sheet-additional-values">
+        {values.map((v) => (
+          <div key={v.valueKey} data-testid={`sheet-value-${v.valueKey}`}>
+            <dt>{titleOf(v.valueKey)}</dt>
+            <dd>
+              {v.total === null ? (
+                <Value v={{ value: null, unit: null, unavailable: v.unavailable, source: null }} />
+              ) : v.baseStated ? (
+                <span className="sheet-value">
+                  {v.total}
+                  {v.unit ? ` ${v.unit}` : ""}
+                </span>
+              ) : (
+                <span className="sheet-value" title="The rulebook states no base value; this is the total of the Character's bonuses.">
+                  +{v.total}
+                  {v.unit ? ` ${v.unit}` : ""} <span className="sheet-sr">from bonuses; base not stated</span>
+                  <span aria-hidden="true"> (bonuses; base not stated)</span>
+                </span>
+              )}
+              <CanonMark status={v.canonStatus} />
+              {v.contributions
+                .filter((c) => c.applies && c.amount !== null && c.condition)
+                .map((c) => (
+                  <span key={c.contributionKey} className="sheet-muted" data-testid={`sheet-conditional-${c.contributionKey}`}>
+                    {" "}
+                    · +{c.amount}
+                    {v.unit ? ` ${v.unit}` : ""} {c.condition?.text}
+                  </span>
+                ))}
+            </dd>
+          </div>
+        ))}
       </dl>
     </SheetSection>
   );

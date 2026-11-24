@@ -83,10 +83,11 @@ describe("M6-WO6 gate — Definition kinds (§8–§18, §170)", () => {
     expect(FAMILIES).toMatch(/WEAPON: active\("EQUIPMENT"\),/);
     expect(FAMILIES).toMatch(/ATTACK: active\("EQUIPMENT"\),/);
     expect(FAMILIES).toMatch(/EQUIPMENT_TRAIT: active\("EQUIPMENT"\),/);
-    expect(FAMILIES).toMatch(/ARMOR: reserved\("EQUIPMENT"\),/);
+    // ARMOR stayed reserved through M6-WO6; the LATER RULES-WO1 Phase C activates it (rules-wo1-reference.test.ts).
+    expect(FAMILIES).toMatch(/ARMOR: active\("EQUIPMENT"\),/);
     const kinds = catalog.kinds as Array<{ definitionKind: string; supportedSchemaVersions: number[] }>;
     for (const k of ["WEAPON", "ATTACK", "EQUIPMENT_TRAIT"]) expect(kinds.find((x) => x.definitionKind === k)?.supportedSchemaVersions, k).toEqual([1]);
-    expect(kinds.find((x) => x.definitionKind === "ARMOR")?.supportedSchemaVersions).toEqual([]);
+    expect(kinds.find((x) => x.definitionKind === "ARMOR")?.supportedSchemaVersions).toEqual([1]); // RULES-WO1 Phase C
     expect(PAYLOAD).toMatch(/export const EQUIPMENT_PAYLOAD_KINDS = Object\.freeze\(\["WEAPON", "ATTACK", "EQUIPMENT_TRAIT"\] as const\);/);
   });
 

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { groupsOf, presentationDescriptorFor, type ContractDescriptor, type FieldDescriptor } from "../../admin/_lib/descriptors";
 import type { EntryDetailDto } from "../_lib/reference-client";
 import { StructuredValue, TokenText, type StructuredContext } from "./StructuredValue";
+import { mechanicsSummary } from "../../admin/_lib/component-mechanics";
 
 /**
  * Mechanical Data presenter (PAS-10 M6-WO2). Dedicated presentation reuses the WO1 authoring DESCRIPTORS (keyed by the
@@ -223,7 +224,39 @@ function FieldValue({ field, payload, context, keywordName }: { field: FieldDesc
     case "reference":
     case "byVocabulary":
     case "optionalData":
+    // RULES-WO1 inputs: shown exactly as stored; an unstated base is said in words, never shown as 0.
+    case "optionalSource":
+    case "refList":
+    // RULES-WO1 Phase H inputs: shown exactly as stored.
+    case "fixedFormula":
+    case "naturalSelection":
+    case "writtenNotes":
+    case "playCheck":
+    case "openQuestion":
+    case "selectMap":
+    case "wordList":
+    case "fixedChoice":
       return value === null || value === undefined ? <span className="gov-muted">not authored</span> : <StructuredValue value={value} path={path} context={context} />;
+    case "mageArtScaling": {
+      const sc = (value ?? {}) as { label?: string; unit?: string | null; byLevel?: Array<{ fromLevel: number; toLevel: number; value: number }> | null; formula?: { expression?: string } | null; text?: string };
+      return (
+        <span data-testid="reference-mage-art-scaling">
+          <strong>{sc.label}</strong>
+          {sc.byLevel ? ` — ${sc.byLevel.map((r) => `Level ${r.fromLevel}${r.toLevel !== r.fromLevel ? `–${r.toLevel}` : ""}: ${r.value}${sc.unit ? ` ${sc.unit}` : ""}`).join("; ")}` : ""}
+          {sc.text ? <span className="gov-muted"> ({sc.text})</span> : null}
+        </span>
+      );
+    }
+    case "contentTokenList":
+      return Array.isArray(value) && value.length > 0 ? <span>{value.map((v) => String(v).charAt(0) + String(v).slice(1).toLowerCase().replace(/_/g, " ")).join(", ")}</span> : <span className="gov-muted">none</span>;
+    case "contentToken":
+      return typeof value === "string" && value !== "" ? <span>{value.charAt(0) + value.slice(1).toLowerCase().replace(/_/g, " ")}</span> : <span className="gov-muted">not authored</span>;
+    case "triState":
+      return <span data-testid="reference-tristate">{value === true ? field.yes : value === false ? field.no : field.unknown}</span>;
+    case "missionRule":
+      return <MissionRuleView value={value} />;
+    case "optionalFormula":
+      return value === null || value === undefined ? <span data-testid="reference-not-stated">Not stated in the rulebook</span> : <StructuredValue value={value} path={path} context={context} />;
     case "abilityDefinition": {
       // A reusable Spell / Maneuver Definition: its name and description, then its composition exactly as stored
       // (exact component references link to this Release's pins through StructuredValue).
@@ -256,6 +289,15 @@ function FieldValue({ field, payload, context, keywordName }: { field: FieldDesc
         </div>
       );
     }
+    case "componentMechanics":
+      // RULES-WO1 Phase F: the Effect / Trait read in game language; the stored fields follow exactly as stored.
+      return (
+        <ul className="prowess-reference__list" data-testid="reference-mechanics">
+          {mechanicsSummary(payload, field.contract).map((line, i) => (
+            <li key={i}>{line}</li>
+          ))}
+        </ul>
+      );
     default: {
       const unhandled: never = field;
       return unhandled;
@@ -351,5 +393,56 @@ export function DefinitionPresenter({ detail, renderReference }: { detail: Entry
         <pre>{JSON.stringify(detail.pinnedRevision.structuredData, null, 2)}</pre>
       </details>
     </section>
+  );
+}
+
+/** RULES-WO1: a Mission rule in plain words — the table rows, the clock and its escalations, Intel uses or the points. */
+function MissionRuleView({ value }: { value: unknown }) {
+  const r = (value ?? {}) as { shape?: string; rollTable?: { dieCount?: number; dieFaces?: number; rows?: Array<{ from: number; to: number; result: string }> } | null; clock?: { segments?: number; visibility?: string; advancesWhen?: string[]; escalations?: Array<{ atSegment: number; text: string }> } | null; intel?: { uses?: string[] } | null; points?: string[] | null };
+  if (r.shape === "ROLL_TABLE" && r.rollTable)
+    return (
+      <table className="prowess-reference__table" data-testid="reference-mission-table">
+        <caption>
+          Roll {r.rollTable.dieCount}d{r.rollTable.dieFaces}
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Roll</th>
+            <th scope="col">Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          {(r.rollTable.rows ?? []).map((row) => (
+            <tr key={row.from}>
+              <th scope="row">{row.from === row.to ? row.from : `${row.from}–${row.to}`}</th>
+              <td>{row.result}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  if (r.shape === "CLOCK" && r.clock)
+    return (
+      <div data-testid="reference-threat-clock">
+        <p>
+          A {r.clock.segments}-segment Threat Clock ({String(r.clock.visibility ?? "").toLowerCase()}).
+        </p>
+        {(r.clock.advancesWhen ?? []).length > 0 ? <p>Advances when: {(r.clock.advancesWhen ?? []).join("; ")}</p> : null}
+        <ul>
+          {(r.clock.escalations ?? []).map((e) => (
+            <li key={e.atSegment}>
+              At {e.atSegment}: {e.text}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  const items = r.shape === "INTEL" ? (r.intel?.uses ?? []) : (r.points ?? []);
+  return (
+    <ul data-testid="reference-mission-points">
+      {items.map((t) => (
+        <li key={t}>{t}</li>
+      ))}
+    </ul>
   );
 }

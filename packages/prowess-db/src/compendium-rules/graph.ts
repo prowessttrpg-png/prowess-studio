@@ -30,7 +30,7 @@ export interface RuleEdge {
   readonly from: RuleNodeKey;
   /** The dependent (the rule that reads it). */
   readonly to: RuleNodeKey;
-  readonly via: "FORMULA_VARIABLE" | "CHOSEN_STAT" | "STRUCTURED_FIELD";
+  readonly via: "FORMULA_VARIABLE" | "CHOSEN_STAT" | "STRUCTURED_FIELD" | "VALUE_CONTRIBUTION";
   /** JSON-pointer-like path inside the dependent's payload. */
   readonly path: string;
   /** The Formula variable name, when the edge is a formula input. */
@@ -73,8 +73,21 @@ export function buildRuleGraph(bundle: Pick<ProwessDefinitionBundle, "definition
   const ensure = (key: RuleNodeKey, role: RuleNode["role"], token: string) => {
     if (!nodes.has(key)) nodes.set(key, { key, role, token, definition: null });
   };
+  // RULES-WO1: authored calculated values are addressed by their valueKey (a Formula input `{ kind: "CALCULATED_VALUE",
+  // valueKey }`, a Skill benefit contribution's `valueKey`). Each resolves to the exact CALCULATED_VALUE Definition(s)
+  // of this bundle that carry that key; an unknown key adds no edge (the M5 evaluator reports it).
+  const valueOwners = (valueKey: string): RuleNodeKey[] =>
+    bundle.definitions.filter((d) => d.definitionKind === "CALCULATED_VALUE" && (d.payload as { valueKey?: unknown }).valueKey === valueKey).map((d) => nodeOf(d).key);
   for (const e of bundle.definitions) {
     const owner = nodeOf(e).key;
+    if (e.definitionKind === "SKILL_BENEFIT") {
+      const contributions = (e.payload as { contributions?: unknown }).contributions;
+      if (Array.isArray(contributions))
+        contributions.forEach((c, i) => {
+          if (!isRecord(c) || typeof c.valueKey !== "string") return;
+          for (const value of valueOwners(c.valueKey)) edges.push({ from: owner, to: value, via: "VALUE_CONTRIBUTION", path: `/contributions/${String(i)}`, variable: null, expression: null });
+        });
+    }
     const walk = (v: unknown, path: string): void => {
       if (Array.isArray(v)) {
         v.forEach((x, i) => walk(x, `${path}/${String(i)}`));
@@ -92,6 +105,8 @@ export function buildRuleGraph(bundle: Pick<ProwessDefinitionBundle, "definition
           } else if (s.kind === "DERIVED" && typeof s.statistic === "string" && DERIVED.has(s.statistic)) {
             ensure(`DERIVED:${s.statistic}`, "DERIVED_STAT", s.statistic);
             edges.push({ from: `DERIVED:${s.statistic}`, to: owner, via: "FORMULA_VARIABLE", path: at, variable: decl.variable, expression: v.expression });
+          } else if (s.kind === "CALCULATED_VALUE" && typeof s.valueKey === "string") {
+            for (const value of valueOwners(s.valueKey)) edges.push({ from: value, to: owner, via: "FORMULA_VARIABLE", path: at, variable: decl.variable, expression: v.expression });
           } else if (s.kind === "CHOSEN_STAT") {
             for (const stat of PROWESS_STATS) {
               ensure(`STAT:${stat}`, "STAT", stat);

@@ -154,6 +154,23 @@ function modificationResult(m: ActionImprovementModification, parent: ActionDefi
 }
 
 /**
+ * Each structured prerequisite of the Action-improvement grammar, evaluated independently for this Character (Level and
+ * Stat via NUMERIC_COMPARE; Skill and Affinity ranks via the one M6-WO4 rank-prerequisite evaluation). Shared with the
+ * RULES-WO1 Skill benefits; nothing is applied or persisted.
+ */
+export function evaluatePrerequisiteList(request: { readonly bundle: ProwessDefinitionBundle; readonly profile: CharacterMechanicalProfile; readonly prerequisites: readonly ActionImprovementPrerequisite[]; readonly source: ProwessDefinitionRef }): { readonly prerequisites: readonly ActionImprovementPrerequisiteResult[]; readonly unresolved: readonly string[] } {
+  const { bundle, profile } = request;
+  const rankPrerequisites = request.prerequisites.filter((q): q is Extract<ActionImprovementPrerequisite, { kind: "SKILL_RANK_AT_LEAST" | "AFFINITY_RANK_AT_LEAST" }> => q.kind === "SKILL_RANK_AT_LEAST" || q.kind === "AFFINITY_RANK_AT_LEAST");
+  const ranks = evaluateRankPrerequisites({ bundle, profile, prerequisites: rankPrerequisites, source: request.source });
+  const prerequisites = request.prerequisites.map((q) => {
+    if (q.kind === "LEVEL_AT_LEAST") return levelResult(q, profile);
+    if (q.kind === "STAT_AT_LEAST") return statResult(q, profile);
+    return rankResult(q, ranks.requirements.find((r) => r.prerequisiteKey === q.prerequisiteKey), ranks.unresolved);
+  });
+  return { prerequisites, unresolved: [...ranks.unresolved] };
+}
+
+/**
  * Evaluates one ACTION_IMPROVEMENT envelope (already validated by the bundle) for this Character. Nothing is applied,
  * spent or persisted; the result is deep-frozen.
  */
@@ -172,14 +189,7 @@ export function evaluateActionImprovement(request: { readonly bundle: ProwessDef
   const parentPayload = state === "PINNED" && pinnedEnvelope !== null ? (pinnedEnvelope.payload as unknown as ActionDefinitionPayload) : null;
 
   // ---- eligibility: each prerequisite independently ----------------------------------------------------------------
-  const rankPrerequisites = payload.prerequisites.filter((q): q is Extract<ActionImprovementPrerequisite, { kind: "SKILL_RANK_AT_LEAST" | "AFFINITY_RANK_AT_LEAST" }> => q.kind === "SKILL_RANK_AT_LEAST" || q.kind === "AFFINITY_RANK_AT_LEAST");
-  const ranks = evaluateRankPrerequisites({ bundle, profile, prerequisites: rankPrerequisites, source: ref });
-  const prerequisites = payload.prerequisites.map((q) => {
-    if (q.kind === "LEVEL_AT_LEAST") return levelResult(q, profile);
-    if (q.kind === "STAT_AT_LEAST") return statResult(q, profile);
-    return rankResult(q, ranks.requirements.find((r) => r.prerequisiteKey === q.prerequisiteKey), ranks.unresolved);
-  });
-  const unresolved = [...ranks.unresolved];
+  const { prerequisites, unresolved } = evaluatePrerequisiteList({ bundle, profile, prerequisites: payload.prerequisites, source: ref });
   const eligibilityStatus: EligibilityStatus = unresolved.length > 0 || prerequisites.some((x) => x.satisfied === null) ? "UNRESOLVED" : prerequisites.every((x) => x.satisfied === true) ? "ELIGIBLE" : "INELIGIBLE";
 
   // ---- applicability: against the existing ACTION contract ----------------------------------------------------------

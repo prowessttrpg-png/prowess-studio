@@ -5,6 +5,7 @@ import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { DefinitionCandidate } from "../../app/compendium/admin/_lib/definition-form";
 import { newCandidate, stableStringify } from "../../app/compendium/admin/_lib/definition-form";
+import { descriptorFor, initialPayload } from "../../app/compendium/admin/_lib/descriptors";
 import { readChildRef, stashParent, takeParent } from "../../app/compendium/admin/_lib/child-draft";
 import { CATALOG, kindRow } from "./m6-wo1-fixtures";
 
@@ -98,7 +99,8 @@ describe("PRE-M7-WO1 guided editors on shipped content", () => {
     render(<Editor initial={candidateOf("ACTION", 1, grapple.payload)} onChange={(c) => changes.push(c)} />);
     const cost = screen.getByRole("group", { name: /AP cost/ });
     fireEvent.change(within(cost).getByRole("combobox"), { target: { value: "VARIABLE" } });
-    expect(confirm).toHaveBeenCalledWith(expect.stringMatching(/removes: minimum, maximum/));
+    // RULES-WO1 Phase D: the confirmation names the fields in words (their labels), not their payload keys.
+    expect(confirm).toHaveBeenCalledWith(expect.stringMatching(/removes: Minimum AP, Maximum AP/));
     expect(changes).toEqual([]);
     confirm.mockReturnValue(true);
     fireEvent.change(within(cost).getByRole("combobox"), { target: { value: "VARIABLE" } });
@@ -111,8 +113,9 @@ describe("PRE-M7-WO1 guided editors on shipped content", () => {
     const changes: DefinitionCandidate[] = [];
     render(<Editor initial={candidateOf("ABILITY_CONSTRUCTION_RULE", 1, without)} onChange={(c) => changes.push(c)} />);
     const group = screen.getByRole("group", { name: /Active Magic policy/ });
-    fireEvent.click(within(group).getByRole("button", { name: /Add active magic policy/i }));
-    expect((changes.at(-1)!.payload as Record<string, unknown>).activeMagicPolicy).toEqual({});
+    // RULES-WO1 Phase H: the policy is now guided and starts from the Core Playtest ruling (then adjusted) — never {}.
+    fireEvent.click(within(group).getByRole("button", { name: /Add active magic policy — start from the Core Playtest ruling/i }));
+    expect((changes.at(-1)!.payload as Record<string, unknown>).activeMagicPolicy).toEqual(CATALOG.rulingDefaults!.activeMagicPolicy);
     fireEvent.click(within(screen.getByRole("group", { name: /Active Magic policy/ })).getByRole("button", { name: /Remove active magic policy/i }));
     expect(JSON.parse(JSON.stringify(changes.at(-1)!.payload))).not.toHaveProperty("activeMagicPolicy");
   });
@@ -171,7 +174,8 @@ describe("PRE-M7-WO1 reusable Spell / Maneuver Definitions", () => {
   });
 
   it("W1-MAGE-ART a Mage Art is authored with guided cost, Active Effect and mode controls in the exact v1 shape", async () => {
-    const base = newCandidate(kindRow("MAGE_ART"));
+    // RULES-WO1 authors NEW Mage Arts at version 2; this test keeps checking the exact version-1 editor.
+    const base = { ...newCandidate(kindRow("MAGE_ART")), schemaVersion: 1, payload: initialPayload(descriptorFor(kindRow("MAGE_ART"), 1)) };
     expect(Object.keys(base.payload).sort()).toEqual(["activation", "activeEffect", "artKey", "maintenance", "modes", "source"]);
     expect(base.payload.maintenance).toEqual({ ap: null, mp: null, special: null }); // numbers are entered, never defaulted
     const changes: DefinitionCandidate[] = [];

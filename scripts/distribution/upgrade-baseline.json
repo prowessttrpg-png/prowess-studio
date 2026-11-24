@@ -1,0 +1,13 @@
+{
+  "format": 1,
+  "purpose": "The earlier released build that the installed-upgrade proof (CI job windows-upgrade) installs first and upgrades from. Move it forward deliberately when a newer build becomes the one players have installed.",
+  "commit": "23f3c03e95da4c7a4c1db51449d79754895adecb",
+  "tree": "11f95d50e50b010cf635fada99e4d17e318b6de5",
+  "appVersion": "0.1.2",
+  "label": "main after M7-WO1 (PR #78)",
+  "artifact": {
+    "name": "prowess-windows-x64-23f3c03e95da4c7a4c1db51449d79754895adecb",
+    "runId": 44438453243,
+    "note": "Main CI run #285 (all 18 jobs passed). When this artifact has expired, the job builds the installer from the commit above with that commit's own build script."
+  }
+}

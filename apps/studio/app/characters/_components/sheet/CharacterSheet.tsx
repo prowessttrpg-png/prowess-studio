@@ -6,7 +6,7 @@ import { CharacterApiError, getSheet, updatePlayState, updateSheetNotes, type Ch
 import { releaseLabel } from "../CharacterReview";
 import { PortraitFrame } from "./PortraitFrame";
 import { CompassStar } from "./SheetIcons";
-import { ActionsPanel, actionNoteLines, AffinityPanel, AttunementPanel, CarryPanel, CharacterNotesPanel, CoreValuesPanel, EquipmentPanel, GrantedEffectsPanel, PersonnelHeader, PossessionsPanel, ResourcesPanel, SheetModeContext, SkillsPanel, StatsPanel, type SheetMode } from "./SheetPanels";
+import { ActionsPanel, actionNoteLines, AdditionalValuesPanel, AffinityPanel, AttunementPanel, CarryPanel, CharacterNotesPanel, CoreValuesPanel, EquipmentPanel, GrantedEffectsPanel, PersonnelHeader, PossessionsPanel, ResourcesPanel, SheetModeContext, SkillBenefitsPanel, SkillsPanel, StatsPanel, type SheetMode } from "./SheetPanels";
 import "./character-sheet.css";
 
 /**
@@ -157,6 +157,8 @@ export function CharacterSheet({ characterId, mode = "digital" }: { characterId:
           <div className="sheet-p2-pair">
             <AttunementPanel sheet={sheet} />
             <CarryPanel sheet={sheet} />
+            <AdditionalValuesPanel sheet={sheet} />
+            <SkillBenefitsPanel sheet={sheet} />
           </div>
           <div className="sheet-p2-pair sheet-p2-pair--wide">
             <PossessionsPanel sheet={sheet} mode={mode} rows={notes.possessions} onChange={(rows) => editNotes({ possessions: rows })} printRows={PRINT_POSSESSION_ROWS} />

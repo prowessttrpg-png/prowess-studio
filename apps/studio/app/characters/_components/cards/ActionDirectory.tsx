@@ -10,6 +10,8 @@ import { BlockList, Instructions, backBlocks } from "./CardFace";
 import { ImprovementDetail, ImprovementGroups } from "./ProgressionDrawer";
 import "./cards.css";
 
+const words = (t: string) => (t === "" ? "" : t.charAt(0).toUpperCase() + t.slice(1).toLowerCase().replace(/_/g, " "));
+
 /**
  * The General Action Directory (PAS-10 M6-WO9 Phase C) — a RULES REFERENCE over the read-only Action Directory API: every
  * ACTION Definition the Character's exact Release pins, with this Character's evaluated improvements, unmet prerequisites
@@ -130,6 +132,19 @@ export function ActionDirectory({ characterId, initialAction }: { characterId: s
                 <h3 className="fcard-section__title">Eligibility for {view.character.name}</h3>
                 <p data-testid="directory-eligibility">ACTION Definitions author no prerequisites: every Character may take this Action. AP now: {valueText(current.costs.ap, "AP")}.</p>
               </section>
+              {current.section.grantedBySkills ? (
+                <section className="fcard-section" aria-label="Granted by Skills" data-testid="directory-skill-grants">
+                  <h3 className="fcard-section__title">Granted by Skills</h3>
+                  <ul>
+                    {current.section.grantedBySkills.map((g) => (
+                      <li key={g.benefitKey} data-testid="directory-skill-grant" data-status={g.status}>
+                        {view.names[g.skill.entityVersionId] ?? words(g.skill.canonicalKey.split(".").at(-1) ?? "")} at {words(g.minimumRankKey)}:{" "}
+                        {g.status === "GRANTED" ? `${view.character.name} has this grant` : g.status === "RANK_NOT_REACHED" ? "not yet — the rank is not reached" : g.status === "INELIGIBLE" ? "not met — a prerequisite is not met" : "cannot be decided yet"}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
               <section className="fcard-section" aria-label="Improvements">
                 <h3 className="fcard-section__title">Improvements</h3>
                 <ImprovementGroups items={current.section.improvements} names={view.names} />

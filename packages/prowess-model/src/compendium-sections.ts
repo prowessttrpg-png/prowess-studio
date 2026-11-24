@@ -38,6 +38,9 @@ export const COMPENDIUM_SECTION_KEYS = [
   "maneuvers",
   "equipment",
   "conditions-effects",
+  // RULES-WO1 Phase C: two families that had no home.
+  "summons",
+  "gm-missions",
   "keywords-references",
 ] as const;
 export type CompendiumSectionKey = (typeof COMPENDIUM_SECTION_KEYS)[number];
@@ -50,7 +53,7 @@ export const COMPENDIUM_SECTIONS: readonly CompendiumSection[] = Object.freeze([
     title: "Gameplay Basics",
     summary: "Dice, checks and the core procedures every roll uses, plus introductory rules text.",
     role: "MIXED",
-    kinds: ["CORE_RESOLUTION", "CHARACTER_DIE_PROGRESSION"],
+    kinds: ["CORE_RESOLUTION", "CHARACTER_DIE_PROGRESSION", "REFERENCE_RULE"], // RULES-WO1: written gameplay tables and rules
     alsoShows: [],
     reservedKinds: [],
     genericEntityTypes: ["GENERIC_RULE", "SYSTEM"],
@@ -70,7 +73,7 @@ export const COMPENDIUM_SECTIONS: readonly CompendiumSection[] = Object.freeze([
     title: "Rules & Calculations",
     summary: "Derived statistics and their formulas — Armor from Strength, Dodge, Maximum HP / MP, Movement and the rest.",
     role: "EXECUTABLE",
-    kinds: ["DERIVED_STAT"],
+    kinds: ["DERIVED_STAT", "CALCULATED_VALUE"], // RULES-WO1: authored calculated values (Carry Capacity …)
     alsoShows: ["CORE_RESOLUTION"],
     reservedKinds: [],
     genericEntityTypes: [],
@@ -89,8 +92,8 @@ export const COMPENDIUM_SECTIONS: readonly CompendiumSection[] = Object.freeze([
     key: "creation-progression",
     title: "Character Creation & Progression",
     summary: "Ancestries, the creation rule, Level advancement and rank ladders.",
-    role: "EXECUTABLE",
-    kinds: ["ANCESTRY", "CHARACTER_CREATION_RULE", "CHARACTER_ADVANCEMENT_RULE", "RANK_LADDER"],
+    role: "MIXED", // RULES-WO1: Job templates are reference content
+    kinds: ["ANCESTRY", "CHARACTER_CREATION_RULE", "CHARACTER_ADVANCEMENT_RULE", "RANK_LADDER", "JOB_TEMPLATE"], // RULES-WO1: optional Job Class templates (reference)
     alsoShows: [],
     reservedKinds: [],
     genericEntityTypes: [],
@@ -100,7 +103,7 @@ export const COMPENDIUM_SECTIONS: readonly CompendiumSection[] = Object.freeze([
     title: "Skills",
     summary: "Skills and what each Skill rank grants.",
     role: "EXECUTABLE",
-    kinds: ["SKILL", "SKILL_RANK"],
+    kinds: ["SKILL", "SKILL_RANK", "SKILL_BENEFIT"], // RULES-WO1: Skill rank benefits
     alsoShows: ["RANK_LADDER"],
     reservedKinds: [],
     genericEntityTypes: [],
@@ -125,6 +128,8 @@ export const COMPENDIUM_SECTIONS: readonly CompendiumSection[] = Object.freeze([
       "SPELL_DURATION",
       // PRE-M7-WO1: MAGE_ART v1 (authoring and reference; not executable).
       "MAGE_ART",
+      // RULES-WO1: Metamagic options and traits (reference).
+      "METAMAGIC",
     ],
     alsoShows: [],
     reservedKinds: [],
@@ -144,10 +149,10 @@ export const COMPENDIUM_SECTIONS: readonly CompendiumSection[] = Object.freeze([
     key: "equipment",
     title: "Equipment",
     summary: "Weapons, their Attacks (movesets) and Equipment Traits.",
-    role: "EXECUTABLE",
-    kinds: ["WEAPON", "ATTACK", "EQUIPMENT_TRAIT"],
+    role: "MIXED", // RULES-WO1: worn Armor is reference content (not equipped on the sheet yet)
+    kinds: ["WEAPON", "ATTACK", "EQUIPMENT_TRAIT", "ARMOR", "AMMUNITION", "WEAPON_MODIFICATION"], // RULES-WO1: worn Armor, ammunition and modifications (reference and preview)
     alsoShows: [],
-    reservedKinds: ["ARMOR"],
+    reservedKinds: [],
     genericEntityTypes: [],
   }),
   section({
@@ -155,9 +160,29 @@ export const COMPENDIUM_SECTIONS: readonly CompendiumSection[] = Object.freeze([
     title: "Conditions & Ongoing Effects",
     summary: "Status conditions and ongoing effects. The engine's ongoing-effect policies live with the components that use them.",
     role: "REFERENCE",
-    kinds: [],
+    kinds: ["CONCENTRATION_RULE", "STATUS_CONDITION"], // RULES-WO1: Concentration (preview) and Conditions (reference)
     alsoShows: ["SPELL_DURATION", "MANEUVER_DURATION", "SPELL_CASTING_CONDITION", "MANEUVER_CONDITION"],
-    reservedKinds: ["STATUS_CONDITION", "SUMMON_TYPE", "SUMMON_TRAIT", "SUMMON_ACTION_MODEL", "MISSION_RULE"],
+    reservedKinds: [],
+    genericEntityTypes: [],
+  }),
+  section({
+    key: "summons",
+    title: "Summoning",
+    summary: "The Summon engines (Summon Entity, Totem, Persistent Construct, Bound Summon, Manifested Entity, Fusion, Equipment Summoning) and their traits. Reference and cost preview — no Summon is played yet.",
+    role: "REFERENCE",
+    kinds: ["SUMMON_TYPE", "SUMMON_TRAIT"],
+    alsoShows: [],
+    reservedKinds: ["SUMMON_ACTION_MODEL"],
+    genericEntityTypes: [],
+  }),
+  section({
+    key: "gm-missions",
+    title: "GM & Missions",
+    summary: "Mission tables, Threat Clocks, Intel and GM reference rules. Reference and table preview — nothing generates a Mission yet.",
+    role: "REFERENCE",
+    kinds: ["MISSION_RULE"],
+    alsoShows: [],
+    reservedKinds: [],
     genericEntityTypes: [],
   }),
   section({

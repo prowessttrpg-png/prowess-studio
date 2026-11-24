@@ -8,6 +8,9 @@ export type ActiveMagicDismissal = (typeof ACTIVE_MAGIC_DISMISSAL)[number];
 /** The Duration concepts WO13 governs (the exact WO9 Spell Duration vocabulary — no second Duration vocabulary). */
 export const ACTIVE_MAGIC_DURATIONS = ["INSTANT", "ROUNDS", "COMBAT", "SCENE", "MISSION", "SUSTAINED", "MANA_LOCK", "PERMANENT_BY_SPECIAL_RULE"] as const;
 export type ActiveMagicDuration = (typeof ACTIVE_MAGIC_DURATIONS)[number];
+/** RULES-WO1 Phase H: the inputs each active-magic Formula reads (exactly, in order) and the Mana Lock amount kinds. */
+export const ACTIVE_MAGIC_FORMULA_INPUTS = Object.freeze({ sustainMp: ["final_mp", "pro"], concentrationSlots: ["res"], concentrationDc: ["consumers"] } as const);
+export const MANA_LOCK_AMOUNT_KINDS = ["FINAL_SPELL_MP", "FIXED"] as const;
 /** A structured Mana Lock reservation rule. `null` in the policy means no exact executable amount exists (fail closed). */
 export type ManaLockAmountRule = { readonly kind: "FINAL_SPELL_MP" } | { readonly kind: "FIXED"; readonly amount: number };
 interface FormulaProgram { readonly expression: string; readonly variables: readonly string[] }
@@ -41,9 +44,9 @@ export function readActiveMagicPolicy(value: unknown, at: readonly PathSegment[]
   const fields = ["formulas", "sustainApPerRound", "sustainMeEligible", "concentrationSaveStat", "dismissal", "channel", "manaLock", "authority"];
   const r = readRecord(value, at, p, e, fields, fields); if (!r) return null;
   const f = readRecord(own(r, "formulas"), [...at, "formulas"], p, e, ["sustainMp", "concentrationSlots", "concentrationDc"], ["sustainMp", "concentrationSlots", "concentrationDc"]);
-  const sustainMp = f ? program(own(f, "sustainMp"), ["final_mp", "pro"], [...at, "formulas", "sustainMp"], p) : null;
-  const concentrationSlots = f ? program(own(f, "concentrationSlots"), ["res"], [...at, "formulas", "concentrationSlots"], p) : null;
-  const concentrationDc = f ? program(own(f, "concentrationDc"), ["consumers"], [...at, "formulas", "concentrationDc"], p) : null;
+  const sustainMp = f ? program(own(f, "sustainMp"), ACTIVE_MAGIC_FORMULA_INPUTS.sustainMp, [...at, "formulas", "sustainMp"], p) : null;
+  const concentrationSlots = f ? program(own(f, "concentrationSlots"), ACTIVE_MAGIC_FORMULA_INPUTS.concentrationSlots, [...at, "formulas", "concentrationSlots"], p) : null;
+  const concentrationDc = f ? program(own(f, "concentrationDc"), ACTIVE_MAGIC_FORMULA_INPUTS.concentrationDc, [...at, "formulas", "concentrationDc"], p) : null;
   if (!positive(own(r, "sustainApPerRound"))) p.add(e, [...at, "sustainApPerRound"], "Sustain AP per round is a positive integer");
   if (typeof own(r, "sustainMeEligible") !== "boolean") p.add(e, [...at, "sustainMeEligible"], "explicit boolean");
   if (!isExactLabel(own(r, "concentrationSaveStat"))) p.add(e, [...at, "concentrationSaveStat"], "the exact Saving Throw Stat");
@@ -64,7 +67,7 @@ export function readActiveMagicPolicy(value: unknown, at: readonly PathSegment[]
     const a = own(ml, "amount");
     if (a !== null) {
       const ar = readRecord(a, [...at, "manaLock", "amount"], p, e, ["kind", "amount"], ["kind"]);
-      const kind = ar ? readEnum(own(ar, "kind"), ["FINAL_SPELL_MP", "FIXED"] as const, [...at, "manaLock", "amount", "kind"], p, e, "Mana Lock amount rule") : null;
+      const kind = ar ? readEnum(own(ar, "kind"), MANA_LOCK_AMOUNT_KINDS, [...at, "manaLock", "amount", "kind"], p, e, "Mana Lock amount rule") : null;
       if (kind === "FIXED" && !positive(own(ar!, "amount"))) p.add(e, [...at, "manaLock", "amount", "amount"], "a FIXED lock is a positive integer");
       if (kind === "FINAL_SPELL_MP" && own(ar!, "amount") !== undefined) p.add(e, [...at, "manaLock", "amount", "amount"], "FINAL_SPELL_MP carries no amount");
       if (kind === "FIXED") amount = { kind, amount: own(ar!, "amount") as number };

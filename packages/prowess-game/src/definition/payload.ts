@@ -25,7 +25,9 @@ import { isCharacterPayloadKind, readCharacterPayload } from "./character-payloa
 import { isEquipmentPayloadKind, readEquipmentPayload } from "./equipment-payload.js";
 import { isAdvancementPayloadKind, readAdvancementPayload } from "./advancement-payload.js";
 import { isActionImprovementPayloadKind, readActionImprovementPayload } from "./action-improvement-payload.js";
-import { readMageArtPayload } from "./mage-art-payload.js";
+import { readMageArtPayload, readMageArtV2Payload } from "./mage-art-payload.js";
+import { isRulesAuthoringPayloadKind, readRulesAuthoringPayload } from "./rules-authoring-payload.js";
+import { isRulesReferencePayloadKind, readRulesReferencePayload } from "./rules-reference-payload.js";
 import { readAbilityConstructionRulePayload } from "./ability-construction-payload.js";
 import { readTraitRules, readTraitCosts } from "./trait-payload.js";
 import { readAuthoredAbilityPayload } from "./authored-ability-payload.js";
@@ -179,13 +181,16 @@ function readKeywords(value: unknown, at: readonly PathSegment[], p: Problems): 
   return [...out].sort();
 }
 
+/** Every relation a compatibility rule may name (RULES-WO1: exported so the Studio offers them as a list). */
+export const COMPATIBILITY_RELATIONS = Object.freeze([...ABILITY_COMPONENT_CONTRACTS, "AFFINITY", "ABILITY_KIND", "KEYWORD"] as const);
+
 function readCompatibility(value: unknown, at: readonly PathSegment[], p: Problems): CompatibilityRule[] {
   if (value === undefined) return [];
   if (!Array.isArray(value)) {
     p.add(C.INVALID_PAYLOAD, at, "compatibility is an array of { relation, allow } rules");
     return [];
   }
-  const relations = [...ABILITY_COMPONENT_CONTRACTS, "AFFINITY", "ABILITY_KIND", "KEYWORD"] as const;
+  const relations = COMPATIBILITY_RELATIONS;
   return value.flatMap((item: unknown, i: number) => {
     const r = readRecord(item, [...at, i], p, C.INVALID_PAYLOAD, ["relation", "allow"], ["relation", "allow"]);
     if (r === null) return [];
@@ -389,7 +394,10 @@ export function readDefinitionPayload(kind: ProwessDefinitionKind, contract: Abi
   else if (isActionImprovementPayloadKind(kind)) payload = readActionImprovementPayload(kind, value, at, p);
   else if (kind === "SPELL_DEFINITION" || kind === "MANEUVER_DEFINITION") payload = readAuthoredAbilityPayload(kind, value, at, p) as unknown as JsonObject | null;
   else if (kind === "ABILITY_CONSTRUCTION_RULE") payload = readAbilityConstructionRulePayload(value, at, p);
+  else if (kind === "MAGE_ART" && schemaVersion === 2) payload = readMageArtV2Payload(value, at, p);
   else if (kind === "MAGE_ART") payload = readMageArtPayload(value, at, p);
+  else if (isRulesReferencePayloadKind(kind)) payload = readRulesReferencePayload(kind, value, at, p);
+  else if (isRulesAuthoringPayloadKind(kind)) payload = readRulesAuthoringPayload(kind, value, at, p);
   else if (kind === "AFFINITY" && schemaVersion === 2) {
     // M5-WO4: the full Affinity rule content. Legacy terminology was already refused above (M5-I115).
     const affinity = readAffinityDefinitionPayload(value, at, p);

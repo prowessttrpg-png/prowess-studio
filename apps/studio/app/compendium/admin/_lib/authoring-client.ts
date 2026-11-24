@@ -24,7 +24,7 @@ export class AuthoringApiError extends Error {
   }
 }
 
-type Method = "GET" | "POST" | "PUT" | "DELETE";
+type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 async function request<T>(method: Method, path: string, body?: unknown): Promise<{ data: T; pagination?: { page: number; pageSize: number; total: number; totalPages: number } }> {
   const sent = await fetchJsonBody(
@@ -46,9 +46,12 @@ async function request<T>(method: Method, path: string, body?: unknown): Promise
   return json as { data: T; pagination?: { page: number; pageSize: number; total: number; totalPages: number } };
 }
 const get = async <T>(path: string) => (await request<T>("GET", path)).data;
+export const getAuthoring = get;
 const post = async <T>(path: string, body?: unknown) => (await request<T>("POST", path, body)).data;
 /** PRE-M7-WO1: the same transport for the side-effect-free rule tools (admin/_lib/rules-client.ts). */
 export const postAuthoring = post;
+/** RULES-WO1 (R09): the Keyword presentation edit (PATCH). */
+export const patchAuthoring = async <T>(path: string, body?: unknown) => (await request<T>("PATCH", path, body)).data;
 const put = async <T>(path: string, body: unknown) => (await request<T>("PUT", path, body)).data;
 const del = async (path: string) => {
   await request<unknown>("DELETE", path);
@@ -73,6 +76,20 @@ export interface AuthoringCatalogDto {
   systemFamilies: string[];
   vocabularies: Record<string, string[]>;
   legacyTerms: Array<{ legacyTerm: string; canonicalTerm: string }>;
+  /** RULES-WO1: what the application does with each kind (truthful status indicators). Absent in older fixtures. */
+  capabilities?: Record<string, KindCapabilityDto>;
+  /** RULES-WO1 Phase H: fixed lists that are not option vocabularies (natural rolls, Formula slot inputs, comparison). */
+  fixedLists?: Record<string, string[]>;
+  /** RULES-WO1 Phase H: Core Playtest rulings an optional engine policy may start from. */
+  rulingDefaults?: Record<string, unknown>;
+}
+export interface KindCapabilityDto {
+  /** LIVE, PARTIAL or REFERENCE_ONLY — the server's capability registry is the source of the values (kept a string here, as the
+   *  M6-WO1 gate keeps vocabulary values out of the Studio). */
+  execution: string;
+  consumers: string[];
+  preview: "RULE_PREVIEW" | "AUTHORED_RULE" | "REFERENCE_PREVIEW" | "CONTENT";
+  notYet: string;
 }
 
 export interface ValidationIssueDto {

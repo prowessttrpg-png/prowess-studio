@@ -80,6 +80,17 @@ export async function setup(root, choice, manifest) {
   assert.equal(diagnostics.tree, manifest.build.tree);
   assert.equal(diagnostics.packageSha256, manifest.packageSha256);
   assert.equal(diagnostics.migrations, manifest.migrations.length);
+  // RULES-WO1: the installed Studio states its own build identity on "About this build" (the same commit and tree as
+  // the launcher diagnostics), and its authoring catalog serves the new rule kinds with their capabilities.
+  const about = await (await api("/about")).text();
+  assert(about.includes(manifest.build.commit), "About this build shows the installed commit");
+  assert(about.includes(manifest.build.tree), "About this build shows the installed tree");
+  assert(about.includes(manifest.appVersion), "About this build shows the installed version");
+  const catalog = (await (await api("/api/compendium-authoring/catalog")).json()).data;
+  for (const kind of ["STAT", "CALCULATED_VALUE", "ARMOR", "SUMMON_TYPE", "MISSION_RULE"]) {
+    assert.equal(catalog.kinds.find((k) => k.definitionKind === kind)?.authorable, true, kind + " is authorable in the installed build");
+    assert(catalog.capabilities[kind], kind + " states its capability in the installed build");
+  }
   const characters = (await (await api("/api/characters")).json()).data;
   assert.deepEqual(characters, []);
   assert.equal(workspace(root).setup, choice);

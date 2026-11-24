@@ -23,9 +23,13 @@ describe("M6-WO2 presentation descriptors (M6-I015)", () => {
     expect(components.length).toBeGreaterThanOrEqual(11);
     for (const k of components) {
       for (const v of k.supportedSchemaVersions) {
-        const d = presentationDescriptorFor(k, v);
-        expect(d, `${k.definitionKind} v${v}`).toBe(CONTRACT_DESCRIPTORS[k.sharedContract as string]);
-        expect(d).toBe(descriptorFor(k, v));
+        const d = presentationDescriptorFor(k, v)!;
+        const editor = descriptorFor(k, v);
+        // The editor's own descriptor (same purpose, same fields first). RULES-WO1 Phase F: a guided Effect / Trait then
+        // lists its stored fields exactly as stored, after the game-language reading.
+        expect(d.purpose, `${k.definitionKind} v${v}`).toBe(CONTRACT_DESCRIPTORS[k.sharedContract as string]!.purpose);
+        expect(d.fields.slice(0, editor.fields.length)).toEqual(editor.fields);
+        if (!editor.fields.some((f) => f.input === "componentMechanics")) expect(d).toBe(editor);
       }
     }
   });
@@ -39,7 +43,7 @@ describe("M6-WO2 presentation descriptors (M6-I015)", () => {
     // PRE-M7-WO1 guides every remaining supported kind, so each now has dedicated presentation (pre-m7-wo1-descriptors);
     // a kind or version without a descriptor still presents generically (null).
     for (const k of generic) expect(presentationDescriptorFor(k, k.supportedSchemaVersions[0]!), k.definitionKind).not.toBeNull();
-    expect(presentationDescriptorFor({ definitionKind: "ARMOR", sharedContract: null, supportedSchemaVersions: [1] }, 1)).toBeNull();
+    expect(presentationDescriptorFor({ definitionKind: "SUMMON_ACTION_MODEL", sharedContract: null, supportedSchemaVersions: [1] }, 1)).toBeNull(); // RULES-WO1 guides ARMOR
     expect(presentationDescriptorFor(affinity, 99)).toBeNull();
   });
 

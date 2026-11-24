@@ -5,7 +5,7 @@ import type { EntityVersionDto } from "../../app/compendium/_lib/api-client";
 import { DefinitionEditor } from "../../app/compendium/admin/_components/DefinitionEditor";
 import { ValidationPanel } from "../../app/compendium/admin/_components/ValidationPanel";
 import { AuthoredDataEditor } from "../../app/compendium/admin/_components/AuthoredDataEditor";
-import { newCandidate, type DefinitionCandidate } from "../../app/compendium/admin/_lib/definition-form";
+import { fieldDomId, newCandidate, type DefinitionCandidate } from "../../app/compendium/admin/_lib/definition-form";
 import { CONTRACT_DESCRIPTORS } from "../../app/compendium/admin/_lib/descriptors";
 import { UNSAVED_CHANGES_MESSAGE, useUnsavedChangesGuard } from "../../app/compendium/admin/_lib/use-navigation-guard";
 import { CATALOG, issue, kindRow } from "./m6-wo1-fixtures";
@@ -107,15 +107,17 @@ describe("structured Definition editor (§12–13, §28)", () => {
   it("renders labelled structured fields for a SPELL_EFFECT with options from the catalog — not a JSON text box", () => {
     const changes: DefinitionCandidate[] = [];
     render(<Editor kind="SPELL_EFFECT" onChange={(c) => changes.push(c)} />);
-    fireEvent.change(screen.getByLabelText("Effect family (required)"), { target: { value: "MOVEMENT" } });
-    expect(changes.at(-1)?.payload.effectFamily).toBe("MOVEMENT");
-    fireEvent.click(screen.getByLabelText("This Effect has its own resolution"));
-    const mode = screen.getByLabelText("Resolution mode");
-    expect([...(mode as HTMLSelectElement).options].map((o) => o.value).slice(1)).toEqual(CATALOG.vocabularies.resolutionModes);
-    fireEvent.change(mode, { target: { value: "SAVING_THROW" } });
+    // RULES-WO1 Phase F: the Effect is edited in game language (family, resolution, outcomes) from the catalog's lists.
+    const family = screen.getByLabelText("Effect family") as HTMLSelectElement;
+    expect([...family.options].map((o) => o.value).slice(1)).toEqual(CATALOG.vocabularies.spellEffectFamilies);
+    fireEvent.change(family, { target: { value: "UTILITY" } });
+    expect(changes.at(-1)?.payload.effectFamily).toBe("UTILITY");
+    const modes = within(screen.getByRole("radiogroup", { name: "How it resolves" })).getAllByRole("radio");
+    expect(modes).toHaveLength(CATALOG.vocabularies.resolutionModes!.length);
+    fireEvent.click(screen.getByLabelText("A Saving Throw by the target"));
     expect(changes.at(-1)?.payload.resolution).toEqual({ mode: "SAVING_THROW", data: {} });
-    fireEvent.click(screen.getByRole("button", { name: "Add outcome" }));
-    expect(changes.at(-1)?.payload.outcomes).toEqual([{ outcomeKey: "", data: {} }]);
+    fireEvent.change(within(screen.getByTestId("effect-outcome-SUCCESS")).getByLabelText("Add what happens"), { target: { value: "NO_EFFECT" } });
+    expect(changes.at(-1)?.payload.outcomes).toEqual([{ outcomeKey: "SUCCESS", data: { operations: [{ kind: "NO_EFFECT", data: {} }] } }]);
     expect(screen.queryByRole("textbox", { name: /developer json/i })).toBeNull();
   });
 
@@ -128,7 +130,7 @@ describe("structured Definition editor (§12–13, §28)", () => {
 
   it("§47 associates server issues with their field (aria-invalid + aria-describedby) and keeps text labels", () => {
     render(<Editor kind="SPELL_EFFECT" issues={[issue("payload.effectFamily", { message: "effectFamily is an explicit SCREAMING_SNAKE token" })]} />);
-    const input = screen.getByLabelText("Effect family (required)");
+    const input = screen.getByLabelText("Effect family");
     expect(input).toHaveAttribute("aria-invalid", "true");
     const describedBy = input.getAttribute("aria-describedby")!.split(" ");
     const errors = describedBy.map((id) => document.getElementById(id)?.textContent ?? "").join(" ");
@@ -138,8 +140,9 @@ describe("structured Definition editor (§12–13, §28)", () => {
 
   it("M6-I004 §17 a read-only revision disables every structured control", () => {
     render(<Editor kind="SPELL_EFFECT" readOnly />);
-    expect(screen.getByLabelText("Effect family (required)")).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Add outcome" })).toBeDisabled();
+    expect(screen.getByLabelText("Effect family")).toBeDisabled();
+    for (const add of screen.getAllByLabelText("Add what happens")) expect(add).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Add a cost" })).toBeDisabled();
     expect(screen.queryByLabelText(/Enable developer JSON editing/)).toBeNull();
   });
 
@@ -218,7 +221,7 @@ describe("validation summary (§15, §47)", () => {
     expect(screen.getByRole("status")).toHaveTextContent("PASS — SPELL_EFFECT satisfies its M5 structural contract.");
     rerender(
       <>
-        <input id="definition-field-resolution" aria-label="target" />
+        <input id={fieldDomId("")} aria-label="target" />
         <ValidationPanel result={{ ...PASS, status: "FAIL", issues: [issue("payload.resolution.mode", { component: "resolution" })] }} stale fields={fields} />
       </>,
     );
@@ -286,7 +289,7 @@ describe("revision workspace", () => {
     client.getVersion.mockResolvedValue(version({ structuredData: { note: "Fire damage spell effect" } }));
     render(<RevisionWorkspace entityId="e1" versionId="v1" />);
     expect((await screen.findAllByText("Generic / non-Prowess Entity")).length).toBeGreaterThan(0);
-    expect(screen.queryByLabelText("Effect family (required)")).toBeNull();
+    expect(screen.queryByLabelText("Effect family")).toBeNull();
     expect(client.validateStoredRevision).not.toHaveBeenCalled();
   });
 
@@ -311,10 +314,10 @@ describe("new Definition form (§10–11, §55)", () => {
   it("derives the EntityType from the catalog, disables reserved kinds and never derives the Canonical Key silently", async () => {
     client.createDefinition.mockResolvedValue({ entity: { id: "e7" }, version: { id: "v7" }, validation: PASS });
     render(<NewDefinitionForm />);
-    fireEvent.change(await screen.findByLabelText("Definition family"), { target: { value: "EQUIPMENT" } });
+    fireEvent.change(await screen.findByLabelText("Definition family"), { target: { value: "SUMMON" } });
     const kindSelect = screen.getByLabelText("Definition kind") as HTMLSelectElement;
-    // M6-WO6 activated WEAPON; ARMOR is still a reserved Equipment kind.
-    expect([...kindSelect.options].find((o) => o.value === "ARMOR")).toMatchObject({ disabled: true });
+    // RULES-WO1 Phase C activated ARMOR and the Summon engine kinds; SUMMON_ACTION_MODEL stays reserved.
+    expect([...kindSelect.options].find((o) => o.value === "SUMMON_ACTION_MODEL")).toMatchObject({ disabled: true });
     fireEvent.change(screen.getByLabelText("Definition family"), { target: { value: "SPELL" } });
     fireEvent.change(screen.getByLabelText("Definition kind"), { target: { value: "SPELL_EFFECT" } });
     expect(screen.getByText(/Stored as Entity Type/)).toHaveTextContent("SPELL_EFFECT");
@@ -322,11 +325,11 @@ describe("new Definition form (§10–11, §55)", () => {
     expect(screen.getByLabelText("Canonical Key (required)")).toHaveValue("");
     fireEvent.click(screen.getByRole("button", { name: "Suggest a Canonical Key from the Display Name" }));
     expect(screen.getByLabelText("Canonical Key (required)")).toHaveValue("spell.effect.force_push");
-    fireEvent.change(screen.getByLabelText("Effect family (required)"), { target: { value: "MOVEMENT" } });
+    fireEvent.change(screen.getByLabelText("Effect family"), { target: { value: "UTILITY" } });
     fireEvent.click(screen.getByRole("button", { name: "Create Definition as Draft" }));
     await waitFor(() => expect(client.createDefinition).toHaveBeenCalledTimes(1));
     const body = client.createDefinition.mock.calls[0]![0] as Record<string, unknown>;
-    expect(body).toMatchObject({ definitionKind: "SPELL_EFFECT", entityType: "SPELL_EFFECT", canonicalKey: "spell.effect.force_push", displayName: "Force Push", prowessDefinition: { definitionKind: "SPELL_EFFECT", payload: { effectFamily: "MOVEMENT" } } });
+    expect(body).toMatchObject({ definitionKind: "SPELL_EFFECT", entityType: "SPELL_EFFECT", canonicalKey: "spell.effect.force_push", displayName: "Force Push", prowessDefinition: { definitionKind: "SPELL_EFFECT", payload: { effectFamily: "UTILITY" } } });
     expect(body).not.toHaveProperty("status");
     expect(body).not.toHaveProperty("revisionNumber");
     await waitFor(() => expect(nav.push).toHaveBeenCalledWith("/compendium/admin/entities/e7/revisions/v7?created=1"));

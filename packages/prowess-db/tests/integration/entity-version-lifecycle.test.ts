@@ -285,6 +285,14 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
     // PRE-M7-WO1 added formulaGuide (pure: classifies / prints the engine-validated Formula tree), getStatImpacts and
     // getRuleUsage (reads of one exact Release's rule graph) and previewRuleCandidate (evaluates a never-persisted
     // candidate; no write). None mutates anything.
+    // RULES-WO1 added previewAuthoredRules (evaluates the published Release and a never-persisted candidate overlay;
+    // no write — proven by the row counts in rules-wo1-authored-rules.test.ts). Its Phase C adds three reads:
+    // RULES-WO1 Phase E adds changeKeywordPresentation (a compare-and-set edit of a Keyword's NAME / description /
+    // deprecated mark only — never its key or category; imported Keywords refused; not an EntityVersion write) and
+    // getKeywordUsage (counts; SELECT-only). Proven in rules-wo1-authored-rules.test.ts.
+    // listAuthoringOptions (named Skill ranks and calculated values for pickers), lookupSourceSections (section titles
+    // for the readable source picker) and previewReferenceDefinition (a sample-input preview of one stored revision).
+    // All are SELECT-only — no mutation (rules-wo1-authored-rules.test.ts).
     // M4-WO2 added resolveRulesetContextFromManifest / resolveRulesetContextFromRelease: exact-id, read-only builders of
     // the M4 RulesetContext (SELECTs only — proven by the table fingerprints in ruleset-context.test.ts). No mutation.
     // M3-WO6 added reviewImportCandidate (the ONLY Candidate status change: an explicit, append-only, atomic decision),
@@ -318,6 +326,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "assertSafeToResetTestDatabase",
         "assignKeywordToEntity",
         "assignKeywordToEntityVersion",
+        "changeKeywordPresentation",
         "createEntity",
         "createCanonPolicy",
         "createCanonDecision",
@@ -390,6 +399,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "listSourceAssets",
         "listSourceSectionChildren",
         "listSourceSnapshots",
+        "lookupSourceSections",
         // M5-WO1: exact Prowess Definition materialization — read-only loads of an exact RulesetContext's pinned versions.
         "materializeProwessDefinitionBundle",
         "materializeProwessDefinitionsFromManifest",
@@ -413,6 +423,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "getIncomingRelationships",
         "getKeywordCategory",
         "getKeywordDefinition",
+        "getKeywordUsage",
         "getLatestEntityVersion",
         "getLatestCanonPolicy",
         "getLatestRulesetManifest",
@@ -465,6 +476,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "createAuthoredRevision",
         "getAuthoringCatalog",
         "listAuthoringDefinitions",
+        "listAuthoringOptions",
         "proposeDefinitionChangeSet",
         "searchAuthoringKeywords",
         "searchDefinitionReferences",
@@ -498,6 +510,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "getCharacterAdvancementContext",
         "getCharacterDefinitionEligibility",
         "listCharacterEligibleDefinitions",
+        "previewAuthoredRules",
         "previewCharacterAdvancementFor",
         // M6-WO5 Digital Character Sheet: one read model, play-state / sheet-text / portrait writes to their OWN tables
         // (each a lockVersion compare-and-set), portrait validation helpers and constants. None touches entity_versions.
@@ -551,6 +564,7 @@ describe("EntityVersion lifecycle & mutation (prowess_studio_test only)", () => 
         "getCharacterPlayWorkspace",
         "listCharacterPlayEvents",
         "previewCharacterPlayOperation",
+        "previewReferenceDefinition",
         // PRE-M7-WO1 Compendium rule control: reads and side-effect-free evaluations only (pinned by pre-m7-wo1-static).
         "formulaGuide",
         "getRuleUsage",

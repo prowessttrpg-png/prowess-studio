@@ -174,6 +174,8 @@ describe("M3-WO1 public service surface", () => {
       "createSourceSnapshot", "findSourceSnapshotByContentHash", "getSourceAsset", "getSourceBlock", "getSourceSection", "getSourceSectionContent",
       "getSourceSnapshot", "getSourceSnapshotIngestion", "getSourceStructure", "getSourceTable", "hashSourceStructure", "ingestSourceSnapshot",
       "ingestSourceStructure", "listSourceAssetPlacements", "listSourceAssets", "listSourceSectionChildren", "listSourceSnapshots", "parseDocxStructure",
+      // RULES-WO1: a READ-ONLY title lookup for the Compendium's readable source picker (SELECTs only).
+      "lookupSourceSections",
     ].sort());
   });
 

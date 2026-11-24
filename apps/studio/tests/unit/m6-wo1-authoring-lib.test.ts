@@ -14,11 +14,18 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("authoring descriptors (M6-I002 UI never owns mechanics)", () => {
   it("cover every shared contract the catalog reports; other kinds fall back to the generic structured editor", () => {
-    for (const k of CATALOG.kinds.filter((x) => x.sharedContract !== null)) expect(descriptorFor(k, 1), k.definitionKind).toBe(CONTRACT_DESCRIPTORS[k.sharedContract!]);
+    for (const k of CATALOG.kinds.filter((x) => x.sharedContract !== null)) {
+      const d = descriptorFor(k, 1);
+      const shared = CONTRACT_DESCRIPTORS[k.sharedContract!]!;
+      // RULES-WO1 Phase F: the shared descriptor, with the guided component editor told the kind's own branch and kind.
+      expect(d.purpose, k.definitionKind).toBe(shared.purpose);
+      expect(d.fields.map((f) => [f.key, f.input]), k.definitionKind).toEqual(shared.fields.map((f) => [f.key, f.input]));
+      for (const f of d.fields) if (f.input === "componentMechanics") expect(f, k.definitionKind).toMatchObject({ branch: k.branch, definitionKind: k.definitionKind });
+    }
     // PRE-M7-WO1 guides AFFINITY v2 and whole Spell / Maneuver Definitions; the generic editor stays the fallback for a
     // kind or version with no descriptor (a reserved kind, or an unknown version).
     expect(descriptorFor({ definitionKind: "AFFINITY", sharedContract: null }, 2)).not.toBe(GENERIC_DESCRIPTOR);
-    expect(descriptorFor({ definitionKind: "ARMOR", sharedContract: null }, 1)).toBe(GENERIC_DESCRIPTOR);
+    expect(descriptorFor({ definitionKind: "SUMMON_ACTION_MODEL", sharedContract: null }, 1)).toBe(GENERIC_DESCRIPTOR); // RULES-WO1 guides ARMOR; this kind stays reserved
     expect(descriptorFor({ definitionKind: "AFFINITY", sharedContract: null }, 3)).toBe(GENERIC_DESCRIPTOR);
     expect(descriptorFor({ definitionKind: "STAT", sharedContract: null }, 1)).not.toBe(GENERIC_DESCRIPTOR); // PRE-M7-WO1 guided core editor
     expect(descriptorFor({ definitionKind: "SPELL_DEFINITION", sharedContract: null }, 1)).not.toBe(GENERIC_DESCRIPTOR);
@@ -37,14 +44,18 @@ describe("authoring descriptors (M6-I002 UI never owns mechanics)", () => {
     const keys = (c: string) => CONTRACT_DESCRIPTORS[c]!.fields.map((f) => f.key);
     expect(keys("TARGETING")).not.toEqual(expect.arrayContaining(["resolution"]));
     for (const k of ["resolution", "outcomes", "effectFamily", "damage", "save"]) expect(keys("TARGETING")).not.toContain(k);
-    expect(keys("EFFECT")).toEqual(expect.arrayContaining(["effectFamily", "resolution", "outcomes", "keywords", "parameters", "compatibility", "costContributions", "rules"]));
-    expect(keys("TRAIT").length).toBeLessThan(keys("EFFECT").length);
+    // RULES-WO1 Phase F: an Effect's whole payload is one guided mechanics editor; a new Effect starts with every field.
+    expect(keys("EFFECT")).toEqual(["", "keywords", "compatibility"]);
+    expect(Object.keys(initialPayload(CONTRACT_DESCRIPTORS.EFFECT!)).sort()).toEqual(["compatibility", "costContributions", "effectFamily", "keywords", "outcomes", "parameters", "resolution", "rules"]);
+    // A Trait never authors outcomes or a resolution of its own.
+    expect(Object.keys(initialPayload(CONTRACT_DESCRIPTORS.TRAIT!))).not.toEqual(expect.arrayContaining(["outcomes"]));
+    expect(Object.keys(initialPayload(CONTRACT_DESCRIPTORS.TRAIT!))).not.toEqual(expect.arrayContaining(["resolution"]));
   });
 
   it("a new candidate takes kind, family and the authoring schema version from the catalog row, with empty author values", () => {
     const effect = CATALOG.kinds.find((k) => k.definitionKind === "SPELL_EFFECT")!;
-    expect(newCandidate(effect)).toEqual({ schemaVersion: 1, systemFamily: "SPELL", definitionKind: "SPELL_EFFECT", payload: initialPayload(CONTRACT_DESCRIPTORS.EFFECT!) });
-    expect(newCandidate(effect).payload).toMatchObject({ effectFamily: "", resolution: null, outcomes: [], keywords: [], rules: {} });
+    expect(newCandidate(effect)).toEqual({ schemaVersion: 1, systemFamily: "SPELL", definitionKind: "SPELL_EFFECT", payload: initialPayload(descriptorFor(effect, 1)) });
+    expect(newCandidate(effect).payload).toMatchObject({ effectFamily: "", resolution: null, outcomes: [], keywords: [], costContributions: [], rules: { effect: { branch: "SPELL", targetCategories: [], parameters: [], formulas: [], restrictions: [] } } });
     expect(initialPayload(GENERIC_DESCRIPTOR)).toEqual({});
   });
 });

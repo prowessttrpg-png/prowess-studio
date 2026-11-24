@@ -9,6 +9,29 @@ import type { DurationConcept } from "../vocabulary/construction.js";
 
 export const DURATION_CONDITION_ERRORS = Object.freeze({ INVALID: "PROWESS_DURATION_CONDITION.INVALID", PARAMETER: "PROWESS_DURATION_CONDITION.PARAMETER", RELEVANCE: "PROWESS_DURATION_CONDITION.RELEVANCE", DEFERRED: "PROWESS_DURATION_CONDITION.DEFERRED", REFERENCE: "PROWESS_DURATION_CONDITION.REFERENCE", CAP: "PROWESS_DURATION_CONDITION.CAP" });
 const E = DURATION_CONDITION_ERRORS.INVALID;
+/** RULES-WO1 Phase G: what a listed Ability Condition contribution means (the closed list this reader accepts). */
+export const CONDITION_COST_MEANINGS = deepFreeze(["MP_PERCENT_REDUCTION", "AP_REDUCTION", "MP_REDUCTION", "AP_COMMITMENT"] as const);
+/** RULES-WO1 Phase G: a Duration's inert future-runtime Concentration marker (WO13 = handled by the Concentration work). */
+/** RULES-WO1 Phase G: whether a Duration / Ability Condition can be used, or waits on a named open rules question. */
+export const COMPONENT_AVAILABILITIES = deepFreeze(["EXECUTABLE", "DEFERRED"] as const);
+export const DURATION_CONCENTRATION_MODES = deepFreeze(["NONE", "WO13"] as const);
+/**
+ * RULES-WO1 Phase G: the compiled construction facts an Ability Condition's APPLICABILITY may read (the Ability's own
+ * mechanics, decided at construction). Runtime requirements read play-time facts, which play does not evaluate yet.
+ */
+export const CONDITION_MECHANIC_FACTS = deepFreeze({
+  present: "mechanic.present",
+  attack: "mechanic.attack",
+  savingThrow: "mechanic.save",
+  area: "mechanic.area",
+  sustained: "mechanic.sustained",
+  duration: "mechanic.duration",
+  targets: "mechanic.targets",
+  effects: "mechanic.effects",
+  foundations: "mechanic.foundations",
+} as const);
+export const CONDITION_NUMERIC_FACTS = deepFreeze([CONDITION_MECHANIC_FACTS.present, CONDITION_MECHANIC_FACTS.attack, CONDITION_MECHANIC_FACTS.savingThrow, CONDITION_MECHANIC_FACTS.area, CONDITION_MECHANIC_FACTS.sustained] as const);
+export const CONDITION_SET_FACTS = deepFreeze([CONDITION_MECHANIC_FACTS.duration, CONDITION_MECHANIC_FACTS.targets, CONDITION_MECHANIC_FACTS.effects, CONDITION_MECHANIC_FACTS.foundations] as const);
 export interface ComponentAvailability { readonly availability: "EXECUTABLE" | "DEFERRED"; readonly deferralKey: string | null; }
 export interface RuntimeRequirement {
   readonly requirementKey: string;
@@ -57,7 +80,7 @@ function requirement(v: unknown, at: readonly PathSegment[], p: Problems): Requi
   return out.requirement;
 }
 function availability(r: Record<string, unknown>, at: readonly PathSegment[], p: Problems): ComponentAvailability | null {
-  const a = readEnum(own(r, "availability"), ["EXECUTABLE", "DEFERRED"] as const, [...at, "availability"], p, E, "availability");
+  const a = readEnum(own(r, "availability"), COMPONENT_AVAILABILITIES, [...at, "availability"], p, E, "availability");
   const d = own(r, "deferralKey");
   if (a === "EXECUTABLE" ? d !== null : !isExactLabel(d)) p.add(E, [...at, "deferralKey"], "only deferred content names an explicit unresolved rule");
   return a ? { availability: a, deferralKey: d as string | null } : null;
@@ -132,7 +155,7 @@ export function readConditionContributions(payload: AbilityConditionDefinitionPa
   const choiceParameter = rules.choice.kind === "CHOOSE_ONE" ? rules.choice.parameter : null;
   payload.costContributions.forEach((c, i) => {
     const q = readRecord(c.data, [...at, i], p, E, ["kind", "amount", "parameter", "includedUnits", "amounts", "modifier", "option"], ["kind", "modifier"]); if (!q) return;
-    const modifier = readEnum(own(q, "modifier"), ["MP_PERCENT_REDUCTION", "AP_REDUCTION", "MP_REDUCTION", "AP_COMMITMENT"] as const, [...at, i, "modifier"], p, E, "listed contribution meaning"), option = own(q, "option") ?? null;
+    const modifier = readEnum(own(q, "modifier"), CONDITION_COST_MEANINGS, [...at, i, "modifier"], p, E, "listed contribution meaning"), option = own(q, "option") ?? null;
     if ((rules.choice.kind === "CHOOSE_ONE" ? !rules.parameters.find(x => x.parameter === choiceParameter)?.allowed.includes(option as string) : option !== null)) p.add(E, [...at, i, "option"], "every OR benefit names exactly one permitted selection; ALL benefits have no option");
     if (modifier && c.currency !== (modifier === "MP_PERCENT_REDUCTION" || modifier === "MP_REDUCTION" ? "MP" : "AP")) p.add(E, [...at, i], "currency must agree with contribution meaning");
     if (rules.branch === "MANEUVER" && (modifier === "MP_PERCENT_REDUCTION" || modifier === "AP_COMMITMENT")) p.add(E, [...at, i], "Maneuver Conditions expose listed AP or MP reductions only");

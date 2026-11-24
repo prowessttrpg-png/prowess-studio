@@ -3,7 +3,7 @@
 import { EmptyState, Pagination } from "@prowess/ui";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EntityFilters, type EntityFiltersValue } from "./_components/EntityFilters";
 import { EntityListRow } from "./_components/EntityListRow";
 import { ErrorState } from "./_components/ErrorState";
@@ -68,9 +68,13 @@ function CompendiumBrowser() {
     setSearchInput(filters.search);
   }, [filters.search]);
 
-  const [result, setResult] = useState<{ items: EntityListItemDto[]; total: number; totalPages: number } | null>(
+  // Each result remembers the exact query it answers, so the list and the page label never disagree (a page
+  // change renders "Page 2" only with page-2 rows) and a slow, superseded response never replaces a newer one.
+  const queryKey = JSON.stringify([filters, page, pageSize]);
+  const [result, setResult] = useState<{ key: string; items: EntityListItemDto[]; total: number; totalPages: number } | null>(
     null,
   );
+  const newestQuery = useRef(queryKey);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string>("");
 
@@ -98,13 +102,25 @@ function CompendiumBrowser() {
     [filters, page, pathname, router, searchParams],
   );
 
+  // The newest URL writer and URL search value, for the debounce timer below. The timer must NOT use the
+  // updateUrl captured when the timer was armed: a filter chosen during the debounce window (for example an
+  // Entity Type picked right after typing) would then be overwritten by that stale writer and silently lost
+  // (RULES-WO1 Phase D finding; reproduced identically on main 23f3c03).
+  const latest = useRef({ updateUrl, search: filters.search });
+  useEffect(() => {
+    latest.current = { updateUrl, search: filters.search };
+  }, [updateUrl, filters.search]);
+
   // Debounce writing the search field into the URL.
   useEffect(() => {
     if (searchInput === filters.search) {
       return;
     }
     const timer = setTimeout(() => {
-      updateUrl({ search: searchInput });
+      // A filter change in the meantime may already have written this search (the filter writes the
+      // search field's current text too) — then there is nothing left to write.
+      if (latest.current.search === searchInput) return;
+      latest.current.updateUrl({ search: searchInput });
     }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
     // Intentionally depends only on searchInput — updateUrl's identity
@@ -115,6 +131,8 @@ function CompendiumBrowser() {
   }, [searchInput]);
 
   const loadEntities = useCallback(async () => {
+    const key = JSON.stringify([filters, page, pageSize]);
+    newestQuery.current = key;
     setStatus("loading");
     try {
       const data = await listEntities({
@@ -126,9 +144,11 @@ function CompendiumBrowser() {
         canonicalKey: filters.canonicalKey || undefined,
         keyword: filters.keyword || undefined,
       });
-      setResult({ items: data.items, total: data.total, totalPages: data.totalPages });
+      if (newestQuery.current !== key) return; // superseded by a newer query
+      setResult({ key, items: data.items, total: data.total, totalPages: data.totalPages });
       setStatus("ready");
     } catch (error) {
+      if (newestQuery.current !== key) return;
       setErrorMessage(
         error instanceof CompendiumApiError ? error.message : "Something went wrong loading Entities.",
       );
@@ -168,11 +188,11 @@ function CompendiumBrowser() {
       />
 
       <div className="prowess-compendium__results">
-        {status === "loading" ? <LoadingState label="Loading Entities…" /> : null}
+        {status === "loading" || (status === "ready" && result !== null && result.key !== queryKey) ? <LoadingState label="Loading Entities…" /> : null}
 
         {status === "error" ? <ErrorState message={errorMessage} onRetry={() => void loadEntities()} /> : null}
 
-        {status === "ready" && result !== null ? (
+        {status === "ready" && result !== null && result.key === queryKey ? (
           result.items.length === 0 ? (
             <EmptyState
               title={hasActiveFilters ? "No Entities match these filters" : "No Entities exist"}

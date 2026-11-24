@@ -251,6 +251,11 @@ export interface GeneralActionCardSection {
   readonly costOverridableByExplicitRule: boolean;
   readonly source: { readonly locators: readonly string[]; readonly conflicts: readonly string[] };
   readonly improvements: readonly CardImprovementEntry[];
+  /**
+   * RULES-WO1 (R08): the Skill benefits that grant this Action and whether THIS Character has the grant (rank held and
+   * every prerequisite group met). Present only when a published Skill benefit grants it.
+   */
+  readonly grantedBySkills?: readonly { readonly benefit: ProwessDefinitionRef; readonly benefitKey: string; readonly skill: ProwessDefinitionRef; readonly minimumRankKey: string; readonly status: "GRANTED" | "RANK_NOT_REACHED" | "INELIGIBLE" | "UNRESOLVED" }[];
 }
 
 export type SpellCard = CardEnvelope<"SIGNATURE_SPELL", SpellCardSection>;

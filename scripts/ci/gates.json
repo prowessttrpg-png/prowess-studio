@@ -1292,6 +1292,31 @@
         2,
         3
       ]
+    },
+    {
+      "id": "RULES-WO1",
+      "name": "RULES-WO1 audit gate — Complete game authoring",
+      "job": "controls-1",
+      "kind": "static",
+      "tests": [
+        "apps/studio/tests/unit/rules-wo1-static.test.ts",
+        "apps/studio/tests/unit/rules-wo1-authoring-ui.test.tsx",
+        "apps/studio/tests/unit/rules-wo1-phase-c-ui.test.tsx",
+        "packages/prowess-game/src/rules-wo1-authoring.test.ts",
+        "packages/prowess-game/src/rules-wo1-reference.test.ts",
+        "packages/prowess-db/tests/unit/rules-wo1-capabilities.test.ts"
+      ],
+      "allOf": [],
+      "controls": {
+        "script": "scripts/rules-wo1-negative-controls.mjs",
+        "count": 13
+      },
+      "smoke": [],
+      "previous": [],
+      "tiers": [
+        2,
+        3
+      ]
     }
   ],
   "checks": [

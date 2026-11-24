@@ -103,11 +103,10 @@ describe("system families and Definition kinds", () => {
     expect(ABILITY_SLOT_KINDS.SPELL.foundation).toBeNull();
   });
 
-  it("M5-I026 Summoning grants no unauthored capability: summon kinds are reserved, with no payload contract and no compiler", () => {
-    for (const kind of ["SUMMON_TYPE", "SUMMON_TRAIT", "SUMMON_ACTION_MODEL"] as const) {
-      expect(PROWESS_DEFINITION_KINDS[kind].schemaVersions).toEqual([]);
-      expect(COMPONENT_COMPILERS[kind]).toBeNull();
-    }
+  it("M5-I026 Summoning grants no unauthored capability: summon kinds have no compiler (RULES-WO1 activates SUMMON_TYPE / SUMMON_TRAIT for reference only)", () => {
+    for (const kind of ["SUMMON_TYPE", "SUMMON_TRAIT", "SUMMON_ACTION_MODEL"] as const) expect(COMPONENT_COMPILERS[kind]).toBeNull();
+    expect(PROWESS_DEFINITION_KINDS.SUMMON_ACTION_MODEL.schemaVersions).toEqual([]);
+    expect([PROWESS_DEFINITION_KINDS.SUMMON_TYPE.schemaVersions, PROWESS_DEFINITION_KINDS.SUMMON_TRAIT.schemaVersions]).toEqual([[1], [1]]);
   });
 
   it("Mana Efficiency is never a cost currency (M5-I023)", () => {

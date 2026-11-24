@@ -100,6 +100,20 @@
       "authorable": true
     },
     {
+      "definitionKind": "AMMUNITION",
+      "systemFamily": "EQUIPMENT",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
       "definitionKind": "ANCESTRY",
       "systemFamily": "ANCESTRY",
       "branch": null,
@@ -121,13 +135,29 @@
       "allowedEntityTypes": [
         "GENERIC_RULE"
       ],
-      "supportedSchemaVersions": [],
-      "authoringSchemaVersion": null,
-      "authorable": false
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
     },
     {
       "definitionKind": "ATTACK",
       "systemFamily": "EQUIPMENT",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "CALCULATED_VALUE",
+      "systemFamily": "CHARACTER",
       "branch": null,
       "sharedContract": null,
       "allowedEntityTypes": [
@@ -170,6 +200,20 @@
     {
       "definitionKind": "CHARACTER_DIE_PROGRESSION",
       "systemFamily": "CORE",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "CONCENTRATION_RULE",
+      "systemFamily": "ABILITY",
       "branch": null,
       "sharedContract": null,
       "allowedEntityTypes": [
@@ -238,8 +282,8 @@
       "authorable": true
     },
     {
-      "definitionKind": "MAGE_ART",
-      "systemFamily": "MAGE_ART",
+      "definitionKind": "JOB_TEMPLATE",
+      "systemFamily": "CHARACTER",
       "branch": null,
       "sharedContract": null,
       "allowedEntityTypes": [
@@ -249,6 +293,21 @@
         1
       ],
       "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "MAGE_ART",
+      "systemFamily": "MAGE_ART",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1,
+        2
+      ],
+      "authoringSchemaVersion": 2,
       "authorable": true
     },
     {
@@ -350,6 +409,20 @@
       "authorable": true
     },
     {
+      "definitionKind": "METAMAGIC",
+      "systemFamily": "SPELL",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
       "definitionKind": "MISSION_RULE",
       "systemFamily": "MISSION",
       "branch": null,
@@ -357,13 +430,29 @@
       "allowedEntityTypes": [
         "GENERIC_RULE"
       ],
-      "supportedSchemaVersions": [],
-      "authoringSchemaVersion": null,
-      "authorable": false
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
     },
     {
       "definitionKind": "RANK_LADDER",
       "systemFamily": "SKILL",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "REFERENCE_RULE",
+      "systemFamily": "CORE",
       "branch": null,
       "sharedContract": null,
       "allowedEntityTypes": [
@@ -405,6 +494,20 @@
     },
     {
       "definitionKind": "SKILL",
+      "systemFamily": "SKILL",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "SKILL_BENEFIT",
       "systemFamily": "SKILL",
       "branch": null,
       "sharedContract": null,
@@ -537,9 +640,11 @@
       "allowedEntityTypes": [
         "GENERIC_RULE"
       ],
-      "supportedSchemaVersions": [],
-      "authoringSchemaVersion": null,
-      "authorable": false
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
     },
     {
       "definitionKind": "SUMMON_ACTION_MODEL",
@@ -561,9 +666,11 @@
       "allowedEntityTypes": [
         "GENERIC_RULE"
       ],
-      "supportedSchemaVersions": [],
-      "authoringSchemaVersion": null,
-      "authorable": false
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
     },
     {
       "definitionKind": "SUMMON_TYPE",
@@ -573,9 +680,11 @@
       "allowedEntityTypes": [
         "GENERIC_RULE"
       ],
-      "supportedSchemaVersions": [],
-      "authoringSchemaVersion": null,
-      "authorable": false
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
     },
     {
       "definitionKind": "TERRAIN",
@@ -593,6 +702,20 @@
     },
     {
       "definitionKind": "WEAPON",
+      "systemFamily": "EQUIPMENT",
+      "branch": null,
+      "sharedContract": null,
+      "allowedEntityTypes": [
+        "GENERIC_RULE"
+      ],
+      "supportedSchemaVersions": [
+        1
+      ],
+      "authoringSchemaVersion": 1,
+      "authorable": true
+    },
+    {
+      "definitionKind": "WEAPON_MODIFICATION",
       "systemFamily": "EQUIPMENT",
       "branch": null,
       "sharedContract": null,
@@ -684,6 +807,17 @@
       "DURATION",
       "ABILITY_CONDITION",
       "FOUNDATION"
+    ],
+    "compatibilityRelations": [
+      "TARGETING",
+      "EFFECT",
+      "TRAIT",
+      "DURATION",
+      "ABILITY_CONDITION",
+      "FOUNDATION",
+      "AFFINITY",
+      "ABILITY_KIND",
+      "KEYWORD"
     ],
     "prowessStats": [
       "STR",
@@ -1018,7 +1152,763 @@
       "ACTION_POINT_COST",
       "ADDITIONAL_USE_CASE",
       "RULE_OPERATION"
+    ],
+    "canonStatuses": [
+      "CANONICAL",
+      "OWNER_PROVIDED",
+      "TEST_ONLY"
+    ],
+    "calculatedValuePlacements": [
+      "CARRY_MAXIMUM_LOAD",
+      "ADDITIONAL_VALUES",
+      "REFERENCE_ONLY"
+    ],
+    "valueInputKinds": [
+      "STAT",
+      "LEVEL",
+      "DERIVED",
+      "CALCULATED_VALUE",
+      "CAST_AP",
+      "TOTAL_MP"
+    ],
+    "valueBaseSourceKinds": [
+      "STAT",
+      "LEVEL",
+      "DERIVED"
+    ],
+    "benefitAmountSourceKinds": [
+      "STAT",
+      "LEVEL",
+      "DERIVED"
+    ],
+    "concentrationCapacitySourceKinds": [
+      "STAT",
+      "LEVEL"
+    ],
+    "concentrationUpkeepSourceKinds": [
+      "CAST_AP"
+    ],
+    "armorCategories": [
+      "LIGHT",
+      "MEDIUM",
+      "HEAVY"
+    ],
+    "stealthEffects": [
+      "NORMAL",
+      "DISADVANTAGE"
+    ],
+    "conditionDurationModels": [
+      "UNTIL_REMOVED",
+      "ROUNDS",
+      "END_OF_NEXT_TURN",
+      "UNTIL_SAVE",
+      "SCENE",
+      "SPECIAL"
+    ],
+    "conditionOngoingTimings": [
+      "NONE",
+      "START_OF_TURN",
+      "END_OF_TURN",
+      "EACH_ROUND"
+    ],
+    "conditionStacking": [
+      "DOES_NOT_STACK",
+      "STACKS",
+      "REFRESHES_DURATION",
+      "SPECIAL"
+    ],
+    "summonEngines": [
+      "SUMMON_ENTITY",
+      "TOTEM",
+      "PERSISTENT_CONSTRUCT",
+      "BOUND_SUMMON",
+      "MANIFESTED_ENTITY",
+      "FUSION",
+      "EQUIPMENT_SUMMONING"
+    ],
+    "summonSustainModes": [
+      "SUSTAINED",
+      "PERIODIC",
+      "SUSTAINED_OR_PERIODIC",
+      "NONE"
+    ],
+    "summonCostSourceKinds": [
+      "STAT",
+      "TOTAL_MP"
+    ],
+    "summonLimitSourceKinds": [
+      "STAT"
+    ],
+    "missionRuleShapes": [
+      "ROLL_TABLE",
+      "CLOCK",
+      "INTEL",
+      "POINTS"
+    ],
+    "referenceRuleShapes": [
+      "ROLL_TABLE",
+      "POINTS"
+    ],
+    "clockVisibilities": [
+      "VISIBLE",
+      "HIDDEN",
+      "EITHER"
+    ],
+    "metamagicForms": [
+      "OPTION",
+      "TRAIT"
+    ],
+    "conditionTriggers": [
+      "ON_HIT",
+      "ON_FAILED_SAVE",
+      "ON_ENTERING_AREA",
+      "START_OF_TURN",
+      "END_OF_TURN",
+      "END_OF_ROUND"
+    ],
+    "summonActionModels": [
+      "DEPENDENT",
+      "INDEPENDENT",
+      "PASSIVE",
+      "TEMPLATE_BASED",
+      "SELF_BOUND",
+      "SPLIT_RESOURCE"
+    ],
+    "summonActionTimings": [
+      "CASTER_TURN",
+      "END_OF_CASTER_TURN",
+      "AUTOMATIC_AT_TRIGGER",
+      "NONE"
+    ],
+    "summonResourceOwners": [
+      "SUMMON",
+      "CASTER",
+      "SPLIT",
+      "NONE"
+    ],
+    "summonRestrictionKinds": [
+      "NO_ACTIONS_WITHOUT_TRAIT",
+      "NO_EXTRA_ACTIONS",
+      "NO_COUNTER_ACTIONS",
+      "NO_IMPROVISATION",
+      "NO_MP_REFUND",
+      "MAX_ACTIVE",
+      "WRITTEN_ONLY"
+    ],
+    "summonDismissals": [
+      "FREE_ACTION",
+      "ACTION",
+      "CANNOT_DISMISS",
+      "SPECIAL"
+    ],
+    "mageArtBenefitKinds": [
+      "IMMUNITY",
+      "ADVANTAGE",
+      "SENSE",
+      "STAT_SUBSTITUTION",
+      "RANGE_MULTIPLIER",
+      "COUNTER_ACTION",
+      "RESOURCE",
+      "WRITTEN_ONLY"
+    ],
+    "mageArtExceptionKinds": [
+      "ACTIVE_EFFECT_ONLY_WHILE_CASTING",
+      "NO_MAINTENANCE",
+      "SPECIAL_COST",
+      "DOES_NOT_COUNT_TOWARD_LIMIT",
+      "WRITTEN_ONLY"
+    ],
+    "weaponModificationChangeKinds": [
+      "RELOAD_AP",
+      "LOADING",
+      "TO_HIT",
+      "DAMAGE_DICE",
+      "LOUD_RADIUS_FEET",
+      "RANGE_FEET",
+      "WRITTEN_ONLY"
+    ],
+    "prerequisiteGroupModes": [
+      "ALL",
+      "ANY"
+    ],
+    "mageArtScalingSourceKinds": [
+      "STAT",
+      "LEVEL"
+    ],
+    "spellEffectFamilies": [
+      "DAMAGE",
+      "HEALING",
+      "BUFF",
+      "DEBUFF",
+      "CONTROL",
+      "UTILITY",
+      "SUMMONING"
+    ],
+    "effectSubfamilies": [
+      "DIRECT",
+      "RESTORATION",
+      "CLEANSE",
+      "MODIFICATION",
+      "FORCED_MOVEMENT",
+      "MOVEMENT",
+      "COUNTERSPELL",
+      "DETECTION",
+      "MANIFESTATION",
+      "TARGETING_CONVERSION",
+      "DAMAGE_CONVERSION"
+    ],
+    "effectResolutionPolicies": [
+      "OWN",
+      "INHERIT_ABILITY"
+    ],
+    "effectAttackTypes": [
+      "ABILITY_ATTACK",
+      "MELEE_ATTACK",
+      "RANGED_ATTACK",
+      "FOUNDATION_ATTACK"
+    ],
+    "effectSaveSelectionPolicies": [
+      "FIXED",
+      "CONSTRUCTION_CHOICE",
+      "TARGET_CHOICE",
+      "MARTIAL_CONTROL"
+    ],
+    "effectParameterKinds": [
+      "COUNT",
+      "TOKEN",
+      "FLAG"
+    ],
+    "effectLimitKinds": [
+      "FIXED",
+      "STAT"
+    ],
+    "effectCostKinds": [
+      "FIXED",
+      "PER_UNIT",
+      "PER_SELECTION"
+    ],
+    "effectOutcomeKeys": [
+      "SUCCESS",
+      "FAILURE"
+    ],
+    "effectOutcomeOperations": [
+      "NO_EFFECT",
+      "DAMAGE",
+      "HEAL",
+      "CLEANSE",
+      "MODIFY_VALUE",
+      "CONTROL",
+      "UTILITY",
+      "SUMMON",
+      "FOUNDATION_DAMAGE",
+      "CONVERT_TARGETING",
+      "CONVERT_DAMAGE_TYPE"
+    ],
+    "targetCategories": [
+      "SELF",
+      "CREATURE",
+      "OBJECT",
+      "POINT",
+      "SPACE",
+      "AREA",
+      "SOURCE"
+    ],
+    "traitFamilies": [
+      "SHARED",
+      "SPELL",
+      "MANEUVER"
+    ],
+    "traitModifications": [
+      "DAMAGE_TYPE",
+      "TARGETING_MEASURE",
+      "RESOLUTION",
+      "TRIGGER",
+      "COST"
+    ],
+    "constructionPrerequisiteKinds": [
+      "SKILL_RANK_AT_LEAST",
+      "AFFINITY_RANK_AT_LEAST"
+    ],
+    "stackLimitKinds": [
+      "FIXED",
+      "TRACK_RANK_VALUE"
+    ],
+    "constructionSkillTracks": [
+      "ARCANE",
+      "MARTIAL"
+    ],
+    "mageArtImmunityKinds": [
+      "CONDITION",
+      "DAMAGE_TYPE"
+    ],
+    "mageArtCalculationKinds": [
+      "DERIVED",
+      "PROCEDURE"
+    ],
+    "mageArtRangeTargetKinds": [
+      "DERIVED",
+      "TARGETING_MEASURE"
+    ],
+    "targetingMeasures": [
+      "LENGTH",
+      "WIDTH",
+      "RADIUS"
+    ],
+    "conditionOutcomeKinds": [
+      "ROLL_MODE",
+      "MODIFIER",
+      "DAMAGE",
+      "RESOURCE",
+      "PREVENTS",
+      "WRITTEN_ONLY"
+    ],
+    "conditionPreventions": [
+      "ACTIONS",
+      "COUNTER_ACTIONS",
+      "MOVEMENT"
+    ],
+    "deliveryFamilies": [
+      "SELF_DELIVERY",
+      "DIRECT_ATTACK_DELIVERY",
+      "TARGETED_DELIVERY",
+      "AREA_DELIVERY",
+      "EMANATION_DELIVERY",
+      "CHAIN_DELIVERY",
+      "FOUNDATION_DELIVERY"
+    ],
+    "targetCardinalityKinds": [
+      "ONE",
+      "SELECTED",
+      "AREA",
+      "CHAIN"
+    ],
+    "targetingRangeModels": [
+      "SELF",
+      "TOUCH",
+      "DEFAULT_SPELL_RANGE",
+      "FOUNDATION_RANGE",
+      "FIXED",
+      "EFFECT_DEFINED",
+      "SPECIAL"
+    ],
+    "targetingMeasureStatuses": [
+      "FORMULA",
+      "DEFERRED_PENDING_CANON",
+      "EFFECT_DEFINED"
+    ],
+    "targetingOriginModes": [
+      "CASTER",
+      "PERFORMER",
+      "POINT_IN_RANGE",
+      "TARGET",
+      "SOURCE",
+      "WEAPON_TIP",
+      "WEAPON_DIRECTION",
+      "PROJECTILE_PATH",
+      "EMITTED_POINT",
+      "THROWN_IMPACT",
+      "RANGED_IMPACT",
+      "PROJECTILE_IMPACT",
+      "FOUNDATION",
+      "EFFECT_DEFINED"
+    ],
+    "auraSources": [
+      "CASTER",
+      "CREATURE",
+      "OBJECT",
+      "SUMMON",
+      "ANCHOR"
+    ],
+    "targetingPlacementModels": [
+      "NONE",
+      "CHOOSE_TARGETS",
+      "CHOOSE_POINT",
+      "FROM_ORIGIN",
+      "FOLLOWS_SOURCE",
+      "FOUNDATION",
+      "EFFECT_DEFINED"
+    ],
+    "sightPolicies": [
+      "REQUIRED",
+      "NOT_REQUIRED",
+      "CONDITIONAL",
+      "INHERITED"
+    ],
+    "coverPolicies": [
+      "EXPOSED_TO_RESOLUTION",
+      "NOT_APPLICABLE",
+      "INHERITED"
+    ],
+    "targetingParameterKinds": [
+      "COUNT",
+      "STEPS",
+      "FLAG",
+      "TOKEN"
+    ],
+    "targetingCostKinds": [
+      "BASE",
+      "BASE_DEFERRED",
+      "PER_STEP",
+      "PER_ADDITIONAL_TARGET",
+      "PER_SELECTION"
+    ],
+    "conditionCostMeanings": [
+      "MP_PERCENT_REDUCTION",
+      "AP_REDUCTION",
+      "MP_REDUCTION",
+      "AP_COMMITMENT"
+    ],
+    "durationConcentrationModes": [
+      "NONE",
+      "WO13"
+    ],
+    "conditionNumericFacts": [
+      "mechanic.present",
+      "mechanic.attack",
+      "mechanic.save",
+      "mechanic.area",
+      "mechanic.sustained"
+    ],
+    "conditionSetFacts": [
+      "mechanic.duration",
+      "mechanic.targets",
+      "mechanic.effects",
+      "mechanic.foundations"
+    ],
+    "targetingVariableSources": [
+      "STAT",
+      "DERIVED",
+      "PARAMETER",
+      "SKILL_RANK_TABLE"
+    ],
+    "componentAvailability": [
+      "EXECUTABLE",
+      "DEFERRED"
+    ],
+    "foundationActionCategories": [
+      "MOVEMENT",
+      "DEFENSE",
+      "INTERACTION"
+    ],
+    "effectFormulaSourceKinds": [
+      "STAT",
+      "PARAMETER",
+      "MARTIAL_RANK_VALUE"
+    ],
+    "comparisonTargets": [
+      "DIFFICULTY_CLASS",
+      "TARGET_DODGE"
+    ],
+    "criticalThreatRules": [
+      "NATURAL_EQUALS_DIE_FACES"
+    ],
+    "criticalHitRules": [
+      "THREAT_AND_SUCCESS"
+    ],
+    "criticalDamageRules": [
+      "DEFERRED"
+    ],
+    "statMasterySignals": [
+      "ADVANTAGE"
+    ],
+    "affinityAuthorityCapacitySources": [
+      "AFFINITY_RANK_RULE"
+    ],
+    "castingConditionCapacitySources": [
+      "ARCANE_RANK"
+    ],
+    "chainBehaviors": [
+      "SUCCESS_ONLY",
+      "CONTINUE"
+    ],
+    "martialSaveControls": [
+      "DEFENDER_CHOOSES",
+      "ATTACKER_REMOVES_ONE",
+      "ATTACKER_CHOOSES"
+    ],
+    "activeMagicDismissals": [
+      "FREE_ACTION",
+      "NOT_DISMISSIBLE"
+    ],
+    "activeMagicDurations": [
+      "INSTANT",
+      "ROUNDS",
+      "COMBAT",
+      "SCENE",
+      "MISSION",
+      "SUSTAINED",
+      "MANA_LOCK",
+      "PERMANENT_BY_SPECIAL_RULE"
+    ],
+    "manaLockAmountKinds": [
+      "FINAL_SPELL_MP",
+      "FIXED"
+    ],
+    "improvedApCostModels": [
+      "FIXED"
     ]
+  },
+  "fixedLists": {
+    "rollComparisonOperators": [
+      ">="
+    ],
+    "martialSaveRanks": [
+      "TRAINED",
+      "EXPERT",
+      "MASTER"
+    ],
+    "naturalRolls:NORMAL": [
+      "r1"
+    ],
+    "naturalRolls:ADVANTAGE": [
+      "r1",
+      "r2"
+    ],
+    "naturalRolls:DISADVANTAGE": [
+      "r1",
+      "r2"
+    ],
+    "constructionInputs:remainingEffects": [
+      "base_effects",
+      "trades",
+      "effect_slots_per_exchange"
+    ],
+    "constructionInputs:effectiveTraits": [
+      "base_traits",
+      "trades",
+      "trait_slots_per_exchange"
+    ],
+    "constructionInputs:maximumTrades": [
+      "base_effects",
+      "minimum_effects_remaining",
+      "effect_slots_per_exchange"
+    ],
+    "constructionInputs:signatureProjected": [
+      "used_slots",
+      "candidate_slots"
+    ],
+    "constructionInputs:signatureAvailable": [
+      "capacity",
+      "projected"
+    ],
+    "conditionPolicyInputs:scale": [
+      "units",
+      "rate"
+    ],
+    "conditionPolicyInputs:sum": [
+      "left",
+      "right"
+    ],
+    "conditionPolicyInputs:cap": [
+      "listed",
+      "maximum"
+    ],
+    "conditionPolicyInputs:excess": [
+      "listed",
+      "effective"
+    ],
+    "conditionPolicyInputs:increment": [
+      "value",
+      "minimum",
+      "increment"
+    ],
+    "maneuverCostInputs:contribution": [
+      "units",
+      "included",
+      "rate"
+    ],
+    "maneuverCostInputs:affinityAdjusted": [
+      "minimum",
+      "amount",
+      "reduction"
+    ],
+    "maneuverCostInputs:conditionReduced": [
+      "base",
+      "reduction"
+    ],
+    "maneuverCostInputs:attackFloor": [
+      "minimum",
+      "attacks"
+    ],
+    "activeMagicInputs:sustainMp": [
+      "final_mp",
+      "pro"
+    ],
+    "activeMagicInputs:concentrationSlots": [
+      "res"
+    ],
+    "activeMagicInputs:concentrationDc": [
+      "consumers"
+    ]
+  },
+  "rulingDefaults": {
+    "conditionPolicy": {
+      "spellMpPercentMaximum": 30,
+      "maneuverApMaximum": 3,
+      "formulas": {
+        "scale": {
+          "expression": "units * rate",
+          "variables": [
+            "units",
+            "rate"
+          ]
+        },
+        "sum": {
+          "expression": "left + right",
+          "variables": [
+            "left",
+            "right"
+          ]
+        },
+        "cap": {
+          "expression": "min(listed, maximum)",
+          "variables": [
+            "listed",
+            "maximum"
+          ]
+        },
+        "excess": {
+          "expression": "listed - effective",
+          "variables": [
+            "listed",
+            "effective"
+          ]
+        },
+        "increment": {
+          "expression": "value - minimum - floor((value - minimum) / increment) * increment",
+          "variables": [
+            "value",
+            "minimum",
+            "increment"
+          ]
+        }
+      }
+    },
+    "maneuverCostPolicy": {
+      "signatureApReduction": 1,
+      "minimumAp": 1,
+      "minimumMp": 0,
+      "unresolvedComponentCosts": [
+        {
+          "canonicalKey": "maneuver.effect.elemental_damage_conversion",
+          "conflictKey": "M5-SC-048"
+        }
+      ],
+      "inherentRestrictionKeys": [
+        "WEAPON_LOCK"
+      ],
+      "formulas": {
+        "contribution": {
+          "expression": "max(0, units - included) * rate",
+          "variables": [
+            "units",
+            "included",
+            "rate"
+          ]
+        },
+        "affinityAdjusted": {
+          "expression": "max(minimum, amount - reduction)",
+          "variables": [
+            "minimum",
+            "amount",
+            "reduction"
+          ]
+        },
+        "conditionReduced": {
+          "expression": "base - reduction",
+          "variables": [
+            "base",
+            "reduction"
+          ]
+        },
+        "attackFloor": {
+          "expression": "max(minimum, attacks)",
+          "variables": [
+            "minimum",
+            "attacks"
+          ]
+        }
+      },
+      "authority": [
+        "M5-SC-025",
+        "s2020",
+        "s2094",
+        "s21729",
+        "s22270"
+      ]
+    },
+    "effectExecutionPolicy": {
+      "defaultChainBehavior": "SUCCESS_ONLY",
+      "martialSkillKey": "skill.martial",
+      "martialSaveControl": {
+        "TRAINED": "DEFENDER_CHOOSES",
+        "EXPERT": "ATTACKER_REMOVES_ONE",
+        "MASTER": "ATTACKER_CHOOSES"
+      },
+      "authority": [
+        "M5-SC-014",
+        "s639",
+        "s640",
+        "s642",
+        "Maneuvers §5 Save Restriction by Martial Rank"
+      ]
+    },
+    "activeMagicPolicy": {
+      "formulas": {
+        "sustainMp": {
+          "expression": "max(1, floor(final_mp / pro))",
+          "variables": [
+            "final_mp",
+            "pro"
+          ]
+        },
+        "concentrationSlots": {
+          "expression": "1 + floor(res / 2)",
+          "variables": [
+            "res"
+          ]
+        },
+        "concentrationDc": {
+          "expression": "8 + 2 * max(0, consumers - 1)",
+          "variables": [
+            "consumers"
+          ]
+        }
+      },
+      "sustainApPerRound": 1,
+      "sustainMeEligible": true,
+      "concentrationSaveStat": "PRO",
+      "dismissal": {
+        "INSTANT": "NOT_DISMISSIBLE",
+        "ROUNDS": "NOT_DISMISSIBLE",
+        "COMBAT": "NOT_DISMISSIBLE",
+        "SCENE": "NOT_DISMISSIBLE",
+        "MISSION": "NOT_DISMISSIBLE",
+        "SUSTAINED": "FREE_ACTION",
+        "MANA_LOCK": "NOT_DISMISSIBLE",
+        "PERMANENT_BY_SPECIAL_RULE": "NOT_DISMISSIBLE"
+      },
+      "channel": {
+        "requiresConcentration": true,
+        "maximumSimultaneous": 1,
+        "minimumApPerRound": 1,
+        "mpPaymentTiming": null,
+        "mpPaymentConflictKey": "M5-SC-053"
+      },
+      "manaLock": {
+        "amount": null,
+        "conflictKey": "M5-SC-052"
+      },
+      "authority": [
+        "M5-WO13",
+        "MANA EFFICIENCY",
+        "MANA LOCK",
+        "CHANNELING SPELLS",
+        "SUSTAINED SPELLS",
+        "CONCENTRATION",
+        "M5-SC-004"
+      ]
+    }
   },
   "legacyTerms": [
     {
@@ -1049,5 +1939,455 @@
       "legacyTerm": "Total Movement",
       "canonicalTerm": "Movement"
     }
-  ]
+  ],
+  "capabilities": {
+    "ABILITY_CONSTRUCTION_RULE": {
+      "execution": "LIVE",
+      "consumers": [
+        "Signature Spell and Maneuver builders",
+        "Play (Active Magic)"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "ACTION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Play",
+        "Action cards"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "ACTION_IMPROVEMENT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Action cards",
+        "Character access"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "AFFINITY": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character creation",
+        "Advancement",
+        "Spell builder"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "AFFINITY_PROGRESSION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Advancement"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "AFFINITY_RANK_RULE": {
+      "execution": "LIVE",
+      "consumers": [
+        "Advancement",
+        "Spell builder"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "AFFINITY_WEAKNESS_SEVERITY": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "CONTENT",
+      "notYet": "A reference scale only."
+    },
+    "AMMUNITION": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "REFERENCE_PREVIEW",
+      "notYet": "Play does not count ammunition yet; the weapon's Loading and Reload properties are previewed with it."
+    },
+    "ANCESTRY": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character creation"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "ARMOR": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "REFERENCE_PREVIEW",
+      "notYet": "The Character sheet does not equip worn Armor yet."
+    },
+    "ATTACK": {
+      "execution": "LIVE",
+      "consumers": [
+        "Weapon library",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "CALCULATED_VALUE": {
+      "execution": "PARTIAL",
+      "consumers": [
+        "Character sheet (Carry maximum, Additional Values)"
+      ],
+      "preview": "AUTHORED_RULE",
+      "notYet": "Combat and play do not read calculated values yet."
+    },
+    "CHARACTER_ADVANCEMENT_RULE": {
+      "execution": "LIVE",
+      "consumers": [
+        "Advancement"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "CHARACTER_CREATION_RULE": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character creation"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "CHARACTER_DIE_PROGRESSION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character creation",
+        "Advancement",
+        "Character sheet"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "CONCENTRATION_RULE": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "AUTHORED_RULE",
+      "notYet": "Combat and Active Magic do not use this rule yet; they still use the earlier Concentration policy."
+    },
+    "CORE_RESOLUTION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character sheet (saves, Initiative)",
+        "Play (rolls)"
+      ],
+      "preview": "RULE_PREVIEW",
+      "notYet": ""
+    },
+    "CREATURE_SIZE": {
+      "execution": "PARTIAL",
+      "consumers": [
+        "Play (space and movement)"
+      ],
+      "preview": "CONTENT",
+      "notYet": "Massive's movement adjustment is pending canon."
+    },
+    "DERIVED_STAT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character sheet",
+        "Play"
+      ],
+      "preview": "RULE_PREVIEW",
+      "notYet": ""
+    },
+    "EQUIPMENT_TRAIT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Weapon library"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "JOB_TEMPLATE": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "CONTENT",
+      "notYet": "Character creation does not offer Job templates yet (they are optional rules)."
+    },
+    "MAGE_ART": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "REFERENCE_PREVIEW",
+      "notYet": "Nothing plays a Mage Art yet; its card shows as unavailable. Version 2 previews its scaling at a Level."
+    },
+    "MANEUVER_CONDITION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Maneuver builder"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "MANEUVER_DEFINITION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Maneuver builder",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "MANEUVER_DURATION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Maneuver builder"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "MANEUVER_EFFECT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Maneuver builder",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "MANEUVER_FOUNDATION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Maneuver builder",
+        "Weapon bridge"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "MANEUVER_TARGETING": {
+      "execution": "LIVE",
+      "consumers": [
+        "Maneuver builder",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "MANEUVER_TRAIT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Maneuver builder",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "METAMAGIC": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "CONTENT",
+      "notYet": "The Spell builder does not offer Metamagic yet."
+    },
+    "MISSION_RULE": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "REFERENCE_PREVIEW",
+      "notYet": "Nothing generates or runs a Mission yet."
+    },
+    "RANK_LADDER": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character creation",
+        "Advancement",
+        "Character sheet"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "REFERENCE_RULE": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "REFERENCE_PREVIEW",
+      "notYet": "A written gameplay rule (table or points) for players and GMs; nothing calculates from it."
+    },
+    "RESOURCE": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character sheet (resources)",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SHARED_TRAIT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Spell and Maneuver builders"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SKILL": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character creation",
+        "Advancement",
+        "Character sheet"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SKILL_BENEFIT": {
+      "execution": "PARTIAL",
+      "consumers": [
+        "Character sheet (value additions, prerequisites, granted Actions)",
+        "Action Directory (granted Actions)"
+      ],
+      "preview": "AUTHORED_RULE",
+      "notYet": "Granted Actions are shown on the sheet and marked on their Action cards; taking the Action in play is unchanged. A situational bonus is shown with its condition, not added to the total."
+    },
+    "SKILL_RANK": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character sheet (Skill scores)",
+        "Play (Skill checks)"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SPELL_CASTING_CONDITION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Spell builder"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SPELL_DEFINITION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Spell builder",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SPELL_DURATION": {
+      "execution": "LIVE",
+      "consumers": [
+        "Spell builder",
+        "Play (Active Magic)"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SPELL_EFFECT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Spell builder",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SPELL_TARGETING": {
+      "execution": "LIVE",
+      "consumers": [
+        "Spell builder",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "SPELL_TRAIT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Spell builder",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "STAT": {
+      "execution": "LIVE",
+      "consumers": [
+        "Character creation",
+        "Character sheet",
+        "every rule that reads a Stat"
+      ],
+      "preview": "RULE_PREVIEW",
+      "notYet": ""
+    },
+    "STATUS_CONDITION": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "CONTENT",
+      "notYet": "Play does not apply Conditions yet."
+    },
+    "SUMMON_ACTION_MODEL": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "CONTENT",
+      "notYet": "Reserved: the action model and resource ownership are structured on each Summon engine."
+    },
+    "SUMMON_TRAIT": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "CONTENT",
+      "notYet": "No Summon is created or played yet."
+    },
+    "SUMMON_TYPE": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "REFERENCE_PREVIEW",
+      "notYet": "No Summon is created or played yet."
+    },
+    "TERRAIN": {
+      "execution": "PARTIAL",
+      "consumers": [
+        "Play (movement cost)"
+      ],
+      "preview": "CONTENT",
+      "notYet": "Hazard effects are not applied."
+    },
+    "WEAPON": {
+      "execution": "LIVE",
+      "consumers": [
+        "Weapon library",
+        "Character sheet (equipment)",
+        "Play"
+      ],
+      "preview": "CONTENT",
+      "notYet": ""
+    },
+    "WEAPON_MODIFICATION": {
+      "execution": "REFERENCE_ONLY",
+      "consumers": [
+        "Rules Reference"
+      ],
+      "preview": "REFERENCE_PREVIEW",
+      "notYet": "Nothing fits a modification to a Character's weapon yet; its changes are previewed on a sample weapon."
+    }
+  }
 }

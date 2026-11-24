@@ -4,6 +4,11 @@ import { SKILL_RANK_LADDER_KEY } from "./index.js";
 import { CHARACTER_PAYLOAD_KINDS } from "./definition/character-payload.js";
 import certified from "./testing/m6-wo3-registry-baseline.json";
 
+/** Kinds added by the LATER RULES-WO1 Work Order, characterized by rules-wo1-authoring.test.ts. */
+const RULES_WO1_KINDS: readonly string[] = ["CALCULATED_VALUE", "SKILL_BENEFIT", "CONCENTRATION_RULE", "METAMAGIC", "JOB_TEMPLATE", "REFERENCE_RULE", "AMMUNITION", "WEAPON_MODIFICATION"];
+/** Reserved kinds a LATER Work Order (RULES-WO1 Phase C) activated: ONLY their schemaVersions change (rules-wo1-reference.test.ts). */
+const RULES_WO1_ACTIVATED: readonly string[] = ["ARMOR", "STATUS_CONDITION", "SUMMON_TYPE", "SUMMON_TRAIT", "MISSION_RULE"];
+
 /**
  * PAS-10 M6-WO3 §84 — registry change guard. Every Prowess Definition kind specification that existed at the M6-WO3
  * base commit is byte-for-byte equal to its certified form (src/testing/m6-wo3-registry-baseline.json) EXCEPT the
@@ -28,6 +33,10 @@ describe("M6-WO3 registry characterization (§10, §84)", () => {
       // Activated by a LATER Work Order and characterized by its own registry test (M6-WO6: m6-wo6-registry.test.ts).
       if (kind === "WEAPON" || kind === "EQUIPMENT_TRAIT") continue;
       if (kind === "MAGE_ART") continue; // Activated by a LATER Work Order (PRE-M7-WO1: pre-m7-wo1-mage-art.test.ts).
+      if (RULES_WO1_ACTIVATED.includes(kind)) {
+        expect({ ...current[kind], schemaVersions: spec.schemaVersions }, kind).toEqual(spec);
+        continue;
+      }
       expect(JSON.stringify(current[kind]), kind).toBe(JSON.stringify(spec));
     }
   });
@@ -42,7 +51,7 @@ describe("M6-WO3 registry characterization (§10, §84)", () => {
 
   it("the only new kind is CHARACTER_CREATION_RULE: CHARACTER family, no shared contract, v1", () => {
     // Kinds added by LATER Work Orders are characterized by their own registry tests (M6-WO4: m6-wo4-registry.test.ts).
-    const later = ["CHARACTER_ADVANCEMENT_RULE", "ATTACK", "ACTION_IMPROVEMENT"];
+    const later = ["CHARACTER_ADVANCEMENT_RULE", "ATTACK", "ACTION_IMPROVEMENT", ...RULES_WO1_KINDS]; // RULES-WO1: rules-wo1-authoring.test.ts
     const added = Object.keys(current).filter((k) => !(k in baseline.kinds) && !later.includes(k));
     expect(added).toEqual(["CHARACTER_CREATION_RULE"]);
     expect(current.CHARACTER_CREATION_RULE).toEqual({ family: "CHARACTER", branch: null, contract: null, entityTypes: ["GENERIC_RULE"], schemaVersions: [1] });

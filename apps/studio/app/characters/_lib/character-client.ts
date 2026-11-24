@@ -343,6 +343,19 @@ export interface PossessionDto {
   item: string;
   weight: string;
 }
+export interface SheetSkillBenefitDto {
+  benefit: DefinitionRefDto;
+  benefitKey: string;
+  skill: DefinitionRefDto;
+  minimumRankKey: string;
+  heldRankKey: string | null;
+  rankMet: boolean;
+  eligibility: "RANK_ONLY" | "ELIGIBLE" | "INELIGIBLE" | "UNRESOLVED";
+  groups: Array<{ groupKey: string; mode: "ALL" | "ANY"; satisfied: boolean | null; prerequisites: Array<{ prerequisiteKey: string; kind: string; satisfied: boolean | null; reason: string | null }> }>;
+  grantedActions: Array<{ action: DefinitionRefDto; state: string; actionKey: string | null }>;
+  writtenBenefit: string;
+  status: "GRANTED" | "RANK_NOT_REACHED" | "INELIGIBLE" | "UNRESOLVED";
+}
 export interface CharacterSheetDto {
   identity: { id: string; name: string; concept: string | null; level: number; maximumLevel: number; status: string; ancestry: DefinitionRefDto | null; primaryAffinity: DefinitionRefDto | null; companyPac: string | null };
   release: ReleaseSummaryDto;
@@ -364,6 +377,10 @@ export interface CharacterSheetDto {
     affinities: SheetAffinityDto[];
     attunement: { maximum: SheetValueDto; used: SheetValueDto };
     carry: { currentWeight: SheetValueDto; maximumLoad: SheetValueDto };
+    /** RULES-WO1: published calculated values of the Release, evaluated for this Character (absent when none). */
+    calculatedValues?: SheetCalculatedValueDto[];
+    /** RULES-WO1 (R08): published Skill benefits evaluated for this Character (absent when none). */
+    skillBenefits?: SheetSkillBenefitDto[];
     signatureCapacity: number | null;
     issues: Array<{ code: string; path: string; message: string }>;
   };
@@ -737,3 +754,18 @@ export const getPlayWorkspace = async (id: string) => (await request<PlayViewDto
 export const previewPlayOperation = async (id: string, operation: unknown, expectedRuntimeVersion: number, expectedPlayStateVersion: number) => (await request<PlayPreviewDto>("POST", playPath(id, "/preview"), { operation, expectedRuntimeVersion, expectedPlayStateVersion })).data;
 export const commitPlayOperation = async (id: string, operation: unknown, idempotencyKey: string, expectedRuntimeVersion: number, expectedPlayStateVersion: number) => (await request<PlayCommitDto>("POST", playPath(id, "/operations"), { operation, idempotencyKey, expectedRuntimeVersion, expectedPlayStateVersion })).data;
 export const listPlayEvents = async (id: string, before: number | null, limit = 50) => (await request<{ events: PlayEventDto[] }>("GET", playPath(id, `/events?limit=${String(limit)}${before === null ? "" : `&before=${String(before)}`}`))).data;
+
+/** RULES-WO1: one authored calculated value on the sheet, with its canon status and each Skill benefit's addition. */
+export interface SheetCalculatedValueDto {
+  valueKey: string;
+  definition: { entityId: string; entityVersionId: string; canonicalKey: string } | null;
+  unit: string | null;
+  canonStatus: "CANONICAL" | "OWNER_PROVIDED" | "TEST_ONLY";
+  placement: "CARRY_MAXIMUM_LOAD" | "ADDITIONAL_VALUES" | "REFERENCE_ONLY";
+  note: string | null;
+  baseStated: boolean;
+  base: number | null;
+  contributions: Array<{ benefitKey: string; contributionKey: string; minimumRankKey: string; applies: boolean; amount: number | null; eligibility?: string; condition?: { conditionKey: string; text: string } | null }>;
+  total: number | null;
+  unavailable: string | null;
+}

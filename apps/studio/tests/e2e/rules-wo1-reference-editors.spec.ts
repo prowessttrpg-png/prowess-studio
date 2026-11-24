@@ -1,0 +1,389 @@
+import { expect as baseExpect, test, type Page } from "@playwright/test";
+import "./m6-wo8-fixture-loader";
+import "./m6-wo11-fixture-loader";
+
+/**
+ * RULES-WO1 Phase C — the reference-family guided editors, through the real UI against the production build and
+ * PostgreSQL. Each entry is created as a Draft in the shared Compendium (keys carry a unique run tag; nothing is
+ * published, so no Release or Character changes).
+ *
+ *   P01 "About" is in the main navigation and shows this build's identity and that ARMOR / SUMMON_TYPE / MISSION_RULE
+ *       are guided.
+ *   P02 Armor: a guided form (selects, numbers, a title-search source picker; section keys only under "advanced"),
+ *       validated by the M5 reader, created as a Draft; the entry Overview says "Reference only"; the sample preview
+ *       caps AGI and reports the Strength requirement — and says play does not use it.
+ *   P03 Mission rule: a die-range table whose gap is refused by validation, then accepted once every roll is covered;
+ *       the preview looks up a roll.
+ */
+const expect = baseExpect.configure({ timeout: 30_000 });
+const tag = `${Date.now().toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`;
+
+async function startNew(page: Page, family: string, kind: string, name: string) {
+  await page.goto("/compendium/admin/new");
+  await expect(page.getByRole("heading", { level: 1, name: "New Definition" })).toBeVisible();
+  await page.getByLabel("Definition family").selectOption(family);
+  await page.getByLabel("Definition kind").selectOption(kind);
+  await page.getByLabel("Display Name (required)").fill(name);
+  // The Canonical Key is never derived silently: one click suggests it from the Display Name.
+  await page.getByRole("button", { name: "Suggest a Canonical Key from the Display Name" }).click();
+  await expect(page.getByLabel("Canonical Key (required)")).not.toHaveValue("");
+}
+
+/** The readable source picker: search by title and Add; fall back to the advanced keys only with no imported rulebook. */
+async function chooseSource(page: Page, query: string): Promise<"TITLE" | "ADVANCED"> {
+  const picker = page.getByTestId("source-picker").first();
+  const none = picker.getByTestId("source-no-snapshot");
+  const search = picker.getByTestId("source-search");
+  // The picker first shows "Loading…", then EITHER the title search OR the no-rulebook note (never both).
+  await expect(picker.getByTestId("source-loading")).toHaveCount(0);
+  await expect(none.or(search)).toBeVisible();
+  if (await search.isVisible()) {
+    await search.fill(query);
+    const matches = picker.getByTestId("source-matches");
+    const found = await matches.waitFor({ state: "visible", timeout: 10_000 }).then(() => true, () => false);
+    if (found) {
+      await matches.getByRole("button", { name: /^Add / }).first().click();
+      await expect(picker.getByTestId("source-chosen")).toBeVisible();
+      return "TITLE";
+    }
+  }
+  await picker.getByText("Section keys (advanced)").click();
+  await picker.getByLabel(/Source sections chosen/).fill("s1");
+  return "ADVANCED";
+}
+
+async function validateAndCreate(page: Page, name: string) {
+  await page.getByRole("button", { name: "Validate Definition" }).click();
+  await expect(page.getByRole("region", { name: "Validation" }).getByRole("status")).toContainText("PASS");
+  await page.getByRole("button", { name: "Create Definition as Draft" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: `${name} — Revision 1` })).toBeVisible();
+}
+
+test.describe.configure({ mode: "serial" });
+
+test("RULES-WO1 P01 About is reachable from the main navigation and lists the guided reference editors", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("navigation").getByRole("link", { name: "About", exact: true }).click();
+  await page.waitForURL("**/about");
+  await expect(page.getByTestId("about-version")).not.toHaveText("");
+  await page.getByTestId("about-editors").locator("summary").click();
+  const guided = await page.getByTestId("about-guided-kind").allInnerTexts();
+  for (const k of ["ARMOR", "SUMMON_TYPE", "MISSION_RULE", "STATUS_CONDITION", "METAMAGIC", "JOB_TEMPLATE", "REFERENCE_RULE"]) expect(guided.join("\n")).toContain(k);
+  await expect(page.getByTestId("about-technical-kind")).toHaveCount(0);
+});
+
+test("RULES-WO1 P02 Armor: guided form, title source picker, Draft, truthful Overview and a sample preview", async ({ page }) => {
+  const name = `Plate E2E ${tag}`;
+  await startNew(page, "EQUIPMENT", "ARMOR", name);
+  // The Armor name used by other rules fills itself in from the Display Name.
+  await expect(page.getByLabel(/^Armor name used by other rules/)).not.toHaveValue("");
+  await page.getByLabel(/^Category/).selectOption("HEAVY");
+  await page.getByLabel(/^Armor granted/).fill("5");
+  await page.getByLabel(/^Strength required/).fill("5");
+  await page.getByLabel(/^Most AGI that counts toward Dodge/).fill("5");
+  await page.getByLabel(/^Movement penalty \(feet\)/).fill("5"); // stored as feet lost (the contract refuses a negative number)
+  await page.getByLabel(/^Stealth/).selectOption("DISADVANTAGE");
+  const how = await chooseSource(page, "armor");
+  // No payload field names or technical tree on the page.
+  await expect(page.getByText("armorValue", { exact: true })).toHaveCount(0);
+  await validateAndCreate(page, name);
+
+  await expect(page.getByTestId("status-live")).toHaveAttribute("data-state", "REFERENCE_ONLY");
+  await expect(page.getByTestId("status-live")).toContainText("Reference only");
+  const preview = page.getByTestId("reference-preview");
+  await expect(preview.getByTestId("reference-not-in-play")).toHaveText("Preview only — play does not use this rule yet.");
+  await preview.getByLabel("Sample AGI").fill("8");
+  await preview.getByLabel("Sample STR").fill("4");
+  await preview.getByTestId("reference-preview-run").click();
+  await expect(preview.getByTestId("preview-armor-agi")).toContainText("5");
+  await expect(preview.getByTestId("preview-armor-agi")).toContainText("capped");
+  await expect(preview.getByTestId("preview-armor-str")).toContainText(/no/i);
+  test.info().annotations.push({ type: "source-picker", description: how });
+});
+
+test("RULES-WO1 P03 Mission rule: a table with a gap is refused; a covering table is a Draft and previews a roll", async ({ page }) => {
+  const name = `Clauses E2E ${tag}`;
+  await startNew(page, "MISSION", "MISSION_RULE", name);
+  await page.getByLabel("Kind of rule").selectOption("ROLL_TABLE");
+  const table = page.getByTestId("mission-table");
+  await table.getByLabel("Die faces").fill("4");
+  await table.getByRole("button", { name: "Add row" }).click();
+  await table.getByLabel("Row 1 from").fill("1");
+  await table.getByLabel("Row 1 to").fill("2");
+  await table.getByLabel("Row 1 result").fill("No public combat.");
+  await table.getByRole("button", { name: "Add row" }).click();
+  await table.getByLabel("Row 2 from").fill("4");
+  await table.getByLabel("Row 2 to").fill("4");
+  await table.getByLabel("Row 2 result").fill("Hidden clause.");
+  await chooseSource(page, "mission");
+  await page.getByRole("button", { name: "Validate Definition" }).click();
+  await expect(page.getByRole("region", { name: "Validation" })).toContainText(/continue at 3/);
+  await table.getByLabel("Row 2 from").fill("3");
+  await validateAndCreate(page, name);
+
+  const preview = page.getByTestId("reference-preview");
+  await preview.getByLabel("Sample roll").fill("3");
+  await preview.getByTestId("reference-preview-run").click();
+  await expect(preview.getByTestId("preview-table-result")).toContainText("Hidden clause.");
+});
+
+const ENGINES = ["SUMMON_ENTITY", "TOTEM", "PERSISTENT_CONSTRUCT", "BOUND_SUMMON", "MANIFESTED_ENTITY", "FUSION", "EQUIPMENT_SUMMONING"] as const;
+
+const OWNERSHIP: Record<(typeof ENGINES)[number], [string, string, number | null, string, string]> = {
+  SUMMON_ENTITY: ["INDEPENDENT", "CASTER_TURN", 2, "SUMMON", "SUMMON"],
+  TOTEM: ["PASSIVE", "AUTOMATIC_AT_TRIGGER", null, "NONE", "SUMMON"],
+  PERSISTENT_CONSTRUCT: ["TEMPLATE_BASED", "END_OF_CASTER_TURN", 2, "SUMMON", "SUMMON"],
+  BOUND_SUMMON: ["SELF_BOUND", "CASTER_TURN", null, "CASTER", "CASTER"],
+  MANIFESTED_ENTITY: ["INDEPENDENT", "CASTER_TURN", 2, "SUMMON", "SUMMON"],
+  FUSION: ["SELF_BOUND", "CASTER_TURN", null, "CASTER", "CASTER"],
+  EQUIPMENT_SUMMONING: ["DEPENDENT", "CASTER_TURN", null, "CASTER", "NONE"],
+};
+
+test("RULES-WO1 P04 every Summon engine is authored through the guided form (R15)", async ({ page }) => {
+  test.setTimeout(480_000);
+  for (const engine of ENGINES) {
+    const name = `${engine.toLowerCase().replace(/_/g, " ")} E2E ${tag}`;
+    await startNew(page, "SUMMON", "SUMMON_TYPE", name);
+    await page.getByLabel("Engine (required)", { exact: true }).selectOption(engine);
+    await page.getByLabel("Sustain (required)", { exact: true }).selectOption("NONE");
+    await page.getByRole("button", { name: "Add tier" }).click();
+    const tier = page.getByTestId("guided-list-item").first();
+    await tier.getByLabel(/^Tier name/).fill("Tier 1");
+    await tier.getByLabel(/^Label/).fill("Tier 1");
+    await expect(tier.getByLabel(/^Tier name/)).toHaveValue("TIER_1");
+    await page.getByLabel(/^How it acts/).fill("Illustrative E2E entry (not canon).");
+    // Who acts and who pays (the Summoning rules' action models), as each engine's source section describes it.
+    const [model, when, ap, apOwner, hpOwner] = OWNERSHIP[engine];
+    await page.getByLabel("Action model (required)", { exact: true }).selectOption(model);
+    await page.getByLabel("When it acts (required)", { exact: true }).selectOption(when);
+    if (ap !== null) await page.getByLabel(/^Its own AP each round/).fill(String(ap));
+    await page.getByLabel("Whose AP it uses (required)", { exact: true }).selectOption(apOwner);
+    await page.getByLabel("Whose HP (required)", { exact: true }).selectOption(hpOwner);
+    await page.getByLabel("Whose MP (required)", { exact: true }).selectOption("NONE");
+    await page.getByLabel("Dismissal (required)", { exact: true }).selectOption("FREE_ACTION");
+    // Phase F: what it is bound to (a Bound Summon binds to a creature or an object — illustrative) and who may create it.
+    if (engine === "BOUND_SUMMON") {
+      const hosts = page.getByRole("group", { name: /What it can be placed on or bound to/ });
+      await hosts.getByLabel("Creature").check();
+      await hosts.getByLabel("Object").check();
+      await page.getByRole("button", { name: "Add requirement group" }).click();
+      const group = page.getByRole("group", { name: /Who can create it/ });
+      await group.getByLabel(/^Group name/).fill("Training");
+      await group.getByLabel(/^The group is met when/).selectOption("ALL");
+      await group.getByRole("button", { name: "Add prerequisite" }).click();
+      await group.getByRole("combobox", { name: "Kind", exact: true }).selectOption("LEVEL_AT_LEAST");
+      await group.getByLabel(/^Short name/).fill("Level 3");
+      await group.getByLabel(/^Minimum Level/).fill("3");
+    }
+    await chooseSource(page, "summon");
+    await validateAndCreate(page, name);
+    await expect(page.getByTestId("status-live")).toHaveAttribute("data-state", "REFERENCE_ONLY");
+  }
+});
+
+test("RULES-WO1 P05 a Mission rule links to a gameplay reference rule by name, never by key (R16)", async ({ page }) => {
+  const ruleName = `Cover E2E ${tag}`;
+  await startNew(page, "CORE", "REFERENCE_RULE", ruleName);
+  await page.getByLabel("Kind of rule").selectOption("POINTS");
+  await page.getByLabel("Rule points (one per line)").fill("Half cover: +2 Dodge (illustrative E2E).");
+  await chooseSource(page, "cover");
+  await validateAndCreate(page, ruleName);
+
+  const missionName = `Intel E2E ${tag}`;
+  await startNew(page, "MISSION", "MISSION_RULE", missionName);
+  await page.getByLabel("Kind of rule").selectOption("INTEL");
+  await page.getByLabel("What an Intel token can do (one per line)").fill("Reveal one hidden clock.");
+  await page.getByRole("button", { name: "Add rule" }).click();
+  const picker = page.getByRole("group", { name: "Choose the exact rule" });
+  await picker.getByRole("searchbox").fill(ruleName);
+  await picker.getByRole("button", { name: new RegExp(`^${ruleName}`) }).click();
+  await expect(page.getByTestId("ref-list-name")).toContainText("Cover");
+  await chooseSource(page, "intel");
+  await validateAndCreate(page, missionName);
+  // After saving, the link still reads as words, not as a machine key.
+  await expect(page.getByTestId("ref-list-name")).toContainText("Cover");
+  await expect(page.getByTestId("ref-list-name")).not.toContainText(".");
+});
+
+test("RULES-WO1 P06 390 px layout, keyboard use, empty and error states and timing for the guided editors (R25)", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  const started = Date.now();
+  await page.goto("/compendium/admin/new");
+  await page.getByLabel("Definition family").selectOption("EQUIPMENT");
+  await page.getByLabel("Definition kind").selectOption("ARMOR");
+  await expect(page.getByLabel(/^Armor granted/)).toBeVisible();
+  const editorReadyMs = Date.now() - started;
+  const noSideScroll = async () => expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
+  await noSideScroll();
+  // Keyboard: every control is reachable and labelled; typing a name works without a mouse.
+  await page.getByLabel("Display Name (required)").focus();
+  await page.keyboard.type(`Mobile Plate ${tag}`);
+  await page.keyboard.press("Tab");
+  const focused = await page.evaluate(() => {
+    const el = document.activeElement as HTMLElement | null;
+    return { tag: el?.tagName ?? "", label: el ? (el.getAttribute("aria-label") ?? (el.id ? document.querySelector(`label[for="${el.id}"]`)?.textContent : null) ?? el.closest("label")?.textContent ?? el.textContent ?? "") : "" };
+  });
+  expect(focused.tag).not.toBe("BODY");
+  expect(focused.label.trim()).not.toBe("");
+  // Empty state: the source picker says what is there (loading → search or the no-rulebook note).
+  const picker = page.getByTestId("source-picker").first();
+  await expect(picker.getByTestId("source-no-snapshot").or(picker.getByTestId("source-search"))).toBeVisible();
+  // Error state: validating an incomplete form names the problems in a live region and marks the fields.
+  await page.getByRole("button", { name: "Validate Definition" }).click();
+  const status = page.getByRole("region", { name: "Validation" }).getByRole("status");
+  await expect(status).toContainText("FAIL");
+  await noSideScroll();
+  // Timing: a reference preview round trip on a saved Draft.
+  await page.getByRole("button", { name: "Suggest a Canonical Key from the Display Name" }).click();
+  await page.getByLabel(/^Category/).selectOption("LIGHT");
+  await page.getByLabel(/^Armor granted/).fill("1");
+  await page.getByLabel(/^Movement penalty \(feet\)/).fill("0");
+  await page.getByLabel(/^Stealth/).selectOption("NORMAL");
+  await chooseSource(page, "armor");
+  await validateAndCreate(page, `Mobile Plate ${tag}`);
+  await noSideScroll();
+  const preview = page.getByTestId("reference-preview");
+  const t0 = Date.now();
+  await preview.getByTestId("reference-preview-run").click();
+  await expect(preview.getByTestId("preview-armor-agi")).toBeVisible();
+  const previewMs = Date.now() - t0;
+  const timing = JSON.stringify({ viewport: "390x844", editorReadyMs, previewMs });
+  test.info().annotations.push({ type: "timing", description: timing });
+  console.log(`RULES-WO1 P06 timing ${timing}`);
+  // Representative budgets for a local production build (generous; they catch regressions of an order of magnitude).
+  expect(editorReadyMs).toBeLessThan(15_000);
+  expect(previewMs).toBeLessThan(5_000);
+  await context.close();
+});
+
+test("RULES-WO1 P07 a Keyword's name is edited safely: usage shown first, key unchanged, a stale edit refused (R09)", async ({ page, request }) => {
+  const created = await request.post("/api/keywords", { data: { canonicalKey: `keyword.e2e_ember_${tag}`, name: `Ember ${tag}`, categoryId: null, description: null } });
+  expect(created.ok()).toBe(true);
+  const kw = (await created.json()).data as { id: string; canonicalKey: string };
+  await page.goto("/compendium/admin/keywords");
+  const row = page.getByTestId("keyword-row").filter({ hasText: `Ember ${tag}` });
+  await row.getByRole("button", { name: `Edit Ember ${tag}` }).click();
+  await expect(row.getByTestId("keyword-usage")).toContainText("permanent key and category stay the same");
+  // Someone else renames it first: this editor's save is refused, nothing overwritten.
+  const other = await request.patch(`/api/keywords/${kw.id}/presentation`, { data: { expected: { name: `Ember ${tag}`, description: null, deprecated: false }, name: `Ember ${tag} (other)`, description: null, deprecated: false } });
+  expect(other.ok()).toBe(true);
+  await row.getByLabel("Keyword name").fill(`Cinder ${tag}`);
+  await row.getByRole("button", { name: "Save Keyword" }).click();
+  await expect(row.getByRole("alert")).toContainText("changed after it was loaded");
+  // Reload and edit the current values.
+  await page.reload();
+  const fresh = page.getByTestId("keyword-row").filter({ hasText: `Ember ${tag} (other)` });
+  await fresh.getByRole("button", { name: /^Edit / }).click();
+  await fresh.getByLabel("Keyword name").fill(`Cinder ${tag}`);
+  await fresh.getByRole("button", { name: "Save Keyword" }).click();
+  await expect(page.getByRole("status").filter({ hasText: `Keyword "Cinder ${tag}" saved.` })).toBeVisible();
+  const after = (await (await request.get(`/api/keywords/${kw.id}`)).json()).data as { canonicalKey: string; name: string };
+  expect(after).toMatchObject({ canonicalKey: kw.canonicalKey, name: `Cinder ${tag}` });
+});
+
+test("RULES-WO1 P08 Mage Art v2: a Level table scales a mode, a structured benefit, and a preview at a Level (R12)", async ({ page }) => {
+  const name = `Focus E2E ${tag}`;
+  await startNew(page, "MAGE_ART", "MAGE_ART", name);
+  await page.getByLabel(/^Art key/).fill("Focus");
+  const activation = page.getByRole("group", { name: /Activation cost/ });
+  await activation.getByLabel("AP amount (required)").fill("1");
+  await activation.getByLabel("MP amount (required)").fill("6");
+  const maintenance = page.getByRole("group", { name: /Maintenance \(each turn\)/ });
+  await maintenance.getByLabel("AP amount (required)").fill("1");
+  await maintenance.getByLabel("MP amount (required)").fill("4");
+  await page.getByRole("group", { name: /Counts as an Active Effect/ }).getByRole("combobox").selectOption({ index: 1 });
+  await page.getByRole("button", { name: "Add mode" }).click();
+  const mode = page.getByTestId("guided-list-item").first();
+  await mode.getByLabel("Mode key (required)").fill("Focus");
+  await mode.getByLabel("Name (required)").fill("Focus");
+  await mode.getByLabel("Rules text (required)").fill("Illustrative E2E mode.");
+  await mode.getByRole("button", { name: "Add scaling" }).click();
+  await mode.getByLabel(/^Scaling name/).fill("Attack bonus");
+  await mode.getByLabel(/^Label/).last().fill("Attack bonus");
+  const table = mode.getByTestId("mage-art-level-table");
+  for (const [i, from, to, value] of [[1, 1, 3, 1], [2, 4, 6, 2], [3, 7, 10, 3]] as const) {
+    await table.getByRole("button", { name: "Add Level row" }).click();
+    await table.getByLabel(`Level row ${i} from`).fill(String(from));
+    await table.getByLabel(`Level row ${i} to`).fill(String(to));
+    await table.getByLabel(`Level row ${i} value`).fill(String(value));
+  }
+  await mode.getByLabel(/^As written/).fill("Bonus to Attack Rolls by Level (illustrative).");
+  // Phase F: a Stat substitution names the calculation it changes and the replacement Stat (chosen from lists).
+  await page.getByRole("button", { name: "Add benefit" }).click();
+  const benefit = page.getByRole("group", { name: /^Benefit/ }).last();
+  await benefit.getByRole("combobox", { name: "Kind", exact: true }).first().selectOption("STAT_SUBSTITUTION");
+  await benefit.getByLabel(/^Benefit name/).fill("Warding sight");
+  const calculation = benefit.getByRole("group", { name: /The calculation it changes/ });
+  await calculation.getByRole("combobox", { name: "Kind", exact: true }).selectOption("DERIVED");
+  await calculation.getByLabel(/^Derived value/).selectOption("DODGE");
+  await benefit.getByLabel(/^Instead of/).selectOption("AGI");
+  await benefit.getByLabel(/^Uses this Stat/).selectOption("RES");
+  await benefit.getByLabel(/^As written/).fill("Use Resolve instead of Agility for Dodge (illustrative).");
+  await chooseSource(page, "mage art");
+  await validateAndCreate(page, name);
+  const preview = page.getByTestId("reference-preview");
+  await preview.getByLabel("Sample Level").fill("5");
+  await preview.getByTestId("reference-preview-run").click();
+  await expect(preview.getByTestId("preview-scaling-ATTACK_BONUS")).toHaveText("2");
+});
+
+test("RULES-WO1 P10 a Condition says what it does: Disadvantage on Attack Rolls, and damage on a failed Save (R14)", async ({ page }) => {
+  const name = `Shaken E2E ${tag}`;
+  await startNew(page, "CONDITION", "STATUS_CONDITION", name);
+  await page.getByRole("button", { name: "Add effect" }).click();
+  const effect = page.getByTestId("guided-list-item").filter({ hasText: "Short name" }).first();
+  await effect.getByLabel(/^Short name/).fill("Rattled");
+  const what = effect.getByRole("group", { name: /What it does, exactly/ });
+  await what.getByRole("combobox", { name: "Kind", exact: true }).selectOption("ROLL_MODE");
+  await what.getByLabel(/^On/).selectOption("ATTACK_ROLL");
+  await what.getByLabel(/^Rolls with/).selectOption("DISADVANTAGE");
+  await effect.getByLabel(/^Effect/).last().fill("Disadvantage on Attack Rolls (illustrative).");
+  await page.getByRole("group", { name: /How long it lasts/ }).getByLabel(/^Lasts/).selectOption("UNTIL_SAVE");
+  await page.getByLabel(/^How it is removed/).fill("A successful Resolve Save (illustrative).");
+  await page.getByLabel("When it acts (required)", { exact: true }).selectOption("START_OF_TURN");
+  await page.getByLabel("Stacking (required)", { exact: true }).selectOption("DOES_NOT_STACK");
+  await page.getByRole("button", { name: "Add trigger" }).click();
+  const trigger = page.getByTestId("guided-list-item").filter({ hasText: "Trigger name" }).first();
+  await trigger.getByLabel(/^Trigger name/).fill("Panic");
+  await trigger.getByLabel(/^When/).first().selectOption("ON_FAILED_SAVE");
+  await trigger.getByLabel(/^Save Stat/).selectOption("RES");
+  const outcome = trigger.getByRole("group", { name: /What it does, exactly/ });
+  await outcome.getByRole("combobox", { name: "Kind", exact: true }).selectOption("DAMAGE");
+  await outcome.getByLabel(/^Number of dice/).fill("1");
+  await outcome.getByLabel(/^Die \(faces\)/).fill("4");
+  await trigger.getByLabel(/^What happens/).fill("Takes 1d4 damage on a failed Resolve Save (illustrative).");
+  await chooseSource(page, "condition");
+  await validateAndCreate(page, name);
+  await expect(page.getByTestId("status-live")).toHaveAttribute("data-state", "REFERENCE_ONLY");
+});
+
+test("RULES-WO1 P09 ammunition fitted to Weapon families by name, and its reload preview (R13)", async ({ page }) => {
+  test.setTimeout(300_000);
+  // Weapon families are offered from the Compendium's Weapons: this test seeds its own isolated test world (WO12 Release,
+  // which includes Weapons) instead of depending on another spec having run first, and removes it afterwards.
+  const db = (await import("@prowess/db")) as { assertRunningAgainstTestDatabase(url: string): void };
+  db.assertRunningAgainstTestDatabase(process.env.DATABASE_URL as string);
+  const prep = (await import("../../../../packages/prowess-db/tests/fixtures/m6-wo12-playtest" as string)) as { preparePlaytestWorld(runId: string): Promise<unknown>; cleanupPlaytestWorlds(runId: string): Promise<number> };
+  const worldId = `rw1p9${tag}`;
+  await prep.preparePlaytestWorld(worldId);
+  test.info().annotations.push({ type: "world", description: worldId });
+  const name = `Rounds E2E ${tag}`;
+  await startNew(page, "EQUIPMENT", "AMMUNITION", name);
+  const families = page.getByTestId("content-token-list-weaponFamilies");
+  await families.getByRole("combobox").selectOption({ index: 1 });
+  await expect(families.getByRole("button", { name: /^Remove / })).toHaveCount(1);
+  await page.getByLabel(/^Rounds used per attack/).fill("1");
+  await page.getByLabel(/^Rounds used per Burst/).fill("3");
+  await page.getByLabel(/^What it does/).fill("Standard rounds (illustrative).");
+  await chooseSource(page, "ammunition");
+  await validateAndCreate(page, name);
+  const preview = page.getByTestId("reference-preview");
+  await preview.getByLabel("Sample Loading").fill("12");
+  await preview.getByLabel("Sample Reload AP").fill("5");
+  await preview.getByTestId("reference-preview-run").click();
+  await expect(preview.getByTestId("preview-reload-attacks")).toContainText("12 (4 Bursts)");
+  await expect(preview.getByTestId("preview-reload-split")).toContainText("5 AP over 2 turn(s): 3 AP then 2 AP");
+  await prep.cleanupPlaytestWorlds(worldId);
+});
+

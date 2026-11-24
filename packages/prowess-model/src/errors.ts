@@ -139,6 +139,10 @@ export const KEYWORD_ERROR_CODES = {
   NOT_FOUND: "KEYWORD.NOT_FOUND",
   CANONICAL_KEY_CONFLICT: "KEYWORD.CANONICAL_KEY_CONFLICT",
   INVALID_INPUT: "KEYWORD.INVALID_INPUT",
+  /** RULES-WO1: a presentation edit made against an older view of the Keyword (reload, nothing was changed). */
+  STALE_EDIT: "KEYWORD.STALE_EDIT",
+  /** RULES-WO1: the Keyword was installed from a content pack; imported content is read-only (DIST-WO2 protection). */
+  IMPORTED_READ_ONLY: "KEYWORD.IMPORTED_READ_ONLY",
 } as const;
 
 export type KeywordErrorCode = (typeof KEYWORD_ERROR_CODES)[keyof typeof KEYWORD_ERROR_CODES];

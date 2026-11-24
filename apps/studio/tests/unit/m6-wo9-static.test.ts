@@ -163,7 +163,10 @@ describe("M6-WO9 permanent card system contracts", () => {
     expect(evaluate.getText()).toContain('if (state !== "PINNED") status = "UNRESOLVED";');
     expect(namedFunction(evaluator, "levelResult").getText()).toContain('numericCompare(LEVEL_FACT, profile.level, ">=", q.minimum)');
     expect(namedFunction(evaluator, "statResult").getText()).toContain('numericCompare(`stat.${q.stat}`, row.final, ">=", q.minimum)');
-    expect(callsNamed(evaluate, "evaluateRankPrerequisites").length).toBe(1);
+    // RULES-WO1 moved the per-prerequisite evaluation into evaluatePrerequisiteList (shared with Skill benefits): the
+    // evaluator calls it once, and it calls the one M6-WO4 rank evaluation once — the same single path as before.
+    expect(callsNamed(evaluate, "evaluatePrerequisiteList").length).toBe(1);
+    expect(callsNamed(namedFunction(evaluator, "evaluatePrerequisiteList"), "evaluateRankPrerequisites").length).toBe(1);
     // ACTION Definitions author no prerequisites: no eligibility rule is invented for them.
     expect(read(CARD + "action.ts")).toContain('eligibility: { status: "NO_REQUIREMENTS" as const },');
   });
@@ -189,7 +192,8 @@ describe("M6-WO9 permanent card system contracts", () => {
 
   it("W9-I144 Mage Arts are an unavailable domain: reserved kind, no card, no cost, no evaluation", () => {
     // PRE-M7-WO1 activates MAGE_ART v1 for authoring and reference only (pre-m7-wo1-static); the card domain stays UNAVAILABLE.
-    expect(read(G + "vocabulary/families.ts")).toMatch(/MAGE_ART: (?:reserved|active)\("MAGE_ART"\),/);
+    // PRE-M7-WO1 activated version 1; RULES-WO1 adds version 2 beside it (reference only in both).
+    expect(read(G + "vocabulary/families.ts")).toMatch(/MAGE_ART: (?:reserved\("MAGE_ART"\)|active\("MAGE_ART"\)|\{ family: "MAGE_ART", branch: null, contract: null, entityTypes: \["GENERIC_RULE"\], schemaVersions: \[1, 2\] \}),/);
     const mage = read(CARD + "mage-art.ts");
     expect(mage).toContain('availability: "UNAVAILABLE" as const,');
     expect(mage).toContain("costs: { ap: unavailable<number>(MAGE_ART_UNAVAILABLE_CODE, reason), mp: unavailable<number>(MAGE_ART_UNAVAILABLE_CODE, reason), breakdown: [] },");

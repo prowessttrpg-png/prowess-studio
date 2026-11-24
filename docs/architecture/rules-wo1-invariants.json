@@ -1,0 +1,145 @@
+[
+  {
+    "id": "RW1-I001",
+    "title": "Additive Rule Kinds Only",
+    "group": "Contract",
+    "meaning": "CALCULATED_VALUE, SKILL_BENEFIT and CONCENTRATION_RULE are new version-1 kinds registered through the approved-M5-change entry RULES-WO1; every pre-existing kind specification, payload contract and stored Definition is unchanged.",
+    "guards": [
+      "apps/studio/tests/unit/rules-wo1-static.test.ts",
+      "packages/prowess-game/src/rules-wo1-authoring.test.ts",
+      "scripts/rules-wo1-negative-controls.mjs",
+      "packages/prowess-game/src/m6-wo9-registry.test.ts"
+    ]
+  },
+  {
+    "id": "RW1-I002",
+    "title": "One Record Per Rule",
+    "group": "Authority",
+    "meaning": "A new game value is its own versioned Definition, never a field added to a STAT; a Stat page shows the rules that read it from the exact Release's rule graph, and a Skill benefit adds to a value by name through its own Definition.",
+    "guards": [
+      "apps/studio/tests/unit/rules-wo1-static.test.ts",
+      "packages/prowess-game/src/rules-wo1-authoring.test.ts",
+      "scripts/rules-wo1-negative-controls.mjs",
+      "packages/prowess-db/tests/integration/rules-wo1-authored-rules.test.ts"
+    ]
+  },
+  {
+    "id": "RW1-I003",
+    "title": "M4 Is The Only Arithmetic",
+    "group": "Authority",
+    "meaning": "Every base, every Skill-benefit addition, every sum and every Concentration preview step is an M4 Formula run by evaluateFormula; the game modules carry no operator arithmetic and the Studio shows only server numbers.",
+    "guards": [
+      "apps/studio/tests/unit/rules-wo1-static.test.ts",
+      "packages/prowess-game/src/rules-wo1-authoring.test.ts",
+      "scripts/rules-wo1-negative-controls.mjs",
+      "apps/studio/tests/unit/rules-wo1-authoring-ui.test.tsx"
+    ]
+  },
+  {
+    "id": "RW1-I004",
+    "title": "Nothing Unstated Is Invented",
+    "group": "Canon",
+    "meaning": "A value whose base the rulebook does not state has base null and is shown as bonuses only, with that fact stated; a non-canonical rule must say why and a canonical rule must cite its source; the shipped content carries no Carry Capacity formula.",
+    "guards": [
+      "apps/studio/tests/unit/rules-wo1-static.test.ts",
+      "packages/prowess-game/src/rules-wo1-authoring.test.ts",
+      "scripts/rules-wo1-negative-controls.mjs",
+      "apps/studio/tests/unit/rules-wo1-authoring-ui.test.tsx"
+    ]
+  },
+  {
+    "id": "RW1-I005",
+    "title": "Missing Inputs Are Unavailable, Never Zero",
+    "group": "Evaluation",
+    "meaning": "An input the Character lacks makes the value unavailable with a reason; a value that depends on itself is refused, not broken arbitrarily; a duplicated value name shows neither.",
+    "guards": [
+      "apps/studio/tests/unit/rules-wo1-static.test.ts",
+      "packages/prowess-game/src/rules-wo1-authoring.test.ts",
+      "scripts/rules-wo1-negative-controls.mjs"
+    ]
+  },
+  {
+    "id": "RW1-I006",
+    "title": "Concentration Is Preview Only",
+    "group": "Scope",
+    "meaning": "The CONCENTRATION_RULE is read only by its own preview, which reports appliesInPlay false and lists its open questions; no play, combat or Active Magic module reads it, and the Studio says so wherever the preview is shown.",
+    "guards": [
+      "apps/studio/tests/unit/rules-wo1-static.test.ts",
+      "packages/prowess-game/src/rules-wo1-authoring.test.ts",
+      "scripts/rules-wo1-negative-controls.mjs",
+      "apps/studio/tests/unit/rules-wo1-authoring-ui.test.tsx",
+      "packages/prowess-db/tests/integration/rules-wo1-authored-rules.test.ts"
+    ]
+  },
+  {
+    "id": "RW1-I007",
+    "title": "Previews Are Isolated",
+    "group": "Authority",
+    "meaning": "The authored-rule preview evaluates the published Release and an in-memory candidate in which Drafts replace pins or are added; it creates, changes or publishes no Release, Manifest, pin or revision.",
+    "guards": [
+      "apps/studio/tests/unit/rules-wo1-static.test.ts",
+      "packages/prowess-game/src/rules-wo1-authoring.test.ts",
+      "scripts/rules-wo1-negative-controls.mjs",
+      "packages/prowess-db/tests/integration/rules-wo1-authored-rules.test.ts"
+    ]
+  },
+  {
+    "id": "RW1-I008",
+    "title": "Earlier Releases Are Unchanged",
+    "group": "Release",
+    "meaning": "Without a published calculated value the Character sheet is byte-identical to before; publishing a value as Release 2 leaves a Release-1 Character's sheet and stored rows unchanged.",
+    "guards": [
+      "apps/studio/tests/unit/rules-wo1-static.test.ts",
+      "packages/prowess-game/src/rules-wo1-authoring.test.ts",
+      "scripts/rules-wo1-negative-controls.mjs",
+      "packages/prowess-db/tests/integration/rules-wo1-authored-rules.test.ts"
+    ]
+  },
+  {
+    "id": "RW1-I009",
+    "title": "Build Identity Is Visible",
+    "group": "Distribution",
+    "meaning": "The desktop controller passes the app version, source commit, tree and package fingerprint to Studio; About this build shows them and lists which kinds this build edits with a guided editor, refusing malformed values.",
+    "guards": [
+      "apps/studio/tests/unit/rules-wo1-static.test.ts",
+      "packages/prowess-game/src/rules-wo1-authoring.test.ts",
+      "scripts/rules-wo1-negative-controls.mjs",
+      "apps/studio/tests/unit/rules-wo1-authoring-ui.test.tsx"
+    ]
+  },
+  {
+    "id": "RW1-I010",
+    "title": "Reference Families Are Authored, Not Executed",
+    "group": "Scope",
+    "meaning": "ARMOR, STATUS_CONDITION, SUMMON_TYPE, SUMMON_TRAIT, MISSION_RULE, METAMAGIC, JOB_TEMPLATE and MAGE_ART v2 are created, edited, validated, shown and previewed; no play, combat, construction, equipment, card or sheet module reads them, and every preview reports that play does not use the rule yet.",
+    "guards": [
+      "apps/studio/tests/unit/rules-wo1-static.test.ts",
+      "scripts/rules-wo1-negative-controls.mjs",
+      "packages/prowess-game/src/rules-wo1-reference.test.ts",
+      "packages/prowess-db/tests/unit/rules-wo1-capabilities.test.ts"
+    ]
+  },
+  {
+    "id": "RW1-I011",
+    "title": "Ordinary Authoring Needs No Machine Keys",
+    "group": "Interface",
+    "meaning": "Rulebook sections are chosen by title (section keys only under an advanced disclosure), the Canonical Key and the Definition's name fields follow the Display Name, Skill ranks and calculated values are chosen by name, and every authorable kind has a guided editor.",
+    "guards": [
+      "apps/studio/tests/unit/rules-wo1-static.test.ts",
+      "scripts/rules-wo1-negative-controls.mjs",
+      "apps/studio/tests/unit/rules-wo1-phase-c-ui.test.tsx"
+    ]
+  },
+  {
+    "id": "RW1-I012",
+    "title": "Status Indicators Are Truthful",
+    "group": "Interface",
+    "meaning": "Each entry page states validation, publication in the Release it was opened from, preview, consumers and live execution from real sources; the code-declared capability registry covers every kind, and a kind marked reference-only is read by no runtime module.",
+    "guards": [
+      "apps/studio/tests/unit/rules-wo1-static.test.ts",
+      "scripts/rules-wo1-negative-controls.mjs",
+      "packages/prowess-db/tests/unit/rules-wo1-capabilities.test.ts",
+      "apps/studio/tests/unit/rules-wo1-phase-c-ui.test.tsx"
+    ]
+  }
+]

@@ -60,7 +60,7 @@ describe("ProwessDefinitionEnvelope", () => {
 
   it("reserved kinds are known but refuse a guessed payload contract", () => {
     const reserved = PROWESS_DEFINITION_KIND_NAMES.filter((k) => PROWESS_DEFINITION_KINDS[k].schemaVersions.length === 0);
-    expect(reserved).toContain("STATUS_CONDITION");
+    expect(reserved).toContain("SUMMON_ACTION_MODEL"); // RULES-WO1 Phase C activated STATUS_CONDITION; SUMMON_ACTION_MODEL stays reserved
     for (const kind of reserved) {
       const out = createProwessDefinitionEnvelope({ ...valid, definitionKind: kind, systemFamily: PROWESS_DEFINITION_KINDS[kind].family, payload: {} });
       expect(codes(out), kind).toEqual([C.UNSUPPORTED_SCHEMA_VERSION]);

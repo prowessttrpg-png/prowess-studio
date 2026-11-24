@@ -15,6 +15,7 @@ import {
   type ValidationResultDto,
 } from "../_lib/authoring-client";
 import { isDirty, newCandidate, suggestCanonicalKey, type DefinitionCandidate } from "../_lib/definition-form";
+import { statFormula } from "./FormulaEditor";
 import { descriptorFor } from "../_lib/descriptors";
 import { safeReturnTo } from "../../rulesets/_lib/reference-urls";
 import { useUnsavedChangesGuard } from "../_lib/use-navigation-guard";
@@ -65,6 +66,10 @@ export function NewDefinitionForm() {
   const params = useSearchParams();
   const returnTo = safeReturnTo(params.get("returnTo"));
   const presetKind = params.get("kind");
+  // RULES-WO1: "Make <Stat> affect something new" opens a new calculated value that already reads that Stat, and the
+  // new Draft opens with the Release preview of the page it came from.
+  const presetStat = /^[A-Z]{2,5}$/.test(params.get("stat") ?? "") ? (params.get("stat") as string) : null;
+  const presetRelease = /^[0-9a-f-]{36}$/i.test(params.get("release") ?? "") ? (params.get("release") as string) : null;
   const presetApplied = useRef(false);
   useEffect(() => {
     if (catalog === null || presetApplied.current || presetKind === null) return;
@@ -74,8 +79,10 @@ export function NewDefinitionForm() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time preset from the URL once the catalog is known
     setFamily(k.systemFamily);
     setKindName(k.definitionKind);
-    setCandidate(newCandidate(k));
-  }, [catalog, presetKind]);
+    const fresh = newCandidate(k);
+    const presetField = descriptorFor(k, fresh.schemaVersion).fields.find((f) => f.input === "optionalFormula" && f.presetFromStat === true);
+    setCandidate(presetStat !== null && presetField !== undefined ? { ...fresh, payload: { ...fresh.payload, [presetField.key]: statFormula(presetStat) } } : fresh);
+  }, [catalog, presetKind, presetStat]);
 
   useEffect(() => {
     getCatalog().then(setCatalog, (e: unknown) => setLoadError(e instanceof AuthoringApiError ? e.message : "Could not load the authoring catalog."));
@@ -86,6 +93,23 @@ export function NewDefinitionForm() {
   const kindsOfFamily = useMemo(() => (catalog === null ? [] : catalog.kinds.filter((k) => k.systemFamily === family)), [catalog, family]);
   const kind = catalog?.kinds.find((k) => k.definitionKind === kindName) ?? null;
   const descriptor = kind !== null && candidate !== null ? descriptorFor(kind, candidate.schemaVersion) : null;
+
+  // RULES-WO1: nobody has to type a machine key. The Definition's own name fields follow the Display Name until the author
+  // edits them; the Canonical Key is never derived silently (M6-WO1) — one click on "Suggest" fills it.
+  const tokenOf = (name: string) => name.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_+|_+$/g, "").replace(/^([0-9])/, "N$1").slice(0, 64);
+  function onDisplayName(next: string) {
+    const before = displayName;
+    setDisplayName(next);
+    if (candidate !== null && descriptor !== null) {
+      const auto = descriptor.fields.flatMap((f) => (f.input === "token" && f.fromName === true ? [f.key] : f.input === "missionRule" && f.nameKey !== undefined ? [f.nameKey] : []));
+      const patch: Record<string, unknown> = {};
+      for (const key of auto) {
+        const current = candidate.payload[key];
+        if (current === "" || current === undefined || current === tokenOf(before)) patch[key] = tokenOf(next);
+      }
+      if (Object.keys(patch).length > 0) setCandidate({ ...candidate, payload: { ...candidate.payload, ...patch } });
+    }
+  }
 
   const pristine = { family: "", kindName: "", canonicalKey: "", displayName: "", shortDescription: "", rulesText: "", sources: [], entityKeywords: [], versionKeywords: [] };
   const dirty = isDirty(pristine, { family, kindName, canonicalKey, displayName, shortDescription, rulesText, sources, entityKeywords, versionKeywords }) && busy !== "create";
@@ -132,7 +156,7 @@ export function NewDefinitionForm() {
         router.push(`${returnTo}${returnTo.includes("?") ? "&" : "?"}childRef=${encodeURIComponent(JSON.stringify(ref))}`);
         return;
       }
-      router.push(`/compendium/admin/entities/${created.entity.id}/revisions/${created.version.id}?created=1`);
+      router.push(`/compendium/admin/entities/${created.entity.id}/revisions/${created.version.id}?created=1${presetRelease !== null ? `&release=${presetRelease}` : ""}${presetStat !== null ? `&stat=${presetStat}` : ""}`);
     } catch (e) {
       setBusy("");
       setError(e instanceof AuthoringApiError ? { code: e.code, message: e.message } : { code: "UNKNOWN", message: "The Definition could not be created." });
@@ -227,14 +251,14 @@ export function NewDefinitionForm() {
         <h2 id="new-def-identity">2. Identity</h2>
         <label className="gov-field" htmlFor="new-def-display-name">
           <span>Display Name (required)</span>
-          <input id="new-def-display-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+          <input id="new-def-display-name" value={displayName} onChange={(e) => onDisplayName(e.target.value)} />
         </label>
         <label className="gov-field" htmlFor="new-def-canonical-key">
           <span>Canonical Key (required)</span>
           <input id="new-def-canonical-key" value={canonicalKey} onChange={(e) => setCanonicalKey(e.target.value)} spellCheck={false} aria-describedby="new-def-canonical-key-help" />
         </label>
         <p id="new-def-canonical-key-help" className="gov-muted">
-          The Canonical Key is the Definition&apos;s permanent machine identity (for example <code>spell.effect.force_push</code>). The Display Name is the human-facing name: renaming it later never changes the Canonical Key. A
+          No typing needed: use &ldquo;Suggest a Canonical Key from the Display Name&rdquo;. The Canonical Key is the Definition&apos;s permanent machine identity (for example <code>spell.effect.force_push</code>). The Display Name is the human-facing name: renaming it later never changes the Canonical Key. A
           Canonical Key already in use is an error.
         </p>
         <div className="gov-actions">
@@ -350,6 +374,7 @@ export function NewDefinitionForm() {
         content={{ displayName, shortDescription, rulesText, status: null, revisionNumber: null, sources: sources.map((s) => ({ title: s.title, sectionLabel: s.sectionLabel || null, pageReference: s.pageReference || null })) }}
         candidate={candidate}
         validation={staleValidation ? null : (validation?.result ?? null)}
+        fields={descriptor?.fields ?? []}
       />
 
       {error ? (

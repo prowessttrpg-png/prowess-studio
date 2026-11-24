@@ -111,7 +111,9 @@ const controls = [
   ["42 Rules Text parsed for property", CATALOG, append("export const pierceFromText = (summary: string) => Number(summary.match(/Ignore (\\d+)/)?.[1] ?? 0);"), studio],
   ["43 property marked executable without full contract", PAYLOAD, replace('  if (executionStatus === "EXECUTABLE") contract = readContract(rawContract, [...at, "contract"], p);', '  if (executionStatus === "EXECUTABLE" && rawContract !== null) contract = readContract(rawContract, [...at, "contract"], p);'), game],
   // ---- Scope boundaries (§7, §139) ----
-  ["44 ARMOR activated accidentally", G("vocabulary/families.ts"), replace('  ARMOR: reserved("EQUIPMENT"),', '  ARMOR: active("EQUIPMENT"),'), studio],
+  // RULES-WO1 Phase C activated ARMOR as an approved change (the guards were updated then); the control now reverts that
+  // approved activation, which the same M6-WO6 static guard must catch.
+  ["44 ARMOR activation (RULES-WO1, approved) reverted", G("vocabulary/families.ts"), replace('  ARMOR: active("EQUIPMENT"),', '  ARMOR: reserved("EQUIPMENT"),'), studio],
   ["45 full inventory domain introduced", SCHEMA, replace(WO6_END, "model CharacterInventoryItem {\n  id String @id @db.Uuid\n  characterId String @db.Uuid\n}\n" + WO6_END), studio],
   ["46 frontend calculates Power scaling", "apps/studio/app/characters/_lib/weapon-format.ts", replace("  return d.final !== null ? `${d.final.expression} ${type}` :", "  return d.final !== null ? `${d.base.count * (d.multiplier ?? 1)}d${d.base.sides} ${type}` :"), studio],
   ["47 Character Sheet uses hard-coded Weapon catalog", "apps/studio/app/characters/_components/sheet/WeaponPanels.tsx", append('export const SHEET_WEAPONS = ["Long Blade", "Rifle", "Light Shield"] as const;'), studio],

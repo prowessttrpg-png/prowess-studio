@@ -14,6 +14,12 @@ export interface FormulaSource {
   readonly stat?: string;
   readonly statistic?: string;
   readonly field?: string;
+  /** RULES-WO1: the authored calculated value a `{ kind: "CALCULATED_VALUE" }` input reads. */
+  readonly valueKey?: string;
+  /** RULES-WO1 Phase H: the Skill-rank table a `{ kind: "SKILL_RANK_TABLE" }` Targeting input reads. */
+  readonly table?: string;
+  /** RULES-WO1 Phase G: the Targeting size choice a `{ kind: "PARAMETER" }` input reads. */
+  readonly parameter?: string;
 }
 
 const title = (t: string) => t.toLowerCase().split("_").map((w) => (w === "" ? w : w[0]!.toUpperCase() + w.slice(1))).join(" ");
@@ -23,13 +29,35 @@ export function formulaSourceLabel(s: FormulaSource): string {
   if (s.kind === "STAT") return `Stat ${s.stat ?? "?"}`;
   if (s.kind === "DERIVED") return `derived ${title(s.statistic ?? "?")}`;
   if (s.kind === "CHARACTER") return `Character ${title(s.field ?? "?")}`;
+  if (s.kind === "LEVEL") return "Character Level";
+  if (s.kind === "CAST_AP") return "the Spell's casting AP";
+  if (s.kind === "CALCULATED_VALUE") return `value ${title(s.valueKey ?? "?")}`;
+  // RULES-WO1 Phase H: a construction / policy Formula's fixed input (its name is the variable), a Targeting rank table.
+  if (s.kind === "CONSTRUCTION_INPUT") return `the input ${(s.field ?? "?").replace(/_/g, " ")}`;
+  if (s.kind === "SKILL_RANK_TABLE") return `the rank table ${(s.table ?? "?").replace(/_/g, " ").toLowerCase()}`;
+  if (s.kind === "PARAMETER") return `the choice ${(s.parameter ?? "?").replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase()}`;
   if (s.kind === "") return "no source";
   return title(s.kind);
 }
 
+/**
+ * RULES-WO1 Phase G: the same readable name in lowerCamel (`str`, `martialRankValue`, `sizeSteps` …) — the naming an
+ * Effect's formula variables must use (the M5 Effect reader refuses `martial_rank`).
+ */
+export function camelVariableNameFor(s: FormulaSource, taken: readonly string[]): string {
+  const snake = variableNameFor(s, []);
+  const base = snake.replace(/_+([a-z0-9])/g, (_, c: string) => c.toUpperCase()).replace(/_/g, "");
+  const stem = /^[a-z]/.test(base) ? base : `v${base}`;
+  let name = stem;
+  for (let i = 2; taken.includes(name); i += 1) name = `${stem}${i}`;
+  return name;
+}
+
 /** A readable, unused Formula variable name for a source (`str`, `con`, `accuracy`, `level`, `bonuses` …). */
 export function variableNameFor(s: FormulaSource, taken: readonly string[]): string {
-  const stem = (s.kind === "STAT" ? s.stat : s.kind === "DERIVED" ? s.statistic : s.kind === "CHARACTER" ? s.field : s.kind === "EXPLICIT_BONUSES" ? "bonuses" : s.kind)?.toLowerCase().replace(/[^a-z0-9_]/g, "_") || "input";
+  // A fixed construction / policy input IS its variable (the reader requires exactly that name).
+  if (s.kind === "CONSTRUCTION_INPUT" && typeof s.field === "string" && /^[a-z_][a-z0-9_]*$/.test(s.field)) return s.field;
+  const stem = (s.kind === "STAT" ? s.stat : s.kind === "DERIVED" ? s.statistic : s.kind === "CHARACTER" ? s.field : s.kind === "EXPLICIT_BONUSES" ? "bonuses" : s.kind === "CALCULATED_VALUE" ? s.valueKey : s.kind === "PARAMETER" ? s.parameter?.replace(/([a-z0-9])([A-Z])/g, "$1_$2") : s.kind === "SKILL_RANK_TABLE" ? s.table : s.kind)?.toLowerCase().replace(/[^a-z0-9_]/g, "_") || "input";
   const base = /^[a-z_]/.test(stem) ? stem : `v_${stem}`;
   let name = base;
   for (let i = 2; taken.includes(name); i += 1) name = `${base}_${i}`;
@@ -59,6 +87,9 @@ function readTerm(x: unknown, i: number): FormulaTermInput {
     case "SCALED":
       if (!isIdent(t.variable) || !isNumber(t.factor) || t.factor < 0) throw invalid(`terms[${i}] needs a variable and a non-negative multiplier`);
       return { sign: t.sign, kind: "SCALED", variable: t.variable, factor: t.factor };
+    case "PRODUCT":
+      if (!isIdent(t.variable) || !isIdent(t.other)) throw invalid(`terms[${i}] needs two inputs`);
+      return { sign: t.sign, kind: "PRODUCT", variable: t.variable, other: t.other };
     case "DIVIDED":
       if (!isIdent(t.variable) || !isNumber(t.divisor) || t.divisor < 0 || !(t.rounding === null || t.rounding === "floor" || t.rounding === "ceil")) throw invalid(`terms[${i}] needs a variable, a non-negative divisor and a rounding of floor, ceil or none`);
       return { sign: t.sign, kind: "DIVIDED", variable: t.variable, divisor: t.divisor, rounding: t.rounding };
@@ -66,7 +97,7 @@ function readTerm(x: unknown, i: number): FormulaTermInput {
       if (typeof t.text !== "string" || t.text.length > 500) throw invalid(`terms[${i}].text is the term's expression`);
       return { sign: t.sign, kind: "OTHER", text: t.text };
     default:
-      throw invalid(`terms[${i}].kind is CONSTANT, INPUT, SCALED, DIVIDED or OTHER`);
+      throw invalid(`terms[${i}].kind is CONSTANT, INPUT, SCALED, PRODUCT, DIVIDED or OTHER`);
   }
 }
 
@@ -77,7 +108,7 @@ function readSources(v: unknown): FormulaSource[] {
     if (x === null || typeof x !== "object") throw invalid(`sources[${i}] must be an object`);
     const r = x as Record<string, unknown>;
     const str = (k: string) => (typeof r[k] === "string" && (r[k] as string).length <= 64 ? (r[k] as string) : undefined);
-    return { kind: str("kind") ?? "", ...(str("stat") ? { stat: str("stat") } : {}), ...(str("statistic") ? { statistic: str("statistic") } : {}), ...(str("field") ? { field: str("field") } : {}) };
+    return { kind: str("kind") ?? "", ...(str("stat") ? { stat: str("stat") } : {}), ...(str("statistic") ? { statistic: str("statistic") } : {}), ...(str("field") ? { field: str("field") } : {}), ...(str("valueKey") ? { valueKey: str("valueKey") } : {}), ...(str("parameter") ? { parameter: str("parameter") } : {}), ...(str("table") ? { table: str("table") } : {}) };
   });
 }
 
@@ -112,7 +143,8 @@ export function formulaGuide(body: Record<string, unknown>): Record<string, unkn
     case "name": {
       const [source] = readSources([body.source]);
       if (!Array.isArray(body.taken) || !body.taken.every(isIdent)) throw invalid("taken is a list of variable names");
-      return { variable: variableNameFor(source!, body.taken as string[]), label: formulaSourceLabel(source!) };
+      if (body.style !== undefined && body.style !== "camel") throw invalid('style is "camel" when given');
+      return { variable: (body.style === "camel" ? camelVariableNameFor : variableNameFor)(source!, body.taken as string[]), label: formulaSourceLabel(source!) };
     }
     default:
       throw invalid("op is describe, compose, rename or name");

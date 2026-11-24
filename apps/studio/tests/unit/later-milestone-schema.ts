@@ -67,7 +67,7 @@ interface ApprovedChanges {
 function approved(): Array<{ changedFiles: Record<string, string>; addedFiles: Record<string, string> }> {
   const raw = JSON.parse(readFileSync(path.join(ROOT, "docs/architecture/m6-approved-m5-changes.json"), "utf8")) as ApprovedChanges;
   return Object.entries(raw)
-    .filter((e): e is [string, { changedFiles: Record<string, string>; addedFiles: Record<string, string> }] => /^(?:M\d+-WO\d+|PRE-M7-WO1)$/.test(e[0]) && typeof e[1] === "object")
+    .filter((e): e is [string, { changedFiles: Record<string, string>; addedFiles: Record<string, string> }] => /^(?:M\d+-WO\d+|PRE-M7-WO1|RULES-WO1)$/.test(e[0]) && typeof e[1] === "object")
     .map(([, v]) => v);
 }
 

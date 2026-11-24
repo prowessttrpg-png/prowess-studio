@@ -1,4 +1,5 @@
-import { postAuthoring } from "./authoring-client";
+import { getAuthoring, postAuthoring } from "./authoring-client";
+import type { ContentTokenOptions } from "./descriptors";
 
 /**
  * PRE-M7-WO1 — clients for the two side-effect-free rule tools used while authoring. Both are POST only because they
@@ -9,14 +10,19 @@ import { postAuthoring } from "./authoring-client";
 
 export interface FormulaSourceDto {
   readonly kind: string;
+  /** RULES-WO1 Phase H: a Targeting Skill-rank table. */
+  readonly table?: string;
   readonly stat?: string;
   readonly statistic?: string;
   readonly field?: string;
+  /** RULES-WO1 Phase G: a Targeting size choice. */
+  readonly parameter?: string;
 }
 export type FormulaTermDto =
   | { readonly sign: 1 | -1; readonly kind: "CONSTANT"; readonly value: number; readonly text?: string }
   | { readonly sign: 1 | -1; readonly kind: "INPUT"; readonly variable: string; readonly text?: string }
   | { readonly sign: 1 | -1; readonly kind: "SCALED"; readonly variable: string; readonly factor: number; readonly text?: string }
+  | { readonly sign: 1 | -1; readonly kind: "PRODUCT"; readonly variable: string; readonly other: string; readonly text?: string }
   | { readonly sign: 1 | -1; readonly kind: "DIVIDED"; readonly variable: string; readonly divisor: number; readonly rounding: "floor" | "ceil" | null; readonly text?: string }
   | { readonly sign: 1 | -1; readonly kind: "OTHER"; readonly text: string };
 export interface FormulaDescriptionDto {
@@ -31,7 +37,7 @@ const FORMULA = "/api/compendium-rules/formula";
 export const describeFormula = async (expression: string, sources: readonly FormulaSourceDto[]) => (await postAuthoring<{ description: FormulaDescriptionDto }>(FORMULA, { op: "describe", expression, sources })).description;
 export const composeFormula = (terms: readonly FormulaTermDto[], sources: readonly FormulaSourceDto[]) => postAuthoring<Changed>(FORMULA, { op: "compose", terms, sources });
 export const renameFormulaInput = (expression: string, from: string, to: string, sources: readonly FormulaSourceDto[]) => postAuthoring<Changed>(FORMULA, { op: "rename", expression, from, to, sources });
-export const nameFormulaInput = (source: FormulaSourceDto, taken: readonly string[]) => postAuthoring<{ variable: string; label: string }>(FORMULA, { op: "name", source, taken });
+export const nameFormulaInput = (source: FormulaSourceDto, taken: readonly string[], style?: "camel") => postAuthoring<{ variable: string; label: string }>(FORMULA, { op: "name", source, taken, ...(style ? { style } : {}) });
 
 export interface PreviewExampleDto {
   label: string;
@@ -53,3 +59,109 @@ export interface RuleCandidatePreviewDto {
   changed: string[];
 }
 export const previewRuleCandidate = (body: { releaseId: string; drafts: string[]; examples: PreviewExampleDto[] }) => postAuthoring<RuleCandidatePreviewDto>("/api/compendium-rules/preview", body);
+
+// ---- RULES-WO1: authored rules (calculated values, Skill benefits, the Concentration rule) -----------------------------
+export interface AuthoredRuleSampleDto {
+  level: number;
+  stats: Record<string, number>;
+  skillRanks: Array<{ skillEntityId: string; rankKey: string }>;
+  /** RULES-WO1 Phase F: an Affinity left out is read as not owned (as for a Character). */
+  affinityRanks: Array<{ affinityEntityId: string; rankKey: string }>;
+  effects: Array<{ label: string; castAp: number; assignedPoints: number }>;
+}
+/** One Skill benefit evaluated for the sample by the Character sheet's own function (same fields as the sheet). */
+export interface SampleSkillBenefitDto {
+  benefitKey: string;
+  displayName: string | null;
+  skillName: string | null;
+  skill: { entityId: string; canonicalKey: string };
+  minimumRankKey: string;
+  heldRankKey: string | null;
+  rankMet: boolean;
+  eligibility: string;
+  status: string;
+  writtenBenefit: string;
+  groups: Array<{ groupKey: string; mode: string; satisfied: boolean | null; prerequisites: Array<{ prerequisiteKey: string; kind: string; satisfied: boolean | null; reason: string | null }> }>;
+  grantedActions: Array<{ action: { canonicalKey: string }; state: string; actionKey: string | null }>;
+  actionNames: Array<string | null>;
+}
+export interface SampleInputDto {
+  input: string;
+  subject: { entityId: string; canonicalKey: string } | null;
+  stat: string | null;
+  supplied: boolean;
+  readAs: string | null;
+  name: string | null;
+}
+export interface AuthoredValueDto {
+  valueKey: string;
+  displayName: string | null;
+  definition: { entityId: string; entityVersionId: string; canonicalKey: string } | null;
+  unit: string | null;
+  canonStatus: string;
+  placement: string;
+  note: string | null;
+  baseStated: boolean;
+  base: number | null;
+  contributions: Array<{ benefitKey: string; contributionKey: string; minimumRankKey: string; applies: boolean; amount: number | null; skill: { canonicalKey: string } }>;
+  total: number | null;
+  unavailable: string | null;
+}
+export interface ConcentrationPreviewDto {
+  capacity: number | null;
+  assignedPoints: number;
+  freePoints: number | null;
+  effects: Array<{ label: string; castAp: number; upkeepAp: number | null; assignedPoints: number; coveredAp: number | null; payableAp: number | null }>;
+  totalPayableAp: number | null;
+  mpUpkeepStillPaid: boolean;
+  manaLockStillApplies: boolean;
+  openQuestions: string[];
+  appliesInPlay: false;
+  issues: Array<{ code: string; message: string }>;
+}
+export interface AuthoredRulesSideDto {
+  ok: boolean;
+  problems: string[];
+  values: AuthoredValueDto[];
+  concentration: Array<{ canonicalKey: string; displayName: string | null; preview: ConcentrationPreviewDto }>;
+  skills: Array<{ entityId: string; canonicalKey: string; displayName: string | null }>;
+  ranks: string[];
+  benefits: SampleSkillBenefitDto[];
+  inputs: SampleInputDto[];
+  affinities: Array<{ entityId: string; canonicalKey: string; displayName: string | null }>;
+  affinityRanks: string[];
+}
+export interface AuthoredRulesPreviewDto {
+  release: { id: string; rulesetId: string; releaseNumber: number; versionLabel: string };
+  overlay: Array<{ entityId: string; entityVersionId: string; revisionNumber: number; status: string; mode: "REPLACES_PIN" | "ADDED" }>;
+  published: AuthoredRulesSideDto;
+  candidate: AuthoredRulesSideDto;
+}
+export const previewAuthoredRules = (body: { releaseId: string; drafts: string[]; sample: AuthoredRuleSampleDto }) => postAuthoring<AuthoredRulesPreviewDto>("/api/compendium-rules/authored-preview", body);
+
+// ---- RULES-WO1 Phase C: readable source sections and reference previews -------------------------------------------
+export interface SourceSectionOptionDto {
+  locator: string;
+  title: string;
+  headingLevel: number;
+  parentTitle: string | null;
+}
+export interface SourceSectionLookupDto {
+  snapshot: { id: string; label: string; sectionCount: number } | null;
+  snapshots: Array<{ id: string; label: string; sectionCount: number }>;
+  matches: SourceSectionOptionDto[];
+  known: SourceSectionOptionDto[];
+  unknown: string[];
+}
+export const lookupSourceSections = (q: string, locators: readonly string[]) =>
+  getAuthoring<SourceSectionLookupDto>(`/api/compendium-rules/source-sections?q=${encodeURIComponent(q)}&locators=${encodeURIComponent(locators.join(","))}`);
+export interface ReferencePreviewDto {
+  definitionKind: string;
+  result: Record<string, unknown>;
+}
+export interface AuthoringOptionDto {
+  token: string;
+  label: string;
+}
+export const listAuthoringOptions = (list: ContentTokenOptions) => getAuthoring<AuthoringOptionDto[]>(`/api/compendium-rules/authoring-options?list=${list}`);
+export const previewReference = (body: { entityVersionId: string; sample: Record<string, unknown> }) => postAuthoring<ReferencePreviewDto>("/api/compendium-rules/reference-preview", body);
